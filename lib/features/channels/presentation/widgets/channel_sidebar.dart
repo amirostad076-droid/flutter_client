@@ -1,0 +1,202 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
+import 'package:fluxeron/features/channels/domain/channel.dart';
+import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
+import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+class ChannelSidebar extends ConsumerWidget {
+  const ChannelSidebar({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(channelListViewModelProvider);
+    final serverName = state.serverName;
+    final categories = state.categories;
+    final selectedId = state.selectedChannelId;
+    final collapsed = state.collapsedCategories;
+
+    return Container(
+      width: 240,
+      decoration: const BoxDecoration(
+        color: FluxerColors.channelSidebarBackground,
+        border: Border(right: BorderSide(color: FluxerColors.separator)),
+      ),
+      child: Column(
+        children: [
+          _buildServerHeader(context, ref, serverName),
+          Expanded(
+            child: _buildChannelList(
+              context,
+              ref,
+              categories,
+              selectedId,
+              collapsed,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServerHeader(BuildContext context, WidgetRef ref, String name) =>
+      Material(
+        color: FluxerColors.channelSidebarBackground,
+        child: InkWell(
+          onTap: () {
+            final serverId = ref
+                .read(serverListViewModelProvider)
+                .selectedServerId;
+            if (serverId != null) {
+              context.go('/settings/server/$serverId');
+            }
+          },
+          child: Container(
+            height: 56,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: FluxerColors.separator)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    name,
+                    style: FluxerTextStyles.channelName,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const PhosphorIcon(
+                  PhosphorIconsFill.caretDown,
+                  color: FluxerColors.textNormal,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget _buildChannelList(
+    BuildContext context,
+    WidgetRef ref,
+    List<ChannelCategory> categories,
+    String? selectedId,
+    Set<String> collapsed,
+  ) => ListView.builder(
+    padding: const EdgeInsets.only(top: 12),
+    itemCount: categories.length,
+    itemBuilder: (context, index) {
+      final category = categories[index];
+      final isCollapsed = collapsed.contains(category.id);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCategoryHeader(ref, category, isCollapsed),
+          if (!isCollapsed)
+            ...category.channels.map(
+              (channel) => _buildChannelTile(
+                context,
+                ref,
+                channel,
+                channel.id == selectedId,
+              ),
+            ),
+        ],
+      );
+    },
+  );
+
+  Widget _buildCategoryHeader(
+    WidgetRef ref,
+    ChannelCategory category,
+    bool isCollapsed,
+  ) => InkWell(
+    onTap: () => ref
+        .read(channelListViewModelProvider.notifier)
+        .toggleCategory(category.id),
+    child: Padding(
+      padding: const EdgeInsets.only(left: 4, right: 8, top: 16, bottom: 4),
+      child: Row(
+        children: [
+          PhosphorIcon(
+            isCollapsed
+                ? PhosphorIconsFill.caretRight
+                : PhosphorIconsFill.caretDown,
+            size: 12,
+            color: FluxerColors.textMuted,
+          ),
+          const SizedBox(width: 2),
+          Expanded(
+            child: Text(
+              category.name,
+              style: FluxerTextStyles.categoryName,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const PhosphorIcon(
+            PhosphorIconsFill.plus,
+            size: 16,
+            color: FluxerColors.textMuted,
+          ),
+        ],
+      ),
+    ),
+  );
+
+  Widget _buildChannelTile(
+    BuildContext context,
+    WidgetRef ref,
+    Channel channel,
+    bool isSelected,
+  ) {
+    final textColor = isSelected
+        ? FluxerColors.channelActive
+        : FluxerColors.channelDefault;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          final serverId = ref
+              .read(serverListViewModelProvider)
+              .selectedServerId;
+          ref
+              .read(channelListViewModelProvider.notifier)
+              .selectChannel(channel.id);
+          if (serverId != null) {
+            context.go('/servers/$serverId/channels/${channel.id}');
+          }
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? FluxerColors.backgroundModifierSelected
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            children: [
+              ChannelIcon(type: channel.type, color: textColor),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  channel.name,
+                  style: TextStyle(color: textColor, fontSize: 16),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

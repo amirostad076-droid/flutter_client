@@ -1,0 +1,40 @@
+import 'package:drift/drift.dart';
+
+import 'package:fluxeron/core/database/fluxer_database.dart';
+import 'package:fluxeron/core/database/tables/users.dart';
+
+part 'user_dao.g.dart';
+
+@DriftAccessor(tables: [Users])
+class UserDao extends DatabaseAccessor<FluxerDatabase> with _$UserDaoMixin {
+  UserDao(super.attachedDatabase);
+
+  Future<User?> getUserById(String id) =>
+      (select(users)..where((u) => u.id.equals(id))).getSingleOrNull();
+
+  Future<List<User>> getUsersByIds(List<String> ids) {
+    if (ids.isEmpty) {
+      return Future.value([]);
+    }
+    return (select(users)..where((u) => u.id.isIn(ids))).get();
+  }
+
+  Stream<User?> watchUserById(String id) =>
+      (select(users)..where((u) => u.id.equals(id))).watchSingleOrNull();
+
+  Future<void> upsertUser(UsersCompanion user) =>
+      into(users).insertOnConflictUpdate(user);
+
+  Future<void> upsertUsers(List<UsersCompanion> userList) async {
+    await batch((b) {
+      for (final user in userList) {
+        b.insert(users, user, onConflict: DoUpdate((_) => user));
+      }
+    });
+  }
+
+  Future<void> deleteUser(String id) =>
+      (delete(users)..where((u) => u.id.equals(id))).go();
+
+  Future<void> clearAll() => delete(users).go();
+}
