@@ -12,6 +12,7 @@ class MfaScreen extends StatelessWidget {
       body: Center(
         child: Container(
           width: 480,
+          margin: const EdgeInsets.all(20),
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
             color: FluxerColors.backgroundPrimary,
