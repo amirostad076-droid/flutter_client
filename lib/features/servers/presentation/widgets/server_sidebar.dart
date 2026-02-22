@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,6 +53,7 @@ class ServerSidebar extends ConsumerWidget {
             _ServerIcon(
               label: server.name,
               isSelected: server.id == selectedId,
+              iconUrl: server.iconUrl,
               onTap: () {
                 ref
                     .read(serverListViewModelProvider.notifier)
@@ -84,12 +86,14 @@ class _ServerIcon extends StatefulWidget {
   final bool isSelected;
   final IconData? icon;
   final VoidCallback onTap;
+  final String? iconUrl;
 
   const _ServerIcon({
     required this.label,
     required this.onTap,
     this.isSelected = false,
     this.icon,
+    this.iconUrl,
   });
 
   @override
@@ -98,6 +102,21 @@ class _ServerIcon extends StatefulWidget {
 
 class _ServerIconState extends State<_ServerIcon> {
   var _isHovered = false;
+
+  Widget _buildBackupIcon() {
+    return Center(
+      child: widget.icon != null
+          ? PhosphorIcon(widget.icon!, color: FluxerColors.white, size: 24)
+          : Text(
+              _abbreviation(widget.label),
+              style: const TextStyle(
+                color: FluxerColors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,21 +158,17 @@ class _ServerIconState extends State<_ServerIcon> {
                     color: bgColor,
                     borderRadius: BorderRadius.circular(borderRadius),
                   ),
-                  child: Center(
-                    child: widget.icon != null
-                        ? PhosphorIcon(
-                            widget.icon!,
-                            color: FluxerColors.white,
-                            size: 24,
+                  child: ClipRRect(
+                    borderRadius: BorderRadiusGeometry.circular(borderRadius),
+                    child: widget.iconUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: widget.iconUrl!,
+                            errorWidget: (context, url, error) =>
+                                _buildBackupIcon(),
+                            progressIndicatorBuilder:
+                                (context, url, progress) => _buildBackupIcon(),
                           )
-                        : Text(
-                            _abbreviation(widget.label),
-                            style: const TextStyle(
-                              color: FluxerColors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                        : _buildBackupIcon(),
                   ),
                 ),
               ),

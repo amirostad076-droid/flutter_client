@@ -113,6 +113,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.12.4"
+  cached_network_image_ce:
+    dependency: "direct main"
+    description:
+      name: cached_network_image_ce
+      sha256: "167b590c7e8e2e1738dc92fcdee822ca4b8ad1c7b71738adad938bbb3d614da9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.1"
+  cached_network_image_platform_interface_ce:
+    dependency: transitive
+    description:
+      name: cached_network_image_platform_interface_ce
+      sha256: "0a45c70700d9637947b1ac22574faf43f0877bb248c3afbcd674acf3ce929414"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.1"
+  cached_network_image_web_ce:
+    dependency: transitive
+    description:
+      name: cached_network_image_web_ce
+      sha256: "7a92c9c3f78241b902069f7d153992e68c781fbf25c6eedc5be551fd84da44ed"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   characters:
     dependency: transitive
     description:
@@ -462,6 +486,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  hive_ce:
+    dependency: transitive
+    description:
+      name: hive_ce
+      sha256: "8e9980e68643afb1e765d3af32b47996552a64e190d03faf622cea07c1294418"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.19.3"
   hooks:
     dependency: transitive
     description:
@@ -502,6 +534,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  isolate_channel:
+    dependency: transitive
+    description:
+      name: isolate_channel
+      sha256: a9d3d620695bc984244dafae00b95e4319d6974b2d77f4b9e1eb4f2efe099094
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.1"
   json_annotation:
     dependency: transitive
     description:
@@ -622,6 +662,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.3.0"
+  octo_image:
+    dependency: transitive
+    description:
+      name: octo_image
+      sha256: "34faa6639a78c7e3cbe79be6f9f96535867e879748ade7d17c9b1ae7536293bd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   one_of:
     dependency: transitive
     description:
