@@ -1,10 +1,27 @@
-# fluxeron
+<p align="center">
+  <img src="./media/logo-graphic.png" alt="Fluxer graphic logo" width="400">
+</p>
 
-A new Flutter project.
+<p align="center">
+  <a href="https://fluxer.app/donate">
+    <img src="https://img.shields.io/badge/Donate-fluxer.app%2Fdonate-brightgreen" alt="Donate" /></a>
+  <a href="https://docs.fluxer.app">
+    <img src="https://img.shields.io/badge/Docs-docs.fluxer.app-blue" alt="Documentation" /></a>
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/badge/License-AGPLv3-purple" alt="AGPLv3 License" /></a>
+  <a href="https://pub.dev/packages/fluxer_dart">
+    <img src="https://img.shields.io/badge/pub.dev-fluxer__dart-blue" alt="pub.dev package" /></a>
+</p>
 
-## Getting Started
+# Fluxer Flutter Client
 
-This project is a starting point for a Flutter application.
+## Build generated files
+
+``
+dart run build_runner build --delete-conflicting-outputs
+``
+
+## Getting Started with Flutter
 
 A few resources to get you started if this is your first Flutter project:
 
