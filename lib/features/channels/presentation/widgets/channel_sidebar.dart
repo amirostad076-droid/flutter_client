@@ -23,6 +23,7 @@ class ChannelSidebar extends ConsumerWidget {
 
     return Container(
       width: 240,
+      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: const BoxDecoration(
         color: FluxerColors.channelSidebarBackground,
         border: Border(right: BorderSide(color: FluxerColors.separator)),
