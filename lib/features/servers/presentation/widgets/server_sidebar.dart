@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,7 +25,10 @@ class ServerSidebar extends ConsumerWidget {
         border: Border(right: BorderSide(color: FluxerColors.separator)),
       ),
       child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: EdgeInsets.only(
+          top: max(MediaQuery.of(context).padding.top, 12),
+          bottom: 12,
+        ),
         children: [
           _ServerIcon(
             label: 'DM',

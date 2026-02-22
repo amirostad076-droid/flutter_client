@@ -19,33 +19,33 @@ class DmList extends ConsumerWidget {
     final convos = vm.conversations;
     final selectedId = vm.selectedConversationId;
 
-    return SizedBox(
+    return Container(
       width: 240,
-      child: ColoredBox(
-        color: FluxerColors.channelSidebarBackground,
-        child: Column(
-          children: [
-            _buildSearchHeader(),
-            _buildFriendsButton(context),
-            _buildDmHeader(),
-            Expanded(
-              child: vm.isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: FluxerColors.blurple,
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: convos.length,
-                      itemBuilder: (context, index) {
-                        final convo = convos[index];
-                        final isSelected = convo.id == selectedId;
-                        return _buildConvoTile(context, ref, convo, isSelected);
-                      },
+      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+      color: FluxerColors.channelSidebarBackground,
+      child: Column(
+        children: [
+          _buildSearchHeader(),
+          _buildFriendsButton(context),
+          _buildDmHeader(),
+          Expanded(
+            child: vm.isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: FluxerColors.blurple,
                     ),
-            ),
-          ],
-        ),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: convos.length,
+                    itemBuilder: (context, index) {
+                      final convo = convos[index];
+                      final isSelected = convo.id == selectedId;
+                      return _buildConvoTile(context, ref, convo, isSelected);
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
