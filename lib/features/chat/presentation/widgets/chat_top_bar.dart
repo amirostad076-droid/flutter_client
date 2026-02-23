@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The chat header bar showing channel name, topic, and
 /// action icons.

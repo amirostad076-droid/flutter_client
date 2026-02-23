@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/features/auth/domain/auth_failure.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'login_view_model.g.dart';
 

@@ -1,8 +1,7 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/features/auth/data/auth_repository.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'auth_providers.g.dart';
 

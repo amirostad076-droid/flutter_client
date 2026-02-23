@@ -1,9 +1,8 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/gateway/gateway_client.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/features/gateway/providers/gateway_event_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gateway_provider.g.dart';
 

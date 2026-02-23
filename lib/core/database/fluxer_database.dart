@@ -2,9 +2,6 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-
 import 'package:fluxeron/core/database/daos/auth_session_dao.dart';
 import 'package:fluxeron/core/database/daos/channel_dao.dart';
 import 'package:fluxeron/core/database/daos/dm_channel_dao.dart';
@@ -25,6 +22,8 @@ import 'package:fluxeron/core/database/tables/relationships.dart';
 import 'package:fluxeron/core/database/tables/roles.dart';
 import 'package:fluxeron/core/database/tables/servers.dart';
 import 'package:fluxeron/core/database/tables/users.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 part 'fluxer_database.g.dart';
 

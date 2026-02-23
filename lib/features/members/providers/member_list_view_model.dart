@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/features/members/domain/member.dart';
 import 'package:fluxeron/features/members/providers/member_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'member_list_view_model.g.dart';
 

@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
@@ -13,6 +10,8 @@ import 'package:fluxeron/features/settings/presentation/server_settings_screen.d
 import 'package:fluxeron/features/settings/presentation/user_settings_screen.dart';
 import 'package:fluxeron/shared/widgets/fluxer_scaffold.dart';
 import 'package:fluxeron/shared/widgets/reconnecting_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'fluxer_router.g.dart';
 

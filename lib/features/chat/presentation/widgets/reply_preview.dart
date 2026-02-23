@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
+import 'package:fluxeron/features/chat/presentation/widgets/message_bubble.dart' show MessageBubble;
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The inline reply indicator shown above a message that
 /// is a reply. Displays a compact row with a truncated

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// An inline image/gif embed.
 class EmbedImage extends StatelessWidget {

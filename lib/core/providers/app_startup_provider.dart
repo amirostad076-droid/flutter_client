@@ -3,14 +3,13 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/api/retry_interceptor.dart';
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/core/providers/database_provider.dart';
 // import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_startup_provider.g.dart';
 

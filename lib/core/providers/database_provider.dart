@@ -1,6 +1,5 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/core/database/fluxer_database.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'database_provider.g.dart';
 

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/features/friends/domain/friend.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class FriendsList extends ConsumerWidget {
   const FriendsList({super.key});

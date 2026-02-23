@@ -1,12 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_dart/fluxer_dart.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/core/api/captcha_dialog.dart';
 import 'package:fluxeron/core/api/captcha_interceptor.dart';
 import 'package:fluxeron/core/api/retry_interceptor.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'fluxer_client_provider.g.dart';
 

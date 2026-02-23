@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// A video embed placeholder (YouTube-style).
 class EmbedVideo extends StatelessWidget {

@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_providers.dart';
 import 'package:fluxeron/features/friends/domain/friend.dart';
 import 'package:fluxeron/features/friends/providers/friend_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'dm_view_model.g.dart';
 

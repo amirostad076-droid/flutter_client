@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-
 import 'package:fluxeron/core/database/fluxer_database.dart';
 import 'package:fluxeron/core/gateway/gateway_event.dart';
 import 'package:fluxeron/core/gateway/gateway_event_handler.dart';
 import 'package:fluxeron/core/gateway/heartbeat_manager.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Gateway connection states.
 enum GatewayStatus { disconnected, connecting, connected, reconnecting }

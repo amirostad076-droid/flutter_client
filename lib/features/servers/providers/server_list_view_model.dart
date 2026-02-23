@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/features/servers/domain/server.dart';
 import 'package:fluxeron/features/servers/providers/server_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'server_list_view_model.g.dart';
 

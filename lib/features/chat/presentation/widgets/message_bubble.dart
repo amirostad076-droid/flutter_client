@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
@@ -13,6 +10,7 @@ import 'package:fluxeron/features/chat/presentation/'
     'widgets/forward_indicator.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Avatar column width: 40px avatar + 16px gap to the
 /// right.

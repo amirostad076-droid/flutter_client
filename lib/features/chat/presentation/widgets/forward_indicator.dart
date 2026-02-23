@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// A label shown on forwarded messages.
 class ForwardIndicator extends StatelessWidget {

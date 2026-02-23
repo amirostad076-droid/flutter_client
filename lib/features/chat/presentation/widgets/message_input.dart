@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/shared/widgets/circle_icon_button.dart';
-import 'package:fluxeron/shared/widgets/fade_icon_button.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
-
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
+import 'package:fluxeron/shared/widgets/circle_icon_button.dart';
+import 'package:fluxeron/shared/widgets/fade_icon_button.dart';
+import 'package:fluxeron/shared/widgets/responsive_layout.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The chat input bar at the bottom of the chat area.
 class MessageInput extends ConsumerStatefulWidget {

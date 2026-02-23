@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/features/channels/providers/channel_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'channel_list_view_model.g.dart';
 

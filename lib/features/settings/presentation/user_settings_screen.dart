@@ -1,11 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
@@ -18,6 +14,8 @@ import 'package:fluxeron/features/settings/presentation/widgets/settings_sidebar
 import 'package:fluxeron/features/settings/presentation/widgets/user_appearance.dart';
 import 'package:fluxeron/features/settings/presentation/widgets/user_profile.dart';
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
+import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class UserSettingsScreen extends ConsumerStatefulWidget {
   const UserSettingsScreen({super.key});

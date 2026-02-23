@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'package:google_fonts/google_fonts.dart';
-
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Fluxer text styles using IBM Plex Sans.
 abstract final class FluxerTextStyles {

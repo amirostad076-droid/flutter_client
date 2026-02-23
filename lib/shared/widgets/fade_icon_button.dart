@@ -3,10 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class FadeIconButton extends StatefulWidget {
   const FadeIconButton({
-    super.key,
-    required this.icon,
-    required this.iconColor,
-    required this.onTap,
+    required this.icon, required this.iconColor, required this.onTap, super.key,
     this.size = 24,
     this.padding = EdgeInsets.zero,
   });
@@ -38,7 +35,11 @@ class _FadeIconButtonState extends State<FadeIconButton> {
             : const Duration(milliseconds: 200),
         child: Padding(
           padding: widget.padding,
-          child: PhosphorIcon(widget.icon, size: widget.size, color: widget.iconColor),
+          child: PhosphorIcon(
+            widget.icon,
+            size: widget.size,
+            color: widget.iconColor,
+          ),
         ),
       ),
     );
