@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxeron/shared/widgets/circle_icon_button.dart';
+import 'package:fluxeron/shared/widgets/fade_icon_button.dart';
+import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -103,93 +106,207 @@ class _MessageInputState extends ConsumerState<MessageInput> {
             border: Border(top: BorderSide(color: FluxerColors.separator)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const PhosphorIcon(
-                  PhosphorIconsFill.plusCircle,
-                  size: 26,
-                ),
-                color: FluxerColors.interactiveNormal,
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  style: FluxerTextStyles.inputText,
-                  onSubmitted: (_) => chatNotifier.sendMessage(),
-                  decoration: const InputDecoration(
-                    hintText: 'Message',
-                    hintStyle: TextStyle(
-                      color: FluxerColors.textFaint,
-                      fontSize: 16,
-                    ),
-                    border: InputBorder.none,
-                    isCollapsed: true,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
-                color: FluxerColors.interactiveNormal,
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-              IconButton(
-                icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
-                color: FluxerColors.interactiveNormal,
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-              IconButton(
-                icon: const PhosphorIcon(PhosphorIconsFill.image, size: 24),
-                color: FluxerColors.interactiveNormal,
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-              IconButton(
-                icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
-                color: FluxerColors.interactiveNormal,
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-              IconButton(
-                icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
-                color: FluxerColors.interactiveNormal,
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-              const SizedBox(
-                height: 24,
-                child: VerticalDivider(
-                  color: FluxerColors.divider,
-                  width: 16,
-                  thickness: 1,
-                ),
-              ),
-              IconButton(
-                icon: const PhosphorIcon(
-                  PhosphorIconsFill.paperPlane,
-                  size: 24,
-                ),
-                color: FluxerColors.blurple,
-                onPressed: chatNotifier.sendMessage,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-            ],
+          child: ResponsiveLayout(
+            builder: (context, mode) {
+              switch (mode) {
+                case LayoutMode.desktop:
+                  return _buildLargeLayout(chatNotifier);
+                case LayoutMode.tablet:
+                  return _buildLargeLayout(chatNotifier);
+                case LayoutMode.mobile:
+                  return _buildMobileLayout(chatNotifier);
+              }
+            },
+          ),
+        ),
+        Container(
+          height: MediaQuery.of(context).padding.bottom,
+          decoration: const BoxDecoration(
+            color: FluxerColors.chatInputBackground,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLargeLayout(ChatViewModel chatNotifier) {
+    final hasText = ref.watch(
+      chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
+    );
+    return Row(
+      children: [
+        CircleIconButton(
+          icon: PhosphorIconsFill.plusCircle,
+          backgroundColor: FluxerColors.backgroundTertiary,
+          iconColor: FluxerColors.interactiveNormal,
+          onTap: () {},
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: TextField(
+            controller: _controller,
+            style: FluxerTextStyles.inputText,
+            onSubmitted: (_) => chatNotifier.sendMessage(),
+            decoration: InputDecoration(
+              hintText: 'Message',
+              hintStyle: const TextStyle(
+                color: FluxerColors.textFaint,
+                fontSize: 16,
+              ),
+              filled: true,
+              fillColor: FluxerColors.backgroundTertiary,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        if (!hasText) ...[
+          IconButton(
+            icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
+            color: FluxerColors.interactiveNormal,
+            onPressed: () {},
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+          IconButton(
+            icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
+            color: FluxerColors.interactiveNormal,
+            onPressed: () {},
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+          IconButton(
+            icon: const PhosphorIcon(PhosphorIconsFill.image, size: 24),
+            color: FluxerColors.interactiveNormal,
+            onPressed: () {},
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+          IconButton(
+            icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
+            color: FluxerColors.interactiveNormal,
+            onPressed: () {},
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+          IconButton(
+            icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
+            color: FluxerColors.interactiveNormal,
+            onPressed: () {},
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+        ],
+        const SizedBox(
+          height: 24,
+          child: VerticalDivider(
+            color: FluxerColors.divider,
+            width: 16,
+            thickness: 1,
+          ),
+        ),
+        _sendAndVoiceButton(chatNotifier, hasText: hasText),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(ChatViewModel chatNotifier) {
+    final hasText = ref.watch(
+      chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
+    );
+    return Row(
+      children: [
+        CircleIconButton(
+          icon: Icons.add_rounded,
+          backgroundColor: FluxerColors.backgroundTertiary,
+          iconColor: FluxerColors.interactiveNormal,
+          onTap: () {},
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: TextField(
+            controller: _controller,
+            style: FluxerTextStyles.inputText,
+            onSubmitted: (_) => chatNotifier.sendMessage(),
+            decoration: InputDecoration(
+              hintText: 'Message',
+              hintStyle: const TextStyle(
+                color: FluxerColors.textFaint,
+                fontSize: 16,
+              ),
+              filled: true,
+              fillColor: FluxerColors.backgroundTertiary,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide.none,
+              ),
+              isDense: true,
+              suffixIcon: FadeIconButton(
+                icon: PhosphorIconsFill.smiley,
+                iconColor: FluxerColors.textFaint,
+                onTap: () {},
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 7),
+              ),
+              suffixIconConstraints: const BoxConstraints(),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        _sendAndVoiceButton(chatNotifier, hasText: hasText),
+      ],
+    );
+  }
+
+  Widget _sendAndVoiceButton(
+    ChatViewModel chatNotifier, {
+    required bool hasText,
+  }) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
+      child: hasText
+          ? CircleIconButton(
+              key: const ValueKey('send'),
+              icon: Icons.arrow_upward_rounded,
+              backgroundColor: FluxerColors.blurple,
+              iconColor: FluxerColors.textOnBrand,
+              onTap: chatNotifier.sendMessage,
+            )
+          : CircleIconButton(
+              key: const ValueKey('voice'),
+              icon: PhosphorIconsFill.microphone,
+              backgroundColor: FluxerColors.backgroundTertiary,
+              iconColor: FluxerColors.interactiveNormal,
+              onTap: () {},
+            ),
     );
   }
 }
