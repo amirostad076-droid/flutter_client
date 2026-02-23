@@ -98,12 +98,11 @@ class _MessageInputState extends ConsumerState<MessageInput> {
             ),
           ),
         Container(
-          height: 60,
           decoration: const BoxDecoration(
             color: FluxerColors.chatInputBackground,
             border: Border(top: BorderSide(color: FluxerColors.separator)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: ResponsiveLayout(
             builder: (context, mode) {
               switch (mode) {
@@ -144,7 +143,8 @@ class _MessageInputState extends ConsumerState<MessageInput> {
           child: TextField(
             controller: _controller,
             style: FluxerTextStyles.inputText,
-            onSubmitted: (_) => chatNotifier.sendMessage(),
+            minLines: 1,
+            maxLines: 5,
             decoration: InputDecoration(
               hintText: 'Message',
               hintStyle: const TextStyle(
@@ -228,19 +228,24 @@ class _MessageInputState extends ConsumerState<MessageInput> {
       chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
     );
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        CircleIconButton(
-          icon: Icons.add_rounded,
-          backgroundColor: FluxerColors.backgroundTertiary,
-          iconColor: FluxerColors.interactiveNormal,
-          onTap: () {},
+        Padding(
+          padding: const EdgeInsetsGeometry.only(bottom: 1),
+          child: CircleIconButton(
+            icon: Icons.add_rounded,
+            backgroundColor: FluxerColors.backgroundTertiary,
+            iconColor: FluxerColors.interactiveNormal,
+            onTap: () {},
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: TextField(
             controller: _controller,
             style: FluxerTextStyles.inputText,
-            onSubmitted: (_) => chatNotifier.sendMessage(),
+            minLines: 1,
+            maxLines: 6,
             decoration: InputDecoration(
               hintText: 'Message',
               hintStyle: const TextStyle(
@@ -277,7 +282,10 @@ class _MessageInputState extends ConsumerState<MessageInput> {
           ),
         ),
         const SizedBox(width: 8),
-        _sendAndVoiceButton(chatNotifier, hasText: hasText),
+        Padding(
+          padding: const EdgeInsetsGeometry.only(bottom: 1),
+          child: _sendAndVoiceButton(chatNotifier, hasText: hasText),
+        ),
       ],
     );
   }
