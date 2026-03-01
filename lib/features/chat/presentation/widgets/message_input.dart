@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
+import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
+import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
+import 'package:fluxeron/shared/utils/chat_context_utils.dart';
 import 'package:fluxeron/shared/widgets/circle_icon_button.dart';
 import 'package:fluxeron/shared/widgets/fade_icon_button.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
@@ -126,6 +129,25 @@ class _MessageInputState extends ConsumerState<MessageInput> {
     );
   }
 
+  String _resolveHintText() {
+    final channelId = ref.read(
+      chatViewModelProvider.select((s) => s.channelId),
+    );
+    final channelState = ref.read(channelListViewModelProvider);
+    final channel = findChannelById(channelState, channelId);
+    if (channel != null) {
+      return 'Message #${channel.name}';
+    }
+    final conversations = ref.read(
+      dmViewModelProvider.select((s) => s.conversations),
+    );
+    final dm = findDmById(conversations, channelId);
+    if (dm != null) {
+      return 'Message @${dm.recipientName}';
+    }
+    return 'Message';
+  }
+
   Widget _buildLargeLayout(ChatViewModel chatNotifier) {
     final hasText = ref.watch(
       chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
@@ -146,7 +168,7 @@ class _MessageInputState extends ConsumerState<MessageInput> {
             minLines: 1,
             maxLines: 5,
             decoration: InputDecoration(
-              hintText: 'Message',
+              hintText: _resolveHintText(),
               hintStyle: const TextStyle(
                 color: FluxerColors.textFaint,
                 fontSize: 16,
@@ -227,6 +249,7 @@ class _MessageInputState extends ConsumerState<MessageInput> {
     final hasText = ref.watch(
       chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
     );
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -247,7 +270,7 @@ class _MessageInputState extends ConsumerState<MessageInput> {
             minLines: 1,
             maxLines: 6,
             decoration: InputDecoration(
-              hintText: 'Message',
+              hintText: _resolveHintText(),
               hintStyle: const TextStyle(
                 color: FluxerColors.textFaint,
                 fontSize: 16,

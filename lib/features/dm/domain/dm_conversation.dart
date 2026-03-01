@@ -5,6 +5,7 @@ class DmConversation {
   final String recipientId;
   final String recipientName;
   final String? recipientAvatar;
+  final String recipientStatus;
   final String lastMessage;
   final DateTime lastMessageTime;
   final int unreadCount;
@@ -16,6 +17,7 @@ class DmConversation {
     required this.lastMessage,
     required this.lastMessageTime,
     this.recipientAvatar,
+    this.recipientStatus = 'offline',
     this.unreadCount = 0,
   });
 
@@ -25,6 +27,7 @@ class DmConversation {
       recipientId: row.recipientId,
       recipientName: recipient?.globalName ?? recipient?.username ?? 'Unknown',
       recipientAvatar: recipient?.avatar,
+      recipientStatus: recipient?.status ?? 'offline',
       lastMessage: row.lastMessage,
       lastMessageTime: row.lastMessageTime,
       unreadCount: row.unreadCount,
