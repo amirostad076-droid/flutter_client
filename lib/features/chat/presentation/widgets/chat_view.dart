@@ -42,12 +42,14 @@ class _ChatViewState extends ConsumerState<ChatView> {
   Widget build(BuildContext context) {
     return const ColoredBox(
       color: FluxerColors.chatBackground,
-      child: Column(
-        children: [
-          ChatTopBar(),
-          Expanded(child: MessageList()),
-          MessageInput(),
-        ],
+      child: SafeArea(
+        child: Column(
+          children: [
+            ChatTopBar(),
+            Expanded(child: MessageList()),
+            MessageInput(),
+          ],
+        ),
       ),
     );
   }
