@@ -17,6 +17,10 @@ LayoutMode layoutModeOf(double width) {
   return LayoutMode.desktop;
 }
 
+/// Whether the current layout is mobile (width < [Breakpoints.mobile]).
+bool isMobileLayout(BuildContext context) =>
+    layoutModeOf(MediaQuery.sizeOf(context).width) == LayoutMode.mobile;
+
 class ResponsiveLayout extends StatelessWidget {
   final Widget Function(BuildContext context, LayoutMode mode) builder;
 

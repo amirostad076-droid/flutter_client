@@ -147,9 +147,7 @@ class DmList extends ConsumerWidget {
     child: InkWell(
       onTap: () {
         ref.read(dmViewModelProvider.notifier).selectConversation(convo.id);
-        final isMobile =
-            layoutModeOf(MediaQuery.of(context).size.width) ==
-            LayoutMode.mobile;
+        final isMobile = isMobileLayout(context);
         if (isMobile) {
           context.push('${ShellRoutePaths.mobilePrefix}/dms/${convo.id}');
         } else {

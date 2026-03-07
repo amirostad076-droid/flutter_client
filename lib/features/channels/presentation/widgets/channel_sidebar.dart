@@ -172,9 +172,7 @@ class ChannelSidebar extends ConsumerWidget {
               .read(channelListViewModelProvider.notifier)
               .selectChannel(channel.id);
           if (serverId != null) {
-            final isMobile =
-                layoutModeOf(MediaQuery.of(context).size.width) ==
-                LayoutMode.mobile;
+            final isMobile = isMobileLayout(context);
             if (isMobile) {
               context.push(
                 '${ShellRoutePaths.mobilePrefix}/servers/'
