@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxeron/core/router/shell_route_paths.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
+import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class DmList extends ConsumerWidget {
-  const DmList({super.key});
+  const DmList({this.fullWidth = false, super.key});
+
+  final bool fullWidth;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,13 +22,13 @@ class DmList extends ConsumerWidget {
     final selectedId = vm.selectedConversationId;
 
     return Container(
-      width: 240,
+      width: fullWidth ? null : 240,
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       color: FluxerColors.channelSidebarBackground,
       child: Column(
         children: [
           _buildSearchHeader(),
-          _buildFriendsButton(context),
+          _buildFriendsButton(context, fullWidth),
           _buildDmHeader(),
           Expanded(
             child: vm.isLoading
@@ -78,37 +82,44 @@ class DmList extends ConsumerWidget {
     ),
   );
 
-  Widget _buildFriendsButton(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-    child: Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(4),
-        onTap: () => context.go('/dms'),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: const Row(
-            children: [
-              PhosphorIcon(
-                PhosphorIconsFill.users,
-                size: 20,
-                color: FluxerColors.interactiveNormal,
+  Widget _buildFriendsButton(BuildContext context, bool useHomeRoute) =>
+      Padding(
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(4),
+            onTap: () {
+              if (useHomeRoute) {
+                context.push(ShellRoutePaths.mobilePrefix);
+              } else {
+                context.go('/dms');
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: const Row(
+                children: [
+                  PhosphorIcon(
+                    PhosphorIconsFill.users,
+                    size: 20,
+                    color: FluxerColors.interactiveNormal,
+                  ),
+                  SizedBox(width: 12),
+                  Text(
+                    'Friends',
+                    style: TextStyle(
+                      color: FluxerColors.interactiveNormal,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: 12),
-              Text(
-                'Friends',
-                style: TextStyle(
-                  color: FluxerColors.interactiveNormal,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
-    ),
-  );
+      );
 
   Widget _buildDmHeader() => Padding(
     padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
@@ -136,7 +147,14 @@ class DmList extends ConsumerWidget {
     child: InkWell(
       onTap: () {
         ref.read(dmViewModelProvider.notifier).selectConversation(convo.id);
-        context.go('/dms/${convo.id}');
+        final isMobile =
+            layoutModeOf(MediaQuery.of(context).size.width) ==
+            LayoutMode.mobile;
+        if (isMobile) {
+          context.push('${ShellRoutePaths.mobilePrefix}/dms/${convo.id}');
+        } else {
+          context.go('/dms/${convo.id}');
+        }
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
