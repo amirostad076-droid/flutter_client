@@ -168,6 +168,7 @@ class DmList extends ConsumerWidget {
             UserAvatar(
               displayName: convo.recipientName,
               avatarUrl: _avatarUrl(convo),
+              status: convo.recipientStatus,
               size: 32,
             ),
             const SizedBox(width: 12),

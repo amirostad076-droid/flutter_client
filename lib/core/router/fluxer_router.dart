@@ -77,7 +77,7 @@ GoRouter fluxerRouter(Ref ref) {
   final isReachable = ref.watch(serverReachableProvider);
   final startupValue = ref.watch(appStartupProvider);
   final isStartupComplete = startupValue is AsyncData;
-  ref.watch(layoutModeNotifierProvider);
+  ref.watch(layoutModeProvider);
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -90,7 +90,7 @@ GoRouter fluxerRouter(Ref ref) {
         return isOnLoading ? null : '/loading';
       }
 
-      final mode = ref.read(layoutModeNotifierProvider);
+      final mode = ref.read(layoutModeProvider);
       final isMobile = mode == LayoutMode.mobile;
       final defaultRoute = isMobile ? ShellRoutePaths.mobilePrefix : '/servers';
 

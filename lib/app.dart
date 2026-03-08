@@ -17,10 +17,10 @@ class FluxeronApp extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final mode = layoutModeOf(constraints.maxWidth);
-        final currentMode = ref.read(layoutModeNotifierProvider);
+        final currentMode = ref.read(layoutModeProvider);
         if (currentMode != mode) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(layoutModeNotifierProvider.notifier).setMode(mode);
+            ref.read(layoutModeProvider.notifier).setMode(mode);
           });
         }
 
