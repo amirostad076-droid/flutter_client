@@ -4,7 +4,6 @@ import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/providers/layout_mode_provider.dart';
 import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/router/shell_route_paths.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/auth/presentation/login_screen.dart';
 import 'package:fluxeron/features/auth/presentation/mfa_screen.dart';
 import 'package:fluxeron/features/chat/presentation/chat_screen.dart';
@@ -15,6 +14,7 @@ import 'package:fluxeron/features/profile/presentation/profile_page.dart';
 import 'package:fluxeron/features/settings/presentation/server_settings_screen.dart';
 import 'package:fluxeron/features/settings/presentation/user_settings_screen.dart';
 import 'package:fluxeron/shared/widgets/fluxer_scaffold.dart';
+import 'package:fluxeron/shared/widgets/loading_screen.dart';
 import 'package:fluxeron/shared/widgets/mobile_shell.dart';
 import 'package:fluxeron/shared/widgets/reconnecting_screen.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
@@ -32,15 +32,6 @@ class _PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       Scaffold(body: Center(child: Text(label)));
-}
-
-class _LoadingScreen extends StatelessWidget {
-  const _LoadingScreen();
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-    body: Center(child: CircularProgressIndicator(color: FluxerColors.blurple)),
-  );
 }
 
 /// Provides the auth session state for go_router redirect.
@@ -129,7 +120,7 @@ GoRouter fluxerRouter(Ref ref) {
     routes: [
       GoRoute(
         path: '/loading',
-        builder: (context, state) => const _LoadingScreen(),
+        builder: (context, state) => const LoadingScreen(),
       ),
       GoRoute(
         path: '/login',
