@@ -26,7 +26,7 @@ class ChannelIcon extends StatelessWidget {
   PhosphorIconData get _icon {
     switch (type) {
       case ChannelType.text:
-        return PhosphorIconsFill.hash;
+        return PhosphorIconsRegular.hash;
       case ChannelType.voice:
         return PhosphorIconsFill.speakerHigh;
       case ChannelType.announcement:
