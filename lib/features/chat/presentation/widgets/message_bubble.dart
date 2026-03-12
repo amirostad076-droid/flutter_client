@@ -145,14 +145,19 @@ class _MessageBubbleState extends State<MessageBubble> {
           children: [
             Row(
               children: [
-                Text(
-                  msg.authorName,
-                  style: const TextStyle(
-                    color: FluxerColors.textNormal,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                Flexible(
+                  child: Text(
+                    msg.authorName,
+                    style: const TextStyle(
+                      color: FluxerColors.textNormal,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
+
                 const SizedBox(width: 8),
                 Text(
                   _formatTimestamp(msg.timestamp),
