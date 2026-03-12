@@ -63,7 +63,10 @@ class ServerSidebar extends ConsumerWidget {
                 ref
                     .read(serverListViewModelProvider.notifier)
                     .selectServer(server.id);
-                context.go('/servers');
+                final isMobile = isMobileLayout(context);
+                if (!isMobile) {
+                  context.go('/servers');
+                }
               },
             ),
           const Padding(
