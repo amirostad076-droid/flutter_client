@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/providers/gateway_provider.dart';
-import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
@@ -25,6 +24,7 @@ class UserSettingsScreen extends ConsumerStatefulWidget {
     return showModalBottomSheet<void>(
       elevation: 7,
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       constraints: const BoxConstraints(maxWidth: 1400),
