@@ -138,26 +138,32 @@ class _UserSettingsScreenState
   var _selectedIndex = 1;
   var _showingContent = false;
 
-  late final AnimationController _animController = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 250),
-  );
+  late final AnimationController _animController;
+  late final Animation<Offset> _menuSlide;
+  late final Animation<Offset> _contentSlide;
 
-  late final Animation<Offset> _menuSlide = Tween<Offset>(
-    begin: Offset.zero,
-    end: const Offset(-0.3, 0),
-  ).animate(CurvedAnimation(
-    parent: _animController,
-    curve: Curves.easeInOut,
-  ));
-
-  late final Animation<Offset> _contentSlide = Tween<Offset>(
-    begin: const Offset(1, 0),
-    end: Offset.zero,
-  ).animate(CurvedAnimation(
-    parent: _animController,
-    curve: Curves.easeInOut,
-  ));
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    _menuSlide = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(-0.3, 0),
+    ).animate(CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeInOut,
+    ));
+    _contentSlide = Tween<Offset>(
+      begin: const Offset(1, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeInOut,
+    ));
+  }
 
   @override
   void dispose() {
