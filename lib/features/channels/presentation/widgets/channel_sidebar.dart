@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/router/shell_route_paths.dart';
+import 'package:fluxeron/core/router/navigate_to_content.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -172,15 +171,10 @@ class ChannelSidebar extends ConsumerWidget {
               .read(channelListViewModelProvider.notifier)
               .selectChannel(channel.id);
           if (serverId != null) {
-            final isMobile = isMobileLayout(context);
-            if (isMobile) {
-              context.push(
-                '${ShellRoutePaths.mobilePrefix}/servers/'
-                '$serverId/channels/${channel.id}',
-              );
-            } else {
-              context.go('/servers/$serverId/channels/${channel.id}');
-            }
+            navigateToContent(
+              context,
+              '/servers/$serverId/channels/${channel.id}',
+            );
           }
         },
         child: Container(
