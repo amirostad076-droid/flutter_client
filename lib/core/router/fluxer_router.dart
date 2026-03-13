@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/providers/layout_mode_provider.dart';
 import 'package:fluxeron/core/router/route_names.dart';
@@ -12,7 +11,6 @@ import 'package:fluxeron/features/home/presentation/mobile_home_page.dart';
 import 'package:fluxeron/features/notifications/presentation/notifications_page.dart';
 import 'package:fluxeron/features/profile/presentation/profile_page.dart';
 import 'package:fluxeron/features/settings/presentation/server_settings_screen.dart';
-import 'package:fluxeron/features/settings/presentation/user_settings_screen.dart';
 import 'package:fluxeron/shared/widgets/fluxer_scaffold.dart';
 import 'package:fluxeron/shared/widgets/loading_screen.dart';
 import 'package:fluxeron/shared/widgets/mobile_shell.dart';
@@ -62,20 +60,35 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 final _mobileShellNavigatorKey = GlobalKey<NavigatorState>();
 final _desktopShellNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Listenable that notifies go_router to re-evaluate its redirect.
+class _RouterRefreshNotifier extends ChangeNotifier {
+  void notify() => notifyListeners();
+}
+
 @Riverpod(keepAlive: true)
 GoRouter fluxerRouter(Ref ref) {
-  final isAuthenticated = ref.watch(authStateProvider);
-  final isReachable = ref.watch(serverReachableProvider);
-  final startupValue = ref.watch(appStartupProvider);
-  final isStartupComplete = startupValue is AsyncData;
-  ref.watch(layoutModeProvider);
+  final refreshNotifier = _RouterRefreshNotifier();
+
+  // Listen to all state changes and refresh (not rebuild) the router.
+  // This ensures the GoRouter is created exactly once, avoiding
+  // "Multiple widgets used the same GlobalKey" errors.
+  ref
+    ..listen(authStateProvider, (_, _) => refreshNotifier.notify())
+    ..listen(serverReachableProvider, (_, _) => refreshNotifier.notify())
+    ..listen(appStartupProvider, (_, _) => refreshNotifier.notify())
+    ..listen(layoutModeProvider, (_, _) => refreshNotifier.notify());
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/login',
+    refreshListenable: refreshNotifier,
     redirect: (context, state) {
       final location = state.matchedLocation;
       final isOnLoading = location == '/loading';
+
+      final isAuthenticated = ref.read(authStateProvider);
+      final isReachable = ref.read(serverReachableProvider);
+      final isStartupComplete = ref.read(appStartupProvider) is AsyncData;
 
       if (!isStartupComplete) {
         return isOnLoading ? null : '/loading';
@@ -83,7 +96,8 @@ GoRouter fluxerRouter(Ref ref) {
 
       final mode = ref.read(layoutModeProvider);
       final isMobile = mode == LayoutMode.mobile;
-      final defaultRoute = isMobile ? ShellRoutePaths.mobilePrefix : '/servers';
+      final defaultRoute =
+          isMobile ? ShellRoutePaths.mobilePrefix : '/servers';
 
       if (isOnLoading) {
         if (!isAuthenticated) {
@@ -104,7 +118,9 @@ GoRouter fluxerRouter(Ref ref) {
       if (isAuthenticated && !isReachable && !isOnReconnecting) {
         return '/reconnecting';
       }
-      if (isAuthenticated && isReachable && (isLoggingIn || isOnReconnecting)) {
+      if (isAuthenticated &&
+          isReachable &&
+          (isLoggingIn || isOnReconnecting)) {
         return defaultRoute;
       }
 
@@ -237,11 +253,6 @@ GoRouter fluxerRouter(Ref ref) {
             ],
           ),
         ],
-      ),
-      GoRoute(
-        path: '/settings/user',
-        name: RouteNames.userSettings,
-        builder: (context, state) => const UserSettingsScreen(),
       ),
       GoRoute(
         path: '/settings/server/:serverId',
