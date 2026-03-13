@@ -61,13 +61,18 @@ class UserProfile extends StatelessWidget {
                             ),
                           ),
                           const Spacer(),
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: FluxerColors.blurple,
-                              foregroundColor: FluxerColors.white,
+                          Flexible(
+                            child: ElevatedButton(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: FluxerColors.blurple,
+                                foregroundColor: FluxerColors.white,
+                              ),
+                              child: const Text(
+                                'Edit User Profile',
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            child: const Text('Edit User Profile'),
                           ),
                         ],
                       ),
