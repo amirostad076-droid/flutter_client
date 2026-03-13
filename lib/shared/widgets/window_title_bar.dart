@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -12,44 +15,91 @@ const kWindowTitleBarHeight = 32.0;
 ///
 /// Provides a [DragToMoveArea] for dragging and double-click to maximize,
 /// plus minimize, maximize/restore, and close buttons on the right.
-class WindowTitleBar extends StatelessWidget {
+class WindowTitleBar extends ConsumerWidget {
   const WindowTitleBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onSecondaryTap: windowManager.popUpWindowMenu,
-      child: Container(
-        height: kWindowTitleBarHeight,
-        color: FluxerColors.backgroundPrimary,
-        child: Stack(
-          children: [
-            const DragToMoveArea(child: SizedBox.expand()),
-          Positioned(
-            top: 0,
-            right: 0,
-            bottom: 0,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _WindowButton(
-                  icon: PhosphorIconsRegular.minus,
-                  onPressed: windowManager.minimize,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vm = ref.watch(serverListViewModelProvider);
+    final title = _resolveTitle(vm);
+
+    return Material(
+      color: FluxerColors.backgroundAccent,
+      child: GestureDetector(
+        onSecondaryTap: windowManager.popUpWindowMenu,
+        child: SizedBox(
+          height: kWindowTitleBarHeight,
+          child: Stack(
+            children: [
+              const DragToMoveArea(child: SizedBox.expand()),
+              Positioned(
+                left: 12,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: SvgPicture.asset(
+                    'assets/images/fluxer-logo-text.svg',
+                    height: 14,
+                    colorFilter: const ColorFilter.mode(
+                      FluxerColors.white,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                 ),
-                const _MaximizeButton(),
-                _WindowButton(
-                  icon: PhosphorIconsRegular.x,
-                  hoverColor: FluxerColors.textDanger,
-                  hoverIconColor: Colors.white,
-                  onPressed: windowManager.close,
+              ),
+              Center(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: FluxerColors.textMuted,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ],
-            ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                bottom: 0,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _WindowButton(
+                      icon: PhosphorIconsRegular.minus,
+                      onPressed: windowManager.minimize,
+                    ),
+                    const _MaximizeButton(),
+                    _WindowButton(
+                      icon: PhosphorIconsRegular.x,
+                      hoverColor: FluxerColors.textDanger,
+                      hoverIconColor: Colors.white,
+                      onPressed: windowManager.close,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          ],
         ),
       ),
     );
+  }
+
+  String _resolveTitle(ServerListViewState vm) {
+    if (vm.isDmActive) {
+      return 'Direct Messages';
+    }
+    if (vm.isFavoritesActive) {
+      return 'Favorites';
+    }
+    final serverId = vm.selectedServerId;
+    if (serverId != null) {
+      final server = vm.servers.where((s) => s.id == serverId).firstOrNull;
+      if (server != null) {
+        return server.name;
+      }
+    }
+    return '';
   }
 }
 
