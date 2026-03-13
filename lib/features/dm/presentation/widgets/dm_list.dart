@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/router/shell_route_paths.dart';
+import 'package:fluxeron/core/router/navigate_to_content.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class DmList extends ConsumerWidget {
-  const DmList({this.fullWidth = false, super.key});
-
-  final bool fullWidth;
+  const DmList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,13 +19,13 @@ class DmList extends ConsumerWidget {
     final selectedId = vm.selectedConversationId;
 
     return Container(
-      width: fullWidth ? null : 240,
+      width: 240,
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       color: FluxerColors.channelSidebarBackground,
       child: Column(
         children: [
           _buildSearchHeader(),
-          _buildFriendsButton(context, fullWidth),
+          _buildFriendsButton(context),
           _buildDmHeader(),
           Expanded(
             child: vm.isLoading
@@ -82,20 +79,14 @@ class DmList extends ConsumerWidget {
     ),
   );
 
-  Widget _buildFriendsButton(BuildContext context, bool useHomeRoute) =>
+  Widget _buildFriendsButton(BuildContext context) =>
       Padding(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(4),
-            onTap: () {
-              if (useHomeRoute) {
-                context.push(ShellRoutePaths.mobilePrefix);
-              } else {
-                context.go('/dms');
-              }
-            },
+            onTap: () => context.go('/dms'),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: const Row(
@@ -147,12 +138,7 @@ class DmList extends ConsumerWidget {
     child: InkWell(
       onTap: () {
         ref.read(dmViewModelProvider.notifier).selectConversation(convo.id);
-        final isMobile = isMobileLayout(context);
-        if (isMobile) {
-          context.push('${ShellRoutePaths.mobilePrefix}/dms/${convo.id}');
-        } else {
-          context.go('/dms/${convo.id}');
-        }
+        navigateToContent(context, '/dms/${convo.id}');
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
