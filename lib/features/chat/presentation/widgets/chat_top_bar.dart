@@ -37,9 +37,11 @@ class ChatTopBar extends ConsumerWidget {
             channelId,
           )
         : null;
-    final isMemberListVisible = channelState.isMemberListVisible;
+    final isMemberListVisible = ref.watch(
+      channelListViewModelProvider.select((s) => s.isMemberListVisible),
+    );
 
-    return Container(
+    return DecoratedBox(
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: FluxerColors.separator)),
       ),

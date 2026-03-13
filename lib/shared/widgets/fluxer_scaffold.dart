@@ -9,9 +9,9 @@ import 'package:fluxeron/features/dm/presentation/widgets/dm_list.dart';
 import 'package:fluxeron/features/members/providers/member_list_view_model.dart';
 import 'package:fluxeron/features/servers/presentation/widgets/server_sidebar.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
+import 'package:fluxeron/features/settings/presentation/user_settings_screen.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_panel.dart';
-import 'package:go_router/go_router.dart';
 
 const _kLeftSidebarsWidth = 312.0;
 
@@ -50,21 +50,12 @@ class _FluxerScaffoldState extends ConsumerState<FluxerScaffold> {
     return Scaffold(
       backgroundColor: FluxerColors.backgroundPrimary,
       body: ResponsiveLayout(
-        builder: (context, mode) {
-          switch (mode) {
-            case LayoutMode.desktop:
-              return _buildDesktopLayout();
-            case LayoutMode.tablet:
-              return _buildTabletLayout();
-            case LayoutMode.mobile:
-              return _buildDesktopLayout();
-          }
-        },
+        builder: (context, _) => _buildSidebarLayout(),
       ),
     );
   }
 
-  Widget _buildDesktopLayout() {
+  Widget _buildSidebarLayout() {
     final isDm = ref.watch(
       serverListViewModelProvider.select((s) => s.isDmActive),
     );
@@ -85,37 +76,7 @@ class _FluxerScaffoldState extends ConsumerState<FluxerScaffold> {
                   ],
                 ),
               ),
-              UserPanel(onSettingsTap: () => context.go('/settings/user')),
-            ],
-          ),
-        ),
-        Expanded(child: widget.child),
-      ],
-    );
-  }
-
-  Widget _buildTabletLayout() {
-    final isDm = ref.watch(
-      serverListViewModelProvider.select((s) => s.isDmActive),
-    );
-
-    return Row(
-      children: [
-        SizedBox(
-          width: _kLeftSidebarsWidth,
-          child: Column(
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    const ServerSidebar(),
-                    Expanded(
-                      child: isDm ? const DmList() : const ChannelSidebar(),
-                    ),
-                  ],
-                ),
-              ),
-              UserPanel(onSettingsTap: () => context.go('/settings/user')),
+              UserPanel(onSettingsTap: () => UserSettingsScreen.show(context)),
             ],
           ),
         ),

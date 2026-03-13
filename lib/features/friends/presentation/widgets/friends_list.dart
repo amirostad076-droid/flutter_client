@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/features/friends/domain/friend.dart';
+import 'package:fluxeron/features/servers/domain/server.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -54,24 +55,39 @@ class FriendsList extends ConsumerWidget {
           endIndent: 12,
         ),
         const SizedBox(width: 16),
-        _tabButton(ref, 'Online', FriendsTab.online, activeTab),
-        _tabButton(ref, 'All', FriendsTab.all, activeTab),
-        _tabButton(ref, 'Pending', FriendsTab.pending, activeTab),
-        _tabButton(ref, 'Blocked', FriendsTab.blocked, activeTab),
-        const SizedBox(width: 16),
-        ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            backgroundColor: FluxerColors.online,
-            foregroundColor: FluxerColors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            minimumSize: const Size(0, 28),
-            textStyle: const TextStyle(fontSize: 13),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(3),
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _tabButton(ref, 'Online', FriendsTab.online, activeTab),
+                _tabButton(ref, 'All', FriendsTab.all, activeTab),
+                _tabButton(ref, 'Pending', FriendsTab.pending, activeTab),
+                _tabButton(ref, 'Blocked', FriendsTab.blocked, activeTab),
+              ],
             ),
           ),
-          child: const Text('Add Friend'),
+        ),
+        const SizedBox(width: 16),
+        Flexible(
+          flex: 0,
+          child: ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: FluxerColors.online,
+              foregroundColor: FluxerColors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              minimumSize: const Size(0, 28),
+              textStyle: const TextStyle(fontSize: 13),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            child: const Text(
+              'Add Friend',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ),
       ],
     ),
@@ -86,28 +102,25 @@ class FriendsList extends ConsumerWidget {
     final isActive = tab == activeTab;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => ref.read(dmViewModelProvider.notifier).selectTab(tab),
-          borderRadius: BorderRadius.circular(4),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
+      child: InkWell(
+        onTap: () => ref.read(dmViewModelProvider.notifier).selectTab(tab),
+        borderRadius: BorderRadius.circular(4),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isActive
+                ? FluxerColors.backgroundModifierSelected
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
               color: isActive
-                  ? FluxerColors.backgroundModifierSelected
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: isActive
-                    ? FluxerColors.channelActive
-                    : FluxerColors.interactiveNormal,
-                fontSize: 14,
-                fontWeight: isActive ? FontWeight.w500 : FontWeight.w400,
-              ),
+                  ? FluxerColors.channelActive
+                  : FluxerColors.interactiveNormal,
+              fontSize: 14,
+              fontWeight: isActive ? FontWeight.w500 : FontWeight.w400,
             ),
           ),
         ),
@@ -117,28 +130,37 @@ class FriendsList extends ConsumerWidget {
 
   Widget _buildSearchBar(WidgetRef ref) => Padding(
     padding: const EdgeInsets.all(16),
-    child: Container(
-      height: 32,
-      decoration: BoxDecoration(
-        color: FluxerColors.backgroundTertiary,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: TextField(
-        onChanged: ref.read(dmViewModelProvider.notifier).updateSearch,
-        style: const TextStyle(color: FluxerColors.textNormal, fontSize: 14),
-        decoration: const InputDecoration(
-          hintText: 'Search',
-          hintStyle: TextStyle(color: FluxerColors.textMuted, fontSize: 14),
-          border: InputBorder.none,
-          isDense: true,
-          contentPadding: EdgeInsets.symmetric(vertical: 6),
-          suffixIcon: PhosphorIcon(
-            PhosphorIconsFill.magnifyingGlass,
-            size: 18,
-            color: FluxerColors.textMuted,
+    child: Material(
+      color: FluxerColors.backgroundTertiary,
+      borderRadius: BorderRadius.circular(4),
+      child: SizedBox(
+        height: 32,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: TextField(
+            onChanged: ref.read(dmViewModelProvider.notifier).updateSearch,
+            style: const TextStyle(
+              color: FluxerColors.textNormal,
+              fontSize: 14,
+            ),
+            decoration: const InputDecoration(
+              hintText: 'Search',
+              hintStyle: TextStyle(
+                color: FluxerColors.textMuted,
+                fontSize: 14,
+              ),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 6),
+              suffixIcon: PhosphorIcon(
+                PhosphorIconsFill.magnifyingGlass,
+                size: 18,
+                color: FluxerColors.textMuted,
+              ),
+              suffixIconConstraints:
+                  BoxConstraints(minWidth: 24, minHeight: 24),
+            ),
           ),
-          suffixIconConstraints: BoxConstraints(minWidth: 24, minHeight: 24),
         ),
       ),
     ),
@@ -251,8 +273,7 @@ class FriendsList extends ConsumerWidget {
     if (avatar == null) {
       return null;
     }
-    return 'https://fluxerusercontent.com'
-        '/avatars/${friend.id}/$avatar.png';
+    return '$fluxerMediaCdn/avatars/${friend.id}/$avatar.png';
   }
 
   String _statusText(Friend friend) {

@@ -7,12 +7,12 @@ class NotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
+    return const ColoredBox(
       color: FluxerColors.backgroundPrimary,
-      child: const Center(
+      child: Center(
         child: Text(
           'Notifications',
-          style: const TextStyle(
+          style: TextStyle(
             color: FluxerColors.textMuted,
             fontSize: 18,
           ),
