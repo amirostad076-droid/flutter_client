@@ -17,7 +17,12 @@ part 'app_startup_provider.g.dart';
 class AppStartup extends _$AppStartup {
   @override
   Future<void> build() async {
-    await _validateAndRestore();
+    try {
+      await _validateAndRestore();
+    } on Exception catch (e, st) {
+      debugPrint('[AppStartup] Unhandled error during startup: $e\n$st');
+      rethrow;
+    }
   }
 
   Future<void> retry() async {
