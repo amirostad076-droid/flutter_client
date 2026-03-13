@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -37,12 +36,7 @@ class ServerSidebar extends ConsumerWidget {
             icon: PhosphorIconsFill.chatCircle,
             onTap: () {
               ref.read(serverListViewModelProvider.notifier).setDmActive();
-              final isMobile = isMobileLayout(context);
-              if (isMobile) {
-                context.go('/m');
-              } else {
-                context.go('/dms');
-              }
+              context.go('/dms');
             },
           ),
           _ServerIcon(
@@ -63,10 +57,7 @@ class ServerSidebar extends ConsumerWidget {
                 ref
                     .read(serverListViewModelProvider.notifier)
                     .selectServer(server.id);
-                final isMobile = isMobileLayout(context);
-                if (!isMobile) {
-                  context.go('/servers');
-                }
+                context.go('/servers');
               },
             ),
           const Padding(
