@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class LoginForm extends ConsumerWidget {
-  const LoginForm({super.key});
+  final bool showBrowserLogin;
+
+  const LoginForm({required this.showBrowserLogin, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -15,26 +16,24 @@ class LoginForm extends ConsumerWidget {
 
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Welcome back!',
-          style: TextStyle(
-            color: FluxerColors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
+        const Center(
+          child: Text(
+            'Welcome back',
+            style: TextStyle(
+              color: FluxerColors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          "We're so excited to see you again!",
-          style: TextStyle(color: FluxerColors.textMuted, fontSize: 16),
-        ),
-        const SizedBox(height: 20),
-        _buildLabel('EMAIL OR PHONE NUMBER'),
+        const SizedBox(height: 24),
+        _buildLabel('Email'),
         const SizedBox(height: 8),
         _buildTextField(onChanged: notifier.updateEmail, obscure: false),
         const SizedBox(height: 20),
-        _buildLabel('PASSWORD'),
+        _buildLabel('Password'),
         const SizedBox(height: 8),
         _buildTextField(
           onChanged: notifier.updatePassword,
@@ -51,19 +50,16 @@ class LoginForm extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton(
-            onPressed: () {},
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: const Text(
-              'Forgot your password?',
-              style: TextStyle(color: FluxerColors.textLink, fontSize: 14),
-            ),
+        TextButton(
+          onPressed: () {},
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: const Text(
+            'Forgot your password?',
+            style: TextStyle(color: FluxerColors.textMuted, fontSize: 14),
           ),
         ),
         const SizedBox(height: 20),
@@ -85,16 +81,6 @@ class LoginForm extends ConsumerWidget {
             onPressed: vm.canLogin
                 ? () => ref.read(loginViewModelProvider.notifier).login()
                 : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: FluxerColors.blurple,
-              foregroundColor: FluxerColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(3),
-              ),
-              disabledBackgroundColor: FluxerColors.blurple.withValues(
-                alpha: 0.5,
-              ),
-            ),
             child: vm.isLoggingIn
                 ? const SizedBox(
                     width: 20,
@@ -105,12 +91,28 @@ class LoginForm extends ConsumerWidget {
                     ),
                   )
                 : const Text(
-                    'Log In',
+                    'Log in',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
+        _buildOrDivider(),
+        const SizedBox(height: 16),
+        _buildSecondaryButton(
+          icon: PhosphorIconsFill.key,
+          label: 'Log in with a passkey',
+          onTap: () {},
+        ),
+        if (showBrowserLogin) ...[
+          const SizedBox(height: 8),
+          _buildSecondaryButton(
+            icon: PhosphorIconsFill.monitor,
+            label: 'Log in via browser',
+            onTap: () {},
+          ),
+        ],
+        const SizedBox(height: 16),
         Row(
           children: [
             const Text(
@@ -135,16 +137,13 @@ class LoginForm extends ConsumerWidget {
     );
   }
 
-  Widget _buildLabel(String text) => Align(
-    alignment: Alignment.centerLeft,
-    child: Text(
-      text,
-      style: const TextStyle(
-        color: FluxerColors.textMuted,
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.5,
-      ),
+  Widget _buildLabel(String text) => Text(
+    text,
+    style: const TextStyle(
+      color: FluxerColors.textMuted,
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.5,
     ),
   );
 
@@ -156,15 +155,38 @@ class LoginForm extends ConsumerWidget {
     onChanged: onChanged,
     obscureText: obscure,
     style: const TextStyle(color: FluxerColors.textNormal, fontSize: 16),
-    decoration: InputDecoration(
-      filled: true,
-      fillColor: FluxerColors.backgroundTertiary,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(3),
-        borderSide: BorderSide.none,
+    decoration: InputDecoration(suffixIcon: suffixIcon),
+  );
+
+  Widget _buildOrDivider() => const Row(
+    children: [
+      Expanded(child: Divider(color: FluxerColors.divider)),
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        child: Text(
+          'OR',
+          style: TextStyle(color: FluxerColors.textMuted, fontSize: 12),
+        ),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      suffixIcon: suffixIcon,
+      Expanded(child: Divider(color: FluxerColors.divider)),
+    ],
+  );
+
+  Widget _buildSecondaryButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) => SizedBox(
+    width: double.infinity,
+    height: 44,
+    child: ElevatedButton.icon(
+      onPressed: onTap,
+      icon: PhosphorIcon(icon, size: 18),
+      label: Text(label, style: const TextStyle(fontSize: 14)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: FluxerColors.backgroundTertiary,
+        foregroundColor: FluxerColors.textNormal,
+      ),
     ),
   );
 }
