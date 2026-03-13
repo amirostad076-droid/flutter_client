@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ServerSidebar extends ConsumerWidget {
@@ -33,7 +34,7 @@ class ServerSidebar extends ConsumerWidget {
           _ServerIcon(
             label: 'DM',
             isSelected: isDm,
-            icon: PhosphorIconsFill.chatCircle,
+            svgAsset: 'assets/images/fluxer-logo-color.svg',
             onTap: () {
               ref.read(serverListViewModelProvider.notifier).setDmActive();
               context.go('/dms');
@@ -41,8 +42,13 @@ class ServerSidebar extends ConsumerWidget {
           ),
           _ServerIcon(
             label: 'Favorites',
+            isSelected: vm.isFavoritesActive,
             icon: PhosphorIconsFill.star,
-            onTap: () {},
+            onTap: () {
+              ref
+                  .read(serverListViewModelProvider.notifier)
+                  .setFavoritesActive();
+            },
           ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -84,6 +90,7 @@ class _ServerIcon extends StatefulWidget {
   final String label;
   final bool isSelected;
   final IconData? icon;
+  final String? svgAsset;
   final VoidCallback onTap;
   final String? iconUrl;
 
@@ -92,6 +99,7 @@ class _ServerIcon extends StatefulWidget {
     required this.onTap,
     this.isSelected = false,
     this.icon,
+    this.svgAsset,
     this.iconUrl,
   });
 
@@ -104,16 +112,18 @@ class _ServerIconState extends State<_ServerIcon> {
 
   Widget _buildBackupIcon() {
     return Center(
-      child: widget.icon != null
-          ? PhosphorIcon(widget.icon!, color: FluxerColors.white, size: 24)
-          : Text(
-              _abbreviation(widget.label),
-              style: const TextStyle(
-                color: FluxerColors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+      child: widget.svgAsset != null
+          ? SvgPicture.asset(widget.svgAsset!, width: 48, height: 48)
+          : widget.icon != null
+              ? PhosphorIcon(widget.icon!, color: FluxerColors.white, size: 32)
+              : Text(
+                  _abbreviation(widget.label),
+                  style: const TextStyle(
+                    color: FluxerColors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
     );
   }
 

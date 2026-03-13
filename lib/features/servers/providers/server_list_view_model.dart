@@ -13,6 +13,7 @@ class ServerListViewState {
   final List<Server> servers;
   final String? selectedServerId;
   final bool isDmActive;
+  final bool isFavoritesActive;
   final bool isLoading;
   final String? errorMessage;
 
@@ -20,6 +21,7 @@ class ServerListViewState {
     required this.servers,
     required this.selectedServerId,
     required this.isDmActive,
+    required this.isFavoritesActive,
     required this.isLoading,
     required this.errorMessage,
   });
@@ -28,6 +30,7 @@ class ServerListViewState {
     List<Server>? servers,
     String? selectedServerId,
     bool? isDmActive,
+    bool? isFavoritesActive,
     bool? isLoading,
     Object? errorMessage = _unset,
   }) {
@@ -35,6 +38,7 @@ class ServerListViewState {
       servers: servers ?? this.servers,
       selectedServerId: selectedServerId ?? this.selectedServerId,
       isDmActive: isDmActive ?? this.isDmActive,
+      isFavoritesActive: isFavoritesActive ?? this.isFavoritesActive,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage == _unset
           ? this.errorMessage
@@ -68,6 +72,7 @@ class ServerListViewModel extends _$ServerListViewModel {
       servers: [],
       selectedServerId: null,
       isDmActive: false,
+      isFavoritesActive: false,
       isLoading: true,
       errorMessage: null,
     );
@@ -87,11 +92,19 @@ class ServerListViewModel extends _$ServerListViewModel {
   }
 
   void selectServer(String serverId) {
-    state = state.copyWith(selectedServerId: serverId, isDmActive: false);
+    state = state.copyWith(
+      selectedServerId: serverId,
+      isDmActive: false,
+      isFavoritesActive: false,
+    );
   }
 
   void setDmActive() {
-    state = state.copyWith(isDmActive: true);
+    state = state.copyWith(isDmActive: true, isFavoritesActive: false);
+  }
+
+  void setFavoritesActive() {
+    state = state.copyWith(isFavoritesActive: true, isDmActive: false);
   }
 
   Future<void> refresh() => _loadServers();
