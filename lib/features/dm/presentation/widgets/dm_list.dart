@@ -24,8 +24,21 @@ class DmList extends ConsumerWidget {
       color: FluxerColors.channelSidebarBackground,
       child: Column(
         children: [
-          _buildSearchHeader(),
+          _buildQuickSwitcher(),
+                    const Divider(color: FluxerColors.divider, height: 1),
+
           _buildFriendsButton(context),
+          _buildNavButton(
+            icon: PhosphorIconsFill.notePencil,
+            label: 'Personal Notes',
+            onTap: () {},
+          ),
+          _buildNavButton(
+            icon: PhosphorIconsFill.skull,
+            label: 'Plutonium',
+            onTap: () {},
+          ),
+          const Divider(color: FluxerColors.divider, height: 1),
           _buildDmHeader(),
           Expanded(
             child: vm.isLoading
@@ -49,39 +62,94 @@ class DmList extends ConsumerWidget {
     );
   }
 
-  Widget _buildSearchHeader() => Container(
-    height: 48,
-    padding: const EdgeInsets.symmetric(horizontal: 10),
-    decoration: const BoxDecoration(
-      border: Border(
-        bottom: BorderSide(color: FluxerColors.backgroundFloating),
-      ),
-    ),
-    child: Center(
+  Widget _buildQuickSwitcher() => Material(
+    color: Colors.transparent,
+    child: InkWell(
+      onTap: () {},
       child: Container(
-        height: 28,
-        decoration: BoxDecoration(
-          color: FluxerColors.backgroundTertiary,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: const Row(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        // decoration: const BoxDecoration(
+        //   border: Border(
+        //     bottom: BorderSide(color: FluxerColors.divider),
+        //   ),
+        // ),
+        child: Row(
           children: [
-            Expanded(
+            const Expanded(
               child: Text(
-                'Find or start a conversation',
-                style: TextStyle(color: FluxerColors.textMuted, fontSize: 13),
+                'Quick Switcher',
+                style: TextStyle(
+                  color: FluxerColors.textMuted,
+                  fontSize: 13,
+                ),
               ),
             ),
+            _buildKbdBadge('CTRL'),
+            const SizedBox(width: 3),
+            _buildKbdBadge('K'),
           ],
         ),
       ),
     ),
   );
 
+  Widget _buildKbdBadge(String label) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+    decoration: BoxDecoration(
+      color: FluxerColors.backgroundModifierSelected,
+      borderRadius: BorderRadius.circular(3),
+    ),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: FluxerColors.textMuted,
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
+
+  Widget _buildNavButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) =>
+      Padding(
+        padding: const EdgeInsets.fromLTRB(8, 1, 8, 1),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(4),
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                children: [
+                  PhosphorIcon(
+                    icon,
+                    size: 20,
+                    color: FluxerColors.interactiveNormal,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: FluxerColors.interactiveNormal,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
   Widget _buildFriendsButton(BuildContext context) =>
       Padding(
-        padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 1),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
