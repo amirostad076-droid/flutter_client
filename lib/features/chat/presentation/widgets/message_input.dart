@@ -251,16 +251,13 @@ class _MessageInputState extends ConsumerState<MessageInput> {
     );
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Padding(
-          padding: const EdgeInsetsGeometry.only(bottom: 1),
-          child: CircleIconButton(
-            icon: Icons.add_rounded,
-            backgroundColor: FluxerColors.backgroundTertiary,
-            iconColor: FluxerColors.interactiveNormal,
-            onTap: () {},
-          ),
+        CircleIconButton(
+          icon: Icons.add_rounded,
+          backgroundColor: FluxerColors.backgroundTertiary,
+          iconColor: FluxerColors.interactiveNormal,
+          onTap: () {},
         ),
         const SizedBox(width: 8),
         Expanded(
