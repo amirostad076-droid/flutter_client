@@ -226,6 +226,8 @@ class _UserSettingsScreenState
   }
 
   Widget _buildMobileLayout(UserSettingsViewState state) {
+    final groups = _buildMobileGroups();
+
     return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -240,18 +242,12 @@ class _UserSettingsScreenState
           Flexible(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(
-                horizontal: 12,
+                horizontal: 18,
               ),
-              itemCount: _items.length,
+              itemCount: groups.length,
               itemBuilder: (context, index) {
-                final item = _items[index];
-                if (item.isSeparator) {
-                  return _buildMobileSeparator(item);
-                }
-                return _buildMobileItem(
-                  item,
-                  () => _onItemSelected(index, pushMobile: true),
-                );
+                final group = groups[index];
+                return _buildMobileGroup(group);
               },
             ),
           ),
@@ -259,75 +255,130 @@ class _UserSettingsScreenState
     );
   }
 
-  Widget _buildMobileSeparator(
-    SettingsSidebarItem item,
-  ) =>
-      Padding(
-        padding: const EdgeInsets.only(
-          top: 16,
-          bottom: 4,
-          left: 4,
+  List<_MobileSettingsGroup> _buildMobileGroups() {
+    final groups = <_MobileSettingsGroup>[];
+    String? currentLabel;
+    var currentItems = <(SettingsSidebarItem, int)>[];
+
+    for (var i = 0; i < _items.length; i++) {
+      final item = _items[i];
+      if (item.isSeparator) {
+        if (currentItems.isNotEmpty) {
+          groups.add(
+            _MobileSettingsGroup(
+              label: currentLabel,
+              items: currentItems,
+            ),
+          );
+        }
+        currentLabel = item.label.isNotEmpty ? item.label : null;
+        currentItems = [];
+      } else {
+        currentItems.add((item, i));
+      }
+    }
+
+    if (currentItems.isNotEmpty) {
+      groups.add(
+        _MobileSettingsGroup(
+          label: currentLabel,
+          items: currentItems,
         ),
-        child: item.label.isNotEmpty
-            ? Text(
-                item.label,
-                style: FluxerTextStyles.categoryName,
-              )
-            : const Divider(
-                color: FluxerColors.divider,
-                height: 1,
-              ),
       );
+    }
+
+    return groups;
+  }
+
+  Widget _buildMobileGroup(_MobileSettingsGroup group) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (group.label != null)
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 8,
+                bottom: 8,
+                left: 4,
+              ),
+              child: Text(
+                group.label!,
+                style: FluxerTextStyles.categoryName,
+              ),
+            ),
+          Material(
+            color: FluxerColors.backgroundSecondaryAlt,
+            borderRadius: BorderRadius.circular(12),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                for (var i = 0; i < group.items.length; i++) ...[
+                  if (i > 0)
+                    const Divider(
+                      color: FluxerColors.divider,
+                      height: 1,
+                      endIndent: 15,
+                      indent: 15,
+                    ),
+                  _buildMobileItem(
+                    group.items[i].$1,
+                    () => _onItemSelected(
+                      group.items[i].$2,
+                      pushMobile: true,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildMobileItem(
     SettingsSidebarItem item,
     VoidCallback onTap,
   ) =>
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Material(
-          color: FluxerColors.backgroundSecondary,
-          borderRadius: BorderRadius.circular(8),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(8),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-              child: Row(
-                children: [
-                  if (item.icon != null) ...[
-                    PhosphorIcon(
-                      item.icon!,
-                      size: 22,
-                      color: item.isDestructive
-                          ? FluxerColors.textDanger
-                          : FluxerColors.interactiveNormal,
-                    ),
-                    const SizedBox(width: 16),
-                  ],
-                  Expanded(
-                    child: Text(
-                      item.label,
-                      style: TextStyle(
-                        color: item.isDestructive
-                            ? FluxerColors.textDanger
-                            : FluxerColors.textNormal,
-                        fontSize: 16,
-                      ),
-                    ),
+      InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          child: Row(
+            children: [
+              if (item.icon != null) ...[
+                PhosphorIcon(
+                  item.icon!,
+                  size: 22,
+                  color: item.isDestructive
+                      ? FluxerColors.textDanger
+                      : FluxerColors.interactiveNormal,
+                ),
+                const SizedBox(width: 16),
+              ],
+              Expanded(
+                child: Text(
+                  item.label,
+                  style: TextStyle(
+                    color: item.isDestructive
+                        ? FluxerColors.textDanger
+                        : FluxerColors.textNormal,
+                    fontSize: 16,
                   ),
-                  if (!item.isDestructive)
-                    const PhosphorIcon(
-                      PhosphorIconsRegular.caretRight,
-                      size: 18,
-                      color: FluxerColors.textMuted,
-                    ),
-                ],
+                ),
               ),
-            ),
+              if (!item.isDestructive)
+                const PhosphorIcon(
+                  PhosphorIconsRegular.caretRight,
+                  size: 18,
+                  color: FluxerColors.textMuted,
+                ),
+            ],
           ),
         ),
       );
@@ -432,6 +483,16 @@ class _UserSettingsScreenState
           ),
         ),
       );
+}
+
+class _MobileSettingsGroup {
+  const _MobileSettingsGroup({
+    required this.items,
+    this.label,
+  });
+
+  final String? label;
+  final List<(SettingsSidebarItem, int)> items;
 }
 
 class _MobileSettingsContentPage extends StatelessWidget {
