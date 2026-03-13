@@ -45,7 +45,8 @@ class UserSettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _UserSettingsScreenState
-    extends ConsumerState<UserSettingsScreen> {
+    extends ConsumerState<UserSettingsScreen>
+    with SingleTickerProviderStateMixin {
   static const _items = [
     SettingsSidebarItem.separator('YOUR ACCOUNT'),
     SettingsSidebarItem(
@@ -135,6 +136,50 @@ class _UserSettingsScreenState
   ];
 
   var _selectedIndex = 1;
+  var _showingContent = false;
+
+  late final AnimationController _animController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 250),
+  );
+
+  late final Animation<Offset> _menuSlide = Tween<Offset>(
+    begin: Offset.zero,
+    end: const Offset(-0.3, 0),
+  ).animate(CurvedAnimation(
+    parent: _animController,
+    curve: Curves.easeInOut,
+  ));
+
+  late final Animation<Offset> _contentSlide = Tween<Offset>(
+    begin: const Offset(1, 0),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(
+    parent: _animController,
+    curve: Curves.easeInOut,
+  ));
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _openMobileContent(int index) {
+    setState(() {
+      _selectedIndex = index;
+      _showingContent = true;
+    });
+    unawaited(_animController.forward());
+  }
+
+  void _closeMobileContent() {
+    unawaited(_animController.reverse().then((_) {
+      if (mounted) {
+        setState(() => _showingContent = false);
+      }
+    }));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -228,30 +273,51 @@ class _UserSettingsScreenState
   Widget _buildMobileLayout(UserSettingsViewState state) {
     final groups = _buildMobileGroups();
 
-    return Column(
-        mainAxisSize: MainAxisSize.min,
+    return ClipRect(
+      child: Stack(
         children: [
-          _buildDragHandle(),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              'Settings',
-              style: FluxerTextStyles.heading,
-            ),
-          ),
-          Flexible(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 18,
+          SlideTransition(
+            position: _menuSlide,
+            child: IgnorePointer(
+              ignoring: _showingContent,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildDragHandle(),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      'Settings',
+                      style: FluxerTextStyles.heading,
+                    ),
+                  ),
+                  Flexible(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                      ),
+                      itemCount: groups.length,
+                      itemBuilder: (context, index) {
+                        final group = groups[index];
+                        return _buildMobileGroup(group);
+                      },
+                    ),
+                  ),
+                ],
               ),
-              itemCount: groups.length,
-              itemBuilder: (context, index) {
-                final group = groups[index];
-                return _buildMobileGroup(group);
-              },
             ),
           ),
+          if (_showingContent)
+            SlideTransition(
+              position: _contentSlide,
+              child: _MobileContentView(
+                title: _items[_selectedIndex].label,
+                onBack: _closeMobileContent,
+                child: _buildContent(state),
+              ),
+            ),
         ],
+      ),
     );
   }
 
@@ -388,19 +454,10 @@ class _UserSettingsScreenState
       unawaited(_logout());
       return;
     }
-    setState(() => _selectedIndex = index);
     if (pushMobile) {
-      final state = ref.read(userSettingsViewModelProvider);
-      unawaited(
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => _MobileSettingsContentPage(
-              title: _items[index].label,
-              child: _buildContent(state),
-            ),
-          ),
-        ),
-      );
+      _openMobileContent(index);
+    } else {
+      setState(() => _selectedIndex = index);
     }
   }
 
@@ -495,31 +552,56 @@ class _MobileSettingsGroup {
   final List<(SettingsSidebarItem, int)> items;
 }
 
-class _MobileSettingsContentPage extends StatelessWidget {
-  const _MobileSettingsContentPage({
+class _MobileContentView extends StatelessWidget {
+  const _MobileContentView({
     required this.title,
+    required this.onBack,
     required this.child,
   });
 
   final String title;
+  final VoidCallback onBack;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: FluxerColors.backgroundPrimary,
-      appBar: AppBar(
-        backgroundColor: FluxerColors.backgroundPrimary,
-        leading: IconButton(
-          icon: const PhosphorIcon(
-            PhosphorIconsRegular.arrowLeft,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity != null &&
+            details.primaryVelocity! > 300) {
+          onBack();
+        }
+      },
+      child: ColoredBox(
+        color: FluxerColors.backgroundSecondary,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 8,
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: onBack,
+                    icon: const PhosphorIcon(
+                      PhosphorIconsRegular.arrowLeft,
+                      color: FluxerColors.interactiveNormal,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    title,
+                    style: FluxerTextStyles.heading,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(child: child),
+          ],
         ),
-        title: Text(title),
-        centerTitle: true,
       ),
-      body: child,
     );
   }
 }
