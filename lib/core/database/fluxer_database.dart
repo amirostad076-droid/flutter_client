@@ -1,5 +1,12 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+
 import 'package:fluxeron/core/database/daos/auth_session_dao.dart';
 import 'package:fluxeron/core/database/daos/channel_dao.dart';
 import 'package:fluxeron/core/database/daos/dm_channel_dao.dart';
@@ -125,4 +132,15 @@ class FluxerDatabase extends _$FluxerDatabase {
   }
 }
 
-QueryExecutor _openConnection() => driftDatabase(name: 'fluxer');
+QueryExecutor _openConnection() {
+  if (!kIsWeb &&
+      (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+    return LazyDatabase(() async {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File(p.join(dir.path, 'fluxeron', 'fluxer.db'));
+      await file.parent.create(recursive: true);
+      return NativeDatabase.createInBackground(file);
+    });
+  }
+  return driftDatabase(name: 'fluxer');
+}

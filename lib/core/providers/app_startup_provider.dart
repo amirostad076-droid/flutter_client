@@ -18,7 +18,9 @@ class AppStartup extends _$AppStartup {
   @override
   Future<void> build() async {
     try {
+      debugPrint('[AppStartup] Starting…');
       await _validateAndRestore();
+      debugPrint('[AppStartup] Completed');
     } on Exception catch (e, st) {
       debugPrint('[AppStartup] Unhandled error during startup: $e\n$st');
       rethrow;
@@ -31,7 +33,9 @@ class AppStartup extends _$AppStartup {
 
   Future<void> _validateAndRestore() async {
     final database = ref.read(fluxerDatabaseProvider);
+    debugPrint('[AppStartup] Database obtained, querying session…');
     final session = await database.authSessionDao.getSession();
+    debugPrint('[AppStartup] Session: ${session != null ? 'found' : 'none'}');
 
     if (session == null) {
       return;
