@@ -180,21 +180,10 @@ class DmList extends ConsumerWidget {
                   ),
                 ],
               ),
-              SizedBox(width: 12),
-              Text(
-                'Friends',
-                style: TextStyle(
-                  color: FluxerColors.interactiveNormal,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
-    ),
-  );
+      );
 
   Widget _buildDmHeader() => Padding(
     padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
