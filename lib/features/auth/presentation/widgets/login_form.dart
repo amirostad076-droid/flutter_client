@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
@@ -14,126 +17,143 @@ class LoginForm extends ConsumerWidget {
     final vm = ref.watch(loginViewModelProvider);
     final notifier = ref.read(loginViewModelProvider.notifier);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Center(
-          child: Text(
-            'Welcome back',
-            style: TextStyle(
-              color: FluxerColors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        _buildLabel('Email'),
-        const SizedBox(height: 8),
-        _buildTextField(onChanged: notifier.updateEmail, obscure: false),
-        const SizedBox(height: 20),
-        _buildLabel('Password'),
-        const SizedBox(height: 8),
-        _buildTextField(
-          onChanged: notifier.updatePassword,
-          obscure: !vm.isPasswordVisible,
-          suffixIcon: IconButton(
-            icon: PhosphorIcon(
-              vm.isPasswordVisible
-                  ? PhosphorIconsFill.eyeSlash
-                  : PhosphorIconsFill.eye,
-              color: FluxerColors.textMuted,
-              size: 20,
-            ),
-            onPressed: notifier.togglePassword,
-          ),
-        ),
-        const SizedBox(height: 4),
-        TextButton(
-          onPressed: () {},
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: const Text(
-            'Forgot your password?',
-            style: TextStyle(color: FluxerColors.textMuted, fontSize: 14),
-          ),
-        ),
-        const SizedBox(height: 20),
-        if (vm.errorMessage != null && vm.errorMessage!.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+    return AutofillGroup(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Center(
             child: Text(
-              vm.errorMessage!,
-              style: const TextStyle(
-                color: FluxerColors.textDanger,
-                fontSize: 14,
+              'Welcome back',
+              style: TextStyle(
+                color: FluxerColors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
-        SizedBox(
-          width: double.infinity,
-          height: 44,
-          child: ElevatedButton(
-            onPressed: vm.canLogin
-                ? () => ref.read(loginViewModelProvider.notifier).login()
-                : null,
-            child: vm.isLoggingIn
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: FluxerColors.white,
-                    ),
-                  )
-                : const Text(
-                    'Log in',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildOrDivider(),
-        const SizedBox(height: 16),
-        _buildSecondaryButton(
-          icon: PhosphorIconsFill.key,
-          label: 'Log in with a passkey',
-          onTap: () {},
-        ),
-        if (showBrowserLogin) ...[
+          const SizedBox(height: 24),
+          _buildLabel('Email'),
           const SizedBox(height: 8),
-          _buildSecondaryButton(
-            icon: PhosphorIconsFill.monitor,
-            label: 'Log in via browser',
-            onTap: () {},
+          _buildTextField(
+            autofillHints: [AutofillHints.email],
+            keyboardType: TextInputType.emailAddress,
+            onChanged: notifier.updateEmail,
+            obscure: false,
           ),
-        ],
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            const Text(
-              'Need an account? ',
+          const SizedBox(height: 20),
+          _buildLabel('Password'),
+          const SizedBox(height: 8),
+          _buildTextField(
+            autofillHints: [AutofillHints.password],
+            keyboardType: TextInputType.visiblePassword,
+            onChanged: notifier.updatePassword,
+            obscure: !vm.isPasswordVisible,
+            suffixIcon: IconButton(
+              icon: PhosphorIcon(
+                vm.isPasswordVisible
+                    ? PhosphorIconsFill.eyeSlash
+                    : PhosphorIconsFill.eye,
+                color: FluxerColors.textMuted,
+                size: 20,
+              ),
+              onPressed: notifier.togglePassword,
+            ),
+          ),
+          const SizedBox(height: 4),
+          TextButton(
+            onPressed: () {},
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              'Forgot your password?',
               style: TextStyle(color: FluxerColors.textMuted, fontSize: 14),
             ),
-            TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: const Text(
-                'Register',
-                style: TextStyle(color: FluxerColors.textLink, fontSize: 14),
+          ),
+          const SizedBox(height: 20),
+          if (vm.errorMessage != null && vm.errorMessage!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                vm.errorMessage!,
+                style: const TextStyle(
+                  color: FluxerColors.textDanger,
+                  fontSize: 14,
+                ),
               ),
             ),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton(
+              onPressed: vm.canLogin
+                  ? () {
+                      unawaited(
+                        ref.read(loginViewModelProvider.notifier).login(),
+                      );
+                      TextInput.finishAutofillContext();
+                    }
+                  : null,
+              child: vm.isLoggingIn
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: FluxerColors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Log in',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildOrDivider(),
+          const SizedBox(height: 16),
+          _buildSecondaryButton(
+            icon: PhosphorIconsFill.key,
+            label: 'Log in with a passkey',
+            onTap: () {},
+          ),
+          if (showBrowserLogin) ...[
+            const SizedBox(height: 8),
+            _buildSecondaryButton(
+              icon: PhosphorIconsFill.monitor,
+              label: 'Log in via browser',
+              onTap: () {},
+            ),
           ],
-        ),
-      ],
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Text(
+                'Need an account? ',
+                style: TextStyle(color: FluxerColors.textMuted, fontSize: 14),
+              ),
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  'Register',
+                  style: TextStyle(color: FluxerColors.textLink, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -148,12 +168,16 @@ class LoginForm extends ConsumerWidget {
   );
 
   Widget _buildTextField({
+    required Iterable<String>? autofillHints,
+    required TextInputType keyboardType,
     required ValueChanged<String> onChanged,
     required bool obscure,
     Widget? suffixIcon,
   }) => TextField(
+    autofillHints: autofillHints,
     onChanged: onChanged,
     obscureText: obscure,
+    keyboardType: keyboardType,
     style: const TextStyle(color: FluxerColors.textNormal, fontSize: 16),
     decoration: InputDecoration(suffixIcon: suffixIcon),
   );
