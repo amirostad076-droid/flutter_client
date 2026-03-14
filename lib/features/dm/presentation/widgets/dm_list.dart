@@ -5,6 +5,7 @@ import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
+import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -24,8 +25,10 @@ class DmList extends ConsumerWidget {
       color: FluxerColors.channelSidebarBackground,
       child: Column(
         children: [
-          _buildQuickSwitcher(),
-                    const Divider(color: FluxerColors.divider, height: 1),
+          if (!isMobileLayout(context)) ...[
+            _buildQuickSwitcher(),
+            const Divider(color: FluxerColors.divider, height: 1),
+          ],
 
           _buildFriendsButton(context),
           _buildNavButton(
@@ -79,10 +82,7 @@ class DmList extends ConsumerWidget {
             const Expanded(
               child: Text(
                 'Quick Switcher',
-                style: TextStyle(
-                  color: FluxerColors.textMuted,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: FluxerColors.textMuted, fontSize: 13),
               ),
             ),
             _buildKbdBadge('CTRL'),
@@ -114,71 +114,69 @@ class DmList extends ConsumerWidget {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
-  }) =>
-      Padding(
-        padding: const EdgeInsets.fromLTRB(8, 1, 8, 1),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(4),
-            onTap: onTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Row(
-                children: [
-                  PhosphorIcon(
-                    icon,
-                    size: 20,
-                    color: FluxerColors.interactiveNormal,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: FluxerColors.interactiveNormal,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+  }) => Padding(
+    padding: const EdgeInsets.fromLTRB(8, 1, 8, 1),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(4),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            children: [
+              PhosphorIcon(
+                icon,
+                size: 20,
+                color: FluxerColors.interactiveNormal,
               ),
-            ),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: FluxerColors.interactiveNormal,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    ),
+  );
 
-  Widget _buildFriendsButton(BuildContext context) =>
-      Padding(
-        padding: const EdgeInsets.fromLTRB(8, 8, 8, 1),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(4),
-            onTap: () => context.go('/dms'),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: const Row(
-                children: [
-                  PhosphorIcon(
-                    PhosphorIconsFill.users,
-                    size: 20,
-                    color: FluxerColors.interactiveNormal,
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    'Friends',
-                    style: TextStyle(
-                      color: FluxerColors.interactiveNormal,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+  Widget _buildFriendsButton(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(8, 8, 8, 1),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(4),
+        onTap: () => context.go('/dms'),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: const Row(
+            children: [
+              PhosphorIcon(
+                PhosphorIconsFill.users,
+                size: 20,
+                color: FluxerColors.interactiveNormal,
               ),
-            ),
+              SizedBox(width: 12),
+              Text(
+                'Friends',
+                style: TextStyle(
+                  color: FluxerColors.interactiveNormal,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _buildDmHeader() => Padding(
     padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
