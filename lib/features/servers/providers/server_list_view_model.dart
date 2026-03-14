@@ -71,7 +71,7 @@ class ServerListViewModel extends _$ServerListViewModel {
     return const ServerListViewState(
       servers: [],
       selectedServerId: null,
-      isDmActive: false,
+      isDmActive: true,
       isFavoritesActive: false,
       isLoading: true,
       errorMessage: null,

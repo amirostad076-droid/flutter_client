@@ -7,6 +7,7 @@ import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -34,7 +35,12 @@ class DmList extends ConsumerWidget {
           _buildNavButton(
             icon: PhosphorIconsFill.notePencil,
             label: 'Personal Notes',
-            onTap: () {},
+            onTap: () {
+              final userId = ref.read(currentUserIdProvider);
+              if (userId != null) {
+                navigateToContent(context, '/channels/@me/$userId');
+              }
+            },
           ),
           _buildNavButton(
             icon: PhosphorIconsFill.skull,
@@ -146,21 +152,33 @@ class DmList extends ConsumerWidget {
     ),
   );
 
-  Widget _buildFriendsButton(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(8, 8, 8, 1),
-    child: Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(4),
-        onTap: () => context.go('/dms'),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: const Row(
-            children: [
-              PhosphorIcon(
-                PhosphorIconsFill.users,
-                size: 20,
-                color: FluxerColors.interactiveNormal,
+  Widget _buildFriendsButton(BuildContext context) =>
+      Padding(
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 1),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(4),
+            onTap: () => context.go('/channels/@me'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: const Row(
+                children: [
+                  PhosphorIcon(
+                    PhosphorIconsFill.users,
+                    size: 20,
+                    color: FluxerColors.interactiveNormal,
+                  ),
+                  SizedBox(width: 12),
+                  Text(
+                    'Friends',
+                    style: TextStyle(
+                      color: FluxerColors.interactiveNormal,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
               SizedBox(width: 12),
               Text(
@@ -204,7 +222,7 @@ class DmList extends ConsumerWidget {
     child: InkWell(
       onTap: () {
         ref.read(dmViewModelProvider.notifier).selectConversation(convo.id);
-        navigateToContent(context, '/dms/${convo.id}');
+        navigateToContent(context, '/channels/@me/${convo.id}');
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
@@ -287,3 +305,4 @@ class DmList extends ConsumerWidget {
         '/avatars/${convo.recipientId}/$avatar.png';
   }
 }
+

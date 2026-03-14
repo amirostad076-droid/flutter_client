@@ -38,6 +38,16 @@ class AuthState extends _$AuthState {
 }
 
 @Riverpod(keepAlive: true)
+class CurrentUserId extends _$CurrentUserId {
+  @override
+  String? build() => null;
+
+  void set(String id) {
+    state = id;
+  }
+}
+
+@Riverpod(keepAlive: true)
 class ServerReachable extends _$ServerReachable {
   @override
   bool build() => true;
@@ -86,7 +96,7 @@ GoRouter fluxerRouter(Ref ref) {
         if (!isReachable) {
           return '/reconnecting';
         }
-        return '/servers';
+        return '/channels/@me';
       }
 
       final isLoggingIn = location == '/login' || location == '/mfa';
@@ -101,7 +111,7 @@ GoRouter fluxerRouter(Ref ref) {
       if (isAuthenticated &&
           isReachable &&
           (isLoggingIn || isOnReconnecting)) {
-        return '/servers';
+        return '/channels/@me';
       }
 
       return null;
@@ -156,11 +166,11 @@ GoRouter fluxerRouter(Ref ref) {
             ],
           ),
           GoRoute(
-            path: '/dms',
+            path: '/channels/@me',
             name: RouteNames.dms,
             pageBuilder: (context, state) => NoTransitionPage<void>(
               key: state.pageKey,
-              child: const _PlaceholderScreen('Select a conversation'),
+              child: const DmScreen(),
             ),
             routes: [
               GoRoute(

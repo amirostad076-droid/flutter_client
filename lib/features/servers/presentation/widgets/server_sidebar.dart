@@ -38,7 +38,7 @@ class ServerSidebar extends ConsumerWidget {
             svgAsset: Assets.fluxerLogoColor,
             onTap: () {
               ref.read(serverListViewModelProvider.notifier).setDmActive();
-              context.go('/dms');
+              context.go('/channels/@me');
             },
           ),
           _ServerIcon(

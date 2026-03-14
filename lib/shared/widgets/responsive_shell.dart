@@ -117,7 +117,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     if (location.startsWith('/servers/') && location.contains('/channels/')) {
       return true;
     }
-    if (location.startsWith('/dms/') && location != '/dms') {
+    if (location.startsWith('/channels/@me/') && location != '/channels/@me') {
       return true;
     }
     if (location == '/notifications' || location == '/profile') {

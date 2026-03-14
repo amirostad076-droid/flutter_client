@@ -85,6 +85,7 @@ class AppStartup extends _$AppStartup {
 
     ref.read(serverReachableProvider.notifier).setReachable(value: true);
     ref.read(authStateProvider.notifier).setAuthenticated(value: true);
+    ref.read(currentUserIdProvider.notifier).set(session.userId);
 
     // TODO: Enable gateway once the IDENTIFY payload format is known.
     // unawaited(ref.read(gatewayClientProvider).connect(session.token));
