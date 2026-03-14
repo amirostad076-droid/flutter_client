@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -38,7 +39,7 @@ class WindowTitleBar extends ConsumerWidget {
                 bottom: 0,
                 child: Center(
                   child: SvgPicture.asset(
-                    'assets/images/fluxer-logo-text.svg',
+                    Assets.fluxerLogoText,
                     height: 14,
                     colorFilter: const ColorFilter.mode(
                       FluxerColors.white,

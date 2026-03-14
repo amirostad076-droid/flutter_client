@@ -59,14 +59,10 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
                       final double scale =
                           startScale +
                           (endScale - startScale) *
-                              Curves.easeOut.transform(
-                                _pulseController.value,
-                              );
+                              Curves.easeOut.transform(_pulseController.value);
                       final double opacity =
                           (1 -
-                              Curves.easeIn.transform(
-                                _pulseController.value,
-                              )) *
+                              Curves.easeIn.transform(_pulseController.value)) *
                           0.5;
                       return Transform.scale(
                         scale: scale,
@@ -83,10 +79,7 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
                       );
                     },
                   ),
-                  SvgPicture.asset(
-                    Assets.fluxerLogoColorSVG,
-                    height: _logoHeight,
-                  ),
+                  SvgPicture.asset(Assets.fluxerLogoColor, height: _logoHeight),
                 ],
               ),
             ),
@@ -106,8 +99,7 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
               ),
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: () =>
-                    ref.read(appStartupProvider.notifier).retry(),
+                onPressed: () => ref.read(appStartupProvider.notifier).retry(),
                 style: FilledButton.styleFrom(
                   backgroundColor: FluxerColors.blurple,
                 ),

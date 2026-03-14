@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/theme/fluxer_colors.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/login_form.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
@@ -52,13 +53,13 @@ class LoginScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           SvgPicture.asset(
-                            'assets/images/fluxer-logo-color.svg',
+                            Assets.fluxerLogoColor,
                             width: 128,
                             height: 128,
                           ),
                           const SizedBox(height: 16),
                           SvgPicture.asset(
-                            'assets/images/fluxer-logo-text.svg',
+                            Assets.fluxerLogoText,
                             height: 36,
                             colorFilter: const ColorFilter.mode(
                               FluxerColors.white,
@@ -96,14 +97,10 @@ class LoginScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SvgPicture.asset(
-                  'assets/images/fluxer-logo-color.svg',
-                  width: 36,
-                  height: 36,
-                ),
+                SvgPicture.asset(Assets.fluxerLogoColor, width: 36, height: 36),
                 const SizedBox(width: 8),
                 SvgPicture.asset(
-                  'assets/images/fluxer-logo-text.svg',
+                  Assets.fluxerLogoText,
                   height: 24,
                   colorFilter: const ColorFilter.mode(
                     FluxerColors.white,
@@ -139,9 +136,7 @@ class _TiledPatternBackgroundState extends State<_TiledPatternBackground> {
   }
 
   Future<void> _loadTile() async {
-    const loader = SvgAssetLoader(
-      'assets/images/pattern-login-background.svg',
-    );
+    const loader = SvgAssetLoader(Assets.patternLoginBackground);
     final pictureInfo = await vg.loadPicture(loader, null);
     final image = await pictureInfo.picture.toImage(260, 260);
     pictureInfo.picture.dispose();
