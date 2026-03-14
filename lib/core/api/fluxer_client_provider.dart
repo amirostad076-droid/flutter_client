@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_dart/fluxer_dart.dart';
 import 'package:fluxeron/core/api/captcha_dialog.dart';
@@ -6,6 +5,7 @@ import 'package:fluxeron/core/api/captcha_interceptor.dart';
 import 'package:fluxeron/core/api/retry_interceptor.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:talker_dio_logger/talker_dio_logger.dart';
 
 part 'fluxer_client_provider.g.dart';
 
@@ -49,11 +49,8 @@ FluxerDart fluxerClient(Ref ref) {
 
   if (kDebugMode) {
     client.dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseHeader: false,
-        responseBody: true,
-        logPrint: (object) => debugPrint(object.toString()),
+      TalkerDioLogger(
+        settings: const TalkerDioLoggerSettings(printResponseTime: true),
       ),
     );
   }
