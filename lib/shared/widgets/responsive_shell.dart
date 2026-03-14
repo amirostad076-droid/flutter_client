@@ -29,23 +29,23 @@ class ResponsiveShell extends ConsumerStatefulWidget {
 class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   @override
   Widget build(BuildContext context) {
-    ref.listen(
-      serverListViewModelProvider.select((s) => s.selectedServerId),
-      (previous, next) {
-        if (next != null) {
-          final servers = ref.read(serverListViewModelProvider).servers;
-          final server = servers.where((s) => s.id == next).firstOrNull;
-          unawaited(
-            ref
-                .read(channelListViewModelProvider.notifier)
-                .loadChannels(next, serverName: server?.name),
-          );
-          unawaited(
-            ref.read(memberListViewModelProvider.notifier).loadMembers(next),
-          );
-        }
-      },
-    );
+    ref.listen(serverListViewModelProvider.select((s) => s.selectedServerId), (
+      previous,
+      next,
+    ) {
+      if (next != null) {
+        final servers = ref.read(serverListViewModelProvider).servers;
+        final server = servers.where((s) => s.id == next).firstOrNull;
+        unawaited(
+          ref
+              .read(channelListViewModelProvider.notifier)
+              .loadChannels(next, serverName: server?.name),
+        );
+        unawaited(
+          ref.read(memberListViewModelProvider.notifier).loadMembers(next),
+        );
+      }
+    });
 
     final isMobile = isMobileLayout(context);
 
@@ -77,9 +77,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                   ],
                 ),
               ),
-              UserPanel(
-                onSettingsTap: () => UserSettingsScreen.show(context),
-              ),
+              UserPanel(onSettingsTap: () => UserSettingsScreen.show(context)),
             ],
           ),
         ),
@@ -126,6 +124,16 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     return false;
   }
 
+  bool _shouldHideBottomNav(String location) {
+    if (location.startsWith('/servers/') && location.contains('/channels/')) {
+      return true;
+    }
+    if (location.startsWith('/dms/') && location != '/dms') {
+      return true;
+    }
+    return false;
+  }
+
   static const _tabPaths = ['/servers', '/notifications', '/profile'];
 
   int _tabIndexForPath(String location) {
@@ -138,7 +146,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
 
   Widget? _buildBottomNav(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (_isMobileLeafRoute(location)) {
+    if (_shouldHideBottomNav(location)) {
       return null;
     }
 
