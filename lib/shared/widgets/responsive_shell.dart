@@ -10,7 +10,9 @@ import 'package:fluxeron/features/members/providers/member_list_view_model.dart'
 import 'package:fluxeron/features/servers/presentation/widgets/server_sidebar.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
 import 'package:fluxeron/features/settings/presentation/user_settings_screen.dart';
+import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
+import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:fluxeron/shared/widgets/user_panel.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -144,11 +146,33 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     return 0;
   }
 
+  static const _profileTabIndex = 2;
+
+  Widget _buildProfileTabIcon({
+    required UserSettingsViewState user,
+    required int currentIndex,
+  }) {
+    final isSelected = currentIndex == _profileTabIndex;
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: isSelected ? 1 : 0.5,
+      child: UserAvatar(
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        avatarColor: user.avatarColor,
+        size: 24,
+      ),
+    );
+  }
+
   Widget? _buildBottomNav(BuildContext context) {
+    final user = ref.watch(userSettingsViewModelProvider);
     final location = GoRouterState.of(context).matchedLocation;
     if (_shouldHideBottomNav(location)) {
       return null;
     }
+
+    final currentIndex = _tabIndexForPath(location);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -160,21 +184,24 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             highlightColor: Colors.transparent,
           ),
           child: BottomNavigationBar(
-            currentIndex: _tabIndexForPath(location),
+            currentIndex: currentIndex,
             onTap: (index) => context.go(_tabPaths[index]),
             selectedItemColor: FluxerColors.textNormal,
             unselectedItemColor: FluxerColors.textMuted,
-            items: const [
-              BottomNavigationBarItem(
+            items: [
+              const BottomNavigationBarItem(
                 icon: PhosphorIcon(PhosphorIconsFill.house),
                 label: 'Home',
               ),
-              BottomNavigationBarItem(
+              const BottomNavigationBarItem(
                 icon: PhosphorIcon(PhosphorIconsFill.bell),
                 label: 'Notifications',
               ),
               BottomNavigationBarItem(
-                icon: PhosphorIcon(PhosphorIconsFill.user),
+                icon: _buildProfileTabIcon(
+                  user: user,
+                  currentIndex: currentIndex,
+                ),
                 label: 'You',
               ),
             ],
