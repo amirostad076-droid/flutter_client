@@ -9,6 +9,7 @@ import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/core/providers/database_provider.dart';
 // import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
+import 'package:fluxeron/core/theme/providers/theme_preference_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_startup_provider.g.dart';
@@ -86,6 +87,7 @@ class AppStartup extends _$AppStartup {
     ref.read(serverReachableProvider.notifier).setReachable(value: true);
     ref.read(authStateProvider.notifier).setAuthenticated(value: true);
     ref.read(currentUserIdProvider.notifier).set(session.userId);
+    await ref.read(themePreferenceProvider.notifier).load(session.userId);
 
     // TODO: Enable gateway once the IDENTIFY payload format is known.
     // unawaited(ref.read(gatewayClientProvider).connect(session.token));
