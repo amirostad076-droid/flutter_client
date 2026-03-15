@@ -1,4 +1,4 @@
-package com.parakeetsoft.fluxeron
+package app.fluxer
 
 import io.flutter.embedding.android.FlutterActivity
 
