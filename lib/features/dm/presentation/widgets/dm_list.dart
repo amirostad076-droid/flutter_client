@@ -448,8 +448,8 @@ class DmList extends ConsumerWidget {
   Widget _buildConvoTile(
     BuildContext context,
     WidgetRef ref, {
-    DmConversation? convo,
     required bool isSelected,
+    DmConversation? convo,
     IconData? leadingIcon,
     String? leadingLabel,
     VoidCallback? onCustomTap,
