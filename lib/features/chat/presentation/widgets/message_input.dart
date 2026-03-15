@@ -251,7 +251,6 @@ class _MessageInputState extends ConsumerState<MessageInput> {
     );
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         CircleIconButton(
           icon: Icons.add_rounded,
