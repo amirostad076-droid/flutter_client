@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -20,7 +20,7 @@ class ChannelIcon extends StatelessWidget {
   Widget build(BuildContext context) => PhosphorIcon(
     _icon,
     size: size,
-    color: color ?? FluxerColors.channelDefault,
+    color: color ?? context.colors.textTertiary,
   );
 
   PhosphorIconData get _icon {

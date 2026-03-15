@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
-import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/members/domain/member.dart';
 import 'package:fluxeron/features/members/providers/member_list_view_model.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
@@ -14,53 +13,73 @@ class MemberList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final memberState = ref.watch(memberListViewModelProvider);
+    final memberState =
+        ref.watch(memberListViewModelProvider);
     final groups = memberState.roleGroups;
 
     if (memberState.isLoading && groups.isEmpty) {
       return Container(
         width: 240,
-        decoration: const BoxDecoration(
-          color: FluxerColors.memberListBackground,
-          border: Border(left: BorderSide(color: FluxerColors.separator)),
+        decoration: BoxDecoration(
+          color:
+              context.colors.memberListBackground,
+          border: Border(
+            left: BorderSide(
+              color: context.colors.borderColor,
+            ),
+          ),
         ),
-        child: const Center(child: CircularProgressIndicator()),
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
-    if (memberState.errorMessage != null && groups.isEmpty) {
+    if (memberState.errorMessage != null &&
+        groups.isEmpty) {
       return Container(
         width: 240,
-        decoration: const BoxDecoration(
-          color: FluxerColors.memberListBackground,
-          border: Border(left: BorderSide(color: FluxerColors.separator)),
+        decoration: BoxDecoration(
+          color:
+              context.colors.memberListBackground,
+          border: Border(
+            left: BorderSide(
+              color: context.colors.borderColor,
+            ),
+          ),
         ),
-        child: const Center(
+        child: Center(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 PhosphorIcon(
                   PhosphorIconsFill.users,
                   size: 48,
-                  color: FluxerColors.textMuted,
+                  color: context
+                      .colors.textPrimaryMuted,
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Member List Unavailable',
                   style: TextStyle(
-                    color: FluxerColors.textNormal,
+                    color: context.colors.textChat,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Member lists are temporarily\nunavailable in this community',
+                Text(
+                  'Member lists are temporarily'
+                  '\nunavailable in this '
+                  'community',
                   style: TextStyle(
-                    color: FluxerColors.textMuted,
+                    color: context
+                        .colors.textPrimaryMuted,
                     fontSize: 14,
                   ),
                   textAlign: TextAlign.center,
@@ -74,9 +93,13 @@ class MemberList extends ConsumerWidget {
 
     return Container(
       width: 240,
-      decoration: const BoxDecoration(
-        color: FluxerColors.memberListBackground,
-        border: Border(left: BorderSide(color: FluxerColors.separator)),
+      decoration: BoxDecoration(
+        color: context.colors.memberListBackground,
+        border: Border(
+          left: BorderSide(
+            color: context.colors.borderColor,
+          ),
+        ),
       ),
       child: ListView.builder(
         padding: const EdgeInsets.only(top: 12),
@@ -84,20 +107,32 @@ class MemberList extends ConsumerWidget {
         itemBuilder: (context, index) {
           final group = groups[index];
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                padding:
+                    const EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  4,
+                ),
                 child: Text(
                   group.displayName.toUpperCase(),
-                  style: FluxerTextStyles.categoryName.copyWith(
+                  style: context
+                      .textStyles.categoryName
+                      .copyWith(
                     color: group.role != null
                         ? Color(group.role!.color)
-                        : FluxerColors.textMuted,
+                        : context.colors
+                            .textPrimaryMuted,
                   ),
                 ),
               ),
-              ...group.members.map(_buildMemberTile),
+              ...group.members.map(
+                (m) => _buildMemberTile(context, m),
+              ),
             ],
           );
         },
@@ -105,85 +140,125 @@ class MemberList extends ConsumerWidget {
     );
   }
 
-  Widget _buildMemberTile(Member member) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: () {},
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
-          child: Row(
-            children: [
-              UserAvatar(
-                displayName: member.displayName,
-                avatarUrl: member.avatarUrl,
-                avatarColor: member.avatarColor,
-                roleColor: member.roleColor,
-                status: member.status,
-                size: 32,
+  Widget _buildMemberTile(
+    BuildContext context,
+    Member member,
+  ) =>
+      Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 1,
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 6,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              decoration: BoxDecoration(
+                borderRadius:
+                    BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  UserAvatar(
+                    displayName:
+                        member.displayName,
+                    avatarUrl: member.avatarUrl,
+                    avatarColor: member.avatarColor,
+                    roleColor: member.roleColor,
+                    status: member.status,
+                    size: 32,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Text(
-                            member.displayName,
-                            style: TextStyle(
-                              color: member.status == 'offline'
-                                  ? FluxerColors.textMuted
-                                  : member.roleColor != null
-                                  ? Color(member.roleColor!)
-                                  : FluxerColors.textNormal,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                member.displayName,
+                                style: TextStyle(
+                                  color: member
+                                              .status ==
+                                          'offline'
+                                      ? context
+                                          .colors
+                                          .textPrimaryMuted
+                                      : member.roleColor !=
+                                              null
+                                          ? Color(
+                                              member
+                                                  .roleColor!,
+                                            )
+                                          : context
+                                              .colors
+                                              .textChat,
+                                  fontSize: 14,
+                                  fontWeight:
+                                      FontWeight
+                                          .w500,
+                                ),
+                                overflow:
+                                    TextOverflow
+                                        .ellipsis,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                            if (member.isBot) ...[
+                              const SizedBox(
+                                width: 4,
+                              ),
+                              _buildBotBadge(
+                                context,
+                              ),
+                            ],
+                          ],
                         ),
-                        if (member.isBot) ...[
-                          const SizedBox(width: 4),
-                          _buildBotBadge(),
-                        ],
+                        if (member.customStatus !=
+                            null)
+                          Text(
+                            member.customStatus!,
+                            style: TextStyle(
+                              color: context.colors
+                                  .textPrimaryMuted,
+                              fontSize: 12,
+                            ),
+                            overflow: TextOverflow
+                                .ellipsis,
+                          ),
                       ],
                     ),
-                    if (member.customStatus != null)
-                      Text(
-                        member.customStatus!,
-                        style: const TextStyle(
-                          color: FluxerColors.textMuted,
-                          fontSize: 12,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
-      ),
-    ),
-  );
+      );
 
-  Widget _buildBotBadge() => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-    decoration: BoxDecoration(
-      color: FluxerColors.blurple,
-      borderRadius: BorderRadius.circular(3),
-    ),
-    child: const Text(
-      'BOT',
-      style: TextStyle(
-        color: FluxerColors.white,
-        fontSize: 9,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-  );
+  Widget _buildBotBadge(BuildContext context) =>
+      Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 4,
+          vertical: 1,
+        ),
+        decoration: BoxDecoration(
+          color: context.colors.brandPrimary,
+          borderRadius: BorderRadius.circular(3),
+        ),
+        child: Text(
+          'BOT',
+          style: TextStyle(
+            color: context.colors.textPrimary,
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
 }

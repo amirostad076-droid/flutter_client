@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -22,29 +22,31 @@ class LoginForm extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Center(
+          Center(
             child: Text(
               'Welcome back',
               style: TextStyle(
-                color: FluxerColors.white,
+                color: context.colors.textPrimary,
                 fontSize: 24,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
           const SizedBox(height: 24),
-          _buildLabel('Email'),
+          _buildLabel(context, 'Email'),
           const SizedBox(height: 8),
           _buildTextField(
+            context,
             autofillHints: [AutofillHints.email],
             keyboardType: TextInputType.emailAddress,
             onChanged: notifier.updateEmail,
             obscure: false,
           ),
           const SizedBox(height: 20),
-          _buildLabel('Password'),
+          _buildLabel(context, 'Password'),
           const SizedBox(height: 8),
           _buildTextField(
+            context,
             autofillHints: [AutofillHints.password],
             keyboardType: TextInputType.visiblePassword,
             onChanged: notifier.updatePassword,
@@ -54,7 +56,7 @@ class LoginForm extends ConsumerWidget {
                 vm.isPasswordVisible
                     ? PhosphorIconsFill.eyeSlash
                     : PhosphorIconsFill.eye,
-                color: FluxerColors.textMuted,
+                color: context.colors.textPrimaryMuted,
                 size: 20,
               ),
               onPressed: notifier.togglePassword,
@@ -66,21 +68,26 @@ class LoginForm extends ConsumerWidget {
             style: TextButton.styleFrom(
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              tapTargetSize:
+                  MaterialTapTargetSize.shrinkWrap,
             ),
-            child: const Text(
+            child: Text(
               'Forgot your password?',
-              style: TextStyle(color: FluxerColors.textMuted, fontSize: 14),
+              style: TextStyle(
+                color: context.colors.textPrimaryMuted,
+                fontSize: 14,
+              ),
             ),
           ),
           const SizedBox(height: 20),
-          if (vm.errorMessage != null && vm.errorMessage!.isNotEmpty)
+          if (vm.errorMessage != null &&
+              vm.errorMessage!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 vm.errorMessage!,
-                style: const TextStyle(
-                  color: FluxerColors.textDanger,
+                style: TextStyle(
+                  color: context.colors.textDanger,
                   fontSize: 14,
                 ),
               ),
@@ -92,18 +99,23 @@ class LoginForm extends ConsumerWidget {
               onPressed: vm.canLogin
                   ? () {
                       unawaited(
-                        ref.read(loginViewModelProvider.notifier).login(),
+                        ref
+                            .read(
+                              loginViewModelProvider
+                                  .notifier,
+                            )
+                            .login(),
                       );
                       TextInput.finishAutofillContext();
                     }
                   : null,
               child: vm.isLoggingIn
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: FluxerColors.white,
+                        color: context.colors.textPrimary,
                       ),
                     )
                   : const Text(
@@ -116,9 +128,10 @@ class LoginForm extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildOrDivider(),
+          _buildOrDivider(context),
           const SizedBox(height: 16),
           _buildSecondaryButton(
+            context,
             icon: PhosphorIconsFill.key,
             label: 'Log in with a passkey',
             onTap: () {},
@@ -126,6 +139,7 @@ class LoginForm extends ConsumerWidget {
           if (showBrowserLogin) ...[
             const SizedBox(height: 8),
             _buildSecondaryButton(
+              context,
               icon: PhosphorIconsFill.monitor,
               label: 'Log in via browser',
               onTap: () {},
@@ -134,20 +148,27 @@ class LoginForm extends ConsumerWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              const Text(
+              Text(
                 'Need an account? ',
-                style: TextStyle(color: FluxerColors.textMuted, fontSize: 14),
+                style: TextStyle(
+                  color: context.colors.textPrimaryMuted,
+                  fontSize: 14,
+                ),
               ),
               TextButton(
                 onPressed: () {},
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  tapTargetSize:
+                      MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: const Text(
+                child: Text(
                   'Register',
-                  style: TextStyle(color: FluxerColors.textLink, fontSize: 14),
+                  style: TextStyle(
+                    color: context.colors.textLink,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ],
@@ -157,17 +178,19 @@ class LoginForm extends ConsumerWidget {
     );
   }
 
-  Widget _buildLabel(String text) => Text(
-    text,
-    style: const TextStyle(
-      color: FluxerColors.textMuted,
-      fontSize: 14,
-      fontWeight: FontWeight.w700,
-      letterSpacing: 0.5,
-    ),
-  );
+  Widget _buildLabel(BuildContext context, String text) =>
+      Text(
+        text,
+        style: TextStyle(
+          color: context.colors.textPrimaryMuted,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
+        ),
+      );
 
-  Widget _buildTextField({
+  Widget _buildTextField(
+    BuildContext context, {
     required Iterable<String>? autofillHints,
     required TextInputType keyboardType,
     required ValueChanged<String> onChanged,
@@ -178,25 +201,41 @@ class LoginForm extends ConsumerWidget {
     onChanged: onChanged,
     obscureText: obscure,
     keyboardType: keyboardType,
-    style: const TextStyle(color: FluxerColors.textNormal, fontSize: 16),
+    style: TextStyle(
+      color: context.colors.textChat,
+      fontSize: 16,
+    ),
     decoration: InputDecoration(suffixIcon: suffixIcon),
   );
 
-  Widget _buildOrDivider() => const Row(
+  Widget _buildOrDivider(BuildContext context) => Row(
     children: [
-      Expanded(child: Divider(color: FluxerColors.divider)),
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12),
-        child: Text(
-          'OR',
-          style: TextStyle(color: FluxerColors.textMuted, fontSize: 12),
+      Expanded(
+        child: Divider(
+          color: context.colors.borderColor,
         ),
       ),
-      Expanded(child: Divider(color: FluxerColors.divider)),
+      Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12),
+        child: Text(
+          'OR',
+          style: TextStyle(
+            color: context.colors.textPrimaryMuted,
+            fontSize: 12,
+          ),
+        ),
+      ),
+      Expanded(
+        child: Divider(
+          color: context.colors.borderColor,
+        ),
+      ),
     ],
   );
 
-  Widget _buildSecondaryButton({
+  Widget _buildSecondaryButton(
+    BuildContext context, {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
@@ -206,10 +245,14 @@ class LoginForm extends ConsumerWidget {
     child: ElevatedButton.icon(
       onPressed: onTap,
       icon: PhosphorIcon(icon, size: 18),
-      label: Text(label, style: const TextStyle(fontSize: 14)),
+      label: Text(
+        label,
+        style: const TextStyle(fontSize: 14),
+      ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: FluxerColors.backgroundTertiary,
-        foregroundColor: FluxerColors.textNormal,
+        backgroundColor:
+            context.colors.backgroundTertiary,
+        foregroundColor: context.colors.textChat,
       ),
     ),
   );

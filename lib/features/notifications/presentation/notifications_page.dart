@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 
 /// Placeholder for the mobile Notifications tab.
 class NotificationsPage extends StatelessWidget {
@@ -7,13 +7,13 @@ class NotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: FluxerColors.backgroundPrimary,
+    return ColoredBox(
+      color: context.colors.backgroundPrimary,
       child: Center(
         child: Text(
           'Notifications',
           style: TextStyle(
-            color: FluxerColors.textMuted,
+            color: context.colors.textPrimaryMuted,
             fontSize: 18,
           ),
         ),

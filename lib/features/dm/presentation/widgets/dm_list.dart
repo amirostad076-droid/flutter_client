@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/router/navigate_to_content.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
-import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
@@ -17,7 +16,10 @@ class DmList extends ConsumerWidget {
   void personalNote(WidgetRef ref, BuildContext context) {
     final userId = ref.read(currentUserIdProvider);
     if (userId != null) {
-      navigateToContent(context, '/channels/@me/$userId');
+      navigateToContent(
+        context,
+        '/channels/@me/$userId',
+      );
     }
   }
 
@@ -30,36 +32,50 @@ class DmList extends ConsumerWidget {
     final isMobile = isMobileLayout(context);
 
     return Container(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-      color: FluxerColors.channelSidebarBackground,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top,
+      ),
+      color: context.colors.channelSidebarBackground,
       child: Column(
         children: [
           if (isMobile)
             _buildMobileHeader(context)
           else ...[
-            _buildQuickSwitcher(),
-            const Divider(color: FluxerColors.divider, height: 1),
+            _buildQuickSwitcher(context),
+            Divider(
+              color: context.colors.borderColor,
+              height: 1,
+            ),
             Builder(
               builder: (context) {
-                final location =
-                    GoRouterState.of(context).matchedLocation;
-                final userId = ref.watch(currentUserIdProvider);
-                final isFriends = location == '/channels/@me';
+                final location = GoRouterState.of(
+                  context,
+                ).matchedLocation;
+                final userId =
+                    ref.watch(currentUserIdProvider);
+                final isFriends =
+                    location == '/channels/@me';
                 final isNotes = userId != null &&
-                    location == '/channels/@me/$userId';
+                    location ==
+                        '/channels/@me/$userId';
 
                 return Padding(
-                  padding: const EdgeInsets.only(top: 7),
+                  padding:
+                      const EdgeInsets.only(top: 7),
                   child: Column(
                     children: [
                       _buildNavButton(
+                        context,
                         icon: PhosphorIconsFill.users,
                         label: 'Friends',
                         isSelected: isFriends,
-                        onTap: () => context.go('/channels/@me'),
+                        onTap: () => context
+                            .go('/channels/@me'),
                       ),
                       _buildNavButton(
-                        icon: PhosphorIconsFill.notePencil,
+                        context,
+                        icon: PhosphorIconsFill
+                            .notePencil,
                         label: 'Personal Notes',
                         isSelected: isNotes,
                         onTap: () {
@@ -72,6 +88,7 @@ class DmList extends ConsumerWidget {
                         },
                       ),
                       _buildNavButton(
+                        context,
                         icon: PhosphorIconsFill.skull,
                         label: 'Plutonium',
                         onTap: () {},
@@ -81,14 +98,18 @@ class DmList extends ConsumerWidget {
                 );
               },
             ),
-            const Divider(color: FluxerColors.divider, height: 1),
-            _buildDmHeader(),
+            Divider(
+              color: context.colors.borderColor,
+              height: 1,
+            ),
+            _buildDmHeader(context),
           ],
           Expanded(
             child: vm.isLoading
-                ? const Center(
+                ? Center(
                     child: CircularProgressIndicator(
-                      color: FluxerColors.blurple,
+                      color:
+                          context.colors.brandPrimary,
                     ),
                   )
                 : _buildConvoList(
@@ -104,172 +125,207 @@ class DmList extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickSwitcher() => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: () {},
-      child: Container(
-        height: 48,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        // decoration: const BoxDecoration(
-        //   border: Border(
-        //     bottom: BorderSide(color: FluxerColors.divider),
-        //   ),
-        // ),
-        child: Row(
-          children: [
-            const Expanded(
-              child: Text(
-                'Quick Switcher',
-                style: TextStyle(color: FluxerColors.textMuted, fontSize: 13),
-              ),
-            ),
-            _buildKbdBadge('CTRL'),
-            const SizedBox(width: 3),
-            _buildKbdBadge('K'),
-          ],
-        ),
-      ),
-    ),
-  );
-
-  Widget _buildKbdBadge(String label) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-    decoration: BoxDecoration(
-      color: FluxerColors.backgroundModifierSelected,
-      borderRadius: BorderRadius.circular(3),
-    ),
-    child: Text(
-      label,
-      style: const TextStyle(
-        color: FluxerColors.textMuted,
-        fontSize: 10,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-  );
-
-  Widget _buildNavButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    bool isSelected = false,
-  }) => Padding(
-    padding: const EdgeInsets.fromLTRB(8, 1, 8, 1),
-    child: Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(4),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          decoration: isSelected
-              ? BoxDecoration(
-                  color: FluxerColors.backgroundModifierSelected,
-                  borderRadius: BorderRadius.circular(4),
-                )
-              : null,
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? FluxerColors.blurple
-                      : FluxerColors.backgroundModifierAccent,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: PhosphorIcon(
-                    icon,
-                    size: 18,
-                    color: isSelected
-                        ? FluxerColors.white
-                        : FluxerColors.interactiveNormal,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected
-                      ? FluxerColors.textNormal
-                      : FluxerColors.interactiveNormal,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-
-  Widget _buildMobileHeader(BuildContext context) => Container(
-    height: 48,
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    child: Row(
-      children: [
-        const Expanded(
-          child: Text(
-            'Messages',
-            style: TextStyle(
-              color: FluxerColors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        IconButton(
-          icon: const PhosphorIcon(
-            PhosphorIconsRegular.magnifyingGlass,
-            size: 22,
-            color: FluxerColors.interactiveNormal,
-          ),
-          onPressed: () {},
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-        ),
-        const SizedBox(width: 16),
-        InkWell(
-          onTap: () => context.go('/channels/@me'),
-          borderRadius: BorderRadius.circular(16),
+  Widget _buildQuickSwitcher(
+    BuildContext context,
+  ) =>
+      Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
           child: Container(
+            height: 48,
             padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 6,
+              horizontal: 12,
             ),
-            decoration: BoxDecoration(
-              color: FluxerColors.backgroundModifierAccent,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
+            child: Row(
               children: [
-                PhosphorIcon(
-                  PhosphorIconsFill.userPlus,
-                  size: 16,
-                  color: FluxerColors.textNormal,
-                ),
-                SizedBox(width: 6),
-                Text(
-                  'Add Friends',
-                  style: TextStyle(
-                    color: FluxerColors.textNormal,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    'Quick Switcher',
+                    style: TextStyle(
+                      color: context
+                          .colors.textPrimaryMuted,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
+                _buildKbdBadge(context, 'CTRL'),
+                const SizedBox(width: 3),
+                _buildKbdBadge(context, 'K'),
               ],
             ),
           ),
         ),
-      ],
-    ),
-  );
+      );
+
+  Widget _buildKbdBadge(
+    BuildContext context,
+    String label,
+  ) =>
+      Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 4,
+          vertical: 1,
+        ),
+        decoration: BoxDecoration(
+          color: context
+              .colors.backgroundModifierSelected,
+          borderRadius: BorderRadius.circular(3),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: context.colors.textPrimaryMuted,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+
+  Widget _buildNavButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool isSelected = false,
+  }) =>
+      Padding(
+        padding: const EdgeInsets.fromLTRB(8, 1, 8, 1),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(4),
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 8,
+              ),
+              decoration: isSelected
+                  ? BoxDecoration(
+                      color: context.colors
+                          .backgroundModifierSelected,
+                      borderRadius:
+                          BorderRadius.circular(4),
+                    )
+                  : null,
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? context
+                              .colors.brandPrimary
+                          : context.colors
+                              .backgroundModifierAccent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: PhosphorIcon(
+                        icon,
+                        size: 18,
+                        color: isSelected
+                            ? context
+                                .colors.textPrimary
+                            : context.colors
+                                .interactiveNormal,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected
+                          ? context.colors.textChat
+                          : context.colors
+                              .interactiveNormal,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+  Widget _buildMobileHeader(
+    BuildContext context,
+  ) =>
+      Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Messages',
+                style: TextStyle(
+                  color: context.colors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            IconButton(
+              icon: PhosphorIcon(
+                PhosphorIconsRegular.magnifyingGlass,
+                size: 22,
+                color:
+                    context.colors.interactiveNormal,
+              ),
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            const SizedBox(width: 16),
+            InkWell(
+              onTap: () =>
+                  context.go('/channels/@me'),
+              borderRadius:
+                  BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: context.colors
+                      .backgroundModifierAccent,
+                  borderRadius:
+                      BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PhosphorIcon(
+                      PhosphorIconsFill.userPlus,
+                      size: 16,
+                      color: context.colors.textChat,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Add Friends',
+                      style: TextStyle(
+                        color:
+                            context.colors.textChat,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
 
   Widget _buildConvoList(
     BuildContext context,
@@ -282,12 +338,18 @@ class DmList extends ConsumerWidget {
 
     return ListView.builder(
       padding: EdgeInsets.zero,
-      itemCount: convos.length + (isMobile ? 1 : 0),
+      itemCount:
+          convos.length + (isMobile ? 1 : 0),
       itemBuilder: (context, index) {
         if (isMobile && index == 0) {
-          return _buildMobilePersonalNotes(context, ref, userId);
+          return _buildMobilePersonalNotes(
+            context,
+            ref,
+            userId,
+          );
         }
-        final convoIndex = isMobile ? index - 1 : index;
+        final convoIndex =
+            isMobile ? index - 1 : index;
         final convo = convos[convoIndex];
         final isSelected = convo.id == selectedId;
         return _buildConvoTile(
@@ -304,62 +366,82 @@ class DmList extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     String? userId,
-  ) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: () {
-        if (userId != null) {
-          navigateToContent(context, '/channels/@me/$userId');
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+  ) =>
+      Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            if (userId != null) {
+              navigateToContent(
+                context,
+                '/channels/@me/$userId',
+              );
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 10,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: context.colors
+                        .backgroundModifierAccent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: PhosphorIcon(
+                      PhosphorIconsFill.notePencil,
+                      size: 20,
+                      color: context
+                          .colors.interactiveNormal,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Personal Notes',
+                  style: TextStyle(
+                    color: context.colors.textChat,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget _buildDmHeader(BuildContext context) =>
+      Padding(
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          12,
+          8,
+          4,
+        ),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                color: FluxerColors.backgroundModifierAccent,
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: PhosphorIcon(
-                  PhosphorIconsFill.notePencil,
-                  size: 20,
-                  color: FluxerColors.interactiveNormal,
-                ),
+            Expanded(
+              child: Text(
+                'DIRECT MESSAGES',
+                style:
+                    context.textStyles.categoryName,
               ),
             ),
-            const SizedBox(width: 12),
-            const Text(
-              'Personal Notes',
-              style: TextStyle(
-                color: FluxerColors.textNormal,
-                fontSize: 16,
-              ),
+            PhosphorIcon(
+              PhosphorIconsRegular.plus,
+              size: 16,
+              color:
+                  context.colors.textPrimaryMuted,
             ),
           ],
         ),
-      ),
-    ),
-  );
-
-  Widget _buildDmHeader() => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text('DIRECT MESSAGES', style: FluxerTextStyles.categoryName),
-        ),
-        const PhosphorIcon(
-          PhosphorIconsRegular.plus,
-          size: 16,
-          color: FluxerColors.textMuted,
-        ),
-      ],
-    ),
-  );
+      );
 
   static const double _convoAvatarSize = 32;
 
@@ -372,12 +454,17 @@ class DmList extends ConsumerWidget {
     String? leadingLabel,
     VoidCallback? onCustomTap,
   }) {
-    final isIconTile =
-        leadingIcon != null && leadingLabel != null && onCustomTap != null;
+    final isIconTile = leadingIcon != null &&
+        leadingLabel != null &&
+        onCustomTap != null;
     if (isIconTile) {
       return _buildConvoStyleTile(
         context: context,
-        leading: _buildCircleIcon(leadingIcon, isSelected),
+        leading: _buildCircleIcon(
+          context,
+          leadingIcon,
+          isSelected,
+        ),
         label: leadingLabel,
         isSelected: isSelected,
         onTap: onCustomTap,
@@ -388,15 +475,27 @@ class DmList extends ConsumerWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          ref.read(dmViewModelProvider.notifier).selectConversation(c.id);
-          navigateToContent(context, '/channels/@me/${c.id}');
+          ref
+              .read(dmViewModelProvider.notifier)
+              .selectConversation(c.id);
+          navigateToContent(
+            context,
+            '/channels/@me/${c.id}',
+          );
         },
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          margin: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 1,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 8,
+          ),
           decoration: BoxDecoration(
             color: isSelected
-                ? FluxerColors.backgroundModifierSelected
+                ? context.colors
+                    .backgroundModifierSelected
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(4),
           ),
@@ -411,31 +510,39 @@ class DmList extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
                     Text(
                       c.recipientName,
                       style: TextStyle(
                         color: isSelected
-                            ? FluxerColors.channelActive
+                            ? context
+                                .colors.textPrimary
                             : c.unreadCount > 0
-                            ? FluxerColors.textNormal
-                            : FluxerColors.channelDefault,
+                                ? context
+                                    .colors.textChat
+                                : context.colors
+                                    .textTertiary,
                         fontSize: 16,
-                        fontWeight: c.unreadCount > 0
-                            ? FontWeight.w600
-                            : FontWeight.w400,
+                        fontWeight:
+                            c.unreadCount > 0
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                       ),
-                      overflow: TextOverflow.ellipsis,
+                      overflow:
+                          TextOverflow.ellipsis,
                     ),
                     if (c.lastMessage.isNotEmpty)
                       Text(
                         c.lastMessage,
-                        style: const TextStyle(
-                          color: FluxerColors.textMuted,
+                        style: TextStyle(
+                          color: context.colors
+                              .textPrimaryMuted,
                           fontSize: 12,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        overflow:
+                            TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
                   ],
@@ -443,18 +550,22 @@ class DmList extends ConsumerWidget {
               ),
               if (c.unreadCount > 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding:
+                      const EdgeInsets.symmetric(
                     horizontal: 5,
                     vertical: 1,
                   ),
                   decoration: BoxDecoration(
-                    color: FluxerColors.textDanger,
-                    borderRadius: BorderRadius.circular(8),
+                    color:
+                        context.colors.textDanger,
+                    borderRadius:
+                        BorderRadius.circular(8),
                   ),
                   child: Text(
                     '${c.unreadCount}',
-                    style: const TextStyle(
-                      color: FluxerColors.white,
+                    style: TextStyle(
+                      color: context
+                          .colors.textPrimary,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
@@ -467,23 +578,27 @@ class DmList extends ConsumerWidget {
     );
   }
 
-  Widget _buildCircleIcon(IconData icon, bool isSelected) {
+  Widget _buildCircleIcon(
+    BuildContext context,
+    IconData icon,
+    bool isSelected,
+  ) {
     return Container(
       width: _convoAvatarSize,
       height: _convoAvatarSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isSelected
-            ? FluxerColors.blurple
-            : FluxerColors.backgroundTertiary,
+            ? context.colors.brandPrimary
+            : context.colors.backgroundTertiary,
       ),
       alignment: Alignment.center,
       child: PhosphorIcon(
         icon,
         size: 20,
         color: isSelected
-            ? FluxerColors.channelActive
-            : FluxerColors.interactiveNormal,
+            ? context.colors.textPrimary
+            : context.colors.interactiveNormal,
       ),
     );
   }
@@ -494,41 +609,53 @@ class DmList extends ConsumerWidget {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
-  }) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? FluxerColors.backgroundModifierSelected
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Row(
-          children: [
-            leading,
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: isSelected
-                      ? FluxerColors.channelActive
-                      : FluxerColors.channelDefault,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
+  }) =>
+      Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          child: Container(
+            margin: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 1,
             ),
-          ],
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 8,
+            ),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? context.colors
+                      .backgroundModifierSelected
+                  : Colors.transparent,
+              borderRadius:
+                  BorderRadius.circular(4),
+            ),
+            child: Row(
+              children: [
+                leading,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected
+                          ? context
+                              .colors.textPrimary
+                          : context
+                              .colors.textTertiary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    overflow:
+                        TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   String? _avatarUrl(DmConversation convo) {
     final avatar = convo.recipientAvatar;

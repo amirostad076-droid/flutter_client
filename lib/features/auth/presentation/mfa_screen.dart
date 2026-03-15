@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 
 class MfaScreen extends StatelessWidget {
   const MfaScreen({super.key});
@@ -8,14 +8,14 @@ class MfaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FluxerColors.blurple,
+      backgroundColor: context.colors.brandPrimary,
       body: Center(
         child: Container(
           width: 480,
           margin: const EdgeInsets.all(20),
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: FluxerColors.backgroundPrimary,
+            color: context.colors.backgroundPrimary,
             borderRadius: BorderRadius.circular(4),
             boxShadow: const [
               BoxShadow(
@@ -25,26 +25,35 @@ class MfaScreen extends StatelessWidget {
               ),
             ],
           ),
-          child: const Column(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Two-Factor Authentication',
                 style: TextStyle(
-                  color: FluxerColors.white,
+                  color: context.colors.textPrimary,
                   fontSize: 24,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
-                'Enter the code from your authenticator app.',
-                style: TextStyle(color: FluxerColors.textMuted, fontSize: 16),
+                'Enter the code from your '
+                'authenticator app.',
+                style: TextStyle(
+                  color:
+                      context.colors.textPrimaryMuted,
+                  fontSize: 16,
+                ),
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               Text(
-                'MFA is not yet supported in this client.',
-                style: TextStyle(color: FluxerColors.textDanger, fontSize: 14),
+                'MFA is not yet supported '
+                'in this client.',
+                style: TextStyle(
+                  color: context.colors.textDanger,
+                  fontSize: 14,
+                ),
               ),
             ],
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/settings/presentation/widgets/server_overview.dart';
 import 'package:fluxeron/features/settings/presentation/widgets/server_roles.dart';
 import 'package:fluxeron/features/settings/presentation/widgets/settings_sidebar.dart';
@@ -8,17 +8,22 @@ import 'package:fluxeron/features/settings/providers/server_settings_view_model.
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-class ServerSettingsScreen extends ConsumerStatefulWidget {
+class ServerSettingsScreen
+    extends ConsumerStatefulWidget {
   final String serverId;
 
-  const ServerSettingsScreen({required this.serverId, super.key});
+  const ServerSettingsScreen({
+    required this.serverId,
+    super.key,
+  });
 
   @override
   ConsumerState<ServerSettingsScreen> createState() =>
       _ServerSettingsScreenState();
 }
 
-class _ServerSettingsScreenState extends ConsumerState<ServerSettingsScreen> {
+class _ServerSettingsScreenState
+    extends ConsumerState<ServerSettingsScreen> {
   static const _items = [
     SettingsSidebarItem('Overview'),
     SettingsSidebarItem('Roles'),
@@ -36,9 +41,13 @@ class _ServerSettingsScreenState extends ConsumerState<ServerSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) {
       ref
-          .read(serverSettingsViewModelProvider.notifier)
+          .read(
+            serverSettingsViewModelProvider
+                .notifier,
+          )
           .loadServer(widget.serverId)
           .ignore();
     });
@@ -46,20 +55,26 @@ class _ServerSettingsScreenState extends ConsumerState<ServerSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(serverSettingsViewModelProvider);
+    final state = ref.watch(
+      serverSettingsViewModelProvider,
+    );
 
     return Scaffold(
-      backgroundColor: FluxerColors.backgroundPrimary,
+      backgroundColor:
+          context.colors.backgroundPrimary,
       body: Row(
         children: [
           SizedBox(
             width: 220,
             child: ColoredBox(
-              color: FluxerColors.backgroundSecondary,
+              color: context
+                  .colors.backgroundSecondary,
               child: SettingsSidebar(
                 items: _items,
                 selectedIndex: _selectedIndex,
-                onSelected: (i) => setState(() => _selectedIndex = i),
+                onSelected: (i) => setState(
+                  () => _selectedIndex = i,
+                ),
               ),
             ),
           ),
@@ -69,11 +84,18 @@ class _ServerSettingsScreenState extends ConsumerState<ServerSettingsScreen> {
                 Align(
                   alignment: Alignment.topRight,
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: _buildCloseButton(),
+                    padding:
+                        const EdgeInsets.all(12),
+                    child:
+                        _buildCloseButton(context),
                   ),
                 ),
-                Expanded(child: _buildContent(state)),
+                Expanded(
+                  child: _buildContent(
+                    context,
+                    state,
+                  ),
+                ),
               ],
             ),
           ),
@@ -82,10 +104,15 @@ class _ServerSettingsScreenState extends ConsumerState<ServerSettingsScreen> {
     );
   }
 
-  Widget _buildContent(ServerSettingsViewState state) {
+  Widget _buildContent(
+    BuildContext context,
+    ServerSettingsViewState state,
+  ) {
     final server = state.server;
     if (server == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
     }
 
     switch (_selectedIndex) {
@@ -97,33 +124,45 @@ class _ServerSettingsScreenState extends ConsumerState<ServerSettingsScreen> {
         return Center(
           child: Text(
             _items[_selectedIndex].label,
-            style: const TextStyle(color: FluxerColors.textMuted, fontSize: 24),
+            style: TextStyle(
+              color:
+                  context.colors.textPrimaryMuted,
+              fontSize: 24,
+            ),
           ),
         );
     }
   }
 
-  Widget _buildCloseButton() => InkWell(
-    onTap: () {
-      if (context.canPop()) {
-        context.pop();
-      } else {
-        context.go('/servers');
-      }
-    },
-    borderRadius: BorderRadius.circular(20),
-    child: Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: FluxerColors.interactiveMuted, width: 2),
-      ),
-      child: const PhosphorIcon(
-        PhosphorIconsFill.x,
-        size: 18,
-        color: FluxerColors.interactiveNormal,
-      ),
-    ),
-  );
+  Widget _buildCloseButton(
+    BuildContext context,
+  ) =>
+      InkWell(
+        onTap: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/servers');
+          }
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color:
+                  context.colors.interactiveMuted,
+              width: 2,
+            ),
+          ),
+          child: PhosphorIcon(
+            PhosphorIconsFill.x,
+            size: 18,
+            color:
+                context.colors.interactiveNormal,
+          ),
+        ),
+      );
 }
