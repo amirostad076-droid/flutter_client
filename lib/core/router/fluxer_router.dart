@@ -60,7 +60,10 @@ class _PlaceholderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      Scaffold(body: Center(child: Text(label)), backgroundColor: context.colors.backgroundSecondaryAlt,);
+      Scaffold(
+        backgroundColor: context.colors.backgroundSecondaryAlt,
+        body: Center(child: Text(label)),
+      );
 }
 
 @Riverpod(keepAlive: true)
