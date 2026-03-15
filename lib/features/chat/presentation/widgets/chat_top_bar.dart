@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
-import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
@@ -16,12 +15,13 @@ import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-/// The chat header bar showing channel name, topic, and action icons.
-/// Renders a compact single-row layout on mobile and the full toolbar
-/// on tablet and desktop.
+/// The chat header bar showing channel name, topic, and
+/// action icons. Renders a compact single-row layout on
+/// mobile and the full toolbar on tablet and desktop.
 ///
-/// Resolves the title from server channels first, then falls back to
-/// DM conversations so both contexts display correctly.
+/// Resolves the title from server channels first, then
+/// falls back to DM conversations so both contexts
+/// display correctly.
 class ChatTopBar extends ConsumerWidget {
   const ChatTopBar({super.key});
 
@@ -30,21 +30,36 @@ class ChatTopBar extends ConsumerWidget {
     final channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final channelState = ref.watch(channelListViewModelProvider);
-    final channel = findChannelById(channelState, channelId);
+    final channelState = ref.watch(
+      channelListViewModelProvider,
+    );
+    final channel = findChannelById(
+      channelState,
+      channelId,
+    );
     final dm = channel == null
         ? findDmById(
-            ref.watch(dmViewModelProvider.select((s) => s.conversations)),
+            ref.watch(
+              dmViewModelProvider.select(
+                (s) => s.conversations,
+              ),
+            ),
             channelId,
           )
         : null;
     final isMemberListVisible = ref.watch(
-      channelListViewModelProvider.select((s) => s.isMemberListVisible),
+      channelListViewModelProvider.select(
+        (s) => s.isMemberListVisible,
+      ),
     );
 
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: FluxerColors.separator)),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: context.colors.borderColor,
+          ),
+        ),
       ),
       child: ResponsiveLayout(
         builder: (context, mode) => switch (mode) {
@@ -56,6 +71,7 @@ class ChatTopBar extends ConsumerWidget {
             isMemberListVisible: isMemberListVisible,
           ),
           _ => _buildDesktopBar(
+            context,
             ref,
             channel: channel,
             dm: dm,
@@ -75,59 +91,88 @@ class ChatTopBar extends ConsumerWidget {
   }) => SizedBox(
     height: 48,
     child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 4,
+      ),
       child: Row(
         children: [
           _topBarIcon(
+            context,
             Icons.arrow_back,
             'Back',
             onTap: () {
-              final location = GoRouterState.of(context).matchedLocation;
-              if (location.startsWith('/channels/@me/')) {
+              final location =
+                  GoRouterState.of(context)
+                      .matchedLocation;
+              if (location
+                  .startsWith('/channels/@me/')) {
                 context.go('/channels/@me');
               } else {
                 context.go('/servers');
               }
             },
           ),
-          _buildLeadingIcon(channel: channel, dm: dm),
+          _buildLeadingIcon(
+            context,
+            channel: channel,
+            dm: dm,
+          ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              _resolveTitle(channel: channel, dm: dm),
-              style: FluxerTextStyles.channelName,
+              _resolveTitle(
+                channel: channel,
+                dm: dm,
+              ),
+              style:
+                  context.textStyles.channelName,
               overflow: TextOverflow.ellipsis,
             ),
           ),
           if (dm != null)
             Padding(
-              padding: const EdgeInsets.only(right: 6),
+              padding:
+                  const EdgeInsets.only(right: 6),
               child: CircleIconButton(
                 icon: PhosphorIconsFill.phoneCall,
-                backgroundColor: FluxerColors.backgroundTertiary,
-                iconColor: FluxerColors.interactiveNormal,
+                backgroundColor: context
+                    .colors.backgroundTertiary,
+                iconColor: context
+                    .colors.interactiveNormal,
                 onTap: () {},
               ),
             ),
           if (dm != null)
             Padding(
-              padding: const EdgeInsets.only(right: 4),
+              padding:
+                  const EdgeInsets.only(right: 4),
               child: CircleIconButton(
-                icon: PhosphorIconsFill.videoCamera,
-                backgroundColor: FluxerColors.backgroundTertiary,
-                iconColor: FluxerColors.interactiveNormal,
+                icon:
+                    PhosphorIconsFill.videoCamera,
+                backgroundColor: context
+                    .colors.backgroundTertiary,
+                iconColor: context
+                    .colors.interactiveNormal,
                 onTap: () {},
               ),
             ),
           if (dm == null)
-            _topBarIcon(PhosphorIconsFill.magnifyingGlass, 'Search'),
+            _topBarIcon(
+              context,
+              PhosphorIconsFill.magnifyingGlass,
+              'Search',
+            ),
           if (dm == null)
             _topBarIcon(
+              context,
               PhosphorIconsFill.users,
               'Member List',
               isActive: isMemberListVisible,
               onTap: () => ref
-                  .read(channelListViewModelProvider.notifier)
+                  .read(
+                    channelListViewModelProvider
+                        .notifier,
+                  )
                   .toggleMemberList(),
             ),
         ],
@@ -136,6 +181,7 @@ class ChatTopBar extends ConsumerWidget {
   );
 
   Widget _buildDesktopBar(
+    BuildContext context,
     WidgetRef ref, {
     required Channel? channel,
     required DmConversation? dm,
@@ -143,25 +189,46 @@ class ChatTopBar extends ConsumerWidget {
   }) => SizedBox(
     height: 56,
     child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+      ),
       child: Row(
         children: [
-          _buildLeadingIcon(channel: channel, dm: dm),
+          _buildLeadingIcon(
+            context,
+            channel: channel,
+            dm: dm,
+          ),
           const SizedBox(width: 8),
           Text(
-            _resolveTitle(channel: channel, dm: dm),
-            style: FluxerTextStyles.channelName,
+            _resolveTitle(
+              channel: channel,
+              dm: dm,
+            ),
+            style: context.textStyles.channelName,
           ),
           const Spacer(),
-          _topBarIcon(PhosphorIconsFill.bell, 'Notification Settings'),
-          _topBarIcon(PhosphorIconsFill.pushPin, 'Pinned Messages'),
+          _topBarIcon(
+            context,
+            PhosphorIconsFill.bell,
+            'Notification Settings',
+          ),
+          _topBarIcon(
+            context,
+            PhosphorIconsFill.pushPin,
+            'Pinned Messages',
+          ),
           if (dm == null)
             _topBarIcon(
+              context,
               PhosphorIconsFill.users,
               'Member List',
               isActive: isMemberListVisible,
               onTap: () => ref
-                  .read(channelListViewModelProvider.notifier)
+                  .read(
+                    channelListViewModelProvider
+                        .notifier,
+                  )
                   .toggleMemberList(),
             ),
           SizedBox(
@@ -169,38 +236,55 @@ class ChatTopBar extends ConsumerWidget {
             height: 28,
             child: Container(
               decoration: BoxDecoration(
-                color: FluxerColors.backgroundTertiary,
-                borderRadius: BorderRadius.circular(4),
+                color: context
+                    .colors.backgroundTertiary,
+                borderRadius:
+                    BorderRadius.circular(4),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: const Row(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 8,
+              ),
+              child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       'Search',
                       style: TextStyle(
-                        color: FluxerColors.textMuted,
+                        color: context.colors
+                            .textPrimaryMuted,
                         fontSize: 14,
                       ),
                     ),
                   ),
                   PhosphorIcon(
-                    PhosphorIconsFill.magnifyingGlass,
+                    PhosphorIconsFill
+                        .magnifyingGlass,
                     size: 16,
-                    color: FluxerColors.textMuted,
+                    color: context
+                        .colors.textPrimaryMuted,
                   ),
                 ],
               ),
             ),
           ),
-          _topBarIcon(PhosphorIconsFill.tray, 'Inbox'),
-          _topBarIcon(PhosphorIconsFill.question, 'Help'),
+          _topBarIcon(
+            context,
+            PhosphorIconsFill.tray,
+            'Inbox',
+          ),
+          _topBarIcon(
+            context,
+            PhosphorIconsFill.question,
+            'Help',
+          ),
         ],
       ),
     ),
   );
 
-  Widget _buildLeadingIcon({
+  Widget _buildLeadingIcon(
+    BuildContext context, {
     required Channel? channel,
     required DmConversation? dm,
   }) {
@@ -215,10 +299,10 @@ class ChatTopBar extends ConsumerWidget {
         size: 28,
       );
     }
-    return const PhosphorIcon(
+    return PhosphorIcon(
       PhosphorIconsFill.chatCircle,
       size: 20,
-      color: FluxerColors.channelDefault,
+      color: context.colors.interactiveNormal,
     );
   }
 
@@ -227,7 +311,8 @@ class ChatTopBar extends ConsumerWidget {
     if (avatar == null) {
       return null;
     }
-    return '$fluxerMediaCdn/avatars/${dm.recipientId}/$avatar.png';
+    return '$fluxerMediaCdn/avatars/'
+        '${dm.recipientId}/$avatar.png';
   }
 
   String _resolveTitle({
@@ -244,6 +329,7 @@ class ChatTopBar extends ConsumerWidget {
   }
 
   Widget _topBarIcon(
+    BuildContext context,
     IconData icon,
     String tooltip, {
     bool isActive = false,
@@ -259,8 +345,8 @@ class ChatTopBar extends ConsumerWidget {
           icon,
           size: 24,
           color: isActive
-              ? FluxerColors.interactiveActive
-              : FluxerColors.interactiveNormal,
+              ? context.colors.interactiveActive
+              : context.colors.interactiveNormal,
         ),
       ),
     ),

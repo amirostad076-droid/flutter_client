@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
-import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
@@ -49,7 +48,9 @@ class _MessageInputState extends ConsumerState<MessageInput> {
         }
         _controller.value = TextEditingValue(
           text: messageText,
-          selection: TextSelection.collapsed(offset: messageText.length),
+          selection: TextSelection.collapsed(
+            offset: messageText.length,
+          ),
         );
       },
     );
@@ -63,33 +64,43 @@ class _MessageInputState extends ConsumerState<MessageInput> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (replyTo != null)
-          ReplyInputBar(replyTo: replyTo, onCancel: chatNotifier.cancelReply),
+          ReplyInputBar(
+            replyTo: replyTo,
+            onCancel: chatNotifier.cancelReply,
+          ),
         if (forwardFrom != null)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: FluxerColors.chatInputBackground,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            color: context.colors.chatInputBackground,
             child: Row(
               children: [
-                const PhosphorIcon(
+                PhosphorIcon(
                   PhosphorIconsFill.shareFat,
                   size: 16,
-                  color: FluxerColors.textMuted,
+                  color: context.colors.textPrimaryMuted,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Forwarding message from '
                     '${forwardFrom.authorName}',
-                    style: const TextStyle(
-                      color: FluxerColors.textMuted,
+                    style: TextStyle(
+                      color:
+                          context.colors.textPrimaryMuted,
                       fontSize: 14,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 IconButton(
-                  icon: const PhosphorIcon(PhosphorIconsFill.x, size: 16),
-                  color: FluxerColors.textMuted,
+                  icon: const PhosphorIcon(
+                    PhosphorIconsFill.x,
+                    size: 16,
+                  ),
+                  color: context.colors.textPrimaryMuted,
                   onPressed: chatNotifier.cancelForward,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(
@@ -101,28 +112,44 @@ class _MessageInputState extends ConsumerState<MessageInput> {
             ),
           ),
         Container(
-          decoration: const BoxDecoration(
-            color: FluxerColors.chatInputBackground,
-            border: Border(top: BorderSide(color: FluxerColors.separator)),
+          decoration: BoxDecoration(
+            color: context.colors.chatInputBackground,
+            border: Border(
+              top: BorderSide(
+                color: context.colors.borderColor,
+              ),
+            ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
           child: ResponsiveLayout(
             builder: (context, mode) {
               switch (mode) {
                 case LayoutMode.desktop:
-                  return _buildLargeLayout(chatNotifier);
+                  return _buildLargeLayout(
+                    context,
+                    chatNotifier,
+                  );
                 case LayoutMode.tablet:
-                  return _buildLargeLayout(chatNotifier);
+                  return _buildLargeLayout(
+                    context,
+                    chatNotifier,
+                  );
                 case LayoutMode.mobile:
-                  return _buildMobileLayout(chatNotifier);
+                  return _buildMobileLayout(
+                    context,
+                    chatNotifier,
+                  );
               }
             },
           ),
         ),
         Container(
           height: MediaQuery.of(context).padding.bottom,
-          decoration: const BoxDecoration(
-            color: FluxerColors.chatInputBackground,
+          decoration: BoxDecoration(
+            color: context.colors.chatInputBackground,
           ),
         ),
       ],
@@ -133,13 +160,20 @@ class _MessageInputState extends ConsumerState<MessageInput> {
     final channelId = ref.read(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final channelState = ref.read(channelListViewModelProvider);
-    final channel = findChannelById(channelState, channelId);
+    final channelState = ref.read(
+      channelListViewModelProvider,
+    );
+    final channel = findChannelById(
+      channelState,
+      channelId,
+    );
     if (channel != null) {
       return 'Message #${channel.name}';
     }
     final conversations = ref.read(
-      dmViewModelProvider.select((s) => s.conversations),
+      dmViewModelProvider.select(
+        (s) => s.conversations,
+      ),
     );
     final dm = findDmById(conversations, channelId);
     if (dm != null) {
@@ -148,47 +182,59 @@ class _MessageInputState extends ConsumerState<MessageInput> {
     return 'Message';
   }
 
-  Widget _buildLargeLayout(ChatViewModel chatNotifier) {
+  Widget _buildLargeLayout(
+    BuildContext context,
+    ChatViewModel chatNotifier,
+  ) {
     final hasText = ref.watch(
-      chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
+      chatViewModelProvider.select(
+        (s) => s.messageText.isNotEmpty,
+      ),
     );
     return Row(
       children: [
         CircleIconButton(
           icon: PhosphorIconsFill.plusCircle,
-          backgroundColor: FluxerColors.backgroundTertiary,
-          iconColor: FluxerColors.interactiveNormal,
+          backgroundColor:
+              context.colors.backgroundTertiary,
+          iconColor: context.colors.interactiveNormal,
           onTap: () {},
         ),
         const SizedBox(width: 8),
         Expanded(
           child: TextField(
             controller: _controller,
-            style: FluxerTextStyles.inputText,
+            style: context.textStyles.inputText,
             minLines: 1,
             maxLines: 5,
             decoration: InputDecoration(
               hintText: _resolveHintText(),
-              hintStyle: const TextStyle(
-                color: FluxerColors.textFaint,
+              hintStyle: TextStyle(
+                color:
+                    context.colors.textTertiaryMuted,
                 fontSize: 16,
               ),
               filled: true,
-              fillColor: FluxerColors.backgroundTertiary,
-              contentPadding: const EdgeInsets.symmetric(
+              fillColor:
+                  context.colors.backgroundTertiary,
+              contentPadding:
+                  const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 10,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius:
+                    BorderRadius.circular(24),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius:
+                    BorderRadius.circular(24),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius:
+                    BorderRadius.circular(24),
                 borderSide: BorderSide.none,
               ),
             ),
@@ -197,139 +243,203 @@ class _MessageInputState extends ConsumerState<MessageInput> {
         const SizedBox(width: 4),
         if (!hasText) ...[
           IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
-            color: FluxerColors.interactiveNormal,
+            icon: const PhosphorIcon(
+              PhosphorIconsFill.gift,
+              size: 24,
+            ),
+            color: context.colors.interactiveNormal,
             onPressed: () {},
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            constraints: const BoxConstraints(
+              minWidth: 36,
+              minHeight: 36,
+            ),
           ),
           IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
-            color: FluxerColors.interactiveNormal,
+            icon: const PhosphorIcon(
+              PhosphorIconsFill.gif,
+              size: 24,
+            ),
+            color: context.colors.interactiveNormal,
             onPressed: () {},
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            constraints: const BoxConstraints(
+              minWidth: 36,
+              minHeight: 36,
+            ),
           ),
           IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.image, size: 24),
-            color: FluxerColors.interactiveNormal,
+            icon: const PhosphorIcon(
+              PhosphorIconsFill.image,
+              size: 24,
+            ),
+            color: context.colors.interactiveNormal,
             onPressed: () {},
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            constraints: const BoxConstraints(
+              minWidth: 36,
+              minHeight: 36,
+            ),
           ),
           IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
-            color: FluxerColors.interactiveNormal,
+            icon: const PhosphorIcon(
+              PhosphorIconsFill.sticker,
+              size: 24,
+            ),
+            color: context.colors.interactiveNormal,
             onPressed: () {},
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            constraints: const BoxConstraints(
+              minWidth: 36,
+              minHeight: 36,
+            ),
           ),
           IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
-            color: FluxerColors.interactiveNormal,
+            icon: const PhosphorIcon(
+              PhosphorIconsFill.smiley,
+              size: 24,
+            ),
+            color: context.colors.interactiveNormal,
             onPressed: () {},
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            constraints: const BoxConstraints(
+              minWidth: 36,
+              minHeight: 36,
+            ),
           ),
         ],
-        const SizedBox(
+        SizedBox(
           height: 24,
           child: VerticalDivider(
-            color: FluxerColors.divider,
+            color: context.colors.borderColor,
             width: 16,
             thickness: 1,
           ),
         ),
-        _sendAndVoiceButton(chatNotifier, hasText: hasText),
+        _sendAndVoiceButton(
+          context,
+          chatNotifier,
+          hasText: hasText,
+        ),
       ],
     );
   }
 
-  Widget _buildMobileLayout(ChatViewModel chatNotifier) {
+  Widget _buildMobileLayout(
+    BuildContext context,
+    ChatViewModel chatNotifier,
+  ) {
     final hasText = ref.watch(
-      chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
+      chatViewModelProvider.select(
+        (s) => s.messageText.isNotEmpty,
+      ),
     );
 
     return Row(
       children: [
         CircleIconButton(
           icon: Icons.add_rounded,
-          backgroundColor: FluxerColors.backgroundTertiary,
-          iconColor: FluxerColors.interactiveNormal,
+          backgroundColor:
+              context.colors.backgroundTertiary,
+          iconColor: context.colors.interactiveNormal,
           onTap: () {},
         ),
         const SizedBox(width: 8),
         Expanded(
           child: TextField(
             controller: _controller,
-            style: FluxerTextStyles.inputText,
+            style: context.textStyles.inputText,
             minLines: 1,
             maxLines: 6,
             decoration: InputDecoration(
               hintText: _resolveHintText(),
-              hintStyle: const TextStyle(
-                color: FluxerColors.textFaint,
+              hintStyle: TextStyle(
+                color:
+                    context.colors.textTertiaryMuted,
                 fontSize: 16,
               ),
               filled: true,
-              fillColor: FluxerColors.backgroundTertiary,
-              contentPadding: const EdgeInsets.symmetric(
+              fillColor:
+                  context.colors.backgroundTertiary,
+              contentPadding:
+                  const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 8,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius:
+                    BorderRadius.circular(24),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius:
+                    BorderRadius.circular(24),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius:
+                    BorderRadius.circular(24),
                 borderSide: BorderSide.none,
               ),
               isDense: true,
               suffixIcon: FadeIconButton(
                 icon: PhosphorIconsFill.smiley,
-                iconColor: FluxerColors.textFaint,
+                iconColor:
+                    context.colors.textTertiaryMuted,
                 onTap: () {},
-                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 7),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 4,
+                  horizontal: 7,
+                ),
               ),
-              suffixIconConstraints: const BoxConstraints(),
+              suffixIconConstraints:
+                  const BoxConstraints(),
             ),
           ),
         ),
         const SizedBox(width: 8),
         Padding(
-          padding: const EdgeInsetsGeometry.only(bottom: 1),
-          child: _sendAndVoiceButton(chatNotifier, hasText: hasText),
+          padding:
+              const EdgeInsetsGeometry.only(bottom: 1),
+          child: _sendAndVoiceButton(
+            context,
+            chatNotifier,
+            hasText: hasText,
+          ),
         ),
       ],
     );
   }
 
   Widget _sendAndVoiceButton(
+    BuildContext context,
     ChatViewModel chatNotifier, {
     required bool hasText,
   }) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) =>
-          FadeTransition(opacity: animation, child: child),
+          FadeTransition(
+        opacity: animation,
+        child: child,
+      ),
       child: hasText
           ? CircleIconButton(
               key: const ValueKey('send'),
               icon: Icons.arrow_upward_rounded,
-              backgroundColor: FluxerColors.blurple,
-              iconColor: FluxerColors.textOnBrand,
+              backgroundColor:
+                  context.colors.brandPrimary,
+              iconColor:
+                  context.colors.textOnBrandPrimary,
               onTap: chatNotifier.sendMessage,
             )
           : CircleIconButton(
               key: const ValueKey('voice'),
               icon: PhosphorIconsFill.microphone,
-              backgroundColor: FluxerColors.backgroundTertiary,
-              iconColor: FluxerColors.interactiveNormal,
+              backgroundColor:
+                  context.colors.backgroundTertiary,
+              iconColor:
+                  context.colors.interactiveNormal,
               onTap: () {},
             ),
     );

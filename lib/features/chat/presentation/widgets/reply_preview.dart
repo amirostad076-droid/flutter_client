@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/message_bubble.dart' show MessageBubble;
+import 'package:fluxeron/features/chat/presentation/widgets/message_bubble.dart'
+    show MessageBubble;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The inline reply indicator shown above a message that
@@ -16,24 +17,33 @@ class InlineReplyPreview extends StatelessWidget {
   final String replyToId;
   final VoidCallback? onTap;
 
-  const InlineReplyPreview({required this.replyToId, this.onTap, super.key});
+  const InlineReplyPreview({
+    required this.replyToId,
+    this.onTap,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: const Row(
+      child: Row(
         children: [
           PhosphorIcon(
             PhosphorIconsFill.arrowBendUpLeft,
             size: 12,
-            color: FluxerColors.textMuted,
+            color:
+                context.colors.textPrimaryMuted,
           ),
-          SizedBox(width: 4),
+          const SizedBox(width: 4),
           Flexible(
             child: Text(
               'Reply to message',
-              style: TextStyle(color: FluxerColors.textMuted, fontSize: 12),
+              style: TextStyle(
+                color: context
+                    .colors.textPrimaryMuted,
+                fontSize: 12,
+              ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
             ),
@@ -44,13 +54,15 @@ class InlineReplyPreview extends StatelessWidget {
   }
 }
 
-/// Paints the curved "L" connector line from the replier's
-/// avatar area upward and across to the reply preview row.
+/// Paints the curved "L" connector line from the
+/// replier's avatar area upward and across to the
+/// reply preview row.
 ///
 /// The line goes:
 ///   1. Up from just above the replier's avatar center
 ///   2. Curves right with a rounded corner
-///   3. Extends horizontally to meet the reply preview row
+///   3. Extends horizontally to meet the reply
+///      preview row
 ///
 /// [avatarCenterX] -- x offset of the replier avatar
 ///   center (from left of widget)
@@ -65,20 +77,20 @@ class ReplyConnectorPainter extends CustomPainter {
   final double lineTop;
   final double lineBottom;
   final double horizontalEnd;
-  final Color color;
+  final Color? color;
 
   ReplyConnectorPainter({
     required this.avatarCenterX,
     required this.lineTop,
     required this.lineBottom,
     required this.horizontalEnd,
-    this.color = FluxerColors.interactiveMuted,
+    this.color,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color
+      ..color = color ?? const Color(0xFF4E5058)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -98,16 +110,20 @@ class ReplyConnectorPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant ReplyConnectorPainter oldDelegate) =>
-      avatarCenterX != oldDelegate.avatarCenterX ||
+  bool shouldRepaint(
+    covariant ReplyConnectorPainter oldDelegate,
+  ) =>
+      avatarCenterX !=
+          oldDelegate.avatarCenterX ||
       lineTop != oldDelegate.lineTop ||
       lineBottom != oldDelegate.lineBottom ||
-      horizontalEnd != oldDelegate.horizontalEnd ||
+      horizontalEnd !=
+          oldDelegate.horizontalEnd ||
       color != oldDelegate.color;
 }
 
-/// The reply bar shown above the input when the user is
-/// composing a reply.
+/// The reply bar shown above the input when the user
+/// is composing a reply.
 class ReplyInputBar extends StatelessWidget {
   final Message replyTo;
   final VoidCallback onCancel;
@@ -120,30 +136,38 @@ class ReplyInputBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    color: FluxerColors.chatInputBackground,
+    padding: const EdgeInsets.symmetric(
+      horizontal: 16,
+      vertical: 8,
+    ),
+    color: context.colors.chatInputBackground,
     child: Row(
       children: [
-        const PhosphorIcon(
+        PhosphorIcon(
           PhosphorIconsFill.arrowBendUpLeft,
           size: 16,
-          color: FluxerColors.textMuted,
+          color: context.colors.textPrimaryMuted,
         ),
         const SizedBox(width: 8),
         Expanded(
           child: RichText(
             overflow: TextOverflow.ellipsis,
             text: TextSpan(
-              style: const TextStyle(fontSize: 14),
+              style:
+                  const TextStyle(fontSize: 14),
               children: [
-                const TextSpan(
+                TextSpan(
                   text: 'Replying to ',
-                  style: TextStyle(color: FluxerColors.textMuted),
+                  style: TextStyle(
+                    color: context
+                        .colors.textPrimaryMuted,
+                  ),
                 ),
                 TextSpan(
                   text: replyTo.authorName,
-                  style: const TextStyle(
-                    color: FluxerColors.textNormal,
+                  style: TextStyle(
+                    color:
+                        context.colors.textChat,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -152,11 +176,17 @@ class ReplyInputBar extends StatelessWidget {
           ),
         ),
         IconButton(
-          icon: const PhosphorIcon(PhosphorIconsFill.x, size: 16),
-          color: FluxerColors.textMuted,
+          icon: const PhosphorIcon(
+            PhosphorIconsFill.x,
+            size: 16,
+          ),
+          color: context.colors.textPrimaryMuted,
           onPressed: onCancel,
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+          constraints: const BoxConstraints(
+            minWidth: 24,
+            minHeight: 24,
+          ),
         ),
       ],
     ),

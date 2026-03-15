@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
-import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_image.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_link.dart';
@@ -47,7 +46,8 @@ class MessageBubble extends StatefulWidget {
   });
 
   @override
-  State<MessageBubble> createState() => _MessageBubbleState();
+  State<MessageBubble> createState() =>
+      _MessageBubbleState();
 }
 
 class _MessageBubbleState extends State<MessageBubble> {
@@ -58,31 +58,46 @@ class _MessageBubbleState extends State<MessageBubble> {
     final msg = widget.message;
 
     return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
+      onEnter: (_) =>
+          setState(() => _isHovered = true),
+      onExit: (_) =>
+          setState(() => _isHovered = false),
       child: Container(
         color: msg.isMentioned
-            ? FluxerColors.mentionBackground
+            ? context.colors.mentionBackground
             : _isHovered
-            ? FluxerColors.messageHover
+            ? context.colors.backgroundModifierHover
             : Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
         child: Stack(
           children: [
             Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
-                if (msg.isReply) _buildReplyRow(msg),
+                if (msg.isReply)
+                  _buildReplyRow(msg),
                 if (msg.isForwarded)
                   Padding(
-                    padding: const EdgeInsets.only(left: _kAvatarColumnWidth),
-                    child: ForwardIndicator(source: msg.forwardedFrom!),
+                    padding: const EdgeInsets.only(
+                      left: _kAvatarColumnWidth,
+                    ),
+                    child: ForwardIndicator(
+                      source: msg.forwardedFrom!,
+                    ),
                   ),
-                _buildMainRow(msg),
+                _buildMainRow(context, msg),
               ],
             ),
             if (_isHovered)
-              Positioned(top: 0, right: 0, child: _buildActions()),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: _buildActions(context),
+              ),
           ],
         ),
       ),
@@ -92,12 +107,14 @@ class _MessageBubbleState extends State<MessageBubble> {
   /// Builds the reply preview row with space for the
   /// connector line.
   Widget _buildReplyRow(Message msg) {
-    const replyAreaHeight = _kReplyRowHeight + _kReplyBottomGap;
+    const replyAreaHeight =
+        _kReplyRowHeight + _kReplyBottomGap;
     const avatarCenterX = 20.0;
     const lineTop = _kReplyRowHeight / 2;
     const lineBottom = replyAreaHeight - 5;
     const horizontalEnd = _kAvatarColumnWidth - 5;
-    const replyContentLeft = horizontalEnd + _kReplyLineEndGap;
+    const replyContentLeft =
+        horizontalEnd + _kReplyLineEndGap;
 
     return SizedBox(
       height: replyAreaHeight,
@@ -117,7 +134,9 @@ class _MessageBubbleState extends State<MessageBubble> {
             height: _kReplyRowHeight,
             child: Align(
               alignment: Alignment.centerLeft,
-              child: InlineReplyPreview(replyToId: msg.replyToId!),
+              child: InlineReplyPreview(
+                replyToId: msg.replyToId!,
+              ),
             ),
           ),
         ),
@@ -127,7 +146,10 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   /// Main message row: avatar on the left, content on
   /// the right.
-  Widget _buildMainRow(Message msg) => Row(
+  Widget _buildMainRow(
+    BuildContext context,
+    Message msg,
+  ) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Padding(
@@ -141,19 +163,22 @@ class _MessageBubbleState extends State<MessageBubble> {
       const SizedBox(width: 16),
       Expanded(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Flexible(
                   child: Text(
                     msg.authorName,
-                    style: const TextStyle(
-                      color: FluxerColors.textNormal,
+                    style: TextStyle(
+                      color:
+                          context.colors.textChat,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
-                    overflow: TextOverflow.ellipsis,
+                    overflow:
+                        TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
                 ),
@@ -161,14 +186,16 @@ class _MessageBubbleState extends State<MessageBubble> {
                 const SizedBox(width: 8),
                 Text(
                   _formatTimestamp(msg.timestamp),
-                  style: FluxerTextStyles.timestamp,
+                  style: context
+                      .textStyles.timestamp,
                 ),
                 if (msg.isEdited) ...[
                   const SizedBox(width: 4),
-                  const Text(
+                  Text(
                     '(edited)',
                     style: TextStyle(
-                      color: FluxerColors.textFaint,
+                      color: context.colors
+                          .textTertiaryMuted,
                       fontSize: 10,
                     ),
                   ),
@@ -177,15 +204,29 @@ class _MessageBubbleState extends State<MessageBubble> {
             ),
             const SizedBox(height: 2),
             if (msg.content.isNotEmpty)
-              SelectableText(msg.content, style: FluxerTextStyles.messageText),
+              SelectableText(
+                msg.content,
+                style: context
+                    .textStyles.messageText,
+              ),
             ...msg.embeds.map(_buildEmbed),
             if (msg.reactions.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.only(
+                  top: 4,
+                ),
                 child: Wrap(
                   spacing: 4,
                   runSpacing: 4,
-                  children: msg.reactions.map(_buildReaction).toList(),
+                  children: msg.reactions
+                      .map(
+                        (r) =>
+                            _buildReaction(
+                              context,
+                              r,
+                            ),
+                      )
+                      .toList(),
                 ),
               ),
           ],
@@ -198,34 +239,49 @@ class _MessageBubbleState extends State<MessageBubble> {
     padding: const EdgeInsets.only(top: 2),
     child: switch (embed.type) {
       EmbedType.rich => EmbedRich(embed: embed),
-      EmbedType.image => EmbedImage(embed: embed),
+      EmbedType.image =>
+        EmbedImage(embed: embed),
       EmbedType.link => EmbedLink(embed: embed),
-      EmbedType.video => EmbedVideo(embed: embed),
+      EmbedType.video =>
+        EmbedVideo(embed: embed),
     },
   );
 
-  Widget _buildReaction(Reaction reaction) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+  Widget _buildReaction(
+    BuildContext context,
+    Reaction reaction,
+  ) => Container(
+    padding: const EdgeInsets.symmetric(
+      horizontal: 6,
+      vertical: 2,
+    ),
     decoration: BoxDecoration(
       color: reaction.hasReacted
-          ? FluxerColors.blurple.withValues(alpha: 0.3)
-          : FluxerColors.backgroundAccent.withValues(alpha: 0.4),
+          ? context.colors.brandPrimary
+              .withValues(alpha: 0.3)
+          : context.colors.backgroundSecondaryAlt
+              .withValues(alpha: 0.4),
       border: Border.all(
-        color: reaction.hasReacted ? FluxerColors.blurple : Colors.transparent,
+        color: reaction.hasReacted
+            ? context.colors.brandPrimary
+            : Colors.transparent,
       ),
       borderRadius: BorderRadius.circular(8),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(reaction.emoji, style: const TextStyle(fontSize: 16)),
+        Text(
+          reaction.emoji,
+          style: const TextStyle(fontSize: 16),
+        ),
         const SizedBox(width: 4),
         Text(
           '${reaction.count}',
           style: TextStyle(
             color: reaction.hasReacted
-                ? FluxerColors.blurple
-                : FluxerColors.textNormal,
+                ? context.colors.brandPrimary
+                : context.colors.textChat,
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -234,59 +290,81 @@ class _MessageBubbleState extends State<MessageBubble> {
     ),
   );
 
-  Widget _buildActions() => Material(
-    color: FluxerColors.backgroundPrimary,
-    borderRadius: BorderRadius.circular(4),
-    child: DecoratedBox(
-      decoration: BoxDecoration(
+  Widget _buildActions(BuildContext context) =>
+      Material(
+        color: context.colors.backgroundPrimary,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: FluxerColors.divider),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _actionButton(PhosphorIconsFill.smiley, 'Add Reaction', () {}),
-          _actionButton(
-            PhosphorIconsFill.arrowBendUpLeft,
-            'Reply',
-            widget.onReply,
-          ),
-          _actionButton(
-            PhosphorIconsFill.shareFat,
-            'Forward',
-            widget.onForward,
-          ),
-          _actionButton(PhosphorIconsFill.dotsThree, 'More', () {}),
-        ],
-      ),
-    ),
-  );
-
-  Widget _actionButton(IconData icon, String tooltip, VoidCallback? onTap) =>
-      Tooltip(
-        message: tooltip,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: PhosphorIcon(
-              icon,
-              size: 18,
-              color: FluxerColors.interactiveNormal,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: context.colors.borderColor,
             ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _actionButton(
+                context,
+                PhosphorIconsFill.smiley,
+                'Add Reaction',
+                () {},
+              ),
+              _actionButton(
+                context,
+                PhosphorIconsFill.arrowBendUpLeft,
+                'Reply',
+                widget.onReply,
+              ),
+              _actionButton(
+                context,
+                PhosphorIconsFill.shareFat,
+                'Forward',
+                widget.onForward,
+              ),
+              _actionButton(
+                context,
+                PhosphorIconsFill.dotsThree,
+                'More',
+                () {},
+              ),
+            ],
           ),
         ),
       );
 
+  Widget _actionButton(
+    BuildContext context,
+    IconData icon,
+    String tooltip,
+    VoidCallback? onTap,
+  ) => Tooltip(
+    message: tooltip,
+    child: InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: PhosphorIcon(
+          icon,
+          size: 18,
+          color: context.colors.interactiveNormal,
+        ),
+      ),
+    ),
+  );
+
   String _formatTimestamp(DateTime dt) {
     final now = DateTime.now();
-    final isToday =
-        dt.year == now.year && dt.month == now.month && dt.day == now.day;
+    final isToday = dt.year == now.year &&
+        dt.month == now.month &&
+        dt.day == now.day;
     final h = dt.hour.toString().padLeft(2, '0');
-    final m = dt.minute.toString().padLeft(2, '0');
+    final m =
+        dt.minute.toString().padLeft(2, '0');
     if (isToday) {
       return 'Today at $h:$m';
     }
-    return '${dt.month}/${dt.day}/${dt.year} $h:$m';
+    return '${dt.month}/${dt.day}/${dt.year}'
+        ' $h:$m';
   }
 }

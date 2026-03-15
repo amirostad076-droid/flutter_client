@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/chat_top_bar.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/message_input.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/message_list.dart';
@@ -46,7 +46,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: FluxerColors.chatBackground,
+      color: context.colors.chatBackground,
       child: SafeArea(
         child: Column(
           children: [

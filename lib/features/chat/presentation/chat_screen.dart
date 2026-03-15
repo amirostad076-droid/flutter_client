@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/chat_top_bar.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/chat_view.dart';
@@ -28,7 +28,7 @@ class ChatScreen extends ConsumerWidget {
     );
 
     return ColoredBox(
-      color: FluxerColors.chatBackground,
+      color: context.colors.chatBackground,
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
