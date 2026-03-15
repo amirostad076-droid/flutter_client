@@ -1,7 +1,8 @@
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/servers/domain/server.dart';
 
 class UserAvatar extends StatelessWidget {
@@ -53,17 +54,18 @@ class UserAvatar extends StatelessWidget {
         CircleAvatar(
           radius: size / 2,
           backgroundColor: _backgroundColor,
-          backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-          child: avatarUrl == null
-              ? Text(
-                  displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                  style: TextStyle(
-                    color: FluxerColors.white,
-                    fontSize: size * 0.4,
-                    fontWeight: FontWeight.w600,
+          child: avatarUrl != null
+              ? ClipOval(
+                  child: CachedNetworkImage(
+                    imageUrl: avatarUrl!,
+                    width: size,
+                    height: size,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, url, error) =>
+                        _buildInitial(context),
                   ),
                 )
-              : null,
+              : _buildInitial(context),
         ),
         if (showStatus)
           Positioned(
@@ -73,10 +75,10 @@ class UserAvatar extends StatelessWidget {
               width: size * 0.3,
               height: size * 0.3,
               decoration: BoxDecoration(
-                color: _statusColor,
+                color: _statusColor(context),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: FluxerColors.backgroundPrimary,
+                  color: context.colors.backgroundPrimary,
                   width: size * 0.06,
                 ),
               ),
@@ -86,7 +88,7 @@ class UserAvatar extends StatelessWidget {
                         width: size * 0.12,
                         height: size * 0.04,
                         decoration: BoxDecoration(
-                          color: FluxerColors.backgroundPrimary,
+                          color: context.colors.backgroundPrimary,
                           borderRadius: BorderRadius.circular(1),
                         ),
                       ),
@@ -98,8 +100,8 @@ class UserAvatar extends StatelessWidget {
                         child: Container(
                           width: size * 0.16,
                           height: size * 0.16,
-                          decoration: const BoxDecoration(
-                            color: FluxerColors.backgroundPrimary,
+                          decoration: BoxDecoration(
+                            color: context.colors.backgroundPrimary,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -112,18 +114,27 @@ class UserAvatar extends StatelessWidget {
     ),
   );
 
-  Color get _statusColor {
+  Widget _buildInitial(BuildContext context) => Text(
+    displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+    style: TextStyle(
+      color: context.colors.textPrimary,
+      fontSize: size * 0.4,
+      fontWeight: FontWeight.w600,
+    ),
+  );
+
+  Color _statusColor(BuildContext context) {
     switch (status) {
       case 'online':
-        return FluxerColors.online;
+        return context.colors.statusOnline;
       case 'idle':
-        return FluxerColors.idle;
+        return context.colors.statusIdle;
       case 'dnd':
-        return FluxerColors.dnd;
+        return context.colors.statusDnd;
       case 'streaming':
-        return FluxerColors.streaming;
+        return context.colors.statusDanger;
       default:
-        return FluxerColors.offline;
+        return context.colors.statusOffline;
     }
   }
 

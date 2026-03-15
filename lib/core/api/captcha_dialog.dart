@@ -1,7 +1,7 @@
 import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 import 'package:flutter/material.dart';
 
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 
 /// Dialog that shows a visible Cloudflare Turnstile captcha widget.
 ///
@@ -20,17 +20,17 @@ class CaptchaDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: FluxerColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Verify you are human',
               style: TextStyle(
-                color: FluxerColors.white,
+                color: context.colors.textPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
@@ -50,9 +50,9 @@ class CaptchaDialog extends StatelessWidget {
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
+              child: Text(
                 'Cancel',
-                style: TextStyle(color: FluxerColors.textMuted),
+                style: TextStyle(color: context.colors.textPrimaryMuted),
               ),
             ),
           ],

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:window_manager/window_manager.dart';
@@ -25,7 +25,7 @@ class WindowTitleBar extends ConsumerWidget {
     final title = _resolveTitle(vm);
 
     return Material(
-      color: FluxerColors.backgroundAccent,
+      color: context.colors.backgroundSecondaryAlt,
       child: GestureDetector(
         onSecondaryTap: windowManager.popUpWindowMenu,
         child: SizedBox(
@@ -41,8 +41,8 @@ class WindowTitleBar extends ConsumerWidget {
                   child: SvgPicture.asset(
                     Assets.fluxerLogoText,
                     height: 14,
-                    colorFilter: const ColorFilter.mode(
-                      FluxerColors.white,
+                    colorFilter: ColorFilter.mode(
+                      context.colors.textPrimary,
                       BlendMode.srcIn,
                     ),
                   ),
@@ -51,8 +51,8 @@ class WindowTitleBar extends ConsumerWidget {
               Center(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    color: FluxerColors.textMuted,
+                  style: TextStyle(
+                    color: context.colors.textPrimaryMuted,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -69,11 +69,11 @@ class WindowTitleBar extends ConsumerWidget {
                       icon: PhosphorIconsRegular.question,
                       onPressed: () {},
                     ),
-                    const SizedBox(
+                    SizedBox(
                       height: kWindowTitleBarHeight * 0.6,
                       child: VerticalDivider(
                         width: 1,
-                        color: FluxerColors.separator,
+                        color: context.colors.borderColor,
                       ),
                     ),
                     _WindowButton(
@@ -83,7 +83,7 @@ class WindowTitleBar extends ConsumerWidget {
                     const _MaximizeButton(),
                     _WindowButton(
                       icon: PhosphorIconsRegular.x,
-                      hoverColor: FluxerColors.textDanger,
+                      hoverColor: context.colors.textDanger,
                       hoverIconColor: Colors.white,
                       onPressed: windowManager.close,
                     ),
@@ -197,7 +197,7 @@ class _WindowButtonState extends State<_WindowButton> {
   @override
   Widget build(BuildContext context) {
     final effectiveHoverColor =
-        widget.hoverColor ?? FluxerColors.backgroundModifierHover;
+        widget.hoverColor ?? context.colors.backgroundModifierHover;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -214,7 +214,7 @@ class _WindowButtonState extends State<_WindowButton> {
               size: 16,
               color: _isHovered && widget.hoverIconColor != null
                   ? widget.hoverIconColor
-                  : FluxerColors.textMuted,
+                  : context.colors.textPrimaryMuted,
             ),
           ),
         ),

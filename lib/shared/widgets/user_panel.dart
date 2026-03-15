@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -19,11 +19,11 @@ class UserPanel extends ConsumerWidget {
 
     return Container(
       height: height,
-      decoration: const BoxDecoration(
-        color: FluxerColors.userPanelBackground,
+      decoration: BoxDecoration(
+        color: context.colors.userPanelBackground,
         border: Border(
-          top: BorderSide(color: FluxerColors.separator),
-          right: BorderSide(color: FluxerColors.separator),
+          top: BorderSide(color: context.colors.borderColor),
+          right: BorderSide(color: context.colors.borderColor),
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -44,8 +44,8 @@ class UserPanel extends ConsumerWidget {
               children: [
                 Text(
                   user.displayName,
-                  style: const TextStyle(
-                    color: FluxerColors.textNormal,
+                  style: TextStyle(
+                    color: context.colors.textChat,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -53,8 +53,8 @@ class UserPanel extends ConsumerWidget {
                 ),
                 Text(
                   '${user.username}#${user.discriminator}',
-                  style: const TextStyle(
-                    color: FluxerColors.textMuted,
+                  style: TextStyle(
+                    color: context.colors.textPrimaryMuted,
                     fontSize: 12,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -64,21 +64,21 @@ class UserPanel extends ConsumerWidget {
           ),
           IconButton(
             icon: const PhosphorIcon(PhosphorIconsFill.microphone, size: 20),
-            color: FluxerColors.interactiveNormal,
+            color: context.colors.interactiveNormal,
             onPressed: () {},
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
           IconButton(
             icon: const PhosphorIcon(PhosphorIconsFill.headphones, size: 20),
-            color: FluxerColors.interactiveNormal,
+            color: context.colors.interactiveNormal,
             onPressed: () {},
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
           IconButton(
             icon: const PhosphorIcon(PhosphorIconsFill.gear, size: 20),
-            color: FluxerColors.interactiveNormal,
+            color: context.colors.interactiveNormal,
             onPressed: onSettingsTap,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

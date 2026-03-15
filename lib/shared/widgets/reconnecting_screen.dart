@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kRetryDelay = Duration(seconds: 5);
@@ -41,8 +41,8 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: FluxerColors.backgroundPrimary,
+    return Scaffold(
+      backgroundColor: context.colors.backgroundPrimary,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -50,31 +50,34 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
             PhosphorIcon(
               PhosphorIconsFill.plugsConnected,
               size: 48,
-              color: FluxerColors.textMuted,
+              color: context.colors.textPrimaryMuted,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'We fluxed up!',
               style: TextStyle(
-                color: FluxerColors.white,
+                color: context.colors.textPrimary,
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Something is wrong with the servers.\n'
               'Should be fixed in a second!',
               textAlign: TextAlign.center,
-              style: TextStyle(color: FluxerColors.textMuted, fontSize: 16),
+              style: TextStyle(
+                color: context.colors.textPrimaryMuted,
+                fontSize: 16,
+              ),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             SizedBox(
               width: 24,
               height: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
-                color: FluxerColors.blurple,
+                color: context.colors.brandPrimary,
               ),
             ),
           ],

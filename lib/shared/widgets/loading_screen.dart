@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
-import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 
 class LoadingScreen extends ConsumerStatefulWidget {
   const LoadingScreen({super.key});
@@ -40,7 +39,7 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
     final startup = ref.watch(appStartupProvider);
 
     return Scaffold(
-      backgroundColor: FluxerColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -71,7 +70,7 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
                           height: _logoHeight,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: FluxerColors.blurple.withValues(
+                            color: context.colors.brandPrimary.withValues(
                               alpha: opacity,
                             ),
                           ),
@@ -89,8 +88,8 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(
                   'Failed to start: ${startup.error}',
-                  style: FluxerTextStyles.smallText.copyWith(
-                    color: FluxerColors.textDanger,
+                  style: context.textStyles.smallText.copyWith(
+                    color: context.colors.textDanger,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 3,
@@ -101,7 +100,7 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
               FilledButton(
                 onPressed: () => ref.read(appStartupProvider.notifier).retry(),
                 style: FilledButton.styleFrom(
-                  backgroundColor: FluxerColors.blurple,
+                  backgroundColor: context.colors.brandPrimary,
                 ),
                 child: const Text('Retry'),
               ),

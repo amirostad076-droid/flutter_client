@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/router/route_names.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/presentation/login_screen.dart';
 import 'package:fluxeron/features/auth/presentation/mfa_screen.dart';
 import 'package:fluxeron/features/chat/presentation/chat_screen.dart';
@@ -60,7 +60,7 @@ class _PlaceholderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      Scaffold(body: Center(child: Text(label)), backgroundColor: FluxerColors.backgroundAccent,);
+      Scaffold(body: Center(child: Text(label)), backgroundColor: context.colors.backgroundSecondaryAlt,);
 }
 
 @Riverpod(keepAlive: true)

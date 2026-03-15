@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/channel_sidebar.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/dm/presentation/widgets/dm_list.dart';
@@ -55,7 +55,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
 
     if (!isMobile) {
       return Scaffold(
-        backgroundColor: FluxerColors.backgroundPrimary,
+        backgroundColor: context.colors.backgroundPrimary,
         body: _buildDesktopBody(),
       );
     }
@@ -69,7 +69,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     _previousLocation = location;
 
     return Scaffold(
-      backgroundColor: FluxerColors.backgroundPrimary,
+      backgroundColor: context.colors.backgroundPrimary,
       body: Column(
         children: [
           Expanded(
@@ -170,7 +170,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     );
 
     return ColoredBox(
-      color: FluxerColors.channelSidebarBackground,
+      color: context.colors.channelSidebarBackground,
       child: SafeArea(
         child: Row(
           children: [
@@ -240,7 +240,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Divider(height: 1, color: FluxerColors.separator),
+        Divider(height: 1, color: context.colors.borderColor),
         Theme(
           data: Theme.of(context).copyWith(
             splashFactory: NoSplash.splashFactory,
@@ -249,8 +249,8 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           child: BottomNavigationBar(
             currentIndex: currentIndex,
             onTap: (index) => context.go(_tabPaths[index]),
-            selectedItemColor: FluxerColors.textNormal,
-            unselectedItemColor: FluxerColors.textMuted,
+            selectedItemColor: context.colors.textChat,
+            unselectedItemColor: context.colors.textPrimaryMuted,
             items: [
               const BottomNavigationBarItem(
                 icon: PhosphorIcon(PhosphorIconsFill.house),
