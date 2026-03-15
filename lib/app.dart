@@ -4,7 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
+import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
 import 'package:fluxeron/core/theme/fluxer_theme.dart';
+import 'package:fluxeron/core/theme/themes/dark.dart';
 import 'package:fluxeron/shared/widgets/window_title_bar.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -21,7 +24,14 @@ class FluxeronApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Fluxer',
       debugShowCheckedModeBanner: false,
-      theme: buildFluxerTheme(),
+      theme: () {
+            final colorTheme = buildDarkColorTheme();
+            return buildFluxerTheme(
+              colorTheme: colorTheme,
+              textTheme: FluxerTextTheme.fromColors(colorTheme),
+              layoutTheme: FluxerLayoutTheme.scaled(),
+            );
+          }(),
       routerConfig: router,
       builder: (context, child) {
         if (!_isDesktopPlatform) {
