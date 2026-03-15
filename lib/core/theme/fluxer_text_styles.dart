@@ -4,8 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Fluxer text styles using IBM Plex Sans.
 abstract final class FluxerTextStyles {
+  @Deprecated('Use context.textStyles instead')
   static final String _fontFamily = GoogleFonts.ibmPlexSans().fontFamily!;
 
+  @Deprecated('Use context.textStyles instead')
   static final heading = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 20,
@@ -13,6 +15,7 @@ abstract final class FluxerTextStyles {
     color: FluxerColors.white,
   );
 
+  @Deprecated('Use context.textStyles instead')
   static final channelName = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 16,
@@ -20,6 +23,7 @@ abstract final class FluxerTextStyles {
     color: FluxerColors.white,
   );
 
+  @Deprecated('Use context.textStyles instead')
   static final username = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 16,
@@ -27,6 +31,7 @@ abstract final class FluxerTextStyles {
     color: FluxerColors.white,
   );
 
+  @Deprecated('Use context.textStyles instead')
   static final messageText = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 16,
@@ -35,6 +40,7 @@ abstract final class FluxerTextStyles {
     height: 1.375,
   );
 
+  @Deprecated('Use context.textStyles instead')
   static final timestamp = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 12,
@@ -42,6 +48,7 @@ abstract final class FluxerTextStyles {
     color: FluxerColors.textMuted,
   );
 
+  @Deprecated('Use context.textStyles instead')
   static final smallText = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 12,
@@ -50,6 +57,7 @@ abstract final class FluxerTextStyles {
     letterSpacing: 0.02,
   );
 
+  @Deprecated('Use context.textStyles instead')
   static final categoryName = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 12,
@@ -58,6 +66,7 @@ abstract final class FluxerTextStyles {
     letterSpacing: 0.5,
   );
 
+  @Deprecated('Use context.textStyles instead')
   static final inputText = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 16,
@@ -65,6 +74,7 @@ abstract final class FluxerTextStyles {
     color: FluxerColors.textNormal,
   );
 
+  @Deprecated('Use context.textStyles instead')
   static final embedTitle = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 16,
@@ -72,6 +82,7 @@ abstract final class FluxerTextStyles {
     color: FluxerColors.textLink,
   );
 
+  @Deprecated('Use context.textStyles instead')
   static final embedDescription = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 14,
@@ -80,6 +91,7 @@ abstract final class FluxerTextStyles {
     height: 1.3,
   );
 
+  @Deprecated('Use context.textStyles instead')
   static final embedFooter = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 12,
