@@ -14,7 +14,6 @@ class UserSettingsViewState {
   final String discriminator;
   final String? avatar;
   final int? avatarColor;
-  final bool isDarkTheme;
   final bool messageDisplayCompact;
 
   const UserSettingsViewState({
@@ -24,7 +23,6 @@ class UserSettingsViewState {
     required this.discriminator,
     required this.avatar,
     required this.avatarColor,
-    required this.isDarkTheme,
     required this.messageDisplayCompact,
   });
 
@@ -43,7 +41,6 @@ class UserSettingsViewState {
     String? discriminator,
     Object? avatar = _unset,
     Object? avatarColor = _unset,
-    bool? isDarkTheme,
     bool? messageDisplayCompact,
   }) {
     return UserSettingsViewState(
@@ -55,7 +52,6 @@ class UserSettingsViewState {
       avatarColor: avatarColor == _unset
           ? this.avatarColor
           : avatarColor as int?,
-      isDarkTheme: isDarkTheme ?? this.isDarkTheme,
       messageDisplayCompact:
           messageDisplayCompact ?? this.messageDisplayCompact,
     );
@@ -74,7 +70,6 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       discriminator: '0',
       avatar: null,
       avatarColor: null,
-      isDarkTheme: true,
       messageDisplayCompact: false,
     );
   }
@@ -97,10 +92,6 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       avatar: user.avatar,
       avatarColor: user.avatarColor,
     );
-  }
-
-  void toggleTheme() {
-    state = state.copyWith(isDarkTheme: !state.isDarkTheme);
   }
 
   void toggleCompact() {
