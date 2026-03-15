@@ -5,8 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
-import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
 import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
@@ -29,7 +28,7 @@ class UserSettingsScreen extends ConsumerStatefulWidget {
       isScrollControlled: true,
       useSafeArea: true,
       constraints: const BoxConstraints(maxWidth: 1400),
-      backgroundColor: FluxerColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(16),
@@ -200,7 +199,7 @@ class _UserSettingsScreenState
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border.all(
-            color: FluxerColors.divider,
+            color: context.colors.borderColor,
           ),
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(16),
@@ -226,7 +225,7 @@ class _UserSettingsScreenState
                 SizedBox(
                   width: 300,
                   child: ColoredBox(
-                    color: FluxerColors.backgroundPrimary,
+                    color: context.colors.backgroundPrimary,
                     child: SettingsSidebar(
                       items: _items,
                       selectedIndex: _selectedIndex,
@@ -237,10 +236,10 @@ class _UserSettingsScreenState
                     ),
                   ),
                 ),
-                const VerticalDivider(
+                VerticalDivider(
                   width: 1,
                   thickness: 1,
-                  color: FluxerColors.divider,
+                  color: context.colors.borderColor,
                 ),
                 Expanded(
                   child: Column(
@@ -256,7 +255,7 @@ class _UserSettingsScreenState
                           children: [
                             Text(
                               _items[_selectedIndex].label,
-                              style: FluxerTextStyles.heading,
+                              style: context.textStyles.heading,
                             ),
                             const Spacer(),
                             _buildCloseButton(),
@@ -294,7 +293,7 @@ class _UserSettingsScreenState
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
                       'Settings',
-                      style: FluxerTextStyles.heading,
+                      style: context.textStyles.heading,
                     ),
                   ),
                   Flexible(
@@ -377,19 +376,19 @@ class _UserSettingsScreenState
               ),
               child: Text(
                 group.label!,
-                style: FluxerTextStyles.categoryName,
+                style: context.textStyles.categoryName,
               ),
             ),
           Material(
-            color: FluxerColors.backgroundSecondaryAlt,
+            color: context.colors.backgroundSecondaryAlt,
             borderRadius: BorderRadius.circular(12),
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
                 for (var i = 0; i < group.items.length; i++) ...[
                   if (i > 0)
-                    const Divider(
-                      color: FluxerColors.divider,
+                    Divider(
+                      color: context.colors.borderColor,
                       height: 1,
                       endIndent: 15,
                       indent: 15,
@@ -428,8 +427,8 @@ class _UserSettingsScreenState
                   item.icon!,
                   size: 22,
                   color: item.isDestructive
-                      ? FluxerColors.textDanger
-                      : FluxerColors.interactiveNormal,
+                      ? context.colors.textDanger
+                      : context.colors.interactiveNormal,
                 ),
                 const SizedBox(width: 16),
               ],
@@ -438,17 +437,17 @@ class _UserSettingsScreenState
                   item.label,
                   style: TextStyle(
                     color: item.isDestructive
-                        ? FluxerColors.textDanger
-                        : FluxerColors.textNormal,
+                        ? context.colors.textDanger
+                        : context.colors.textChat,
                     fontSize: 16,
                   ),
                 ),
               ),
               if (!item.isDestructive)
-                const PhosphorIcon(
+                PhosphorIcon(
                   PhosphorIconsRegular.caretRight,
                   size: 18,
-                  color: FluxerColors.textMuted,
+                  color: context.colors.textPrimaryMuted,
                 ),
             ],
           ),
@@ -506,8 +505,8 @@ class _UserSettingsScreenState
         return Center(
           child: Text(
             label,
-            style: const TextStyle(
-              color: FluxerColors.textMuted,
+            style: TextStyle(
+              color: context.colors.textPrimaryMuted,
               fontSize: 24,
             ),
           ),
@@ -521,7 +520,7 @@ class _UserSettingsScreenState
           width: 36,
           height: 4,
           decoration: BoxDecoration(
-            color: FluxerColors.interactiveMuted,
+            color: context.colors.interactiveMuted,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -530,13 +529,13 @@ class _UserSettingsScreenState
   Widget _buildCloseButton() => InkWell(
         onTap: () => Navigator.of(context).pop(),
         borderRadius: BorderRadius.circular(20),
-        child: const SizedBox(
+        child: SizedBox(
           width: 36,
           height: 36,
           child: PhosphorIcon(
             PhosphorIconsRegular.x,
             size: 18,
-            color: FluxerColors.interactiveNormal,
+            color: context.colors.interactiveNormal,
           ),
         ),
       );
@@ -573,7 +572,7 @@ class _MobileContentView extends StatelessWidget {
         }
       },
       child: ColoredBox(
-        color: FluxerColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         child: Column(
           children: [
             Padding(
@@ -585,15 +584,15 @@ class _MobileContentView extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: onBack,
-                    icon: const PhosphorIcon(
+                    icon: PhosphorIcon(
                       PhosphorIconsRegular.arrowLeft,
-                      color: FluxerColors.interactiveNormal,
+                      color: context.colors.interactiveNormal,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     title,
-                    style: FluxerTextStyles.heading,
+                    style: context.textStyles.heading,
                   ),
                 ],
               ),

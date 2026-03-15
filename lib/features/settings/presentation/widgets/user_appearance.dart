@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
-import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxeron/core/theme/providers/theme_preference_provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -25,12 +24,12 @@ class UserAppearance extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Appearance', style: FluxerTextStyles.heading),
+          Text('Appearance', style: context.textStyles.heading),
           const SizedBox(height: 32),
-          const Text(
+          Text(
             'THEME',
             style: TextStyle(
-              color: FluxerColors.textMuted,
+              color: context.colors.textPrimaryMuted,
               fontSize: 12,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
@@ -40,6 +39,7 @@ class UserAppearance extends ConsumerWidget {
           Row(
             children: [
               _buildThemeCard(
+                context,
                 ref,
                 label: 'Dark',
                 icon: PhosphorIconsFill.moon,
@@ -48,6 +48,7 @@ class UserAppearance extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               _buildThemeCard(
+                context,
                 ref,
                 label: 'Light',
                 icon: PhosphorIconsFill.sun,
@@ -56,6 +57,7 @@ class UserAppearance extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               _buildThemeCard(
+                context,
                 ref,
                 label: 'Coal',
                 icon: PhosphorIconsFill.circleHalf,
@@ -65,12 +67,12 @@ class UserAppearance extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 32),
-          const Divider(color: FluxerColors.divider),
+          Divider(color: context.colors.borderColor),
           const SizedBox(height: 32),
-          const Text(
+          Text(
             'MESSAGE DISPLAY',
             style: TextStyle(
-              color: FluxerColors.textMuted,
+              color: context.colors.textPrimaryMuted,
               fontSize: 12,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
@@ -80,6 +82,7 @@ class UserAppearance extends ConsumerWidget {
           Column(
             children: [
               _buildDisplayOption(
+                context,
                 'Cozy',
                 'Discord classic \u2014 with big '
                     'avatars and lots of room',
@@ -88,6 +91,7 @@ class UserAppearance extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               _buildDisplayOption(
+                context,
                 'Compact',
                 'Fit more messages on screen '
                     'at once',
@@ -97,12 +101,12 @@ class UserAppearance extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 32),
-          const Divider(color: FluxerColors.divider),
+          Divider(color: context.colors.borderColor),
           const SizedBox(height: 32),
-          const Text(
+          Text(
             'CHAT FONT SCALING',
             style: TextStyle(
-              color: FluxerColors.textMuted,
+              color: context.colors.textPrimaryMuted,
               fontSize: 12,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
@@ -111,10 +115,11 @@ class UserAppearance extends ConsumerWidget {
           const SizedBox(height: 12),
           SliderTheme(
             data: SliderThemeData(
-              activeTrackColor: FluxerColors.blurple,
-              thumbColor: FluxerColors.white,
-              inactiveTrackColor: FluxerColors.backgroundAccent,
-              overlayColor: FluxerColors.blurple.withValues(alpha: 0.2),
+              activeTrackColor: context.colors.brandPrimary,
+              thumbColor: context.colors.textPrimary,
+              inactiveTrackColor: context.colors.backgroundModifierAccent,
+              overlayColor:
+                  context.colors.brandPrimary.withValues(alpha: 0.2),
             ),
             child: Slider(
               value: themePref.scaleFactor,
@@ -133,6 +138,7 @@ class UserAppearance extends ConsumerWidget {
   }
 
   Widget _buildThemeCard(
+    BuildContext context,
     WidgetRef ref, {
     required String label,
     required IconData icon,
@@ -150,13 +156,13 @@ class UserAppearance extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? FluxerColors.backgroundModifierSelected
+                    ? context.colors.backgroundModifierSelected
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isSelected
-                      ? FluxerColors.blurple
-                      : FluxerColors.interactiveMuted,
+                      ? context.colors.brandPrimary
+                      : context.colors.interactiveMuted,
                   width: 2,
                 ),
               ),
@@ -166,16 +172,16 @@ class UserAppearance extends ConsumerWidget {
                     icon,
                     size: 28,
                     color: isSelected
-                        ? FluxerColors.blurple
-                        : FluxerColors.interactiveNormal,
+                        ? context.colors.brandPrimary
+                        : context.colors.interactiveNormal,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     label,
                     style: TextStyle(
                       color: isSelected
-                          ? FluxerColors.textNormal
-                          : FluxerColors.interactiveNormal,
+                          ? context.colors.textChat
+                          : context.colors.interactiveNormal,
                       fontSize: 14,
                       fontWeight:
                           isSelected ? FontWeight.w600 : FontWeight.w400,
@@ -189,6 +195,7 @@ class UserAppearance extends ConsumerWidget {
       );
 
   Widget _buildDisplayOption(
+    BuildContext context,
     String label,
     String description,
     bool isSelected,
@@ -203,13 +210,13 @@ class UserAppearance extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: isSelected
-                  ? FluxerColors.backgroundModifierSelected
+                  ? context.colors.backgroundModifierSelected
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
               children: [
-                _buildRadioCircle(isSelected),
+                _buildRadioCircle(context, isSelected),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,16 +225,16 @@ class UserAppearance extends ConsumerWidget {
                       label,
                       style: TextStyle(
                         color: isSelected
-                            ? FluxerColors.textNormal
-                            : FluxerColors.interactiveNormal,
+                            ? context.colors.textChat
+                            : context.colors.interactiveNormal,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
                       description,
-                      style: const TextStyle(
-                        color: FluxerColors.textMuted,
+                      style: TextStyle(
+                        color: context.colors.textPrimaryMuted,
                         fontSize: 12,
                       ),
                     ),
@@ -239,15 +246,15 @@ class UserAppearance extends ConsumerWidget {
         ),
       );
 
-  Widget _buildRadioCircle(bool isSelected) => Container(
+  Widget _buildRadioCircle(BuildContext context, bool isSelected) => Container(
         width: 20,
         height: 20,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
             color: isSelected
-                ? FluxerColors.blurple
-                : FluxerColors.interactiveMuted,
+                ? context.colors.brandPrimary
+                : context.colors.interactiveMuted,
             width: 2,
           ),
         ),
@@ -256,9 +263,9 @@ class UserAppearance extends ConsumerWidget {
                 child: Container(
                   width: 10,
                   height: 10,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: FluxerColors.blurple,
+                    color: context.colors.brandPrimary,
                   ),
                 ),
               )
