@@ -13,24 +13,23 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'theme_preference_provider.g.dart';
 
 class ThemePreferenceState {
-  const ThemePreferenceState({
+  ThemePreferenceState({
     this.mode = FluxerThemeMode.dark,
     this.scaleFactor = 1.0,
-  });
+  })  : colorTheme = switch (mode) {
+          FluxerThemeMode.dark => buildDarkColorTheme(),
+          FluxerThemeMode.light => buildLightColorTheme(),
+          FluxerThemeMode.coal => buildCoalColorTheme(),
+        },
+        layoutTheme = FluxerLayoutTheme.scaled(scaleFactor: scaleFactor);
 
   final FluxerThemeMode mode;
   final double scaleFactor;
+  final FluxerColorTheme colorTheme;
+  final FluxerLayoutTheme layoutTheme;
 
-  FluxerColorTheme get colorTheme => switch (mode) {
-        FluxerThemeMode.dark => buildDarkColorTheme(),
-        FluxerThemeMode.light => buildLightColorTheme(),
-        FluxerThemeMode.coal => buildCoalColorTheme(),
-      };
-
-  FluxerTextTheme get textTheme => FluxerTextTheme.fromColors(colorTheme);
-
-  FluxerLayoutTheme get layoutTheme =>
-      FluxerLayoutTheme.scaled(scaleFactor: scaleFactor);
+  late final FluxerTextTheme textTheme =
+      FluxerTextTheme.fromColors(colorTheme);
 
   ThemePreferenceState copyWith({
     FluxerThemeMode? mode,
@@ -48,7 +47,7 @@ class ThemePreference extends _$ThemePreference {
   String? _userId;
 
   @override
-  ThemePreferenceState build() => const ThemePreferenceState();
+  ThemePreferenceState build() => ThemePreferenceState();
 
   Future<void> load(String userId) async {
     _userId = userId;

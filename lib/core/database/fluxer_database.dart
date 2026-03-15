@@ -125,6 +125,7 @@ class FluxerDatabase extends _$FluxerDatabase {
       await memberDao.clearAll();
       await relationshipDao.clearAll();
       await dmChannelDao.clearAll();
+      await userPreferencesDao.clearAll();
       await readStateDao.clearAll();
     });
   }

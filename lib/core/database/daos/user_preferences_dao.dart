@@ -16,4 +16,6 @@ class UserPreferencesDao extends DatabaseAccessor<FluxerDatabase>
 
   Future<void> savePreferences(UserPreferencesTableCompanion prefs) =>
       into(userPreferencesTable).insertOnConflictUpdate(prefs);
+
+  Future<void> clearAll() => delete(userPreferencesTable).go();
 }
