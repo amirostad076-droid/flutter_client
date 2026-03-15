@@ -1,106 +1,121 @@
 import 'package:flutter/material.dart';
+import 'package:fluxeron/core/theme/fluxer_color_theme.dart';
+import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
 
-import 'package:fluxeron/core/theme/fluxer_colors.dart';
-import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
-
-/// Build Fluxer-styled ThemeData (dark theme).
-ThemeData buildFluxerTheme() {
-  final fontFamily = FluxerTextStyles.messageText.fontFamily;
+/// Build Fluxer-styled ThemeData from theme extensions.
+ThemeData buildFluxerTheme({
+  required FluxerColorTheme colorTheme,
+  required FluxerTextTheme textTheme,
+  required FluxerLayoutTheme layoutTheme,
+  Brightness brightness = Brightness.dark,
+}) {
+  final fontFamily = textTheme.messageText.fontFamily;
 
   return ThemeData(
-    brightness: Brightness.dark,
+    brightness: brightness,
     fontFamily: fontFamily,
-    scaffoldBackgroundColor: FluxerColors.backgroundPrimary,
-    canvasColor: FluxerColors.backgroundSecondary,
-    cardColor: FluxerColors.embedBackground,
-    dividerColor: FluxerColors.divider,
-    colorScheme: const ColorScheme.dark(
-      primary: FluxerColors.blurple,
-      onPrimary: FluxerColors.textOnBrand,
-      secondary: FluxerColors.blurple,
-      surface: FluxerColors.backgroundPrimary,
-      onSurface: FluxerColors.textNormal,
+    scaffoldBackgroundColor: colorTheme.backgroundPrimary,
+    canvasColor: colorTheme.backgroundSecondary,
+    cardColor: colorTheme.embedBackground,
+    dividerColor: colorTheme.borderColor,
+    extensions: [colorTheme, textTheme, layoutTheme],
+    colorScheme: ColorScheme(
+      brightness: brightness,
+      primary: colorTheme.brandPrimary,
+      onPrimary: colorTheme.textOnBrandPrimary,
+      secondary: colorTheme.brandSecondary,
+      onSecondary: colorTheme.textOnBrandPrimary,
+      error: colorTheme.accentDanger,
+      onError: colorTheme.textOnBrandPrimary,
+      surface: colorTheme.backgroundPrimary,
+      onSurface: colorTheme.textPrimary,
+      surfaceContainerHighest: colorTheme.backgroundTertiary,
+      outline: colorTheme.borderColor,
     ),
     textTheme: TextTheme(
-      bodyLarge: FluxerTextStyles.messageText,
-      bodyMedium: FluxerTextStyles.messageText,
-      titleLarge: FluxerTextStyles.heading,
-      labelSmall: FluxerTextStyles.smallText,
+      bodyLarge: textTheme.messageText,
+      bodyMedium: textTheme.bodyMedium,
+      bodySmall: textTheme.bodySmall,
+      titleLarge: textTheme.heading,
+      labelSmall: textTheme.smallText,
+      labelMedium: textTheme.label,
     ),
-    iconTheme: const IconThemeData(
-      color: FluxerColors.interactiveNormal,
+    iconTheme: IconThemeData(
+      color: colorTheme.interactiveNormal,
       size: 20,
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: FluxerColors.backgroundPrimary,
-      foregroundColor: FluxerColors.white,
+    appBarTheme: AppBarTheme(
+      backgroundColor: colorTheme.backgroundPrimary,
+      foregroundColor: colorTheme.textPrimary,
       elevation: 0,
       scrolledUnderElevation: 1,
-      shadowColor: FluxerColors.backgroundFloating,
+      shadowColor: colorTheme.backgroundFloating,
     ),
     scrollbarTheme: ScrollbarThemeData(
-      thumbColor: WidgetStateProperty.all(FluxerColors.scrollbarThin),
-      trackColor: WidgetStateProperty.all(FluxerColors.scrollbarAuto),
+      thumbColor: WidgetStateProperty.all(colorTheme.scrollbarThumbBg),
+      trackColor: WidgetStateProperty.all(colorTheme.scrollbarTrackBg),
       radius: const Radius.circular(4),
       thickness: WidgetStateProperty.all(6),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: FluxerColors.blurple,
-        foregroundColor: FluxerColors.white,
-        disabledBackgroundColor: FluxerColors.blurple.withValues(alpha: 0.5),
+        backgroundColor: colorTheme.buttonPrimaryFill,
+        foregroundColor: colorTheme.buttonPrimaryText,
+        disabledBackgroundColor:
+            colorTheme.buttonPrimaryFill.withValues(alpha: 0.5),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: layoutTheme.radiusLg,
         ),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: FluxerColors.textLink,
+        foregroundColor: colorTheme.textLink,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: layoutTheme.radiusLg,
         ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: FluxerColors.textNormal,
+        foregroundColor: colorTheme.textPrimary,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: layoutTheme.radiusLg,
         ),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: FluxerColors.backgroundTertiary,
+      fillColor: colorTheme.backgroundTertiary,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: FluxerColors.backgroundModifierAccent,
+        borderRadius: layoutTheme.radiusLg,
+        borderSide: BorderSide(
+          color: colorTheme.backgroundModifierAccent,
         ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: FluxerColors.backgroundModifierAccent,
+        borderRadius: layoutTheme.radiusLg,
+        borderSide: BorderSide(
+          color: colorTheme.backgroundModifierAccent,
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: FluxerColors.blurple,
+        borderRadius: layoutTheme.radiusLg,
+        borderSide: BorderSide(
+          color: colorTheme.brandPrimary,
         ),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
     ),
     tooltipTheme: TooltipThemeData(
-      decoration: const BoxDecoration(
-        color: FluxerColors.backgroundFloating,
-        borderRadius: BorderRadius.all(Radius.circular(4)),
+      decoration: BoxDecoration(
+        color: colorTheme.backgroundFloating,
+        borderRadius: const BorderRadius.all(Radius.circular(4)),
       ),
       textStyle: TextStyle(
         fontFamily: fontFamily,
-        color: FluxerColors.textNormal,
+        color: colorTheme.textPrimary,
         fontSize: 14,
       ),
     ),
