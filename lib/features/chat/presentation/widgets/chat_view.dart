@@ -13,8 +13,13 @@ import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
 /// and input field. Works for both server channels and DMs.
 class ChatView extends ConsumerStatefulWidget {
   final String channelId;
+  final bool showTopBar;
 
-  const ChatView({required this.channelId, super.key});
+  const ChatView({
+    required this.channelId,
+    this.showTopBar = true,
+    super.key,
+  });
 
   @override
   ConsumerState<ChatView> createState() => _ChatViewState();
@@ -40,14 +45,14 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
+    return ColoredBox(
       color: FluxerColors.chatBackground,
       child: SafeArea(
         child: Column(
           children: [
-            ChatTopBar(),
-            Expanded(child: MessageList()),
-            MessageInput(),
+            if (widget.showTopBar) const ChatTopBar(),
+            const Expanded(child: MessageList()),
+            const MessageInput(),
           ],
         ),
       ),

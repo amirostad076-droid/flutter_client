@@ -7,6 +7,7 @@ import 'package:fluxeron/core/theme/fluxer_text_styles.dart';
 import 'package:fluxeron/features/members/domain/member.dart';
 import 'package:fluxeron/features/members/providers/member_list_view_model.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class MemberList extends ConsumerWidget {
   const MemberList({super.key});
@@ -24,6 +25,50 @@ class MemberList extends ConsumerWidget {
           border: Border(left: BorderSide(color: FluxerColors.separator)),
         ),
         child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (memberState.errorMessage != null && groups.isEmpty) {
+      return Container(
+        width: 240,
+        decoration: const BoxDecoration(
+          color: FluxerColors.memberListBackground,
+          border: Border(left: BorderSide(color: FluxerColors.separator)),
+        ),
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                PhosphorIcon(
+                  PhosphorIconsFill.users,
+                  size: 48,
+                  color: FluxerColors.textMuted,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Member List Unavailable',
+                  style: TextStyle(
+                    color: FluxerColors.textNormal,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Member lists are temporarily\nunavailable in this community',
+                  style: TextStyle(
+                    color: FluxerColors.textMuted,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 

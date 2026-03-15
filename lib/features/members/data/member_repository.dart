@@ -95,11 +95,7 @@ class MemberRepository {
           nickname: Value(map['nick'] as String?),
           serverAvatar: Value(map['avatar'] as String?),
           roleIdsJson: Value(jsonEncode(roles)),
-          joinedAt: Value(
-            map['joined_at'] != null
-                ? DateTime.parse(map['joined_at'] as String)
-                : null,
-          ),
+          joinedAt: Value(map['joined_at'] as DateTime?),
         ),
       );
     }

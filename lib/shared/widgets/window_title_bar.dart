@@ -66,6 +66,17 @@ class WindowTitleBar extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _WindowButton(
+                      icon: PhosphorIconsRegular.question,
+                      onPressed: () {},
+                    ),
+                    const SizedBox(
+                      height: kWindowTitleBarHeight * 0.6,
+                      child: VerticalDivider(
+                        width: 1,
+                        color: FluxerColors.separator,
+                      ),
+                    ),
+                    _WindowButton(
                       icon: PhosphorIconsRegular.minus,
                       onPressed: windowManager.minimize,
                     ),
