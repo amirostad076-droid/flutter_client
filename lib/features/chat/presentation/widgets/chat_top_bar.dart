@@ -13,6 +13,7 @@ import 'package:fluxeron/shared/utils/chat_context_utils.dart';
 import 'package:fluxeron/shared/widgets/circle_icon_button.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The chat header bar showing channel name, topic, and action icons.
@@ -80,7 +81,14 @@ class ChatTopBar extends ConsumerWidget {
           _topBarIcon(
             Icons.arrow_back,
             'Back',
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: () {
+              final location = GoRouterState.of(context).matchedLocation;
+              if (location.startsWith('/channels/@me/')) {
+                context.go('/channels/@me');
+              } else {
+                context.go('/servers');
+              }
+            },
           ),
           _buildLeadingIcon(channel: channel, dm: dm),
           const SizedBox(width: 6),

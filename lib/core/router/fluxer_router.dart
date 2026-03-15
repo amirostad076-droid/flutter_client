@@ -151,15 +151,20 @@ GoRouter fluxerRouter(Ref ref) {
               GoRoute(
                 path: ':serverId/channels/:channelId',
                 name: RouteNames.channel,
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final serverId = state.pathParameters['serverId'];
                   final channelId = state.pathParameters['channelId'];
                   if (serverId == null || channelId == null) {
-                    return const _PlaceholderScreen('Invalid route');
+                    return const NoTransitionPage<void>(
+                      child: _PlaceholderScreen('Invalid route'),
+                    );
                   }
-                  return ChatScreen(
-                    serverId: serverId,
-                    channelId: channelId,
+                  return NoTransitionPage<void>(
+                    key: state.pageKey,
+                    child: ChatScreen(
+                      serverId: serverId,
+                      channelId: channelId,
+                    ),
                   );
                 },
               ),
@@ -176,8 +181,11 @@ GoRouter fluxerRouter(Ref ref) {
               GoRoute(
                 path: ':dmId',
                 name: RouteNames.dmChat,
-                builder: (context, state) =>
-                    DmScreen(channelId: state.pathParameters['dmId']),
+                pageBuilder: (context, state) => NoTransitionPage<void>(
+                  key: state.pageKey,
+                  child:
+                      DmScreen(channelId: state.pathParameters['dmId']),
+                ),
               ),
             ],
           ),

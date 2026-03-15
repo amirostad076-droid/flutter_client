@@ -7,6 +7,9 @@ import 'package:fluxeron/features/servers/domain/server.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+const _kActiveNowMinWidth = 1100.0;
+const _kActiveNowWidth = 340.0;
+
 class FriendsList extends ConsumerWidget {
   const FriendsList({super.key});
 
@@ -15,20 +18,34 @@ class FriendsList extends ConsumerWidget {
     final vm = ref.watch(dmViewModelProvider);
     final activeTab = vm.activeTab;
 
+    final showActiveNow = MediaQuery.sizeOf(context).width >= _kActiveNowMinWidth;
+
     return ColoredBox(
       color: FluxerColors.chatBackground,
-      child: Column(
+      child: Row(
         children: [
-          _buildTopBar(ref, activeTab),
-          const Divider(color: FluxerColors.divider, height: 1),
-          _buildSearchBar(ref),
-          Expanded(child: _buildFriendsList(vm)),
+          Expanded(
+            child: Column(
+              children: [
+                _buildTopBar(ref, activeTab, showActiveNow: showActiveNow),
+                const Divider(color: FluxerColors.divider, height: 1),
+                _buildSearchBar(ref, activeTab),
+                _buildSectionHeader(vm),
+                Expanded(child: _buildFriendsList(vm)),
+              ],
+            ),
+          ),
+          if (showActiveNow) _buildActiveNowPanel(),
         ],
       ),
     );
   }
 
-  Widget _buildTopBar(WidgetRef ref, FriendsTab activeTab) => Container(
+  Widget _buildTopBar(
+    WidgetRef ref,
+    FriendsTab activeTab, {
+    required bool showActiveNow,
+  }) => Container(
     height: 48,
     padding: const EdgeInsets.symmetric(horizontal: 16),
     child: Row(
@@ -40,7 +57,7 @@ class FriendsList extends ConsumerWidget {
         ),
         const SizedBox(width: 8),
         const Text(
-          'Friends',
+          'My Friends',
           style: TextStyle(
             color: FluxerColors.white,
             fontSize: 16,
@@ -63,7 +80,6 @@ class FriendsList extends ConsumerWidget {
                 _tabButton(ref, 'Online', FriendsTab.online, activeTab),
                 _tabButton(ref, 'All', FriendsTab.all, activeTab),
                 _tabButton(ref, 'Pending', FriendsTab.pending, activeTab),
-                _tabButton(ref, 'Blocked', FriendsTab.blocked, activeTab),
               ],
             ),
           ),
@@ -102,10 +118,9 @@ class FriendsList extends ConsumerWidget {
     final isActive = tab == activeTab;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
+      child: GestureDetector(
         onTap: () => ref.read(dmViewModelProvider.notifier).selectTab(tab),
-        borderRadius: BorderRadius.circular(4),
-        child: Ink(
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: isActive
@@ -128,41 +143,120 @@ class FriendsList extends ConsumerWidget {
     );
   }
 
-  Widget _buildSearchBar(WidgetRef ref) => Padding(
+  Widget _buildSearchBar(WidgetRef ref, FriendsTab activeTab) => Padding(
     padding: const EdgeInsets.all(16),
-    child: Material(
-      color: FluxerColors.backgroundTertiary,
-      borderRadius: BorderRadius.circular(4),
-      child: SizedBox(
-        height: 32,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: TextField(
-            onChanged: ref.read(dmViewModelProvider.notifier).updateSearch,
-            style: const TextStyle(
-              color: FluxerColors.textNormal,
-              fontSize: 14,
-            ),
-            decoration: const InputDecoration(
-              hintText: 'Search',
-              hintStyle: TextStyle(
-                color: FluxerColors.textMuted,
-                fontSize: 14,
-              ),
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 6),
-              suffixIcon: PhosphorIcon(
-                PhosphorIconsFill.magnifyingGlass,
-                size: 18,
-                color: FluxerColors.textMuted,
-              ),
-              suffixIconConstraints:
-                  BoxConstraints(minWidth: 24, minHeight: 24),
-            ),
+    child: TextField(
+      onChanged: ref.read(dmViewModelProvider.notifier).updateSearch,
+      style: const TextStyle(
+        color: FluxerColors.textNormal,
+        fontSize: 14,
+      ),
+      decoration: InputDecoration(
+        hintText: 'Search ${_tabLabel(activeTab).toLowerCase()} friends',
+        hintStyle: const TextStyle(
+          color: FluxerColors.textMuted,
+          fontSize: 14,
+        ),
+        prefixIcon: const PhosphorIcon(
+          PhosphorIconsRegular.magnifyingGlass,
+          size: 24,
+          color: FluxerColors.textMuted,
+        ),
+      ),
+    ),
+  );
+
+  String _tabLabel(FriendsTab tab) {
+    switch (tab) {
+      case FriendsTab.online:
+        return 'Online';
+      case FriendsTab.all:
+        return 'All';
+      case FriendsTab.pending:
+        return 'Pending';
+      case FriendsTab.blocked:
+        return 'Blocked';
+    }
+  }
+
+  Widget _buildSectionHeader(DmViewState vm) {
+    final filtered = vm.filteredFriends;
+    final label = _tabLabel(vm.activeTab).toUpperCase();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          '$label \u2014 ${filtered.length}',
+          style: const TextStyle(
+            color: FluxerColors.textMuted,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildActiveNowPanel() => Container(
+    width: _kActiveNowWidth,
+    decoration: const BoxDecoration(
+      border: Border(left: BorderSide(color: FluxerColors.divider)),
+    ),
+    child: Column(
+      children: [
+        Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.centerLeft,
+          child: const Text(
+            'Active Now',
+            style: TextStyle(
+              color: FluxerColors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const Divider(color: FluxerColors.divider, height: 1),
+        const Expanded(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'z\u1DBB',
+                    style: TextStyle(
+                      color: FluxerColors.textMuted,
+                      fontSize: 48,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "It's quiet for now...",
+                    style: TextStyle(
+                      color: FluxerColors.textNormal,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'When friends are active in voice channels, their activity will appear here.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: FluxerColors.textMuted,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     ),
   );
 
@@ -241,7 +335,7 @@ class FriendsList extends ConsumerWidget {
                   onPressed: () {},
                 ),
                 IconButton(
-                  icon: const PhosphorIcon(PhosphorIconsFill.dotsThreeVertical),
+                  icon: const PhosphorIcon(PhosphorIconsRegular.dotsThreeVertical),
                   color: FluxerColors.interactiveNormal,
                   iconSize: 20,
                   onPressed: () {},

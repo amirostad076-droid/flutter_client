@@ -51,10 +51,40 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
 
     final isMobile = isMobileLayout(context);
 
+    if (!isMobile) {
+      return Scaffold(
+        backgroundColor: FluxerColors.backgroundPrimary,
+        body: _buildDesktopBody(),
+      );
+    }
+
+    final location = GoRouterState.of(context).matchedLocation;
+    final showSidebar = _showMobileSidebar(location);
+    final isChatRoute = _isMobileChatRoute(location);
+
     return Scaffold(
       backgroundColor: FluxerColors.backgroundPrimary,
-      body: isMobile ? _buildMobileBody() : _buildDesktopBody(),
-      bottomNavigationBar: isMobile ? _buildBottomNav(context) : null,
+      body: Column(
+        children: [
+          Expanded(
+            child: showSidebar
+                ? _buildMobileSidebar()
+                : GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onHorizontalDragEnd: isChatRoute
+                        ? (details) {
+                            final velocity = details.primaryVelocity;
+                            if (velocity != null && velocity > 400) {
+                              _navigateBack(context, location);
+                            }
+                          }
+                        : null,
+                    child: widget.child,
+                  ),
+          ),
+          if (!isChatRoute) _buildBottomNavContent(context),
+        ],
+      ),
     );
   }
 
@@ -88,14 +118,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     );
   }
 
-  Widget _buildMobileBody() {
-    final location = GoRouterState.of(context).matchedLocation;
-    final isLeaf = _isMobileLeafRoute(location);
-
-    if (isLeaf) {
-      return widget.child;
-    }
-
+  Widget _buildMobileSidebar() {
     final isDm = ref.watch(
       serverListViewModelProvider.select((s) => s.isDmActive),
     );
@@ -113,24 +136,22 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     );
   }
 
-  bool _isMobileLeafRoute(String location) {
+  void _navigateBack(BuildContext context, String location) {
+    if (location.startsWith('/channels/@me/')) {
+      context.go('/channels/@me');
+    } else if (location.startsWith('/servers/')) {
+      context.go('/servers');
+    }
+  }
+
+  bool _showMobileSidebar(String location) =>
+      location == '/servers' || location == '/channels/@me';
+
+  bool _isMobileChatRoute(String location) {
     if (location.startsWith('/servers/') && location.contains('/channels/')) {
       return true;
     }
     if (location.startsWith('/channels/@me/') && location != '/channels/@me') {
-      return true;
-    }
-    if (location == '/notifications' || location == '/profile') {
-      return true;
-    }
-    return false;
-  }
-
-  bool _shouldHideBottomNav(String location) {
-    if (location.startsWith('/servers/') && location.contains('/channels/')) {
-      return true;
-    }
-    if (location.startsWith('/dms/') && location != '/dms') {
       return true;
     }
     return false;
@@ -165,13 +186,9 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     );
   }
 
-  Widget? _buildBottomNav(BuildContext context) {
+  Widget _buildBottomNavContent(BuildContext context) {
     final user = ref.watch(userSettingsViewModelProvider);
     final location = GoRouterState.of(context).matchedLocation;
-    if (_shouldHideBottomNav(location)) {
-      return null;
-    }
-
     final currentIndex = _tabIndexForPath(location);
 
     return Column(
