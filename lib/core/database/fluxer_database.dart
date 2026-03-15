@@ -14,6 +14,7 @@ import 'package:fluxeron/core/database/daos/relationship_dao.dart';
 import 'package:fluxeron/core/database/daos/role_dao.dart';
 import 'package:fluxeron/core/database/daos/server_dao.dart';
 import 'package:fluxeron/core/database/daos/user_dao.dart';
+import 'package:fluxeron/core/database/daos/user_preferences_dao.dart';
 import 'package:fluxeron/core/database/tables/auth_sessions.dart';
 import 'package:fluxeron/core/database/tables/channels.dart';
 import 'package:fluxeron/core/database/tables/dm_channels.dart';
@@ -23,6 +24,7 @@ import 'package:fluxeron/core/database/tables/read_states.dart';
 import 'package:fluxeron/core/database/tables/relationships.dart';
 import 'package:fluxeron/core/database/tables/roles.dart';
 import 'package:fluxeron/core/database/tables/servers.dart';
+import 'package:fluxeron/core/database/tables/user_preferences.dart';
 import 'package:fluxeron/core/database/tables/users.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -41,6 +43,7 @@ part 'fluxer_database.g.dart';
     Relationships,
     DmChannels,
     ReadStates,
+    UserPreferencesTable,
   ],
   daos: [
     AuthSessionDao,
@@ -53,6 +56,7 @@ part 'fluxer_database.g.dart';
     RelationshipDao,
     DmChannelDao,
     ReadStateDao,
+    UserPreferencesDao,
   ],
 )
 class FluxerDatabase extends _$FluxerDatabase {
@@ -61,7 +65,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -103,6 +107,9 @@ class FluxerDatabase extends _$FluxerDatabase {
             'CREATE INDEX idx_members_server ON members (server_id)',
           ),
         );
+      }
+      if (from < 3) {
+        await m.createTable(userPreferencesTable);
       }
     },
   );
