@@ -29,6 +29,8 @@ class ResponsiveShell extends ConsumerStatefulWidget {
 }
 
 class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
+  String _previousLocation = '';
+
   @override
   Widget build(BuildContext context) {
     ref.listen(serverListViewModelProvider.select((s) => s.selectedServerId), (
@@ -62,25 +64,69 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     final showSidebar = _showMobileSidebar(location);
     final isChatRoute = _isMobileChatRoute(location);
 
+    final wasChatRoute = _isMobileChatRoute(_previousLocation);
+    final useSlide = isChatRoute || wasChatRoute;
+    _previousLocation = location;
+
     return Scaffold(
       backgroundColor: FluxerColors.backgroundPrimary,
       body: Column(
         children: [
           Expanded(
-            child: showSidebar
-                ? _buildMobileSidebar()
-                : GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onHorizontalDragEnd: isChatRoute
-                        ? (details) {
-                            final velocity = details.primaryVelocity;
-                            if (velocity != null && velocity > 400) {
-                              _navigateBack(context, location);
-                            }
-                          }
-                        : null,
-                    child: widget.child,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              transitionBuilder: (child, animation) {
+                if (!useSlide) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  );
+                }
+                final isContent =
+                    child.key == const ValueKey('content');
+                final offset = Tween<Offset>(
+                  begin: Offset(isContent ? 1.0 : -0.3, 0),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
                   ),
+                );
+                return SlideTransition(
+                  position: offset,
+                  child: child,
+                );
+              },
+              layoutBuilder: (currentChild, previousChildren) {
+                return Stack(
+                  children: [
+                    ...previousChildren,
+                    ?currentChild,
+                  ],
+                );
+              },
+              child: showSidebar
+                  ? SizedBox.expand(
+                      key: const ValueKey('sidebar'),
+                      child: _buildMobileSidebar(),
+                    )
+                  : GestureDetector(
+                      key: const ValueKey('content'),
+                      behavior: HitTestBehavior.translucent,
+                      onHorizontalDragEnd: isChatRoute
+                          ? (details) {
+                              final velocity =
+                                  details.primaryVelocity;
+                              if (velocity != null &&
+                                  velocity > 400) {
+                                _navigateBack(context, location);
+                              }
+                            }
+                          : null,
+                      child: widget.child,
+                    ),
+            ),
           ),
           if (!isChatRoute) _buildBottomNavContent(context),
         ],

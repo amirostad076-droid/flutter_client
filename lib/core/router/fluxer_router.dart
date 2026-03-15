@@ -17,6 +17,42 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'fluxer_router.g.dart';
 
+CustomTransitionPage<void> _fadeTransitionPage({
+  required LocalKey key,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: key,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 150),
+    reverseTransitionDuration: const Duration(milliseconds: 150),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+  );
+}
+
+CustomTransitionPage<void> _slideTransitionPage({
+  required LocalKey key,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: key,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 200),
+    reverseTransitionDuration: const Duration(milliseconds: 200),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final offsetAnimation = Tween<Offset>(
+        begin: const Offset(1, 0),
+        end: Offset.zero,
+      ).animate(
+        CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+      );
+      return SlideTransition(position: offsetAnimation, child: child);
+    },
+  );
+}
+
 class _PlaceholderScreen extends StatelessWidget {
   const _PlaceholderScreen(this.label);
 
@@ -143,7 +179,7 @@ GoRouter fluxerRouter(Ref ref) {
           GoRoute(
             path: '/servers',
             name: RouteNames.servers,
-            pageBuilder: (context, state) => NoTransitionPage<void>(
+            pageBuilder: (context, state) => _fadeTransitionPage(
               key: state.pageKey,
               child: const _PlaceholderScreen('Select a channel'),
             ),
@@ -155,11 +191,12 @@ GoRouter fluxerRouter(Ref ref) {
                   final serverId = state.pathParameters['serverId'];
                   final channelId = state.pathParameters['channelId'];
                   if (serverId == null || channelId == null) {
-                    return const NoTransitionPage<void>(
-                      child: _PlaceholderScreen('Invalid route'),
+                    return _fadeTransitionPage(
+                      key: state.pageKey,
+                      child: const _PlaceholderScreen('Invalid route'),
                     );
                   }
-                  return NoTransitionPage<void>(
+                  return _slideTransitionPage(
                     key: state.pageKey,
                     child: ChatScreen(
                       serverId: serverId,
@@ -173,7 +210,7 @@ GoRouter fluxerRouter(Ref ref) {
           GoRoute(
             path: '/channels/@me',
             name: RouteNames.dms,
-            pageBuilder: (context, state) => NoTransitionPage<void>(
+            pageBuilder: (context, state) => _fadeTransitionPage(
               key: state.pageKey,
               child: const DmScreen(),
             ),
@@ -181,7 +218,7 @@ GoRouter fluxerRouter(Ref ref) {
               GoRoute(
                 path: ':dmId',
                 name: RouteNames.dmChat,
-                pageBuilder: (context, state) => NoTransitionPage<void>(
+                pageBuilder: (context, state) => _slideTransitionPage(
                   key: state.pageKey,
                   child:
                       DmScreen(channelId: state.pathParameters['dmId']),
@@ -192,7 +229,7 @@ GoRouter fluxerRouter(Ref ref) {
           GoRoute(
             path: '/notifications',
             name: RouteNames.notifications,
-            pageBuilder: (context, state) => NoTransitionPage<void>(
+            pageBuilder: (context, state) => _fadeTransitionPage(
               key: state.pageKey,
               child: const NotificationsPage(),
             ),
@@ -200,7 +237,7 @@ GoRouter fluxerRouter(Ref ref) {
           GoRoute(
             path: '/profile',
             name: RouteNames.profile,
-            pageBuilder: (context, state) => NoTransitionPage<void>(
+            pageBuilder: (context, state) => _fadeTransitionPage(
               key: state.pageKey,
               child: const ProfilePage(),
             ),
