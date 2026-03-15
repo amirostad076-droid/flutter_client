@@ -149,10 +149,10 @@ packages:
     dependency: transitive
     description:
       name: cached_network_image_web_ce
-      sha256: "45bee58d06603ce2454b3c8d62dccb5f762f98eced89e0b7d21189791666d920"
+      sha256: "6bcd8608d4ace7c35625f09d971ce68c7a6581a4631b0fb6ceb2909b2c2e17a8"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "2.1.1"
   characters:
     dependency: transitive
     description:
@@ -1119,10 +1119,10 @@ packages:
     dependency: transitive
     description:
       name: source_gen
-      sha256: "1d562a3c1f713904ebbed50d2760217fd8a51ca170ac4b05b0db490699dbac17"
+      sha256: adc962c96fffb2de1728ef396a995aaedcafbe635abdca13d2a987ce17e57751
       url: "https://pub.dev"
     source: hosted
-    version: "4.2.0"
+    version: "4.2.1"
   source_map_stack_trace:
     dependency: transitive
     description:
