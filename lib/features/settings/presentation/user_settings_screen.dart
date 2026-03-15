@@ -495,13 +495,7 @@ class _UserSettingsScreenState
         return UserProfile(userState: state);
       case 'Look & Feel':
         return UserAppearance(
-          isDarkTheme: state.isDarkTheme,
           isCompact: state.messageDisplayCompact,
-          onToggleTheme: () => ref
-              .read(
-                userSettingsViewModelProvider.notifier,
-              )
-              .toggleTheme(),
           onToggleCompact: () => ref
               .read(
                 userSettingsViewModelProvider.notifier,
