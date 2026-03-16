@@ -159,6 +159,11 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             ],
           ),
         ),
+        VerticalDivider(
+          width: 1,
+          thickness: 1,
+          color: context.colors.backgroundModifierAccent,
+        ),
         Expanded(child: widget.child),
       ],
     );

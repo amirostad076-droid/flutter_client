@@ -23,7 +23,6 @@ class UserPanel extends ConsumerWidget {
         color: context.colors.userPanelBackground,
         border: Border(
           top: BorderSide(color: context.colors.borderColor),
-          right: BorderSide(color: context.colors.borderColor),
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
