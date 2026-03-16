@@ -2,120 +2,535 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/message_action_sheet.dart';
+import 'package:fluxeron/features/chat/presentation/'
+    'widgets/message_action_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+const _kMenuWidth = 220.0;
 
 Future<MessageAction?> showMessageContextMenu(
   BuildContext context, {
   required Offset position,
   required Message message,
   required bool isOwnMessage,
+  ValueChanged<String>? onQuickReaction,
+  List<String>? quickEmojis,
 }) async {
-  final overlay =
-      Overlay.of(context).context.findRenderObject()
-          as RenderBox?;
+  final overlay = Overlay.of(context)
+      .context
+      .findRenderObject() as RenderBox?;
   if (overlay == null) {
     return null;
   }
 
-  final items = <PopupMenuEntry<MessageAction>>[
-    _buildItem(
-      context,
-      icon: PhosphorIconsFill.arrowBendUpLeft,
-      label: 'Reply',
-      value: MessageAction.reply,
-    ),
-    _buildItem(
-      context,
-      icon: PhosphorIconsFill.shareFat,
-      label: 'Forward',
-      value: MessageAction.forward,
-    ),
-    if (message.content.isNotEmpty)
-      _buildItem(
-        context,
-        icon: PhosphorIconsFill.copy,
-        label: 'Copy Text',
-        value: MessageAction.copyText,
-      ),
-    _buildItem(
-      context,
-      icon: PhosphorIconsFill.smiley,
-      label: 'Add Reaction',
-      value: MessageAction.addReaction,
-    ),
-    const PopupMenuDivider(),
-    _buildItem(
-      context,
-      icon: PhosphorIconsFill.pushPin,
-      label: message.isPinned ? 'Unpin' : 'Pin',
-      value: MessageAction.pin,
-    ),
-    if (isOwnMessage) ...[
-      const PopupMenuDivider(),
-      _buildItem(
-        context,
-        icon: PhosphorIconsFill.pencil,
-        label: 'Edit',
-        value: MessageAction.edit,
-      ),
-      _buildItem(
-        context,
-        icon: PhosphorIconsFill.trash,
-        label: 'Delete',
-        value: MessageAction.delete,
-        isDanger: true,
-      ),
-    ],
-  ];
+  final local = overlay.globalToLocal(position);
 
-  final action = await showMenu<MessageAction>(
-    context: context,
-    position: RelativeRect.fromLTRB(
-      position.dx,
-      position.dy,
-      overlay.size.width - position.dx,
-      overlay.size.height - position.dy,
-    ),
-    color: context.colors.backgroundFloating,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
-    items: items,
+  final result =
+      await Navigator.of(context).push<MessageAction>(
+        _ContextMenuRoute(
+          position: local,
+          overlaySize: overlay.size,
+          message: message,
+          isOwnMessage: isOwnMessage,
+          onQuickReaction: onQuickReaction,
+          quickEmojis: quickEmojis,
+        ),
+      );
+
+  switch (result) {
+    case MessageAction.copyText:
+      await Clipboard.setData(
+        ClipboardData(text: message.content),
+      );
+    case MessageAction.copyMessageId:
+      await Clipboard.setData(
+        ClipboardData(text: message.id),
+      );
+    case MessageAction.addReaction:
+    case MessageAction.edit:
+    case MessageAction.reply:
+    case MessageAction.forward:
+    case MessageAction.pin:
+    case MessageAction.bookmark:
+    case MessageAction.markAsUnread:
+    case MessageAction.copyMessageLink:
+    case MessageAction.delete:
+    case null:
+      break;
+  }
+
+  return result;
+}
+
+class _ContextMenuRoute extends PopupRoute<MessageAction> {
+  final Offset position;
+  final Size overlaySize;
+  final Message message;
+  final bool isOwnMessage;
+  final ValueChanged<String>? onQuickReaction;
+  final List<String>? quickEmojis;
+
+  _ContextMenuRoute({
+    required this.position,
+    required this.overlaySize,
+    required this.message,
+    required this.isOwnMessage,
+    this.onQuickReaction,
+    this.quickEmojis,
+  });
+
+  @override
+  Duration get transitionDuration =>
+      const Duration(milliseconds: 120);
+
+  @override
+  bool get barrierDismissible => true;
+
+  @override
+  Color? get barrierColor => Colors.transparent;
+
+  @override
+  String? get barrierLabel => 'Dismiss';
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) => _ContextMenuPage(
+    position: position,
+    overlaySize: overlaySize,
+    animation: animation,
+    message: message,
+    isOwnMessage: isOwnMessage,
+    onQuickReaction: onQuickReaction,
+    quickEmojis: quickEmojis,
   );
+}
 
-  if (action == MessageAction.copyText) {
-    await Clipboard.setData(
-      ClipboardData(text: message.content),
+class _ContextMenuPage extends StatelessWidget {
+  final Offset position;
+  final Size overlaySize;
+  final Animation<double> animation;
+  final Message message;
+  final bool isOwnMessage;
+  final ValueChanged<String>? onQuickReaction;
+  final List<String>? quickEmojis;
+
+  const _ContextMenuPage({
+    required this.position,
+    required this.overlaySize,
+    required this.animation,
+    required this.message,
+    required this.isOwnMessage,
+    this.onQuickReaction,
+    this.quickEmojis,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = _buildItems(context);
+    final estimatedHeight = _estimateHeight(items);
+
+    final opensLeft =
+        position.dx + _kMenuWidth > overlaySize.width - 8;
+    final opensUp =
+        position.dy + estimatedHeight >
+            overlaySize.height - 8;
+
+    var left = opensLeft
+        ? position.dx - _kMenuWidth
+        : position.dx;
+    var top = opensUp
+        ? position.dy - estimatedHeight
+        : position.dy;
+    if (left < 8) {
+      left = 8;
+    }
+    if (top < 8) {
+      top = 8;
+    }
+
+    final alignment = Alignment(
+      opensLeft ? 1.0 : -1.0,
+      opensUp ? 1.0 : -1.0,
+    );
+
+    return Stack(
+      children: [
+        Positioned(
+          left: left,
+          top: top,
+          child: FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOut,
+            ),
+            child: ScaleTransition(
+              scale: Tween<double>(
+                begin: 0.92,
+                end: 1,
+              ).animate(
+                CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                ),
+              ),
+              alignment: alignment,
+              child: _MenuPanel(items: items),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  return action;
-}
+  double _estimateHeight(List<Widget> items) {
+    var height = 16.0; // 8px vertical padding * 2
+    for (final item in items) {
+      if (item is _MenuDivider) {
+        height += 13; // 1px + 6px * 2
+      } else if (item is _QuickReactionRow) {
+        height += 40; // emoji row
+      } else {
+        height += 38; // 36px + 1px * 2 margin
+      }
+    }
+    return height;
+  }
 
-PopupMenuItem<MessageAction> _buildItem(
-  BuildContext context, {
-  required IconData icon,
-  required String label,
-  required MessageAction value,
-  bool isDanger = false,
-}) {
-  final color = isDanger
-      ? context.colors.textDanger
-      : context.colors.textChat;
+  List<Widget> _buildItems(BuildContext context) {
+    void pop(MessageAction action) =>
+        Navigator.of(context).pop(action);
 
-  return PopupMenuItem<MessageAction>(
-    value: value,
-    height: 36,
-    child: Row(
-      children: [
-        PhosphorIcon(icon, size: 18, color: color),
-        const SizedBox(width: 10),
-        Text(
-          label,
-          style: TextStyle(color: color, fontSize: 14),
+    return [
+      _QuickReactionRow(
+        emojis: quickEmojis ??
+            _QuickReactionRow.defaultEmojis,
+        onReaction: (emoji) {
+          onQuickReaction?.call(emoji);
+          Navigator.of(context).pop();
+        },
+      ),
+      _MenuItem(
+        label: 'Add Reaction',
+        icon: PhosphorIconsRegular.smiley,
+        trailing: PhosphorIconsRegular.caretRight,
+        onTap: () => pop(MessageAction.addReaction),
+      ),
+      const _MenuDivider(),
+      if (isOwnMessage)
+        _MenuItem(
+          label: 'Edit Message',
+          icon: PhosphorIconsRegular.pencilSimple,
+          onTap: () => pop(MessageAction.edit),
+        ),
+      _MenuItem(
+        label: 'Reply',
+        icon: PhosphorIconsRegular.arrowBendUpLeft,
+        onTap: () => pop(MessageAction.reply),
+      ),
+      _MenuItem(
+        label: 'Forward',
+        icon: PhosphorIconsRegular.shareFat,
+        onTap: () => pop(MessageAction.forward),
+      ),
+      const _MenuDivider(),
+      if (message.content.isNotEmpty)
+        _MenuItem(
+          label: 'Copy Text',
+          icon: PhosphorIconsRegular.copy,
+          onTap: () => pop(MessageAction.copyText),
+        ),
+      _MenuItem(
+        label: message.isPinned
+            ? 'Unpin Message'
+            : 'Pin Message',
+        icon: PhosphorIconsRegular.pushPin,
+        onTap: () => pop(MessageAction.pin),
+      ),
+      _MenuItem(
+        label: 'Bookmark Message',
+        icon: PhosphorIconsRegular.bookmarkSimple,
+        onTap: () => pop(MessageAction.bookmark),
+      ),
+      _MenuItem(
+        label: 'Mark as Unread',
+        icon: PhosphorIconsRegular.envelopeSimple,
+        onTap: () => pop(MessageAction.markAsUnread),
+      ),
+      _MenuItem(
+        label: 'Copy Message Link',
+        icon: PhosphorIconsRegular.link,
+        onTap: () =>
+            pop(MessageAction.copyMessageLink),
+      ),
+      if (isOwnMessage) ...[
+        const _MenuDivider(),
+        _MenuItem(
+          label: 'Delete Message',
+          icon: PhosphorIconsRegular.trash,
+          isDanger: true,
+          onTap: () => pop(MessageAction.delete),
         ),
       ],
-    ),
-  );
+      const _MenuDivider(),
+      _MenuItem(
+        label: 'Debug Message',
+        icon: PhosphorIconsRegular.wrench,
+        onTap: () {},
+      ),
+      _MenuItem(
+        label: 'Copy Message ID',
+        icon: PhosphorIconsRegular.hash,
+        onTap: () => pop(MessageAction.copyMessageId),
+      ),
+    ];
+  }
+}
+
+class _MenuPanel extends StatelessWidget {
+  final List<Widget> items;
+
+  const _MenuPanel({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: context.colors.backgroundPrimary,
+      borderRadius: BorderRadius.circular(4),
+      elevation: 8,
+      shadowColor: Colors.black45,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: context
+                .colors.backgroundModifierAccent,
+          ),
+        ),
+        child: SizedBox(
+          width: _kMenuWidth,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
+              children: items,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuItem extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final IconData? trailing;
+  final bool isDanger;
+  final VoidCallback onTap;
+
+  const _MenuItem({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.trailing,
+    this.isDanger = false,
+  });
+
+  @override
+  State<_MenuItem> createState() => _MenuItemState();
+}
+
+class _MenuItemState extends State<_MenuItem> {
+  var _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final Color textColor;
+    final Color hoverBg;
+    final Color hoverText;
+
+    if (widget.isDanger) {
+      textColor = colors.textDanger;
+      hoverBg = colors.buttonDangerFill;
+      hoverText = colors.buttonDangerText;
+    } else {
+      textColor = colors.textPrimary;
+      hoverBg = colors.backgroundModifierHover;
+      hoverText = colors.textPrimary;
+    }
+
+    final activeColor =
+        _isHovered ? hoverText : textColor;
+
+    return MouseRegion(
+      onEnter: (_) =>
+          setState(() => _isHovered = true),
+      onExit: (_) =>
+          setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: 36,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 8,
+          ),
+          margin: const EdgeInsets.symmetric(
+            vertical: 1,
+          ),
+          decoration: BoxDecoration(
+            color: _isHovered
+                ? hoverBg
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: TextStyle(
+                    color: activeColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 12),
+              PhosphorIcon(
+                widget.trailing ?? widget.icon,
+                size: 20,
+                color: activeColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickReactionRow extends StatelessWidget {
+  final ValueChanged<String> onReaction;
+  final List<String> emojis;
+
+  static const defaultEmojis = [
+    '\u{1F44D}', // thumbsup
+    '\u{1F44C}', // ok_hand
+    '\u{1F389}', // tada
+    '\u{2764}\u{FE0F}', // heart
+  ];
+
+  const _QuickReactionRow({
+    required this.onReaction,
+    this.emojis = defaultEmojis,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 6,
+        right: 6,
+        top: 4,
+        bottom: 6,
+      ),
+      child: Row(
+        spacing: 4,
+        children: emojis
+            .map(
+              (emoji) => Expanded(
+                child: _QuickReactionButton(
+                  emoji: emoji,
+                  onTap: () => onReaction(emoji),
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+class _QuickReactionButton extends StatefulWidget {
+  final String emoji;
+  final VoidCallback onTap;
+
+  const _QuickReactionButton({
+    required this.emoji,
+    required this.onTap,
+  });
+
+  @override
+  State<_QuickReactionButton> createState() =>
+      _QuickReactionButtonState();
+}
+
+class _QuickReactionButtonState
+    extends State<_QuickReactionButton> {
+  var _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) =>
+          setState(() => _isHovered = true),
+      onExit: (_) =>
+          setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: _isHovered
+                  ? context.colors
+                      .backgroundModifierSelected
+                  : context.colors
+                      .backgroundModifierHover,
+              borderRadius:
+                  BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                widget.emoji,
+                style: const TextStyle(
+                  fontSize: 24,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuDivider extends StatelessWidget {
+  const _MenuDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 1,
+      margin: const EdgeInsets.symmetric(
+        vertical: 6,
+      ),
+      color: context
+          .colors.backgroundModifierAccent
+          .withValues(alpha: 0.3),
+    );
+  }
 }

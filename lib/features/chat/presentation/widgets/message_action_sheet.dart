@@ -5,13 +5,17 @@ import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum MessageAction {
+  addReaction,
+  edit,
   reply,
   forward,
   copyText,
-  addReaction,
   pin,
-  edit,
+  bookmark,
+  markAsUnread,
+  copyMessageLink,
   delete,
+  copyMessageId,
 }
 
 Future<MessageAction?> showMessageActionSheet(
@@ -65,6 +69,24 @@ class MessageActionSheet extends StatelessWidget {
             ),
           ),
           _ActionRow(
+            icon: PhosphorIconsRegular.smiley,
+            label: 'Add Reaction',
+            onTap: () => Navigator.pop(
+              context,
+              MessageAction.addReaction,
+            ),
+          ),
+          if (isOwnMessage)
+            _ActionRow(
+              icon:
+                  PhosphorIconsRegular.pencilSimple,
+              label: 'Edit Message',
+              onTap: () => Navigator.pop(
+                context,
+                MessageAction.edit,
+              ),
+            ),
+          _ActionRow(
             icon: PhosphorIconsRegular
                 .arrowBendUpLeft,
             label: 'Reply',
@@ -101,36 +123,37 @@ class MessageActionSheet extends StatelessWidget {
               },
             ),
           _ActionRow(
-            icon: PhosphorIconsRegular.smiley,
-            label: 'Add Reaction',
-            onTap: () => Navigator.pop(
-              context,
-              MessageAction.addReaction,
-            ),
-          ),
-          _ActionRow(
             icon: PhosphorIconsRegular.pushPin,
-            label:
-                message.isPinned ? 'Unpin' : 'Pin',
+            label: message.isPinned
+                ? 'Unpin Message'
+                : 'Pin Message',
             onTap: () => Navigator.pop(
               context,
               MessageAction.pin,
             ),
           ),
-          if (isOwnMessage)
-            _ActionRow(
-              icon:
-                  PhosphorIconsRegular.pencilSimple,
-              label: 'Edit',
-              onTap: () => Navigator.pop(
-                context,
-                MessageAction.edit,
-              ),
+          _ActionRow(
+            icon:
+                PhosphorIconsRegular.bookmarkSimple,
+            label: 'Bookmark Message',
+            onTap: () => Navigator.pop(
+              context,
+              MessageAction.bookmark,
             ),
+          ),
+          _ActionRow(
+            icon:
+                PhosphorIconsRegular.envelopeSimple,
+            label: 'Mark as Unread',
+            onTap: () => Navigator.pop(
+              context,
+              MessageAction.markAsUnread,
+            ),
+          ),
           if (isOwnMessage)
             _ActionRow(
               icon: PhosphorIconsRegular.trash,
-              label: 'Delete',
+              label: 'Delete Message',
               color: context.colors.textDanger,
               onTap: () => Navigator.pop(
                 context,
