@@ -241,6 +241,20 @@ class _MessageListState
                 chatViewModelProvider.notifier,
               )
               .startForward(msg),
+          onReaction: (
+            emoji, {
+            String? emojiId,
+            bool animated = false,
+          }) => ref
+              .read(
+                chatViewModelProvider.notifier,
+              )
+              .toggleReaction(
+                msg.id,
+                emoji,
+                emojiId: emojiId,
+                animated: animated,
+              ),
         );
 
         if (isNewDay) {

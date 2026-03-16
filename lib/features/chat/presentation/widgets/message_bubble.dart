@@ -1,6 +1,10 @@
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
+import 'package:fluxeron/features/servers/domain/server.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_image.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_link.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_rich.dart';
@@ -46,6 +50,11 @@ class MessageBubble extends StatefulWidget {
   final VoidCallback? onForward;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final void Function(
+    String emoji, {
+    String? emojiId,
+    bool animated,
+  })? onReaction;
 
   const MessageBubble({
     required this.message,
@@ -55,6 +64,7 @@ class MessageBubble extends StatefulWidget {
     this.onForward,
     this.onEdit,
     this.onDelete,
+    this.onReaction,
     super.key,
   });
 
@@ -77,8 +87,12 @@ class _MessageBubbleState extends State<MessageBubble> {
       case MessageAction.delete:
         widget.onDelete?.call();
       case MessageAction.copyText:
+      case MessageAction.copyMessageId:
       case MessageAction.addReaction:
       case MessageAction.pin:
+      case MessageAction.bookmark:
+      case MessageAction.markAsUnread:
+      case MessageAction.copyMessageLink:
       case null:
         break;
     }
@@ -103,12 +117,37 @@ class _MessageBubbleState extends State<MessageBubble> {
     BuildContext context,
     Offset position,
   ) async {
+    List<String>? frecent;
+    try {
+      final db = ProviderScope.containerOf(context)
+          .read(fluxerDatabaseProvider);
+      frecent =
+          await db.emojiUsageDao.getQuickReactionEmojis(
+            4,
+            const [
+              '\u{1F44D}',
+              '\u{1F44C}',
+              '\u{1F389}',
+              '\u{2764}\u{FE0F}',
+            ],
+          );
+    } on Object {
+      // Fall back to defaults.
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
     final action = await showMessageContextMenu(
       context,
       position: position,
       message: widget.message,
       isOwnMessage:
           widget.message.authorId == widget.currentUserId,
+      onQuickReaction: (emoji) =>
+          widget.onReaction?.call(emoji),
+      quickEmojis: frecent,
     );
     if (!context.mounted) {
       return;
@@ -378,43 +417,64 @@ class _MessageBubbleState extends State<MessageBubble> {
   Widget _buildReaction(
     BuildContext context,
     Reaction reaction,
-  ) => Container(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 6,
-      vertical: 2,
+  ) => GestureDetector(
+    onTap: () => widget.onReaction?.call(
+      reaction.emoji,
+      emojiId: reaction.emojiId,
+      animated: reaction.animated,
     ),
-    decoration: BoxDecoration(
-      color: reaction.hasReacted
-          ? context.colors.brandPrimary
-              .withValues(alpha: 0.3)
-          : context.colors.backgroundSecondaryAlt
-              .withValues(alpha: 0.4),
-      border: Border.all(
-        color: reaction.hasReacted
-            ? context.colors.brandPrimary
-            : Colors.transparent,
-      ),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          reaction.emoji,
-          style: const TextStyle(fontSize: 16),
+    child: MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 6,
+          vertical: 2,
         ),
-        const SizedBox(width: 4),
-        Text(
-          '${reaction.count}',
-          style: TextStyle(
+        decoration: BoxDecoration(
+          color: reaction.hasReacted
+              ? context.colors.brandPrimary
+                  .withValues(alpha: 0.3)
+              : context.colors.backgroundSecondaryAlt
+                  .withValues(alpha: 0.4),
+          border: Border.all(
             color: reaction.hasReacted
                 ? context.colors.brandPrimary
-                : context.colors.textChat,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
+                : Colors.transparent,
           ),
+          borderRadius: BorderRadius.circular(8),
         ),
-      ],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (reaction.isCustom)
+              CachedNetworkImage(
+                imageUrl:
+                    '$fluxerMediaCdn/emojis/'
+                    '${reaction.emojiId}.webp',
+                width: 16,
+                height: 16,
+              )
+            else
+              Text(
+                reaction.emoji,
+                style: const TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+            const SizedBox(width: 4),
+            Text(
+              '${reaction.count}',
+              style: TextStyle(
+                color: reaction.hasReacted
+                    ? context.colors.brandPrimary
+                    : context.colors.textChat,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     ),
   );
 

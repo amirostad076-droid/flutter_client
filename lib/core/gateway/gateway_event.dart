@@ -12,6 +12,10 @@ enum GatewayEventType {
   channelCreate,
   channelUpdate,
   channelDelete,
+  messageReactionAdd,
+  messageReactionRemove,
+  messageReactionRemoveAll,
+  messageReactionRemoveEmoji,
 }
 
 /// Parses a gateway event type string to [GatewayEventType].
@@ -41,6 +45,14 @@ GatewayEventType? parseGatewayEvent(String type) {
       return GatewayEventType.channelUpdate;
     case 'CHANNEL_DELETE':
       return GatewayEventType.channelDelete;
+    case 'MESSAGE_REACTION_ADD':
+      return GatewayEventType.messageReactionAdd;
+    case 'MESSAGE_REACTION_REMOVE':
+      return GatewayEventType.messageReactionRemove;
+    case 'MESSAGE_REACTION_REMOVE_ALL':
+      return GatewayEventType.messageReactionRemoveAll;
+    case 'MESSAGE_REACTION_REMOVE_EMOJI':
+      return GatewayEventType.messageReactionRemoveEmoji;
     default:
       return null;
   }

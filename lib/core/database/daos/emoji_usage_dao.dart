@@ -1,0 +1,88 @@
+import 'dart:math';
+
+import 'package:drift/drift.dart';
+import 'package:fluxeron/core/database/fluxer_database.dart';
+import 'package:fluxeron/core/database/tables/emoji_usage.dart';
+
+part 'emoji_usage_dao.g.dart';
+
+const _kDecayHours = 24 * 7; // 168 hours
+
+@DriftAccessor(tables: [EmojiUsage])
+class EmojiUsageDao
+    extends DatabaseAccessor<FluxerDatabase>
+    with _$EmojiUsageDaoMixin {
+  EmojiUsageDao(super.attachedDatabase);
+
+  Future<void> trackUsage(String key) async {
+    final existing = await (select(emojiUsage)
+          ..where((e) => e.key.equals(key)))
+        .getSingleOrNull();
+
+    if (existing != null) {
+      await (update(emojiUsage)
+            ..where((e) => e.key.equals(key)))
+          .write(
+            EmojiUsageCompanion(
+              useCount: Value(existing.useCount + 1),
+              lastUsed: Value(DateTime.now()),
+            ),
+          );
+    } else {
+      await into(emojiUsage).insert(
+        EmojiUsageCompanion.insert(
+          key: key,
+          lastUsed: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Returns the top [limit] emojis sorted by
+  /// frecency score (frequency * recency decay).
+  Future<List<EmojiUsageData>> getTopByFrecency(
+    int limit,
+  ) async {
+    final all = await select(emojiUsage).get();
+    all.sort(
+      (a, b) => _score(b).compareTo(_score(a)),
+    );
+    return all.take(limit).toList();
+  }
+
+  /// Returns the top [limit] unicode emoji strings,
+  /// padded with [defaults] if not enough history.
+  Future<List<String>> getQuickReactionEmojis(
+    int limit,
+    List<String> defaults,
+  ) async {
+    final top = await getTopByFrecency(limit * 2);
+    final result = top
+        .where((e) => e.key.startsWith('unicode:'))
+        .map(
+          (e) => e.key.substring('unicode:'.length),
+        )
+        .take(limit)
+        .toList();
+
+    for (final d in defaults) {
+      if (result.length >= limit) break;
+      if (!result.contains(d)) {
+        result.add(d);
+      }
+    }
+
+    return result.take(limit).toList();
+  }
+
+  double _score(EmojiUsageData usage) {
+    final hours = DateTime.now()
+        .difference(usage.lastUsed)
+        .inHours;
+    final decay =
+        max(0.0, 1.0 - hours / _kDecayHours);
+    return usage.useCount * (1 + decay);
+  }
+
+  Future<void> clearAll() => delete(emojiUsage).go();
+}

@@ -71,8 +71,6 @@ class SystemMessage extends StatelessWidget {
     switch (message.type) {
       case 7:
         return (PhosphorIconsFill.arrowRight, 'joined the server.');
-      case 19:
-        return (PhosphorIconsFill.pushPin, 'pinned a message.');
       case 2:
         return (PhosphorIconsFill.info, message.content);
       case 3:

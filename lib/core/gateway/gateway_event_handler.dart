@@ -39,6 +39,14 @@ class GatewayEventHandler {
         _handleChannelUpsert(data);
       case GatewayEventType.channelDelete:
         _handleChannelDelete(data);
+      case GatewayEventType.messageReactionAdd:
+        _handleReactionAdd(data);
+      case GatewayEventType.messageReactionRemove:
+        _handleReactionRemove(data);
+      case GatewayEventType.messageReactionRemoveAll:
+        _handleReactionRemoveAll(data);
+      case GatewayEventType.messageReactionRemoveEmoji:
+        _handleReactionRemoveEmoji(data);
     }
   }
 
@@ -170,6 +178,126 @@ class GatewayEventHandler {
     final id = data['id'] as String?;
     if (id != null) {
       unawaited(database.channelDao.deleteChannel(id));
+    }
+  }
+
+  void _handleReactionAdd(Map<String, dynamic> data) {
+    final messageId = data['message_id'] as String?;
+    final emoji = data['emoji'] as Map<String, dynamic>?;
+    if (messageId == null || emoji == null) {
+      return;
+    }
+    unawaited(
+      _modifyReaction(messageId, emoji, isAdd: true),
+    );
+  }
+
+  void _handleReactionRemove(Map<String, dynamic> data) {
+    final messageId = data['message_id'] as String?;
+    final emoji = data['emoji'] as Map<String, dynamic>?;
+    if (messageId == null || emoji == null) {
+      return;
+    }
+    unawaited(
+      _modifyReaction(messageId, emoji, isAdd: false),
+    );
+  }
+
+  void _handleReactionRemoveAll(Map<String, dynamic> data) {
+    final messageId = data['message_id'] as String?;
+    if (messageId == null) {
+      return;
+    }
+    unawaited(database.messageDao.updateReactions(messageId, '[]'));
+  }
+
+  void _handleReactionRemoveEmoji(Map<String, dynamic> data) {
+    final messageId = data['message_id'] as String?;
+    final emoji = data['emoji'] as Map<String, dynamic>?;
+    if (messageId == null || emoji == null) {
+      return;
+    }
+    final emojiName = emoji['name'] as String? ?? '';
+    final emojiId = emoji['id'] as String?;
+    unawaited(_removeEmojiReaction(messageId, emojiName, emojiId));
+  }
+
+  Future<void> _modifyReaction(
+    String messageId,
+    Map<String, dynamic> emoji, {
+    required bool isAdd,
+  }) async {
+    final msg = await database.messageDao.getMessage(messageId);
+    if (msg == null) {
+      return;
+    }
+
+    final emojiName = emoji['name'] as String? ?? '';
+    final emojiId = emoji['id'] as String?;
+    final animated = emoji['animated'] as bool? ?? false;
+
+    final reactions = _decodeReactions(msg.reactionsJson);
+    final idx = reactions.indexWhere(
+      (r) =>
+          (r['emoji'] as String?) == emojiName &&
+          (r['emojiId'] as String?) == emojiId,
+    );
+
+    if (isAdd) {
+      if (idx != -1) {
+        reactions[idx]['count'] = ((reactions[idx]['count'] as int?) ?? 0) + 1;
+      } else {
+        reactions.add(<String, dynamic>{
+          'emoji': emojiName,
+          'emojiId': emojiId,
+          'animated': animated,
+          'count': 1,
+          'hasReacted': false,
+        });
+      }
+    } else if (idx != -1) {
+      final count = ((reactions[idx]['count'] as int?) ?? 1) - 1;
+      if (count <= 0) {
+        reactions.removeAt(idx);
+      } else {
+        reactions[idx]['count'] = count;
+      }
+    }
+
+    await database.messageDao.updateReactions(
+      messageId,
+      jsonEncode(reactions),
+    );
+  }
+
+  Future<void> _removeEmojiReaction(
+    String messageId,
+    String emojiName,
+    String? emojiId,
+  ) async {
+    final msg = await database.messageDao.getMessage(messageId);
+    if (msg == null) {
+      return;
+    }
+
+    final reactions = _decodeReactions(msg.reactionsJson)
+      ..removeWhere(
+        (r) =>
+            (r['emoji'] as String?) == emojiName &&
+            (r['emojiId'] as String?) == emojiId,
+      );
+    await database.messageDao.updateReactions(
+      messageId,
+      jsonEncode(reactions),
+    );
+  }
+
+  List<Map<String, dynamic>> _decodeReactions(String json) {
+    try {
+      return (jsonDecode(json) as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+    } on Object {
+      return [];
     }
   }
 

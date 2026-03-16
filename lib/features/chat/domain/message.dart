@@ -200,18 +200,24 @@ class Attachment {
 
 class Reaction {
   final String emoji;
+  final String? emojiId;
+  final bool animated;
   final int count;
   final bool hasReacted;
 
   const Reaction({
     required this.emoji,
     required this.count,
+    this.emojiId,
+    this.animated = false,
     this.hasReacted = false,
   });
 
   factory Reaction.fromSdk(MessageReactionResponse sdk) {
     return Reaction(
       emoji: sdk.emoji.name,
+      emojiId: sdk.emoji.id,
+      animated: sdk.emoji.animated ?? false,
       count: sdk.count,
       hasReacted: sdk.me != null,
     );
@@ -220,6 +226,8 @@ class Reaction {
   factory Reaction.fromJson(Map<String, dynamic> json) {
     return Reaction(
       emoji: json['emoji'] as String? ?? '',
+      emojiId: json['emojiId'] as String?,
+      animated: json['animated'] as bool? ?? false,
       count: json['count'] as int? ?? 0,
       hasReacted: json['hasReacted'] as bool? ?? false,
     );
@@ -227,9 +235,23 @@ class Reaction {
 
   Map<String, dynamic> toJson() => {
     'emoji': emoji,
+    'emojiId': emojiId,
+    'animated': animated,
     'count': count,
     'hasReacted': hasReacted,
   };
+
+  bool get isCustom => emojiId != null;
+
+  /// Encoded emoji param for the reaction API.
+  String get apiParam => isCustom
+      ? '$emoji:$emojiId'
+      : emoji;
+
+  /// Key for frecency tracking.
+  String get frecencyKey => isCustom
+      ? 'custom:$emojiId'
+      : 'unicode:$emoji';
 }
 
 class Message {
@@ -348,9 +370,9 @@ class Message {
   bool get isReply => replyToId != null;
   bool get isForwarded => forwardedFrom != null;
   bool get isEdited => editedTimestamp != null;
-  bool get isSystemMessage => type != 0 && type != 1;
+  bool get isSystemMessage => type != 0 && type != 1 && type != 19;
   bool get isMemberJoin => type == 7;
-  bool get isPin => type == 19;
+  bool get isPin => type == 6;
 
   static List<T> _decodeList<T>(
     String json,

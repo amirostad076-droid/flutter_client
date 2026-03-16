@@ -50,6 +50,21 @@ class MessageDao extends DatabaseAccessor<FluxerDatabase>
     });
   }
 
+  Future<Message?> getMessage(String id) =>
+      (select(messages)..where((m) => m.id.equals(id)))
+          .getSingleOrNull();
+
+  Future<void> updateReactions(
+    String messageId,
+    String json,
+  ) => (update(messages)
+        ..where((m) => m.id.equals(messageId)))
+      .write(
+        MessagesCompanion(
+          reactionsJson: Value(json),
+        ),
+      );
+
   Future<void> deleteMessage(String id) =>
       (delete(messages)..where((m) => m.id.equals(id))).go();
 
