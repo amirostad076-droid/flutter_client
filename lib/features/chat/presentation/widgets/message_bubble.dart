@@ -66,18 +66,7 @@ class MessageBubble extends StatefulWidget {
 class _MessageBubbleState extends State<MessageBubble> {
   var _isHovered = false;
 
-  Future<void> _showActions(
-    BuildContext context,
-  ) async {
-    final action = await showMessageActionSheet(
-      context,
-      message: widget.message,
-      isOwnMessage: widget.message.authorId ==
-          widget.currentUserId,
-    );
-    if (action == null || !context.mounted) {
-      return;
-    }
+  void _handleAction(MessageAction? action) {
     switch (action) {
       case MessageAction.reply:
         widget.onReply?.call();
@@ -90,8 +79,24 @@ class _MessageBubbleState extends State<MessageBubble> {
       case MessageAction.copyText:
       case MessageAction.addReaction:
       case MessageAction.pin:
+      case null:
         break;
     }
+  }
+
+  Future<void> _showActions(
+    BuildContext context,
+  ) async {
+    final action = await showMessageActionSheet(
+      context,
+      message: widget.message,
+      isOwnMessage: widget.message.authorId ==
+          widget.currentUserId,
+    );
+    if (!context.mounted) {
+      return;
+    }
+    _handleAction(action);
   }
 
   Future<void> _showContextMenu(
@@ -105,21 +110,10 @@ class _MessageBubbleState extends State<MessageBubble> {
       isOwnMessage:
           widget.message.authorId == widget.currentUserId,
     );
-    if (action == null || !context.mounted) return;
-    switch (action) {
-      case MessageAction.reply:
-        widget.onReply?.call();
-      case MessageAction.forward:
-        widget.onForward?.call();
-      case MessageAction.edit:
-        widget.onEdit?.call();
-      case MessageAction.delete:
-        widget.onDelete?.call();
-      case MessageAction.copyText:
-      case MessageAction.addReaction:
-      case MessageAction.pin:
-        break;
+    if (!context.mounted) {
+      return;
     }
+    _handleAction(action);
   }
 
   @override
