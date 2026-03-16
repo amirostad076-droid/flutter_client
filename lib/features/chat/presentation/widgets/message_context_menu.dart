@@ -296,14 +296,15 @@ class _MenuPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final layout = context.layout;
     return Material(
       color: context.colors.backgroundPrimary,
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: layout.radiusSm,
       elevation: 8,
       shadowColor: Colors.black45,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: layout.radiusSm,
           border: Border.all(
             color: context
                 .colors.backgroundModifierAccent,
@@ -312,7 +313,7 @@ class _MenuPanel extends StatelessWidget {
         child: SizedBox(
           width: _kMenuWidth,
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(layout.s2),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment:
@@ -351,6 +352,7 @@ class _MenuItemState extends State<_MenuItem> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final layout = context.layout;
     final Color textColor;
     final Color hoverBg;
     final Color hoverText;
@@ -381,9 +383,9 @@ class _MenuItemState extends State<_MenuItem> {
           constraints: const BoxConstraints(
             minHeight: 36,
           ),
-          padding: const EdgeInsets.symmetric(
+          padding: EdgeInsets.symmetric(
             horizontal: 10,
-            vertical: 8,
+            vertical: layout.s2,
           ),
           margin: const EdgeInsets.symmetric(
             vertical: 1,
@@ -392,25 +394,22 @@ class _MenuItemState extends State<_MenuItem> {
             color: _isHovered
                 ? hoverBg
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: layout.radiusSm,
           ),
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   widget.label,
-                  style: TextStyle(
-                    color: activeColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: context.textStyles.label
+                      .copyWith(color: activeColor),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: layout.s3),
               PhosphorIcon(
                 widget.trailing ?? widget.icon,
-                size: 20,
+                size: layout.s5,
                 color: activeColor,
               ),
             ],
@@ -439,15 +438,16 @@ class _QuickReactionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final layout = context.layout;
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 6,
-        right: 6,
-        top: 4,
-        bottom: 6,
+      padding: EdgeInsets.only(
+        left: layout.s1_5,
+        right: layout.s1_5,
+        top: layout.s1,
+        bottom: layout.s1_5,
       ),
       child: Row(
-        spacing: 4,
+        spacing: layout.s1,
         children: emojis
             .map(
               (emoji) => Expanded(
@@ -501,7 +501,7 @@ class _QuickReactionButtonState
                   : context.colors
                       .backgroundModifierHover,
               borderRadius:
-                  BorderRadius.circular(8),
+                  context.layout.radiusLg,
             ),
             child: Center(
               child: Text(
@@ -525,8 +525,8 @@ class _MenuDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      margin: const EdgeInsets.symmetric(
-        vertical: 6,
+      margin: EdgeInsets.symmetric(
+        vertical: context.layout.s1_5,
       ),
       color: context
           .colors.backgroundModifierAccent
