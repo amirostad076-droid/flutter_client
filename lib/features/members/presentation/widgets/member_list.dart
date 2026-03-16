@@ -8,6 +8,8 @@ import 'package:fluxeron/features/members/providers/member_list_view_model.dart'
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+const _kPanelWidth = 264.0;
+
 class MemberList extends ConsumerWidget {
   const MemberList({super.key});
 
@@ -18,18 +20,8 @@ class MemberList extends ConsumerWidget {
     final groups = memberState.roleGroups;
 
     if (memberState.isLoading && groups.isEmpty) {
-      return Container(
-        width: 240,
-        decoration: BoxDecoration(
-          color:
-              context.colors.memberListBackground,
-          border: Border(
-            left: BorderSide(
-              color: context.colors.borderColor,
-            ),
-          ),
-        ),
-        child: const Center(
+      return const _MemberPanel(
+        child: Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -37,50 +29,40 @@ class MemberList extends ConsumerWidget {
 
     if (memberState.errorMessage != null &&
         groups.isEmpty) {
-      return Container(
-        width: 240,
-        decoration: BoxDecoration(
-          color:
-              context.colors.memberListBackground,
-          border: Border(
-            left: BorderSide(
-              color: context.colors.borderColor,
-            ),
-          ),
-        ),
+      return _MemberPanel(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
+            padding: EdgeInsets.symmetric(
+              horizontal: context.layout.s6,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 PhosphorIcon(
                   PhosphorIconsFill.users,
-                  size: 48,
+                  size: context.layout.s12,
                   color: context
                       .colors.textPrimaryMuted,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: context.layout.s3),
                 Text(
                   'Member List Unavailable',
-                  style: TextStyle(
+                  style: context.textStyles.heading
+                      .copyWith(
                     color: context.colors.textChat,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: context.layout.s2),
                 Text(
                   'Member lists are temporarily'
                   '\nunavailable in this '
                   'community',
-                  style: TextStyle(
+                  style: context
+                      .textStyles.bodyMedium
+                      .copyWith(
                     color: context
                         .colors.textPrimaryMuted,
-                    fontSize: 14,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -91,18 +73,14 @@ class MemberList extends ConsumerWidget {
       );
     }
 
-    return Container(
-      width: 240,
-      decoration: BoxDecoration(
-        color: context.colors.memberListBackground,
-        border: Border(
-          left: BorderSide(
-            color: context.colors.borderColor,
-          ),
-        ),
-      ),
+    return _MemberPanel(
       child: ListView.builder(
-        padding: const EdgeInsets.only(top: 12),
+        padding: EdgeInsets.only(
+          top: 10,
+          left: context.layout.s2,
+          right: context.layout.s2,
+          bottom: context.layout.s4,
+        ),
         itemCount: groups.length,
         itemBuilder: (context, index) {
           final group = groups[index];
@@ -110,28 +88,9 @@ class MemberList extends ConsumerWidget {
             crossAxisAlignment:
                 CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding:
-                    const EdgeInsets.fromLTRB(
-                  16,
-                  16,
-                  16,
-                  4,
-                ),
-                child: Text(
-                  group.displayName.toUpperCase(),
-                  style: context
-                      .textStyles.categoryName
-                      .copyWith(
-                    color: group.role != null
-                        ? Color(group.role!.color)
-                        : context.colors
-                            .textPrimaryMuted,
-                  ),
-                ),
-              ),
+              _buildGroupHeader(context, group),
               ...group.members.map(
-                (m) => _buildMemberTile(context, m),
+                (m) => _MemberTile(member: m),
               ),
             ],
           );
@@ -140,27 +99,99 @@ class MemberList extends ConsumerWidget {
     );
   }
 
-  Widget _buildMemberTile(
+  Widget _buildGroupHeader(
     BuildContext context,
-    Member member,
-  ) =>
-      Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {},
+    RoleGroup group,
+  ) {
+    final layout = context.layout;
+    final count = group.members.length;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        layout.s2,
+        layout.s3,
+        layout.s2,
+        layout.s1,
+      ),
+      child: Text(
+        '${group.displayName} \u2014 $count',
+        style: context.textStyles.categoryName
+            .copyWith(
+          color: group.role != null
+              ? Color(group.role!.color)
+              : context.colors.textPrimaryMuted,
+        ),
+      ),
+    );
+  }
+}
+
+class _MemberPanel extends StatelessWidget {
+  final Widget child;
+
+  const _MemberPanel({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: _kPanelWidth,
+      decoration: BoxDecoration(
+        color: context.colors.memberListBackground,
+        border: Border(
+          left: BorderSide(
+            color: context.colors.borderColor,
+          ),
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _MemberTile extends StatefulWidget {
+  final Member member;
+
+  const _MemberTile({required this.member});
+
+  @override
+  State<_MemberTile> createState() =>
+      _MemberTileState();
+}
+
+class _MemberTileState extends State<_MemberTile> {
+  var _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final member = widget.member;
+    final layout = context.layout;
+    final isOffline = member.status == 'offline';
+
+    return MouseRegion(
+      onEnter: (_) =>
+          setState(() => _isHovered = true),
+      onExit: (_) =>
+          setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {},
+        child: Opacity(
+          opacity: isOffline ? 0.3 : 1.0,
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: 8,
               vertical: 1,
             ),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 6,
+              padding: EdgeInsets.symmetric(
+                horizontal: layout.s2,
+                vertical: layout.s1,
               ),
               decoration: BoxDecoration(
-                borderRadius:
-                    BorderRadius.circular(4),
+                color: _isHovered
+                    ? context.colors
+                        .backgroundModifierHover
+                    : Colors.transparent,
+                borderRadius: layout.radiusMd,
               ),
               child: Row(
                 children: [
@@ -173,7 +204,7 @@ class MemberList extends ConsumerWidget {
                     status: member.status,
                     size: 32,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment:
@@ -184,26 +215,19 @@ class MemberList extends ConsumerWidget {
                             Flexible(
                               child: Text(
                                 member.displayName,
-                                style: TextStyle(
+                                style: context
+                                    .textStyles.label
+                                    .copyWith(
                                   color: member
-                                              .status ==
-                                          'offline'
-                                      ? context
+                                              .roleColor !=
+                                          null
+                                      ? Color(
+                                          member
+                                              .roleColor!,
+                                        )
+                                      : context
                                           .colors
-                                          .textPrimaryMuted
-                                      : member.roleColor !=
-                                              null
-                                          ? Color(
-                                              member
-                                                  .roleColor!,
-                                            )
-                                          : context
-                                              .colors
-                                              .textChat,
-                                  fontSize: 14,
-                                  fontWeight:
-                                      FontWeight
-                                          .w500,
+                                          .textChat,
                                 ),
                                 overflow:
                                     TextOverflow
@@ -211,8 +235,8 @@ class MemberList extends ConsumerWidget {
                               ),
                             ),
                             if (member.isBot) ...[
-                              const SizedBox(
-                                width: 4,
+                              SizedBox(
+                                width: layout.s1,
                               ),
                               _buildBotBadge(
                                 context,
@@ -227,7 +251,9 @@ class MemberList extends ConsumerWidget {
                             style: TextStyle(
                               color: context.colors
                                   .textPrimaryMuted,
-                              fontSize: 12,
+                              fontSize: 11,
+                              fontWeight:
+                                  FontWeight.w500,
                             ),
                             overflow: TextOverflow
                                 .ellipsis,
@@ -240,12 +266,14 @@ class MemberList extends ConsumerWidget {
             ),
           ),
         ),
-      );
+      ),
+    );
+  }
 
   Widget _buildBotBadge(BuildContext context) =>
       Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 4,
+        padding: EdgeInsets.symmetric(
+          horizontal: context.layout.s1,
           vertical: 1,
         ),
         decoration: BoxDecoration(
