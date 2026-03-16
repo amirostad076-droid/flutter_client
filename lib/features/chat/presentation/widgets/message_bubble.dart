@@ -150,6 +150,33 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
+  /// Returns the content, embeds, and reactions
+  /// widgets for a message.
+  List<Widget> _buildMessageContent(
+    BuildContext context,
+    Message msg,
+  ) => [
+    if (msg.content.isNotEmpty)
+      SelectableText(
+        msg.content,
+        style: context.textStyles.messageText,
+      ),
+    ...msg.embeds.map(_buildEmbed),
+    if (msg.reactions.isNotEmpty)
+      Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: msg.reactions
+              .map(
+                (r) => _buildReaction(context, r),
+              )
+              .toList(),
+        ),
+      ),
+  ];
+
   /// Grouped message row: hover-reveal short timestamp
   /// in the left column, content on the right.
   Widget _buildGroupedRow(
@@ -182,34 +209,10 @@ class _MessageBubbleState extends State<MessageBubble> {
         child: Column(
           crossAxisAlignment:
               CrossAxisAlignment.start,
-          children: [
-            if (msg.content.isNotEmpty)
-              SelectableText(
-                msg.content,
-                style: context
-                    .textStyles.messageText,
-              ),
-            ...msg.embeds.map(_buildEmbed),
-            if (msg.reactions.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 4,
-                ),
-                child: Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: msg.reactions
-                      .map(
-                        (r) =>
-                            _buildReaction(
-                              context,
-                              r,
-                            ),
-                      )
-                      .toList(),
-                ),
-              ),
-          ],
+          children: _buildMessageContent(
+            context,
+            msg,
+          ),
         ),
       ),
     ],
@@ -281,32 +284,7 @@ class _MessageBubbleState extends State<MessageBubble> {
               ],
             ),
             const SizedBox(height: 2),
-            if (msg.content.isNotEmpty)
-              SelectableText(
-                msg.content,
-                style: context
-                    .textStyles.messageText,
-              ),
-            ...msg.embeds.map(_buildEmbed),
-            if (msg.reactions.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 4,
-                ),
-                child: Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: msg.reactions
-                      .map(
-                        (r) =>
-                            _buildReaction(
-                              context,
-                              r,
-                            ),
-                      )
-                      .toList(),
-                ),
-              ),
+            ..._buildMessageContent(context, msg),
           ],
         ),
       ),

@@ -11,6 +11,21 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kLoadMoreThreshold = 200.0;
 
+const _kMonthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
 /// The scrollable list of messages in the chat area.
 ///
 /// Uses a reversed [ListView] so newest messages appear
@@ -186,6 +201,7 @@ class _MessageListState
             _shouldGroup(msg, prevMsg);
 
         final bubble = MessageBubble(
+          key: ValueKey(msg.id),
           message: msg,
           isGrouped: isGrouped,
           onReply: () => ref
@@ -250,22 +266,8 @@ class _MessageListState
     BuildContext context,
     DateTime date,
   ) {
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
     final formatted =
-        '${months[date.month - 1]} ${date.day},'
+        '${_kMonthNames[date.month - 1]} ${date.day},'
         ' ${date.year}';
 
     return Padding(
