@@ -35,11 +35,13 @@ const _kReplyLineEndGap = 6.0;
 /// preview (matching Discord's layout).
 class MessageBubble extends StatefulWidget {
   final Message message;
+  final bool isGrouped;
   final VoidCallback? onReply;
   final VoidCallback? onForward;
 
   const MessageBubble({
     required this.message,
+    this.isGrouped = false,
     this.onReply,
     this.onForward,
     super.key,
@@ -56,6 +58,7 @@ class _MessageBubbleState extends State<MessageBubble> {
   @override
   Widget build(BuildContext context) {
     final msg = widget.message;
+    final isGrouped = widget.isGrouped;
 
     return MouseRegion(
       onEnter: (_) =>
@@ -68,9 +71,9 @@ class _MessageBubbleState extends State<MessageBubble> {
             : _isHovered
             ? context.colors.backgroundModifierHover
             : Colors.transparent,
-        padding: const EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 8,
+          vertical: isGrouped ? 2 : 8,
         ),
         child: Stack(
           children: [
@@ -78,9 +81,9 @@ class _MessageBubbleState extends State<MessageBubble> {
               crossAxisAlignment:
                   CrossAxisAlignment.start,
               children: [
-                if (msg.isReply)
+                if (!isGrouped && msg.isReply)
                   _buildReplyRow(msg),
-                if (msg.isForwarded)
+                if (!isGrouped && msg.isForwarded)
                   Padding(
                     padding: const EdgeInsets.only(
                       left: _kAvatarColumnWidth,
@@ -89,7 +92,10 @@ class _MessageBubbleState extends State<MessageBubble> {
                       source: msg.forwardedFrom!,
                     ),
                   ),
-                _buildMainRow(context, msg),
+                if (isGrouped)
+                  _buildGroupedRow(context, msg)
+                else
+                  _buildMainRow(context, msg),
               ],
             ),
             if (_isHovered)
@@ -142,6 +148,78 @@ class _MessageBubbleState extends State<MessageBubble> {
         ),
       ),
     );
+  }
+
+  /// Grouped message row: hover-reveal short timestamp
+  /// in the left column, content on the right.
+  Widget _buildGroupedRow(
+    BuildContext context,
+    Message msg,
+  ) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      SizedBox(
+        width: _kAvatarColumnWidth,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: AnimatedOpacity(
+            opacity: _isHovered ? 1.0 : 0.0,
+            duration: const Duration(
+              milliseconds: 100,
+            ),
+            child: Text(
+              _formatShortTimestamp(msg.timestamp),
+              style: TextStyle(
+                color:
+                    context.colors.textTertiaryMuted,
+                fontSize: 10,
+              ),
+            ),
+          ),
+        ),
+      ),
+      Expanded(
+        child: Column(
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
+          children: [
+            if (msg.content.isNotEmpty)
+              SelectableText(
+                msg.content,
+                style: context
+                    .textStyles.messageText,
+              ),
+            ...msg.embeds.map(_buildEmbed),
+            if (msg.reactions.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 4,
+                ),
+                child: Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: msg.reactions
+                      .map(
+                        (r) =>
+                            _buildReaction(
+                              context,
+                              r,
+                            ),
+                      )
+                      .toList(),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ],
+  );
+
+  String _formatShortTimestamp(DateTime dt) {
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m =
+        dt.minute.toString().padLeft(2, '0');
+    return '$h:$m';
   }
 
   /// Main message row: avatar on the left, content on

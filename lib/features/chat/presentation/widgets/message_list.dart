@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/features/chat/presentation/'
     'widgets/message_bubble.dart';
 import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
@@ -136,7 +137,6 @@ class _MessageListState
     // (newest). Messages in state are oldest-first,
     // so we read them from the end.
     final itemCount = messages.length +
-        1 + // date separator at the top (oldest)
         (state.isLoadingMore ? 1 : 0);
 
     return ListView.builder(
@@ -148,54 +148,103 @@ class _MessageListState
       ),
       itemCount: itemCount,
       itemBuilder: (context, index) {
-        // index 0 = newest message (bottom)
-        if (index < messages.length) {
-          final msgIndex =
-              messages.length - 1 - index;
-          final msg = messages[msgIndex];
-          return MessageBubble(
-            message: msg,
-            onReply: () => ref
-                .read(
-                  chatViewModelProvider.notifier,
-                )
-                .startReply(msg),
-            onForward: () => ref
-                .read(
-                  chatViewModelProvider.notifier,
-                )
-                .startForward(msg),
-          );
-        }
-
-        // Date separator above oldest message
-        if (index == messages.length) {
-          return _buildDateSeparator(
-            context,
-            messages.first.timestamp,
-          );
-        }
-
         // Loading indicator at the very top
-        return Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8,
-          ),
-          child: Center(
-            child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color:
-                    context.colors.brandPrimary,
+        if (index >= messages.length) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 8,
+            ),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child:
+                    CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: context
+                          .colors.brandPrimary,
+                    ),
               ),
             ),
-          ),
+          );
+        }
+
+        final msgIndex =
+            messages.length - 1 - index;
+        final msg = messages[msgIndex];
+        final prevMsg = msgIndex > 0
+            ? messages[msgIndex - 1]
+            : null;
+
+        final isNewDay = prevMsg == null ||
+            !_isSameDay(
+              msg.timestamp,
+              prevMsg.timestamp,
+            );
+
+        final isGrouped = !isNewDay &&
+            _shouldGroup(msg, prevMsg);
+
+        final bubble = MessageBubble(
+          message: msg,
+          isGrouped: isGrouped,
+          onReply: () => ref
+              .read(
+                chatViewModelProvider.notifier,
+              )
+              .startReply(msg),
+          onForward: () => ref
+              .read(
+                chatViewModelProvider.notifier,
+              )
+              .startForward(msg),
         );
+
+        if (isNewDay) {
+          return Column(
+            children: [
+              _buildDateSeparator(
+                context,
+                msg.timestamp,
+              ),
+              bubble,
+            ],
+          );
+        }
+
+        return bubble;
       },
     );
   }
+
+  /// Whether [current] should be visually grouped
+  /// with [previous] (same author, within 7 minutes,
+  /// neither is a reply or forward).
+  bool _shouldGroup(
+    Message current,
+    Message? previous,
+  ) {
+    if (previous == null) {
+      return false;
+    }
+    if (current.authorId != previous.authorId) {
+      return false;
+    }
+    if (current.isReply || current.isForwarded) {
+      return false;
+    }
+    if (previous.isReply || previous.isForwarded) {
+      return false;
+    }
+    final diff = current.timestamp
+        .difference(previous.timestamp);
+    return diff.inMinutes < 7;
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year &&
+      a.month == b.month &&
+      a.day == b.day;
 
   Widget _buildDateSeparator(
     BuildContext context,
