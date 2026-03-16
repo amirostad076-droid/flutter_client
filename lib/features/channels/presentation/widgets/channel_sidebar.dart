@@ -5,7 +5,9 @@ import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxeron/features/channels/providers/unread_provider.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
+import 'package:fluxeron/shared/widgets/unread_badge.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -201,9 +203,17 @@ class ChannelSidebar extends ConsumerWidget {
     Channel channel,
     bool isSelected,
   ) {
+    final unreadAsync =
+        ref.watch(channelUnreadProvider(channel.id));
+    final unread = unreadAsync.value;
+    final hasUnread = unread?.hasUnread ?? false;
+    final mentionCount = unread?.mentionCount ?? 0;
+
     final textColor = isSelected
         ? context.colors.textPrimary
-        : context.colors.textTertiary;
+        : hasUnread
+            ? context.colors.textChat
+            : context.colors.textTertiary;
 
     return Material(
       color: Colors.transparent,
@@ -255,10 +265,18 @@ class ChannelSidebar extends ConsumerWidget {
                   style: TextStyle(
                     color: textColor,
                     fontSize: 16,
+                    fontWeight: hasUnread
+                        ? FontWeight.w600
+                        : null,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              if (!isSelected &&
+                  (hasUnread || mentionCount > 0))
+                UnreadBadge(
+                  mentionCount: mentionCount,
+                ),
             ],
           ),
         ),

@@ -16,6 +16,11 @@ class ReadStateDao extends DatabaseAccessor<FluxerDatabase>
 
   Stream<List<ReadState>> watchReadStates() => select(readStates).watch();
 
+  Stream<ReadState?> watchReadState(String channelId) =>
+      (select(readStates)
+            ..where((r) => r.channelId.equals(channelId)))
+          .watchSingleOrNull();
+
   Future<void> upsertReadState(ReadStatesCompanion state) =>
       into(readStates).insertOnConflictUpdate(state);
 

@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
+import 'package:fluxeron/shared/widgets/unread_badge.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -127,6 +128,8 @@ class _ServerIcon extends StatefulWidget {
   final String? svgAsset;
   final VoidCallback onTap;
   final String? iconUrl;
+  final bool hasUnread;
+  final int mentionCount;
 
   const _ServerIcon({
     required this.label,
@@ -135,6 +138,8 @@ class _ServerIcon extends StatefulWidget {
     this.icon,
     this.svgAsset,
     this.iconUrl,
+    this.hasUnread = false,
+    this.mentionCount = 0,
   });
 
   @override
@@ -190,7 +195,11 @@ class _ServerIconState extends State<_ServerIcon> {
             duration:
                 const Duration(milliseconds: 150),
             width: 4,
-            height: widget.isSelected ? 40 : 0,
+            height: widget.isSelected
+                ? 40
+                : widget.hasUnread || _isHovered
+                    ? 20
+                    : 0,
             decoration: BoxDecoration(
               color: context.colors.textPrimary,
               borderRadius:
@@ -201,63 +210,78 @@ class _ServerIconState extends State<_ServerIcon> {
             ),
           ),
           const SizedBox(width: 8),
-          _RightTooltip(
-            message: widget.label,
-            child: MouseRegion(
-              onEnter: (_) =>
-                  setState(() => _isHovered = true),
-              onExit: (_) => setState(
-                () => _isHovered = false,
-              ),
-              child: GestureDetector(
-                onTap: widget.onTap,
-                child: AnimatedContainer(
-                  duration: const Duration(
-                    milliseconds: 150,
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              _RightTooltip(
+                message: widget.label,
+                child: MouseRegion(
+                  onEnter: (_) =>
+                      setState(() => _isHovered = true),
+                  onExit: (_) => setState(
+                    () => _isHovered = false,
                   ),
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius:
-                        BorderRadius.circular(
-                      borderRadius,
+                  child: GestureDetector(
+                    onTap: widget.onTap,
+                    child: AnimatedContainer(
+                      duration: const Duration(
+                        milliseconds: 150,
+                      ),
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: bgColor,
+                        borderRadius:
+                            BorderRadius.circular(
+                          borderRadius,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius:
+                            BorderRadiusGeometry
+                                .circular(
+                          borderRadius,
+                        ),
+                        child: widget.iconUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl:
+                                    widget.iconUrl!,
+                                errorWidget: (
+                                  context,
+                                  url,
+                                  error,
+                                ) =>
+                                    _buildBackupIcon(
+                                  context,
+                                ),
+                                progressIndicatorBuilder: (
+                                  context,
+                                  url,
+                                  progress,
+                                ) =>
+                                    _buildBackupIcon(
+                                  context,
+                                ),
+                              )
+                            : _buildBackupIcon(
+                                context,
+                              ),
+                      ),
                     ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius:
-                        BorderRadiusGeometry
-                            .circular(
-                      borderRadius,
-                    ),
-                    child: widget.iconUrl != null
-                        ? CachedNetworkImage(
-                            imageUrl:
-                                widget.iconUrl!,
-                            errorWidget: (
-                              context,
-                              url,
-                              error,
-                            ) =>
-                                _buildBackupIcon(
-                              context,
-                            ),
-                            progressIndicatorBuilder: (
-                              context,
-                              url,
-                              progress,
-                            ) =>
-                                _buildBackupIcon(
-                              context,
-                            ),
-                          )
-                        : _buildBackupIcon(
-                            context,
-                          ),
                   ),
                 ),
               ),
-            ),
+              if (!widget.isSelected &&
+                  (widget.hasUnread ||
+                      widget.mentionCount > 0))
+                Positioned(
+                  bottom: -4,
+                  right: -4,
+                  child: UnreadBadge(
+                    mentionCount: widget.mentionCount,
+                  ),
+                ),
+            ],
           ),
         ],
       ),
