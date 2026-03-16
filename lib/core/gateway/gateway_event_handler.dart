@@ -213,6 +213,13 @@ class GatewayEventHandler {
       id: id,
       channelId: channelId,
       authorId: author['id'] as String,
+      authorName: Value(
+        (author['global_name'] as String?) ??
+            (author['username'] as String?) ??
+            '',
+      ),
+      authorAvatar: Value(author['avatar'] as String?),
+      authorAvatarColor: Value(author['avatar_color'] as int?),
       content: content ?? '',
       timestamp: DateTime.parse(timestamp),
       embedsJson: Value(jsonEncode(data['embeds'] ?? [])),
@@ -222,6 +229,7 @@ class GatewayEventHandler {
         (data['message_reference'] as Map<String, dynamic>?)?['message_id']
             as String?,
       ),
+      type: Value((data['type'] as int?) ?? 0),
     );
   }
 }

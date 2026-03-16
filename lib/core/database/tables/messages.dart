@@ -19,6 +19,7 @@ class Messages extends Table {
   TextColumn get forwardedFrom => text().nullable()();
   BoolColumn get isPinned => boolean().withDefault(const Constant(false))();
   BoolColumn get isMentioned => boolean().withDefault(const Constant(false))();
+  IntColumn get type => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {id};

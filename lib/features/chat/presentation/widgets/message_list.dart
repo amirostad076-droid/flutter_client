@@ -6,6 +6,8 @@ import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/features/chat/presentation/'
     'widgets/message_bubble.dart';
+import 'package:fluxeron/features/chat/presentation/'
+    'widgets/system_message.dart';
 import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -197,6 +199,27 @@ class _MessageListState
               prevMsg.timestamp,
             );
 
+        if (msg.isSystemMessage) {
+          final systemWidget = SystemMessage(
+            key: ValueKey(msg.id),
+            message: msg,
+          );
+
+          if (isNewDay) {
+            return Column(
+              children: [
+                _buildDateSeparator(
+                  context,
+                  msg.timestamp,
+                ),
+                systemWidget,
+              ],
+            );
+          }
+
+          return systemWidget;
+        }
+
         final isGrouped = !isNewDay &&
             _shouldGroup(msg, prevMsg);
 
@@ -241,6 +264,9 @@ class _MessageListState
     Message? previous,
   ) {
     if (previous == null) {
+      return false;
+    }
+    if (current.isSystemMessage || previous.isSystemMessage) {
       return false;
     }
     if (current.authorId != previous.authorId) {

@@ -65,7 +65,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -110,6 +110,9 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 3) {
         await m.createTable(userPreferencesTable);
+      }
+      if (from < 4) {
+        await m.addColumn(messages, messages.type);
       }
     },
   );

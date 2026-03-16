@@ -249,6 +249,7 @@ class Message {
   final String? forwardedFrom;
   final bool isPinned;
   final bool isMentioned;
+  final int type;
 
   const Message({
     required this.id,
@@ -267,6 +268,7 @@ class Message {
     this.forwardedFrom,
     this.isPinned = false,
     this.isMentioned = false,
+    this.type = 0,
   });
 
   factory Message.fromSdk(MessageResponseSchema sdk) {
@@ -287,6 +289,7 @@ class Message {
       replyToId: sdk.referencedMessage?.id,
       isPinned: sdk.pinned,
       isMentioned: sdk.mentionEveryone,
+      type: int.tryParse(sdk.type.name.replaceFirst('number', '')) ?? 0,
     );
   }
 
@@ -308,6 +311,7 @@ class Message {
       forwardedFrom: row.forwardedFrom,
       isPinned: row.isPinned,
       isMentioned: row.isMentioned,
+      type: row.type,
     );
   }
 
@@ -328,6 +332,7 @@ class Message {
       reactionsJson: Value(
         jsonEncode(reactions.map((r) => r.toJson()).toList()),
       ),
+      type: Value(type),
     );
   }
 
@@ -343,6 +348,9 @@ class Message {
   bool get isReply => replyToId != null;
   bool get isForwarded => forwardedFrom != null;
   bool get isEdited => editedTimestamp != null;
+  bool get isSystemMessage => type != 0 && type != 1;
+  bool get isMemberJoin => type == 7;
+  bool get isPin => type == 19;
 
   static List<T> _decodeList<T>(
     String json,
