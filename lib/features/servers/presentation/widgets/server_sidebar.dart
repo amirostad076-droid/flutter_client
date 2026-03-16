@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/channels/providers/unread_provider.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
 import 'package:fluxeron/shared/widgets/unread_badge.dart';
 import 'package:go_router/go_router.dart';
@@ -80,19 +81,31 @@ class ServerSidebar extends ConsumerWidget {
             ),
           ),
           for (final server in servers)
-            _ServerIcon(
-              label: server.name,
-              isSelected:
-                  server.id == selectedId && !isDm,
-              iconUrl: server.iconUrl,
-              onTap: () {
-                ref
-                    .read(
-                      serverListViewModelProvider
-                          .notifier,
+            Builder(
+              builder: (context) {
+                final unread = ref
+                    .watch(
+                      serverUnreadProvider(server.id),
                     )
-                    .selectServer(server.id);
-                context.go('/servers');
+                    .value;
+                return _ServerIcon(
+                  label: server.name,
+                  isSelected:
+                      server.id == selectedId && !isDm,
+                  iconUrl: server.iconUrl,
+                  hasUnread: unread?.hasUnread ?? false,
+                  mentionCount:
+                      unread?.mentionCount ?? 0,
+                  onTap: () {
+                    ref
+                        .read(
+                          serverListViewModelProvider
+                              .notifier,
+                        )
+                        .selectServer(server.id);
+                    context.go('/servers');
+                  },
+                );
               },
             ),
           Padding(

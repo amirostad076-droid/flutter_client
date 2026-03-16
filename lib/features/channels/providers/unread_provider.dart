@@ -30,7 +30,10 @@ Stream<UnreadState> channelUnread(
     final messages =
         await db.messageDao.getMessages(channelId, limit: 1);
     if (messages.isEmpty) {
-      yield UnreadState(mentionCount: readState.mentionCount);
+      yield UnreadState(
+        hasUnread: readState.mentionCount > 0,
+        mentionCount: readState.mentionCount,
+      );
       continue;
     }
 
@@ -40,6 +43,50 @@ Stream<UnreadState> channelUnread(
     yield UnreadState(
       hasUnread: hasUnread,
       mentionCount: readState.mentionCount,
+    );
+  }
+}
+
+@riverpod
+Stream<UnreadState> serverUnread(
+  Ref ref,
+  String serverId,
+) async* {
+  final db = ref.watch(fluxerDatabaseProvider);
+
+  await for (final channels
+      in db.channelDao.watchChannels(serverId)) {
+    var anyUnread = false;
+    var totalMentions = 0;
+
+    for (final channel in channels) {
+      final readState =
+          await db.readStateDao.getReadState(channel.id);
+
+      if (readState == null || readState.lastMessageId == null) {
+        continue;
+      }
+
+      totalMentions += readState.mentionCount;
+
+      final messages =
+          await db.messageDao.getMessages(channel.id, limit: 1);
+      if (messages.isEmpty) {
+        if (readState.mentionCount > 0) {
+          anyUnread = true;
+        }
+        continue;
+      }
+
+      final latestMessageId = messages.last.id;
+      if (latestMessageId != readState.lastMessageId) {
+        anyUnread = true;
+      }
+    }
+
+    yield UnreadState(
+      hasUnread: anyUnread,
+      mentionCount: totalMentions,
     );
   }
 }
