@@ -9,6 +9,8 @@ import 'package:fluxeron/features/chat/presentation/'
     'widgets/forward_indicator.dart';
 import 'package:fluxeron/features/chat/presentation/'
     'widgets/message_action_sheet.dart';
+import 'package:fluxeron/features/chat/presentation/'
+    'widgets/message_context_menu.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
@@ -92,6 +94,34 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
   }
 
+  Future<void> _showContextMenu(
+    BuildContext context,
+    Offset position,
+  ) async {
+    final action = await showMessageContextMenu(
+      context,
+      position: position,
+      message: widget.message,
+      isOwnMessage:
+          widget.message.authorId == widget.currentUserId,
+    );
+    if (action == null || !context.mounted) return;
+    switch (action) {
+      case MessageAction.reply:
+        widget.onReply?.call();
+      case MessageAction.forward:
+        widget.onForward?.call();
+      case MessageAction.edit:
+        widget.onEdit?.call();
+      case MessageAction.delete:
+        widget.onDelete?.call();
+      case MessageAction.copyText:
+      case MessageAction.addReaction:
+      case MessageAction.pin:
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final msg = widget.message;
@@ -101,6 +131,12 @@ class _MessageBubbleState extends State<MessageBubble> {
     return GestureDetector(
       onLongPress:
           isMobile ? () => _showActions(context) : null,
+      onSecondaryTapUp: !isMobile
+          ? (details) => _showContextMenu(
+              context,
+              details.globalPosition,
+            )
+          : null,
       child: MouseRegion(
         onEnter: (_) =>
             setState(() => _isHovered = true),
