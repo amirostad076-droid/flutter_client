@@ -7,7 +7,10 @@ import 'package:fluxeron/features/chat/presentation/widgets/embed_rich.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_video.dart';
 import 'package:fluxeron/features/chat/presentation/'
     'widgets/forward_indicator.dart';
+import 'package:fluxeron/features/chat/presentation/'
+    'widgets/message_action_sheet.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
+import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -36,14 +39,20 @@ const _kReplyLineEndGap = 6.0;
 class MessageBubble extends StatefulWidget {
   final Message message;
   final bool isGrouped;
+  final String? currentUserId;
   final VoidCallback? onReply;
   final VoidCallback? onForward;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const MessageBubble({
     required this.message,
     this.isGrouped = false,
+    this.currentUserId,
     this.onReply,
     this.onForward,
+    this.onEdit,
+    this.onDelete,
     super.key,
   });
 
@@ -55,56 +64,89 @@ class MessageBubble extends StatefulWidget {
 class _MessageBubbleState extends State<MessageBubble> {
   var _isHovered = false;
 
+  Future<void> _showActions(
+    BuildContext context,
+  ) async {
+    final action = await showMessageActionSheet(
+      context,
+      message: widget.message,
+      isOwnMessage: widget.message.authorId ==
+          widget.currentUserId,
+    );
+    if (action == null || !context.mounted) {
+      return;
+    }
+    switch (action) {
+      case MessageAction.reply:
+        widget.onReply?.call();
+      case MessageAction.forward:
+        widget.onForward?.call();
+      case MessageAction.edit:
+        widget.onEdit?.call();
+      case MessageAction.delete:
+        widget.onDelete?.call();
+      case MessageAction.copyText:
+      case MessageAction.addReaction:
+      case MessageAction.pin:
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final msg = widget.message;
     final isGrouped = widget.isGrouped;
+    final isMobile = isMobileLayout(context);
 
-    return MouseRegion(
-      onEnter: (_) =>
-          setState(() => _isHovered = true),
-      onExit: (_) =>
-          setState(() => _isHovered = false),
-      child: Container(
-        color: msg.isMentioned
-            ? context.colors.mentionBackground
-            : _isHovered
-            ? context.colors.backgroundModifierHover
-            : Colors.transparent,
-        padding: EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: isGrouped ? 2 : 8,
-        ),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                if (!isGrouped && msg.isReply)
-                  _buildReplyRow(msg),
-                if (!isGrouped && msg.isForwarded)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: _kAvatarColumnWidth,
+    return GestureDetector(
+      onLongPress:
+          isMobile ? () => _showActions(context) : null,
+      child: MouseRegion(
+        onEnter: (_) =>
+            setState(() => _isHovered = true),
+        onExit: (_) =>
+            setState(() => _isHovered = false),
+        child: Container(
+          color: msg.isMentioned
+              ? context.colors.mentionBackground
+              : _isHovered
+              ? context.colors.backgroundModifierHover
+              : Colors.transparent,
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: isGrouped ? 2 : 8,
+          ),
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  if (!isGrouped && msg.isReply)
+                    _buildReplyRow(msg),
+                  if (!isGrouped && msg.isForwarded)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: _kAvatarColumnWidth,
+                      ),
+                      child: ForwardIndicator(
+                        source: msg.forwardedFrom!,
+                      ),
                     ),
-                    child: ForwardIndicator(
-                      source: msg.forwardedFrom!,
-                    ),
-                  ),
-                if (isGrouped)
-                  _buildGroupedRow(context, msg)
-                else
-                  _buildMainRow(context, msg),
-              ],
-            ),
-            if (_isHovered)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: _buildActions(context),
+                  if (isGrouped)
+                    _buildGroupedRow(context, msg)
+                  else
+                    _buildMainRow(context, msg),
+                ],
               ),
-          ],
+              if (_isHovered && !isMobile)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: _buildActions(context),
+                ),
+            ],
+          ),
         ),
       ),
     );

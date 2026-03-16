@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/features/chat/presentation/'
@@ -104,6 +105,8 @@ class _MessageListState
       },
     );
 
+    final currentUserId =
+        ref.watch(currentUserIdProvider);
     final state = ref.watch(chatViewModelProvider);
     final messages = state.messages;
 
@@ -227,6 +230,7 @@ class _MessageListState
           key: ValueKey(msg.id),
           message: msg,
           isGrouped: isGrouped,
+          currentUserId: currentUserId,
           onReply: () => ref
               .read(
                 chatViewModelProvider.notifier,
