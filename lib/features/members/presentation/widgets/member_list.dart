@@ -104,7 +104,6 @@ class MemberList extends ConsumerWidget {
     RoleGroup group,
   ) {
     final layout = context.layout;
-    final count = group.members.length;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         layout.s2,
@@ -113,7 +112,7 @@ class MemberList extends ConsumerWidget {
         layout.s1,
       ),
       child: Text(
-        '${group.displayName} \u2014 $count',
+        group.displayName,
         style: context.textStyles.categoryName
             .copyWith(
           color: group.role != null
