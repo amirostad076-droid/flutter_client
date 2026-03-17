@@ -13,20 +13,20 @@ class MemberListViewState {
   final List<RoleGroup> roleGroups;
   final bool isLoading;
   final String? errorMessage;
-  final String? selectedServerId;
+  final String? selectedGuildId;
 
   const MemberListViewState({
     required this.roleGroups,
     required this.isLoading,
     required this.errorMessage,
-    required this.selectedServerId,
+    required this.selectedGuildId,
   });
 
   MemberListViewState copyWith({
     List<RoleGroup>? roleGroups,
     bool? isLoading,
     Object? errorMessage = _unset,
-    Object? selectedServerId = _unset,
+    Object? selectedGuildId = _unset,
   }) {
     return MemberListViewState(
       roleGroups: roleGroups ?? this.roleGroups,
@@ -34,9 +34,9 @@ class MemberListViewState {
       errorMessage: errorMessage == _unset
           ? this.errorMessage
           : errorMessage as String?,
-      selectedServerId: selectedServerId == _unset
-          ? this.selectedServerId
-          : selectedServerId as String?,
+      selectedGuildId: selectedGuildId == _unset
+          ? this.selectedGuildId
+          : selectedGuildId as String?,
     );
   }
 }
@@ -52,19 +52,19 @@ class MemberListViewModel extends _$MemberListViewModel {
       roleGroups: [],
       isLoading: false,
       errorMessage: null,
-      selectedServerId: null,
+      selectedGuildId: null,
     );
   }
 
   Future<void> loadMembers(String serverId) async {
-    if (serverId == state.selectedServerId && state.roleGroups.isNotEmpty) {
+    if (serverId == state.selectedGuildId && state.roleGroups.isNotEmpty) {
       return;
     }
 
     state = state.copyWith(
       isLoading: true,
       errorMessage: null,
-      selectedServerId: serverId,
+      selectedGuildId: serverId,
     );
 
     final repo = ref.read(memberRepositoryProvider);
@@ -100,11 +100,11 @@ class MemberListViewModel extends _$MemberListViewModel {
   }
 
   Future<void> refresh() async {
-    final serverId = state.selectedServerId;
+    final serverId = state.selectedGuildId;
     if (serverId == null) {
       return;
     }
-    state = state.copyWith(selectedServerId: null);
+    state = state.copyWith(selectedGuildId: null);
     await loadMembers(serverId);
   }
 }

@@ -68,8 +68,7 @@ class LoginForm extends ConsumerWidget {
             style: TextButton.styleFrom(
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
-              tapTargetSize:
-                  MaterialTapTargetSize.shrinkWrap,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: Text(
               'Forgot your password?',
@@ -80,8 +79,7 @@ class LoginForm extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 20),
-          if (vm.errorMessage != null &&
-              vm.errorMessage!.isNotEmpty)
+          if (vm.errorMessage != null && vm.errorMessage!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
@@ -99,12 +97,7 @@ class LoginForm extends ConsumerWidget {
               onPressed: vm.canLogin
                   ? () {
                       unawaited(
-                        ref
-                            .read(
-                              loginViewModelProvider
-                                  .notifier,
-                            )
-                            .login(),
+                        ref.read(loginViewModelProvider.notifier).login(),
                       );
                       TextInput.finishAutofillContext();
                     }
@@ -160,8 +153,7 @@ class LoginForm extends ConsumerWidget {
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
-                  tapTargetSize:
-                      MaterialTapTargetSize.shrinkWrap,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
                   'Register',
@@ -178,16 +170,15 @@ class LoginForm extends ConsumerWidget {
     );
   }
 
-  Widget _buildLabel(BuildContext context, String text) =>
-      Text(
-        text,
-        style: TextStyle(
-          color: context.colors.textPrimaryMuted,
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
-        ),
-      );
+  Widget _buildLabel(BuildContext context, String text) => Text(
+    text,
+    style: TextStyle(
+      color: context.colors.textPrimaryMuted,
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.5,
+    ),
+  );
 
   Widget _buildTextField(
     BuildContext context, {
@@ -201,23 +192,15 @@ class LoginForm extends ConsumerWidget {
     onChanged: onChanged,
     obscureText: obscure,
     keyboardType: keyboardType,
-    style: TextStyle(
-      color: context.colors.textChat,
-      fontSize: 16,
-    ),
+    style: TextStyle(color: context.colors.textChat, fontSize: 16),
     decoration: InputDecoration(suffixIcon: suffixIcon),
   );
 
   Widget _buildOrDivider(BuildContext context) => Row(
     children: [
-      Expanded(
-        child: Divider(
-          color: context.colors.borderColor,
-        ),
-      ),
+      Expanded(child: Divider(color: context.colors.borderColor)),
       Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Text(
           'OR',
           style: TextStyle(
@@ -226,11 +209,7 @@ class LoginForm extends ConsumerWidget {
           ),
         ),
       ),
-      Expanded(
-        child: Divider(
-          color: context.colors.borderColor,
-        ),
-      ),
+      Expanded(child: Divider(color: context.colors.borderColor)),
     ],
   );
 
@@ -245,13 +224,9 @@ class LoginForm extends ConsumerWidget {
     child: ElevatedButton.icon(
       onPressed: onTap,
       icon: PhosphorIcon(icon, size: 18),
-      label: Text(
-        label,
-        style: const TextStyle(fontSize: 14),
-      ),
+      label: Text(label, style: const TextStyle(fontSize: 14)),
       style: ElevatedButton.styleFrom(
-        backgroundColor:
-            context.colors.backgroundTertiary,
+        backgroundColor: context.colors.backgroundTertiary,
         foregroundColor: context.colors.textChat,
       ),
     ),

@@ -15,10 +15,7 @@ class SystemMessage extends StatelessWidget {
     final (icon, text) = _iconAndText();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
           Opacity(
@@ -76,15 +73,9 @@ class SystemMessage extends StatelessWidget {
       case 3:
         return (PhosphorIconsFill.phone, 'started a call.');
       case 4:
-        return (
-          PhosphorIconsFill.textAa,
-          'changed the channel name.',
-        );
+        return (PhosphorIconsFill.textAa, 'changed the channel name.');
       case 5:
-        return (
-          PhosphorIconsFill.image,
-          'changed the channel icon.',
-        );
+        return (PhosphorIconsFill.image, 'changed the channel icon.');
       case 6:
         return (PhosphorIconsFill.pushPin, 'pinned a message.');
       default:
@@ -94,9 +85,8 @@ class SystemMessage extends StatelessWidget {
 
   String _formatTimestamp(DateTime dt) {
     final now = DateTime.now();
-    final isToday = dt.year == now.year &&
-        dt.month == now.month &&
-        dt.day == now.day;
+    final isToday =
+        dt.year == now.year && dt.month == now.month && dt.day == now.day;
     final h = dt.hour.toString().padLeft(2, '0');
     final m = dt.minute.toString().padLeft(2, '0');
     if (isToday) {

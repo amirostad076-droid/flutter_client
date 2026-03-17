@@ -515,8 +515,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
           channelSidebarBackground ?? this.channelSidebarBackground,
       memberListBackground: memberListBackground ?? this.memberListBackground,
       userPanelBackground: userPanelBackground ?? this.userPanelBackground,
-      userAreaDividerColor:
-          userAreaDividerColor ?? this.userAreaDividerColor,
+      userAreaDividerColor: userAreaDividerColor ?? this.userAreaDividerColor,
       embedBackground: embedBackground ?? this.embedBackground,
       embedBorder: embedBorder ?? this.embedBorder,
       mentionBackground: mentionBackground ?? this.mentionBackground,
@@ -536,21 +535,36 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     }
     return FluxerColorTheme(
       // Background
-      backgroundPrimary:
-          Color.lerp(backgroundPrimary, other.backgroundPrimary, t)!,
-      backgroundSecondary:
-          Color.lerp(backgroundSecondary, other.backgroundSecondary, t)!,
+      backgroundPrimary: Color.lerp(
+        backgroundPrimary,
+        other.backgroundPrimary,
+        t,
+      )!,
+      backgroundSecondary: Color.lerp(
+        backgroundSecondary,
+        other.backgroundSecondary,
+        t,
+      )!,
       backgroundSecondaryLighter: Color.lerp(
         backgroundSecondaryLighter,
         other.backgroundSecondaryLighter,
         t,
       )!,
-      backgroundSecondaryAlt:
-          Color.lerp(backgroundSecondaryAlt, other.backgroundSecondaryAlt, t)!,
-      backgroundTertiary:
-          Color.lerp(backgroundTertiary, other.backgroundTertiary, t)!,
-      backgroundTextarea:
-          Color.lerp(backgroundTextarea, other.backgroundTextarea, t)!,
+      backgroundSecondaryAlt: Color.lerp(
+        backgroundSecondaryAlt,
+        other.backgroundSecondaryAlt,
+        t,
+      )!,
+      backgroundTertiary: Color.lerp(
+        backgroundTertiary,
+        other.backgroundTertiary,
+        t,
+      )!,
+      backgroundTextarea: Color.lerp(
+        backgroundTextarea,
+        other.backgroundTextarea,
+        t,
+      )!,
       backgroundHeaderPrimary: Color.lerp(
         backgroundHeaderPrimary,
         other.backgroundHeaderPrimary,
@@ -571,10 +585,16 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
         other.backgroundChannelHeader,
         t,
       )!,
-      backgroundFloating:
-          Color.lerp(backgroundFloating, other.backgroundFloating, t)!,
-      guildListForeground:
-          Color.lerp(guildListForeground, other.guildListForeground, t)!,
+      backgroundFloating: Color.lerp(
+        backgroundFloating,
+        other.backgroundFloating,
+        t,
+      )!,
+      guildListForeground: Color.lerp(
+        guildListForeground,
+        other.guildListForeground,
+        t,
+      )!,
       backgroundModifierHover: Color.lerp(
         backgroundModifierHover,
         other.backgroundModifierHover,
@@ -598,10 +618,16 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       // Brand
       brandPrimary: Color.lerp(brandPrimary, other.brandPrimary, t)!,
       brandSecondary: Color.lerp(brandSecondary, other.brandSecondary, t)!,
-      brandPrimaryLight:
-          Color.lerp(brandPrimaryLight, other.brandPrimaryLight, t)!,
-      brandPrimaryFill:
-          Color.lerp(brandPrimaryFill, other.brandPrimaryFill, t)!,
+      brandPrimaryLight: Color.lerp(
+        brandPrimaryLight,
+        other.brandPrimaryLight,
+        t,
+      )!,
+      brandPrimaryFill: Color.lerp(
+        brandPrimaryFill,
+        other.brandPrimaryFill,
+        t,
+      )!,
       // Status
       statusOnline: Color.lerp(statusOnline, other.statusOnline, t)!,
       statusIdle: Color.lerp(statusIdle, other.statusIdle, t)!,
@@ -612,27 +638,45 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textTertiary: Color.lerp(textTertiary, other.textTertiary, t)!,
-      textPrimaryMuted:
-          Color.lerp(textPrimaryMuted, other.textPrimaryMuted, t)!,
+      textPrimaryMuted: Color.lerp(
+        textPrimaryMuted,
+        other.textPrimaryMuted,
+        t,
+      )!,
       textChat: Color.lerp(textChat, other.textChat, t)!,
       textChatMuted: Color.lerp(textChatMuted, other.textChatMuted, t)!,
       textLink: Color.lerp(textLink, other.textLink, t)!,
-      textOnBrandPrimary:
-          Color.lerp(textOnBrandPrimary, other.textOnBrandPrimary, t)!,
-      textTertiaryMuted:
-          Color.lerp(textTertiaryMuted, other.textTertiaryMuted, t)!,
-      textTertiarySecondary:
-          Color.lerp(textTertiarySecondary, other.textTertiarySecondary, t)!,
+      textOnBrandPrimary: Color.lerp(
+        textOnBrandPrimary,
+        other.textOnBrandPrimary,
+        t,
+      )!,
+      textTertiaryMuted: Color.lerp(
+        textTertiaryMuted,
+        other.textTertiaryMuted,
+        t,
+      )!,
+      textTertiarySecondary: Color.lerp(
+        textTertiarySecondary,
+        other.textTertiarySecondary,
+        t,
+      )!,
       textWarning: Color.lerp(textWarning, other.textWarning, t)!,
       textDanger: Color.lerp(textDanger, other.textDanger, t)!,
       textPositive: Color.lerp(textPositive, other.textPositive, t)!,
       textCode: Color.lerp(textCode, other.textCode, t)!,
       // Border
       borderColor: Color.lerp(borderColor, other.borderColor, t)!,
-      borderColorHover:
-          Color.lerp(borderColorHover, other.borderColorHover, t)!,
-      borderColorFocus:
-          Color.lerp(borderColorFocus, other.borderColorFocus, t)!,
+      borderColorHover: Color.lerp(
+        borderColorHover,
+        other.borderColorHover,
+        t,
+      )!,
+      borderColorFocus: Color.lerp(
+        borderColorFocus,
+        other.borderColorFocus,
+        t,
+      )!,
       // Accent
       accentPrimary: Color.lerp(accentPrimary, other.accentPrimary, t)!,
       accentSuccess: Color.lerp(accentSuccess, other.accentSuccess, t)!,
@@ -647,10 +691,16 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       alertWarning: Color.lerp(alertWarning, other.alertWarning, t)!,
       alertCaution: Color.lerp(alertCaution, other.alertCaution, t)!,
       // Markup
-      markupMentionText:
-          Color.lerp(markupMentionText, other.markupMentionText, t)!,
-      markupMentionFill:
-          Color.lerp(markupMentionFill, other.markupMentionFill, t)!,
+      markupMentionText: Color.lerp(
+        markupMentionText,
+        other.markupMentionText,
+        t,
+      )!,
+      markupMentionFill: Color.lerp(
+        markupMentionFill,
+        other.markupMentionFill,
+        t,
+      )!,
       markupInteractiveHoverText: Color.lerp(
         markupInteractiveHoverText,
         other.markupInteractiveHoverText,
@@ -662,38 +712,56 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
         t,
       )!,
       // Button
-      buttonPrimaryFill:
-          Color.lerp(buttonPrimaryFill, other.buttonPrimaryFill, t)!,
+      buttonPrimaryFill: Color.lerp(
+        buttonPrimaryFill,
+        other.buttonPrimaryFill,
+        t,
+      )!,
       buttonPrimaryActiveFill: Color.lerp(
         buttonPrimaryActiveFill,
         other.buttonPrimaryActiveFill,
         t,
       )!,
-      buttonPrimaryText:
-          Color.lerp(buttonPrimaryText, other.buttonPrimaryText, t)!,
-      buttonSecondaryFill:
-          Color.lerp(buttonSecondaryFill, other.buttonSecondaryFill, t)!,
+      buttonPrimaryText: Color.lerp(
+        buttonPrimaryText,
+        other.buttonPrimaryText,
+        t,
+      )!,
+      buttonSecondaryFill: Color.lerp(
+        buttonSecondaryFill,
+        other.buttonSecondaryFill,
+        t,
+      )!,
       buttonSecondaryActiveFill: Color.lerp(
         buttonSecondaryActiveFill,
         other.buttonSecondaryActiveFill,
         t,
       )!,
-      buttonSecondaryText:
-          Color.lerp(buttonSecondaryText, other.buttonSecondaryText, t)!,
+      buttonSecondaryText: Color.lerp(
+        buttonSecondaryText,
+        other.buttonSecondaryText,
+        t,
+      )!,
       buttonSecondaryActiveText: Color.lerp(
         buttonSecondaryActiveText,
         other.buttonSecondaryActiveText,
         t,
       )!,
-      buttonDangerFill:
-          Color.lerp(buttonDangerFill, other.buttonDangerFill, t)!,
+      buttonDangerFill: Color.lerp(
+        buttonDangerFill,
+        other.buttonDangerFill,
+        t,
+      )!,
       buttonDangerActiveFill: Color.lerp(
         buttonDangerActiveFill,
         other.buttonDangerActiveFill,
         t,
       )!,
-      buttonDangerText:
-          Color.lerp(buttonDangerText, other.buttonDangerText, t)!,
+      buttonDangerText: Color.lerp(
+        buttonDangerText,
+        other.buttonDangerText,
+        t,
+      )!,
       buttonDangerOutlineBorder: Color.lerp(
         buttonDangerOutlineBorder,
         other.buttonDangerOutlineBorder,
@@ -710,14 +778,26 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
         t,
       )!,
       buttonGhostText: Color.lerp(buttonGhostText, other.buttonGhostText, t)!,
-      buttonInvertedFill:
-          Color.lerp(buttonInvertedFill, other.buttonInvertedFill, t)!,
-      buttonInvertedText:
-          Color.lerp(buttonInvertedText, other.buttonInvertedText, t)!,
-      buttonOutlineBorder:
-          Color.lerp(buttonOutlineBorder, other.buttonOutlineBorder, t)!,
-      buttonOutlineText:
-          Color.lerp(buttonOutlineText, other.buttonOutlineText, t)!,
+      buttonInvertedFill: Color.lerp(
+        buttonInvertedFill,
+        other.buttonInvertedFill,
+        t,
+      )!,
+      buttonInvertedText: Color.lerp(
+        buttonInvertedText,
+        other.buttonInvertedText,
+        t,
+      )!,
+      buttonOutlineBorder: Color.lerp(
+        buttonOutlineBorder,
+        other.buttonOutlineBorder,
+        t,
+      )!,
+      buttonOutlineText: Color.lerp(
+        buttonOutlineText,
+        other.buttonOutlineText,
+        t,
+      )!,
       buttonOutlineActiveFill: Color.lerp(
         buttonOutlineActiveFill,
         other.buttonOutlineActiveFill,
@@ -747,52 +827,96 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
         t,
       )!,
       // Scrollbar
-      scrollbarThumbBg:
-          Color.lerp(scrollbarThumbBg, other.scrollbarThumbBg, t)!,
-      scrollbarThumbBgHover:
-          Color.lerp(scrollbarThumbBgHover, other.scrollbarThumbBgHover, t)!,
-      scrollbarTrackBg:
-          Color.lerp(scrollbarTrackBg, other.scrollbarTrackBg, t)!,
+      scrollbarThumbBg: Color.lerp(
+        scrollbarThumbBg,
+        other.scrollbarThumbBg,
+        t,
+      )!,
+      scrollbarThumbBgHover: Color.lerp(
+        scrollbarThumbBgHover,
+        other.scrollbarThumbBgHover,
+        t,
+      )!,
+      scrollbarTrackBg: Color.lerp(
+        scrollbarTrackBg,
+        other.scrollbarTrackBg,
+        t,
+      )!,
       // UI-specific
       chatBackground: Color.lerp(chatBackground, other.chatBackground, t)!,
-      chatInputBackground:
-          Color.lerp(chatInputBackground, other.chatInputBackground, t)!,
+      chatInputBackground: Color.lerp(
+        chatInputBackground,
+        other.chatInputBackground,
+        t,
+      )!,
       serverSidebarBackground: Color.lerp(
         serverSidebarBackground,
         other.serverSidebarBackground,
         t,
       )!,
-      serverIconBackground:
-          Color.lerp(serverIconBackground, other.serverIconBackground, t)!,
-      serverIconActive:
-          Color.lerp(serverIconActive, other.serverIconActive, t)!,
+      serverIconBackground: Color.lerp(
+        serverIconBackground,
+        other.serverIconBackground,
+        t,
+      )!,
+      serverIconActive: Color.lerp(
+        serverIconActive,
+        other.serverIconActive,
+        t,
+      )!,
       channelSidebarBackground: Color.lerp(
         channelSidebarBackground,
         other.channelSidebarBackground,
         t,
       )!,
-      memberListBackground:
-          Color.lerp(memberListBackground, other.memberListBackground, t)!,
-      userPanelBackground:
-          Color.lerp(userPanelBackground, other.userPanelBackground, t)!,
-      userAreaDividerColor:
-          Color.lerp(userAreaDividerColor, other.userAreaDividerColor, t)!,
-      embedBackground:
-          Color.lerp(embedBackground, other.embedBackground, t)!,
+      memberListBackground: Color.lerp(
+        memberListBackground,
+        other.memberListBackground,
+        t,
+      )!,
+      userPanelBackground: Color.lerp(
+        userPanelBackground,
+        other.userPanelBackground,
+        t,
+      )!,
+      userAreaDividerColor: Color.lerp(
+        userAreaDividerColor,
+        other.userAreaDividerColor,
+        t,
+      )!,
+      embedBackground: Color.lerp(embedBackground, other.embedBackground, t)!,
       embedBorder: Color.lerp(embedBorder, other.embedBorder, t)!,
-      mentionBackground:
-          Color.lerp(mentionBackground, other.mentionBackground, t)!,
-      spoilerBackground:
-          Color.lerp(spoilerBackground, other.spoilerBackground, t)!,
+      mentionBackground: Color.lerp(
+        mentionBackground,
+        other.mentionBackground,
+        t,
+      )!,
+      spoilerBackground: Color.lerp(
+        spoilerBackground,
+        other.spoilerBackground,
+        t,
+      )!,
       focusPrimary: Color.lerp(focusPrimary, other.focusPrimary, t)!,
-      interactiveActive:
-          Color.lerp(interactiveActive, other.interactiveActive, t)!,
-      interactiveNormal:
-          Color.lerp(interactiveNormal, other.interactiveNormal, t)!,
-      interactiveHover:
-          Color.lerp(interactiveHover, other.interactiveHover, t)!,
-      interactiveMuted:
-          Color.lerp(interactiveMuted, other.interactiveMuted, t)!,
+      interactiveActive: Color.lerp(
+        interactiveActive,
+        other.interactiveActive,
+        t,
+      )!,
+      interactiveNormal: Color.lerp(
+        interactiveNormal,
+        other.interactiveNormal,
+        t,
+      )!,
+      interactiveHover: Color.lerp(
+        interactiveHover,
+        other.interactiveHover,
+        t,
+      )!,
+      interactiveMuted: Color.lerp(
+        interactiveMuted,
+        other.interactiveMuted,
+        t,
+      )!,
     );
   }
 }

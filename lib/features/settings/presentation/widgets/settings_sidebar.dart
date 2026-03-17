@@ -30,83 +30,45 @@ class SettingsSidebar extends StatelessWidget {
     child: Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            20,
-            16,
-            12,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
           child: TextField(
-            style: TextStyle(
-              color: context.colors.textChat,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: context.colors.textChat, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Search settings...',
               hintStyle: TextStyle(
-                color: context
-                    .colors.textPrimaryMuted,
+                color: context.colors.textPrimaryMuted,
                 fontSize: 14,
               ),
               prefixIcon: Padding(
-                padding: const EdgeInsets.only(
-                  left: 8,
-                  right: 4,
-                ),
+                padding: const EdgeInsets.only(left: 8, right: 4),
                 child: PhosphorIcon(
-                  PhosphorIconsRegular
-                      .magnifyingGlass,
+                  PhosphorIconsRegular.magnifyingGlass,
                   size: 18,
-                  color: context
-                      .colors.textPrimaryMuted,
+                  color: context.colors.textPrimaryMuted,
                 ),
               ),
-              prefixIconConstraints:
-                  const BoxConstraints(
-                minWidth: 20,
-              ),
+              prefixIconConstraints: const BoxConstraints(minWidth: 20),
               filled: true,
-              fillColor: context
-                  .colors.backgroundTertiary,
-              contentPadding:
-                  const EdgeInsets.symmetric(
-                vertical: 8,
-              ),
+              fillColor: context.colors.backgroundTertiary,
+              contentPadding: const EdgeInsets.symmetric(vertical: 8),
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color:
-                      context.colors.borderColor,
-                ),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: context.colors.borderColor),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color:
-                      context.colors.borderColor,
-                ),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: context.colors.borderColor),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color:
-                      context.colors.borderColor,
-                ),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: context.colors.borderColor),
               ),
             ),
           ),
         ),
         if (username != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              18,
-              8,
-              16,
-              24,
-            ),
+            padding: const EdgeInsets.fromLTRB(18, 8, 16, 24),
             child: Row(
               children: [
                 UserAvatar(
@@ -121,13 +83,11 @@ class SettingsSidebar extends StatelessWidget {
                   child: Text(
                     username!,
                     style: TextStyle(
-                      color: context
-                          .colors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
-                    overflow:
-                        TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -137,20 +97,13 @@ class SettingsSidebar extends StatelessWidget {
           child: Material(
             color: Colors.transparent,
             child: ListView.builder(
-              padding:
-                  const EdgeInsets.symmetric(
-                horizontal: 16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final item = items[index];
-                final isSelected =
-                    index == selectedIndex;
+                final isSelected = index == selectedIndex;
                 if (item.isSeparator) {
-                  return _buildSeparator(
-                    context,
-                    item,
-                  );
+                  return _buildSeparator(context, item);
                 }
                 return _buildItem(
                   context,
@@ -167,8 +120,7 @@ class SettingsSidebar extends StatelessWidget {
           child: Text(
             'Fluxeron',
             style: TextStyle(
-              color: context
-                  .colors.textTertiarySecondary,
+              color: context.colors.textTertiarySecondary,
               fontSize: 11,
             ),
           ),
@@ -177,34 +129,17 @@ class SettingsSidebar extends StatelessWidget {
     ),
   );
 
-  Widget _buildSeparator(
-    BuildContext context,
-    SettingsSidebarItem item,
-  ) =>
+  Widget _buildSeparator(BuildContext context, SettingsSidebarItem item) =>
       Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Divider(
-              color: context.colors.borderColor,
-              height: 1,
-            ),
+            Divider(color: context.colors.borderColor, height: 1),
             if (item.label.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 16,
-                  bottom: 4,
-                ),
-                child: Text(
-                  item.label,
-                  style: context
-                      .textStyles.categoryName,
-                ),
+                padding: const EdgeInsets.only(top: 16, bottom: 4),
+                child: Text(item.label, style: context.textStyles.categoryName),
               ),
           ],
         ),
@@ -219,8 +154,8 @@ class SettingsSidebar extends StatelessWidget {
     final color = item.isDestructive
         ? context.colors.textDanger
         : isSelected
-            ? context.colors.textPrimary
-            : context.colors.textPrimaryMuted;
+        ? context.colors.textPrimary
+        : context.colors.textPrimaryMuted;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 3),
@@ -228,25 +163,17 @@ class SettingsSidebar extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(4),
         child: Ink(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? context.colors
-                    .backgroundModifierSelected
+                ? context.colors.backgroundModifierSelected
                 : null,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
             children: [
               if (item.icon != null) ...[
-                PhosphorIcon(
-                  item.icon!,
-                  size: 20,
-                  color: color,
-                ),
+                PhosphorIcon(item.icon!, size: 20, color: color),
                 const SizedBox(width: 8),
               ],
               Expanded(
@@ -255,9 +182,7 @@ class SettingsSidebar extends StatelessWidget {
                   style: TextStyle(
                     color: color,
                     fontSize: 16,
-                    fontWeight: isSelected
-                        ? FontWeight.w500
-                        : FontWeight.w400,
+                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                   ),
                 ),
               ),
@@ -282,9 +207,8 @@ class SettingsSidebarItem {
     this.isDestructive = false,
   });
 
-  const SettingsSidebarItem.separator([
-    this.label = '',
-  ])  : isSeparator = true,
-        icon = null,
-        isDestructive = false;
+  const SettingsSidebarItem.separator([this.label = ''])
+    : isSeparator = true,
+      icon = null,
+      isDestructive = false;
 }

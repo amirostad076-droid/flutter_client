@@ -18,10 +18,7 @@ class ColorFamily {
 ///
 /// A position of -1 means the stop will be auto-distributed evenly.
 class ScaleStop {
-  const ScaleStop({
-    required this.name,
-    this.position = -1,
-  });
+  const ScaleStop({required this.name, this.position = -1});
 
   final String name;
   final double position;

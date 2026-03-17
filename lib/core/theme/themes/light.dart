@@ -101,14 +101,30 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
   final backgroundSecondaryAlt = lightSurface['backgroundSecondaryAlt']!;
   final backgroundTertiary = lightSurface['backgroundTertiary']!;
   final backgroundPrimary = lightSurface['backgroundPrimary']!;
-  final borderColorVal =
-      toneDirect(hue: 220, saturation: 10, lightness: 40, alpha: 0.15);
-  final backgroundModifierHoverVal =
-      toneDirect(hue: 220, saturation: 10, lightness: 10, alpha: 0.05);
-  final backgroundModifierSelectedVal =
-      toneDirect(hue: 220, saturation: 10, lightness: 10, alpha: 0.1);
-  final backgroundModifierAccentVal =
-      toneDirect(hue: 220, saturation: 10, lightness: 40, alpha: 0.22);
+  final borderColorVal = toneDirect(
+    hue: 220,
+    saturation: 10,
+    lightness: 40,
+    alpha: 0.15,
+  );
+  final backgroundModifierHoverVal = toneDirect(
+    hue: 220,
+    saturation: 10,
+    lightness: 10,
+    alpha: 0.05,
+  );
+  final backgroundModifierSelectedVal = toneDirect(
+    hue: 220,
+    saturation: 10,
+    lightness: 10,
+    alpha: 0.1,
+  );
+  final backgroundModifierAccentVal = toneDirect(
+    hue: 220,
+    saturation: 10,
+    lightness: 40,
+    alpha: 0.22,
+  );
 
   // ---------------------------------------------------------------------------
   // Assemble theme
@@ -126,22 +142,28 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
     backgroundHeaderPrimaryHover: lightSurface['backgroundHeaderPrimaryHover']!,
     backgroundHeaderSecondary: lightSurface['backgroundHeaderSecondary']!,
     backgroundChannelHeader: lightSurface['backgroundChannelHeader']!,
-    backgroundFloating:
-        toneDirect(hue: 220, saturation: 10, lightness: 80),
+    backgroundFloating: toneDirect(hue: 220, saturation: 10, lightness: 80),
     guildListForeground: lightSurface['guildListForeground']!,
     backgroundModifierHover: backgroundModifierHoverVal,
     backgroundModifierSelected: backgroundModifierSelectedVal,
     backgroundModifierAccent: backgroundModifierAccentVal,
-    backgroundModifierAccentFocus:
-        toneDirect(hue: 220, saturation: 10, lightness: 40, alpha: 0.32),
+    backgroundModifierAccentFocus: toneDirect(
+      hue: 220,
+      saturation: 10,
+      lightness: 40,
+      alpha: 0.32,
+    ),
 
     // Brand
     brandPrimary: brandPrimary,
     brandSecondary: tone(FluxerColorFamilies.brand, 49, saturation: 60),
-    brandPrimaryLight:
-        toneDirect(hue: 242, saturation: 100, lightness: 84),
-    brandPrimaryFill:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
+    brandPrimaryLight: toneDirect(hue: 242, saturation: 100, lightness: 84),
+    brandPrimaryFill: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
 
     // Status
     statusOnline: statusOnline,
@@ -158,8 +180,12 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
     textChat: lightText['textChat']!,
     textChatMuted: lightText['textChatMuted']!,
     textLink: textLink,
-    textOnBrandPrimary:
-        toneDirect(hue: 0, saturation: 0, lightness: 98, useSatFactor: false),
+    textOnBrandPrimary: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 98,
+      useSatFactor: false,
+    ),
     textTertiaryMuted: lightText['textTertiaryMuted']!,
     textTertiarySecondary: lightText['textTertiarySecondary']!,
     textWarning: tone(FluxerColorFamilies.statusIdle, 55),
@@ -169,10 +195,18 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
 
     // Border
     borderColor: borderColorVal,
-    borderColorHover:
-        toneDirect(hue: 220, saturation: 10, lightness: 40, alpha: 0.25),
-    borderColorFocus:
-        toneDirect(hue: 210, saturation: 90, lightness: 50, alpha: 0.4),
+    borderColorHover: toneDirect(
+      hue: 220,
+      saturation: 10,
+      lightness: 40,
+      alpha: 0.25,
+    ),
+    borderColorFocus: toneDirect(
+      hue: 210,
+      saturation: 90,
+      lightness: 50,
+      alpha: 0.4,
+    ),
 
     // Accent
     accentPrimary: brandPrimary,
@@ -196,44 +230,85 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
     markupInteractiveHoverFill: textLink.withValues(alpha: 0.3),
 
     // Button
-    buttonPrimaryFill:
-        toneDirect(hue: 139, saturation: 55, lightness: 44),
-    buttonPrimaryActiveFill:
-        toneDirect(hue: 136, saturation: 60, lightness: 38),
-    buttonPrimaryText:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
-    buttonSecondaryFill:
-        toneDirect(hue: 220, saturation: 10, lightness: 10, alpha: 0.1),
-    buttonSecondaryActiveFill:
-        toneDirect(hue: 220, saturation: 10, lightness: 10, alpha: 0.15),
-    buttonSecondaryText:
-        toneDirect(hue: 220, saturation: 10, lightness: 15),
-    buttonSecondaryActiveText:
-        toneDirect(hue: 220, saturation: 10, lightness: 10),
-    buttonDangerFill:
-        toneDirect(hue: 359, saturation: 70, lightness: 54),
-    buttonDangerActiveFill:
-        toneDirect(hue: 359, saturation: 65, lightness: 45),
-    buttonDangerText:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
-    buttonDangerOutlineBorder:
-        toneDirect(hue: 359, saturation: 70, lightness: 50),
-    buttonDangerOutlineText:
-        toneDirect(hue: 359, saturation: 70, lightness: 45),
-    buttonDangerOutlineActiveFill:
-        toneDirect(hue: 359, saturation: 70, lightness: 50),
-    buttonGhostText:
-        toneDirect(hue: 220, saturation: 10, lightness: 20),
-    buttonInvertedFill:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
-    buttonInvertedText:
-        toneDirect(hue: 0, saturation: 0, lightness: 10, useSatFactor: false),
-    buttonOutlineBorder:
-        toneDirect(hue: 220, saturation: 10, lightness: 40, alpha: 0.3),
-    buttonOutlineText:
-        toneDirect(hue: 220, saturation: 10, lightness: 20),
-    buttonOutlineActiveFill:
-        toneDirect(hue: 220, saturation: 10, lightness: 10, alpha: 0.1),
+    buttonPrimaryFill: toneDirect(hue: 139, saturation: 55, lightness: 44),
+    buttonPrimaryActiveFill: toneDirect(
+      hue: 136,
+      saturation: 60,
+      lightness: 38,
+    ),
+    buttonPrimaryText: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
+    buttonSecondaryFill: toneDirect(
+      hue: 220,
+      saturation: 10,
+      lightness: 10,
+      alpha: 0.1,
+    ),
+    buttonSecondaryActiveFill: toneDirect(
+      hue: 220,
+      saturation: 10,
+      lightness: 10,
+      alpha: 0.15,
+    ),
+    buttonSecondaryText: toneDirect(hue: 220, saturation: 10, lightness: 15),
+    buttonSecondaryActiveText: toneDirect(
+      hue: 220,
+      saturation: 10,
+      lightness: 10,
+    ),
+    buttonDangerFill: toneDirect(hue: 359, saturation: 70, lightness: 54),
+    buttonDangerActiveFill: toneDirect(hue: 359, saturation: 65, lightness: 45),
+    buttonDangerText: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
+    buttonDangerOutlineBorder: toneDirect(
+      hue: 359,
+      saturation: 70,
+      lightness: 50,
+    ),
+    buttonDangerOutlineText: toneDirect(
+      hue: 359,
+      saturation: 70,
+      lightness: 45,
+    ),
+    buttonDangerOutlineActiveFill: toneDirect(
+      hue: 359,
+      saturation: 70,
+      lightness: 50,
+    ),
+    buttonGhostText: toneDirect(hue: 220, saturation: 10, lightness: 20),
+    buttonInvertedFill: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
+    buttonInvertedText: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 10,
+      useSatFactor: false,
+    ),
+    buttonOutlineBorder: toneDirect(
+      hue: 220,
+      saturation: 10,
+      lightness: 40,
+      alpha: 0.3,
+    ),
+    buttonOutlineText: toneDirect(hue: 220, saturation: 10, lightness: 20),
+    buttonOutlineActiveFill: toneDirect(
+      hue: 220,
+      saturation: 10,
+      lightness: 10,
+      alpha: 0.1,
+    ),
 
     // Content Background
     bgCode: toneDirect(hue: 220, saturation: 22, lightness: 90, alpha: 0.9),
@@ -261,21 +336,26 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
     serverIconActive: brandPrimary,
     channelSidebarBackground: backgroundSecondary,
     memberListBackground: backgroundSecondary,
-    userPanelBackground:
-        toneDirect(hue: 220, saturation: 10, lightness: 90),
-    userAreaDividerColor:
-        toneDirect(hue: 220, saturation: 10, lightness: 40, alpha: 0.2),
+    userPanelBackground: toneDirect(hue: 220, saturation: 10, lightness: 90),
+    userAreaDividerColor: toneDirect(
+      hue: 220,
+      saturation: 10,
+      lightness: 40,
+      alpha: 0.2,
+    ),
     embedBackground: backgroundSecondary,
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,
-    spoilerBackground:
-        toneDirect(hue: 220, saturation: 10, lightness: 85),
+    spoilerBackground: toneDirect(hue: 220, saturation: 10, lightness: 85),
     focusPrimary: const Color(0xFF00B0F4),
-    interactiveActive:
-        toneDirect(hue: 0, saturation: 0, lightness: 10, useSatFactor: false),
+    interactiveActive: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 10,
+      useSatFactor: false,
+    ),
     interactiveNormal: textSecondary,
     interactiveHover: textPrimary,
-    interactiveMuted:
-        toneDirect(hue: 220, saturation: 10, lightness: 60),
+    interactiveMuted: toneDirect(hue: 220, saturation: 10, lightness: 60),
   );
 }

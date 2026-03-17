@@ -10,9 +10,9 @@ class UserPreferencesDao extends DatabaseAccessor<FluxerDatabase>
     with _$UserPreferencesDaoMixin {
   UserPreferencesDao(super.attachedDatabase);
 
-  Future<UserPreferencesTableData?> getPreferences(String userId) =>
-      (select(userPreferencesTable)..where((t) => t.userId.equals(userId)))
-          .getSingleOrNull();
+  Future<UserPreferencesTableData?> getPreferences(String userId) => (select(
+    userPreferencesTable,
+  )..where((t) => t.userId.equals(userId))).getSingleOrNull();
 
   Future<void> savePreferences(UserPreferencesTableCompanion prefs) =>
       into(userPreferencesTable).insertOnConflictUpdate(prefs);

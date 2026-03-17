@@ -113,12 +113,24 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
   final borderColorVal = tone(FluxerColorFamilies.neutralDark, 50, alpha: 0.2);
 
   // Coal: lower alpha values for modifier backgrounds
-  final backgroundModifierHoverVal =
-      toneDirect(hue: 220, saturation: 13, lightness: 100, alpha: 0.04);
-  final backgroundModifierSelectedVal =
-      toneDirect(hue: 220, saturation: 13, lightness: 100, alpha: 0.08);
-  final backgroundModifierAccentVal =
-      toneDirect(hue: 220, saturation: 10, lightness: 65, alpha: 0.18);
+  final backgroundModifierHoverVal = toneDirect(
+    hue: 220,
+    saturation: 13,
+    lightness: 100,
+    alpha: 0.04,
+  );
+  final backgroundModifierSelectedVal = toneDirect(
+    hue: 220,
+    saturation: 13,
+    lightness: 100,
+    alpha: 0.08,
+  );
+  final backgroundModifierAccentVal = toneDirect(
+    hue: 220,
+    saturation: 10,
+    lightness: 65,
+    alpha: 0.18,
+  );
 
   // ---------------------------------------------------------------------------
   // Assemble theme
@@ -136,22 +148,28 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     backgroundHeaderPrimaryHover: coalSurface['backgroundHeaderPrimaryHover']!,
     backgroundHeaderSecondary: coalSurface['backgroundHeaderSecondary']!,
     backgroundChannelHeader: coalSurface['backgroundChannelHeader']!,
-    backgroundFloating:
-        toneDirect(hue: 220, saturation: 13, lightness: 3),
+    backgroundFloating: toneDirect(hue: 220, saturation: 13, lightness: 3),
     guildListForeground: coalSurface['guildListForeground']!,
     backgroundModifierHover: backgroundModifierHoverVal,
     backgroundModifierSelected: backgroundModifierSelectedVal,
     backgroundModifierAccent: backgroundModifierAccentVal,
-    backgroundModifierAccentFocus:
-        toneDirect(hue: 220, saturation: 10, lightness: 70, alpha: 0.26),
+    backgroundModifierAccentFocus: toneDirect(
+      hue: 220,
+      saturation: 10,
+      lightness: 70,
+      alpha: 0.26,
+    ),
 
     // Brand (same as dark)
     brandPrimary: brandPrimary,
     brandSecondary: tone(FluxerColorFamilies.brand, 49, saturation: 60),
-    brandPrimaryLight:
-        toneDirect(hue: 242, saturation: 100, lightness: 84),
-    brandPrimaryFill:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
+    brandPrimaryLight: toneDirect(hue: 242, saturation: 100, lightness: 84),
+    brandPrimaryFill: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
 
     // Status (same as dark)
     statusOnline: statusOnline,
@@ -168,8 +186,12 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     textChat: darkText['textChat']!,
     textChatMuted: darkText['textChatMuted']!,
     textLink: textLink,
-    textOnBrandPrimary:
-        toneDirect(hue: 0, saturation: 0, lightness: 98, useSatFactor: false),
+    textOnBrandPrimary: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 98,
+      useSatFactor: false,
+    ),
     textTertiaryMuted: darkText['textTertiaryMuted']!,
     textTertiarySecondary: darkText['textTertiarySecondary']!,
     textWarning: tone(FluxerColorFamilies.statusIdle, 55),
@@ -179,10 +201,13 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
 
     // Border (same as dark)
     borderColor: borderColorVal,
-    borderColorHover:
-        tone(FluxerColorFamilies.neutralDark, 50, alpha: 0.3),
-    borderColorFocus:
-        toneDirect(hue: 210, saturation: 90, lightness: 70, alpha: 0.45),
+    borderColorHover: tone(FluxerColorFamilies.neutralDark, 50, alpha: 0.3),
+    borderColorFocus: toneDirect(
+      hue: 210,
+      saturation: 90,
+      lightness: 70,
+      alpha: 0.45,
+    ),
 
     // Accent (same as dark)
     accentPrimary: brandPrimary,
@@ -197,8 +222,7 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     alertTip: tone(FluxerColorFamilies.statusOnline, 45),
     alertImportant: tone(FluxerColorFamilies.accentPurple, 65),
     alertWarning: tone(FluxerColorFamilies.statusIdle, 55),
-    alertCaution:
-        toneDirect(hue: 359, saturation: 75, lightness: 60),
+    alertCaution: toneDirect(hue: 359, saturation: 75, lightness: 60),
 
     // Markup (same as dark)
     markupMentionText: textLink,
@@ -207,57 +231,99 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     markupInteractiveHoverFill: textLink.withValues(alpha: 0.3),
 
     // Button
-    buttonPrimaryFill:
-        toneDirect(hue: 139, saturation: 55, lightness: 44),
-    buttonPrimaryActiveFill:
-        toneDirect(hue: 136, saturation: 60, lightness: 38),
-    buttonPrimaryText:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
+    buttonPrimaryFill: toneDirect(hue: 139, saturation: 55, lightness: 44),
+    buttonPrimaryActiveFill: toneDirect(
+      hue: 136,
+      saturation: 60,
+      lightness: 38,
+    ),
+    buttonPrimaryText: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
     // Coal: lower alpha for secondary buttons
-    buttonSecondaryFill:
-        toneDirect(
-          hue: 0, saturation: 0, lightness: 100,
-          alpha: 0.04, useSatFactor: false,
-        ),
-    buttonSecondaryActiveFill:
-        toneDirect(
-          hue: 0, saturation: 0, lightness: 100,
-          alpha: 0.07, useSatFactor: false,
-        ),
+    buttonSecondaryFill: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      alpha: 0.04,
+      useSatFactor: false,
+    ),
+    buttonSecondaryActiveFill: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      alpha: 0.07,
+      useSatFactor: false,
+    ),
     // Coal: secondary button text uses textPrimary
     buttonSecondaryText: textPrimary,
     buttonSecondaryActiveText: textPrimary,
-    buttonDangerFill:
-        toneDirect(hue: 359, saturation: 70, lightness: 54),
-    buttonDangerActiveFill:
-        toneDirect(hue: 359, saturation: 65, lightness: 45),
-    buttonDangerText:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
-    buttonDangerOutlineBorder:
-        toneDirect(hue: 359, saturation: 70, lightness: 54),
-    buttonDangerOutlineText:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
-    buttonDangerOutlineActiveFill:
-        toneDirect(hue: 359, saturation: 65, lightness: 48),
-    buttonGhostText:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
-    buttonInvertedFill:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
-    buttonInvertedText:
-        toneDirect(hue: 0, saturation: 0, lightness: 0, useSatFactor: false),
+    buttonDangerFill: toneDirect(hue: 359, saturation: 70, lightness: 54),
+    buttonDangerActiveFill: toneDirect(hue: 359, saturation: 65, lightness: 45),
+    buttonDangerText: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
+    buttonDangerOutlineBorder: toneDirect(
+      hue: 359,
+      saturation: 70,
+      lightness: 54,
+    ),
+    buttonDangerOutlineText: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
+    buttonDangerOutlineActiveFill: toneDirect(
+      hue: 359,
+      saturation: 65,
+      lightness: 48,
+    ),
+    buttonGhostText: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
+    buttonInvertedFill: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
+    buttonInvertedText: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 0,
+      useSatFactor: false,
+    ),
     // Coal: lower alpha for outline buttons
-    buttonOutlineBorder:
-        toneDirect(
-          hue: 0, saturation: 0, lightness: 100,
-          alpha: 0.08, useSatFactor: false,
-        ),
-    buttonOutlineText:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
-    buttonOutlineActiveFill:
-        toneDirect(
-          hue: 0, saturation: 0, lightness: 100,
-          alpha: 0.12, useSatFactor: false,
-        ),
+    buttonOutlineBorder: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      alpha: 0.08,
+      useSatFactor: false,
+    ),
+    buttonOutlineText: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
+    buttonOutlineActiveFill: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      alpha: 0.12,
+      useSatFactor: false,
+    ),
 
     // Content Background (coal overrides)
     bgCode: toneDirect(hue: 220, saturation: 13, lightness: 8),
@@ -285,22 +351,23 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     serverIconActive: brandPrimary,
     channelSidebarBackground: backgroundSecondary,
     memberListBackground: backgroundSecondary,
-    userPanelBackground:
-        toneDirect(hue: 220, saturation: 13, lightness: 10),
+    userPanelBackground: toneDirect(hue: 220, saturation: 13, lightness: 10),
     userAreaDividerColor: backgroundModifierHoverVal.withValues(
       alpha: backgroundModifierHoverVal.a * 0.7,
     ),
     embedBackground: backgroundSecondary,
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,
-    spoilerBackground:
-        toneDirect(hue: 220, saturation: 13, lightness: 8),
+    spoilerBackground: toneDirect(hue: 220, saturation: 13, lightness: 8),
     focusPrimary: const Color(0xFF00B0F4),
-    interactiveActive:
-        toneDirect(hue: 0, saturation: 0, lightness: 100, useSatFactor: false),
+    interactiveActive: toneDirect(
+      hue: 0,
+      saturation: 0,
+      lightness: 100,
+      useSatFactor: false,
+    ),
     interactiveNormal: textSecondary,
     interactiveHover: textPrimary,
-    interactiveMuted:
-        toneDirect(hue: 228, saturation: 10, lightness: 35),
+    interactiveMuted: toneDirect(hue: 228, saturation: 10, lightness: 35),
   );
 }

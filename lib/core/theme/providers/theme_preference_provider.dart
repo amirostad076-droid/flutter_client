@@ -16,25 +16,21 @@ class ThemePreferenceState {
   ThemePreferenceState({
     this.mode = FluxerThemeMode.dark,
     this.scaleFactor = 1.0,
-  })  : colorTheme = switch (mode) {
-          FluxerThemeMode.dark => buildDarkColorTheme(),
-          FluxerThemeMode.light => buildLightColorTheme(),
-          FluxerThemeMode.coal => buildCoalColorTheme(),
-        },
-        layoutTheme = FluxerLayoutTheme.scaled(scaleFactor: scaleFactor);
+  }) : colorTheme = switch (mode) {
+         FluxerThemeMode.dark => buildDarkColorTheme(),
+         FluxerThemeMode.light => buildLightColorTheme(),
+         FluxerThemeMode.coal => buildCoalColorTheme(),
+       },
+       layoutTheme = FluxerLayoutTheme.scaled(scaleFactor: scaleFactor);
 
   final FluxerThemeMode mode;
   final double scaleFactor;
   final FluxerColorTheme colorTheme;
   final FluxerLayoutTheme layoutTheme;
 
-  late final FluxerTextTheme textTheme =
-      FluxerTextTheme.fromColors(colorTheme);
+  late final FluxerTextTheme textTheme = FluxerTextTheme.fromColors(colorTheme);
 
-  ThemePreferenceState copyWith({
-    FluxerThemeMode? mode,
-    double? scaleFactor,
-  }) {
+  ThemePreferenceState copyWith({FluxerThemeMode? mode, double? scaleFactor}) {
     return ThemePreferenceState(
       mode: mode ?? this.mode,
       scaleFactor: scaleFactor ?? this.scaleFactor,
@@ -58,10 +54,7 @@ class ThemePreference extends _$ThemePreference {
         (m) => m.name == prefs.theme,
         orElse: () => FluxerThemeMode.dark,
       );
-      state = ThemePreferenceState(
-        mode: mode,
-        scaleFactor: prefs.scaleFactor,
-      );
+      state = ThemePreferenceState(mode: mode, scaleFactor: prefs.scaleFactor);
     }
   }
 

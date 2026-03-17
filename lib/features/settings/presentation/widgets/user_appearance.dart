@@ -118,8 +118,7 @@ class UserAppearance extends ConsumerWidget {
               activeTrackColor: context.colors.brandPrimary,
               thumbColor: context.colors.textPrimary,
               inactiveTrackColor: context.colors.backgroundModifierAccent,
-              overlayColor:
-                  context.colors.brandPrimary.withValues(alpha: 0.2),
+              overlayColor: context.colors.brandPrimary.withValues(alpha: 0.2),
             ),
             child: Slider(
               value: themePref.scaleFactor,
@@ -144,55 +143,52 @@ class UserAppearance extends ConsumerWidget {
     required IconData icon,
     required FluxerThemeMode mode,
     required bool isSelected,
-  }) =>
-      Expanded(
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () =>
-                ref.read(themePreferenceProvider.notifier).setTheme(mode),
+  }) => Expanded(
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => ref.read(themePreferenceProvider.notifier).setTheme(mode),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? context.colors.backgroundModifierSelected
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? context.colors.backgroundModifierSelected
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isSelected
-                      ? context.colors.brandPrimary
-                      : context.colors.interactiveMuted,
-                  width: 2,
-                ),
-              ),
-              child: Column(
-                children: [
-                  PhosphorIcon(
-                    icon,
-                    size: 28,
-                    color: isSelected
-                        ? context.colors.brandPrimary
-                        : context.colors.interactiveNormal,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: isSelected
-                          ? context.colors.textChat
-                          : context.colors.interactiveNormal,
-                      fontSize: 14,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
+            border: Border.all(
+              color: isSelected
+                  ? context.colors.brandPrimary
+                  : context.colors.interactiveMuted,
+              width: 2,
             ),
           ),
+          child: Column(
+            children: [
+              PhosphorIcon(
+                icon,
+                size: 28,
+                color: isSelected
+                    ? context.colors.brandPrimary
+                    : context.colors.interactiveNormal,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected
+                      ? context.colors.textChat
+                      : context.colors.interactiveNormal,
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _buildDisplayOption(
     BuildContext context,
@@ -200,75 +196,74 @@ class UserAppearance extends ConsumerWidget {
     String description,
     bool isSelected,
     VoidCallback onTap,
-  ) =>
-      Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
+  ) => Material(
+    color: Colors.transparent,
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? context.colors.backgroundModifierSelected
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(4),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? context.colors.backgroundModifierSelected
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
+        ),
+        child: Row(
+          children: [
+            _buildRadioCircle(context, isSelected),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildRadioCircle(context, isSelected),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        color: isSelected
-                            ? context.colors.textChat
-                            : context.colors.interactiveNormal,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      description,
-                      style: TextStyle(
-                        color: context.colors.textPrimaryMuted,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected
+                        ? context.colors.textChat
+                        : context.colors.interactiveNormal,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: context.colors.textPrimaryMuted,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _buildRadioCircle(BuildContext context, bool isSelected) => Container(
-        width: 20,
-        height: 20,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected
-                ? context.colors.brandPrimary
-                : context.colors.interactiveMuted,
-            width: 2,
-          ),
-        ),
-        child: isSelected
-            ? Center(
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: context.colors.brandPrimary,
-                  ),
-                ),
-              )
-            : null,
-      );
+    width: 20,
+    height: 20,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(
+        color: isSelected
+            ? context.colors.brandPrimary
+            : context.colors.interactiveMuted,
+        width: 2,
+      ),
+    ),
+    child: isSelected
+        ? Center(
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: context.colors.brandPrimary,
+              ),
+            ),
+          )
+        : null,
+  );
 }

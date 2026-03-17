@@ -7,7 +7,7 @@ import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/fluxer_theme.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxeron/core/theme/providers/theme_preference_provider.dart';
-import 'package:fluxeron/shared/widgets/window_title_bar.dart';
+import 'package:fluxeron/shared/widgets/native_titlebar.dart';
 import 'package:window_manager/window_manager.dart';
 
 bool get _isDesktopPlatform =>
@@ -40,7 +40,7 @@ class FluxeronApp extends ConsumerWidget {
         return DragToResizeArea(
           child: Column(
             children: [
-              const WindowTitleBar(),
+              const NativeTitlebar(),
               Expanded(child: child!),
             ],
           ),

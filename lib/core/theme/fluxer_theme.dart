@@ -41,10 +41,7 @@ ThemeData buildFluxerTheme({
       labelSmall: textTheme.smallText,
       labelMedium: textTheme.label,
     ),
-    iconTheme: IconThemeData(
-      color: colorTheme.interactiveNormal,
-      size: 20,
-    ),
+    iconTheme: IconThemeData(color: colorTheme.interactiveNormal, size: 20),
     appBarTheme: AppBarTheme(
       backgroundColor: colorTheme.backgroundPrimary,
       foregroundColor: colorTheme.textPrimary,
@@ -64,8 +61,9 @@ ThemeData buildFluxerTheme({
       style: ElevatedButton.styleFrom(
         backgroundColor: colorTheme.buttonPrimaryFill,
         foregroundColor: colorTheme.buttonPrimaryText,
-        disabledBackgroundColor:
-            colorTheme.buttonPrimaryFill.withValues(alpha: 0.5),
+        disabledBackgroundColor: colorTheme.buttonPrimaryFill.withValues(
+          alpha: 0.5,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         minimumSize: const Size(96, 44),
         textStyle: TextStyle(
@@ -74,9 +72,7 @@ ThemeData buildFluxerTheme({
           fontWeight: FontWeight.w600,
           height: 20 / 14,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: layoutTheme.radiusLg,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: layoutTheme.radiusLg),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
@@ -89,9 +85,7 @@ ThemeData buildFluxerTheme({
           fontWeight: FontWeight.w600,
           height: 20 / 14,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: layoutTheme.radiusLg,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: layoutTheme.radiusLg),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -106,9 +100,7 @@ ThemeData buildFluxerTheme({
           height: 20 / 14,
         ),
         side: BorderSide(color: colorTheme.buttonOutlineBorder),
-        shape: RoundedRectangleBorder(
-          borderRadius: layoutTheme.radiusLg,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: layoutTheme.radiusLg),
       ),
     ),
 
@@ -119,21 +111,15 @@ ThemeData buildFluxerTheme({
       fillColor: colorTheme.backgroundTertiary,
       border: OutlineInputBorder(
         borderRadius: layoutTheme.radiusLg,
-        borderSide: BorderSide(
-          color: colorTheme.backgroundModifierAccent,
-        ),
+        borderSide: BorderSide(color: colorTheme.backgroundModifierAccent),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: layoutTheme.radiusLg,
-        borderSide: BorderSide(
-          color: colorTheme.backgroundModifierAccent,
-        ),
+        borderSide: BorderSide(color: colorTheme.backgroundModifierAccent),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: layoutTheme.radiusLg,
-        borderSide: BorderSide(
-          color: colorTheme.backgroundModifierAccentFocus,
-        ),
+        borderSide: BorderSide(color: colorTheme.backgroundModifierAccentFocus),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: layoutTheme.radiusLg,
@@ -148,10 +134,7 @@ ThemeData buildFluxerTheme({
         fontSize: 14,
         color: colorTheme.textTertiary,
       ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 10,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
     ),
 
     // Tooltips — web: bg-primary, 1px header-secondary border, 8px radius,
@@ -220,9 +203,7 @@ ThemeData buildFluxerTheme({
       }),
       checkColor: WidgetStateProperty.all(Colors.white),
       side: BorderSide(color: colorTheme.backgroundHeaderSecondary),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(3),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
     ),
 
     // Tabs — web: 500w 14px, muted color, brand-primary-light when selected,
@@ -241,10 +222,7 @@ ThemeData buildFluxerTheme({
         fontWeight: FontWeight.w500,
       ),
       indicator: UnderlineTabIndicator(
-        borderSide: BorderSide(
-          color: colorTheme.brandPrimaryLight,
-          width: 2,
-        ),
+        borderSide: BorderSide(color: colorTheme.brandPrimaryLight, width: 2),
       ),
       dividerColor: colorTheme.backgroundModifierAccent,
     ),
@@ -263,9 +241,7 @@ ThemeData buildFluxerTheme({
         hoverColor: colorTheme.backgroundModifierHover,
         highlightColor: colorTheme.backgroundModifierSelected,
         minimumSize: const Size(44, 44),
-        shape: RoundedRectangleBorder(
-          borderRadius: layoutTheme.radiusLg,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: layoutTheme.radiusLg),
       ),
     ),
 
@@ -342,9 +318,7 @@ ThemeData buildFluxerTheme({
       selectedColor: colorTheme.textPrimary,
       selectedTileColor: colorTheme.backgroundModifierSelected,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: layoutTheme.radiusSm,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: layoutTheme.radiusSm),
       minVerticalPadding: 8,
     ),
 
@@ -414,9 +388,7 @@ ThemeData buildFluxerTheme({
         color: colorTheme.textSecondary,
       ),
       side: BorderSide.none,
-      shape: RoundedRectangleBorder(
-        borderRadius: layoutTheme.radiusMd,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: layoutTheme.radiusMd),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     ),
 
@@ -425,9 +397,7 @@ ThemeData buildFluxerTheme({
       backgroundColor: colorTheme.brandPrimary,
       foregroundColor: colorTheme.textOnBrandPrimary,
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: layoutTheme.radiusXl,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: layoutTheme.radiusXl),
     ),
 
     // Dropdown menus — matches popup menu styling
@@ -436,15 +406,11 @@ ThemeData buildFluxerTheme({
         filled: false,
         border: OutlineInputBorder(
           borderRadius: layoutTheme.radiusLg,
-          borderSide: BorderSide(
-            color: colorTheme.backgroundModifierAccent,
-          ),
+          borderSide: BorderSide(color: colorTheme.backgroundModifierAccent),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: layoutTheme.radiusLg,
-          borderSide: BorderSide(
-            color: colorTheme.backgroundModifierAccent,
-          ),
+          borderSide: BorderSide(color: colorTheme.backgroundModifierAccent),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -452,9 +418,7 @@ ThemeData buildFluxerTheme({
         ),
       ),
       menuStyle: MenuStyle(
-        backgroundColor: WidgetStateProperty.all(
-          colorTheme.backgroundPrimary,
-        ),
+        backgroundColor: WidgetStateProperty.all(colorTheme.backgroundPrimary),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
             borderRadius: layoutTheme.radiusSm,
@@ -468,9 +432,7 @@ ThemeData buildFluxerTheme({
     // Menu anchors — matches context menu / popup menu
     menuTheme: MenuThemeData(
       style: MenuStyle(
-        backgroundColor: WidgetStateProperty.all(
-          colorTheme.backgroundPrimary,
-        ),
+        backgroundColor: WidgetStateProperty.all(colorTheme.backgroundPrimary),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
             borderRadius: layoutTheme.radiusSm,
@@ -517,9 +479,7 @@ ThemeData buildFluxerTheme({
 
     // Search bar — input-like styling
     searchBarTheme: SearchBarThemeData(
-      backgroundColor: WidgetStateProperty.all(
-        colorTheme.backgroundTertiary,
-      ),
+      backgroundColor: WidgetStateProperty.all(colorTheme.backgroundTertiary),
       textStyle: WidgetStateProperty.all(
         TextStyle(
           fontFamily: fontFamily,
@@ -604,9 +564,7 @@ ThemeData buildFluxerTheme({
         return Colors.transparent;
       }),
       todayBorder: BorderSide(color: colorTheme.brandPrimary),
-      shape: RoundedRectangleBorder(
-        borderRadius: layoutTheme.radiusLg,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: layoutTheme.radiusLg),
     ),
 
     // Time picker — brand-primary accent
@@ -616,9 +574,7 @@ ThemeData buildFluxerTheme({
       dialBackgroundColor: colorTheme.backgroundTertiary,
       hourMinuteTextColor: colorTheme.textPrimary,
       hourMinuteColor: colorTheme.backgroundTertiary,
-      shape: RoundedRectangleBorder(
-        borderRadius: layoutTheme.radiusLg,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: layoutTheme.radiusLg),
     ),
 
     // Navigation drawer — bg-secondary

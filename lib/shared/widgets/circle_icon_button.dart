@@ -3,7 +3,11 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class CircleIconButton extends StatefulWidget {
   const CircleIconButton({
-    required this.icon, required this.backgroundColor, required this.iconColor, required this.onTap, super.key,
+    required this.icon,
+    required this.backgroundColor,
+    required this.iconColor,
+    required this.onTap,
+    super.key,
     this.size = 36,
     this.iconSize = 20,
   });

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/features/chat/presentation/'
-    'widgets/message_action_sheet.dart';
+    'widgets/message_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kMenuWidth = 220.0;
@@ -16,36 +16,29 @@ Future<MessageAction?> showMessageContextMenu(
   ValueChanged<String>? onQuickReaction,
   List<String>? quickEmojis,
 }) async {
-  final overlay = Overlay.of(context)
-      .context
-      .findRenderObject() as RenderBox?;
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
   if (overlay == null) {
     return null;
   }
 
   final local = overlay.globalToLocal(position);
 
-  final result =
-      await Navigator.of(context).push<MessageAction>(
-        _ContextMenuRoute(
-          position: local,
-          overlaySize: overlay.size,
-          message: message,
-          isOwnMessage: isOwnMessage,
-          onQuickReaction: onQuickReaction,
-          quickEmojis: quickEmojis,
-        ),
-      );
+  final result = await Navigator.of(context).push<MessageAction>(
+    _ContextMenuRoute(
+      position: local,
+      overlaySize: overlay.size,
+      message: message,
+      isOwnMessage: isOwnMessage,
+      onQuickReaction: onQuickReaction,
+      quickEmojis: quickEmojis,
+    ),
+  );
 
   switch (result) {
     case MessageAction.copyText:
-      await Clipboard.setData(
-        ClipboardData(text: message.content),
-      );
+      await Clipboard.setData(ClipboardData(text: message.content));
     case MessageAction.copyMessageId:
-      await Clipboard.setData(
-        ClipboardData(text: message.id),
-      );
+      await Clipboard.setData(ClipboardData(text: message.id));
     case MessageAction.addReaction:
     case MessageAction.edit:
     case MessageAction.reply:
@@ -80,8 +73,7 @@ class _ContextMenuRoute extends PopupRoute<MessageAction> {
   });
 
   @override
-  Duration get transitionDuration =>
-      const Duration(milliseconds: 120);
+  Duration get transitionDuration => const Duration(milliseconds: 120);
 
   @override
   bool get barrierDismissible => true;
@@ -132,18 +124,11 @@ class _ContextMenuPage extends StatelessWidget {
     final items = _buildItems(context);
     final estimatedHeight = _estimateHeight(items);
 
-    final opensLeft =
-        position.dx + _kMenuWidth > overlaySize.width - 8;
-    final opensUp =
-        position.dy + estimatedHeight >
-            overlaySize.height - 8;
+    final opensLeft = position.dx + _kMenuWidth > overlaySize.width - 8;
+    final opensUp = position.dy + estimatedHeight > overlaySize.height - 8;
 
-    var left = opensLeft
-        ? position.dx - _kMenuWidth
-        : position.dx;
-    var top = opensUp
-        ? position.dy - estimatedHeight
-        : position.dy;
+    var left = opensLeft ? position.dx - _kMenuWidth : position.dx;
+    var top = opensUp ? position.dy - estimatedHeight : position.dy;
     if (left < 8) {
       left = 8;
     }
@@ -151,10 +136,7 @@ class _ContextMenuPage extends StatelessWidget {
       top = 8;
     }
 
-    final alignment = Alignment(
-      opensLeft ? 1.0 : -1.0,
-      opensUp ? 1.0 : -1.0,
-    );
+    final alignment = Alignment(opensLeft ? 1.0 : -1.0, opensUp ? 1.0 : -1.0);
 
     return Stack(
       children: [
@@ -162,19 +144,10 @@ class _ContextMenuPage extends StatelessWidget {
           left: left,
           top: top,
           child: FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOut,
-            ),
+            opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
             child: ScaleTransition(
-              scale: Tween<double>(
-                begin: 0.92,
-                end: 1,
-              ).animate(
-                CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeOutCubic,
-                ),
+              scale: Tween<double>(begin: 0.92, end: 1).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
               ),
               alignment: alignment,
               child: _MenuPanel(items: items),
@@ -200,13 +173,11 @@ class _ContextMenuPage extends StatelessWidget {
   }
 
   List<Widget> _buildItems(BuildContext context) {
-    void pop(MessageAction action) =>
-        Navigator.of(context).pop(action);
+    void pop(MessageAction action) => Navigator.of(context).pop(action);
 
     return [
       _QuickReactionRow(
-        emojis: quickEmojis ??
-            _QuickReactionRow.defaultEmojis,
+        emojis: quickEmojis ?? _QuickReactionRow.defaultEmojis,
         onReaction: (emoji) {
           onQuickReaction?.call(emoji);
           Navigator.of(context).pop();
@@ -243,9 +214,7 @@ class _ContextMenuPage extends StatelessWidget {
           onTap: () => pop(MessageAction.copyText),
         ),
       _MenuItem(
-        label: message.isPinned
-            ? 'Unpin Message'
-            : 'Pin Message',
+        label: message.isPinned ? 'Unpin Message' : 'Pin Message',
         icon: PhosphorIconsRegular.pushPin,
         onTap: () => pop(MessageAction.pin),
       ),
@@ -262,8 +231,7 @@ class _ContextMenuPage extends StatelessWidget {
       _MenuItem(
         label: 'Copy Message Link',
         icon: PhosphorIconsRegular.link,
-        onTap: () =>
-            pop(MessageAction.copyMessageLink),
+        onTap: () => pop(MessageAction.copyMessageLink),
       ),
       if (isOwnMessage) ...[
         const _MenuDivider(),
@@ -305,10 +273,7 @@ class _MenuPanel extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: layout.radiusSm,
-          border: Border.all(
-            color: context
-                .colors.backgroundModifierAccent,
-          ),
+          border: Border.all(color: context.colors.backgroundModifierAccent),
         ),
         child: SizedBox(
           width: _kMenuWidth,
@@ -316,8 +281,7 @@ class _MenuPanel extends StatelessWidget {
             padding: EdgeInsets.all(layout.s2),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment:
-                  CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: items,
             ),
           ),
@@ -367,33 +331,21 @@ class _MenuItemState extends State<_MenuItem> {
       hoverText = colors.textPrimary;
     }
 
-    final activeColor =
-        _isHovered ? hoverText : textColor;
+    final activeColor = _isHovered ? hoverText : textColor;
 
     return MouseRegion(
-      onEnter: (_) =>
-          setState(() => _isHovered = true),
-      onExit: (_) =>
-          setState(() => _isHovered = false),
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: Container(
-          constraints: const BoxConstraints(
-            minHeight: 36,
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: layout.s2,
-          ),
-          margin: const EdgeInsets.symmetric(
-            vertical: 1,
-          ),
+          constraints: const BoxConstraints(minHeight: 36),
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: layout.s2),
+          margin: const EdgeInsets.symmetric(vertical: 1),
           decoration: BoxDecoration(
-            color: _isHovered
-                ? hoverBg
-                : Colors.transparent,
+            color: _isHovered ? hoverBg : Colors.transparent,
             borderRadius: layout.radiusSm,
           ),
           child: Row(
@@ -401,8 +353,7 @@ class _MenuItemState extends State<_MenuItem> {
               Expanded(
                 child: Text(
                   widget.label,
-                  style: context.textStyles.label
-                      .copyWith(color: activeColor),
+                  style: context.textStyles.label.copyWith(color: activeColor),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -467,27 +418,20 @@ class _QuickReactionButton extends StatefulWidget {
   final String emoji;
   final VoidCallback onTap;
 
-  const _QuickReactionButton({
-    required this.emoji,
-    required this.onTap,
-  });
+  const _QuickReactionButton({required this.emoji, required this.onTap});
 
   @override
-  State<_QuickReactionButton> createState() =>
-      _QuickReactionButtonState();
+  State<_QuickReactionButton> createState() => _QuickReactionButtonState();
 }
 
-class _QuickReactionButtonState
-    extends State<_QuickReactionButton> {
+class _QuickReactionButtonState extends State<_QuickReactionButton> {
   var _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      onEnter: (_) =>
-          setState(() => _isHovered = true),
-      onExit: (_) =>
-          setState(() => _isHovered = false),
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
@@ -496,20 +440,12 @@ class _QuickReactionButtonState
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: _isHovered
-                  ? context.colors
-                      .backgroundModifierSelected
-                  : context.colors
-                      .backgroundModifierHover,
-              borderRadius:
-                  context.layout.radiusLg,
+                  ? context.colors.backgroundModifierSelected
+                  : context.colors.backgroundModifierHover,
+              borderRadius: context.layout.radiusLg,
             ),
             child: Center(
-              child: Text(
-                widget.emoji,
-                style: const TextStyle(
-                  fontSize: 24,
-                ),
-              ),
+              child: Text(widget.emoji, style: const TextStyle(fontSize: 24)),
             ),
           ),
         ),
@@ -525,12 +461,8 @@ class _MenuDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      margin: EdgeInsets.symmetric(
-        vertical: context.layout.s1_5,
-      ),
-      color: context
-          .colors.backgroundModifierAccent
-          .withValues(alpha: 0.3),
+      margin: EdgeInsets.symmetric(vertical: context.layout.s1_5),
+      color: context.colors.backgroundModifierAccent.withValues(alpha: 0.3),
     );
   }
 }

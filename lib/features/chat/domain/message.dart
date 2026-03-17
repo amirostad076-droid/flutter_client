@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:fluxer_dart/fluxer_dart.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
-import 'package:fluxeron/features/servers/domain/server.dart';
+import 'package:fluxeron/features/guilds/domain/guild.dart';
 
 enum EmbedType { rich, image, link, video }
 
@@ -244,14 +244,10 @@ class Reaction {
   bool get isCustom => emojiId != null;
 
   /// Encoded emoji param for the reaction API.
-  String get apiParam => isCustom
-      ? '$emoji:$emojiId'
-      : emoji;
+  String get apiParam => isCustom ? '$emoji:$emojiId' : emoji;
 
   /// Key for frecency tracking.
-  String get frecencyKey => isCustom
-      ? 'custom:$emojiId'
-      : 'unicode:$emoji';
+  String get frecencyKey => isCustom ? 'custom:$emojiId' : 'unicode:$emoji';
 }
 
 class Message {

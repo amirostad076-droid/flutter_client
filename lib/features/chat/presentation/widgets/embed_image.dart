@@ -12,10 +12,7 @@ class EmbedImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.only(top: 4),
-    constraints: const BoxConstraints(
-      maxWidth: 400,
-      maxHeight: 300,
-    ),
+    constraints: const BoxConstraints(maxWidth: 400, maxHeight: 300),
     decoration: BoxDecoration(
       color: context.colors.backgroundSecondaryAlt,
       borderRadius: BorderRadius.circular(8),
@@ -28,24 +25,20 @@ class EmbedImage extends StatelessWidget {
           Container(
             width: 400,
             height: 225,
-            color: context
-                .colors.backgroundSecondaryAlt,
+            color: context.colors.backgroundSecondaryAlt,
             child: Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 PhosphorIcon(
                   PhosphorIconsFill.image,
                   size: 48,
-                  color: context
-                      .colors.textPrimaryMuted,
+                  color: context.colors.textPrimaryMuted,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Image Embed',
                   style: TextStyle(
-                    color: context
-                        .colors.textPrimaryMuted,
+                    color: context.colors.textPrimaryMuted,
                     fontSize: 14,
                   ),
                 ),

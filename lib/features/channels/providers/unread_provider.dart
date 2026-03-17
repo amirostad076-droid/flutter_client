@@ -7,28 +7,20 @@ class UnreadState {
   final bool hasUnread;
   final int mentionCount;
 
-  const UnreadState({
-    this.hasUnread = false,
-    this.mentionCount = 0,
-  });
+  const UnreadState({this.hasUnread = false, this.mentionCount = 0});
 }
 
 @riverpod
-Stream<UnreadState> channelUnread(
-  Ref ref,
-  String channelId,
-) async* {
+Stream<UnreadState> channelUnread(Ref ref, String channelId) async* {
   final db = ref.watch(fluxerDatabaseProvider);
 
-  await for (final readState
-      in db.readStateDao.watchReadState(channelId)) {
+  await for (final readState in db.readStateDao.watchReadState(channelId)) {
     if (readState == null || readState.lastMessageId == null) {
       yield const UnreadState();
       continue;
     }
 
-    final messages =
-        await db.messageDao.getMessages(channelId, limit: 1);
+    final messages = await db.messageDao.getMessages(channelId, limit: 1);
     if (messages.isEmpty) {
       yield UnreadState(
         hasUnread: readState.mentionCount > 0,
@@ -48,20 +40,15 @@ Stream<UnreadState> channelUnread(
 }
 
 @riverpod
-Stream<UnreadState> serverUnread(
-  Ref ref,
-  String serverId,
-) async* {
+Stream<UnreadState> serverUnread(Ref ref, String serverId) async* {
   final db = ref.watch(fluxerDatabaseProvider);
 
-  await for (final channels
-      in db.channelDao.watchChannels(serverId)) {
+  await for (final channels in db.channelDao.watchChannels(serverId)) {
     var anyUnread = false;
     var totalMentions = 0;
 
     for (final channel in channels) {
-      final readState =
-          await db.readStateDao.getReadState(channel.id);
+      final readState = await db.readStateDao.getReadState(channel.id);
 
       if (readState == null || readState.lastMessageId == null) {
         continue;
@@ -69,8 +56,7 @@ Stream<UnreadState> serverUnread(
 
       totalMentions += readState.mentionCount;
 
-      final messages =
-          await db.messageDao.getMessages(channel.id, limit: 1);
+      final messages = await db.messageDao.getMessages(channel.id, limit: 1);
       if (messages.isEmpty) {
         if (readState.mentionCount > 0) {
           anyUnread = true;
@@ -84,9 +70,6 @@ Stream<UnreadState> serverUnread(
       }
     }
 
-    yield UnreadState(
-      hasUnread: anyUnread,
-      mentionCount: totalMentions,
-    );
+    yield UnreadState(hasUnread: anyUnread, mentionCount: totalMentions);
   }
 }

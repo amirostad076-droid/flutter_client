@@ -4,14 +4,14 @@ import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/presentation/login_screen.dart';
 import 'package:fluxeron/features/auth/presentation/mfa_screen.dart';
-import 'package:fluxeron/features/chat/presentation/chat_screen.dart';
-import 'package:fluxeron/features/dm/presentation/dm_screen.dart';
+import 'package:fluxeron/features/chat/presentation/channel_layout.dart';
+import 'package:fluxeron/features/dm/presentation/dm_layout.dart';
 import 'package:fluxeron/features/notifications/presentation/notifications_page.dart';
 import 'package:fluxeron/features/profile/presentation/profile_page.dart';
-import 'package:fluxeron/features/settings/presentation/server_settings_screen.dart';
-import 'package:fluxeron/shared/widgets/loading_screen.dart';
+import 'package:fluxeron/features/settings/presentation/guild_settings_modal.dart';
+import 'package:fluxeron/shared/widgets/splash_screen.dart';
 import 'package:fluxeron/shared/widgets/reconnecting_screen.dart';
-import 'package:fluxeron/shared/widgets/responsive_shell.dart';
+import 'package:fluxeron/shared/widgets/app_layout.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -45,9 +45,7 @@ CustomTransitionPage<void> _slideTransitionPage({
       final offsetAnimation = Tween<Offset>(
         begin: const Offset(1, 0),
         end: Offset.zero,
-      ).animate(
-        CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-      );
+      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut));
       return SlideTransition(position: offsetAnimation, child: child);
     },
   );
@@ -59,11 +57,10 @@ class _PlaceholderScreen extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) =>
-      Scaffold(
-        backgroundColor: context.colors.backgroundSecondaryAlt,
-        body: Center(child: Text(label)),
-      );
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: context.colors.backgroundSecondaryAlt,
+    body: Center(child: Text(label)),
+  );
 }
 
 @Riverpod(keepAlive: true)
@@ -147,9 +144,7 @@ GoRouter fluxerRouter(Ref ref) {
       if (isAuthenticated && !isReachable && !isOnReconnecting) {
         return '/reconnecting';
       }
-      if (isAuthenticated &&
-          isReachable &&
-          (isLoggingIn || isOnReconnecting)) {
+      if (isAuthenticated && isReachable && (isLoggingIn || isOnReconnecting)) {
         return '/channels/@me';
       }
 
@@ -158,7 +153,7 @@ GoRouter fluxerRouter(Ref ref) {
     routes: [
       GoRoute(
         path: '/loading',
-        builder: (context, state) => const LoadingScreen(),
+        builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
         path: '/login',
@@ -177,7 +172,7 @@ GoRouter fluxerRouter(Ref ref) {
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
-        builder: (context, state, child) => ResponsiveShell(child: child),
+        builder: (context, state, child) => AppLayout(child: child),
         routes: [
           GoRoute(
             path: '/servers',
@@ -201,7 +196,7 @@ GoRouter fluxerRouter(Ref ref) {
                   }
                   return _slideTransitionPage(
                     key: state.pageKey,
-                    child: ChatScreen(
+                    child: ChannelLayout(
                       serverId: serverId,
                       channelId: channelId,
                     ),
@@ -215,7 +210,7 @@ GoRouter fluxerRouter(Ref ref) {
             name: RouteNames.dms,
             pageBuilder: (context, state) => _fadeTransitionPage(
               key: state.pageKey,
-              child: const DmScreen(),
+              child: const DMLayout(),
             ),
             routes: [
               GoRoute(
@@ -223,8 +218,7 @@ GoRouter fluxerRouter(Ref ref) {
                 name: RouteNames.dmChat,
                 pageBuilder: (context, state) => _slideTransitionPage(
                   key: state.pageKey,
-                  child:
-                      DmScreen(channelId: state.pathParameters['dmId']),
+                  child: DMLayout(channelId: state.pathParameters['dmId']),
                 ),
               ),
             ],
@@ -250,7 +244,7 @@ GoRouter fluxerRouter(Ref ref) {
       GoRoute(
         path: '/settings/server/:serverId',
         name: RouteNames.serverSettings,
-        builder: (context, state) => ServerSettingsScreen(
+        builder: (context, state) => GuildSettingsModal(
           serverId: state.pathParameters['serverId'] ?? '',
         ),
       ),

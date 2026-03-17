@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/message_bubble.dart'
-    show MessageBubble;
+import 'package:fluxeron/features/chat/presentation/widgets/message_item.dart'
+    show MessageItem;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The inline reply indicator shown above a message that
@@ -12,16 +12,12 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 /// Since the full replied-to message is not available
 /// inline (only the ID), this shows a generic indicator.
 /// The curved connector line is handled by
-/// [ReplyConnectorPainter] in [MessageBubble].
+/// [ReplyConnectorPainter] in [MessageItem].
 class InlineReplyPreview extends StatelessWidget {
   final String replyToId;
   final VoidCallback? onTap;
 
-  const InlineReplyPreview({
-    required this.replyToId,
-    this.onTap,
-    super.key,
-  });
+  const InlineReplyPreview({required this.replyToId, this.onTap, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,16 +28,14 @@ class InlineReplyPreview extends StatelessWidget {
           PhosphorIcon(
             PhosphorIconsFill.arrowBendUpLeft,
             size: 12,
-            color:
-                context.colors.textPrimaryMuted,
+            color: context.colors.textPrimaryMuted,
           ),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
               'Reply to message',
               style: TextStyle(
-                color: context
-                    .colors.textPrimaryMuted,
+                color: context.colors.textPrimaryMuted,
                 fontSize: 12,
               ),
               overflow: TextOverflow.ellipsis,
@@ -110,15 +104,11 @@ class ReplyConnectorPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(
-    covariant ReplyConnectorPainter oldDelegate,
-  ) =>
-      avatarCenterX !=
-          oldDelegate.avatarCenterX ||
+  bool shouldRepaint(covariant ReplyConnectorPainter oldDelegate) =>
+      avatarCenterX != oldDelegate.avatarCenterX ||
       lineTop != oldDelegate.lineTop ||
       lineBottom != oldDelegate.lineBottom ||
-      horizontalEnd !=
-          oldDelegate.horizontalEnd ||
+      horizontalEnd != oldDelegate.horizontalEnd ||
       color != oldDelegate.color;
 }
 
@@ -136,10 +126,7 @@ class ReplyInputBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 16,
-      vertical: 8,
-    ),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     color: context.colors.chatInputBackground,
     child: Row(
       children: [
@@ -153,21 +140,16 @@ class ReplyInputBar extends StatelessWidget {
           child: RichText(
             overflow: TextOverflow.ellipsis,
             text: TextSpan(
-              style:
-                  const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: 14),
               children: [
                 TextSpan(
                   text: 'Replying to ',
-                  style: TextStyle(
-                    color: context
-                        .colors.textPrimaryMuted,
-                  ),
+                  style: TextStyle(color: context.colors.textPrimaryMuted),
                 ),
                 TextSpan(
                   text: replyTo.authorName,
                   style: TextStyle(
-                    color:
-                        context.colors.textChat,
+                    color: context.colors.textChat,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -176,17 +158,11 @@ class ReplyInputBar extends StatelessWidget {
           ),
         ),
         IconButton(
-          icon: const PhosphorIcon(
-            PhosphorIconsFill.x,
-            size: 16,
-          ),
+          icon: const PhosphorIcon(PhosphorIconsFill.x, size: 16),
           color: context.colors.textPrimaryMuted,
           onPressed: onCancel,
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(
-            minWidth: 24,
-            minHeight: 24,
-          ),
+          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
         ),
       ],
     ),

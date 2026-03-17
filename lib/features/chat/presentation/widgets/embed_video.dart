@@ -12,42 +12,32 @@ class EmbedVideo extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.only(top: 4),
-    constraints:
-        const BoxConstraints(maxWidth: 400),
+    constraints: const BoxConstraints(maxWidth: 400),
     decoration: BoxDecoration(
       color: context.colors.embedBackground,
       borderRadius: BorderRadius.circular(8),
     ),
     child: Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (embed.providerName != null ||
-            embed.authorName != null)
+        if (embed.providerName != null || embed.authorName != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              12,
-              12,
-              12,
-              4,
-            ),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (embed.providerName != null)
                   Text(
                     embed.providerName!,
-                    style: context
-                        .textStyles.embedFooter
-                        .copyWith(fontSize: 12),
+                    style: context.textStyles.embedFooter.copyWith(
+                      fontSize: 12,
+                    ),
                   ),
                 if (embed.authorName != null)
                   Text(
                     embed.authorName!,
                     style: TextStyle(
-                      color: context
-                          .colors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -57,18 +47,8 @@ class EmbedVideo extends StatelessWidget {
           ),
         if (embed.title != null)
           Padding(
-            padding:
-                const EdgeInsets.fromLTRB(
-              12,
-              4,
-              12,
-              8,
-            ),
-            child: Text(
-              embed.title!,
-              style:
-                  context.textStyles.embedTitle,
-            ),
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+            child: Text(embed.title!, style: context.textStyles.embedTitle),
           ),
         ClipRRect(
           borderRadius: const BorderRadius.only(
@@ -78,16 +58,14 @@ class EmbedVideo extends StatelessWidget {
           child: Container(
             width: 400,
             height: 225,
-            color: context
-                .colors.backgroundFloating,
+            color: context.colors.backgroundFloating,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 PhosphorIcon(
                   PhosphorIconsFill.playCircle,
                   size: 64,
-                  color:
-                      context.colors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
                 Positioned(
                   bottom: 12,
@@ -95,8 +73,7 @@ class EmbedVideo extends StatelessWidget {
                   child: Text(
                     'Video Embed',
                     style: TextStyle(
-                      color: context
-                          .colors.textPrimaryMuted,
+                      color: context.colors.textPrimaryMuted,
                       fontSize: 12,
                     ),
                   ),

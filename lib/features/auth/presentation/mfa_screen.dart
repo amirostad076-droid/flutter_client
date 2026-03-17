@@ -41,8 +41,7 @@ class MfaScreen extends StatelessWidget {
                 'Enter the code from your '
                 'authenticator app.',
                 style: TextStyle(
-                  color:
-                      context.colors.textPrimaryMuted,
+                  color: context.colors.textPrimaryMuted,
                   fontSize: 16,
                 ),
               ),

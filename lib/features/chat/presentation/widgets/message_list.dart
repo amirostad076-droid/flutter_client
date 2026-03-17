@@ -6,7 +6,7 @@ import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/features/chat/presentation/'
-    'widgets/message_bubble.dart';
+    'widgets/message_item.dart';
 import 'package:fluxeron/features/chat/presentation/'
     'widgets/system_message.dart';
 import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
@@ -37,12 +37,10 @@ class MessageList extends ConsumerStatefulWidget {
   const MessageList({super.key});
 
   @override
-  ConsumerState<MessageList> createState() =>
-      _MessageListState();
+  ConsumerState<MessageList> createState() => _MessageListState();
 }
 
-class _MessageListState
-    extends ConsumerState<MessageList> {
+class _MessageListState extends ConsumerState<MessageList> {
   final _scrollController = ScrollController();
 
   @override
@@ -64,40 +62,29 @@ class _MessageListState
       return;
     }
     final pos = _scrollController.position;
-    if (pos.pixels >=
-        pos.maxScrollExtent - _kLoadMoreThreshold) {
-      unawaited(
-        ref
-            .read(chatViewModelProvider.notifier)
-            .loadMore(),
-      );
+    if (pos.pixels >= pos.maxScrollExtent - _kLoadMoreThreshold) {
+      unawaited(ref.read(chatViewModelProvider.notifier).loadMore());
     }
   }
 
   void _onScrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) {
-        if (_scrollController.hasClients) {
-          unawaited(
-            _scrollController.animateTo(
-              0,
-              duration: const Duration(
-                milliseconds: 200,
-              ),
-              curve: Curves.easeOut,
-            ),
-          );
-        }
-      },
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        unawaited(
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          ),
+        );
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen<int>(
-      chatViewModelProvider.select(
-        (state) => state.scrollToBottomSignal,
-      ),
+      chatViewModelProvider.select((state) => state.scrollToBottomSignal),
       (previous, next) {
         if (next != previous) {
           _onScrollToBottom();
@@ -105,37 +92,31 @@ class _MessageListState
       },
     );
 
-    final currentUserId =
-        ref.watch(currentUserIdProvider);
+    final currentUserId = ref.watch(currentUserIdProvider);
     final state = ref.watch(chatViewModelProvider);
     final messages = state.messages;
 
     if (state.isLoading) {
       return Center(
-        child: CircularProgressIndicator(
-          color: context.colors.brandPrimary,
-        ),
+        child: CircularProgressIndicator(color: context.colors.brandPrimary),
       );
     }
 
     if (messages.isEmpty) {
       return Center(
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             PhosphorIcon(
               PhosphorIconsFill.chatCircleDots,
               size: 48,
-              color:
-                  context.colors.textPrimaryMuted,
+              color: context.colors.textPrimaryMuted,
             ),
             const SizedBox(height: 16),
             Text(
               'No messages yet',
               style: TextStyle(
-                color: context
-                    .colors.textPrimaryMuted,
+                color: context.colors.textPrimaryMuted,
                 fontSize: 16,
               ),
             ),
@@ -143,8 +124,7 @@ class _MessageListState
             Text(
               'Be the first to send a message!',
               style: TextStyle(
-                color: context
-                    .colors.textTertiaryMuted,
+                color: context.colors.textTertiaryMuted,
                 fontSize: 14,
               ),
             ),
@@ -156,51 +136,37 @@ class _MessageListState
     // With reverse: true, index 0 is at the bottom
     // (newest). Messages in state are oldest-first,
     // so we read them from the end.
-    final itemCount = messages.length +
-        (state.isLoadingMore ? 1 : 0);
+    final itemCount = messages.length + (state.isLoadingMore ? 1 : 0);
 
     return ListView.builder(
       controller: _scrollController,
       reverse: true,
-      padding: const EdgeInsets.only(
-        top: 8,
-        bottom: 16,
-      ),
+      padding: const EdgeInsets.only(top: 8, bottom: 16),
       itemCount: itemCount,
       itemBuilder: (context, index) {
         // Loading indicator at the very top
         if (index >= messages.length) {
           return Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Center(
               child: SizedBox(
                 width: 24,
                 height: 24,
-                child:
-                    CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: context
-                          .colors.brandPrimary,
-                    ),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: context.colors.brandPrimary,
+                ),
               ),
             ),
           );
         }
 
-        final msgIndex =
-            messages.length - 1 - index;
+        final msgIndex = messages.length - 1 - index;
         final msg = messages[msgIndex];
-        final prevMsg = msgIndex > 0
-            ? messages[msgIndex - 1]
-            : null;
+        final prevMsg = msgIndex > 0 ? messages[msgIndex - 1] : null;
 
-        final isNewDay = prevMsg == null ||
-            !_isSameDay(
-              msg.timestamp,
-              prevMsg.timestamp,
-            );
+        final isNewDay =
+            prevMsg == null || !_isSameDay(msg.timestamp, prevMsg.timestamp);
 
         if (msg.isSystemMessage) {
           final systemWidget = SystemMessage(
@@ -211,10 +177,7 @@ class _MessageListState
           if (isNewDay) {
             return Column(
               children: [
-                _buildDateSeparator(
-                  context,
-                  msg.timestamp,
-                ),
+                _buildDateSeparator(context, msg.timestamp),
                 systemWidget,
               ],
             );
@@ -223,32 +186,19 @@ class _MessageListState
           return systemWidget;
         }
 
-        final isGrouped = !isNewDay &&
-            _shouldGroup(msg, prevMsg);
+        final isGrouped = !isNewDay && _shouldGroup(msg, prevMsg);
 
-        final bubble = MessageBubble(
+        final bubble = MessageItem(
           key: ValueKey(msg.id),
           message: msg,
           isGrouped: isGrouped,
           currentUserId: currentUserId,
-          onReply: () => ref
-              .read(
-                chatViewModelProvider.notifier,
-              )
-              .startReply(msg),
-          onForward: () => ref
-              .read(
-                chatViewModelProvider.notifier,
-              )
-              .startForward(msg),
-          onReaction: (
-            emoji, {
-            String? emojiId,
-            bool animated = false,
-          }) => ref
-              .read(
-                chatViewModelProvider.notifier,
-              )
+          onReply: () =>
+              ref.read(chatViewModelProvider.notifier).startReply(msg),
+          onForward: () =>
+              ref.read(chatViewModelProvider.notifier).startForward(msg),
+          onReaction: (emoji, {String? emojiId, bool animated = false}) => ref
+              .read(chatViewModelProvider.notifier)
               .toggleReaction(
                 msg.id,
                 emoji,
@@ -259,13 +209,7 @@ class _MessageListState
 
         if (isNewDay) {
           return Column(
-            children: [
-              _buildDateSeparator(
-                context,
-                msg.timestamp,
-              ),
-              bubble,
-            ],
+            children: [_buildDateSeparator(context, msg.timestamp), bubble],
           );
         }
 
@@ -277,10 +221,7 @@ class _MessageListState
   /// Whether [current] should be visually grouped
   /// with [previous] (same author, within 7 minutes,
   /// neither is a reply or forward).
-  bool _shouldGroup(
-    Message current,
-    Message? previous,
-  ) {
+  bool _shouldGroup(Message current, Message? previous) {
     if (previous == null) {
       return false;
     }
@@ -296,51 +237,28 @@ class _MessageListState
     if (previous.isReply || previous.isForwarded) {
       return false;
     }
-    final diff = current.timestamp
-        .difference(previous.timestamp);
+    final diff = current.timestamp.difference(previous.timestamp);
     return diff.inMinutes < 7;
   }
 
   bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year &&
-      a.month == b.month &&
-      a.day == b.day;
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
-  Widget _buildDateSeparator(
-    BuildContext context,
-    DateTime date,
-  ) {
+  Widget _buildDateSeparator(BuildContext context, DateTime date) {
     final formatted =
         '${_kMonthNames[date.month - 1]} ${date.day},'
         ' ${date.year}';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          Expanded(
-            child: Divider(
-              color: context.colors.borderColor,
-            ),
-          ),
+          Expanded(child: Divider(color: context.colors.borderColor)),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8,
-            ),
-            child: Text(
-              formatted,
-              style:
-                  context.textStyles.smallText,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(formatted, style: context.textStyles.smallText),
           ),
-          Expanded(
-            child: Divider(
-              color: context.colors.borderColor,
-            ),
-          ),
+          Expanded(child: Divider(color: context.colors.borderColor)),
         ],
       ),
     );

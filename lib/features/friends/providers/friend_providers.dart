@@ -17,6 +17,6 @@ FriendRepository friendRepository(Ref ref) {
 final pendingFriendRequestCountProvider = StreamProvider<int>((ref) {
   final db = ref.watch(fluxerDatabaseProvider);
   return db.relationshipDao.watchRelationships().map(
-        (rows) => rows.where((r) => r.type == 3).length,
-      );
+    (rows) => rows.where((r) => r.type == 3).length,
+  );
 });

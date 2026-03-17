@@ -3,7 +3,10 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class FadeIconButton extends StatefulWidget {
   const FadeIconButton({
-    required this.icon, required this.iconColor, required this.onTap, super.key,
+    required this.icon,
+    required this.iconColor,
+    required this.onTap,
+    super.key,
     this.size = 24,
     this.padding = EdgeInsets.zero,
   });

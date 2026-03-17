@@ -208,9 +208,7 @@ class ChatViewModel extends _$ChatViewModel {
     String? emojiId,
     bool animated = false,
   }) async {
-    final msgIndex = state.messages.indexWhere(
-      (m) => m.id == messageId,
-    );
+    final msgIndex = state.messages.indexWhere((m) => m.id == messageId);
     if (msgIndex == -1) {
       return;
     }
@@ -220,11 +218,9 @@ class ChatViewModel extends _$ChatViewModel {
       (r) => r.emoji == emoji && r.emojiId == emojiId,
     );
     final hasReacted =
-        existingIdx != -1 &&
-        msg.reactions[existingIdx].hasReacted;
+        existingIdx != -1 && msg.reactions[existingIdx].hasReacted;
 
-    final updatedReactions =
-        List<Reaction>.from(msg.reactions);
+    final updatedReactions = List<Reaction>.from(msg.reactions);
     if (hasReacted) {
       final old = updatedReactions[existingIdx];
       if (old.count <= 1) {
@@ -259,8 +255,7 @@ class ChatViewModel extends _$ChatViewModel {
     }
 
     // Optimistic update.
-    final updatedMessages =
-        List<Message>.from(state.messages);
+    final updatedMessages = List<Message>.from(state.messages);
     updatedMessages[msgIndex] = Message(
       id: msg.id,
       channelId: msg.channelId,
@@ -305,16 +300,10 @@ class ChatViewModel extends _$ChatViewModel {
         );
         // Track frecency on successful add.
         final db = ref.read(fluxerDatabaseProvider);
-        unawaited(
-          db.emojiUsageDao.trackUsage(
-            reaction.frecencyKey,
-          ),
-        );
+        unawaited(db.emojiUsageDao.trackUsage(reaction.frecencyKey));
       }
     } on Exception catch (e) {
-      debugPrint(
-        '[ChatViewModel] Reaction failed: $e',
-      );
+      debugPrint('[ChatViewModel] Reaction failed: $e');
     }
   }
 }

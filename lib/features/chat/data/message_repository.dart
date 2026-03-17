@@ -59,9 +59,7 @@ class MessageRepository {
         );
       }
       throw Exception(
-        e.error?.toString() ??
-            e.message ??
-            'Failed to fetch messages',
+        e.error?.toString() ?? e.message ?? 'Failed to fetch messages',
       );
     }
   }
@@ -73,12 +71,8 @@ class MessageRepository {
     int limit = 30,
     String? before,
   }) async {
-    final queryParams = <String, dynamic>{
-      'limit': limit,
-      'before': ?before,
-    };
-    final response =
-        await _client.dio.get<List<dynamic>>(
+    final queryParams = <String, dynamic>{'limit': limit, 'before': ?before};
+    final response = await _client.dio.get<List<dynamic>>(
       '/channels/$channelId/messages',
       queryParameters: queryParams,
     );
@@ -91,8 +85,7 @@ class MessageRepository {
     for (final json in data.reversed) {
       try {
         final map = json as Map<String, dynamic>;
-        final author =
-            map['author'] as Map<String, dynamic>;
+        final author = map['author'] as Map<String, dynamic>;
         messages.add(
           Message(
             id: map['id'] as String,
@@ -100,32 +93,21 @@ class MessageRepository {
             authorId: author['id'] as String,
             authorName:
                 (author['global_name'] as String?) ??
-                    (author['username'] as String?) ??
-                    '',
-            authorAvatar:
-                author['avatar'] as String?,
-            authorAvatarColor:
-                author['avatar_color'] as int?,
-            content:
-                (map['content'] as String?) ?? '',
-            timestamp: DateTime.parse(
-              map['timestamp'] as String,
-            ),
-            editedTimestamp:
-                map['edited_timestamp'] != null
-                    ? DateTime.tryParse(
-                        map['edited_timestamp']
-                            as String,
-                      )
-                    : null,
-            replyToId: (map['message_reference']
-                    as Map<String, dynamic>?)
-                ?['message_id'] as String?,
-            isPinned:
-                (map['pinned'] as bool?) ?? false,
-            isMentioned:
-                (map['mention_everyone'] as bool?) ??
-                    false,
+                (author['username'] as String?) ??
+                '',
+            authorAvatar: author['avatar'] as String?,
+            authorAvatarColor: author['avatar_color'] as int?,
+            content: (map['content'] as String?) ?? '',
+            timestamp: DateTime.parse(map['timestamp'] as String),
+            editedTimestamp: map['edited_timestamp'] != null
+                ? DateTime.tryParse(map['edited_timestamp'] as String)
+                : null,
+            replyToId:
+                (map['message_reference']
+                        as Map<String, dynamic>?)?['message_id']
+                    as String?,
+            isPinned: (map['pinned'] as bool?) ?? false,
+            isMentioned: (map['mention_everyone'] as bool?) ?? false,
             type: (map['type'] as int?) ?? 0,
           ),
         );
@@ -133,15 +115,11 @@ class MessageRepository {
         await _db.userDao.upsertUser(
           db.UsersCompanion.insert(
             id: author['id'] as String,
-            username:
-                (author['username'] as String?) ??
-                    '',
+            username: (author['username'] as String?) ?? '',
           ),
         );
       } on Object catch (e) {
-        talker.warning(
-          '[MessageRepo] Skipping message: $e',
-        );
+        talker.warning('[MessageRepo] Skipping message: $e');
       }
     }
 

@@ -29,23 +29,16 @@ class DmConversation {
 
   bool get isGroup => type == 3;
 
-  String get displayName =>
-      isGroup ? (name ?? 'Group DM') : recipientName;
+  String get displayName => isGroup ? (name ?? 'Group DM') : recipientName;
 
   int get memberCount => recipientCount;
 
-  factory DmConversation.fromRow(
-    db.DmChannel row,
-    db.User? recipient,
-  ) {
+  factory DmConversation.fromRow(db.DmChannel row, db.User? recipient) {
     return DmConversation(
       id: row.id,
       type: row.type,
       recipientId: row.recipientId,
-      recipientName:
-          recipient?.globalName ??
-          recipient?.username ??
-          'Unknown',
+      recipientName: recipient?.globalName ?? recipient?.username ?? 'Unknown',
       recipientAvatar: recipient?.avatar,
       recipientStatus: recipient?.status ?? 'offline',
       name: row.name,

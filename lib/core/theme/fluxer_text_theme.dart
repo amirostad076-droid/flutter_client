@@ -194,8 +194,11 @@ class FluxerTextTheme extends ThemeExtension<FluxerTextTheme> {
       inputText: TextStyle.lerp(inputText, other.inputText, t)!,
       inputHint: TextStyle.lerp(inputHint, other.inputHint, t)!,
       embedTitle: TextStyle.lerp(embedTitle, other.embedTitle, t)!,
-      embedDescription:
-          TextStyle.lerp(embedDescription, other.embedDescription, t)!,
+      embedDescription: TextStyle.lerp(
+        embedDescription,
+        other.embedDescription,
+        t,
+      )!,
       embedFooter: TextStyle.lerp(embedFooter, other.embedFooter, t)!,
     );
   }

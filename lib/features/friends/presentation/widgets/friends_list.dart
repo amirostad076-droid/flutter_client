@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/features/friends/domain/friend.dart';
-import 'package:fluxeron/features/servers/domain/server.dart';
+import 'package:fluxeron/features/guilds/domain/guild.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 

@@ -187,9 +187,7 @@ class GatewayEventHandler {
     if (messageId == null || emoji == null) {
       return;
     }
-    unawaited(
-      _modifyReaction(messageId, emoji, isAdd: true),
-    );
+    unawaited(_modifyReaction(messageId, emoji, isAdd: true));
   }
 
   void _handleReactionRemove(Map<String, dynamic> data) {
@@ -198,9 +196,7 @@ class GatewayEventHandler {
     if (messageId == null || emoji == null) {
       return;
     }
-    unawaited(
-      _modifyReaction(messageId, emoji, isAdd: false),
-    );
+    unawaited(_modifyReaction(messageId, emoji, isAdd: false));
   }
 
   void _handleReactionRemoveAll(Map<String, dynamic> data) {
@@ -264,10 +260,7 @@ class GatewayEventHandler {
       }
     }
 
-    await database.messageDao.updateReactions(
-      messageId,
-      jsonEncode(reactions),
-    );
+    await database.messageDao.updateReactions(messageId, jsonEncode(reactions));
   }
 
   Future<void> _removeEmojiReaction(
@@ -286,16 +279,12 @@ class GatewayEventHandler {
             (r['emoji'] as String?) == emojiName &&
             (r['emojiId'] as String?) == emojiId,
       );
-    await database.messageDao.updateReactions(
-      messageId,
-      jsonEncode(reactions),
-    );
+    await database.messageDao.updateReactions(messageId, jsonEncode(reactions));
   }
 
   List<Map<String, dynamic>> _decodeReactions(String json) {
     try {
-      return (jsonDecode(json) as List<dynamic>)
-          .cast<Map<String, dynamic>>();
+      return (jsonDecode(json) as List<dynamic>).cast<Map<String, dynamic>>();
     } on Object {
       return [];
     }

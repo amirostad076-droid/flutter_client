@@ -6,17 +6,11 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 class ForwardIndicator extends StatelessWidget {
   final String source;
 
-  const ForwardIndicator({
-    required this.source,
-    super.key,
-  });
+  const ForwardIndicator({required this.source, super.key});
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(
-      left: 56,
-      bottom: 4,
-    ),
+    padding: const EdgeInsets.only(left: 56, bottom: 4),
     child: Row(
       children: [
         PhosphorIcon(
@@ -28,8 +22,7 @@ class ForwardIndicator extends StatelessWidget {
         Text(
           'Forwarded from $source',
           style: TextStyle(
-            color:
-                context.colors.textPrimaryMuted,
+            color: context.colors.textPrimaryMuted,
             fontSize: 12,
             fontStyle: FontStyle.italic,
           ),

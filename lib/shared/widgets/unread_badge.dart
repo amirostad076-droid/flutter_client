@@ -5,24 +5,14 @@ class UnreadBadge extends StatelessWidget {
   final int mentionCount;
   final double size;
 
-  const UnreadBadge({
-    this.mentionCount = 0,
-    this.size = 16,
-    super.key,
-  });
+  const UnreadBadge({this.mentionCount = 0, this.size = 16, super.key});
 
   @override
   Widget build(BuildContext context) {
     if (mentionCount > 0) {
       return Container(
-        constraints: BoxConstraints(
-          minWidth: size,
-          minHeight: size,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 4,
-          vertical: 1,
-        ),
+        constraints: BoxConstraints(minWidth: size, minHeight: size),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         decoration: BoxDecoration(
           color: context.colors.statusDanger,
           borderRadius: BorderRadius.circular(size / 2),

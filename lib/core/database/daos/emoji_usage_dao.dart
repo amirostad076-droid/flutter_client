@@ -9,44 +9,34 @@ part 'emoji_usage_dao.g.dart';
 const _kDecayHours = 24 * 7; // 168 hours
 
 @DriftAccessor(tables: [EmojiUsage])
-class EmojiUsageDao
-    extends DatabaseAccessor<FluxerDatabase>
+class EmojiUsageDao extends DatabaseAccessor<FluxerDatabase>
     with _$EmojiUsageDaoMixin {
   EmojiUsageDao(super.attachedDatabase);
 
   Future<void> trackUsage(String key) async {
-    final existing = await (select(emojiUsage)
-          ..where((e) => e.key.equals(key)))
-        .getSingleOrNull();
+    final existing = await (select(
+      emojiUsage,
+    )..where((e) => e.key.equals(key))).getSingleOrNull();
 
     if (existing != null) {
-      await (update(emojiUsage)
-            ..where((e) => e.key.equals(key)))
-          .write(
-            EmojiUsageCompanion(
-              useCount: Value(existing.useCount + 1),
-              lastUsed: Value(DateTime.now()),
-            ),
-          );
-    } else {
-      await into(emojiUsage).insert(
-        EmojiUsageCompanion.insert(
-          key: key,
-          lastUsed: DateTime.now(),
+      await (update(emojiUsage)..where((e) => e.key.equals(key))).write(
+        EmojiUsageCompanion(
+          useCount: Value(existing.useCount + 1),
+          lastUsed: Value(DateTime.now()),
         ),
       );
+    } else {
+      await into(
+        emojiUsage,
+      ).insert(EmojiUsageCompanion.insert(key: key, lastUsed: DateTime.now()));
     }
   }
 
   /// Returns the top [limit] emojis sorted by
   /// frecency score (frequency * recency decay).
-  Future<List<EmojiUsageData>> getTopByFrecency(
-    int limit,
-  ) async {
+  Future<List<EmojiUsageData>> getTopByFrecency(int limit) async {
     final all = await select(emojiUsage).get();
-    all.sort(
-      (a, b) => _score(b).compareTo(_score(a)),
-    );
+    all.sort((a, b) => _score(b).compareTo(_score(a)));
     return all.take(limit).toList();
   }
 
@@ -59,9 +49,7 @@ class EmojiUsageDao
     final top = await getTopByFrecency(limit * 2);
     final result = top
         .where((e) => e.key.startsWith('unicode:'))
-        .map(
-          (e) => e.key.substring('unicode:'.length),
-        )
+        .map((e) => e.key.substring('unicode:'.length))
         .take(limit)
         .toList();
 
@@ -76,11 +64,8 @@ class EmojiUsageDao
   }
 
   double _score(EmojiUsageData usage) {
-    final hours = DateTime.now()
-        .difference(usage.lastUsed)
-        .inHours;
-    final decay =
-        max(0.0, 1.0 - hours / _kDecayHours);
+    final hours = DateTime.now().difference(usage.lastUsed).inHours;
+    final decay = max(0.0, 1.0 - hours / _kDecayHours);
     return usage.useCount * (1 + decay);
   }
 

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/servers/domain/server.dart';
+import 'package:fluxeron/features/guilds/domain/guild.dart';
 
 class UserAvatar extends StatelessWidget {
   final String displayName;

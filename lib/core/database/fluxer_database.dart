@@ -13,7 +13,7 @@ import 'package:fluxeron/core/database/daos/message_dao.dart';
 import 'package:fluxeron/core/database/daos/read_state_dao.dart';
 import 'package:fluxeron/core/database/daos/relationship_dao.dart';
 import 'package:fluxeron/core/database/daos/role_dao.dart';
-import 'package:fluxeron/core/database/daos/server_dao.dart';
+import 'package:fluxeron/core/database/daos/guild_dao.dart';
 import 'package:fluxeron/core/database/daos/user_dao.dart';
 import 'package:fluxeron/core/database/daos/user_preferences_dao.dart';
 import 'package:fluxeron/core/database/tables/auth_sessions.dart';
@@ -51,7 +51,7 @@ part 'fluxer_database.g.dart';
   daos: [
     AuthSessionDao,
     UserDao,
-    ServerDao,
+    GuildDao,
     ChannelDao,
     MessageDao,
     RoleDao,
@@ -124,10 +124,7 @@ class FluxerDatabase extends _$FluxerDatabase {
       if (from < 6) {
         await m.addColumn(dmChannels, dmChannels.type);
         await m.addColumn(dmChannels, dmChannels.name);
-        await m.addColumn(
-          dmChannels,
-          dmChannels.recipientCount,
-        );
+        await m.addColumn(dmChannels, dmChannels.recipientCount);
       }
       if (from < 7) {
         await m.addColumn(servers, servers.featuresJson);
@@ -139,7 +136,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   Future<void> clearUserData() async {
     await transaction(() async {
       await userDao.clearAll();
-      await serverDao.clearAll();
+      await guildDao.clearAll();
       await channelDao.clearAll();
       await messageDao.clearAll();
       await roleDao.clearAll();
@@ -162,8 +159,7 @@ class FluxerDatabase extends _$FluxerDatabase {
 }
 
 QueryExecutor _openConnection() {
-  if (!kIsWeb &&
-      (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+  if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
     return LazyDatabase(() async {
       final dir = await getApplicationDocumentsDirectory();
       final file = File(p.join(dir.path, 'fluxeron', 'fluxer.db'));

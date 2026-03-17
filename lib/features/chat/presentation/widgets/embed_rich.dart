@@ -18,82 +18,55 @@ class EmbedRich extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(top: 4),
-      constraints:
-          const BoxConstraints(maxWidth: 520),
+      constraints: const BoxConstraints(maxWidth: 520),
       decoration: BoxDecoration(
         color: context.colors.embedBackground,
-        border: Border(
-          left: BorderSide(
-            color: sideColor,
-            width: 4,
-          ),
-        ),
+        border: Border(left: BorderSide(color: sideColor, width: 4)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (embed.providerName != null)
                     Padding(
-                      padding:
-                          const EdgeInsets.only(
-                        bottom: 4,
-                      ),
+                      padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
                         embed.providerName!,
-                        style: context.textStyles
-                            .embedFooter
-                            .copyWith(
+                        style: context.textStyles.embedFooter.copyWith(
                           fontSize: 12,
                         ),
                       ),
                     ),
                   if (embed.authorName != null)
                     Padding(
-                      padding:
-                          const EdgeInsets.only(
-                        bottom: 4,
-                      ),
+                      padding: const EdgeInsets.only(bottom: 4),
                       child: Row(
                         children: [
-                          if (embed
-                                  .authorIconUrl !=
-                              null) ...[
+                          if (embed.authorIconUrl != null) ...[
                             CircleAvatar(
                               radius: 10,
                               backgroundColor:
-                                  context.colors
-                                      .backgroundSecondaryAlt,
+                                  context.colors.backgroundSecondaryAlt,
                               child: PhosphorIcon(
-                                PhosphorIconsFill
-                                    .person,
+                                PhosphorIconsFill.person,
                                 size: 12,
-                                color: context
-                                    .colors
-                                    .textPrimaryMuted,
+                                color: context.colors.textPrimaryMuted,
                               ),
                             ),
-                            const SizedBox(
-                              width: 8,
-                            ),
+                            const SizedBox(width: 8),
                           ],
                           Text(
                             embed.authorName!,
                             style: TextStyle(
-                              color: context
-                                  .colors
-                                  .textPrimary,
+                              color: context.colors.textPrimary,
                               fontSize: 14,
-                              fontWeight:
-                                  FontWeight.w600,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -101,54 +74,39 @@ class EmbedRich extends StatelessWidget {
                     ),
                   if (embed.title != null)
                     Padding(
-                      padding:
-                          const EdgeInsets.only(
-                        bottom: 8,
-                      ),
+                      padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         embed.title!,
-                        style: context.textStyles
-                            .embedTitle,
+                        style: context.textStyles.embedTitle,
                       ),
                     ),
                   if (embed.description != null)
                     Padding(
-                      padding:
-                          const EdgeInsets.only(
-                        bottom: 8,
-                      ),
+                      padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         embed.description!,
-                        style: context.textStyles
-                            .embedDescription,
+                        style: context.textStyles.embedDescription,
                       ),
                     ),
-                  if (embed.fields.isNotEmpty)
-                    _buildFields(context),
-                  if (embed.footerText != null)
-                    _buildFooter(context),
+                  if (embed.fields.isNotEmpty) _buildFields(context),
+                  if (embed.footerText != null) _buildFooter(context),
                 ],
               ),
             ),
             if (embed.thumbnailUrl != null)
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 16,
-                ),
+                padding: const EdgeInsets.only(left: 16),
                 child: Container(
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: context.colors
-                        .backgroundSecondaryAlt,
-                    borderRadius:
-                        BorderRadius.circular(4),
+                    color: context.colors.backgroundSecondaryAlt,
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   child: Center(
                     child: PhosphorIcon(
                       PhosphorIconsFill.image,
-                      color: context
-                          .colors.textPrimaryMuted,
+                      color: context.colors.textPrimaryMuted,
                       size: 32,
                     ),
                   ),
@@ -160,48 +118,41 @@ class EmbedRich extends StatelessWidget {
     );
   }
 
-  Widget _buildFields(BuildContext context) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Wrap(
-          spacing: 16,
-          runSpacing: 8,
-          children: embed.fields
-              .map(
-                (field) => SizedBox(
-                  width: field.isInline
-                      ? 140
-                      : double.infinity,
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        field.name,
-                        style: TextStyle(
-                          color: context.colors
-                              .textPrimaryMuted,
-                          fontSize: 12,
-                          fontWeight:
-                              FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        field.value,
-                        style: TextStyle(
-                          color: context
-                              .colors.textChat,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
+  Widget _buildFields(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Wrap(
+      spacing: 16,
+      runSpacing: 8,
+      children: embed.fields
+          .map(
+            (field) => SizedBox(
+              width: field.isInline ? 140 : double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    field.name,
+                    style: TextStyle(
+                      color: context.colors.textPrimaryMuted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              )
-              .toList(),
-        ),
-      );
+                  const SizedBox(height: 2),
+                  Text(
+                    field.value,
+                    style: TextStyle(
+                      color: context.colors.textChat,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
+    ),
+  );
 
   Widget _buildFooter(BuildContext context) => Row(
     children: [
@@ -210,24 +161,18 @@ class EmbedRich extends StatelessWidget {
           width: 16,
           height: 16,
           decoration: BoxDecoration(
-            color: context
-                .colors.backgroundSecondaryAlt,
-            borderRadius:
-                BorderRadius.circular(8),
+            color: context.colors.backgroundSecondaryAlt,
+            borderRadius: BorderRadius.circular(8),
           ),
           child: PhosphorIcon(
             PhosphorIconsFill.info,
             size: 10,
-            color:
-                context.colors.textPrimaryMuted,
+            color: context.colors.textPrimaryMuted,
           ),
         ),
         const SizedBox(width: 6),
       ],
-      Text(
-        embed.footerText!,
-        style: context.textStyles.embedFooter,
-      ),
+      Text(embed.footerText!, style: context.textStyles.embedFooter),
     ],
   );
 }
