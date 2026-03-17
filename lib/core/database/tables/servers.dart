@@ -10,6 +10,7 @@ class Servers extends Table {
   TextColumn get description => text().nullable()();
   TextColumn get ownerId => text().nullable()();
   IntColumn get position => integer().withDefault(const Constant(0))();
+  TextColumn get featuresJson => text().withDefault(const Constant('[]'))();
 
   @override
   Set<Column> get primaryKey => {id};

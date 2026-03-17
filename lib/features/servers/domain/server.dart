@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
@@ -14,6 +16,7 @@ class Server {
   final String? description;
   final String? ownerId;
   final int position;
+  final List<String> features;
 
   const Server({
     required this.id,
@@ -25,6 +28,7 @@ class Server {
     this.description,
     this.ownerId,
     this.position = 0,
+    this.features = const [],
   });
 
   factory Server.fromRow(db.Server row) {
@@ -38,6 +42,7 @@ class Server {
       description: row.description,
       ownerId: row.ownerId,
       position: row.position,
+      features: (jsonDecode(row.featuresJson) as List<dynamic>).cast<String>(),
     );
   }
 
@@ -52,8 +57,12 @@ class Server {
       description: Value(description),
       ownerId: Value(ownerId),
       position: Value(position),
+      featuresJson: Value(jsonEncode(features)),
     );
   }
+
+  bool get isVerified => features.contains('VERIFIED');
+  bool get isPartnered => features.contains('PARTNERED');
 
   String? get iconUrl {
     if (icon == null) {
