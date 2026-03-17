@@ -11,78 +11,135 @@ class UserPanel extends ConsumerWidget {
 
   const UserPanel({this.onSettingsTap, super.key});
 
-  static const height = 60.0;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userSettingsViewModelProvider);
+    final layout = context.layout;
+    final colors = context.colors;
 
     return Container(
-      height: height,
+      constraints: BoxConstraints(minHeight: layout.userAreaHeight),
       decoration: BoxDecoration(
-        color: context.colors.userPanelBackground,
+        color: colors.userPanelBackground,
         border: Border(
-          top: BorderSide(color: context.colors.borderColor),
+          top: BorderSide(color: colors.borderColor),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: EdgeInsets.symmetric(
+        horizontal: layout.s2,
+        vertical: layout.s2,
+      ),
       child: Row(
         children: [
-          const SizedBox(width: 2),
-          UserAvatar(
-            displayName: user.displayName,
-            avatarUrl: user.avatarUrl,
-            avatarColor: user.avatarColor,
-            size: 34,
-          ),
-          const SizedBox(width: 8),
           Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.displayName,
-                  style: TextStyle(
-                    color: context.colors.textChat,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: layout.radiusMd,
+              child: InkWell(
+                borderRadius: layout.radiusMd,
+                hoverColor: colors.textPrimary.withValues(alpha: 0.03),
+                onTap: () {},
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: layout.s2),
+                  child: SizedBox(
+                    height: 40,
+                    child: Row(
+                      children: [
+                        UserAvatar(
+                          displayName: user.displayName,
+                          avatarUrl: user.avatarUrl,
+                          avatarColor: user.avatarColor,
+                          size: 36,
+                        ),
+                        SizedBox(width: layout.s2),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.displayName,
+                                style: TextStyle(
+                                  color: colors.textPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  height: 18 / 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 1),
+                              Text(
+                                '${user.username}#${user.discriminator}',
+                                style: TextStyle(
+                                  color: colors.textPrimaryMuted
+                                      .withValues(alpha: 0.85),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  height: 16 / 11,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  '${user.username}#${user.discriminator}',
-                  style: TextStyle(
-                    color: context.colors.textPrimaryMuted,
-                    fontSize: 12,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+              ),
             ),
           ),
-          IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.microphone, size: 20),
-            color: context.colors.interactiveNormal,
+          SizedBox(width: layout.s3),
+          _ControlButton(
+            icon: PhosphorIconsFill.microphone,
+            color: colors.interactiveNormal,
             onPressed: () {},
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
-          IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.headphones, size: 20),
-            color: context.colors.interactiveNormal,
+          SizedBox(width: layout.s1),
+          _ControlButton(
+            icon: PhosphorIconsRegular.speakerHigh,
+            color: colors.interactiveNormal,
             onPressed: () {},
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
-          IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.gear, size: 20),
-            color: context.colors.interactiveNormal,
+          SizedBox(width: layout.s1),
+          _ControlButton(
+            icon: PhosphorIconsRegular.gear,
+            color: colors.interactiveNormal,
             onPressed: onSettingsTap,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ControlButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onPressed;
+
+  const _ControlButton({
+    required this.icon,
+    required this.color,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: context.layout.radiusMd,
+        child: InkWell(
+          borderRadius: context.layout.radiusMd,
+          hoverColor: color.withValues(alpha: 0.1),
+          onTap: onPressed,
+          child: Center(
+            child: PhosphorIcon(icon, size: 20, color: color),
+          ),
+        ),
       ),
     );
   }

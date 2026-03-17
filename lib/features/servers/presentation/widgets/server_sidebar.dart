@@ -44,7 +44,7 @@ class ServerSidebar extends ConsumerWidget {
         ),
         children: [
           _ServerIcon(
-            label: 'DM',
+            label: 'Direct Messages',
             isSelected: isDm,
             svgAsset: Assets.fluxerLogoColor,
             onTap: () {
@@ -72,12 +72,19 @@ class ServerSidebar extends ConsumerWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 4,
+              vertical: 3,
             ),
-            child: Divider(
-              color: context.colors.borderColor,
-              height: 2,
+            child: Center(
+              child: Container(
+                width: 32,
+                height: 2,
+                decoration: BoxDecoration(
+                  color: context
+                      .colors.backgroundModifierHover,
+                  borderRadius:
+                      BorderRadius.circular(1),
+                ),
+              ),
             ),
           ),
           for (final server in servers)
@@ -110,12 +117,19 @@ class ServerSidebar extends ConsumerWidget {
             ),
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 4,
+              vertical: 3,
             ),
-            child: Divider(
-              color: context.colors.borderColor,
-              height: 2,
+            child: Center(
+              child: Container(
+                width: 32,
+                height: 2,
+                decoration: BoxDecoration(
+                  color: context
+                      .colors.backgroundModifierHover,
+                  borderRadius:
+                      BorderRadius.circular(1),
+                ),
+              ),
             ),
           ),
           _DashedServerIcon(
@@ -163,27 +177,31 @@ class _ServerIcon extends StatefulWidget {
 class _ServerIconState extends State<_ServerIcon> {
   var _isHovered = false;
 
-  Widget _buildBackupIcon(BuildContext context) {
+  Widget _buildBackupIcon(
+    BuildContext context, {
+    required bool isActive,
+  }) {
+    final iconColor = isActive
+        ? Colors.white
+        : context.colors.textPrimary;
     return Center(
       child: widget.svgAsset != null
           ? SvgPicture.asset(
               widget.svgAsset!,
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
             )
           : widget.icon != null
               ? PhosphorIcon(
                   widget.icon!,
-                  color:
-                      context.colors.textPrimary,
+                  color: iconColor,
                   size: 32,
                 )
               : Text(
                   _abbreviation(widget.label),
                   style: TextStyle(
-                    color:
-                        context.colors.textPrimary,
-                    fontSize: 16,
+                    color: iconColor,
+                    fontSize: 20,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -194,19 +212,19 @@ class _ServerIconState extends State<_ServerIcon> {
   Widget build(BuildContext context) {
     final isActive =
         widget.isSelected || _isHovered;
-    final borderRadius = isActive ? 16.0 : 24.0;
+    final borderRadius = isActive ? 13.0 : 22.0;
     final bgColor = isActive
-        ? context.colors.serverIconActive
+        ? context.colors.brandPrimary
         : context.colors.serverIconBackground;
 
     return Padding(
       padding:
-          const EdgeInsets.symmetric(vertical: 4),
+          const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
           AnimatedContainer(
             duration:
-                const Duration(milliseconds: 150),
+                const Duration(milliseconds: 70),
             width: 4,
             height: widget.isSelected
                 ? 40
@@ -217,8 +235,8 @@ class _ServerIconState extends State<_ServerIcon> {
               color: context.colors.textPrimary,
               borderRadius:
                   const BorderRadius.only(
-                topRight: Radius.circular(4),
-                bottomRight: Radius.circular(4),
+                topRight: Radius.circular(999),
+                bottomRight: Radius.circular(999),
               ),
             ),
           ),
@@ -236,49 +254,63 @@ class _ServerIconState extends State<_ServerIcon> {
                   ),
                   child: GestureDetector(
                     onTap: widget.onTap,
-                    child: AnimatedContainer(
-                      duration: const Duration(
-                        milliseconds: 150,
-                      ),
+                    child: SizedBox(
                       width: 48,
                       height: 48,
-                      decoration: BoxDecoration(
-                        color: bgColor,
-                        borderRadius:
-                            BorderRadius.circular(
-                          borderRadius,
+                      child: Center(
+                        child: AnimatedContainer(
+                          duration: const Duration(
+                            milliseconds: 70,
+                          ),
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: bgColor,
+                            borderRadius:
+                                BorderRadius.circular(
+                              borderRadius,
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius:
+                                BorderRadiusGeometry
+                                    .circular(
+                              borderRadius,
+                            ),
+                            child: widget.iconUrl !=
+                                    null
+                                ? CachedNetworkImage(
+                                    imageUrl:
+                                        widget
+                                            .iconUrl!,
+                                    errorWidget: (
+                                      context,
+                                      url,
+                                      error,
+                                    ) =>
+                                        _buildBackupIcon(
+                                      context,
+                                      isActive:
+                                          isActive,
+                                    ),
+                                    progressIndicatorBuilder: (
+                                      context,
+                                      url,
+                                      progress,
+                                    ) =>
+                                        _buildBackupIcon(
+                                      context,
+                                      isActive:
+                                          isActive,
+                                    ),
+                                  )
+                                : _buildBackupIcon(
+                                    context,
+                                    isActive:
+                                        isActive,
+                                  ),
+                          ),
                         ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius:
-                            BorderRadiusGeometry
-                                .circular(
-                          borderRadius,
-                        ),
-                        child: widget.iconUrl != null
-                            ? CachedNetworkImage(
-                                imageUrl:
-                                    widget.iconUrl!,
-                                errorWidget: (
-                                  context,
-                                  url,
-                                  error,
-                                ) =>
-                                    _buildBackupIcon(
-                                  context,
-                                ),
-                                progressIndicatorBuilder: (
-                                  context,
-                                  url,
-                                  progress,
-                                ) =>
-                                    _buildBackupIcon(
-                                  context,
-                                ),
-                              )
-                            : _buildBackupIcon(
-                                context,
-                              ),
                       ),
                     ),
                   ),
@@ -341,11 +373,11 @@ class _DashedServerIconState
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 70),
     );
     _radiusAnim = Tween<double>(
-      begin: 24,
-      end: 16,
+      begin: 22,
+      end: 13,
     ).animate(
       CurvedAnimation(
         parent: _controller,
@@ -381,7 +413,7 @@ class _DashedServerIconState
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(
-      vertical: 4,
+      vertical: 3,
     ),
     child: Row(
       children: [
@@ -398,22 +430,30 @@ class _DashedServerIconState
                 builder: (context, _) => SizedBox(
                   width: 48,
                   height: 48,
-                  child: CustomPaint(
-                    painter: _DashedBorderPainter(
-                      borderRadius:
-                          _radiusAnim.value,
-                      color: _colorAnim.value ??
-                          context.colors
-                              .interactiveMuted,
-                    ),
-                    child: Center(
-                      child: PhosphorIcon(
-                        widget.icon,
-                        color:
-                            _colorAnim.value ??
-                            context.colors
-                                .interactiveMuted,
-                        size: 24,
+                  child: Center(
+                    child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: CustomPaint(
+                        painter:
+                            _DashedBorderPainter(
+                          borderRadius:
+                              _radiusAnim.value,
+                          color:
+                              _colorAnim.value ??
+                              context.colors
+                                  .interactiveMuted,
+                        ),
+                        child: Center(
+                          child: PhosphorIcon(
+                            widget.icon,
+                            color:
+                                _colorAnim.value ??
+                                context.colors
+                                    .interactiveMuted,
+                            size: 24,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -491,45 +531,67 @@ class _RightTooltip extends StatefulWidget {
 
 class _RightTooltipState
     extends State<_RightTooltip> {
+  final _layerLink = LayerLink();
   OverlayEntry? _entry;
 
   void _show() {
     _hide();
     final overlay = Overlay.of(context);
-    final box =
-        context.findRenderObject() as RenderBox?;
-    if (box == null) {
-      return;
-    }
-
-    final target =
-        box.localToGlobal(Offset.zero);
-    final size = box.size;
+    final bgColor =
+        context.colors.backgroundFloating;
 
     _entry = OverlayEntry(
-      builder: (_) => Positioned(
-        left: target.dx + size.width + 8,
-        top: target.dy + (size.height - 32) / 2,
-        child: IgnorePointer(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
-              ),
-              decoration: BoxDecoration(
-                color: context
-                    .colors.backgroundFloating,
-                borderRadius:
-                    BorderRadius.circular(4),
-              ),
-              child: Text(
-                widget.message,
-                style: TextStyle(
-                  color: context.colors.textChat,
-                  fontSize: 14,
-                ),
+      builder: (_) => UnconstrainedBox(
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          targetAnchor: Alignment.centerRight,
+          followerAnchor:
+              Alignment.centerLeft,
+          offset: const Offset(4, 0),
+          showWhenUnlinked: false,
+          child: IgnorePointer(
+            child: Material(
+              color: Colors.transparent,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomPaint(
+                    size: const Size(5, 10),
+                    painter:
+                        _TooltipArrowPainter(
+                      color: bgColor,
+                    ),
+                  ),
+                  Container(
+                    constraints:
+                        const BoxConstraints(
+                      maxWidth: 190,
+                    ),
+                    padding:
+                        const EdgeInsets
+                            .symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius:
+                          BorderRadius.circular(
+                        8,
+                      ),
+                    ),
+                    child: Text(
+                      widget.message,
+                      style: TextStyle(
+                        color: context
+                            .colors.textPrimary,
+                        fontSize: 14,
+                        fontWeight:
+                            FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -551,9 +613,37 @@ class _RightTooltipState
   }
 
   @override
-  Widget build(BuildContext context) => MouseRegion(
-    onEnter: (_) => _show(),
-    onExit: (_) => _hide(),
-    child: widget.child,
+  Widget build(BuildContext context) =>
+      CompositedTransformTarget(
+    link: _layerLink,
+    child: MouseRegion(
+      onEnter: (_) => _show(),
+      onExit: (_) => _hide(),
+      child: widget.child,
+    ),
   );
+}
+
+class _TooltipArrowPainter
+    extends CustomPainter {
+  final Color color;
+
+  _TooltipArrowPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = Path()
+      ..moveTo(size.width, 0)
+      ..lineTo(0, size.height / 2)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(
+    _TooltipArrowPainter old,
+  ) =>
+      old.color != color;
 }
