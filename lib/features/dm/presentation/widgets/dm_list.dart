@@ -133,9 +133,9 @@ class DmList extends ConsumerWidget {
         child: InkWell(
           onTap: () {},
           child: Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
+            height: 56,
+            padding: EdgeInsets.symmetric(
+              horizontal: context.layout.s2,
             ),
             child: Row(
               children: [
@@ -190,23 +190,28 @@ class DmList extends ConsumerWidget {
     bool isSelected = false,
   }) =>
       Padding(
-        padding: const EdgeInsets.fromLTRB(8, 1, 8, 1),
+        padding: EdgeInsets.symmetric(
+          horizontal: context.layout.s2,
+          vertical: 1,
+        ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: context.layout.radiusMd,
+            hoverColor:
+                context.colors.backgroundModifierHover,
             onTap: onTap,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 8,
+              height: 42,
+              padding: EdgeInsets.symmetric(
+                horizontal: context.layout.s2,
               ),
               decoration: isSelected
                   ? BoxDecoration(
                       color: context.colors
                           .backgroundModifierSelected,
                       borderRadius:
-                          BorderRadius.circular(4),
+                          context.layout.radiusMd,
                     )
                   : null,
               child: Row(
@@ -234,16 +239,15 @@ class DmList extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: context.layout.s3),
                   Text(
                     label,
-                    style: TextStyle(
+                    style: context.textStyles.messageText
+                        .copyWith(
                       color: isSelected
                           ? context.colors.textChat
                           : context.colors
                               .interactiveNormal,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -416,34 +420,38 @@ class DmList extends ConsumerWidget {
         ),
       );
 
-  Widget _buildDmHeader(BuildContext context) =>
-      Padding(
-        padding: const EdgeInsets.fromLTRB(
-          16,
-          12,
-          8,
-          4,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'DIRECT MESSAGES',
-                style:
-                    context.textStyles.categoryName,
+  Widget _buildDmHeader(BuildContext context) {
+    final layout = context.layout;
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: layout.s2,
+        vertical: layout.s2,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Direct Messages',
+              style: TextStyle(
+                color:
+                    context.colors.textPrimaryMuted,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            PhosphorIcon(
-              PhosphorIconsRegular.plus,
-              size: 16,
-              color:
-                  context.colors.textPrimaryMuted,
-            ),
-          ],
-        ),
-      );
+          ),
+          PhosphorIcon(
+            PhosphorIconsRegular.plus,
+            size: 16,
+            color:
+                context.colors.textPrimaryMuted,
+          ),
+        ],
+      ),
+    );
+  }
 
-  static const double _convoAvatarSize = 32;
+  static const double _convoAvatarSize = 40;
 
   Widget _buildConvoTile(
     BuildContext context,
@@ -471,9 +479,13 @@ class DmList extends ConsumerWidget {
       );
     }
     final c = convo!;
+    final layout = context.layout;
     return Material(
       color: Colors.transparent,
       child: InkWell(
+        borderRadius: layout.radiusMd,
+        hoverColor:
+            context.colors.backgroundModifierHover,
         onTap: () {
           ref
               .read(dmViewModelProvider.notifier)
@@ -484,20 +496,20 @@ class DmList extends ConsumerWidget {
           );
         },
         child: Container(
-          margin: const EdgeInsets.symmetric(
-            horizontal: 8,
+          height: 42,
+          margin: EdgeInsets.symmetric(
+            horizontal: layout.s2,
             vertical: 1,
           ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 8,
+          padding: EdgeInsets.symmetric(
+            horizontal: layout.s2,
           ),
           decoration: BoxDecoration(
             color: isSelected
                 ? context.colors
                     .backgroundModifierSelected
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: layout.radiusMd,
           ),
           child: Row(
             children: [
@@ -505,17 +517,20 @@ class DmList extends ConsumerWidget {
                 displayName: c.recipientName,
                 avatarUrl: _avatarUrl(c),
                 status: c.recipientStatus,
-                size: _convoAvatarSize,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: layout.s3),
               Expanded(
                 child: Column(
+                  mainAxisAlignment:
+                      MainAxisAlignment.center,
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
                     Text(
                       c.recipientName,
-                      style: TextStyle(
+                      style: context
+                          .textStyles.messageText
+                          .copyWith(
                         color: isSelected
                             ? context
                                 .colors.textPrimary
@@ -523,12 +538,7 @@ class DmList extends ConsumerWidget {
                                 ? context
                                     .colors.textChat
                                 : context.colors
-                                    .textTertiary,
-                        fontSize: 16,
-                        fontWeight:
-                            c.unreadCount > 0
-                                ? FontWeight.w600
-                                : FontWeight.w400,
+                                    .textPrimaryMuted,
                       ),
                       overflow:
                           TextOverflow.ellipsis,
@@ -539,7 +549,9 @@ class DmList extends ConsumerWidget {
                         style: TextStyle(
                           color: context.colors
                               .textPrimaryMuted,
-                          fontSize: 12,
+                          fontSize: 11,
+                          fontWeight:
+                              FontWeight.w500,
                         ),
                         overflow:
                             TextOverflow.ellipsis,
@@ -559,7 +571,7 @@ class DmList extends ConsumerWidget {
                     color:
                         context.colors.textDanger,
                     borderRadius:
-                        BorderRadius.circular(8),
+                        layout.radiusLg,
                   ),
                   child: Text(
                     '${c.unreadCount}',
@@ -613,15 +625,18 @@ class DmList extends ConsumerWidget {
       Material(
         color: Colors.transparent,
         child: InkWell(
+          borderRadius: context.layout.radiusMd,
+          hoverColor:
+              context.colors.backgroundModifierHover,
           onTap: onTap,
           child: Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: 8,
+            height: 42,
+            margin: EdgeInsets.symmetric(
+              horizontal: context.layout.s2,
               vertical: 1,
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 8,
+            padding: EdgeInsets.symmetric(
+              horizontal: context.layout.s2,
             ),
             decoration: BoxDecoration(
               color: isSelected
@@ -629,23 +644,25 @@ class DmList extends ConsumerWidget {
                       .backgroundModifierSelected
                   : Colors.transparent,
               borderRadius:
-                  BorderRadius.circular(4),
+                  context.layout.radiusMd,
             ),
             child: Row(
               children: [
                 leading,
-                const SizedBox(width: 12),
+                SizedBox(
+                  width: context.layout.s3,
+                ),
                 Expanded(
                   child: Text(
                     label,
-                    style: TextStyle(
+                    style: context
+                        .textStyles.messageText
+                        .copyWith(
                       color: isSelected
                           ? context
                               .colors.textPrimary
-                          : context
-                              .colors.textTertiary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
+                          : context.colors
+                              .textPrimaryMuted,
                     ),
                     overflow:
                         TextOverflow.ellipsis,
