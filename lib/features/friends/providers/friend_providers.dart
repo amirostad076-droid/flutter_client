@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/features/friends/data/friend_repository.dart';
@@ -11,3 +12,11 @@ FriendRepository friendRepository(Ref ref) {
   final db = ref.watch(fluxerDatabaseProvider);
   return FriendRepository(client, db);
 }
+
+/// Pending incoming friend request count (type 3 = pendingIncoming).
+final pendingFriendRequestCountProvider = StreamProvider<int>((ref) {
+  final db = ref.watch(fluxerDatabaseProvider);
+  return db.relationshipDao.watchRelationships().map(
+        (rows) => rows.where((r) => r.type == 3).length,
+      );
+});

@@ -7,8 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/features/channels/providers/unread_provider.dart';
+import 'package:fluxeron/features/friends/providers/friend_providers.dart';
 import 'package:fluxeron/features/servers/domain/server.dart';
+import 'package:fluxeron/features/servers/presentation/'
+    'widgets/server_action_sheet.dart';
+import 'package:fluxeron/features/servers/presentation/'
+    'widgets/server_context_menu.dart';
 import 'package:fluxeron/features/servers/providers/server_list_view_model.dart';
 import 'package:fluxeron/shared/widgets/unread_badge.dart';
 import 'package:go_router/go_router.dart';
@@ -24,6 +30,9 @@ class ServerSidebar extends ConsumerWidget {
     final servers = vm.servers;
     final selectedId = vm.selectedServerId;
     final isDm = vm.isDmActive;
+    final pendingFriendCount =
+        ref.watch(pendingFriendRequestCountProvider).value ??
+            0;
 
     return Container(
       width: 72,
@@ -54,6 +63,7 @@ class ServerSidebar extends ConsumerWidget {
             label: 'Direct Messages',
             isSelected: isDm,
             svgAsset: Assets.fluxerSymbol,
+            mentionCount: pendingFriendCount,
             onTap: () {
               ref
                   .read(
@@ -173,8 +183,8 @@ class _ServerIconState extends State<_ServerIcon> {
       child: widget.svgAsset != null
           ? SvgPicture.asset(
               widget.svgAsset!,
-              width: 28,
-              height: 28,
+              width: 44,
+              height: 44,
               colorFilter: ColorFilter.mode(
                 iconColor,
                 BlendMode.srcIn,
@@ -256,6 +266,18 @@ class _ServerIconState extends State<_ServerIcon> {
                   ),
                   child: GestureDetector(
                     onTap: widget.onTap,
+                    onSecondaryTapUp: widget.server !=
+                            null
+                        ? (details) =>
+                            _showContextMenu(
+                              context,
+                              details.globalPosition,
+                            )
+                        : null,
+                    onLongPress: widget.server != null
+                        ? () =>
+                            _showActionSheet(context)
+                        : null,
                     child: SizedBox(
                       width: 48,
                       height: 48,
@@ -345,6 +367,43 @@ class _ServerIconState extends State<_ServerIcon> {
     return name
         .substring(0, name.length.clamp(0, 2))
         .toUpperCase();
+  }
+
+  void _showContextMenu(
+    BuildContext context,
+    Offset position,
+  ) {
+    if (widget.server == null) {
+      return;
+    }
+    unawaited(
+      showServerContextMenu(
+        context,
+        position: position,
+        server: widget.server!,
+        hasUnread: widget.hasUnread,
+      ),
+    );
+  }
+
+  void _showActionSheet(BuildContext context) {
+    if (widget.server == null) {
+      return;
+    }
+    final isMobile = MediaQuery.of(context).size.width <
+        Breakpoints.tablet;
+    if (isMobile) {
+      unawaited(
+        showServerActionSheet(
+          context,
+          server: widget.server!,
+          hasUnread: widget.hasUnread,
+        ),
+      );
+    } else {
+      // On desktop, long-press does nothing
+      // (right-click handles it)
+    }
   }
 }
 
