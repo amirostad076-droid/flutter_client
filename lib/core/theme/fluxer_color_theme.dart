@@ -5,6 +5,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     // Background
     required this.backgroundPrimary,
     required this.backgroundSecondary,
+    required this.backgroundSecondaryLighter,
     required this.backgroundSecondaryAlt,
     required this.backgroundTertiary,
     required this.backgroundTextarea,
@@ -110,6 +111,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     required this.channelSidebarBackground,
     required this.memberListBackground,
     required this.userPanelBackground,
+    required this.userAreaDividerColor,
     required this.embedBackground,
     required this.embedBorder,
     required this.mentionBackground,
@@ -124,6 +126,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   // Background
   final Color backgroundPrimary;
   final Color backgroundSecondary;
+  final Color backgroundSecondaryLighter;
   final Color backgroundSecondaryAlt;
   final Color backgroundTertiary;
   final Color backgroundTextarea;
@@ -241,6 +244,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   final Color channelSidebarBackground;
   final Color memberListBackground;
   final Color userPanelBackground;
+  final Color userAreaDividerColor;
   final Color embedBackground;
   final Color embedBorder;
   final Color mentionBackground;
@@ -256,6 +260,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     // Background
     Color? backgroundPrimary,
     Color? backgroundSecondary,
+    Color? backgroundSecondaryLighter,
     Color? backgroundSecondaryAlt,
     Color? backgroundTertiary,
     Color? backgroundTextarea,
@@ -361,6 +366,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     Color? channelSidebarBackground,
     Color? memberListBackground,
     Color? userPanelBackground,
+    Color? userAreaDividerColor,
     Color? embedBackground,
     Color? embedBorder,
     Color? mentionBackground,
@@ -375,6 +381,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       // Background
       backgroundPrimary: backgroundPrimary ?? this.backgroundPrimary,
       backgroundSecondary: backgroundSecondary ?? this.backgroundSecondary,
+      backgroundSecondaryLighter:
+          backgroundSecondaryLighter ?? this.backgroundSecondaryLighter,
       backgroundSecondaryAlt:
           backgroundSecondaryAlt ?? this.backgroundSecondaryAlt,
       backgroundTertiary: backgroundTertiary ?? this.backgroundTertiary,
@@ -507,6 +515,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
           channelSidebarBackground ?? this.channelSidebarBackground,
       memberListBackground: memberListBackground ?? this.memberListBackground,
       userPanelBackground: userPanelBackground ?? this.userPanelBackground,
+      userAreaDividerColor:
+          userAreaDividerColor ?? this.userAreaDividerColor,
       embedBackground: embedBackground ?? this.embedBackground,
       embedBorder: embedBorder ?? this.embedBorder,
       mentionBackground: mentionBackground ?? this.mentionBackground,
@@ -530,6 +540,11 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
           Color.lerp(backgroundPrimary, other.backgroundPrimary, t)!,
       backgroundSecondary:
           Color.lerp(backgroundSecondary, other.backgroundSecondary, t)!,
+      backgroundSecondaryLighter: Color.lerp(
+        backgroundSecondaryLighter,
+        other.backgroundSecondaryLighter,
+        t,
+      )!,
       backgroundSecondaryAlt:
           Color.lerp(backgroundSecondaryAlt, other.backgroundSecondaryAlt, t)!,
       backgroundTertiary:
@@ -760,6 +775,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
           Color.lerp(memberListBackground, other.memberListBackground, t)!,
       userPanelBackground:
           Color.lerp(userPanelBackground, other.userPanelBackground, t)!,
+      userAreaDividerColor:
+          Color.lerp(userAreaDividerColor, other.userAreaDividerColor, t)!,
       embedBackground:
           Color.lerp(embedBackground, other.embedBackground, t)!,
       embedBorder: Color.lerp(embedBorder, other.embedBorder, t)!,

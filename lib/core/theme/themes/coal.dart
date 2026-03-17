@@ -62,6 +62,7 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     stops: [
       ScaleStop(name: 'backgroundPrimary', position: 0),
       ScaleStop(name: 'backgroundSecondary', position: 0.16),
+      ScaleStop(name: 'backgroundSecondaryLighter', position: 0.22),
       ScaleStop(name: 'backgroundSecondaryAlt', position: 0.28),
       ScaleStop(name: 'backgroundTertiary', position: 0.4),
       ScaleStop(name: 'backgroundChannelHeader', position: 0.34),
@@ -127,6 +128,7 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     // Background (from coalSurface scale)
     backgroundPrimary: backgroundPrimary,
     backgroundSecondary: backgroundSecondary,
+    backgroundSecondaryLighter: coalSurface['backgroundSecondaryLighter']!,
     backgroundSecondaryAlt: backgroundSecondaryAlt,
     backgroundTertiary: backgroundTertiary,
     backgroundTextarea: coalSurface['backgroundTextarea']!,
@@ -285,6 +287,9 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     memberListBackground: backgroundSecondary,
     userPanelBackground:
         toneDirect(hue: 220, saturation: 13, lightness: 10),
+    userAreaDividerColor: backgroundModifierHoverVal.withValues(
+      alpha: backgroundModifierHoverVal.a * 0.7,
+    ),
     embedBackground: backgroundSecondary,
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,

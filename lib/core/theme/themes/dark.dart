@@ -57,6 +57,7 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
     stops: [
       ScaleStop(name: 'backgroundPrimary', position: 0),
       ScaleStop(name: 'backgroundSecondary', position: 0.16),
+      ScaleStop(name: 'backgroundSecondaryLighter', position: 0.22),
       ScaleStop(name: 'backgroundSecondaryAlt', position: 0.28),
       ScaleStop(name: 'backgroundTertiary', position: 0.4),
       ScaleStop(name: 'backgroundChannelHeader', position: 0.34),
@@ -116,6 +117,7 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
     // Background (from darkSurface scale)
     backgroundPrimary: backgroundPrimary,
     backgroundSecondary: backgroundSecondary,
+    backgroundSecondaryLighter: darkSurface['backgroundSecondaryLighter']!,
     backgroundSecondaryAlt: backgroundSecondaryAlt,
     backgroundTertiary: backgroundTertiary,
     backgroundTextarea: darkSurface['backgroundTextarea']!,
@@ -273,6 +275,9 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
     memberListBackground: backgroundSecondary,
     userPanelBackground:
         toneDirect(hue: 220, saturation: 13, lightness: 10),
+    userAreaDividerColor: backgroundModifierHoverVal.withValues(
+      alpha: backgroundModifierHoverVal.a * 0.7,
+    ),
     embedBackground: backgroundSecondary,
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,

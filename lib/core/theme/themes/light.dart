@@ -63,6 +63,7 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
       ScaleStop(name: 'backgroundChannelHeader', position: 0.5),
       ScaleStop(name: 'backgroundSecondaryAlt', position: 0.63),
       ScaleStop(name: 'backgroundSecondary', position: 0.74),
+      ScaleStop(name: 'backgroundSecondaryLighter', position: 0.83),
       ScaleStop(name: 'backgroundTextarea', position: 0.88),
       ScaleStop(name: 'backgroundPrimary', position: 1),
     ],
@@ -117,6 +118,7 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
     // Background (from lightSurface scale)
     backgroundPrimary: backgroundPrimary,
     backgroundSecondary: backgroundSecondary,
+    backgroundSecondaryLighter: lightSurface['backgroundSecondaryLighter']!,
     backgroundSecondaryAlt: backgroundSecondaryAlt,
     backgroundTertiary: backgroundTertiary,
     backgroundTextarea: lightSurface['backgroundTextarea']!,
@@ -261,6 +263,8 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
     memberListBackground: backgroundSecondary,
     userPanelBackground:
         toneDirect(hue: 220, saturation: 10, lightness: 90),
+    userAreaDividerColor:
+        toneDirect(hue: 220, saturation: 10, lightness: 40, alpha: 0.2),
     embedBackground: backgroundSecondary,
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,
