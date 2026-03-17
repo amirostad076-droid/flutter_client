@@ -25,13 +25,37 @@ class ServerRepository {
         return [];
       }
 
-      final companions = data.map(serverFromSdk).toList();
+      // Fetch user settings to get guild folder ordering.
+      final guildOrder = await _fetchGuildOrder();
+
+      final companions = data.map((guild) {
+        final position = guildOrder.indexOf(guild.id);
+        return serverFromSdk(
+          guild,
+          position: position >= 0 ? position : guildOrder.length,
+        );
+      }).toList();
       await _db.serverDao.upsertServers(companions);
 
       final rows = await _db.serverDao.getServers();
       return rows.map(Server.fromRow).toList();
     } on DioException catch (e) {
       throw Exception(e.response?.statusMessage ?? 'Failed to fetch servers');
+    }
+  }
+
+  /// Fetches ordered guild IDs from user settings guild folders.
+  Future<List<String>> _fetchGuildOrder() async {
+    try {
+      final settings =
+          await _client.getUsersApi().getCurrentUserSettings();
+      final folders = settings.data?.guildFolders;
+      if (folders == null) {
+        return [];
+      }
+      return folders.expand((f) => f.guildIds).toList();
+    } on Object {
+      return [];
     }
   }
 

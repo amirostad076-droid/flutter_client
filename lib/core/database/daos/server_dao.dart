@@ -9,11 +9,19 @@ part 'server_dao.g.dart';
 class ServerDao extends DatabaseAccessor<FluxerDatabase> with _$ServerDaoMixin {
   ServerDao(super.attachedDatabase);
 
-  Stream<List<Server>> watchServers() =>
-      (select(servers)..orderBy([(s) => OrderingTerm.asc(s.position)])).watch();
+  Stream<List<Server>> watchServers() => (select(servers)
+        ..orderBy([
+          (s) => OrderingTerm.asc(s.position),
+          (s) => OrderingTerm.asc(s.name),
+        ]))
+      .watch();
 
-  Future<List<Server>> getServers() =>
-      (select(servers)..orderBy([(s) => OrderingTerm.asc(s.position)])).get();
+  Future<List<Server>> getServers() => (select(servers)
+        ..orderBy([
+          (s) => OrderingTerm.asc(s.position),
+          (s) => OrderingTerm.asc(s.name),
+        ]))
+      .get();
 
   Future<Server?> getServerById(String id) =>
       (select(servers)..where((s) => s.id.equals(id))).getSingleOrNull();

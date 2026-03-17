@@ -1,16 +1,20 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:fluxer_dart/fluxer_dart.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 
 /// Converts SDK [GuildResponse] to a Drift companion for upserting.
-db.ServersCompanion serverFromSdk(GuildResponse sdk) {
+db.ServersCompanion serverFromSdk(GuildResponse sdk, {int position = 0}) {
   return db.ServersCompanion.insert(
     id: sdk.id,
     name: sdk.name,
     icon: Value(sdk.icon),
     banner: Value(sdk.banner),
     ownerId: Value(sdk.ownerId),
+    featuresJson: Value(jsonEncode(sdk.features.toList())),
+    position: Value(position),
   );
 }
 
