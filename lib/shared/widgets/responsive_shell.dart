@@ -17,7 +17,7 @@ import 'package:fluxeron/shared/widgets/user_panel.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-const _kLeftSidebarsWidth = 312.0;
+// Left sidebars width is computed from layout theme in _buildDesktopBody.
 
 class ResponsiveShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -139,10 +139,14 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       serverListViewModelProvider.select((s) => s.isDmActive),
     );
 
+    final layout = context.layout;
+    final leftSidebarsWidth =
+        layout.guildListWidth + layout.sidebarWidth;
+
     return Row(
       children: [
         SizedBox(
-          width: _kLeftSidebarsWidth,
+          width: leftSidebarsWidth,
           child: Column(
             children: [
               Expanded(

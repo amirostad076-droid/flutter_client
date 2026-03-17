@@ -199,7 +199,7 @@ class DmList extends ConsumerWidget {
           child: InkWell(
             borderRadius: context.layout.radiusMd,
             hoverColor:
-                context.colors.backgroundModifierHover,
+                context.colors.surfaceInteractiveHoverBg,
             onTap: onTap,
             child: Container(
               height: 42,
@@ -209,7 +209,8 @@ class DmList extends ConsumerWidget {
               decoration: isSelected
                   ? BoxDecoration(
                       color: context.colors
-                          .backgroundModifierSelected,
+                          .surfaceInteractiveSelectedBg
+                          .withValues(alpha: 0.35),
                       borderRadius:
                           context.layout.radiusMd,
                     )
@@ -242,12 +243,13 @@ class DmList extends ConsumerWidget {
                   SizedBox(width: context.layout.s3),
                   Text(
                     label,
-                    style: context.textStyles.messageText
+                    style: context.textStyles.username
                         .copyWith(
                       color: isSelected
-                          ? context.colors.textChat
+                          ? context.colors
+                              .surfaceInteractiveSelectedColor
                           : context.colors
-                              .interactiveNormal,
+                              .textPrimaryMuted,
                     ),
                   ),
                 ],
@@ -361,6 +363,7 @@ class DmList extends ConsumerWidget {
           ref,
           convo: convo,
           isSelected: isSelected,
+          isMobile: isMobile,
         );
       },
     );
@@ -451,17 +454,19 @@ class DmList extends ConsumerWidget {
     );
   }
 
-  static const double _convoAvatarSize = 40;
-
   Widget _buildConvoTile(
     BuildContext context,
     WidgetRef ref, {
     required bool isSelected,
+    bool isMobile = false,
     DmConversation? convo,
     IconData? leadingIcon,
     String? leadingLabel,
     VoidCallback? onCustomTap,
   }) {
+    final avatarSize = isMobile ? 40.0 : 32.0;
+    final tileHeight = isMobile ? 52.0 : 42.0;
+
     final isIconTile = leadingIcon != null &&
         leadingLabel != null &&
         onCustomTap != null;
@@ -472,6 +477,7 @@ class DmList extends ConsumerWidget {
           context,
           leadingIcon,
           isSelected,
+          size: avatarSize,
         ),
         label: leadingLabel,
         isSelected: isSelected,
@@ -485,7 +491,7 @@ class DmList extends ConsumerWidget {
       child: InkWell(
         borderRadius: layout.radiusMd,
         hoverColor:
-            context.colors.backgroundModifierHover,
+            context.colors.surfaceInteractiveHoverBg,
         onTap: () {
           ref
               .read(dmViewModelProvider.notifier)
@@ -496,7 +502,7 @@ class DmList extends ConsumerWidget {
           );
         },
         child: Container(
-          height: 42,
+          height: tileHeight,
           margin: EdgeInsets.symmetric(
             horizontal: layout.s2,
             vertical: 1,
@@ -507,17 +513,25 @@ class DmList extends ConsumerWidget {
           decoration: BoxDecoration(
             color: isSelected
                 ? context.colors
-                    .backgroundModifierSelected
+                    .surfaceInteractiveSelectedBg
+                    .withValues(alpha: 0.35)
                 : Colors.transparent,
             borderRadius: layout.radiusMd,
           ),
           child: Row(
             children: [
-              UserAvatar(
-                displayName: c.recipientName,
-                avatarUrl: _avatarUrl(c),
-                status: c.recipientStatus,
-              ),
+              if (c.isGroup)
+                _buildGroupAvatar(
+                  context,
+                  size: avatarSize,
+                )
+              else
+                UserAvatar(
+                  displayName: c.recipientName,
+                  avatarUrl: _avatarUrl(c),
+                  status: c.recipientStatus,
+                  size: avatarSize,
+                ),
               SizedBox(width: layout.s3),
               Expanded(
                 child: Column(
@@ -527,13 +541,13 @@ class DmList extends ConsumerWidget {
                       CrossAxisAlignment.start,
                   children: [
                     Text(
-                      c.recipientName,
+                      c.displayName,
                       style: context
-                          .textStyles.messageText
+                          .textStyles.username
                           .copyWith(
                         color: isSelected
-                            ? context
-                                .colors.textPrimary
+                            ? context.colors
+                                .surfaceInteractiveSelectedColor
                             : c.unreadCount > 0
                                 ? context
                                     .colors.textChat
@@ -543,12 +557,30 @@ class DmList extends ConsumerWidget {
                       overflow:
                           TextOverflow.ellipsis,
                     ),
-                    if (c.lastMessage.isNotEmpty)
+                    if (c.isGroup)
+                      Text(
+                        '${c.memberCount} Members',
+                        style: TextStyle(
+                          color: context.colors
+                              .textPrimaryMuted
+                              .withValues(
+                                  alpha: 0.85),
+                          fontSize: 11,
+                          fontWeight:
+                              FontWeight.w500,
+                        ),
+                        overflow:
+                            TextOverflow.ellipsis,
+                      )
+                    else if (c.lastMessage
+                        .isNotEmpty)
                       Text(
                         c.lastMessage,
                         style: TextStyle(
                           color: context.colors
-                              .textPrimaryMuted,
+                              .textPrimaryMuted
+                              .withValues(
+                                  alpha: 0.85),
                           fontSize: 11,
                           fontWeight:
                               FontWeight.w500,
@@ -562,24 +594,30 @@ class DmList extends ConsumerWidget {
               ),
               if (c.unreadCount > 0)
                 Container(
+                  constraints:
+                      const BoxConstraints(
+                    minHeight: 20,
+                    minWidth: 20,
+                  ),
                   padding:
-                      const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 1,
+                      EdgeInsets.symmetric(
+                    horizontal: layout.s1,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                        context.colors.textDanger,
+                    color: context
+                        .colors.statusDanger,
                     borderRadius:
-                        layout.radiusLg,
+                        layout.radiusFull,
                   ),
+                  alignment: Alignment.center,
                   child: Text(
                     '${c.unreadCount}',
                     style: TextStyle(
                       color: context
                           .colors.textPrimary,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
+                      height: 1,
                     ),
                   ),
                 ),
@@ -590,14 +628,36 @@ class DmList extends ConsumerWidget {
     );
   }
 
+  Widget _buildGroupAvatar(
+    BuildContext context, {
+    double size = 32,
+  }) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color:
+            context.colors.backgroundModifierAccent,
+      ),
+      alignment: Alignment.center,
+      child: PhosphorIcon(
+        PhosphorIconsFill.usersThree,
+        size: size * 0.55,
+        color: context.colors.interactiveNormal,
+      ),
+    );
+  }
+
   Widget _buildCircleIcon(
     BuildContext context,
     IconData icon,
-    bool isSelected,
-  ) {
+    bool isSelected, {
+    double size = 32,
+  }) {
     return Container(
-      width: _convoAvatarSize,
-      height: _convoAvatarSize,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isSelected
@@ -607,7 +667,7 @@ class DmList extends ConsumerWidget {
       alignment: Alignment.center,
       child: PhosphorIcon(
         icon,
-        size: 20,
+        size: size * 0.55,
         color: isSelected
             ? context.colors.textPrimary
             : context.colors.interactiveNormal,
@@ -627,7 +687,7 @@ class DmList extends ConsumerWidget {
         child: InkWell(
           borderRadius: context.layout.radiusMd,
           hoverColor:
-              context.colors.backgroundModifierHover,
+              context.colors.surfaceInteractiveHoverBg,
           onTap: onTap,
           child: Container(
             height: 42,
@@ -641,7 +701,8 @@ class DmList extends ConsumerWidget {
             decoration: BoxDecoration(
               color: isSelected
                   ? context.colors
-                      .backgroundModifierSelected
+                      .surfaceInteractiveSelectedBg
+                      .withValues(alpha: 0.35)
                   : Colors.transparent,
               borderRadius:
                   context.layout.radiusMd,
@@ -656,11 +717,11 @@ class DmList extends ConsumerWidget {
                   child: Text(
                     label,
                     style: context
-                        .textStyles.messageText
+                        .textStyles.username
                         .copyWith(
                       color: isSelected
-                          ? context
-                              .colors.textPrimary
+                          ? context.colors
+                              .surfaceInteractiveSelectedColor
                           : context.colors
                               .textPrimaryMuted,
                     ),

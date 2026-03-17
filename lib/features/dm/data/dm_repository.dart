@@ -54,13 +54,17 @@ class DmRepository {
           continue;
         }
 
-        final recipient = recipients.first;
-        await _db.userDao.upsertUser(userFromPartialSdk(recipient));
+        for (final r in recipients) {
+          await _db.userDao.upsertUser(userFromPartialSdk(r));
+        }
 
         companions.add(
           db.DmChannelsCompanion.insert(
             id: ch.id,
-            recipientId: recipient.id,
+            recipientId: recipients.first.id,
+            type: Value(ch.type),
+            name: Value(ch.name),
+            recipientCount: Value(recipients.length + 1),
             lastMessage: const Value(''),
             lastMessageTime: Value(
               ch.lastMessageId != null
