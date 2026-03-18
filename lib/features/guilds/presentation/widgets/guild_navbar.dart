@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
+import 'package:fluxeron/core/router/route_names.dart';
+import 'package:fluxeron/core/router/route_state_providers.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/features/channels/providers/unread_provider.dart';
@@ -26,10 +28,13 @@ class GuildNavbar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vm = ref.watch(guildListViewModelProvider);
-    final guilds = vm.guilds;
-    final selectedId = vm.selectedGuildId;
-    final isDm = vm.isDmActive;
+    final guilds = ref.watch(
+      guildListViewModelProvider.select((s) => s.guilds),
+    );
+    final activeGuildId = ref.watch(activeGuildIdProvider);
+    final currentLocation = GoRouterState.of(context).matchedLocation;
+    final isDm = currentLocation.startsWith('/channels/@me');
+    final isFavorites = currentLocation.startsWith('/channels/@favorites');
     final pendingFriendCount =
         ref.watch(pendingFriendRequestCountProvider).value ?? 0;
     final currentUserId = ref.watch(
@@ -57,18 +62,15 @@ class GuildNavbar extends ConsumerWidget {
               svgAsset: Assets.fluxerSymbol,
               mentionCount: pendingFriendCount,
               onTap: () {
-                ref.read(guildListViewModelProvider.notifier).setDmActive();
-                context.go('/channels/@me');
+                context.go(RoutePaths.me);
               },
             ),
             _GuildListItem(
               label: 'Favorites',
-              isSelected: vm.isFavoritesActive,
+              isSelected: isFavorites,
               icon: PhosphorIconsFill.star,
               onTap: () {
-                ref
-                    .read(guildListViewModelProvider.notifier)
-                    .setFavoritesActive();
+                context.go(RoutePaths.favoritesBase);
               },
             ),
             _SidebarDivider(color: context.colors.backgroundModifierHover),
@@ -81,16 +83,13 @@ class GuildNavbar extends ConsumerWidget {
                   return _GuildListItem(
                     label: guild.name,
                     guild: guild,
-                    isSelected: guild.id == selectedId && !isDm,
+                    isSelected: guild.id == activeGuildId,
                     isOwner: guild.ownerId == currentUserId,
                     iconUrl: guild.iconUrl,
                     hasUnread: unread?.hasUnread ?? false,
                     mentionCount: unread?.mentionCount ?? 0,
                     onTap: () {
-                      ref
-                          .read(guildListViewModelProvider.notifier)
-                          .selectGuild(guild.id);
-                      context.go('/servers');
+                      context.go(RoutePaths.guild(guild.id));
                     },
                   );
                 },
@@ -334,7 +333,7 @@ class _GuildListItemState extends State<_GuildListItem> {
       case GuildAction.settingsMembers:
       case GuildAction.settingsInviteLinks:
       case GuildAction.settingsBans:
-        unawaited(context.push('/settings/server/${widget.guild!.id}'));
+        unawaited(context.push(RoutePaths.guildSettingsPath(widget.guild!.id)));
       case GuildAction.copyGuildId:
         break;
       case GuildAction.markAsRead:
