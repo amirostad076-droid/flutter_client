@@ -148,14 +148,24 @@ class Attachment {
   final String id;
   final String filename;
   final String url;
+  final String? contentType;
+  final String? placeholder;
   final int? size;
   final int? width;
   final int? height;
+  final bool? nsfw;
+  final bool? expired;
+  final DateTime? expiresAt;
 
   const Attachment({
     required this.id,
     required this.filename,
     required this.url,
+    this.contentType,
+    this.placeholder,
+    this.nsfw,
+    this.expired,
+    this.expiresAt,
     this.size,
     this.width,
     this.height,
@@ -169,6 +179,11 @@ class Attachment {
       size: sdk.size,
       width: sdk.width,
       height: sdk.height,
+      contentType: sdk.contentType,
+      placeholder: sdk.placeholder,
+      nsfw: sdk.nsfw,
+      expired: sdk.expired,
+      expiresAt: DateTime.tryParse(sdk.expiresAt ?? ''),
     );
   }
 
@@ -180,6 +195,11 @@ class Attachment {
       size: json['size'] as int?,
       width: json['width'] as int?,
       height: json['height'] as int?,
+      contentType: json['content_type'] as String?,
+      placeholder: json['placeholder'] as String?,
+      nsfw: json['nsfw'] as bool?,
+      expired: json['expired'] as bool?,
+      expiresAt: DateTime.tryParse((json['expires_at'] as String?) ?? ''),
     );
   }
 
@@ -190,6 +210,11 @@ class Attachment {
     'size': size,
     'width': width,
     'height': height,
+    'content_type': contentType,
+    'placeholder': placeholder,
+    'nsfw': nsfw,
+    'expired': expired,
+    'expires_at': expiresAt?.toIso8601String(),
   };
 
   bool get isImage {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
+import 'package:fluxeron/features/chat/presentation/widgets/attachment_image.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_image.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_link.dart';
@@ -232,6 +233,7 @@ class _MessageItemState extends State<MessageItem> {
     if (msg.content.isNotEmpty)
       SelectableText(msg.content, style: context.textStyles.messageText),
     ...msg.embeds.map(_buildEmbed),
+    ...msg.attachments.map(_buildAttachment),
     if (msg.reactions.isNotEmpty)
       Padding(
         padding: const EdgeInsets.only(top: 4),
@@ -348,6 +350,13 @@ class _MessageItemState extends State<MessageItem> {
       EmbedType.link => EmbedLink(embed: embed),
       EmbedType.video => EmbedVideo(embed: embed),
     },
+  );
+  Widget _buildAttachment(Attachment attachment) => Padding(
+    padding: const EdgeInsets.only(top: 2),
+    // TODO: Add other attachment support
+    child: attachment.isImage
+        ? AttachmentImage(attachment: attachment)
+        : const SizedBox.shrink(),
   );
 
   Widget _buildReaction(BuildContext context, Reaction reaction) =>
