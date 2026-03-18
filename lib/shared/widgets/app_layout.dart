@@ -156,7 +156,7 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
         location != '/channels/@favorites') {
       return true;
     }
-    final guildChat = RegExp(r'^/channels/[^@/][^/]*/[^/]+');
+    final guildChat = RegExp('^/channels/[^@/][^/]*/[^/]+');
     if (guildChat.hasMatch(location)) {
       return true;
     }
