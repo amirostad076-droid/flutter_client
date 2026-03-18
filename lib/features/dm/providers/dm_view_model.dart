@@ -17,7 +17,6 @@ class DmViewState {
   final List<DmConversation> conversations;
   final List<Friend> friendsList;
   final FriendsTab activeTab;
-  final String? selectedConversationId;
   final String searchQuery;
   final bool isLoading;
   final String? errorMessage;
@@ -26,7 +25,6 @@ class DmViewState {
     required this.conversations,
     required this.friendsList,
     required this.activeTab,
-    required this.selectedConversationId,
     required this.searchQuery,
     required this.isLoading,
     required this.errorMessage,
@@ -81,7 +79,6 @@ class DmViewState {
     List<DmConversation>? conversations,
     List<Friend>? friendsList,
     FriendsTab? activeTab,
-    Object? selectedConversationId = _unset,
     String? searchQuery,
     bool? isLoading,
     Object? errorMessage = _unset,
@@ -90,9 +87,6 @@ class DmViewState {
       conversations: conversations ?? this.conversations,
       friendsList: friendsList ?? this.friendsList,
       activeTab: activeTab ?? this.activeTab,
-      selectedConversationId: selectedConversationId == _unset
-          ? this.selectedConversationId
-          : selectedConversationId as String?,
       searchQuery: searchQuery ?? this.searchQuery,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage == _unset
@@ -142,7 +136,6 @@ class DmViewModel extends _$DmViewModel {
       conversations: [],
       friendsList: [],
       activeTab: FriendsTab.online,
-      selectedConversationId: null,
       searchQuery: '',
       isLoading: true,
       errorMessage: null,
@@ -172,10 +165,6 @@ class DmViewModel extends _$DmViewModel {
 
   void selectTab(FriendsTab tab) {
     state = state.copyWith(activeTab: tab);
-  }
-
-  void selectConversation(String id) {
-    state = state.copyWith(selectedConversationId: id);
   }
 
   void updateSearch(String query) {

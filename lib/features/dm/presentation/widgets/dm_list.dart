@@ -25,7 +25,11 @@ class DMList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final vm = ref.watch(dmViewModelProvider);
     final convos = vm.conversations;
-    final selectedId = vm.selectedConversationId;
+    final location = GoRouterState.of(context).matchedLocation;
+    final mePrefix = '${RoutePaths.me}/';
+    final selectedId = location.startsWith(mePrefix)
+        ? location.substring(mePrefix.length)
+        : null;
 
     final isMobile = isMobileLayout(context);
 
