@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/router/navigate_to_content.dart';
+import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
@@ -16,7 +17,7 @@ class DMList extends ConsumerWidget {
   void personalNote(WidgetRef ref, BuildContext context) {
     final userId = ref.read(currentUserIdProvider);
     if (userId != null) {
-      navigateToContent(context, '/channels/@me/$userId');
+      navigateToContent(context, RoutePaths.dmChannel(userId));
     }
   }
 
@@ -42,9 +43,9 @@ class DMList extends ConsumerWidget {
               builder: (context) {
                 final location = GoRouterState.of(context).matchedLocation;
                 final userId = ref.watch(currentUserIdProvider);
-                final isFriends = location == '/channels/@me';
+                final isFriends = location == RoutePaths.me;
                 final isNotes =
-                    userId != null && location == '/channels/@me/$userId';
+                    userId != null && location == RoutePaths.dmChannel(userId);
 
                 return Padding(
                   padding: const EdgeInsets.only(top: 7),
@@ -55,7 +56,7 @@ class DMList extends ConsumerWidget {
                         icon: PhosphorIconsFill.users,
                         label: 'Friends',
                         isSelected: isFriends,
-                        onTap: () => context.go('/channels/@me'),
+                        onTap: () => context.go(RoutePaths.me),
                       ),
                       _buildNavButton(
                         context,
@@ -64,7 +65,10 @@ class DMList extends ConsumerWidget {
                         isSelected: isNotes,
                         onTap: () {
                           if (userId != null) {
-                            navigateToContent(context, '/channels/@me/$userId');
+                            navigateToContent(
+                              context,
+                              RoutePaths.dmChannel(userId),
+                            );
                           }
                         },
                       ),
@@ -234,7 +238,7 @@ class DMList extends ConsumerWidget {
         ),
         const SizedBox(width: 16),
         InkWell(
-          onTap: () => context.go('/channels/@me'),
+          onTap: () => context.go(RoutePaths.me),
           borderRadius: BorderRadius.circular(16),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -306,7 +310,7 @@ class DMList extends ConsumerWidget {
     child: InkWell(
       onTap: () {
         if (userId != null) {
-          navigateToContent(context, '/channels/@me/$userId');
+          navigateToContent(context, RoutePaths.dmChannel(userId));
         }
       },
       child: Padding(
@@ -402,8 +406,7 @@ class DMList extends ConsumerWidget {
         borderRadius: layout.radiusMd,
         hoverColor: context.colors.surfaceInteractiveHoverBg,
         onTap: () {
-          ref.read(dmViewModelProvider.notifier).selectConversation(c.id);
-          navigateToContent(context, '/channels/@me/${c.id}');
+          navigateToContent(context, RoutePaths.dmChannel(c.id));
         },
         child: Container(
           height: tileHeight,
