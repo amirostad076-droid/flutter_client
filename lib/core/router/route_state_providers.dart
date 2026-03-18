@@ -67,7 +67,7 @@ class ActiveChannelId extends _$ActiveChannelId {
 
     // /channels/:guildId/:channelId (not "members")
     final guildMatch = RegExp(
-      r'^/channels/[^@/][^/]*/([^/]+)',
+      '^/channels/[^@/][^/]*/([^/]+)',
     ).firstMatch(location);
     if (guildMatch != null && guildMatch.group(1) != 'members') {
       return guildMatch.group(1);
