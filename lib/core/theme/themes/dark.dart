@@ -53,7 +53,7 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
     family: FluxerColorFamilies.neutralDark,
     lightnessStart: 5,
     lightnessEnd: 26,
-    curve: Curves.easeOut,
+    curve: ScaleCurves.easeOut,
     stops: [
       ScaleStop(name: 'backgroundPrimary', position: 0),
       ScaleStop(name: 'backgroundSecondary', position: 0.16),
@@ -73,7 +73,7 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
     family: FluxerColorFamilies.neutralDark,
     lightnessStart: 52,
     lightnessEnd: 96,
-    curve: Curves.easeInOut,
+    curve: ScaleCurves.easeInOut,
     stops: [
       ScaleStop(name: 'textTertiarySecondary', position: 0),
       ScaleStop(name: 'textTertiaryMuted', position: 0.2),

@@ -53,7 +53,7 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
     family: FluxerColorFamilies.neutralLight,
     lightnessStart: 86,
     lightnessEnd: 98.5,
-    curve: Curves.easeIn,
+    curve: ScaleCurves.easeIn,
     stops: [
       ScaleStop(name: 'backgroundHeaderPrimaryHover', position: 0),
       ScaleStop(name: 'backgroundHeaderPrimary', position: 0.12),
@@ -73,7 +73,7 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
     family: FluxerColorFamilies.neutralLight,
     lightnessStart: 15,
     lightnessEnd: 60,
-    curve: Curves.easeOut,
+    curve: ScaleCurves.easeOut,
     stops: [
       ScaleStop(name: 'textPrimary', position: 0),
       ScaleStop(name: 'textChat', position: 0.08),

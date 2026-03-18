@@ -1,6 +1,47 @@
 import 'package:flutter/animation.dart';
 import 'package:flutter/painting.dart';
 
+/// Quadratic easing curves that match the web app's color scale
+/// implementation exactly. Flutter's built-in [Curves] use cubic bezier
+/// curves which produce slightly different intermediate values.
+class ScaleCurves {
+  ScaleCurves._();
+
+  static const Curve easeIn = _QuadraticEaseIn();
+  static const Curve easeOut = _QuadraticEaseOut();
+  static const Curve easeInOut = _QuadraticEaseInOut();
+}
+
+class _QuadraticEaseIn extends Curve {
+  const _QuadraticEaseIn();
+
+  @override
+  double transformInternal(double t) {
+    return t * t;
+  }
+}
+
+class _QuadraticEaseOut extends Curve {
+  const _QuadraticEaseOut();
+
+  @override
+  double transformInternal(double t) {
+    return 1 - (1 - t) * (1 - t);
+  }
+}
+
+class _QuadraticEaseInOut extends Curve {
+  const _QuadraticEaseInOut();
+
+  @override
+  double transformInternal(double t) {
+    if (t < 0.5) {
+      return 2 * t * t;
+    }
+    return 1 - 2 * (1 - t) * (1 - t);
+  }
+}
+
 /// Holds hue and saturation parameters for a color family.
 class ColorFamily {
   const ColorFamily({
