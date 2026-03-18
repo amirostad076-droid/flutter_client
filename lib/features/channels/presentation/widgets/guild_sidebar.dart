@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/router/navigate_to_content.dart';
+import 'package:fluxeron/core/router/route_names.dart';
+import 'package:fluxeron/core/router/route_state_providers.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/channels/providers/unread_provider.dart';
-import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxeron/shared/widgets/unread_badge.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -46,44 +47,43 @@ class GuildSidebar extends ConsumerWidget {
     );
   }
 
-  Widget _buildServerHeader(
-    BuildContext context,
-    WidgetRef ref,
-    String name,
-  ) => Material(
-    color: context.colors.channelSidebarBackground,
-    child: InkWell(
-      onTap: () {
-        final guildId = ref.read(guildListViewModelProvider).selectedGuildId;
-        if (guildId != null) {
-          context.go('/settings/server/$guildId');
-        }
-      },
-      child: Container(
-        height: 56,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: context.colors.borderColor)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                name,
-                style: context.textStyles.channelName,
-                overflow: TextOverflow.ellipsis,
+  Widget _buildServerHeader(BuildContext context, WidgetRef ref, String name) =>
+      Material(
+        color: context.colors.channelSidebarBackground,
+        child: InkWell(
+          onTap: () {
+            final guildId = ref.read(activeGuildIdProvider);
+            if (guildId != null) {
+              context.push(RoutePaths.guildSettingsPath(guildId));
+            }
+          },
+          child: Container(
+            height: 56,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: context.colors.borderColor),
               ),
             ),
-            PhosphorIcon(
-              PhosphorIconsFill.caretDown,
-              color: context.colors.textChat,
-              size: 20,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    name,
+                    style: context.textStyles.channelName,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                PhosphorIcon(
+                  PhosphorIconsFill.caretDown,
+                  color: context.colors.textChat,
+                  size: 20,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   Widget _buildChannelList(
     BuildContext context,
@@ -174,15 +174,14 @@ class GuildSidebar extends ConsumerWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          final guildId = ref.read(guildListViewModelProvider).selectedGuildId;
+          final guildId = ref.read(activeGuildIdProvider);
           ref
               .read(channelListViewModelProvider.notifier)
               .selectChannel(channel.id);
           if (guildId != null) {
             navigateToContent(
               context,
-              '/servers/$guildId'
-              '/channels/${channel.id}',
+              RoutePaths.guildChannel(guildId, channel.id),
             );
           }
         },
