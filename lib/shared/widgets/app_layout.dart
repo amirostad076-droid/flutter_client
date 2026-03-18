@@ -2,41 +2,39 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxeron/core/router/route_state_providers.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/guild_sidebar.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/dm/presentation/widgets/dm_list.dart';
-import 'package:fluxeron/features/members/providers/member_list_view_model.dart';
 import 'package:fluxeron/features/guilds/presentation/widgets/guild_navbar.dart';
 import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxeron/features/members/providers/member_list_view_model.dart';
 import 'package:fluxeron/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
-import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:fluxeron/shared/widgets/user_area.dart';
+import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // Left sidebars width is computed from layout theme in _buildDesktopBody.
 
 class AppLayout extends ConsumerStatefulWidget {
-  final Widget child;
+  final StatefulNavigationShell navigationShell;
 
-  const AppLayout({required this.child, super.key});
+  const AppLayout({required this.navigationShell, super.key});
 
   @override
   ConsumerState<AppLayout> createState() => _AppLayoutState();
 }
 
 class _AppLayoutState extends ConsumerState<AppLayout> {
-  String _previousLocation = '';
+  static const _youBranchIndex = 2;
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(guildListViewModelProvider.select((s) => s.selectedGuildId), (
-      previous,
-      next,
-    ) {
+    ref.listen(activeGuildIdProvider, (previous, next) {
       if (next != null) {
         final guilds = ref.read(guildListViewModelProvider).guilds;
         final guild = guilds.where((g) => g.id == next).firstOrNull;
@@ -60,71 +58,12 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
       );
     }
 
-    final location = GoRouterState.of(context).matchedLocation;
-    final showSidebar = _showMobileSidebar(location);
-    final isChatRoute = _isMobileChatRoute(location);
-
-    final wasChatRoute = _isMobileChatRoute(_previousLocation);
-    final useSlide = isChatRoute || wasChatRoute;
-    _previousLocation = location;
-
-    return Scaffold(
-      backgroundColor: context.colors.backgroundPrimary,
-      body: Column(
-        children: [
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              transitionBuilder: (child, animation) {
-                if (!useSlide) {
-                  return FadeTransition(opacity: animation, child: child);
-                }
-                final isContent = child.key == const ValueKey('content');
-                final offset =
-                    Tween<Offset>(
-                      begin: Offset(isContent ? 1.0 : -0.3, 0),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOutCubic,
-                      ),
-                    );
-                return SlideTransition(position: offset, child: child);
-              },
-              layoutBuilder: (currentChild, previousChildren) {
-                return Stack(children: [...previousChildren, ?currentChild]);
-              },
-              child: showSidebar
-                  ? SizedBox.expand(
-                      key: const ValueKey('sidebar'),
-                      child: _buildMobileSidebar(),
-                    )
-                  : GestureDetector(
-                      key: const ValueKey('content'),
-                      behavior: HitTestBehavior.translucent,
-                      onHorizontalDragEnd: isChatRoute
-                          ? (details) {
-                              final velocity = details.primaryVelocity;
-                              if (velocity != null && velocity > 400) {
-                                _navigateBack(context, location);
-                              }
-                            }
-                          : null,
-                      child: widget.child,
-                    ),
-            ),
-          ),
-          if (!isChatRoute) _buildBottomNavContent(context),
-        ],
-      ),
-    );
+    return _buildMobileBody();
   }
 
   Widget _buildDesktopBody() {
-    final isDm = ref.watch(
-      guildListViewModelProvider.select((s) => s.isDmActive),
-    );
+    final location = GoRouterState.of(context).matchedLocation;
+    final isDm = location.startsWith('/channels/@me');
 
     final layout = context.layout;
     final leftSidebarsWidth = layout.guildListWidth + layout.sidebarWidth;
@@ -154,16 +93,33 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
           thickness: 1,
           color: context.colors.backgroundModifierAccent,
         ),
-        Expanded(child: widget.child),
+        Expanded(child: widget.navigationShell),
       ],
     );
   }
 
-  Widget _buildMobileSidebar() {
-    final isDm = ref.watch(
-      guildListViewModelProvider.select((s) => s.isDmActive),
-    );
+  Widget _buildMobileBody() {
+    final location = GoRouterState.of(context).matchedLocation;
+    final showSidebar = _isRootRoute(location);
+    final isChatRoute = _isChatRoute(location);
 
+    return Scaffold(
+      backgroundColor: context.colors.backgroundPrimary,
+      body: Column(
+        children: [
+          Expanded(
+            child: showSidebar
+                ? _buildMobileSidebar(location)
+                : widget.navigationShell,
+          ),
+          if (!isChatRoute) _buildBottomNav(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileSidebar(String location) {
+    final isDm = location.startsWith('/channels/@me');
     return ColoredBox(
       color: context.colors.channelSidebarBackground,
       child: SafeArea(
@@ -177,44 +133,41 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
     );
   }
 
-  void _navigateBack(BuildContext context, String location) {
-    if (location.startsWith('/channels/@me/')) {
-      context.go('/channels/@me');
-    } else if (location.startsWith('/servers/')) {
-      context.go('/servers');
-    }
-  }
-
-  bool _showMobileSidebar(String location) =>
-      location == '/servers' || location == '/channels/@me';
-
-  bool _isMobileChatRoute(String location) {
-    if (location.startsWith('/servers/') && location.contains('/channels/')) {
+  bool _isRootRoute(String location) {
+    if (location == '/channels/@me') {
       return true;
     }
-    if (location.startsWith('/channels/@me/') && location != '/channels/@me') {
+    if (location == '/channels/@favorites') {
+      return true;
+    }
+    // /channels/:guildId exactly (no sub-path)
+    final guildRoot = RegExp(r'^/channels/[^@/][^/]*$');
+    if (guildRoot.hasMatch(location)) {
       return true;
     }
     return false;
   }
 
-  static const _tabPaths = ['/servers', '/notifications', '/profile'];
-
-  int _tabIndexForPath(String location) {
-    final index = _tabPaths.indexOf(location);
-    if (index >= 0) {
-      return index;
+  bool _isChatRoute(String location) {
+    if (location.startsWith('/channels/@me/') && location != '/channels/@me') {
+      return true;
     }
-    return 0;
+    if (location.startsWith('/channels/@favorites/') &&
+        location != '/channels/@favorites') {
+      return true;
+    }
+    final guildChat = RegExp(r'^/channels/[^@/][^/]*/[^/]+');
+    if (guildChat.hasMatch(location)) {
+      return true;
+    }
+    return false;
   }
-
-  static const _profileTabIndex = 2;
 
   Widget _buildProfileTabIcon({
     required UserSettingsViewState user,
     required int currentIndex,
   }) {
-    final isSelected = currentIndex == _profileTabIndex;
+    final isSelected = currentIndex == _youBranchIndex;
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),
       opacity: isSelected ? 1 : 0.5,
@@ -227,10 +180,9 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
     );
   }
 
-  Widget _buildBottomNavContent(BuildContext context) {
+  Widget _buildBottomNav(BuildContext context) {
     final user = ref.watch(userSettingsViewModelProvider);
-    final location = GoRouterState.of(context).matchedLocation;
-    final currentIndex = _tabIndexForPath(location);
+    final currentIndex = widget.navigationShell.currentIndex;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -243,7 +195,10 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
           ),
           child: BottomNavigationBar(
             currentIndex: currentIndex,
-            onTap: (index) => context.go(_tabPaths[index]),
+            onTap: (index) => widget.navigationShell.goBranch(
+              index,
+              initialLocation: index == currentIndex,
+            ),
             selectedItemColor: context.colors.textChat,
             unselectedItemColor: context.colors.textPrimaryMuted,
             items: [
