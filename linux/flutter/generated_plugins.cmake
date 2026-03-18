@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   flutter_inappwebview_linux
   flutter_webrtc
+  gtk
   livekit_client
   screen_retriever_linux
   sqlite3_flutter_libs
