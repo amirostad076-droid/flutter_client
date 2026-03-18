@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
+import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/presentation/login_screen.dart';
 import 'package:fluxeron/features/auth/presentation/mfa_screen.dart';
+import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/chat/presentation/channel_layout.dart';
 import 'package:fluxeron/features/dm/presentation/dm_layout.dart';
 import 'package:fluxeron/features/notifications/presentation/notifications_page.dart';
 import 'package:fluxeron/features/profile/presentation/profile_page.dart';
 import 'package:fluxeron/features/settings/presentation/guild_settings_modal.dart';
-import 'package:fluxeron/shared/widgets/splash_screen.dart';
-import 'package:fluxeron/shared/widgets/reconnecting_screen.dart';
 import 'package:fluxeron/shared/widgets/app_layout.dart';
+import 'package:fluxeron/shared/widgets/reconnecting_screen.dart';
+import 'package:fluxeron/shared/widgets/splash_screen.dart';
+import 'package:fluxeron/shared/widgets/stub_screen.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'fluxer_router.g.dart';
@@ -51,18 +55,6 @@ CustomTransitionPage<void> _slideTransitionPage({
   );
 }
 
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen(this.label);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: context.colors.backgroundSecondaryAlt,
-    body: Center(child: Text(label)),
-  );
-}
-
 @Riverpod(keepAlive: true)
 class AuthState extends _$AuthState {
   @override
@@ -94,7 +86,11 @@ class ServerReachable extends _$ServerReachable {
 }
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
+final _homeBranchKey = GlobalKey<NavigatorState>(debugLabel: 'home');
+final _notificationsBranchKey = GlobalKey<NavigatorState>(
+  debugLabel: 'notifications',
+);
+final _youBranchKey = GlobalKey<NavigatorState>(debugLabel: 'you');
 
 class _RouterRefreshNotifier extends ChangeNotifier {
   void notify() => notifyListeners();
@@ -132,7 +128,7 @@ GoRouter fluxerRouter(Ref ref) {
         if (!isReachable) {
           return '/reconnecting';
         }
-        return '/channels/@me';
+        return RoutePaths.me;
       }
 
       final isLoggingIn = location == '/login' || location == '/mfa';
@@ -145,12 +141,13 @@ GoRouter fluxerRouter(Ref ref) {
         return '/reconnecting';
       }
       if (isAuthenticated && isReachable && (isLoggingIn || isOnReconnecting)) {
-        return '/channels/@me';
+        return RoutePaths.me;
       }
 
       return null;
     },
     routes: [
+      // Auth / startup routes
       GoRoute(
         path: '/loading',
         builder: (context, state) => const SplashScreen(),
@@ -170,83 +167,223 @@ GoRouter fluxerRouter(Ref ref) {
         name: RouteNames.reconnecting,
         builder: (context, state) => const ReconnectingScreen(),
       ),
-      ShellRoute(
-        navigatorKey: _shellNavigatorKey,
-        builder: (context, state, child) => AppLayout(child: child),
-        routes: [
-          GoRoute(
-            path: '/servers',
-            name: RouteNames.servers,
-            pageBuilder: (context, state) => _fadeTransitionPage(
-              key: state.pageKey,
-              child: const _PlaceholderScreen('Select a channel'),
-            ),
+
+      // Deep link routes
+      GoRoute(
+        path: '/invite/:code',
+        name: RouteNames.invite,
+        redirect: (context, state) => RoutePaths.me, // TODO: show invite modal
+      ),
+      GoRoute(
+        path: '/gift/:code',
+        name: RouteNames.gift,
+        redirect: (context, state) => RoutePaths.me, // TODO: show gift modal
+      ),
+      GoRoute(
+        path: '/theme/:themeId',
+        name: RouteNames.themePreview,
+        redirect: (context, state) => RoutePaths.me, // TODO: show theme preview
+      ),
+
+      // Guild settings (pushed on root navigator)
+      GoRoute(
+        path: '/settings/guild/:guildId',
+        name: RouteNames.guildSettings,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) =>
+            GuildSettingsModal(serverId: state.pathParameters['guildId'] ?? ''),
+      ),
+
+      // Main app shell
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppLayout(navigationShell: navigationShell),
+        branches: [
+          // Branch 0: Home
+          StatefulShellBranch(
+            navigatorKey: _homeBranchKey,
             routes: [
+              // /channels/@me
               GoRoute(
-                path: ':serverId/channels/:channelId',
-                name: RouteNames.channel,
-                pageBuilder: (context, state) {
-                  final serverId = state.pathParameters['serverId'];
-                  final channelId = state.pathParameters['channelId'];
-                  if (serverId == null || channelId == null) {
-                    return _fadeTransitionPage(
-                      key: state.pageKey,
-                      child: const _PlaceholderScreen('Invalid route'),
-                    );
-                  }
-                  return _slideTransitionPage(
-                    key: state.pageKey,
-                    child: ChannelLayout(
-                      serverId: serverId,
-                      channelId: channelId,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          GoRoute(
-            path: '/channels/@me',
-            name: RouteNames.dms,
-            pageBuilder: (context, state) => _fadeTransitionPage(
-              key: state.pageKey,
-              child: const DMLayout(),
-            ),
-            routes: [
-              GoRoute(
-                path: ':dmId',
-                name: RouteNames.dmChat,
-                pageBuilder: (context, state) => _slideTransitionPage(
+                path: '/channels/@me',
+                name: RouteNames.dms,
+                pageBuilder: (context, state) => _fadeTransitionPage(
                   key: state.pageKey,
-                  child: DMLayout(channelId: state.pathParameters['dmId']),
+                  child: const DMLayout(),
+                ),
+                routes: [
+                  GoRoute(
+                    path: ':channelId',
+                    name: RouteNames.dmChannel,
+                    pageBuilder: (context, state) => _slideTransitionPage(
+                      key: state.pageKey,
+                      child: DMLayout(
+                        channelId: state.pathParameters['channelId'],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              // /channels/@favorites
+              GoRoute(
+                path: '/channels/@favorites',
+                name: RouteNames.favorites,
+                pageBuilder: (context, state) => _fadeTransitionPage(
+                  key: state.pageKey,
+                  child: const StubScreen(
+                    title: 'Favorites',
+                    icon: PhosphorIconsFill.star,
+                  ),
+                ),
+                routes: [
+                  GoRoute(
+                    path: ':channelId',
+                    name: RouteNames.favoritesChannel,
+                    pageBuilder: (context, state) => _slideTransitionPage(
+                      key: state.pageKey,
+                      child: const StubScreen(
+                        title: 'Favorites',
+                        icon: PhosphorIconsFill.star,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              // /channels/:guildId
+              GoRoute(
+                path: '/channels/:guildId',
+                name: RouteNames.guild,
+                redirect: (context, state) async {
+                  final guildId = state.pathParameters['guildId'];
+                  if (guildId == null) {
+                    return RoutePaths.me;
+                  }
+                  final db = ref.read(fluxerDatabaseProvider);
+                  final lastChannelId = await db.guildLastChannelDao
+                      .getLastChannel(guildId);
+                  if (lastChannelId != null) {
+                    return RoutePaths.guildChannel(guildId, lastChannelId);
+                  }
+                  final channelState = ref.read(channelListViewModelProvider);
+                  final firstChannel = channelState.categories
+                      .expand((c) => c.channels)
+                      .firstOrNull;
+                  if (firstChannel != null) {
+                    return RoutePaths.guildChannel(guildId, firstChannel.id);
+                  }
+                  return null;
+                },
+                pageBuilder: (context, state) => _fadeTransitionPage(
+                  key: state.pageKey,
+                  child: Scaffold(
+                    backgroundColor: context.colors.backgroundPrimary,
+                    body: const Center(child: Text('Select a channel')),
+                  ),
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'members',
+                    name: RouteNames.guildMembers,
+                    pageBuilder: (context, state) => _slideTransitionPage(
+                      key: state.pageKey,
+                      child: const StubScreen(
+                        title: 'Members',
+                        icon: PhosphorIconsFill.users,
+                      ),
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':channelId',
+                    name: RouteNames.channel,
+                    pageBuilder: (context, state) {
+                      final guildId = state.pathParameters['guildId']!;
+                      final channelId = state.pathParameters['channelId']!;
+                      return _slideTransitionPage(
+                        key: state.pageKey,
+                        child: ChannelLayout(
+                          serverId: guildId,
+                          channelId: channelId,
+                        ),
+                      );
+                    },
+                    routes: [
+                      GoRoute(
+                        path: ':messageId',
+                        name: RouteNames.message,
+                        pageBuilder: (context, state) {
+                          final guildId = state.pathParameters['guildId']!;
+                          final channelId = state.pathParameters['channelId']!;
+                          // TODO: Scroll to messageId
+                          return _slideTransitionPage(
+                            key: state.pageKey,
+                            child: ChannelLayout(
+                              serverId: guildId,
+                              channelId: channelId,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              // /bookmarks
+              GoRoute(
+                path: '/bookmarks',
+                name: RouteNames.bookmarks,
+                pageBuilder: (context, state) => _fadeTransitionPage(
+                  key: state.pageKey,
+                  child: const StubScreen(
+                    title: 'Bookmarks',
+                    icon: PhosphorIconsFill.bookmarkSimple,
+                  ),
+                ),
+              ),
+              // /mentions
+              GoRoute(
+                path: '/mentions',
+                name: RouteNames.mentions,
+                pageBuilder: (context, state) => _fadeTransitionPage(
+                  key: state.pageKey,
+                  child: const StubScreen(
+                    title: 'Mentions',
+                    icon: PhosphorIconsFill.at,
+                  ),
                 ),
               ),
             ],
           ),
-          GoRoute(
-            path: '/notifications',
-            name: RouteNames.notifications,
-            pageBuilder: (context, state) => _fadeTransitionPage(
-              key: state.pageKey,
-              child: const NotificationsPage(),
-            ),
+
+          // Branch 1: Notifications
+          StatefulShellBranch(
+            navigatorKey: _notificationsBranchKey,
+            routes: [
+              GoRoute(
+                path: '/notifications',
+                name: RouteNames.notifications,
+                pageBuilder: (context, state) => _fadeTransitionPage(
+                  key: state.pageKey,
+                  child: const NotificationsPage(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/profile',
-            name: RouteNames.profile,
-            pageBuilder: (context, state) => _fadeTransitionPage(
-              key: state.pageKey,
-              child: const ProfilePage(),
-            ),
+
+          // Branch 2: You
+          StatefulShellBranch(
+            navigatorKey: _youBranchKey,
+            routes: [
+              GoRoute(
+                path: '/you',
+                name: RouteNames.you,
+                pageBuilder: (context, state) => _fadeTransitionPage(
+                  key: state.pageKey,
+                  child: const ProfilePage(),
+                ),
+              ),
+            ],
           ),
         ],
-      ),
-      GoRoute(
-        path: '/settings/server/:serverId',
-        name: RouteNames.serverSettings,
-        builder: (context, state) => GuildSettingsModal(
-          serverId: state.pathParameters['serverId'] ?? '',
-        ),
       ),
     ],
   );
