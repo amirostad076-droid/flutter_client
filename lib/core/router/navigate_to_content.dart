@@ -1,15 +1,11 @@
-import 'dart:async';
-
 import 'package:flutter/widgets.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:go_router/go_router.dart';
 
-/// Navigates to [path] using push() on mobile (enables swipe-back gesture)
-/// and go() on desktop (replaces content in-place, sidebar persists).
+/// Navigates to [path] using go() which declaratively updates the route stack.
+///
+/// Using go() ensures the [StatefulShellRoute] builder receives the updated
+/// location. Child routes maintain the parent in the stack, so pop() and
+/// system back gestures still work on mobile.
 void navigateToContent(BuildContext context, String path) {
-  if (isMobileLayout(context)) {
-    unawaited(context.push(path));
-  } else {
-    context.go(path);
-  }
+  context.go(path);
 }

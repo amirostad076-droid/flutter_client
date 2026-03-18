@@ -13,6 +13,7 @@ import 'package:fluxeron/features/notifications/presentation/notifications_page.
 import 'package:fluxeron/features/profile/presentation/profile_page.dart';
 import 'package:fluxeron/features/settings/presentation/guild_settings_modal.dart';
 import 'package:fluxeron/shared/widgets/app_layout.dart';
+import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/reconnecting_screen.dart';
 import 'package:fluxeron/shared/widgets/splash_screen.dart';
 import 'package:fluxeron/shared/widgets/stub_screen.dart';
@@ -260,6 +261,11 @@ GoRouter fluxerRouter(Ref ref) {
                   final guildId = state.pathParameters['guildId'];
                   if (guildId == null) {
                     return RoutePaths.me;
+                  }
+                  // On mobile, show the channel sidebar instead of
+                  // auto-selecting a channel.
+                  if (isMobileLayout(context)) {
+                    return null;
                   }
                   final db = ref.read(fluxerDatabaseProvider);
                   final lastChannelId = await db.guildLastChannelDao

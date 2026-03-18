@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/router/route_state_providers.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/guild_sidebar.dart';
@@ -29,8 +30,44 @@ class AppLayout extends ConsumerStatefulWidget {
   ConsumerState<AppLayout> createState() => _AppLayoutState();
 }
 
-class _AppLayoutState extends ConsumerState<AppLayout> {
+class _AppLayoutState extends ConsumerState<AppLayout>
+    with SingleTickerProviderStateMixin {
   static const _youBranchIndex = 2;
+  static const _swipeThreshold = 0.35;
+  static final _rootRoutePattern = RegExp(r'^/channels/[^/]+$');
+  static final _chatRoutePattern = RegExp('^/channels/[^/]+/.+');
+  late final GoRouter _router;
+  late final AnimationController _swipeController;
+
+  @override
+  void initState() {
+    super.initState();
+    _router = ref.read(fluxerRouterProvider);
+    _router.routerDelegate.addListener(_onRouteChange);
+    _swipeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+  }
+
+  @override
+  void dispose() {
+    _swipeController.dispose();
+    _router.routerDelegate.removeListener(_onRouteChange);
+    super.dispose();
+  }
+
+  void _onRouteChange() {
+    if (mounted) {
+      _swipeController.value = 0;
+      setState(() {});
+    }
+  }
+
+  String get _currentLocation {
+    final config = _router.routerDelegate.currentConfiguration;
+    return config.isNotEmpty ? config.last.matchedLocation : '/';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +99,7 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
   }
 
   Widget _buildDesktopBody() {
-    final location = GoRouterState.of(context).matchedLocation;
+    final location = _currentLocation;
     final isDm = location.startsWith('/channels/@me');
 
     final layout = context.layout;
@@ -99,21 +136,103 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
   }
 
   Widget _buildMobileBody() {
-    final location = GoRouterState.of(context).matchedLocation;
+    final location = _currentLocation;
     final showSidebar = _isRootRoute(location);
-    final isChatRoute = _isChatRoute(location);
 
+    if (showSidebar) {
+      return Scaffold(
+        backgroundColor: context.colors.backgroundPrimary,
+        body: Column(
+          children: [
+            Expanded(child: _buildMobileSidebar(location)),
+            _buildBottomNav(context),
+          ],
+        ),
+      );
+    }
+
+    final isChatRoute = _isChatRoute(location);
     return Scaffold(
       backgroundColor: context.colors.backgroundPrimary,
-      body: Column(
-        children: [
-          Expanded(
-            child: showSidebar
-                ? _buildMobileSidebar(location)
-                : widget.navigationShell,
-          ),
-          if (!isChatRoute) _buildBottomNav(context),
-        ],
+      body: _buildSwipeableContent(location, showBottomNav: !isChatRoute),
+    );
+  }
+
+  Widget _buildSwipeableContent(
+    String location, {
+    required bool showBottomNav,
+  }) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        _swipeController.value =
+            (_swipeController.value + (details.primaryDelta ?? 0) / screenWidth)
+                .clamp(0.0, 1.0);
+      },
+      onHorizontalDragEnd: (details) {
+        final velocity = details.velocity.pixelsPerSecond.dx;
+        if (_swipeController.value > _swipeThreshold || velocity > 800) {
+          unawaited(
+            _swipeController.forward().then((_) {
+              if (mounted) {
+                context.pop();
+              }
+            }),
+          );
+        } else {
+          unawaited(_swipeController.reverse());
+        }
+      },
+      child: AnimatedBuilder(
+        animation: _swipeController,
+        builder: (context, child) {
+          if (_swipeController.value == 0) {
+            if (showBottomNav) {
+              return Column(
+                children: [
+                  Expanded(child: child!),
+                  _buildBottomNav(context),
+                ],
+              );
+            }
+            return child!;
+          }
+          final slideOffset = _swipeController.value * screenWidth;
+          Widget slidingContent = child!;
+          if (showBottomNav) {
+            slidingContent = Column(
+              children: [
+                Expanded(child: slidingContent),
+                _buildBottomNav(context),
+              ],
+            );
+          }
+          return Stack(
+            children: [
+              IgnorePointer(
+                child: Column(
+                  children: [
+                    Expanded(child: _buildMobileSidebar(location)),
+                    _buildBottomNav(context),
+                  ],
+                ),
+              ),
+              Positioned.fill(
+                child: ColoredBox(
+                  color: Colors.black.withValues(
+                    alpha: 0.5 * (1 - _swipeController.value),
+                  ),
+                ),
+              ),
+              Transform.translate(
+                offset: Offset(slideOffset, 0),
+                child: slidingContent,
+              ),
+            ],
+          );
+        },
+        child: widget.navigationShell,
       ),
     );
   }
@@ -133,35 +252,11 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
     );
   }
 
-  bool _isRootRoute(String location) {
-    if (location == '/channels/@me') {
-      return true;
-    }
-    if (location == '/channels/@favorites') {
-      return true;
-    }
-    // /channels/:guildId exactly (no sub-path)
-    final guildRoot = RegExp(r'^/channels/[^@/][^/]*$');
-    if (guildRoot.hasMatch(location)) {
-      return true;
-    }
-    return false;
-  }
+  /// Matches /channels/@me, /channels/@favorites, /channels/:guildId (no sub-path).
+  bool _isRootRoute(String location) => _rootRoutePattern.hasMatch(location);
 
-  bool _isChatRoute(String location) {
-    if (location.startsWith('/channels/@me/') && location != '/channels/@me') {
-      return true;
-    }
-    if (location.startsWith('/channels/@favorites/') &&
-        location != '/channels/@favorites') {
-      return true;
-    }
-    final guildChat = RegExp('^/channels/[^@/][^/]*/[^/]+');
-    if (guildChat.hasMatch(location)) {
-      return true;
-    }
-    return false;
-  }
+  /// Matches any /channels/:x/:y path (DM channel, guild channel, message).
+  bool _isChatRoute(String location) => _chatRoutePattern.hasMatch(location);
 
   Widget _buildProfileTabIcon({
     required UserSettingsViewState user,
