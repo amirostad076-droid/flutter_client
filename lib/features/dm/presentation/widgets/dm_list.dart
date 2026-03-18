@@ -289,11 +289,18 @@ class DMList extends ConsumerWidget {
       itemCount: convos.length + (isMobile ? 1 : 0),
       itemBuilder: (context, index) {
         if (isMobile && index == 0) {
-          return _buildMobilePersonalNotes(context, ref, userId);
+          return _buildMobilePersonalNotes(
+            context,
+            ref,
+            userId,
+            isSelected: selectedId == userId,
+          );
         }
+
         final convoIndex = isMobile ? index - 1 : index;
         final convo = convos[convoIndex];
         final isSelected = convo.id == selectedId;
+
         return _buildConvoTile(
           context,
           ref,
@@ -308,8 +315,9 @@ class DMList extends ConsumerWidget {
   Widget _buildMobilePersonalNotes(
     BuildContext context,
     WidgetRef ref,
-    String? userId,
-  ) => Material(
+    String? userId, {
+    required bool isSelected,
+  }) => Material(
     color: Colors.transparent,
     child: InkWell(
       onTap: () {
@@ -317,15 +325,32 @@ class DMList extends ConsumerWidget {
           navigateToContent(context, RoutePaths.dmChannel(userId));
         }
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Container(
+        margin: EdgeInsets.symmetric(
+          horizontal: context.layout.s2,
+          vertical: 1,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: context.layout.s2,
+          vertical: 5,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? context.colors.surfaceInteractiveSelectedBg.withValues(
+                  alpha: 0.15,
+                )
+              : Colors.transparent,
+          borderRadius: context.layout.radiusMd,
+        ),
         child: Row(
           children: [
             Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: context.colors.backgroundModifierAccent,
+                color: isSelected
+                    ? context.colors.brandPrimary
+                    : context.colors.backgroundModifierAccent,
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -419,7 +444,7 @@ class DMList extends ConsumerWidget {
           decoration: BoxDecoration(
             color: isSelected
                 ? context.colors.surfaceInteractiveSelectedBg.withValues(
-                    alpha: 0.35,
+                    alpha: 0.15,
                   )
                 : Colors.transparent,
             borderRadius: layout.radiusMd,
@@ -427,7 +452,11 @@ class DMList extends ConsumerWidget {
           child: Row(
             children: [
               if (c.isGroup)
-                _buildGroupAvatar(context, size: avatarSize)
+                _buildGroupAvatar(
+                  context,
+                  size: avatarSize,
+                  isSelected: isSelected,
+                )
               else
                 UserAvatar(
                   displayName: c.recipientName,
@@ -509,13 +538,19 @@ class DMList extends ConsumerWidget {
     );
   }
 
-  Widget _buildGroupAvatar(BuildContext context, {double size = 32}) {
+  Widget _buildGroupAvatar(
+    BuildContext context, {
+    double size = 32,
+    bool isSelected = false,
+  }) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: context.colors.backgroundModifierAccent,
+        color: isSelected
+            ? context.colors.brandPrimary
+            : context.colors.backgroundModifierAccent,
       ),
       alignment: Alignment.center,
       child: PhosphorIcon(
