@@ -83,14 +83,7 @@ class ChannelHeader extends ConsumerWidget {
             context,
             Icons.arrow_back,
             'Back',
-            onTap: () {
-              final location = GoRouterState.of(context).matchedLocation;
-              if (location.startsWith('/channels/@me/')) {
-                context.go('/channels/@me');
-              } else {
-                context.go('/servers');
-              }
-            },
+            onTap: () => context.pop(),
           ),
           _buildLeadingIcon(context, channel: channel, dm: dm),
           const SizedBox(width: 6),
