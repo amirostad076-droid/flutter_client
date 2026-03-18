@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/api/retry_interceptor.dart';
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
+import 'package:fluxeron/core/deep_links/deep_link_handler.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
 // import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
@@ -91,6 +92,9 @@ class AppStartup extends _$AppStartup {
 
     // TODO: Enable gateway once the IDENTIFY payload format is known.
     // unawaited(ref.read(gatewayClientProvider).connect(session.token));
+
+    ref.read(deepLinkHandlerProvider);
+    ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
 
     debugPrint(
       '[AppStartup] Session restored '
