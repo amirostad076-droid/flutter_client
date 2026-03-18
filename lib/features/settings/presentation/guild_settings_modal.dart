@@ -106,13 +106,7 @@ class _GuildSettingsModalState extends ConsumerState<GuildSettingsModal> {
   }
 
   Widget _buildCloseButton(BuildContext context) => InkWell(
-    onTap: () {
-      if (context.canPop()) {
-        context.pop();
-      } else {
-        context.go('/servers');
-      }
-    },
+    onTap: () => context.pop(),
     borderRadius: BorderRadius.circular(20),
     child: Container(
       width: 36,
