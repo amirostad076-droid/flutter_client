@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
+import 'package:fluxeron/core/router/channel_persistence_observer.dart';
 import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/presentation/login_screen.dart';
@@ -99,6 +100,7 @@ class _RouterRefreshNotifier extends ChangeNotifier {
 @Riverpod(keepAlive: true)
 GoRouter fluxerRouter(Ref ref) {
   final refreshNotifier = _RouterRefreshNotifier();
+  final db = ref.read(fluxerDatabaseProvider);
 
   ref
     ..listen(authStateProvider, (_, _) => refreshNotifier.notify())
@@ -109,6 +111,7 @@ GoRouter fluxerRouter(Ref ref) {
     navigatorKey: rootNavigatorKey,
     initialLocation: '/login',
     refreshListenable: refreshNotifier,
+    observers: [ChannelPersistenceObserver(db)],
     redirect: (context, state) {
       final location = state.matchedLocation;
       final isOnLoading = location == '/loading';
