@@ -6,6 +6,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxeron/core/database/daos/auth_session_dao.dart';
 import 'package:fluxeron/core/database/daos/emoji_usage_dao.dart';
+import 'package:fluxeron/core/database/daos/guild_last_channel_dao.dart';
 import 'package:fluxeron/core/database/daos/channel_dao.dart';
 import 'package:fluxeron/core/database/daos/dm_channel_dao.dart';
 import 'package:fluxeron/core/database/daos/member_dao.dart';
@@ -18,6 +19,7 @@ import 'package:fluxeron/core/database/daos/user_dao.dart';
 import 'package:fluxeron/core/database/daos/user_preferences_dao.dart';
 import 'package:fluxeron/core/database/tables/auth_sessions.dart';
 import 'package:fluxeron/core/database/tables/emoji_usage.dart';
+import 'package:fluxeron/core/database/tables/guild_last_channels.dart';
 import 'package:fluxeron/core/database/tables/channels.dart';
 import 'package:fluxeron/core/database/tables/dm_channels.dart';
 import 'package:fluxeron/core/database/tables/members.dart';
@@ -47,6 +49,7 @@ part 'fluxer_database.g.dart';
     ReadStates,
     UserPreferencesTable,
     EmojiUsage,
+    GuildLastChannels,
   ],
   daos: [
     AuthSessionDao,
@@ -61,6 +64,7 @@ part 'fluxer_database.g.dart';
     ReadStateDao,
     UserPreferencesDao,
     EmojiUsageDao,
+    GuildLastChannelDao,
   ],
 )
 class FluxerDatabase extends _$FluxerDatabase {
@@ -69,7 +73,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -129,6 +133,9 @@ class FluxerDatabase extends _$FluxerDatabase {
       if (from < 7) {
         await m.addColumn(servers, servers.featuresJson);
       }
+      if (from < 8) {
+        await m.createTable(guildLastChannels);
+      }
     },
   );
 
@@ -146,6 +153,7 @@ class FluxerDatabase extends _$FluxerDatabase {
       await userPreferencesDao.clearAll();
       await readStateDao.clearAll();
       await emojiUsageDao.clearAll();
+      await guildLastChannelDao.clearAll();
     });
   }
 
