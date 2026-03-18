@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:fluxeron/core/database/fluxer_database.dart';
 
@@ -28,7 +30,7 @@ class ChannelPersistenceObserver extends NavigatorObserver {
       final guildId = match.group(1)!;
       final channelId = match.group(2)!;
       if (channelId != 'members') {
-        db.guildLastChannelDao.setLastChannel(guildId, channelId);
+        unawaited(db.guildLastChannelDao.setLastChannel(guildId, channelId));
       }
     }
   }

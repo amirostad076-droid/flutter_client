@@ -11,34 +11,22 @@ class GuildListViewState {
   static const _unset = Object();
 
   final List<Guild> guilds;
-  final String? selectedGuildId;
-  final bool isDmActive;
-  final bool isFavoritesActive;
   final bool isLoading;
   final String? errorMessage;
 
   const GuildListViewState({
     required this.guilds,
-    required this.selectedGuildId,
-    required this.isDmActive,
-    required this.isFavoritesActive,
     required this.isLoading,
     required this.errorMessage,
   });
 
   GuildListViewState copyWith({
     List<Guild>? guilds,
-    String? selectedGuildId,
-    bool? isDmActive,
-    bool? isFavoritesActive,
     bool? isLoading,
     Object? errorMessage = _unset,
   }) {
     return GuildListViewState(
       guilds: guilds ?? this.guilds,
-      selectedGuildId: selectedGuildId ?? this.selectedGuildId,
-      isDmActive: isDmActive ?? this.isDmActive,
-      isFavoritesActive: isFavoritesActive ?? this.isFavoritesActive,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage == _unset
           ? this.errorMessage
@@ -70,9 +58,6 @@ class GuildListViewModel extends _$GuildListViewModel {
     unawaited(Future<void>.microtask(_loadGuilds));
     return const GuildListViewState(
       guilds: [],
-      selectedGuildId: null,
-      isDmActive: true,
-      isFavoritesActive: false,
       isLoading: true,
       errorMessage: null,
     );
@@ -89,22 +74,6 @@ class GuildListViewModel extends _$GuildListViewModel {
         errorMessage: 'Failed to load guilds',
       );
     }
-  }
-
-  void selectGuild(String guildId) {
-    state = state.copyWith(
-      selectedGuildId: guildId,
-      isDmActive: false,
-      isFavoritesActive: false,
-    );
-  }
-
-  void setDmActive() {
-    state = state.copyWith(isDmActive: true, isFavoritesActive: false);
-  }
-
-  void setFavoritesActive() {
-    state = state.copyWith(isFavoritesActive: true, isDmActive: false);
   }
 
   Future<void> refresh() => _loadGuilds();
