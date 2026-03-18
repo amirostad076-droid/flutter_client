@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
+import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/router/route_state_providers.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart';
 import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
-import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -27,7 +27,10 @@ class NativeTitlebar extends ConsumerWidget {
     final guilds = ref.watch(
       guildListViewModelProvider.select((s) => s.guilds),
     );
-    final location = GoRouterState.of(context).matchedLocation;
+    final router = ref.watch(fluxerRouterProvider);
+    final config = router.routerDelegate.currentConfiguration;
+    final location =
+        config.isNotEmpty ? config.last.matchedLocation : '/';
     final activeGuildId = ref.watch(activeGuildIdProvider);
     final title = _resolveTitle(guilds, location, activeGuildId);
 
