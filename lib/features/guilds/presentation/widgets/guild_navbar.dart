@@ -16,6 +16,7 @@ import 'package:fluxeron/features/guilds/presentation/'
 import 'package:fluxeron/features/guilds/presentation/'
     'widgets/guild_context_menu.dart';
 import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxeron/shared/widgets/unread_badge.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -31,6 +32,9 @@ class GuildNavbar extends ConsumerWidget {
     final isDm = vm.isDmActive;
     final pendingFriendCount =
         ref.watch(pendingFriendRequestCountProvider).value ?? 0;
+    final currentUserId = ref.watch(
+      userSettingsViewModelProvider.select((s) => s.userId),
+    );
 
     return Container(
       width: 72,
@@ -78,6 +82,7 @@ class GuildNavbar extends ConsumerWidget {
                     label: guild.name,
                     guild: guild,
                     isSelected: guild.id == selectedId && !isDm,
+                    isOwner: guild.ownerId == currentUserId,
                     iconUrl: guild.iconUrl,
                     hasUnread: unread?.hasUnread ?? false,
                     mentionCount: unread?.mentionCount ?? 0,
@@ -112,6 +117,7 @@ class _GuildListItem extends StatefulWidget {
   final String label;
   final Guild? guild;
   final bool isSelected;
+  final bool isOwner;
   final IconData? icon;
   final String? svgAsset;
   final VoidCallback onTap;
@@ -124,6 +130,7 @@ class _GuildListItem extends StatefulWidget {
     required this.onTap,
     this.guild,
     this.isSelected = false,
+    this.isOwner = false,
     this.icon,
     this.svgAsset,
     this.iconUrl,
@@ -209,11 +216,12 @@ class _GuildListItemState extends State<_GuildListItem> {
                   child: GestureDetector(
                     onTap: widget.onTap,
                     onSecondaryTapUp: widget.guild != null
-                        ? (details) =>
-                              _showContextMenu(context, details.globalPosition)
+                        ? (details) => unawaited(
+                            _showContextMenu(context, details.globalPosition),
+                          )
                         : null,
                     onLongPress: widget.guild != null
-                        ? () => _showActionSheet(context)
+                        ? () => unawaited(_showActionSheet(context))
                         : null,
                     child: SizedBox(
                       width: 48,
@@ -277,36 +285,80 @@ class _GuildListItemState extends State<_GuildListItem> {
     return name.substring(0, name.length.clamp(0, 2)).toUpperCase();
   }
 
-  void _showContextMenu(BuildContext context, Offset position) {
+  Future<void> _showContextMenu(BuildContext context, Offset position) async {
     if (widget.guild == null) {
       return;
     }
-    unawaited(
-      showGuildContextMenu(
-        context,
-        position: position,
-        guild: widget.guild!,
-        hasUnread: widget.hasUnread,
-      ),
+    final action = await showGuildContextMenu(
+      context,
+      position: position,
+      guild: widget.guild!,
+      hasUnread: widget.hasUnread,
+      isOwner: widget.isOwner,
     );
+    if (context.mounted && action != null) {
+      _handleAction(context, action);
+    }
   }
 
-  void _showActionSheet(BuildContext context) {
+  Future<void> _showActionSheet(BuildContext context) async {
     if (widget.guild == null) {
       return;
     }
     final isMobile = MediaQuery.of(context).size.width < Breakpoints.tablet;
-    if (isMobile) {
-      unawaited(
-        showGuildBottomSheet(
-          context,
-          guild: widget.guild!,
-          hasUnread: widget.hasUnread,
-        ),
-      );
-    } else {
-      // On desktop, long-press does nothing
-      // (right-click handles it)
+    if (!isMobile) {
+      return;
+    }
+    final action = await showGuildBottomSheet(
+      context,
+      guild: widget.guild!,
+      hasUnread: widget.hasUnread,
+      isOwner: widget.isOwner,
+    );
+    if (context.mounted && action != null) {
+      _handleAction(context, action);
+    }
+  }
+
+  void _handleAction(BuildContext context, GuildAction action) {
+    switch (action) {
+      case GuildAction.settingsOverview:
+      case GuildAction.settingsRoles:
+      case GuildAction.settingsEmoji:
+      case GuildAction.settingsStickers:
+      case GuildAction.settingsSafetyModeration:
+      case GuildAction.settingsActivityLog:
+      case GuildAction.settingsWebhooks:
+      case GuildAction.settingsCustomInviteUrl:
+      case GuildAction.settingsDiscovery:
+      case GuildAction.settingsMembers:
+      case GuildAction.settingsInviteLinks:
+      case GuildAction.settingsBans:
+        unawaited(context.push('/settings/server/${widget.guild!.id}'));
+      case GuildAction.copyGuildId:
+        break;
+      case GuildAction.markAsRead:
+      case GuildAction.inviteMembers:
+      case GuildAction.createChannel:
+      case GuildAction.createCategory:
+      case GuildAction.notificationSettings:
+      case GuildAction.privacySettings:
+      case GuildAction.editCommunityProfile:
+      case GuildAction.hideMutedChannels:
+      case GuildAction.leaveGuild:
+      case GuildAction.reportCommunity:
+      case GuildAction.debugCommunity:
+      case GuildAction.mute15Min:
+      case GuildAction.mute30Min:
+      case GuildAction.mute1Hour:
+      case GuildAction.mute3Hours:
+      case GuildAction.mute4Hours:
+      case GuildAction.mute8Hours:
+      case GuildAction.mute24Hours:
+      case GuildAction.mute3Days:
+      case GuildAction.muteForever:
+      case GuildAction.unmute:
+        break;
     }
   }
 }
