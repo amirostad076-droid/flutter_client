@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:go_router/go_router.dart';
@@ -6,7 +8,7 @@ import 'package:go_router/go_router.dart';
 /// and go() on desktop (replaces content in-place, sidebar persists).
 void navigateToContent(BuildContext context, String path) {
   if (isMobileLayout(context)) {
-    context.push(path);
+    unawaited(context.push(path));
   } else {
     context.go(path);
   }

@@ -31,7 +31,7 @@ class StubScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Coming soon',
-              style: context.textStyles.body.copyWith(
+              style: context.textStyles.bodyMedium.copyWith(
                 color: context.colors.textPrimaryMuted,
               ),
             ),
