@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/router/navigate_to_content.dart';
@@ -54,7 +56,7 @@ class GuildSidebar extends ConsumerWidget {
           onTap: () {
             final guildId = ref.read(activeGuildIdProvider);
             if (guildId != null) {
-              context.push(RoutePaths.guildSettingsPath(guildId));
+              unawaited(context.push(RoutePaths.guildSettingsPath(guildId)));
             }
           },
           child: Container(
