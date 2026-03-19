@@ -631,6 +631,7 @@ class _DMListState extends ConsumerState<DMList> {
               else
                 UserAvatar(
                   displayName: c.recipientName,
+                  userId: c.recipientId,
                   avatarUrl: _avatarUrl(c),
                   status: c.recipientStatus,
                   size: avatarSize,
@@ -1045,6 +1046,7 @@ class _DmBottomSheet extends StatelessWidget {
                       )
                     : UserAvatar(
                         displayName: convo.recipientName,
+                        userId: convo.recipientId,
                         avatarUrl: convo.recipientAvatar != null
                             ? '$fluxerMediaCdn'
                                   '/avatars/${convo.recipientId}/${convo.recipientAvatar}.png'

@@ -293,6 +293,7 @@ class _MessageItemState extends State<MessageItem> {
         padding: const EdgeInsets.only(top: 2),
         child: UserAvatar(
           displayName: msg.authorName,
+          userId: msg.authorId,
           avatarUrl: msg.authorAvatarUrl,
           avatarColor: msg.authorAvatarColor,
         ),

@@ -414,6 +414,7 @@ class FriendsList extends ConsumerWidget {
             children: [
               UserAvatar(
                 displayName: friend.displayName,
+                userId: friend.id,
                 avatarUrl: _friendAvatarUrl(friend),
                 avatarColor: friend.avatarColor,
                 status: friend.status,

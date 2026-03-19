@@ -162,6 +162,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
                     items: _items,
                     selectedIndex: _selectedIndex,
                     onSelected: _onItemSelected,
+                    userId: state.userId,
                     username: state.displayName,
                     avatarUrl: state.avatarUrl,
                     avatarColor: state.avatarColor,

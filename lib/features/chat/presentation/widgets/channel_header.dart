@@ -209,6 +209,7 @@ class ChannelHeader extends ConsumerWidget {
     if (dm != null) {
       return UserAvatar(
         displayName: dm.recipientName,
+        userId: dm.recipientId,
         avatarUrl: _dmAvatarUrl(dm),
         status: dm.recipientStatus,
         size: 28,

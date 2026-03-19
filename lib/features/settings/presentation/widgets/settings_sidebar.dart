@@ -8,6 +8,7 @@ class SettingsSidebar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
   final VoidCallback? onClose;
+  final String? userId;
   final String? username;
   final String? avatarUrl;
   final int? avatarColor;
@@ -17,6 +18,7 @@ class SettingsSidebar extends StatelessWidget {
     required this.selectedIndex,
     required this.onSelected,
     this.onClose,
+    this.userId,
     this.username,
     this.avatarUrl,
     this.avatarColor,
@@ -73,6 +75,7 @@ class SettingsSidebar extends StatelessWidget {
               children: [
                 UserAvatar(
                   displayName: username!,
+                  userId: userId ?? '',
                   avatarUrl: avatarUrl,
                   avatarColor: avatarColor,
                   size: 32,

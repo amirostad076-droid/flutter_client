@@ -268,6 +268,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
       opacity: isSelected ? 1 : 0.5,
       child: UserAvatar(
         displayName: user.displayName,
+        userId: user.userId,
         avatarUrl: user.avatarUrl,
         avatarColor: user.avatarColor,
         size: 24,

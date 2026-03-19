@@ -42,6 +42,7 @@ class UserArea extends ConsumerWidget {
                       children: [
                         UserAvatar(
                           displayName: user.displayName,
+                          userId: user.userId,
                           avatarUrl: user.avatarUrl,
                           avatarColor: user.avatarColor,
                           size: 36,

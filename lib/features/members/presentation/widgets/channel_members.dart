@@ -163,6 +163,7 @@ class _MemberListItemState extends State<_MemberListItem> {
                 children: [
                   UserAvatar(
                     displayName: member.displayName,
+                    userId: member.id,
                     avatarUrl: member.avatarUrl,
                     avatarColor: member.avatarColor,
                     roleColor: member.roleColor,

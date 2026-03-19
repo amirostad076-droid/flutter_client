@@ -5,8 +5,13 @@ import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart';
 
+/// Default avatar index: id % 6, matching the default avatar set
+const _kDefaultAvatarCount = 6;
+const _kStaticCdnUrl = 'https://fluxerstatic.com';
+
 class UserAvatar extends StatelessWidget {
   final String displayName;
+  final String userId;
   final String? avatarUrl;
   final int? avatarColor;
   final int? roleColor;
@@ -16,6 +21,7 @@ class UserAvatar extends StatelessWidget {
 
   const UserAvatar({
     required this.displayName,
+    required this.userId,
     this.avatarUrl,
     this.avatarColor,
     this.roleColor,
@@ -37,12 +43,21 @@ class UserAvatar extends StatelessWidget {
     }
     return UserAvatar(
       displayName: user.globalName ?? user.username,
+      userId: user.id,
       avatarUrl: url,
       avatarColor: user.avatarColor,
       status: user.status,
       size: size,
       showStatus: showStatus,
     );
+  }
+
+  String get _resolvedAvatarUrl {
+    if (avatarUrl != null) {
+      return avatarUrl!;
+    }
+    final index = BigInt.parse(userId) % BigInt.from(_kDefaultAvatarCount);
+    return '$_kStaticCdnUrl/avatars/$index.png';
   }
 
   @override
@@ -54,18 +69,15 @@ class UserAvatar extends StatelessWidget {
         CircleAvatar(
           radius: size / 2,
           backgroundColor: _backgroundColor,
-          child: avatarUrl != null
-              ? ClipOval(
-                  child: CachedNetworkImage(
-                    imageUrl: avatarUrl!,
-                    width: size,
-                    height: size,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, url, error) =>
-                        _buildInitial(context),
-                  ),
-                )
-              : _buildInitial(context),
+          child: ClipOval(
+            child: CachedNetworkImage(
+              imageUrl: _resolvedAvatarUrl,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorBuilder: (context, url, error) => _buildInitial(context),
+            ),
+          ),
         ),
         if (showStatus)
           Positioned(

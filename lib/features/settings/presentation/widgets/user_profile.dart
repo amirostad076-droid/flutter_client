@@ -53,6 +53,7 @@ class UserProfile extends StatelessWidget {
                             ),
                             child: UserAvatar(
                               displayName: userState.displayName,
+                              userId: userState.userId,
                               avatarUrl: userState.avatarUrl,
                               avatarColor: userState.avatarColor,
                               size: 80,
