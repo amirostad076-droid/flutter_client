@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/router/navigate_to_content.dart';
@@ -6,15 +9,42 @@ import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
+import 'package:fluxeron/features/friends/providers/friend_providers.dart';
+import 'package:fluxeron/shared/widgets/menu_bottom_sheet.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-class DMList extends ConsumerWidget {
+class DMList extends ConsumerStatefulWidget {
   const DMList({super.key});
 
-  void personalNote(WidgetRef ref, BuildContext context) {
+  @override
+  ConsumerState<DMList> createState() => _DMListState();
+}
+
+class _DMListState extends ConsumerState<DMList> {
+  bool _isSearching = false;
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+        _searchQuery = '';
+      }
+    });
+  }
+
+  void personalNote() {
     final userId = ref.read(currentUserIdProvider);
     if (userId != null) {
       navigateToContent(context, RoutePaths.dmChannel(userId));
@@ -22,93 +52,164 @@ class DMList extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final vm = ref.watch(dmViewModelProvider);
     final convos = vm.conversations;
     final location = GoRouterState.of(context).matchedLocation;
-    final mePrefix = '${RoutePaths.me}/';
+    const mePrefix = '${RoutePaths.me}/';
     final selectedId = location.startsWith(mePrefix)
         ? location.substring(mePrefix.length)
         : null;
 
     final isMobile = isMobileLayout(context);
 
+    final filteredConvos = _searchQuery.isEmpty
+        ? convos
+        : convos
+              .where(
+                (c) => c.displayName.toLowerCase().contains(
+                  _searchQuery.toLowerCase(),
+                ),
+              )
+              .toList();
+
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       color: context.colors.channelSidebarBackground,
-      child: Column(
+      child: Stack(
         children: [
-          if (isMobile)
-            _buildMobileHeader(context)
-          else ...[
-            _buildQuickSwitcher(context),
-            Divider(color: context.colors.borderColor, height: 1),
-            Builder(
-              builder: (context) {
-                final location = GoRouterState.of(context).matchedLocation;
-                final userId = ref.watch(currentUserIdProvider);
-                final isFriends = location == RoutePaths.me;
-                final isNotes =
-                    userId != null && location == RoutePaths.dmChannel(userId);
+          Column(
+            children: [
+              if (isMobile)
+                _isSearching
+                    ? _buildSearchHeader(context)
+                    : _buildMobileHeader(context)
+              else ...[
+                _buildQuickSwitcher(context),
+                Divider(color: context.colors.borderColor, height: 1),
+                Builder(
+                  builder: (context) {
+                    final location = GoRouterState.of(context).matchedLocation;
+                    final userId = ref.watch(currentUserIdProvider);
+                    final isFriends = location == RoutePaths.me;
+                    final isNotes =
+                        userId != null &&
+                        location == RoutePaths.dmChannel(userId);
 
-                return Padding(
-                  padding: const EdgeInsets.only(top: 7),
-                  child: Column(
-                    children: [
-                      _buildNavButton(
-                        context,
-                        icon: PhosphorIconsFill.users,
-                        label: 'Friends',
-                        isSelected: isFriends,
-                        onTap: () => context.go(RoutePaths.me),
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 7),
+                      child: Column(
+                        children: [
+                          _buildNavButton(
+                            context,
+                            icon: PhosphorIconsFill.users,
+                            label: 'Friends',
+                            isSelected: isFriends,
+                            onTap: () => context.go(RoutePaths.me),
+                          ),
+                          _buildNavButton(
+                            context,
+                            icon: PhosphorIconsFill.notePencil,
+                            label: 'Personal Notes',
+                            isSelected: isNotes,
+                            onTap: () {
+                              if (userId != null) {
+                                navigateToContent(
+                                  context,
+                                  RoutePaths.dmChannel(userId),
+                                );
+                              }
+                            },
+                          ),
+                          _buildNavButton(
+                            context,
+                            icon: PhosphorIconsFill.skull,
+                            label: 'Plutonium',
+                            onTap: () {},
+                          ),
+                        ],
                       ),
-                      _buildNavButton(
+                    );
+                  },
+                ),
+                Divider(color: context.colors.borderColor, height: 1),
+                _buildDmHeader(context),
+              ],
+              Expanded(
+                child: vm.isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: context.colors.brandPrimary,
+                        ),
+                      )
+                    : _buildConvoList(
                         context,
-                        icon: PhosphorIconsFill.notePencil,
-                        label: 'Personal Notes',
-                        isSelected: isNotes,
-                        onTap: () {
-                          if (userId != null) {
-                            navigateToContent(
-                              context,
-                              RoutePaths.dmChannel(userId),
-                            );
-                          }
-                        },
+                        filteredConvos,
+                        selectedId,
+                        isMobile: isMobile,
                       ),
-                      _buildNavButton(
-                        context,
-                        icon: PhosphorIconsFill.skull,
-                        label: 'Plutonium',
-                        onTap: () {},
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            Divider(color: context.colors.borderColor, height: 1),
-            _buildDmHeader(context),
-          ],
-          Expanded(
-            child: vm.isLoading
-                ? Center(
-                    child: CircularProgressIndicator(
-                      color: context.colors.brandPrimary,
-                    ),
-                  )
-                : _buildConvoList(
-                    context,
-                    ref,
-                    convos,
-                    selectedId,
-                    isMobile: isMobile,
-                  ),
+              ),
+            ],
           ),
+          if (isMobile && !_isSearching)
+            Positioned(
+              right: 16,
+              bottom: 16 + MediaQuery.of(context).padding.bottom,
+              child: _buildComposeFab(context),
+            ),
         ],
       ),
     );
   }
+
+  Widget _buildComposeFab(BuildContext context) => SizedBox(
+    width: 56,
+    height: 56,
+    child: FloatingActionButton(
+      onPressed: () => context.go(RoutePaths.me),
+      backgroundColor: context.colors.brandPrimary,
+      elevation: 4,
+      shape: const CircleBorder(),
+      child: PhosphorIcon(
+        PhosphorIconsFill.paperPlaneTilt,
+        size: 24,
+        color: context.colors.textPrimary,
+      ),
+    ),
+  );
+
+  Widget _buildSearchHeader(BuildContext context) => Container(
+    height: 48,
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    child: Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _searchController,
+            autofocus: true,
+            style: TextStyle(color: context.colors.textPrimary, fontSize: 16),
+            decoration: InputDecoration(
+              hintText: 'Search conversations...',
+              hintStyle: TextStyle(
+                color: context.colors.textPrimaryMuted,
+                fontSize: 16,
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              isDense: true,
+            ),
+            onChanged: (value) => setState(() => _searchQuery = value),
+          ),
+        ),
+        const SizedBox(width: 8),
+        _buildCircleButton(
+          context,
+          icon: PhosphorIconsBold.x,
+          onTap: _toggleSearch,
+        ),
+      ],
+    ),
+  );
 
   Widget _buildQuickSwitcher(BuildContext context) => Material(
     color: Colors.transparent,
@@ -215,69 +316,120 @@ class DMList extends ConsumerWidget {
     ),
   );
 
-  Widget _buildMobileHeader(BuildContext context) => Container(
-    height: 48,
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(
-            'Messages',
-            style: TextStyle(
-              color: context.colors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        IconButton(
-          icon: PhosphorIcon(
-            PhosphorIconsRegular.magnifyingGlass,
-            size: 22,
-            color: context.colors.interactiveNormal,
-          ),
-          onPressed: () {},
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-        ),
-        const SizedBox(width: 16),
-        InkWell(
-          onTap: () => context.go(RoutePaths.me),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: context.colors.backgroundModifierAccent,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                PhosphorIcon(
-                  PhosphorIconsFill.userPlus,
-                  size: 16,
-                  color: context.colors.textChat,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Add Friends',
-                  style: TextStyle(
-                    color: context.colors.textChat,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+  Widget _buildCircleButton(
+    BuildContext context, {
+    required IconData icon,
+    required VoidCallback onTap,
+  }) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: context.colors.backgroundModifierAccent,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: PhosphorIcon(icon, size: 18, color: context.colors.textPrimary),
     ),
   );
 
+  Widget _buildMobileHeader(BuildContext context) {
+    final pendingCount =
+        ref.watch(pendingFriendRequestCountProvider).value ?? 0;
+
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Messages',
+              style: TextStyle(
+                color: context.colors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          _buildCircleButton(
+            context,
+            icon: PhosphorIconsBold.magnifyingGlass,
+            onTap: _toggleSearch,
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () => context.go(RoutePaths.me),
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.colors.backgroundModifierAccent,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PhosphorIcon(
+                        PhosphorIconsFill.userPlus,
+                        size: 16,
+                        color: context.colors.textChat,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Add Friends',
+                        style: TextStyle(
+                          color: context.colors.textChat,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (pendingCount > 0)
+                  Positioned(
+                    top: -6,
+                    right: -6,
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: context.colors.statusDanger,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '$pendingCount',
+                        style: TextStyle(
+                          color: context.colors.textPrimary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          height: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildConvoList(
     BuildContext context,
-    WidgetRef ref,
     List<DmConversation> convos,
     String? selectedId, {
     required bool isMobile,
@@ -286,24 +438,22 @@ class DMList extends ConsumerWidget {
 
     return ListView.builder(
       padding: EdgeInsets.zero,
-      itemCount: convos.length + (isMobile ? 1 : 0),
+      itemCount: convos.length + (isMobile && !_isSearching ? 1 : 0),
       itemBuilder: (context, index) {
-        if (isMobile && index == 0) {
+        if (isMobile && !_isSearching && index == 0) {
           return _buildMobilePersonalNotes(
             context,
-            ref,
             userId,
             isSelected: selectedId == userId,
           );
         }
 
-        final convoIndex = isMobile ? index - 1 : index;
+        final convoIndex = isMobile && !_isSearching ? index - 1 : index;
         final convo = convos[convoIndex];
         final isSelected = convo.id == selectedId;
 
         return _buildConvoTile(
           context,
-          ref,
           convo: convo,
           isSelected: isSelected,
           isMobile: isMobile,
@@ -314,7 +464,6 @@ class DMList extends ConsumerWidget {
 
   Widget _buildMobilePersonalNotes(
     BuildContext context,
-    WidgetRef ref,
     String? userId, {
     required bool isSelected,
   }) => Material(
@@ -399,8 +548,7 @@ class DMList extends ConsumerWidget {
   }
 
   Widget _buildConvoTile(
-    BuildContext context,
-    WidgetRef ref, {
+    BuildContext context, {
     required bool isSelected,
     bool isMobile = false,
     DmConversation? convo,
@@ -429,6 +577,17 @@ class DMList extends ConsumerWidget {
     }
     final c = convo!;
     final layout = context.layout;
+    final hasUnread = c.unreadCount > 0;
+    final currentUserId = ref.watch(currentUserIdProvider);
+
+    String lastMessagePreview = c.lastMessage;
+    if (c.lastMessage.isNotEmpty && c.lastMessageAuthorName != null) {
+      final prefix = c.lastMessageAuthorId == currentUserId
+          ? 'You'
+          : c.lastMessageAuthorName!;
+      lastMessagePreview = '$prefix: ${c.lastMessage}';
+    }
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -437,6 +596,7 @@ class DMList extends ConsumerWidget {
         onTap: () {
           navigateToContent(context, RoutePaths.dmChannel(c.id));
         },
+        onLongPress: isMobile ? () => _showDmContextMenu(context, c) : null,
         child: Container(
           height: tileHeight,
           margin: EdgeInsets.symmetric(horizontal: layout.s2, vertical: 1),
@@ -451,6 +611,16 @@ class DMList extends ConsumerWidget {
           ),
           child: Row(
             children: [
+              if (hasUnread && !isSelected)
+                Container(
+                  width: 4,
+                  height: tileHeight * 0.5,
+                  margin: const EdgeInsets.only(right: 4),
+                  decoration: BoxDecoration(
+                    color: context.colors.textChat,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               if (c.isGroup)
                 _buildGroupAvatar(
                   context,
@@ -475,27 +645,15 @@ class DMList extends ConsumerWidget {
                       style: context.textStyles.username.copyWith(
                         color: isSelected
                             ? context.colors.surfaceInteractiveSelectedColor
-                            : c.unreadCount > 0
+                            : hasUnread
                             ? context.colors.textChat
                             : context.colors.textPrimaryMuted,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (c.isGroup)
+                    if (lastMessagePreview.isNotEmpty)
                       Text(
-                        '${c.memberCount} Members',
-                        style: TextStyle(
-                          color: context.colors.textPrimaryMuted.withValues(
-                            alpha: 0.85,
-                          ),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      )
-                    else if (c.lastMessage.isNotEmpty)
-                      Text(
-                        c.lastMessage,
+                        lastMessagePreview,
                         style: TextStyle(
                           color: context.colors.textPrimaryMuted.withValues(
                             alpha: 0.85,
@@ -509,33 +667,93 @@ class DMList extends ConsumerWidget {
                   ],
                 ),
               ),
-              if (c.unreadCount > 0)
-                Container(
-                  constraints: const BoxConstraints(
-                    minHeight: 20,
-                    minWidth: 20,
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: layout.s1),
-                  decoration: BoxDecoration(
-                    color: context.colors.statusDanger,
-                    borderRadius: layout.radiusFull,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '${c.unreadCount}',
-                    style: TextStyle(
-                      color: context.colors.textPrimary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      height: 1,
-                    ),
-                  ),
+              const SizedBox(width: 8),
+              Text(
+                _formatRelativeTime(c.lastMessageTime),
+                style: TextStyle(
+                  color: context.colors.textTertiary,
+                  fontSize: 11,
                 ),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _showDmContextMenu(
+    BuildContext context,
+    DmConversation convo,
+  ) async {
+    final action = await showStyledBottomSheet<_DmAction>(
+      context,
+      builder: (context) => _DmBottomSheet(convo: convo),
+    );
+
+    if (action == null || !mounted) {
+      return;
+    }
+
+    switch (action) {
+      case _DmAction.markAsRead:
+        unawaited(ref.read(dmViewModelProvider.notifier).markAsRead(convo.id));
+      case _DmAction.viewProfile:
+        // TODO(fluxeron): navigate to user profile sheet
+        break;
+      case _DmAction.voiceCall:
+        // TODO(fluxeron): initiate voice call
+        break;
+      case _DmAction.addNote:
+        // TODO(fluxeron): open add note sheet
+        break;
+      case _DmAction.muteToggle:
+        // TODO(fluxeron): implement mute toggle with duration picker
+        break;
+      case _DmAction.pinToggle:
+        // TODO(fluxeron): implement pin/unpin DM
+        break;
+      case _DmAction.editGroup:
+        // TODO(fluxeron): open edit group sheet
+        break;
+      case _DmAction.inviteToCommunity:
+        // TODO(fluxeron): open invite to community sheet
+        break;
+      case _DmAction.block:
+        // TODO(fluxeron): implement block/unblock user
+        break;
+      case _DmAction.closeDm:
+        unawaited(
+          ref.read(dmViewModelProvider.notifier).closeDmChannel(convo.id),
+        );
+      case _DmAction.copyUserId:
+        await Clipboard.setData(ClipboardData(text: convo.recipientId));
+      case _DmAction.copyChannelId:
+        await Clipboard.setData(ClipboardData(text: convo.id));
+    }
+  }
+
+  static String _formatRelativeTime(DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inSeconds < 60) {
+      return 'Now';
+    }
+    if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}m';
+    }
+    if (diff.inHours < 24) {
+      return '${diff.inHours}h';
+    }
+    if (diff.inDays < 7) {
+      return '${diff.inDays}d';
+    }
+    if (diff.inDays < 30) {
+      return '${diff.inDays ~/ 7}w';
+    }
+    if (diff.inDays < 365) {
+      return '${diff.inDays ~/ 30}mo';
+    }
+    return '${diff.inDays ~/ 365}y';
   }
 
   Widget _buildGroupAvatar(
@@ -642,5 +860,223 @@ class DMList extends ConsumerWidget {
     }
     return 'https://fluxerusercontent.com'
         '/avatars/${convo.recipientId}/$avatar.png';
+  }
+}
+
+enum _DmAction {
+  markAsRead,
+  viewProfile,
+  voiceCall,
+  addNote,
+  muteToggle,
+  pinToggle,
+  editGroup,
+  inviteToCommunity,
+  block,
+  closeDm,
+  copyUserId,
+  copyChannelId,
+}
+
+class _DmBottomSheet extends StatelessWidget {
+  final DmConversation convo;
+
+  const _DmBottomSheet({required this.convo});
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.layout;
+    final hasUnread = convo.unreadCount > 0;
+
+    void pop(_DmAction action) => Navigator.of(context).pop(action);
+
+    final groups = <Widget>[];
+
+    // Group 1: Mark as Read
+    if (hasUnread) {
+      groups.add(
+        MenuGroup(
+          children: [
+            MenuItem(
+              icon: PhosphorIconsFill.eye,
+              label: 'Mark as Read',
+              onTap: () => pop(_DmAction.markAsRead),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Group 2: Profile actions (1-on-1 DMs only)
+    if (!convo.isGroup) {
+      groups.add(
+        MenuGroup(
+          children: [
+            MenuItem(
+              icon: PhosphorIconsFill.user,
+              label: 'View Profile',
+              onTap: () => pop(_DmAction.viewProfile),
+            ),
+            MenuItem(
+              icon: PhosphorIconsFill.phone,
+              label: 'Voice Call',
+              onTap: () => pop(_DmAction.voiceCall),
+            ),
+            MenuItem(
+              icon: PhosphorIconsFill.notePencil,
+              label: 'Add Note',
+              onTap: () => pop(_DmAction.addNote),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Group 3: Mute & Pin (+ Edit Group for group DMs)
+    groups.add(
+      MenuGroup(
+        children: [
+          if (convo.isGroup)
+            MenuItem(
+              icon: PhosphorIconsFill.pencilSimple,
+              label: 'Edit Group',
+              onTap: () => pop(_DmAction.editGroup),
+            ),
+          MenuItem(
+            icon: PhosphorIconsFill.bellSlash,
+            label: 'Mute Conversation',
+            onTap: () => pop(_DmAction.muteToggle),
+          ),
+          MenuItem(
+            icon: PhosphorIconsFill.pushPin,
+            label: 'Pin DM',
+            onTap: () => pop(_DmAction.pinToggle),
+          ),
+        ],
+      ),
+    );
+
+    // Group 4: Relationship actions (1-on-1 DMs only)
+    if (!convo.isGroup) {
+      groups.add(
+        MenuGroup(
+          children: [
+            MenuItem(
+              icon: PhosphorIconsFill.usersThree,
+              label: 'Invite to Community',
+              onTap: () => pop(_DmAction.inviteToCommunity),
+            ),
+            MenuItem(
+              icon: PhosphorIconsFill.prohibit,
+              label: 'Block',
+              isDanger: true,
+              onTap: () => pop(_DmAction.block),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Group 5: Close / Leave (danger) + Group 6: Copy IDs
+    groups
+      ..add(
+        MenuGroup(
+          children: [
+            MenuItem(
+              icon: PhosphorIconsFill.xCircle,
+              label: convo.isGroup ? 'Leave Group' : 'Close DM',
+              isDanger: true,
+              onTap: () => pop(_DmAction.closeDm),
+            ),
+          ],
+        ),
+      )
+      ..add(
+        MenuGroup(
+          children: [
+            if (!convo.isGroup)
+              MenuItem(
+                icon: PhosphorIconsRegular.snowflake,
+                label: 'Copy User ID',
+                onTap: () => pop(_DmAction.copyUserId),
+              ),
+            MenuItem(
+              icon: PhosphorIconsRegular.snowflake,
+              label: 'Copy Channel ID',
+              onTap: () => pop(_DmAction.copyChannelId),
+            ),
+          ],
+        ),
+      );
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: convo.isGroup ? 0.45 : 0.7,
+      maxChildSize: 0.85,
+      builder: (context, scrollController) {
+        return SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: layout.s2),
+              const BottomSheetDragHandle(),
+              SizedBox(height: layout.s3),
+              BottomSheetHeader(
+                leading: convo.isGroup
+                    ? Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: context.colors.backgroundSecondaryAlt,
+                        ),
+                        alignment: Alignment.center,
+                        child: PhosphorIcon(
+                          PhosphorIconsFill.usersThree,
+                          size: 26,
+                          color: context.colors.interactiveNormal,
+                        ),
+                      )
+                    : UserAvatar(
+                        displayName: convo.recipientName,
+                        avatarUrl: convo.recipientAvatar != null
+                            ? 'https://fluxerusercontent.com'
+                                  '/avatars/${convo.recipientId}/${convo.recipientAvatar}.png'
+                            : null,
+                        status: convo.recipientStatus,
+                        size: 48,
+                      ),
+                title: convo.displayName,
+                subtitle: convo.isGroup
+                    ? Text(
+                        '${convo.memberCount} Members',
+                        style: context.textStyles.timestamp.copyWith(
+                          color: context.colors.textTertiary,
+                        ),
+                      )
+                    : null,
+              ),
+              SizedBox(height: layout.s3),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    layout.s4,
+                    0,
+                    layout.s4,
+                    layout.s4,
+                  ),
+                  children: [
+                    for (var i = 0; i < groups.length; i++) ...[
+                      groups[i],
+                      if (i < groups.length - 1) const SizedBox(height: 16),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

@@ -26,5 +26,26 @@ class DmChannelDao extends DatabaseAccessor<FluxerDatabase>
     });
   }
 
+  Future<void> updateLastMessage(
+    String channelId,
+    String message,
+    String authorId,
+    DateTime timestamp,
+  ) => (update(dmChannels)..where((d) => d.id.equals(channelId))).write(
+    DmChannelsCompanion(
+      lastMessage: Value(message),
+      lastMessageAuthorId: Value(authorId),
+      lastMessageTime: Value(timestamp),
+    ),
+  );
+
+  Future<void> markAsRead(String channelId) =>
+      (update(dmChannels)..where((d) => d.id.equals(channelId))).write(
+        const DmChannelsCompanion(unreadCount: Value(0)),
+      );
+
+  Future<void> deleteDmChannel(String channelId) =>
+      (delete(dmChannels)..where((d) => d.id.equals(channelId))).go();
+
   Future<void> clearAll() => delete(dmChannels).go();
 }

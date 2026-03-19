@@ -10,6 +10,8 @@ class DmConversation {
   final String? name;
   final int recipientCount;
   final String lastMessage;
+  final String? lastMessageAuthorId;
+  final String? lastMessageAuthorName;
   final DateTime lastMessageTime;
   final int unreadCount;
 
@@ -20,6 +22,8 @@ class DmConversation {
     required this.recipientName,
     required this.lastMessage,
     required this.lastMessageTime,
+    this.lastMessageAuthorId,
+    this.lastMessageAuthorName,
     this.name,
     this.recipientAvatar,
     this.recipientStatus = 'offline',
@@ -33,7 +37,11 @@ class DmConversation {
 
   int get memberCount => recipientCount;
 
-  factory DmConversation.fromRow(db.DmChannel row, db.User? recipient) {
+  factory DmConversation.fromRow(
+    db.DmChannel row,
+    db.User? recipient, {
+    db.User? lastMessageAuthor,
+  }) {
     return DmConversation(
       id: row.id,
       type: row.type,
@@ -44,6 +52,9 @@ class DmConversation {
       name: row.name,
       recipientCount: row.recipientCount,
       lastMessage: row.lastMessage,
+      lastMessageAuthorId: row.lastMessageAuthorId,
+      lastMessageAuthorName:
+          lastMessageAuthor?.globalName ?? lastMessageAuthor?.username,
       lastMessageTime: row.lastMessageTime,
       unreadCount: row.unreadCount,
     );

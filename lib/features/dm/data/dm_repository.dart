@@ -26,12 +26,23 @@ class DmRepository {
 
   Stream<List<DmConversation>> watchDmChannels() {
     return _db.dmChannelDao.watchDmChannels().asyncMap((rows) async {
-      final userIds = rows.map((r) => r.recipientId).toList();
-      final users = await _db.userDao.getUsersByIds(userIds);
+      final userIds = <String>{
+        ...rows.map((r) => r.recipientId),
+        ...rows.map((r) => r.lastMessageAuthorId).whereType<String>(),
+      };
+      final users = await _db.userDao.getUsersByIds(userIds.toList());
       final userMap = {for (final u in users) u.id: u};
 
       return rows
-          .map((row) => DmConversation.fromRow(row, userMap[row.recipientId]))
+          .map(
+            (row) => DmConversation.fromRow(
+              row,
+              userMap[row.recipientId],
+              lastMessageAuthor: row.lastMessageAuthorId != null
+                  ? userMap[row.lastMessageAuthorId]
+                  : null,
+            ),
+          )
           .toList();
     });
   }
@@ -78,17 +89,36 @@ class DmRepository {
       await _db.dmChannelDao.upsertDmChannels(companions);
 
       final rows = await _db.dmChannelDao.getDmChannels();
-      final userIds = rows.map((r) => r.recipientId).toList();
-      final users = await _db.userDao.getUsersByIds(userIds);
+      final userIds = <String>{
+        ...rows.map((r) => r.recipientId),
+        ...rows.map((r) => r.lastMessageAuthorId).whereType<String>(),
+      };
+      final users = await _db.userDao.getUsersByIds(userIds.toList());
       final userMap = {for (final u in users) u.id: u};
 
       return rows
-          .map((row) => DmConversation.fromRow(row, userMap[row.recipientId]))
+          .map(
+            (row) => DmConversation.fromRow(
+              row,
+              userMap[row.recipientId],
+              lastMessageAuthor: row.lastMessageAuthorId != null
+                  ? userMap[row.lastMessageAuthorId]
+                  : null,
+            ),
+          )
           .toList();
     } on DioException catch (e) {
       throw Exception(
         e.response?.statusMessage ?? 'Failed to fetch DM channels',
       );
     }
+  }
+
+  Future<void> markAsRead(String channelId) =>
+      _db.dmChannelDao.markAsRead(channelId);
+
+  Future<void> closeDmChannel(String channelId) async {
+    await _client.getChannelsApi().deleteChannel(channelId: channelId);
+    await _db.dmChannelDao.deleteDmChannel(channelId);
   }
 }

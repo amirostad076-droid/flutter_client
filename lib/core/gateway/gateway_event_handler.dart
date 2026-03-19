@@ -68,6 +68,21 @@ class GatewayEventHandler {
     if (companion != null) {
       unawaited(database.messageDao.upsertMessage(companion));
     }
+
+    final channelId = data['channel_id'] as String?;
+    final authorId = author?['id'] as String?;
+    final content = data['content'] as String?;
+    final timestamp = data['timestamp'] as String?;
+    if (channelId != null && authorId != null && timestamp != null) {
+      unawaited(
+        database.dmChannelDao.updateLastMessage(
+          channelId,
+          content ?? '',
+          authorId,
+          DateTime.parse(timestamp),
+        ),
+      );
+    }
   }
 
   void _handleMessageUpdate(Map<String, dynamic> data) {

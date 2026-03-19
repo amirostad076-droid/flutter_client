@@ -170,4 +170,15 @@ class DmViewModel extends _$DmViewModel {
   void updateSearch(String query) {
     state = state.copyWith(searchQuery: query);
   }
+
+  Future<void> markAsRead(String channelId) =>
+      ref.read(dmRepositoryProvider).markAsRead(channelId);
+
+  Future<void> closeDmChannel(String channelId) async {
+    try {
+      await ref.read(dmRepositoryProvider).closeDmChannel(channelId);
+    } on Exception catch (e) {
+      debugPrint('[DmViewModel] Failed to close DM: $e');
+    }
+  }
 }

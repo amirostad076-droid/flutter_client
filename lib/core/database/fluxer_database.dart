@@ -73,7 +73,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -135,6 +135,9 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 8) {
         await m.createTable(guildLastChannels);
+      }
+      if (from < 9) {
+        await m.addColumn(dmChannels, dmChannels.lastMessageAuthorId);
       }
     },
   );
