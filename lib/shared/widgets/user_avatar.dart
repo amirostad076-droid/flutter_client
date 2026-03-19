@@ -56,7 +56,7 @@ class UserAvatar extends StatelessWidget {
     if (avatarUrl != null) {
       return avatarUrl!;
     }
-    final index = BigInt.parse(userId) % BigInt.from(_kDefaultAvatarCount);
+    final index = userId.hashCode.abs() % _kDefaultAvatarCount;
     return '$_kStaticCdnUrl/avatars/$index.png';
   }
 
