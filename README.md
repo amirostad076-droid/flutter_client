@@ -30,3 +30,7 @@ Riverpod generated files are not committed, so you need to generate them before 
 ``
 dart run build_runner build --delete-conflicting-outputs
 ``
+
+### API
+
+The Flutter client uses the [dart_sdk](https://github.com/fluxerapp/dart_sdk) to send requests to the Fluxer API.
