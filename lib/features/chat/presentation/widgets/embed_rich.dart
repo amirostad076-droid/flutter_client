@@ -1,10 +1,10 @@
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:fluxeron/features/chat/presentation/widgets/embed_shared.dart';
 
-/// A rich embed card -- colored side bar, title,
-/// description, fields, thumbnail.
+/// A rich embed card
 class EmbedRich extends StatelessWidget {
   final Embed embed;
 
@@ -13,19 +13,23 @@ class EmbedRich extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sideColor = embed.color != null
-        ? Color(embed.color!)
+        ? Color(0xFF000000 | (embed.color! & 0xFFFFFF))
         : context.colors.backgroundSecondaryAlt;
+
+    final hasThumbnail = embed.thumbnail != null &&
+        embed.type != EmbedType.image &&
+        embed.type != EmbedType.gifv;
 
     return Container(
       margin: const EdgeInsets.only(top: 4),
-      constraints: const BoxConstraints(maxWidth: 520),
+      constraints: const BoxConstraints(maxWidth: 440),
       decoration: BoxDecoration(
         color: context.colors.embedBackground,
         border: Border(left: BorderSide(color: sideColor, width: 4)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -38,141 +42,173 @@ class EmbedRich extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
                         embed.providerName!,
-                        style: context.textStyles.embedFooter.copyWith(
-                          fontSize: 12,
-                        ),
+                        style: context.textStyles.embedFooter
+                            .copyWith(fontSize: 12),
                       ),
                     ),
-                  if (embed.authorName != null)
+                  if (embed.author != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
-                        children: [
-                          if (embed.authorIconUrl != null) ...[
-                            CircleAvatar(
-                              radius: 10,
-                              backgroundColor:
-                                  context.colors.backgroundSecondaryAlt,
-                              child: PhosphorIcon(
-                                PhosphorIconsFill.person,
-                                size: 12,
-                                color: context.colors.textPrimaryMuted,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(
-                            embed.authorName!,
-                            style: TextStyle(
-                              color: context.colors.textPrimary,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: EmbedAuthorRow(author: embed.author!),
                     ),
                   if (embed.title != null)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        embed.title!,
-                        style: context.textStyles.embedTitle,
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: EmbedTitle(
+                        title: embed.title!,
+                        url: embed.url,
                       ),
                     ),
                   if (embed.description != null)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 6),
                       child: Text(
                         embed.description!,
                         style: context.textStyles.embedDescription,
                       ),
                     ),
-                  if (embed.fields.isNotEmpty) _buildFields(context),
-                  if (embed.footerText != null) _buildFooter(context),
+                  if (embed.fields.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: _EmbedFields(fields: embed.fields),
+                    ),
+                  if (embed.image != null && !hasThumbnail)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      child: _EmbedMediaImage(media: embed.image!),
+                    ),
+                  if (embed.footer != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: EmbedFooterRow(
+                        footer: embed.footer!,
+                        timestamp: embed.timestamp,
+                      ),
+                    ),
                 ],
               ),
             ),
-            if (embed.thumbnailUrl != null)
-              Padding(
-                padding: const EdgeInsets.only(left: 16),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: context.colors.backgroundSecondaryAlt,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Center(
-                    child: PhosphorIcon(
-                      PhosphorIconsFill.image,
-                      color: context.colors.textPrimaryMuted,
-                      size: 32,
-                    ),
-                  ),
+            if (hasThumbnail) ...[
+              const SizedBox(width: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: CachedNetworkImage(
+                  imageUrl:
+                      embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
+                  width: 72,
+                  height: 72,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, e, _s) => const SizedBox.shrink(),
                 ),
               ),
+            ],
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildFields(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Wrap(
-      spacing: 16,
-      runSpacing: 8,
-      children: embed.fields
-          .map(
-            (field) => SizedBox(
-              width: field.isInline ? 140 : double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    field.name,
-                    style: TextStyle(
-                      color: context.colors.textPrimaryMuted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    field.value,
-                    style: TextStyle(
-                      color: context.colors.textChat,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
-    ),
-  );
+class _EmbedFields extends StatelessWidget {
+  final List<EmbedField> fields;
 
-  Widget _buildFooter(BuildContext context) => Row(
-    children: [
-      if (embed.footerIconUrl != null) ...[
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: context.colors.backgroundSecondaryAlt,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: PhosphorIcon(
-            PhosphorIconsFill.info,
-            size: 10,
-            color: context.colors.textPrimaryMuted,
+  const _EmbedFields({required this.fields});
+
+  @override
+  Widget build(BuildContext context) {
+    // inline fields: up to 3 per row; block fields always start a new row
+    final rows = <List<EmbedField>>[];
+    var current = <EmbedField>[];
+
+    for (final f in fields) {
+      if (!f.isInline) {
+        if (current.isNotEmpty) {
+          rows.add(current);
+          current = [];
+        }
+        rows.add([f]);
+      } else {
+        current.add(f);
+        if (current.length == 3) {
+          rows.add(current);
+          current = [];
+        }
+      }
+    }
+    if (current.isNotEmpty) rows.add(current);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: rows.map((row) {
+        if (row.length == 1 && !row[0].isInline) {
+          return _EmbedFieldTile(field: row[0]);
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: row
+              .map((f) => Expanded(child: _EmbedFieldTile(field: f)))
+              .toList(),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _EmbedFieldTile extends StatelessWidget {
+  final EmbedField field;
+
+  const _EmbedFieldTile({required this.field});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 6, right: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          field.name,
+          style: TextStyle(
+            color: context.colors.textPrimary,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(height: 2),
+        Text(
+          field.value,
+          style: TextStyle(color: context.colors.textChat, fontSize: 13),
+        ),
       ],
-      Text(embed.footerText!, style: context.textStyles.embedFooter),
-    ],
+    ),
   );
+}
+
+class _EmbedMediaImage extends StatelessWidget {
+  final EmbedMedia media;
+
+  const _EmbedMediaImage({required this.media});
+
+  @override
+  Widget build(BuildContext context) {
+    const maxW = 400.0;
+    final w = media.width?.toDouble();
+    final h = media.height?.toDouble();
+    double? displayW;
+    double? displayH;
+    if (w != null && h != null && w > 0) {
+      displayW = w.clamp(0, maxW);
+      displayH = h * (displayW / w);
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: CachedNetworkImage(
+        imageUrl: media.proxyUrl ?? media.url,
+        width: displayW,
+        height: displayH,
+        fit: BoxFit.cover,
+        errorBuilder: (_, e, _s) => const SizedBox.shrink(),
+      ),
+    );
+  }
 }

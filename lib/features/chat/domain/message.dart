@@ -6,7 +6,107 @@ import 'package:fluxer_dart/fluxer_dart.dart';
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/features/guilds/domain/guild.dart';
 
-enum EmbedType { rich, image, link, video }
+enum EmbedType { rich, image, gifv, link, video }
+
+class EmbedAuthor {
+  final String name;
+  final String? url;
+  final String? iconUrl;
+  final String? proxyIconUrl;
+
+  const EmbedAuthor({
+    required this.name,
+    this.url,
+    this.iconUrl,
+    this.proxyIconUrl,
+  });
+
+  factory EmbedAuthor.fromSdk(EmbedAuthorResponse sdk) => EmbedAuthor(
+    name: sdk.name,
+    url: sdk.url,
+    iconUrl: sdk.iconUrl,
+    proxyIconUrl: sdk.proxyIconUrl,
+  );
+
+  factory EmbedAuthor.fromJson(Map<String, dynamic> json) => EmbedAuthor(
+    name: json['name'] as String? ?? '',
+    url: json['url'] as String?,
+    iconUrl: json['iconUrl'] as String?,
+    proxyIconUrl: json['proxyIconUrl'] as String?,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'url': url,
+    'iconUrl': iconUrl,
+    'proxyIconUrl': proxyIconUrl,
+  };
+}
+
+class EmbedFooter {
+  final String text;
+  final String? iconUrl;
+  final String? proxyIconUrl;
+
+  const EmbedFooter({
+    required this.text,
+    this.iconUrl,
+    this.proxyIconUrl,
+  });
+
+  factory EmbedFooter.fromSdk(EmbedFooterResponse sdk) => EmbedFooter(
+    text: sdk.text,
+    iconUrl: sdk.iconUrl,
+    proxyIconUrl: sdk.proxyIconUrl,
+  );
+
+  factory EmbedFooter.fromJson(Map<String, dynamic> json) => EmbedFooter(
+    text: json['text'] as String? ?? '',
+    iconUrl: json['iconUrl'] as String?,
+    proxyIconUrl: json['proxyIconUrl'] as String?,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'text': text,
+    'iconUrl': iconUrl,
+    'proxyIconUrl': proxyIconUrl,
+  };
+}
+
+class EmbedMedia {
+  final String url;
+  final String? proxyUrl;
+  final int? width;
+  final int? height;
+
+  const EmbedMedia({
+    required this.url,
+    this.proxyUrl,
+    this.width,
+    this.height,
+  });
+
+  factory EmbedMedia.fromSdk(EmbedMediaResponse sdk) => EmbedMedia(
+    url: sdk.url,
+    proxyUrl: sdk.proxyUrl,
+    width: sdk.width,
+    height: sdk.height,
+  );
+
+  factory EmbedMedia.fromJson(Map<String, dynamic> json) => EmbedMedia(
+    url: json['url'] as String? ?? '',
+    proxyUrl: json['proxyUrl'] as String?,
+    width: json['width'] as int?,
+    height: json['height'] as int?,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'url': url,
+    'proxyUrl': proxyUrl,
+    'width': width,
+    'height': height,
+  };
+}
 
 class EmbedField {
   final String name;
@@ -19,17 +119,14 @@ class EmbedField {
     this.isInline = false,
   });
 
-  factory EmbedField.fromSdk(EmbedFieldResponse sdk) {
-    return EmbedField(name: sdk.name, value: sdk.value, isInline: sdk.inline);
-  }
+  factory EmbedField.fromSdk(EmbedFieldResponse sdk) =>
+      EmbedField(name: sdk.name, value: sdk.value, isInline: sdk.inline);
 
-  factory EmbedField.fromJson(Map<String, dynamic> json) {
-    return EmbedField(
-      name: json['name'] as String? ?? '',
-      value: json['value'] as String? ?? '',
-      isInline: json['inline'] as bool? ?? false,
-    );
-  }
+  factory EmbedField.fromJson(Map<String, dynamic> json) => EmbedField(
+    name: json['name'] as String? ?? '',
+    value: json['value'] as String? ?? '',
+    isInline: json['inline'] as bool? ?? false,
+  );
 
   Map<String, dynamic> toJson() => {
     'name': name,
@@ -44,14 +141,13 @@ class Embed {
   final String? description;
   final String? url;
   final int? color;
-  final String? thumbnailUrl;
-  final String? imageUrl;
-  final String? videoUrl;
+  final String? timestamp;
+  final EmbedAuthor? author;
+  final EmbedFooter? footer;
+  final EmbedMedia? thumbnail;
+  final EmbedMedia? image;
+  final EmbedMedia? video;
   final List<EmbedField> fields;
-  final String? footerText;
-  final String? footerIconUrl;
-  final String? authorName;
-  final String? authorIconUrl;
   final String? providerName;
 
   const Embed({
@@ -60,58 +156,62 @@ class Embed {
     this.description,
     this.url,
     this.color,
-    this.thumbnailUrl,
-    this.imageUrl,
-    this.videoUrl,
+    this.timestamp,
+    this.author,
+    this.footer,
+    this.thumbnail,
+    this.image,
+    this.video,
     this.fields = const [],
-    this.footerText,
-    this.footerIconUrl,
-    this.authorName,
-    this.authorIconUrl,
     this.providerName,
   });
 
-  factory Embed.fromSdk(MessageEmbedResponse sdk) {
-    return Embed(
-      type: _parseEmbedType(sdk.type),
-      title: sdk.title,
-      description: sdk.description,
-      url: sdk.url,
-      color: sdk.color,
-      thumbnailUrl: sdk.thumbnail?.url,
-      imageUrl: sdk.image?.url,
-      videoUrl: sdk.video?.url,
-      fields: sdk.fields?.map(EmbedField.fromSdk).toList() ?? const [],
-      footerText: sdk.footer?.text,
-      footerIconUrl: sdk.footer?.iconUrl,
-      authorName: sdk.author?.name,
-      authorIconUrl: sdk.author?.iconUrl,
-      providerName: sdk.provider?.name,
-    );
-  }
+  factory Embed.fromSdk(MessageEmbedResponse sdk) => Embed(
+    type: _parseEmbedType(sdk.type),
+    title: sdk.title,
+    description: sdk.description,
+    url: sdk.url,
+    color: sdk.color,
+    timestamp: sdk.timestamp?.toIso8601String(),
+    author: sdk.author != null ? EmbedAuthor.fromSdk(sdk.author!) : null,
+    footer: sdk.footer != null ? EmbedFooter.fromSdk(sdk.footer!) : null,
+    thumbnail: sdk.thumbnail != null
+        ? EmbedMedia.fromSdk(sdk.thumbnail!)
+        : null,
+    image: sdk.image != null ? EmbedMedia.fromSdk(sdk.image!) : null,
+    video: sdk.video != null ? EmbedMedia.fromSdk(sdk.video!) : null,
+    fields: sdk.fields?.map(EmbedField.fromSdk).toList() ?? const [],
+    providerName: sdk.provider?.name,
+  );
 
-  factory Embed.fromJson(Map<String, dynamic> json) {
-    return Embed(
-      type: _parseEmbedType(json['type'] as String? ?? 'rich'),
-      title: json['title'] as String?,
-      description: json['description'] as String?,
-      url: json['url'] as String?,
-      color: json['color'] as int?,
-      thumbnailUrl: json['thumbnailUrl'] as String?,
-      imageUrl: json['imageUrl'] as String?,
-      videoUrl: json['videoUrl'] as String?,
-      fields:
-          (json['fields'] as List<dynamic>?)
-              ?.map((e) => EmbedField.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      footerText: json['footerText'] as String?,
-      footerIconUrl: json['footerIconUrl'] as String?,
-      authorName: json['authorName'] as String?,
-      authorIconUrl: json['authorIconUrl'] as String?,
-      providerName: json['providerName'] as String?,
-    );
-  }
+  factory Embed.fromJson(Map<String, dynamic> json) => Embed(
+    type: _parseEmbedType(json['type'] as String? ?? 'rich'),
+    title: json['title'] as String?,
+    description: json['description'] as String?,
+    url: json['url'] as String?,
+    color: json['color'] as int?,
+    timestamp: json['timestamp'] as String?,
+    author: json['author'] != null
+        ? EmbedAuthor.fromJson(json['author'] as Map<String, dynamic>)
+        : null,
+    footer: json['footer'] != null
+        ? EmbedFooter.fromJson(json['footer'] as Map<String, dynamic>)
+        : null,
+    thumbnail: json['thumbnail'] != null
+        ? EmbedMedia.fromJson(json['thumbnail'] as Map<String, dynamic>)
+        : null,
+    image: json['image'] != null
+        ? EmbedMedia.fromJson(json['image'] as Map<String, dynamic>)
+        : null,
+    video: json['video'] != null
+        ? EmbedMedia.fromJson(json['video'] as Map<String, dynamic>)
+        : null,
+    fields: (json['fields'] as List<dynamic>?)
+            ?.map((e) => EmbedField.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        const [],
+    providerName: json['providerName'] as String?,
+  );
 
   Map<String, dynamic> toJson() => {
     'type': type.name,
@@ -119,29 +219,23 @@ class Embed {
     'description': description,
     'url': url,
     'color': color,
-    'thumbnailUrl': thumbnailUrl,
-    'imageUrl': imageUrl,
-    'videoUrl': videoUrl,
+    'timestamp': timestamp,
+    'author': author?.toJson(),
+    'footer': footer?.toJson(),
+    'thumbnail': thumbnail?.toJson(),
+    'image': image?.toJson(),
+    'video': video?.toJson(),
     'fields': fields.map((f) => f.toJson()).toList(),
-    'footerText': footerText,
-    'footerIconUrl': footerIconUrl,
-    'authorName': authorName,
-    'authorIconUrl': authorIconUrl,
     'providerName': providerName,
   };
 
-  static EmbedType _parseEmbedType(String type) {
-    switch (type) {
-      case 'image':
-        return EmbedType.image;
-      case 'link':
-        return EmbedType.link;
-      case 'video':
-        return EmbedType.video;
-      default:
-        return EmbedType.rich;
-    }
-  }
+  static EmbedType _parseEmbedType(String type) => switch (type) {
+    'image' => EmbedType.image,
+    'gifv' => EmbedType.gifv,
+    'link' => EmbedType.link,
+    'video' => EmbedType.video,
+    _ => EmbedType.rich,
+  };
 }
 
 class Attachment {

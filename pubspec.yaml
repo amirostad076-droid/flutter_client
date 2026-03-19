@@ -34,6 +34,7 @@ dependencies:
   talker: ^5.1.15
   talker_dio_logger: ^5.1.15
   app_links: ^7.0.0
+  url_launcher: ^6.3.2
   flutter_thumbhash: ^0.1.0+1
   skeletonizer: ^2.1.3
 

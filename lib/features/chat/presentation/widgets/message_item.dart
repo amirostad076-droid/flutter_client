@@ -347,7 +347,7 @@ class _MessageItemState extends State<MessageItem> {
     padding: const EdgeInsets.only(top: 2),
     child: switch (embed.type) {
       EmbedType.rich => EmbedRich(embed: embed),
-      EmbedType.image => EmbedImage(embed: embed),
+      EmbedType.image || EmbedType.gifv => EmbedImage(embed: embed),
       EmbedType.link => EmbedLink(embed: embed),
       EmbedType.video => EmbedVideo(embed: embed),
     },
