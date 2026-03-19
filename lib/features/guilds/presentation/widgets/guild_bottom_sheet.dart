@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,7 +34,7 @@ Future<GuildAction?> showGuildBottomSheet(
   return result;
 }
 
-class _GuildBottomSheet extends StatefulWidget {
+class _GuildBottomSheet extends StatelessWidget {
   final Guild guild;
   final bool hasUnread;
   final bool isMuted;
@@ -46,98 +48,15 @@ class _GuildBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<_GuildBottomSheet> createState() => _GuildBottomSheetState();
-}
-
-class _GuildBottomSheetState extends State<_GuildBottomSheet> {
-  String? _activeSubmenu;
-
-  @override
   Widget build(BuildContext context) {
     final layout = context.layout;
-
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: _activeSubmenu != null ? 0.5 : 0.7,
-      maxChildSize: 0.85,
-      builder: (context, scrollController) {
-        return SafeArea(
-          child: Column(
-            children: [
-              SizedBox(height: layout.s2),
-              const BottomSheetDragHandle(),
-              SizedBox(height: layout.s3),
-              if (_activeSubmenu != null)
-                _buildSubmenuHeader()
-              else
-                _buildGuildHeader(),
-              SizedBox(height: layout.s3),
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: EdgeInsets.fromLTRB(
-                    layout.s4,
-                    0,
-                    layout.s4,
-                    layout.s4,
-                  ),
-                  children: [
-                    if (_activeSubmenu != null)
-                      _buildSubmenuContent()
-                    else
-                      _buildMainContent(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Headers
-  // ---------------------------------------------------------------------------
-
-  Widget _buildGuildHeader() {
-    return BottomSheetHeader(
-      leading: _GuildAvatar(guild: widget.guild),
-      title: widget.guild.name,
-      subtitle: _GuildStats(guild: widget.guild),
-    );
-  }
-
-  Widget _buildSubmenuHeader() {
-    final String title;
-    switch (_activeSubmenu) {
-      case 'communitySettings':
-        title = 'Community Settings';
-      case 'mute':
-        title = 'Mute Community';
-      default:
-        title = '';
-    }
-
-    return BottomSheetSubmenuHeader(
-      title: title,
-      onBack: () => setState(() => _activeSubmenu = null),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Main menu content
-  // ---------------------------------------------------------------------------
-
-  Widget _buildMainContent() {
     void pop(GuildAction action) => Navigator.of(context).pop(action);
-    final isOwner = widget.isOwner;
 
     final groups = <Widget>[
       // Group 1: Quick Actions
       MenuGroup(
         children: [
-          if (widget.hasUnread)
+          if (hasUnread)
             MenuItem(
               label: 'Mark as Read',
               icon: PhosphorIconsFill.eye,
@@ -151,7 +70,7 @@ class _GuildBottomSheetState extends State<_GuildBottomSheet> {
           if (isOwner) ...[
             MenuSubmenuItem(
               label: 'Community Settings',
-              onTap: () => setState(() => _activeSubmenu = 'communitySettings'),
+              onTap: () => _openSettingsSheet(context),
             ),
             MenuItem(
               label: 'Create Channel',
@@ -192,8 +111,8 @@ class _GuildBottomSheetState extends State<_GuildBottomSheet> {
       MenuGroup(
         children: [
           MenuSubmenuItem(
-            label: widget.isMuted ? 'Unmute Community' : 'Mute Community',
-            onTap: () => setState(() => _activeSubmenu = 'mute'),
+            label: isMuted ? 'Unmute Community' : 'Mute Community',
+            onTap: () => _openMuteSheet(context),
           ),
           MenuCheckboxItem(
             label: 'Hide Muted Channels',
@@ -239,135 +158,272 @@ class _GuildBottomSheetState extends State<_GuildBottomSheet> {
       ),
     ];
 
-    return MenuGroupColumn(children: groups);
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.7,
+      maxChildSize: 0.85,
+      builder: (context, scrollController) {
+        return SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: layout.s2),
+              const BottomSheetDragHandle(),
+              SizedBox(height: layout.s3),
+              BottomSheetHeader(
+                leading: _GuildAvatar(guild: guild),
+                title: guild.name,
+                subtitle: _GuildStats(guild: guild),
+              ),
+              SizedBox(height: layout.s3),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    layout.s4,
+                    0,
+                    layout.s4,
+                    layout.s4,
+                  ),
+                  children: [MenuGroupColumn(children: groups)],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
-  // ---------------------------------------------------------------------------
-  // Submenu content
-  // ---------------------------------------------------------------------------
+  void _openSettingsSheet(BuildContext context) {
+    final nav = Navigator.of(context);
+    unawaited(
+      showStyledBottomSheet<GuildAction>(
+        context,
+        builder: (_) => const _GuildSettingsSheet(),
+      ).then((result) {
+        if (result != null) {
+          nav.pop(result);
+        }
+      }),
+    );
+  }
 
-  Widget _buildSubmenuContent() {
+  void _openMuteSheet(BuildContext context) {
+    final nav = Navigator.of(context);
+    unawaited(
+      showStyledBottomSheet<GuildAction>(
+        context,
+        builder: (_) => _GuildMuteSheet(isMuted: isMuted),
+      ).then((result) {
+        if (result != null) {
+          nav.pop(result);
+        }
+      }),
+    );
+  }
+}
+
+class _GuildSettingsSheet extends StatelessWidget {
+  const _GuildSettingsSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.layout;
     void pop(GuildAction action) => Navigator.of(context).pop(action);
 
-    switch (_activeSubmenu) {
-      case 'communitySettings':
-        return MenuGroupColumn(
-          children: [
-            MenuGroup(
-              children: [
-                MenuItem(
-                  label: 'General',
-                  onTap: () => pop(GuildAction.settingsOverview),
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.6,
+      maxChildSize: 0.85,
+      builder: (context, scrollController) {
+        return SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: layout.s2),
+              const BottomSheetDragHandle(),
+              SizedBox(height: layout.s3),
+              BottomSheetSubmenuHeader(
+                title: 'Community Settings',
+                onBack: () => Navigator.of(context).pop(),
+              ),
+              SizedBox(height: layout.s3),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    layout.s4,
+                    0,
+                    layout.s4,
+                    layout.s4,
+                  ),
+                  children: [
+                    MenuGroupColumn(
+                      children: [
+                        MenuGroup(
+                          children: [
+                            MenuItem(
+                              label: 'General',
+                              onTap: () => pop(GuildAction.settingsOverview),
+                            ),
+                            MenuItem(
+                              label: 'Roles & Permissions',
+                              onTap: () => pop(GuildAction.settingsRoles),
+                            ),
+                            MenuItem(
+                              label: 'Custom Emoji',
+                              onTap: () => pop(GuildAction.settingsEmoji),
+                            ),
+                            MenuItem(
+                              label: 'Custom Stickers',
+                              onTap: () => pop(GuildAction.settingsStickers),
+                            ),
+                            MenuItem(
+                              label: 'Safety & Moderation',
+                              onTap: () =>
+                                  pop(GuildAction.settingsSafetyModeration),
+                            ),
+                            MenuItem(
+                              label: 'Activity Log',
+                              onTap: () => pop(GuildAction.settingsActivityLog),
+                            ),
+                            MenuItem(
+                              label: 'Webhooks',
+                              onTap: () => pop(GuildAction.settingsWebhooks),
+                            ),
+                            MenuItem(
+                              label: 'Custom Invite URL',
+                              onTap: () =>
+                                  pop(GuildAction.settingsCustomInviteUrl),
+                            ),
+                            MenuItem(
+                              label: 'Discovery',
+                              onTap: () => pop(GuildAction.settingsDiscovery),
+                            ),
+                          ],
+                        ),
+                        MenuGroup(
+                          children: [
+                            MenuItem(
+                              label: 'Members',
+                              onTap: () => pop(GuildAction.settingsMembers),
+                            ),
+                            MenuItem(
+                              label: 'Invite Links',
+                              onTap: () => pop(GuildAction.settingsInviteLinks),
+                            ),
+                            MenuItem(
+                              label: 'Bans',
+                              onTap: () => pop(GuildAction.settingsBans),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                MenuItem(
-                  label: 'Roles & Permissions',
-                  onTap: () => pop(GuildAction.settingsRoles),
-                ),
-                MenuItem(
-                  label: 'Custom Emoji',
-                  onTap: () => pop(GuildAction.settingsEmoji),
-                ),
-                MenuItem(
-                  label: 'Custom Stickers',
-                  onTap: () => pop(GuildAction.settingsStickers),
-                ),
-                MenuItem(
-                  label: 'Safety & Moderation',
-                  onTap: () => pop(GuildAction.settingsSafetyModeration),
-                ),
-                MenuItem(
-                  label: 'Activity Log',
-                  onTap: () => pop(GuildAction.settingsActivityLog),
-                ),
-                MenuItem(
-                  label: 'Webhooks',
-                  onTap: () => pop(GuildAction.settingsWebhooks),
-                ),
-                MenuItem(
-                  label: 'Custom Invite URL',
-                  onTap: () => pop(GuildAction.settingsCustomInviteUrl),
-                ),
-                MenuItem(
-                  label: 'Discovery',
-                  onTap: () => pop(GuildAction.settingsDiscovery),
-                ),
-              ],
-            ),
-            MenuGroup(
-              children: [
-                MenuItem(
-                  label: 'Members',
-                  onTap: () => pop(GuildAction.settingsMembers),
-                ),
-                MenuItem(
-                  label: 'Invite Links',
-                  onTap: () => pop(GuildAction.settingsInviteLinks),
-                ),
-                MenuItem(
-                  label: 'Bans',
-                  onTap: () => pop(GuildAction.settingsBans),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         );
+      },
+    );
+  }
+}
 
-      case 'mute':
-        return MenuGroupColumn(
-          children: [
-            MenuGroup(
-              children: widget.isMuted
-                  ? [
-                      MenuItem(
-                        label: 'Unmute Community',
-                        onTap: () => pop(GuildAction.unmute),
-                      ),
-                    ]
-                  : [
-                      MenuItem(
-                        label: 'For 15 minutes',
-                        onTap: () => pop(GuildAction.mute15Min),
-                      ),
-                      MenuItem(
-                        label: 'For 30 minutes',
-                        onTap: () => pop(GuildAction.mute30Min),
-                      ),
-                      MenuItem(
-                        label: 'For 1 hour',
-                        onTap: () => pop(GuildAction.mute1Hour),
-                      ),
-                      MenuItem(
-                        label: 'For 3 hours',
-                        onTap: () => pop(GuildAction.mute3Hours),
-                      ),
-                      MenuItem(
-                        label: 'For 4 hours',
-                        onTap: () => pop(GuildAction.mute4Hours),
-                      ),
-                      MenuItem(
-                        label: 'For 8 hours',
-                        onTap: () => pop(GuildAction.mute8Hours),
-                      ),
-                      MenuItem(
-                        label: 'For 24 hours',
-                        onTap: () => pop(GuildAction.mute24Hours),
-                      ),
-                      MenuItem(
-                        label: 'For 3 days',
-                        onTap: () => pop(GuildAction.mute3Days),
-                      ),
-                      MenuItem(
-                        label: 'Until I turn it back on',
-                        onTap: () => pop(GuildAction.muteForever),
-                      ),
-                    ],
-            ),
-          ],
+class _GuildMuteSheet extends StatelessWidget {
+  final bool isMuted;
+
+  const _GuildMuteSheet({required this.isMuted});
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.layout;
+    void pop(GuildAction action) => Navigator.of(context).pop(action);
+
+    return DraggableScrollableSheet(
+      expand: false,
+      maxChildSize: 0.85,
+      builder: (context, scrollController) {
+        return SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: layout.s2),
+              const BottomSheetDragHandle(),
+              SizedBox(height: layout.s3),
+              BottomSheetSubmenuHeader(
+                title: isMuted ? 'Unmute Community' : 'Mute Community',
+                onBack: () => Navigator.of(context).pop(),
+              ),
+              SizedBox(height: layout.s3),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    layout.s4,
+                    0,
+                    layout.s4,
+                    layout.s4,
+                  ),
+                  children: [
+                    MenuGroupColumn(
+                      children: [
+                        MenuGroup(
+                          children: isMuted
+                              ? [
+                                  MenuItem(
+                                    label: 'Unmute Community',
+                                    onTap: () => pop(GuildAction.unmute),
+                                  ),
+                                ]
+                              : [
+                                  MenuItem(
+                                    label: 'For 15 minutes',
+                                    onTap: () => pop(GuildAction.mute15Min),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 30 minutes',
+                                    onTap: () => pop(GuildAction.mute30Min),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 1 hour',
+                                    onTap: () => pop(GuildAction.mute1Hour),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 3 hours',
+                                    onTap: () => pop(GuildAction.mute3Hours),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 4 hours',
+                                    onTap: () => pop(GuildAction.mute4Hours),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 8 hours',
+                                    onTap: () => pop(GuildAction.mute8Hours),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 24 hours',
+                                    onTap: () => pop(GuildAction.mute24Hours),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 3 days',
+                                    onTap: () => pop(GuildAction.mute3Days),
+                                  ),
+                                  MenuItem(
+                                    label: 'Until I turn it back on',
+                                    onTap: () => pop(GuildAction.muteForever),
+                                  ),
+                                ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         );
-
-      default:
-        return const SizedBox.shrink();
-    }
+      },
+    );
   }
 }
 

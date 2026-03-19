@@ -11,6 +11,7 @@ import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/features/friends/providers/friend_providers.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart' show fluxerMediaCdn;
+import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxeron/shared/widgets/menu_bottom_sheet.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
@@ -632,7 +633,7 @@ class _DMListState extends ConsumerState<DMList> {
                 UserAvatar(
                   displayName: c.recipientName,
                   userId: c.recipientId,
-                  avatarUrl: _avatarUrl(c),
+                  avatarUrl: _dmAvatarUrl(c),
                   status: c.recipientStatus,
                   size: avatarSize,
                 ),
@@ -689,15 +690,21 @@ class _DMListState extends ConsumerState<DMList> {
     DmConversation convo,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
-    final action = await showStyledBottomSheet<_DmAction>(
+    final result = await showStyledBottomSheet<Object>(
       context,
-      builder: (context) => _DmBottomSheet(convo: convo),
+      builder: (context) => _DmBottomSheet(convo: convo, isMuted: false),
     );
 
-    if (action == null || !mounted) {
+    if (result == null || !mounted) {
       return;
     }
 
+    if (result is _InviteToGuildAction) {
+      // TODO(fluxeron): send invite for guild ${result.guildId} in DM
+      return;
+    }
+
+    final action = result as _DmAction;
     switch (action) {
       case _DmAction.markAsRead:
         unawaited(ref.read(dmViewModelProvider.notifier).markAsRead(convo.id));
@@ -710,17 +717,23 @@ class _DMListState extends ConsumerState<DMList> {
       case _DmAction.addNote:
         // TODO(fluxeron): open add note sheet
         break;
-      case _DmAction.muteToggle:
-        // TODO(fluxeron): implement mute toggle with duration picker
+      case _DmAction.mute15Min:
+      case _DmAction.mute30Min:
+      case _DmAction.mute1Hour:
+      case _DmAction.mute3Hours:
+      case _DmAction.mute4Hours:
+      case _DmAction.mute8Hours:
+      case _DmAction.mute24Hours:
+      case _DmAction.mute3Days:
+      case _DmAction.muteForever:
+      case _DmAction.unmute:
+        // TODO(fluxeron): implement mute/unmute with selected duration
         break;
       case _DmAction.pinToggle:
         // TODO(fluxeron): implement pin/unpin DM
         break;
       case _DmAction.editGroup:
         // TODO(fluxeron): open edit group sheet
-        break;
-      case _DmAction.inviteToCommunity:
-        // TODO(fluxeron): open invite to community sheet
         break;
       case _DmAction.block:
         // TODO(fluxeron): implement block/unblock user
@@ -860,15 +873,15 @@ class _DMListState extends ConsumerState<DMList> {
       ),
     ),
   );
+}
 
-  String? _avatarUrl(DmConversation convo) {
-    final avatar = convo.recipientAvatar;
-    if (avatar == null) {
-      return null;
-    }
-    return '$fluxerMediaCdn'
-        '/avatars/${convo.recipientId}/$avatar.png';
+String? _dmAvatarUrl(DmConversation convo) {
+  final avatar = convo.recipientAvatar;
+  if (avatar == null) {
+    return null;
   }
+  return '$fluxerMediaCdn'
+      '/avatars/${convo.recipientId}/$avatar.png';
 }
 
 enum _DmAction {
@@ -876,27 +889,41 @@ enum _DmAction {
   viewProfile,
   voiceCall,
   addNote,
-  muteToggle,
+  mute15Min,
+  mute30Min,
+  mute1Hour,
+  mute3Hours,
+  mute4Hours,
+  mute8Hours,
+  mute24Hours,
+  mute3Days,
+  muteForever,
+  unmute,
   pinToggle,
   editGroup,
-  inviteToCommunity,
   block,
   closeDm,
   copyUserId,
   copyChannelId,
 }
 
+class _InviteToGuildAction {
+  final String guildId;
+  const _InviteToGuildAction(this.guildId);
+}
+
 class _DmBottomSheet extends StatelessWidget {
   final DmConversation convo;
+  final bool isMuted;
 
-  const _DmBottomSheet({required this.convo});
+  const _DmBottomSheet({required this.convo, required this.isMuted});
 
   @override
   Widget build(BuildContext context) {
     final layout = context.layout;
     final hasUnread = convo.unreadCount > 0;
 
-    void pop(_DmAction action) => Navigator.of(context).pop(action);
+    void pop(Object action) => Navigator.of(context).pop(action);
 
     final groups = <Widget>[];
 
@@ -950,10 +977,9 @@ class _DmBottomSheet extends StatelessWidget {
               label: 'Edit Group',
               onTap: () => pop(_DmAction.editGroup),
             ),
-          MenuItem(
-            icon: PhosphorIconsFill.bellSlash,
-            label: 'Mute Conversation',
-            onTap: () => pop(_DmAction.muteToggle),
+          MenuSubmenuItem(
+            label: isMuted ? 'Unmute Conversation' : 'Mute Conversation',
+            onTap: () => _openMuteSheet(context),
           ),
           MenuItem(
             icon: PhosphorIconsFill.pushPin,
@@ -969,10 +995,9 @@ class _DmBottomSheet extends StatelessWidget {
       groups.add(
         MenuGroup(
           children: [
-            MenuItem(
-              icon: PhosphorIconsFill.usersThree,
+            MenuSubmenuItem(
               label: 'Invite to Community',
-              onTap: () => pop(_DmAction.inviteToCommunity),
+              onTap: () => _openInviteSheet(context),
             ),
             MenuItem(
               icon: PhosphorIconsFill.prohibit,
@@ -1047,10 +1072,7 @@ class _DmBottomSheet extends StatelessWidget {
                     : UserAvatar(
                         displayName: convo.recipientName,
                         userId: convo.recipientId,
-                        avatarUrl: convo.recipientAvatar != null
-                            ? '$fluxerMediaCdn'
-                                  '/avatars/${convo.recipientId}/${convo.recipientAvatar}.png'
-                            : null,
+                        avatarUrl: _dmAvatarUrl(convo),
                         status: convo.recipientStatus,
                         size: 48,
                       ),
@@ -1075,6 +1097,202 @@ class _DmBottomSheet extends StatelessWidget {
                     layout.s4,
                   ),
                   children: [MenuGroupColumn(children: groups)],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _openMuteSheet(BuildContext context) {
+    final nav = Navigator.of(context);
+    unawaited(
+      showStyledBottomSheet<_DmAction>(
+        context,
+        builder: (_) => _DmMuteSheet(isMuted: isMuted),
+      ).then((result) {
+        if (result != null) {
+          nav.pop(result);
+        }
+      }),
+    );
+  }
+
+  void _openInviteSheet(BuildContext context) {
+    final nav = Navigator.of(context);
+    unawaited(
+      showStyledBottomSheet<_InviteToGuildAction>(
+        context,
+        builder: (_) => const _DmInviteSheet(),
+      ).then((result) {
+        if (result != null) {
+          nav.pop(result);
+        }
+      }),
+    );
+  }
+}
+
+class _DmMuteSheet extends StatelessWidget {
+  final bool isMuted;
+
+  const _DmMuteSheet({required this.isMuted});
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.layout;
+    void pop(_DmAction action) => Navigator.of(context).pop(action);
+
+    return DraggableScrollableSheet(
+      expand: false,
+      maxChildSize: 0.85,
+      builder: (context, scrollController) {
+        return SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: layout.s2),
+              const BottomSheetDragHandle(),
+              SizedBox(height: layout.s3),
+              BottomSheetSubmenuHeader(
+                title: isMuted ? 'Unmute Conversation' : 'Mute Conversation',
+                onBack: () => Navigator.of(context).pop(),
+              ),
+              SizedBox(height: layout.s3),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    layout.s4,
+                    0,
+                    layout.s4,
+                    layout.s4,
+                  ),
+                  children: [
+                    MenuGroupColumn(
+                      children: [
+                        MenuGroup(
+                          children: isMuted
+                              ? [
+                                  MenuItem(
+                                    label: 'Unmute Conversation',
+                                    onTap: () => pop(_DmAction.unmute),
+                                  ),
+                                ]
+                              : [
+                                  MenuItem(
+                                    label: 'For 15 minutes',
+                                    onTap: () => pop(_DmAction.mute15Min),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 30 minutes',
+                                    onTap: () => pop(_DmAction.mute30Min),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 1 hour',
+                                    onTap: () => pop(_DmAction.mute1Hour),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 3 hours',
+                                    onTap: () => pop(_DmAction.mute3Hours),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 4 hours',
+                                    onTap: () => pop(_DmAction.mute4Hours),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 8 hours',
+                                    onTap: () => pop(_DmAction.mute8Hours),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 24 hours',
+                                    onTap: () => pop(_DmAction.mute24Hours),
+                                  ),
+                                  MenuItem(
+                                    label: 'For 3 days',
+                                    onTap: () => pop(_DmAction.mute3Days),
+                                  ),
+                                  MenuItem(
+                                    label: 'Until I turn it back on',
+                                    onTap: () => pop(_DmAction.muteForever),
+                                  ),
+                                ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DmInviteSheet extends ConsumerWidget {
+  const _DmInviteSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final layout = context.layout;
+    final colors = context.colors;
+    final guilds = ref.watch(guildListViewModelProvider).guilds;
+
+    return DraggableScrollableSheet(
+      expand: false,
+      maxChildSize: 0.85,
+      builder: (context, scrollController) {
+        return SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: layout.s2),
+              const BottomSheetDragHandle(),
+              SizedBox(height: layout.s3),
+              BottomSheetSubmenuHeader(
+                title: 'Invite to Community',
+                onBack: () => Navigator.of(context).pop(),
+              ),
+              SizedBox(height: layout.s3),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    layout.s4,
+                    0,
+                    layout.s4,
+                    layout.s4,
+                  ),
+                  children: [
+                    MenuGroupColumn(
+                      children: [
+                        MenuGroup(
+                          children: guilds.isEmpty
+                              ? [
+                                  Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Text(
+                                      'No communities available',
+                                      style: context.textStyles.username
+                                          .copyWith(color: colors.textTertiary),
+                                    ),
+                                  ),
+                                ]
+                              : [
+                                  for (final guild in guilds)
+                                    MenuItem(
+                                      label: guild.name,
+                                      onTap: () => Navigator.of(
+                                        context,
+                                      ).pop(_InviteToGuildAction(guild.id)),
+                                    ),
+                                ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
