@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./media/logo-graphic.png" alt="Fluxer graphic logo" width="400">
+  <img src="./docs/media/logo-graphic.png" alt="Fluxer graphic logo" width="400">
 </p>
 
 <p align="center">
@@ -14,6 +14,10 @@
 </p>
 
 # Fluxer Flutter Client
+
+This is the repo for the offical Fluxer mobile app powered by Flutter (desktop is in the works also but mobile is the main focus currently).
+
+You can follow more about the V1 development in [this issue.](https://github.com/fluxerapp/flutter_client/issues/1)
 
 ## Build generated files
 
