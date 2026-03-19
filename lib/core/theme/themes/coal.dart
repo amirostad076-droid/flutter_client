@@ -355,7 +355,7 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     userAreaDividerColor: backgroundModifierHoverVal.withValues(
       alpha: backgroundModifierHoverVal.a * 0.7,
     ),
-    embedBackground: backgroundSecondary,
+    embedBackground: backgroundSecondaryAlt,
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,
     spoilerBackground: toneDirect(hue: 220, saturation: 13, lightness: 8),

@@ -34,7 +34,11 @@ dependencies:
   talker: ^5.1.15
   talker_dio_logger: ^5.1.15
   app_links: ^7.0.0
+  media_kit: ^1.2.6
+  media_kit_libs_video: ^1.0.7
+  media_kit_video: ^2.0.1
   url_launcher: ^6.3.2
+  youtube_explode_dart: ^3.0.5
   flutter_thumbhash: ^0.1.0+1
   skeletonizer: ^2.1.3
 

@@ -343,7 +343,7 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
       lightness: 40,
       alpha: 0.2,
     ),
-    embedBackground: backgroundSecondary,
+    embedBackground: backgroundSecondaryAlt,
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,
     spoilerBackground: toneDirect(hue: 220, saturation: 10, lightness: 85),
