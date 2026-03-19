@@ -19,20 +19,14 @@ This is the repo for the offical Fluxer mobile app powered by Flutter (desktop i
 
 You can follow more about the V1 development in [this issue.](https://github.com/fluxerapp/flutter_client/issues/1)
 
-## Build generated files
+## Contributing
+
+We welcome contributions from the community. Please check out the V1 umbrella issue to see how you can help.
+
+### Build generated files
+
+Riverpod generated files are not committed, so you need to generate them before running the project.
 
 ``
 dart run build_runner build --delete-conflicting-outputs
 ``
-
-## Getting Started with Flutter
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
