@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -14,7 +16,7 @@ class ActiveGuildId extends _$ActiveGuildId {
     void listener() {
       final location =
           router.routerDelegate.currentConfiguration.last.matchedLocation;
-      state = _extractGuildId(location);
+      unawaited(Future(() => state = _extractGuildId(location)));
     }
 
     router.routerDelegate.addListener(listener);
@@ -41,7 +43,7 @@ class ActiveChannelId extends _$ActiveChannelId {
     void listener() {
       final location =
           router.routerDelegate.currentConfiguration.last.matchedLocation;
-      state = _extractChannelId(location);
+      unawaited(Future(() => state = _extractChannelId(location)));
     }
 
     router.routerDelegate.addListener(listener);
