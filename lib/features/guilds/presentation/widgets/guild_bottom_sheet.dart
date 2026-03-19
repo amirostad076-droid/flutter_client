@@ -56,38 +56,43 @@ class _GuildBottomSheetState extends State<_GuildBottomSheet> {
   Widget build(BuildContext context) {
     final layout = context.layout;
 
-    return SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(height: layout.s2),
-            const BottomSheetDragHandle(),
-            SizedBox(height: layout.s3),
-            if (_activeSubmenu != null)
-              _buildSubmenuHeader()
-            else
-              _buildGuildHeader(),
-            SizedBox(height: layout.s3),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  layout.s4,
-                  0,
-                  layout.s4,
-                  layout.s4,
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: _activeSubmenu != null ? 0.5 : 0.7,
+      maxChildSize: 0.85,
+      builder: (context, scrollController) {
+        return SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: layout.s2),
+              const BottomSheetDragHandle(),
+              SizedBox(height: layout.s3),
+              if (_activeSubmenu != null)
+                _buildSubmenuHeader()
+              else
+                _buildGuildHeader(),
+              SizedBox(height: layout.s3),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    layout.s4,
+                    0,
+                    layout.s4,
+                    layout.s4,
+                  ),
+                  children: [
+                    if (_activeSubmenu != null)
+                      _buildSubmenuContent()
+                    else
+                      _buildMainContent(),
+                  ],
                 ),
-                child: _activeSubmenu != null
-                    ? _buildSubmenuContent()
-                    : _buildMainContent(),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
