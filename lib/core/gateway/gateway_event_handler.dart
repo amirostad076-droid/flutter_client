@@ -69,19 +69,23 @@ class GatewayEventHandler {
       unawaited(database.messageDao.upsertMessage(companion));
     }
 
-    final channelId = data['channel_id'] as String?;
-    final authorId = author?['id'] as String?;
-    final content = data['content'] as String?;
-    final timestamp = data['timestamp'] as String?;
-    if (channelId != null && authorId != null && timestamp != null) {
-      unawaited(
-        database.dmChannelDao.updateLastMessage(
-          channelId,
-          content ?? '',
-          authorId,
-          DateTime.parse(timestamp),
-        ),
-      );
+    // Only update DM last-message metadata for non-guild messages.
+    final guildId = data['guild_id'] as String?;
+    if (guildId == null) {
+      final channelId = data['channel_id'] as String?;
+      final authorId = author?['id'] as String?;
+      final content = data['content'] as String?;
+      final timestamp = data['timestamp'] as String?;
+      if (channelId != null && authorId != null && timestamp != null) {
+        unawaited(
+          database.dmChannelDao.updateLastMessage(
+            channelId,
+            content ?? '',
+            authorId,
+            DateTime.parse(timestamp),
+          ),
+        );
+      }
     }
   }
 

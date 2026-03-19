@@ -278,6 +278,25 @@ class MenuSubmenuItem extends StatelessWidget {
   }
 }
 
+class MenuGroupColumn extends StatelessWidget {
+  final List<Widget> children;
+
+  const MenuGroupColumn({required this.children, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          children[i],
+          if (i < children.length - 1) const SizedBox(height: 16),
+        ],
+      ],
+    );
+  }
+}
+
 class MenuCheckboxItem extends StatelessWidget {
   final String label;
   final bool isChecked;

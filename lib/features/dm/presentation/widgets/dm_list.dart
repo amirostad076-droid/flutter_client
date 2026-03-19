@@ -10,6 +10,7 @@ import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/features/friends/providers/friend_providers.dart';
+import 'package:fluxeron/features/guilds/domain/guild.dart' show fluxerMediaCdn;
 import 'package:fluxeron/shared/widgets/menu_bottom_sheet.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
@@ -686,6 +687,7 @@ class _DMListState extends ConsumerState<DMList> {
     BuildContext context,
     DmConversation convo,
   ) async {
+    final messenger = ScaffoldMessenger.of(context);
     final action = await showStyledBottomSheet<_DmAction>(
       context,
       builder: (context) => _DmBottomSheet(convo: convo),
@@ -723,9 +725,14 @@ class _DMListState extends ConsumerState<DMList> {
         // TODO(fluxeron): implement block/unblock user
         break;
       case _DmAction.closeDm:
-        unawaited(
-          ref.read(dmViewModelProvider.notifier).closeDmChannel(convo.id),
-        );
+        final success = await ref
+            .read(dmViewModelProvider.notifier)
+            .closeDmChannel(convo.id);
+        if (!success && mounted) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Failed to close conversation')),
+          );
+        }
       case _DmAction.copyUserId:
         await Clipboard.setData(ClipboardData(text: convo.recipientId));
       case _DmAction.copyChannelId:
@@ -858,7 +865,7 @@ class _DMListState extends ConsumerState<DMList> {
     if (avatar == null) {
       return null;
     }
-    return 'https://fluxerusercontent.com'
+    return '$fluxerMediaCdn'
         '/avatars/${convo.recipientId}/$avatar.png';
   }
 }
@@ -1039,7 +1046,7 @@ class _DmBottomSheet extends StatelessWidget {
                     : UserAvatar(
                         displayName: convo.recipientName,
                         avatarUrl: convo.recipientAvatar != null
-                            ? 'https://fluxerusercontent.com'
+                            ? '$fluxerMediaCdn'
                                   '/avatars/${convo.recipientId}/${convo.recipientAvatar}.png'
                             : null,
                         status: convo.recipientStatus,
@@ -1065,12 +1072,7 @@ class _DmBottomSheet extends StatelessWidget {
                     layout.s4,
                     layout.s4,
                   ),
-                  children: [
-                    for (var i = 0; i < groups.length; i++) ...[
-                      groups[i],
-                      if (i < groups.length - 1) const SizedBox(height: 16),
-                    ],
-                  ],
+                  children: [MenuGroupColumn(children: groups)],
                 ),
               ),
             ],

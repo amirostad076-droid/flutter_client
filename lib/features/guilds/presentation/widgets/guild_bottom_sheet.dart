@@ -239,7 +239,7 @@ class _GuildBottomSheetState extends State<_GuildBottomSheet> {
       ),
     ];
 
-    return _GroupColumn(children: groups);
+    return MenuGroupColumn(children: groups);
   }
 
   // ---------------------------------------------------------------------------
@@ -251,7 +251,7 @@ class _GuildBottomSheetState extends State<_GuildBottomSheet> {
 
     switch (_activeSubmenu) {
       case 'communitySettings':
-        return _GroupColumn(
+        return MenuGroupColumn(
           children: [
             MenuGroup(
               children: [
@@ -313,7 +313,7 @@ class _GuildBottomSheetState extends State<_GuildBottomSheet> {
         );
 
       case 'mute':
-        return _GroupColumn(
+        return MenuGroupColumn(
           children: [
             MenuGroup(
               children: widget.isMuted
@@ -374,25 +374,6 @@ class _GuildBottomSheetState extends State<_GuildBottomSheet> {
 // ---------------------------------------------------------------------------
 // Guild-specific widgets
 // ---------------------------------------------------------------------------
-
-class _GroupColumn extends StatelessWidget {
-  final List<Widget> children;
-
-  const _GroupColumn({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var i = 0; i < children.length; i++) ...[
-          children[i],
-          if (i < children.length - 1) const SizedBox(height: 16),
-        ],
-      ],
-    );
-  }
-}
 
 class _GuildAvatar extends StatelessWidget {
   final Guild guild;

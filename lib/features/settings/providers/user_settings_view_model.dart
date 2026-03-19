@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fluxeron/core/providers/database_provider.dart';
+import 'package:fluxeron/features/guilds/domain/guild.dart' show fluxerMediaCdn;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_settings_view_model.g.dart';
@@ -30,7 +31,7 @@ class UserSettingsViewState {
     if (avatar == null) {
       return null;
     }
-    return 'https://fluxerusercontent.com'
+    return '$fluxerMediaCdn'
         '/avatars/$userId/$avatar.png';
   }
 

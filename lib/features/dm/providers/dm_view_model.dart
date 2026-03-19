@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:fluxeron/core/talker.dart';
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_providers.dart';
 import 'package:fluxeron/features/friends/domain/friend.dart';
@@ -112,7 +112,7 @@ class DmViewModel extends _$DmViewModel {
         state = state.copyWith(conversations: convos);
       },
       onError: (Object error) {
-        debugPrint('[DmViewModel] DM watch error: $error');
+        talker.error('[DmViewModel] DM watch error: $error');
       },
     );
 
@@ -122,7 +122,7 @@ class DmViewModel extends _$DmViewModel {
         state = state.copyWith(friendsList: friends);
       },
       onError: (Object error) {
-        debugPrint('[DmViewModel] Friends watch error: $error');
+        talker.error('[DmViewModel] Friends watch error: $error');
       },
     );
 
@@ -153,7 +153,7 @@ class DmViewModel extends _$DmViewModel {
       ]);
       state = state.copyWith(isLoading: false);
     } on Exception catch (e) {
-      debugPrint('[DmViewModel] Failed to load data: $e');
+      talker.error('[DmViewModel] Failed to load data: $e');
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Failed to load conversations',
@@ -174,11 +174,13 @@ class DmViewModel extends _$DmViewModel {
   Future<void> markAsRead(String channelId) =>
       ref.read(dmRepositoryProvider).markAsRead(channelId);
 
-  Future<void> closeDmChannel(String channelId) async {
+  Future<bool> closeDmChannel(String channelId) async {
     try {
       await ref.read(dmRepositoryProvider).closeDmChannel(channelId);
+      return true;
     } on Exception catch (e) {
-      debugPrint('[DmViewModel] Failed to close DM: $e');
+      talker.error('[DmViewModel] Failed to close DM: $e');
+      return false;
     }
   }
 }
