@@ -52,9 +52,12 @@ class UserAvatar extends StatelessWidget {
     );
   }
 
-  String get _resolvedAvatarUrl {
+  String? get _resolvedAvatarUrl {
     if (avatarUrl != null) {
       return avatarUrl!;
+    }
+    if (userId.isEmpty) {
+      return null;
     }
     final index = BigInt.parse(userId) % BigInt.from(_kDefaultAvatarCount);
     return '$_kStaticCdnUrl/avatars/$index.png';
@@ -70,13 +73,16 @@ class UserAvatar extends StatelessWidget {
           radius: size / 2,
           backgroundColor: _backgroundColor,
           child: ClipOval(
-            child: CachedNetworkImage(
-              imageUrl: _resolvedAvatarUrl,
-              width: size,
-              height: size,
-              fit: BoxFit.cover,
-              errorBuilder: (context, url, error) => _buildInitial(context),
-            ),
+            child: _resolvedAvatarUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: _resolvedAvatarUrl!,
+                    width: size,
+                    height: size,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, url, error) =>
+                        _buildInitial(context),
+                  )
+                : _buildInitial(context),
           ),
         ),
         if (showStatus)
