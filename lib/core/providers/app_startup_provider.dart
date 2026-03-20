@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
-import 'package:fluxeron/core/api/retry_interceptor.dart';
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/core/deep_links/deep_link_handler.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
@@ -46,24 +45,18 @@ class AppStartup extends _$AppStartup {
     ref.read(fluxerAuthTokenProvider.notifier).setToken(session.token);
 
     try {
-      final response = await ref
-          .read(fluxerClientProvider)
-          .getUsersApi()
-          .getCurrentUser(extra: <String, dynamic>{kNoRetryKey: true});
+      final user = await ref.read(fluxerClientProvider).users.getCurrentUser();
 
-      final data = response.data;
-      if (data != null) {
-        await database.userDao.upsertUser(
-          db.UsersCompanion.insert(
-            id: data.id,
-            username: data.username,
-            discriminator: Value(data.discriminator),
-            globalName: Value(data.globalName),
-            avatar: Value(data.avatar),
-            avatarColor: Value(data.avatarColor),
-          ),
-        );
-      }
+      await database.userDao.upsertUser(
+        db.UsersCompanion.insert(
+          id: user.id,
+          username: user.username,
+          discriminator: Value(user.discriminator),
+          globalName: Value(user.globalName),
+          avatar: Value(user.avatar),
+          avatarColor: Value(user.avatarColor),
+        ),
+      );
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         debugPrint('[AppStartup] Stored session is invalid, clearing');

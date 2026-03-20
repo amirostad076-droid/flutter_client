@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/features/guilds/domain/guild.dart';
 import 'package:fluxeron/shared/utils/sdk_converters.dart';
 
 class GuildRepository {
-  final FluxerDart _client;
+  final FluxerClient _client;
   final db.FluxerDatabase _db;
 
   const GuildRepository(this._client, this._db);
@@ -19,16 +19,12 @@ class GuildRepository {
 
   Future<List<Guild>> getServers() async {
     try {
-      final response = await _client.getGuildsApi().listGuilds();
-      final data = response.data;
-      if (data == null) {
-        return [];
-      }
+      final guilds = await _client.guilds.listGuilds();
 
       // Fetch user settings to get guild folder ordering.
       final guildOrder = await _fetchGuildOrder();
 
-      final companions = data.map((guild) {
+      final companions = guilds.map((guild) {
         final position = guildOrder.indexOf(guild.id);
         return guildFromSdk(
           guild,
@@ -47,11 +43,8 @@ class GuildRepository {
   /// Fetches ordered guild IDs from user settings guild folders.
   Future<List<String>> _fetchGuildOrder() async {
     try {
-      final settings = await _client.getUsersApi().getCurrentUserSettings();
-      final folders = settings.data?.guildFolders;
-      if (folders == null) {
-        return [];
-      }
+      final settings = await _client.users.getCurrentUserSettings();
+      final folders = settings.guildFolders;
       return folders.expand((f) => f.guildIds).toList();
     } on Object {
       return [];
@@ -60,13 +53,9 @@ class GuildRepository {
 
   Future<Guild> getServer(String guildId) async {
     try {
-      final response = await _client.getGuildsApi().getGuild(guildId: guildId);
-      final data = response.data;
-      if (data == null) {
-        throw Exception('Empty response from getGuild');
-      }
+      final guild = await _client.guilds.getGuild(guildId: guildId);
 
-      await _db.guildDao.upsertServer(guildFromSdk(data));
+      await _db.guildDao.upsertServer(guildFromSdk(guild));
 
       final row = await _db.guildDao.getServerById(guildId);
       if (row == null) {

@@ -2,13 +2,13 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/features/members/domain/member.dart';
 
 class MemberRepository {
-  final FluxerDart _client;
+  final FluxerClient _client;
   final db.FluxerDatabase _db;
 
   const MemberRepository(this._client, this._db);
@@ -29,16 +29,12 @@ class MemberRepository {
   Future<List<Member>> getMembers(String serverId, {int limit = 100}) async {
     List<dynamic> rawList;
     try {
-      final response = await _client.getGuildsApi().listGuildMembers2(
+      final members = await _client.guilds.listGuildMembers2(
         guildId: serverId,
         limit: limit,
       );
-      final data = response.data;
-      if (data == null) {
-        return [];
-      }
 
-      rawList = data
+      rawList = members
           .map(
             (sdk) => {
               'user': {
@@ -52,7 +48,7 @@ class MemberRepository {
               },
               'nick': sdk.nick,
               'avatar': sdk.avatar,
-              'roles': sdk.roles.toList(),
+              'roles': sdk.roles,
               'joined_at': sdk.joinedAt,
             },
           )
@@ -117,15 +113,9 @@ class MemberRepository {
   Future<List<MemberRole>> getRoles(String serverId) async {
     List<dynamic> rawList;
     try {
-      final response = await _client.getGuildsApi().listGuildRoles(
-        guildId: serverId,
-      );
-      final data = response.data;
-      if (data == null) {
-        return [];
-      }
+      final roles = await _client.guilds.listGuildRoles(guildId: serverId);
 
-      rawList = data
+      rawList = roles
           .map(
             (sdk) => {
               'id': sdk.id,

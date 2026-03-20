@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/shared/utils/sdk_converters.dart';
 
 class ChannelRepository {
-  final FluxerDart _client;
+  final FluxerClient _client;
   final db.FluxerDatabase _db;
 
   const ChannelRepository(this._client, this._db);
@@ -19,22 +19,18 @@ class ChannelRepository {
 
   Future<List<ChannelCategory>> getChannels(String serverId) async {
     try {
-      final response = await _client.getGuildsApi().listGuildChannels(
+      final channels = await _client.guilds.listGuildChannels(
         guildId: serverId,
       );
-      final data = response.data;
-      if (data == null) {
-        return [];
-      }
 
-      final companions = data
+      final companions = channels
           .map((ch) => channelFromSdk(ch, serverId))
           .toList();
       await _db.channelDao.upsertChannels(companions);
 
       final rows = await _db.channelDao.getChannels(serverId);
-      final channels = rows.map(Channel.fromRow).toList();
-      return groupChannelsIntoCategories(channels);
+      final channelList = rows.map(Channel.fromRow).toList();
+      return groupChannelsIntoCategories(channelList);
     } on DioException catch (e) {
       throw Exception(e.response?.statusMessage ?? 'Failed to fetch channels');
     }

@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/core/talker.dart';
@@ -7,10 +7,11 @@ import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/shared/utils/sdk_converters.dart';
 
 class MessageRepository {
-  final FluxerDart _client;
+  final FluxerClient _client;
+  final Dio _dio;
   final db.FluxerDatabase _db;
 
-  const MessageRepository(this._client, this._db);
+  const MessageRepository(this._client, this._dio, this._db);
 
   Stream<List<Message>> watchMessages(String channelId) {
     return _db.messageDao
@@ -24,15 +25,11 @@ class MessageRepository {
     String? before,
   }) async {
     try {
-      final response = await _client.getMessagesApi().listMessages(
+      final data = await _client.channels.listMessages(
         channelId: channelId,
         limit: limit.toString(),
         before: before,
       );
-      final data = response.data;
-      if (data == null) {
-        return [];
-      }
 
       final messages = data.map(Message.fromSdk).toList().reversed.toList();
 
@@ -72,7 +69,7 @@ class MessageRepository {
     String? before,
   }) async {
     final queryParams = <String, dynamic>{'limit': limit, 'before': ?before};
-    final response = await _client.dio.get<List<dynamic>>(
+    final response = await _dio.get<List<dynamic>>(
       '/channels/$channelId/messages',
       queryParameters: queryParams,
     );
@@ -102,10 +99,9 @@ class MessageRepository {
             editedTimestamp: map['edited_timestamp'] != null
                 ? DateTime.tryParse(map['edited_timestamp'] as String)
                 : null,
-            embeds: (map['embeds'] as List<dynamic>?)
-                    ?.map(
-                      (e) => Embed.fromJson(e as Map<String, dynamic>),
-                    )
+            embeds:
+                (map['embeds'] as List<dynamic>?)
+                    ?.map((e) => Embed.fromJson(e as Map<String, dynamic>))
                     .toList() ??
                 const [],
             replyToId:
@@ -143,7 +139,7 @@ class MessageRepository {
     required String messageId,
     required String emoji,
   }) async {
-    await _client.getChannelsApi().addReaction(
+    await _client.channels.addReaction(
       channelId: channelId,
       messageId: messageId,
       emoji: emoji,
@@ -155,11 +151,10 @@ class MessageRepository {
     required String messageId,
     required String emoji,
   }) async {
-    await _client.getChannelsApi().removeReaction(
+    await _client.channels.removeOwnReaction(
       channelId: channelId,
       messageId: messageId,
       emoji: emoji,
-      targetId: '@me',
     );
   }
 
@@ -174,7 +169,7 @@ class MessageRepository {
         body['message_reference'] = <String, dynamic>{'message_id': replyToId};
       }
 
-      final response = await _client.dio.post<Map<String, dynamic>>(
+      final response = await _dio.post<Map<String, dynamic>>(
         '/channels/$channelId/messages',
         data: body,
       );
@@ -183,13 +178,7 @@ class MessageRepository {
         throw Exception('Empty response from sendMessage');
       }
 
-      final schema = _client.serializers.deserializeWith(
-        MessageResponseSchema.serializer,
-        data,
-      );
-      if (schema == null) {
-        throw Exception('Failed to deserialize message response');
-      }
+      final schema = MessageResponseSchema.fromJson(data);
 
       final message = Message.fromSdk(schema);
       await _db.messageDao.upsertMessage(message.toCompanion());

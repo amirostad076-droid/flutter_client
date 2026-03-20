@@ -1,5 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:fluxeron/core/api/captcha_dialog.dart';
 import 'package:fluxeron/core/api/captcha_interceptor.dart';
 import 'package:fluxeron/core/api/retry_interceptor.dart';
@@ -11,6 +12,7 @@ part 'fluxer_client_provider.g.dart';
 
 // ignore: do_not_use_environment -- compile-time override for the API base URL
 const _kFluxerBaseUrl = String.fromEnvironment('FLUXER_BASE_URL');
+const _kDefaultBaseUrl = 'https://api.fluxer.app/v1';
 
 @Riverpod(keepAlive: true)
 String fluxerBaseUrl(Ref ref) {
@@ -19,25 +21,31 @@ String fluxerBaseUrl(Ref ref) {
     return configuredBaseUrl;
   }
 
-  return FluxerDart.basePath;
+  return _kDefaultBaseUrl;
 }
 
 @Riverpod(keepAlive: true)
-FluxerDart fluxerClient(Ref ref) {
+Dio fluxerDio(Ref ref) {
   final baseUrl = ref.watch(fluxerBaseUrlProvider);
   final token = ref.watch(fluxerAuthTokenProvider);
 
-  final client = FluxerDart(basePathOverride: baseUrl);
-  client.dio.options.connectTimeout = const Duration(seconds: 15);
-  client.dio.options.receiveTimeout = const Duration(seconds: 10);
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: baseUrl,
+      contentType: 'application/json',
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 10),
+    ),
+  );
+
   if (token != null && token.isNotEmpty) {
-    client.setApiKey('sessionToken', token);
+    dio.options.headers['Authorization'] = 'Bearer $token';
   }
 
-  client.dio.interceptors.add(RetryInterceptor(dio: client.dio));
-  client.dio.interceptors.add(
+  dio.interceptors.add(RetryInterceptor(dio: dio));
+  dio.interceptors.add(
     CaptchaInterceptor(
-      dio: client.dio,
+      dio: dio,
       showCaptchaDialog: ({required String siteKey, required String baseUrl}) =>
           showCaptchaDialog(
             navigatorKey: rootNavigatorKey,
@@ -48,14 +56,21 @@ FluxerDart fluxerClient(Ref ref) {
   );
 
   if (kDebugMode) {
-    client.dio.interceptors.add(
+    dio.interceptors.add(
       TalkerDioLogger(
         settings: const TalkerDioLoggerSettings(printResponseTime: true),
       ),
     );
   }
 
-  return client;
+  return dio;
+}
+
+@Riverpod(keepAlive: true)
+FluxerClient fluxerClient(Ref ref) {
+  final dio = ref.watch(fluxerDioProvider);
+  final baseUrl = ref.watch(fluxerBaseUrlProvider);
+  return FluxerClient(dio, baseUrl: baseUrl);
 }
 
 /// Holds the current auth token. Set by the auth flow, watched by

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 
@@ -13,7 +13,7 @@ db.ServersCompanion guildFromSdk(GuildResponse sdk, {int position = 0}) {
     icon: Value(sdk.icon),
     banner: Value(sdk.banner),
     ownerId: Value(sdk.ownerId),
-    featuresJson: Value(jsonEncode(sdk.features.toList())),
+    featuresJson: Value(jsonEncode(sdk.features)),
     position: Value(position),
   );
 }
