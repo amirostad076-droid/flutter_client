@@ -2,10 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
+import 'package:fluxer_dart/export.dart';
+import 'package:fluxer_dart/gateway.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
-import 'package:fluxeron/core/gateway/gateway_event.dart';
+import 'package:fluxeron/core/talker.dart';
+import 'package:fluxeron/features/chat/domain/message.dart';
+import 'package:fluxeron/shared/utils/sdk_converters.dart';
 
 typedef TypingCallback = void Function(String channelId, String userId);
 
@@ -15,231 +18,274 @@ class GatewayEventHandler {
   final db.FluxerDatabase database;
   final TypingCallback? onTypingStart;
 
-  void handle(GatewayEventType type, Map<String, dynamic> data) {
-    switch (type) {
-      case GatewayEventType.ready:
-        _handleReady(data);
-      case GatewayEventType.messageCreate:
-        _handleMessageCreate(data);
-      case GatewayEventType.messageUpdate:
-        _handleMessageUpdate(data);
-      case GatewayEventType.messageDelete:
-        _handleMessageDelete(data);
-      case GatewayEventType.typingStart:
-        _handleTypingStart(data);
-      case GatewayEventType.presenceUpdate:
-        _handlePresenceUpdate(data);
-      case GatewayEventType.guildMemberAdd:
-      case GatewayEventType.guildMemberUpdate:
-        _handleMemberUpsert(data);
-      case GatewayEventType.guildMemberRemove:
-        _handleMemberRemove(data);
-      case GatewayEventType.channelCreate:
-      case GatewayEventType.channelUpdate:
-        _handleChannelUpsert(data);
-      case GatewayEventType.channelDelete:
-        _handleChannelDelete(data);
-      case GatewayEventType.messageReactionAdd:
-        _handleReactionAdd(data);
-      case GatewayEventType.messageReactionRemove:
-        _handleReactionRemove(data);
-      case GatewayEventType.messageReactionRemoveAll:
-        _handleReactionRemoveAll(data);
-      case GatewayEventType.messageReactionRemoveEmoji:
-        _handleReactionRemoveEmoji(data);
+  void handle(GatewayEvent event) {
+    switch (event) {
+      case ReadyEvent():
+        _handleReady(event);
+      case ResumedEvent():
+        talker.info('[Gateway] Session resumed');
+      case MessageCreateEvent():
+        _handleMessageCreate(event);
+      case MessageUpdateEvent():
+        _handleMessageUpdate(event);
+      case MessageDeleteEvent():
+        _handleMessageDelete(event);
+      case TypingStartEvent():
+        _handleTypingStart(event);
+      case PresenceUpdateEvent():
+        _handlePresenceUpdate(event);
+      case GuildMemberAddEvent():
+        _handleMemberUpsert(event.guildId, event.member);
+      case GuildMemberUpdateEvent():
+        _handleMemberUpsert(event.guildId, event.member);
+      case GuildMemberRemoveEvent():
+        _handleMemberRemove(event);
+      case ChannelCreateEvent():
+        _handleChannelUpsert(event.channel);
+      case ChannelUpdateEvent():
+        _handleChannelUpsert(event.channel);
+      case ChannelDeleteEvent():
+        _handleChannelDelete(event);
+      case MessageReactionAddEvent():
+        _handleReactionAdd(event);
+      case MessageReactionRemoveEvent():
+        _handleReactionRemove(event);
+      case MessageReactionRemoveAllEvent():
+        _handleReactionRemoveAll(event);
+      case MessageReactionRemoveEmojiEvent():
+        _handleReactionRemoveEmoji(event);
+      case GuildCreateEvent():
+        _handleGuildCreate(event);
+      case GuildUpdateEvent():
+        _handleGuildUpdate(event);
+      case GuildDeleteEvent():
+        _handleGuildDelete(event);
+      case RelationshipAddEvent():
+        _handleRelationshipUpsert(event.relationship);
+      case RelationshipUpdateEvent():
+        _handleRelationshipUpsert(event.relationship);
+      case RelationshipRemoveEvent():
+        _handleRelationshipRemove(event);
+      case UnknownGatewayEvent():
+        talker.debug('[Gateway] Unknown event: ${event.eventType}');
     }
   }
 
-  void _handleReady(Map<String, dynamic> data) {
-    debugPrint('[Gateway] READY received');
-    final user = data['user'] as Map<String, dynamic>?;
-    if (user != null) {
-      _upsertUserFromJson(user);
-    }
-  }
+  void _handleReady(ReadyEvent event) {
+    talker.info('[Gateway] READY received (session: ${event.sessionId})');
 
-  void _handleMessageCreate(Map<String, dynamic> data) {
-    final author = data['author'] as Map<String, dynamic>?;
-    if (author != null) {
-      _upsertUserFromJson(author);
+    // Upsert current user.
+    unawaited(
+      database.userDao.upsertUser(
+        db.UsersCompanion.insert(
+          id: event.user.id,
+          username: event.user.username,
+          discriminator: Value(event.user.discriminator),
+          globalName: Value(event.user.globalName),
+          avatar: Value(event.user.avatar),
+          avatarColor: Value(event.user.avatarColor),
+          isBot: Value(event.user.bot ?? false),
+        ),
+      ),
+    );
+
+    // Upsert guilds.
+    if (event.guilds.isNotEmpty) {
+      final guildCompanions = <db.ServersCompanion>[];
+      for (var i = 0; i < event.guilds.length; i++) {
+        guildCompanions.add(guildFromSdk(event.guilds[i], position: i));
+      }
+      unawaited(database.guildDao.upsertServers(guildCompanions));
     }
 
-    final companion = _messageCompanionFromJson(data);
-    if (companion != null) {
-      unawaited(database.messageDao.upsertMessage(companion));
+    // Upsert DM channels.
+    if (event.privateChannels.isNotEmpty) {
+      final dmCompanions = <db.DmChannelsCompanion>[];
+      for (final ch in event.privateChannels) {
+        final recipients = ch.recipients;
+        if (recipients == null || recipients.isEmpty) {
+          continue;
+        }
+        for (final r in recipients) {
+          unawaited(database.userDao.upsertUser(userFromPartialSdk(r)));
+        }
+        dmCompanions.add(
+          db.DmChannelsCompanion.insert(
+            id: ch.id,
+            recipientId: recipients.first.id,
+            type: Value(ch.type),
+            name: Value(ch.name),
+            recipientCount: Value(recipients.length + 1),
+          ),
+        );
+      }
+      unawaited(database.dmChannelDao.upsertDmChannels(dmCompanions));
     }
 
-    // Only update DM last-message metadata for non-guild messages.
-    final guildId = data['guild_id'] as String?;
-    if (guildId == null) {
-      final channelId = data['channel_id'] as String?;
-      final authorId = author?['id'] as String?;
-      final content = data['content'] as String?;
-      final timestamp = data['timestamp'] as String?;
-      if (channelId != null && authorId != null && timestamp != null) {
+    // Upsert relationships.
+    if (event.relationships.isNotEmpty) {
+      final relCompanions = <db.RelationshipsCompanion>[];
+      for (final rel in event.relationships) {
+        unawaited(database.userDao.upsertUser(userFromPartialSdk(rel.user)));
+        relCompanions.add(
+          db.RelationshipsCompanion.insert(
+            userId: rel.user.id,
+            type: rel.type.json ?? 1,
+            nickname: Value(rel.nickname),
+            since: Value(rel.since),
+          ),
+        );
+      }
+      unawaited(database.relationshipDao.upsertRelationships(relCompanions));
+    }
+
+    // Upsert presences.
+    for (final p in event.presences) {
+      final userId = (p['user'] as Map<String, dynamic>?)?['id'] as String?;
+      final status = p['status'] as String?;
+      if (userId != null && status != null) {
         unawaited(
-          database.dmChannelDao.updateLastMessage(
-            channelId,
-            content ?? '',
-            authorId,
-            DateTime.parse(timestamp),
+          database.userDao.upsertUser(
+            db.UsersCompanion(id: Value(userId), status: Value(status)),
           ),
         );
       }
     }
   }
 
-  void _handleMessageUpdate(Map<String, dynamic> data) {
-    final companion = _messageCompanionFromJson(data);
-    if (companion != null) {
-      unawaited(database.messageDao.upsertMessage(companion));
-    }
-  }
+  void _handleMessageCreate(MessageCreateEvent event) {
+    final msg = Message.fromSdk(event.message);
 
-  void _handleMessageDelete(Map<String, dynamic> data) {
-    final id = data['id'] as String?;
-    if (id != null) {
-      unawaited(database.messageDao.deleteMessage(id));
-    }
-  }
-
-  void _handleTypingStart(Map<String, dynamic> data) {
-    final channelId = data['channel_id'] as String?;
-    final userId = data['user_id'] as String?;
-    if (channelId != null && userId != null) {
-      onTypingStart?.call(channelId, userId);
-    }
-  }
-
-  void _handlePresenceUpdate(Map<String, dynamic> data) {
-    final user = data['user'] as Map<String, dynamic>?;
-    final status = data['status'] as String?;
-    if (user == null || status == null) {
-      return;
-    }
-
-    final userId = user['id'] as String?;
-    if (userId == null) {
-      return;
-    }
-
+    // Upsert the author.
     unawaited(
-      database.userDao.upsertUser(
-        db.UsersCompanion(id: Value(userId), status: Value(status)),
+      database.userDao.upsertUser(userFromPartialSdk(event.message.author)),
+    );
+
+    unawaited(database.messageDao.upsertMessage(msg.toCompanion()));
+
+    // Update DM last-message metadata (no-ops for guild channels).
+    unawaited(
+      database.dmChannelDao.updateLastMessage(
+        msg.channelId,
+        msg.content,
+        msg.authorId,
+        msg.timestamp,
       ),
     );
   }
 
-  void _handleMemberUpsert(Map<String, dynamic> data) {
-    final user = data['user'] as Map<String, dynamic>?;
-    final guildId = data['guild_id'] as String?;
-    if (user == null || guildId == null) {
-      return;
-    }
+  void _handleMessageUpdate(MessageUpdateEvent event) {
+    final msg = Message.fromSdk(event.message);
+    unawaited(database.messageDao.upsertMessage(msg.toCompanion()));
+  }
 
-    _upsertUserFromJson(user);
+  void _handleMessageDelete(MessageDeleteEvent event) {
+    unawaited(database.messageDao.deleteMessage(event.messageId));
+  }
 
-    final userId = user['id'] as String;
-    final roles = (data['roles'] as List<dynamic>?)?.cast<String>() ?? [];
+  void _handleTypingStart(TypingStartEvent event) {
+    onTypingStart?.call(event.channelId, event.userId);
+  }
+
+  void _handlePresenceUpdate(PresenceUpdateEvent event) {
+    unawaited(
+      database.userDao.upsertUser(
+        db.UsersCompanion(id: Value(event.userId), status: Value(event.status)),
+      ),
+    );
+  }
+
+  void _handleMemberUpsert(String guildId, GuildMemberResponse member) {
+    unawaited(database.userDao.upsertUser(userFromPartialSdk(member.user)));
 
     unawaited(
       database.memberDao.upsertMember(
         db.MembersCompanion.insert(
-          userId: userId,
+          userId: member.user.id,
           serverId: guildId,
-          nickname: Value(data['nick'] as String?),
-          serverAvatar: Value(data['avatar'] as String?),
-          roleIdsJson: Value(jsonEncode(roles)),
-          joinedAt: Value(
-            data['joined_at'] != null
-                ? DateTime.tryParse(data['joined_at'] as String)
-                : null,
-          ),
+          nickname: Value(member.nick),
+          serverAvatar: Value(member.avatar),
+          roleIdsJson: Value(jsonEncode(member.roles)),
+          joinedAt: Value(member.joinedAt),
         ),
       ),
     );
   }
 
-  void _handleMemberRemove(Map<String, dynamic> data) {
-    final user = data['user'] as Map<String, dynamic>?;
-    final guildId = data['guild_id'] as String?;
-    if (user == null || guildId == null) {
-      return;
-    }
-
-    final userId = user['id'] as String;
-    unawaited(database.memberDao.deleteMember(userId, guildId));
+  void _handleMemberRemove(GuildMemberRemoveEvent event) {
+    unawaited(database.memberDao.deleteMember(event.userId, event.guildId));
   }
 
-  void _handleChannelUpsert(Map<String, dynamic> data) {
-    final id = data['id'] as String?;
-    final guildId = data['guild_id'] as String?;
-    if (id == null || guildId == null) {
+  void _handleChannelUpsert(ChannelResponse channel) {
+    final guildId = channel.guildId;
+    if (guildId == null) {
       return;
     }
 
     unawaited(
-      database.channelDao.upsertChannel(
-        db.ChannelsCompanion.insert(
-          id: id,
-          serverId: guildId,
-          name: (data['name'] as String?) ?? '',
-          type: Value((data['type'] as int?) ?? 0),
-          topic: Value(data['topic'] as String?),
-          parentId: Value(data['parent_id'] as String?),
-          position: Value((data['position'] as int?) ?? 0),
-        ),
-      ),
+      database.channelDao.upsertChannel(channelFromSdk(channel, guildId)),
     );
   }
 
-  void _handleChannelDelete(Map<String, dynamic> data) {
-    final id = data['id'] as String?;
-    if (id != null) {
-      unawaited(database.channelDao.deleteChannel(id));
-    }
+  void _handleChannelDelete(ChannelDeleteEvent event) {
+    unawaited(database.channelDao.deleteChannel(event.channel.id));
   }
 
-  void _handleReactionAdd(Map<String, dynamic> data) {
-    final messageId = data['message_id'] as String?;
-    final emoji = data['emoji'] as Map<String, dynamic>?;
-    if (messageId == null || emoji == null) {
-      return;
-    }
-    unawaited(_modifyReaction(messageId, emoji, isAdd: true));
+  void _handleGuildCreate(GuildCreateEvent event) {
+    unawaited(database.guildDao.upsertServer(guildFromSdk(event.guild)));
   }
 
-  void _handleReactionRemove(Map<String, dynamic> data) {
-    final messageId = data['message_id'] as String?;
-    final emoji = data['emoji'] as Map<String, dynamic>?;
-    if (messageId == null || emoji == null) {
-      return;
-    }
-    unawaited(_modifyReaction(messageId, emoji, isAdd: false));
+  void _handleGuildUpdate(GuildUpdateEvent event) {
+    unawaited(database.guildDao.upsertServer(guildFromSdk(event.guild)));
   }
 
-  void _handleReactionRemoveAll(Map<String, dynamic> data) {
-    final messageId = data['message_id'] as String?;
-    if (messageId == null) {
-      return;
-    }
-    unawaited(database.messageDao.updateReactions(messageId, '[]'));
+  void _handleGuildDelete(GuildDeleteEvent event) {
+    // GuildDao does not expose a delete method; clearing channels is sufficient
+    // for now until a deleteServer method is added.
+    unawaited(database.channelDao.deleteChannelsForServer(event.guildId));
   }
 
-  void _handleReactionRemoveEmoji(Map<String, dynamic> data) {
-    final messageId = data['message_id'] as String?;
-    final emoji = data['emoji'] as Map<String, dynamic>?;
-    if (messageId == null || emoji == null) {
-      return;
-    }
-    final emojiName = emoji['name'] as String? ?? '';
-    final emojiId = emoji['id'] as String?;
-    unawaited(_removeEmojiReaction(messageId, emojiName, emojiId));
+  void _handleRelationshipUpsert(RelationshipResponse relationship) {
+    unawaited(
+      database.userDao.upsertUser(userFromPartialSdk(relationship.user)),
+    );
+    unawaited(
+      database.relationshipDao.upsertRelationships([
+        db.RelationshipsCompanion.insert(
+          userId: relationship.user.id,
+          type: relationship.type.json ?? 1,
+          nickname: Value(relationship.nickname),
+          since: Value(relationship.since),
+        ),
+      ]),
+    );
+  }
+
+  void _handleRelationshipRemove(RelationshipRemoveEvent event) {
+    unawaited(database.relationshipDao.deleteRelationship(event.userId));
+  }
+
+  void _handleReactionAdd(MessageReactionAddEvent event) {
+    unawaited(_modifyReaction(event.messageId, event.emoji, isAdd: true));
+  }
+
+  void _handleReactionRemove(MessageReactionRemoveEvent event) {
+    unawaited(_modifyReaction(event.messageId, event.emoji, isAdd: false));
+  }
+
+  void _handleReactionRemoveAll(MessageReactionRemoveAllEvent event) {
+    unawaited(database.messageDao.updateReactions(event.messageId, '[]'));
+  }
+
+  void _handleReactionRemoveEmoji(MessageReactionRemoveEmojiEvent event) {
+    unawaited(
+      _removeEmojiReaction(event.messageId, event.emoji.name, event.emoji.id),
+    );
   }
 
   Future<void> _modifyReaction(
     String messageId,
-    Map<String, dynamic> emoji, {
+    ReactionEmoji emoji, {
     required bool isAdd,
   }) async {
     final msg = await database.messageDao.getMessage(messageId);
@@ -247,15 +293,11 @@ class GatewayEventHandler {
       return;
     }
 
-    final emojiName = emoji['name'] as String? ?? '';
-    final emojiId = emoji['id'] as String?;
-    final animated = emoji['animated'] as bool? ?? false;
-
     final reactions = _decodeReactions(msg.reactionsJson);
     final idx = reactions.indexWhere(
       (r) =>
-          (r['emoji'] as String?) == emojiName &&
-          (r['emojiId'] as String?) == emojiId,
+          (r['emoji'] as String?) == emoji.name &&
+          (r['emojiId'] as String?) == emoji.id,
     );
 
     if (isAdd) {
@@ -263,9 +305,9 @@ class GatewayEventHandler {
         reactions[idx]['count'] = ((reactions[idx]['count'] as int?) ?? 0) + 1;
       } else {
         reactions.add(<String, dynamic>{
-          'emoji': emojiName,
-          'emojiId': emojiId,
-          'animated': animated,
+          'emoji': emoji.name,
+          'emojiId': emoji.id,
+          'animated': emoji.animated,
           'count': 1,
           'hasReacted': false,
         });
@@ -307,65 +349,5 @@ class GatewayEventHandler {
     } on Object {
       return [];
     }
-  }
-
-  void _upsertUserFromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    final username = json['username'] as String?;
-    if (id == null || username == null) {
-      return;
-    }
-
-    unawaited(
-      database.userDao.upsertUser(
-        db.UsersCompanion.insert(
-          id: id,
-          username: username,
-          discriminator: Value((json['discriminator'] as String?) ?? '0'),
-          globalName: Value(json['global_name'] as String?),
-          avatar: Value(json['avatar'] as String?),
-          avatarColor: Value(json['avatar_color'] as int?),
-          isBot: Value((json['bot'] as bool?) ?? false),
-        ),
-      ),
-    );
-  }
-
-  db.MessagesCompanion? _messageCompanionFromJson(Map<String, dynamic> data) {
-    final id = data['id'] as String?;
-    final channelId = data['channel_id'] as String?;
-    final author = data['author'] as Map<String, dynamic>?;
-    final content = data['content'] as String?;
-    final timestamp = data['timestamp'] as String?;
-
-    if (id == null ||
-        channelId == null ||
-        author == null ||
-        timestamp == null) {
-      return null;
-    }
-
-    return db.MessagesCompanion.insert(
-      id: id,
-      channelId: channelId,
-      authorId: author['id'] as String,
-      authorName: Value(
-        (author['global_name'] as String?) ??
-            (author['username'] as String?) ??
-            '',
-      ),
-      authorAvatar: Value(author['avatar'] as String?),
-      authorAvatarColor: Value(author['avatar_color'] as int?),
-      content: content ?? '',
-      timestamp: DateTime.parse(timestamp),
-      embedsJson: Value(jsonEncode(data['embeds'] ?? [])),
-      attachmentsJson: Value(jsonEncode(data['attachments'] ?? [])),
-      reactionsJson: Value(jsonEncode(data['reactions'] ?? [])),
-      replyToId: Value(
-        (data['message_reference'] as Map<String, dynamic>?)?['message_id']
-            as String?,
-      ),
-      type: Value((data['type'] as int?) ?? 0),
-    );
   }
 }

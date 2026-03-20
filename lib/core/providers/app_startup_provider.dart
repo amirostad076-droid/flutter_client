@@ -7,7 +7,7 @@ import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/core/deep_links/deep_link_handler.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
-// import 'package:fluxeron/core/providers/gateway_provider.dart';
+import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/providers/theme_preference_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -83,10 +83,9 @@ class AppStartup extends _$AppStartup {
     ref.read(currentUserIdProvider.notifier).set(session.userId);
     await ref.read(themePreferenceProvider.notifier).load(session.userId);
 
-    // TODO: Enable gateway once the IDENTIFY payload format is known.
-    // unawaited(ref.read(gatewayClientProvider).connect(session.token));
+    unawaited(ref.read(gatewayConnectionProvider).connect());
+    ref.read(gatewayEventListenerProvider);
 
-    ref.read(deepLinkHandlerProvider);
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
 
     debugPrint(
