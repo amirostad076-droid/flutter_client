@@ -1,25 +1,77 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "flutter_client",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "flutter_client (profile mode)",
+            "name": "Android Canary FCM",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "canaryFcm",
+                "--dart-define=APP_ENVIRONMENT=canary",
+                "--dart-define=PUSH_PROVIDER=firebase"
+            ]
         },
         {
-            "name": "flutter_client (release mode)",
+            "name": "Android Production FCM",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "args": [
+                "--flavor",
+                "productionFcm",
+                "--dart-define=APP_ENVIRONMENT=production",
+                "--dart-define=PUSH_PROVIDER=firebase"
+            ]
+        },
+        {
+            "name": "Android Canary UnifiedPush",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "canaryUnifiedpush",
+                "--dart-define=APP_ENVIRONMENT=canary",
+                "--dart-define=PUSH_PROVIDER=unifiedpush"
+            ]
+        },
+        {
+            "name": "Android Production UnifiedPush",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "args": [
+                "--flavor",
+                "productionUnifiedpush",
+                "--dart-define=APP_ENVIRONMENT=production",
+                "--dart-define=PUSH_PROVIDER=unifiedpush"
+            ]
+        },
+        {
+            "name": "iOS Canary APNs",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "canary",
+                "--dart-define=APP_ENVIRONMENT=canary",
+                "--dart-define=PUSH_PROVIDER=apple"
+            ]
+        },
+        {
+            "name": "iOS Production APNs",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "args": [
+                "--flavor",
+                "production",
+                "--dart-define=APP_ENVIRONMENT=production",
+                "--dart-define=PUSH_PROVIDER=apple"
+            ]
         }
     ]
 }

@@ -9,6 +9,7 @@ android {
     namespace = "app.fluxer"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+    flavorDimensions += listOf("environment", "push")
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -20,14 +21,37 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "app.fluxer"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["appLabel"] = "Fluxer"
+        manifestPlaceholders["buildEnvironment"] = "production"
+        manifestPlaceholders["pushProvider"] = "fcm"
+    }
+
+    productFlavors {
+        create("canary") {
+            dimension = "environment"
+            applicationIdSuffix = ".canary"
+            versionNameSuffix = "-canary"
+            manifestPlaceholders["appLabel"] = "Fluxer Canary"
+            manifestPlaceholders["buildEnvironment"] = "canary"
+        }
+        create("production") {
+            dimension = "environment"
+            manifestPlaceholders["appLabel"] = "Fluxer"
+            manifestPlaceholders["buildEnvironment"] = "production"
+        }
+        create("fcm") {
+            dimension = "push"
+            manifestPlaceholders["pushProvider"] = "fcm"
+        }
+        create("unifiedpush") {
+            dimension = "push"
+            manifestPlaceholders["pushProvider"] = "unifiedpush"
+        }
     }
 
     buildTypes {

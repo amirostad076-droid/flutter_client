@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <application
-        android:label="Fluxer"
+        android:label="${appLabel}"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -47,6 +47,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="app.fluxer.BUILD_ENVIRONMENT"
+            android:value="${buildEnvironment}" />
+        <meta-data
+            android:name="app.fluxer.PUSH_PROVIDER"
+            android:value="${pushProvider}" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

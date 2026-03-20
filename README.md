@@ -31,6 +31,48 @@ Riverpod generated files are not committed, so you need to generate them before 
 dart run build_runner build --delete-conflicting-outputs
 ``
 
+### Android build flavors
+
+Android uses two flavor dimensions:
+
+- environment: `canary`, `production`
+- push: `fcm`, `unifiedpush`
+
+This creates four variants:
+
+- `canaryFcm`
+- `canaryUnifiedpush`
+- `productionFcm`
+- `productionUnifiedpush`
+
+Android FCM builds require Firebase deps from `pubspec.firebase.deps.yaml`.
+UnifiedPush builds use `pubspec.yaml` as-is.
+
+Examples:
+
+``
+flutter run --flavor canaryFcm --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=firebase
+flutter run --flavor productionUnifiedpush --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=unifiedpush
+flutter build apk --flavor productionFcm --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=firebase
+``
+
+### iOS build flavors
+
+iOS uses flavor schemes:
+
+- `canary`
+- `production`
+
+iOS is APNs-only and won't work with any other provider.
+
+Examples:
+
+``
+flutter run --flavor canary --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=apple
+flutter run --flavor production --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=apple
+flutter build ipa --flavor production --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=apple
+``
+
 ### API
 
 The Flutter client uses the [dart_sdk](https://github.com/fluxerapp/dart_sdk) to send requests to the Fluxer API.

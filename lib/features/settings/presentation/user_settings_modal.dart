@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
+import 'package:fluxeron/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
@@ -191,6 +192,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
                       ),
                     ),
                     Expanded(child: _buildContent(state)),
+                    _buildBuildInfoFooter(),
                   ],
                 ),
               ),
@@ -222,8 +224,11 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
                   Flexible(
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 18),
-                      itemCount: groups.length,
+                      itemCount: groups.length + 1,
                       itemBuilder: (context, index) {
+                        if (index == groups.length) {
+                          return _buildBuildInfoFooter();
+                        }
                         final group = groups[index];
                         return _buildMobileGroup(group);
                       },
@@ -431,6 +436,45 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
       ),
     ),
   );
+
+  Widget _buildBuildInfoFooter() {
+    final runtimeInfoAsync = ref.watch(appRuntimeInfoProvider);
+    final text = runtimeInfoAsync.when(
+      data: (runtimeInfo) =>
+          'v${runtimeInfo.version} (${runtimeInfo.buildNumber})'
+          ' • ${runtimeInfo.environment.name}'
+          ' • ${_formatProviderLabel(runtimeInfo.pushProvider.name)}',
+      loading: () => '',
+      error: (_, _) => '',
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      child: Align(
+        alignment: Alignment.center,
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 11,
+            color: context.colors.textPrimaryMuted,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatProviderLabel(String providerName) {
+    switch (providerName) {
+      case 'firebaseMessaging':
+        return 'firebase';
+      case 'unifiedPush':
+        return 'unifiedpush';
+      case 'apple':
+        return 'apple';
+      default:
+        return providerName;
+    }
+  }
 }
 
 class _MobileSettingsGroup {
