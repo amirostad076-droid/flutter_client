@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
@@ -21,10 +25,15 @@ class ChannelTextarea extends ConsumerStatefulWidget {
 
 class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
+
+  bool get _isDesktop =>
+      !kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows);
 
   @override
   void initState() {
     super.initState();
+    _focusNode.onKeyEvent = _handleKeyEvent;
     _controller.addListener(() {
       ref
           .read(chatViewModelProvider.notifier)
@@ -34,8 +43,25 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// Enter sends, Shift+Enter inserts newline.
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (!_isDesktop) return KeyEventResult.ignored;
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    if (event.logicalKey != LogicalKeyboardKey.enter) {
+      return KeyEventResult.ignored;
+    }
+    if (HardwareKeyboard.instance.isShiftPressed) {
+      return KeyEventResult.ignored;
+    }
+    ref.read(chatViewModelProvider.notifier).sendMessage();
+    return KeyEventResult.handled;
   }
 
   @override
@@ -161,6 +187,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         Expanded(
           child: TextField(
             controller: _controller,
+            focusNode: _focusNode,
             style: context.textStyles.inputText,
             minLines: 1,
             maxLines: 5,
@@ -259,6 +286,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         Expanded(
           child: TextField(
             controller: _controller,
+            focusNode: _focusNode,
             style: context.textStyles.inputText,
             minLines: 1,
             maxLines: 6,
