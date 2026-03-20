@@ -102,6 +102,12 @@ class MessageRepository {
             editedTimestamp: map['edited_timestamp'] != null
                 ? DateTime.tryParse(map['edited_timestamp'] as String)
                 : null,
+            embeds: (map['embeds'] as List<dynamic>?)
+                    ?.map(
+                      (e) => Embed.fromJson(e as Map<String, dynamic>),
+                    )
+                    .toList() ??
+                const [],
             replyToId:
                 (map['message_reference']
                         as Map<String, dynamic>?)?['message_id']
