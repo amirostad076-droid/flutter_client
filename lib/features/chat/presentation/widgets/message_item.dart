@@ -17,6 +17,7 @@ import 'package:fluxeron/features/chat/presentation/'
 import 'package:fluxeron/features/chat/presentation/'
     'widgets/message_context_menu.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
+import 'package:fluxeron/shared/widgets/message_markdown.dart';
 import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -231,7 +232,10 @@ class _MessageItemState extends State<MessageItem> {
   /// widgets for a message.
   List<Widget> _buildMessageContent(BuildContext context, Message msg) => [
     if (msg.content.isNotEmpty)
-      SelectableText(msg.content, style: context.textStyles.messageText),
+      MessageMarkdown(
+        data: msg.content,
+        selectable: true,
+      ),
     ...msg.embeds.map(_buildEmbed),
     ...msg.attachments.map(_buildAttachment),
     if (msg.reactions.isNotEmpty)

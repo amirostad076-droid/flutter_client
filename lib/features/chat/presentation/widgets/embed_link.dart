@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_shared.dart';
+import 'package:fluxeron/shared/widgets/message_markdown.dart';
 
 /// A link preview card.
 class EmbedLink extends StatelessWidget {
@@ -54,11 +55,9 @@ class EmbedLink extends StatelessWidget {
             if (embed.description != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  embed.description!,
-                  style: context.textStyles.embedDescription,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+                child: MessageMarkdown(
+                  data: embed.description!,
+                  baseStyle: context.textStyles.embedDescription,
                 ),
               ),
             if (embed.thumbnail != null)

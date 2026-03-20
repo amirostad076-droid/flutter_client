@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_shared.dart';
+import 'package:fluxeron/shared/widgets/message_markdown.dart';
 
 /// A rich embed card
 class EmbedRich extends StatelessWidget {
@@ -62,9 +63,9 @@ class EmbedRich extends StatelessWidget {
                   if (embed.description != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6),
-                      child: Text(
-                        embed.description!,
-                        style: context.textStyles.embedDescription,
+                      child: MessageMarkdown(
+                        data: embed.description!,
+                        baseStyle: context.textStyles.embedDescription,
                       ),
                     ),
                   if (embed.fields.isNotEmpty)
@@ -174,9 +175,12 @@ class _EmbedFieldTile extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 2),
-        Text(
-          field.value,
-          style: TextStyle(color: context.colors.textChat, fontSize: 13),
+        MessageMarkdown(
+          data: field.value,
+          baseStyle: TextStyle(
+            color: context.colors.textChat,
+            fontSize: 13,
+          ),
         ),
       ],
     ),
