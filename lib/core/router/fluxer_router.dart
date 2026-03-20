@@ -262,6 +262,11 @@ GoRouter fluxerRouter(Ref ref) {
                   if (guildId == null) {
                     return RoutePaths.me;
                   }
+                  // Already on a child route -/don't redirect.
+                  final fullPath = state.uri.path;
+                  if (RegExp('^/channels/[^/]+/.+').hasMatch(fullPath)) {
+                    return null;
+                  }
                   // On mobile, show the channel sidebar instead of
                   // auto-selecting a channel.
                   if (isMobileLayout(context)) {
