@@ -33,6 +33,8 @@ class ChannelIcon extends StatelessWidget {
         return PhosphorIconsFill.megaphone;
       case ChannelType.stage:
         return PhosphorIconsFill.broadcast;
+      case ChannelType.category:
+        return PhosphorIconsFill.folder;
     }
   }
 }

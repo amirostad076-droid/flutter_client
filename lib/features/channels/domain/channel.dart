@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 
-enum ChannelType { text, voice, announcement, stage }
+enum ChannelType { text, voice, announcement, stage, category }
 
 ChannelType channelTypeFromInt(int type) {
   switch (type) {
@@ -10,6 +10,8 @@ ChannelType channelTypeFromInt(int type) {
       return ChannelType.text;
     case 2:
       return ChannelType.voice;
+    case 4:
+      return ChannelType.category;
     case 5:
       return ChannelType.announcement;
     case 13:
@@ -25,6 +27,8 @@ int channelTypeToInt(ChannelType type) {
       return 0;
     case ChannelType.voice:
       return 2;
+    case ChannelType.category:
+      return 4;
     case ChannelType.announcement:
       return 5;
     case ChannelType.stage:
@@ -74,6 +78,8 @@ class Channel {
       position: Value(position),
     );
   }
+
+  bool get isCategory => type == ChannelType.category;
 }
 
 class ChannelCategory {
@@ -94,49 +100,37 @@ class ChannelCategory {
 /// reference their category via [parentId]. Channels without a parent
 /// are placed in a synthetic "Channels" category.
 List<ChannelCategory> groupChannelsIntoCategories(List<Channel> channels) {
+  final categories = <Channel>[];
   final uncategorized = <Channel>[];
   final parentMap = <String, List<Channel>>{};
 
   for (final ch in channels) {
-    if (ch.parentId != null) {
+    if (ch.isCategory) {
+      categories.add(ch);
+    } else if (ch.parentId != null) {
       parentMap.putIfAbsent(ch.parentId!, () => <Channel>[]).add(ch);
     } else {
       uncategorized.add(ch);
     }
   }
 
-  final categoryChannels = <Channel>[];
-  final actualUncategorized = <Channel>[];
-
-  for (final ch in uncategorized) {
-    if (parentMap.containsKey(ch.id)) {
-      categoryChannels.add(ch);
-    } else {
-      actualUncategorized.add(ch);
-    }
-  }
-
-  actualUncategorized.sort((a, b) => a.position.compareTo(b.position));
-  categoryChannels.sort((a, b) => a.position.compareTo(b.position));
+  uncategorized.sort((a, b) => a.position.compareTo(b.position));
+  categories.sort((a, b) => a.position.compareTo(b.position));
 
   final result = <ChannelCategory>[];
 
-  if (actualUncategorized.isNotEmpty) {
-    result.add(
-      ChannelCategory(
-        id: '_uncategorized',
-        name: 'Channels',
-        channels: actualUncategorized,
-      ),
-    );
+  if (uncategorized.isNotEmpty) {
+    result.add(ChannelCategory(
+      id: '_uncategorized',
+      name: 'Channels',
+      channels: uncategorized,
+    ));
   }
 
-  for (final cat in categoryChannels) {
-    final catChildren = parentMap[cat.id] ?? <Channel>[]
+  for (final cat in categories) {
+    final children = (parentMap[cat.id] ?? <Channel>[])
       ..sort((a, b) => a.position.compareTo(b.position));
-    result.add(
-      ChannelCategory(id: cat.id, name: cat.name, channels: catChildren),
-    );
+    result.add(ChannelCategory(id: cat.id, name: cat.name, channels: children));
   }
 
   return result;
