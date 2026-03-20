@@ -80,7 +80,7 @@ class DmRepository {
             lastMessageTime: Value(
               ch.lastMessageId != null
                   ? _snowflakeToDateTime(ch.lastMessageId!)
-                  : DateTime.now(),
+                  : _snowflakeToDateTime(ch.id),
             ),
           ),
         );
