@@ -27,9 +27,9 @@ We welcome contributions from the community. Please check out the V1 umbrella is
 
 Riverpod generated files are not committed, so you need to generate them before running the project.
 
-``
+```text
 dart run build_runner build --delete-conflicting-outputs
-``
+```
 
 ### Android build flavors
 
@@ -50,11 +50,13 @@ UnifiedPush builds use `pubspec.yaml` as-is.
 
 Examples:
 
-``
+```text
 flutter run --flavor canaryFcm --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=firebase
+
 flutter run --flavor productionUnifiedpush --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=unifiedpush
+
 flutter build apk --flavor productionFcm --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=firebase
-``
+```
 
 ### iOS build flavors
 
@@ -67,12 +69,14 @@ iOS is APNs-only and won't work with any other provider.
 
 Examples:
 
-``
+```text
 flutter run --flavor canary --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=apple
+
 flutter run --flavor production --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=apple
+
 flutter build ipa --flavor production --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=apple
-``
+```
 
 ### API
 
-The Flutter client uses the [dart_sdk](https://github.com/fluxerapp/dart_sdk) to send requests to the Fluxer API.
+The Flutter client uses the [dart_sdk](https://github.com/fluxerapp/dart_sdk) to send requests to the Fluxer API which is generated from the OpenApi spec.
