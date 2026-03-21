@@ -8,10 +8,10 @@ name: Dart analyze
 on:
   push:
     branches:
-      - master
+      - canary
   pull_request:
     branches:
-      - master
+      - canary
 
 jobs:
   analyze:
