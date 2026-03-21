@@ -283,7 +283,15 @@ class GatewayEventHandler {
   }
 
   Future<void> _handleReady(ReadyEvent event) async {
-    talker.info('[Gateway] READY received (session: ${event.sessionId})');
+    talker.info(
+      '[Gateway] READY received (session: ${event.sessionId})'
+      ' — guilds: ${event.guilds.length}'
+      ', DMs: ${event.privateChannels.length}'
+      ', relationships: ${event.relationships.length}'
+      ', presences: ${event.presences.length}'
+      ', readStates: ${event.readStates.length}'
+      ', user: ${event.user.id}',
+    );
 
     _currentUserId = event.user.id;
 
@@ -515,6 +523,8 @@ class GatewayEventHandler {
         }
       }
     });
+
+    talker.info('[Gateway] READY transaction committed successfully');
   }
 
   Future<void> _handleUserSettingsUpdate(UserSettingsUpdateEvent event) async {
