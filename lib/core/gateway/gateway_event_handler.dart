@@ -345,6 +345,7 @@ class GatewayEventHandler {
       }
 
       // Insert guilds with position index (skip unavailable — no metadata).
+      // Also extract channels, roles, and members from full guild data.
       if (event.guilds.isNotEmpty) {
         final guildCompanions = <db.ServersCompanion>[];
         var position = 0;
@@ -364,6 +365,45 @@ class GatewayEventHandler {
           position++;
         }
         await database.guildDao.upsertServers(guildCompanions);
+
+        // Parse full guild data for channels, roles, and members.
+        for (final rawGuild in event.rawGuilds) {
+          final unavailable = rawGuild['unavailable'] as bool? ?? false;
+          if (unavailable) {
+            continue;
+          }
+          final guildData = GuildCreateData.fromJson(rawGuild);
+          final guildId = rawGuild['id'] as String;
+
+          // Insert channels.
+          for (final channel in guildData.channels) {
+            await database.channelDao.upsertChannel(
+              channelFromSdk(channel, guildId),
+            );
+          }
+
+          // Insert roles.
+          if (guildData.roles.isNotEmpty) {
+            await database.roleDao.upsertRoles(
+              guildData.roles.map((r) => roleFromSdk(r, guildId)).toList(),
+            );
+          }
+
+          // Insert members.
+          for (final member in guildData.members) {
+            await database.userDao.upsertUser(userFromPartialSdk(member.user));
+            await database.memberDao.upsertMember(
+              db.MembersCompanion.insert(
+                userId: member.user.id,
+                serverId: guildId,
+                nickname: Value(member.nick),
+                serverAvatar: Value(member.avatar),
+                roleIdsJson: Value(jsonEncode(member.roles)),
+                joinedAt: Value(member.joinedAt),
+              ),
+            );
+          }
+        }
       }
 
       // Insert DM channels (+ upsert recipients as users).
@@ -629,9 +669,7 @@ class GatewayEventHandler {
     unawaited(database.messageDao.upsertMessage(msg.toCompanion()));
 
     // Update channel's last message ID for unread tracking.
-    unawaited(
-      database.channelDao.updateLastMessageId(msg.channelId, msg.id),
-    );
+    unawaited(database.channelDao.updateLastMessageId(msg.channelId, msg.id));
 
     // Update DM last-message metadata (no-ops for guild channels).
     unawaited(
