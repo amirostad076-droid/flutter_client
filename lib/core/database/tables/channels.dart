@@ -9,6 +9,7 @@ class Channels extends Table {
   TextColumn get topic => text().nullable()();
   TextColumn get parentId => text().nullable()();
   IntColumn get position => integer().withDefault(const Constant(0))();
+  TextColumn get lastMessageId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

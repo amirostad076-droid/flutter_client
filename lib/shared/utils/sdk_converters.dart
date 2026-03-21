@@ -33,6 +33,7 @@ db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String serverId) {
     topic: Value(sdk.topic),
     parentId: Value(sdk.parentId),
     position: Value(sdk.position ?? 0),
+    lastMessageId: Value(sdk.lastMessageId),
   );
 }
 

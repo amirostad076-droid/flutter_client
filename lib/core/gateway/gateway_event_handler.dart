@@ -349,7 +349,9 @@ class GatewayEventHandler {
         final guildCompanions = <db.ServersCompanion>[];
         var position = 0;
         for (final g in event.guilds) {
-          if (g.unavailable == true) continue;
+          if (g.unavailable ?? false) {
+            continue;
+          }
           guildCompanions.add(
             db.ServersCompanion.insert(
               id: g.id,
@@ -625,6 +627,11 @@ class GatewayEventHandler {
     );
 
     unawaited(database.messageDao.upsertMessage(msg.toCompanion()));
+
+    // Update channel's last message ID for unread tracking.
+    unawaited(
+      database.channelDao.updateLastMessageId(msg.channelId, msg.id),
+    );
 
     // Update DM last-message metadata (no-ops for guild channels).
     unawaited(
