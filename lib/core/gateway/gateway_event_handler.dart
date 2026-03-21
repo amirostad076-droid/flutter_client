@@ -126,13 +126,13 @@ class GatewayEventHandler {
       case CallDeleteEvent():
         talker.debug('[Gateway] CALL_DELETE: ${event.channelId}');
       case UserSettingsUpdateEvent():
-        talker.debug('[Gateway] USER_SETTINGS_UPDATE');
+        unawaited(_handleUserSettingsUpdate(event));
       case UserGuildSettingsUpdateEvent():
-        talker.debug('[Gateway] USER_GUILD_SETTINGS_UPDATE: ${event.guildId}');
+        unawaited(_handleUserGuildSettingsUpdate(event));
       case UserPinnedDmsUpdateEvent():
-        talker.debug('[Gateway] USER_PINNED_DMS_UPDATE');
+        unawaited(_handleUserPinnedDmsUpdate(event));
       case UserNoteUpdateEvent():
-        talker.debug('[Gateway] USER_NOTE_UPDATE: ${event.userId}');
+        unawaited(_handleUserNoteUpdate(event));
       case UserConnectionsUpdateEvent():
         talker.debug('[Gateway] USER_CONNECTIONS_UPDATE');
       case AuthSessionChangeEvent():
@@ -150,11 +150,11 @@ class GatewayEventHandler {
       case WebhooksUpdateEvent():
         talker.debug('[Gateway] WEBHOOKS_UPDATE: ${event.channelId}');
       case FavoriteMemeCreateEvent():
-        talker.debug('[Gateway] FAVORITE_MEME_CREATE');
+        unawaited(_handleFavoriteMemeCreate(event));
       case FavoriteMemeUpdateEvent():
-        talker.debug('[Gateway] FAVORITE_MEME_UPDATE');
+        unawaited(_handleFavoriteMemeUpdate(event));
       case FavoriteMemeDeleteEvent():
-        talker.debug('[Gateway] FAVORITE_MEME_DELETE: ${event.id}');
+        unawaited(_handleFavoriteMemeDelete(event));
       case SessionsReplaceEvent():
         talker.debug('[Gateway] SESSIONS_REPLACE');
       case GatewayErrorEvent():
@@ -396,6 +396,86 @@ class GatewayEventHandler {
         }
       }
     });
+  }
+
+  Future<void> _handleUserSettingsUpdate(UserSettingsUpdateEvent event) async {
+    final userId = _currentUserId;
+    if (userId == null) {
+      return;
+    }
+    await database.userSettingsDao.upsertSettings(
+      db.UserSettingsTableCompanion(
+        userId: Value(userId),
+        data: Value(jsonEncode(event.settings.toJson())),
+      ),
+    );
+  }
+
+  Future<void> _handleUserGuildSettingsUpdate(
+    UserGuildSettingsUpdateEvent event,
+  ) async {
+    await database.userGuildSettingsDao.upsert(
+      db.UserGuildSettingsTableCompanion(
+        guildId: Value(event.guildId),
+        data: Value(jsonEncode(event.data)),
+      ),
+    );
+  }
+
+  Future<void> _handleUserNoteUpdate(UserNoteUpdateEvent event) async {
+    if (event.note == null || event.note!.isEmpty) {
+      await database.userNotesDao.deleteNote(event.userId);
+    } else {
+      await database.userNotesDao.upsertNote(
+        db.UserNotesTableCompanion(
+          targetUserId: Value(event.userId),
+          content: Value(event.note!),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleUserPinnedDmsUpdate(
+    UserPinnedDmsUpdateEvent event,
+  ) async {
+    final companions = <db.PinnedDmsTableCompanion>[];
+    for (var i = 0; i < event.pinnedDmChannelIds.length; i++) {
+      companions.add(
+        db.PinnedDmsTableCompanion(
+          channelId: Value(event.pinnedDmChannelIds[i]),
+          position: Value(i),
+        ),
+      );
+    }
+    await database.pinnedDmsDao.replaceAll(companions);
+  }
+
+  Future<void> _handleFavoriteMemeCreate(FavoriteMemeCreateEvent event) async {
+    final id = event.data['id'] as String? ?? '';
+    if (id.isNotEmpty) {
+      await database.favoriteMemesDao.upsert(
+        db.FavoriteMemesTableCompanion(
+          id: Value(id),
+          data: Value(jsonEncode(event.data)),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleFavoriteMemeUpdate(FavoriteMemeUpdateEvent event) async {
+    final id = event.data['id'] as String? ?? '';
+    if (id.isNotEmpty) {
+      await database.favoriteMemesDao.upsert(
+        db.FavoriteMemesTableCompanion(
+          id: Value(id),
+          data: Value(jsonEncode(event.data)),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleFavoriteMemeDelete(FavoriteMemeDeleteEvent event) async {
+    await database.favoriteMemesDao.deleteMeme(event.id);
   }
 
   void _handleMessageCreate(MessageCreateEvent event) {
