@@ -52,62 +52,108 @@ class GatewayEventHandler {
       case ReadyEvent():
         await _handleReady(event);
       case ResumedEvent():
-        talker.info('[Gateway] Session resumed');
+        talker.info('[Gateway] RESUMED');
       case MessageCreateEvent():
+        talker.debug('[Gateway] MESSAGE_CREATE: ${event.message.channelId}');
         _handleMessageCreate(event);
       case MessageUpdateEvent():
+        talker.debug('[Gateway] MESSAGE_UPDATE: ${event.message.id}');
         _handleMessageUpdate(event);
       case MessageDeleteEvent():
+        talker.debug('[Gateway] MESSAGE_DELETE: ${event.messageId}');
         _handleMessageDelete(event);
       case TypingStartEvent():
         _handleTypingStart(event);
       case PresenceUpdateEvent():
         _handlePresenceUpdate(event);
       case GuildMemberAddEvent():
+        talker.debug(
+          '[Gateway] GUILD_MEMBER_ADD: ${event.member.user.id}'
+          ' → ${event.guildId}',
+        );
         _handleMemberUpsert(event.guildId, event.member);
       case GuildMemberUpdateEvent():
+        talker.debug(
+          '[Gateway] GUILD_MEMBER_UPDATE: ${event.member.user.id}'
+          ' → ${event.guildId}',
+        );
         _handleMemberUpsert(event.guildId, event.member);
       case GuildMemberRemoveEvent():
+        talker.debug(
+          '[Gateway] GUILD_MEMBER_REMOVE: ${event.userId}'
+          ' → ${event.guildId}',
+        );
         _handleMemberRemove(event);
       case ChannelCreateEvent():
+        talker.debug('[Gateway] CHANNEL_CREATE: ${event.channel.id}');
         _handleChannelUpsert(event.channel);
       case ChannelUpdateEvent():
+        talker.debug('[Gateway] CHANNEL_UPDATE: ${event.channel.id}');
         _handleChannelUpsert(event.channel);
       case ChannelDeleteEvent():
+        talker.debug('[Gateway] CHANNEL_DELETE: ${event.channel.id}');
         _handleChannelDelete(event);
       case MessageReactionAddEvent():
+        talker.debug('[Gateway] MESSAGE_REACTION_ADD: ${event.messageId}');
         _handleReactionAdd(event);
       case MessageReactionRemoveEvent():
+        talker.debug('[Gateway] MESSAGE_REACTION_REMOVE: ${event.messageId}');
         _handleReactionRemove(event);
       case MessageReactionRemoveAllEvent():
+        talker.debug(
+          '[Gateway] MESSAGE_REACTION_REMOVE_ALL: ${event.messageId}',
+        );
         _handleReactionRemoveAll(event);
       case MessageReactionRemoveEmojiEvent():
+        talker.debug(
+          '[Gateway] MESSAGE_REACTION_REMOVE_EMOJI: ${event.messageId}',
+        );
         _handleReactionRemoveEmoji(event);
       case GuildCreateEvent():
+        talker.debug('[Gateway] GUILD_CREATE: ${event.guild.guild.id}');
         _handleGuildCreate(event);
       case GuildUpdateEvent():
+        talker.debug('[Gateway] GUILD_UPDATE: ${event.guild.guild.id}');
         _handleGuildUpdate(event);
       case GuildDeleteEvent():
+        talker.debug('[Gateway] GUILD_DELETE: ${event.guildId}');
         _handleGuildDelete(event);
       case RelationshipAddEvent():
+        talker.debug(
+          '[Gateway] RELATIONSHIP_ADD: ${event.relationship.user.id}',
+        );
         _handleRelationshipUpsert(event.relationship);
       case RelationshipUpdateEvent():
+        talker.debug(
+          '[Gateway] RELATIONSHIP_UPDATE: ${event.relationship.user.id}',
+        );
         _handleRelationshipUpsert(event.relationship);
       case RelationshipRemoveEvent():
+        talker.debug('[Gateway] RELATIONSHIP_REMOVE: ${event.userId}');
         _handleRelationshipRemove(event);
       case UserUpdateEvent():
+        talker.debug('[Gateway] USER_UPDATE: ${event.user.id}');
         _handleUserUpdate(event);
       case MessageDeleteBulkEvent():
+        talker.debug(
+          '[Gateway] MESSAGE_DELETE_BULK: ${event.ids.length} messages',
+        );
         _handleMessageDeleteBulk(event);
       case MessageAckEvent():
+        talker.debug('[Gateway] MESSAGE_ACK: ${event.channelId}');
         _handleMessageAck(event);
       case MessageReactionAddManyEvent():
+        talker.debug('[Gateway] MESSAGE_REACTION_ADD_MANY: ${event.messageId}');
         _handleReactionAddMany(event);
       case ChannelUpdateBulkEvent():
+        talker.debug(
+          '[Gateway] CHANNEL_UPDATE_BULK: ${event.channels.length} channels',
+        );
         for (final channel in event.channels) {
           _handleChannelUpsert(channel);
         }
       case ChannelPinsUpdateEvent():
+        talker.debug('[Gateway] CHANNEL_PINS_UPDATE: ${event.channelId}');
         unawaited(
           database.readStateDao.updatePinTimestamp(
             event.channelId,
@@ -117,74 +163,116 @@ class GatewayEventHandler {
       case ChannelPinsAckEvent():
         talker.debug('[Gateway] CHANNEL_PINS_ACK: ${event.channelId}');
       case ChannelRecipientAddEvent():
+        talker.debug('[Gateway] CHANNEL_RECIPIENT_ADD: ${event.channelId}');
         unawaited(database.userDao.upsertUser(userFromPartialSdk(event.user)));
       case ChannelRecipientRemoveEvent():
         talker.debug('[Gateway] CHANNEL_RECIPIENT_REMOVE: ${event.channelId}');
       case PassiveUpdatesEvent():
+        talker.debug('[Gateway] PASSIVE_UPDATES');
         _handlePassiveUpdates(event);
       case GuildRoleCreateEvent():
+        talker.debug('[Gateway] GUILD_ROLE_CREATE: ${event.role.id}');
         _handleRoleUpsert(event.guildId, event.role);
       case GuildRoleUpdateEvent():
+        talker.debug('[Gateway] GUILD_ROLE_UPDATE: ${event.role.id}');
         _handleRoleUpsert(event.guildId, event.role);
       case GuildRoleDeleteEvent():
+        talker.debug('[Gateway] GUILD_ROLE_DELETE: ${event.roleId}');
         unawaited(database.roleDao.deleteRole(event.roleId));
       case GuildRoleUpdateBulkEvent():
+        talker.debug(
+          '[Gateway] GUILD_ROLE_UPDATE_BULK: ${event.roles.length} roles',
+        );
         _handleRoleUpdateBulk(event);
       case GuildBanAddEvent():
         talker.debug('[Gateway] GUILD_BAN_ADD: ${event.guildId}');
       case GuildBanRemoveEvent():
         talker.debug('[Gateway] GUILD_BAN_REMOVE: ${event.guildId}');
       case GuildEmojisUpdateEvent():
+        talker.debug(
+          '[Gateway] GUILD_EMOJIS_UPDATE: ${event.guildId}'
+          ' (${event.emojis.length})',
+        );
         unawaited(_handleGuildEmojisUpdate(event));
       case GuildStickersUpdateEvent():
+        talker.debug(
+          '[Gateway] GUILD_STICKERS_UPDATE: ${event.guildId}'
+          ' (${event.stickers.length})',
+        );
         unawaited(_handleGuildStickersUpdate(event));
       case GuildSyncEvent():
+        talker.debug('[Gateway] GUILD_SYNC: ${event.guild.guild.id}');
         _handleGuildCreate(GuildCreateEvent(guild: event.guild));
       case GuildMembersChunkEvent():
+        talker.debug(
+          '[Gateway] GUILD_MEMBERS_CHUNK: ${event.guildId}'
+          ' (${event.members.length})',
+        );
         _handleMembersChunk(event);
       case GuildMemberListUpdateEvent():
         talker.debug('[Gateway] GUILD_MEMBER_LIST_UPDATE: ${event.guildId}');
       case PresenceUpdateBulkEvent():
+        talker.debug(
+          '[Gateway] PRESENCE_UPDATE_BULK: ${event.presences.length}',
+        );
         _handlePresenceUpdateBulk(event);
       case VoiceStateUpdateEvent():
+        talker.debug(
+          '[Gateway] VOICE_STATE_UPDATE: ${event.state.userId}'
+          ' → ${event.state.channelId}',
+        );
         onVoiceStateUpdate?.call(event.state);
       case VoiceServerUpdateEvent():
         talker.debug('[Gateway] VOICE_SERVER_UPDATE');
       case CallCreateEvent():
+        talker.debug('[Gateway] CALL_CREATE: ${event.channelId}');
         onCallCreate?.call(event);
       case CallUpdateEvent():
+        talker.debug('[Gateway] CALL_UPDATE: ${event.channelId}');
         onCallUpdate?.call(event);
       case CallDeleteEvent():
+        talker.debug('[Gateway] CALL_DELETE: ${event.channelId}');
         onCallDelete?.call(event.channelId);
       case UserSettingsUpdateEvent():
+        talker.debug('[Gateway] USER_SETTINGS_UPDATE');
         unawaited(_handleUserSettingsUpdate(event));
       case UserGuildSettingsUpdateEvent():
+        talker.debug('[Gateway] USER_GUILD_SETTINGS_UPDATE: ${event.guildId}');
         unawaited(_handleUserGuildSettingsUpdate(event));
       case UserPinnedDmsUpdateEvent():
+        talker.debug('[Gateway] USER_PINNED_DMS_UPDATE');
         unawaited(_handleUserPinnedDmsUpdate(event));
       case UserNoteUpdateEvent():
+        talker.debug('[Gateway] USER_NOTE_UPDATE: ${event.userId}');
         unawaited(_handleUserNoteUpdate(event));
       case UserConnectionsUpdateEvent():
         talker.debug('[Gateway] USER_CONNECTIONS_UPDATE');
       case AuthSessionChangeEvent():
         talker.debug('[Gateway] AUTH_SESSION_CHANGE');
       case InviteCreateEvent():
+        talker.debug('[Gateway] INVITE_CREATE');
         onInviteCreate?.call(event.data);
       case InviteDeleteEvent():
+        talker.debug('[Gateway] INVITE_DELETE: ${event.code}');
         onInviteDelete?.call(event.code);
       case SavedMessageCreateEvent():
+        talker.debug('[Gateway] SAVED_MESSAGE_CREATE: ${event.message.id}');
         unawaited(database.savedMessageDao.addSavedMessage(event.message.id));
       case SavedMessageDeleteEvent():
+        talker.debug('[Gateway] SAVED_MESSAGE_DELETE: ${event.messageId}');
         unawaited(database.savedMessageDao.removeSavedMessage(event.messageId));
       case RecentMentionDeleteEvent():
         talker.debug('[Gateway] RECENT_MENTION_DELETE: ${event.messageId}');
       case WebhooksUpdateEvent():
         talker.debug('[Gateway] WEBHOOKS_UPDATE: ${event.channelId}');
       case FavoriteMemeCreateEvent():
+        talker.debug('[Gateway] FAVORITE_MEME_CREATE');
         unawaited(_handleFavoriteMemeCreate(event));
       case FavoriteMemeUpdateEvent():
+        talker.debug('[Gateway] FAVORITE_MEME_UPDATE');
         unawaited(_handleFavoriteMemeUpdate(event));
       case FavoriteMemeDeleteEvent():
+        talker.debug('[Gateway] FAVORITE_MEME_DELETE: ${event.id}');
         unawaited(_handleFavoriteMemeDelete(event));
       case SessionsReplaceEvent():
         talker.debug('[Gateway] SESSIONS_REPLACE');
