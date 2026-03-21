@@ -94,11 +94,9 @@ List<GuildNavbarItem> organizedGuildList(Ref ref) {
       continue;
     }
 
-    // Uncategorized: no id, or single guild with no folder name.
-    final isUncategorized =
-        folder.id == null || (folderGuilds.length == 1 && folder.name == null);
-
-    if (isUncategorized) {
+    // Web app uses UNCATEGORIZED_FOLDER_ID = -1.
+    // Gateway may send null or -1 for uncategorized entries.
+    if (folder.id == null || folder.id == -1) {
       for (final guild in folderGuilds) {
         items.add(GuildNavbarGuild(guild: guild));
       }
