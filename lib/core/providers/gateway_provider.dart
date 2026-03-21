@@ -5,6 +5,7 @@ import 'package:fluxer_dart/gateway.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/gateway/gateway_event_handler.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
+import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/talker.dart';
 import 'package:fluxeron/features/gateway/providers/gateway_event_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -52,6 +53,27 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       talker.error('[Gateway] Event stream error: $error');
     },
   );
+
+  ref.onDispose(subscription.cancel);
+  return subscription;
+}
+
+@Riverpod(keepAlive: true)
+Raw<StreamSubscription<GatewayState>?> gatewayStateListener(Ref ref) {
+  final connection = ref.watch(gatewayConnectionProvider);
+
+  final subscription = connection.stateChanges.listen((state) {
+    final reachable = ref.read(serverReachableProvider.notifier);
+    switch (state) {
+      case GatewayState.connected:
+        reachable.setReachable(value: true);
+      case GatewayState.disconnected:
+        reachable.setReachable(value: false);
+      case GatewayState.connecting:
+      case GatewayState.reconnecting:
+        break;
+    }
+  });
 
   ref.onDispose(subscription.cancel);
   return subscription;

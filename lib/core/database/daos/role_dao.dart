@@ -29,6 +29,9 @@ class RoleDao extends DatabaseAccessor<FluxerDatabase> with _$RoleDaoMixin {
     });
   }
 
+  Future<void> deleteRole(String id) =>
+      (delete(roles)..where((r) => r.id.equals(id))).go();
+
   Future<void> deleteRolesForServer(String serverId) =>
       (delete(roles)..where((r) => r.serverId.equals(serverId))).go();
 

@@ -31,6 +31,18 @@ db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String serverId) {
   );
 }
 
+/// Converts SDK [GuildRoleResponse] to a Drift companion.
+db.RolesCompanion roleFromSdk(GuildRoleResponse sdk, String serverId) {
+  return db.RolesCompanion.insert(
+    id: sdk.id,
+    serverId: serverId,
+    name: sdk.name,
+    color: Value(sdk.color),
+    position: Value(sdk.position),
+    isHoisted: Value(sdk.hoist),
+  );
+}
+
 /// Converts SDK [UserPartialResponse] to a Drift companion.
 db.UsersCompanion userFromPartialSdk(UserPartialResponse sdk) {
   return db.UsersCompanion.insert(

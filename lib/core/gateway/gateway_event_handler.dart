@@ -66,6 +66,96 @@ class GatewayEventHandler {
         _handleRelationshipUpsert(event.relationship);
       case RelationshipRemoveEvent():
         _handleRelationshipRemove(event);
+      case UserUpdateEvent():
+        _handleUserUpdate(event);
+      case MessageDeleteBulkEvent():
+        _handleMessageDeleteBulk(event);
+      case MessageAckEvent():
+        talker.debug('[Gateway] MESSAGE_ACK: ${event.channelId}');
+      case MessageReactionAddManyEvent():
+        talker.debug('[Gateway] MESSAGE_REACTION_ADD_MANY');
+      case ChannelUpdateBulkEvent():
+        for (final channel in event.channels) {
+          _handleChannelUpsert(channel);
+        }
+      case ChannelPinsUpdateEvent():
+        talker.debug('[Gateway] CHANNEL_PINS_UPDATE: ${event.channelId}');
+      case ChannelPinsAckEvent():
+        talker.debug('[Gateway] CHANNEL_PINS_ACK: ${event.channelId}');
+      case ChannelRecipientAddEvent():
+        talker.debug('[Gateway] CHANNEL_RECIPIENT_ADD: ${event.channelId}');
+      case ChannelRecipientRemoveEvent():
+        talker.debug('[Gateway] CHANNEL_RECIPIENT_REMOVE: ${event.channelId}');
+      case PassiveUpdatesEvent():
+        talker.debug('[Gateway] PASSIVE_UPDATES: ${event.guildId}');
+      case GuildRoleCreateEvent():
+        _handleRoleUpsert(event.guildId, event.role);
+      case GuildRoleUpdateEvent():
+        _handleRoleUpsert(event.guildId, event.role);
+      case GuildRoleDeleteEvent():
+        unawaited(database.roleDao.deleteRole(event.roleId));
+      case GuildRoleUpdateBulkEvent():
+        _handleRoleUpdateBulk(event);
+      case GuildBanAddEvent():
+        talker.debug('[Gateway] GUILD_BAN_ADD: ${event.guildId}');
+      case GuildBanRemoveEvent():
+        talker.debug('[Gateway] GUILD_BAN_REMOVE: ${event.guildId}');
+      case GuildEmojisUpdateEvent():
+        talker.debug('[Gateway] GUILD_EMOJIS_UPDATE: ${event.guildId}');
+      case GuildStickersUpdateEvent():
+        talker.debug('[Gateway] GUILD_STICKERS_UPDATE: ${event.guildId}');
+      case GuildSyncEvent():
+        _handleGuildCreate(GuildCreateEvent(guild: event.guild));
+      case GuildMembersChunkEvent():
+        _handleMembersChunk(event);
+      case GuildMemberListUpdateEvent():
+        talker.debug('[Gateway] GUILD_MEMBER_LIST_UPDATE: ${event.guildId}');
+      case PresenceUpdateBulkEvent():
+        _handlePresenceUpdateBulk(event);
+      case VoiceStateUpdateEvent():
+        talker.debug('[Gateway] VOICE_STATE_UPDATE: ${event.state.userId}');
+      case VoiceServerUpdateEvent():
+        talker.debug('[Gateway] VOICE_SERVER_UPDATE');
+      case CallCreateEvent():
+        talker.debug('[Gateway] CALL_CREATE: ${event.channelId}');
+      case CallUpdateEvent():
+        talker.debug('[Gateway] CALL_UPDATE: ${event.channelId}');
+      case CallDeleteEvent():
+        talker.debug('[Gateway] CALL_DELETE: ${event.channelId}');
+      case UserSettingsUpdateEvent():
+        talker.debug('[Gateway] USER_SETTINGS_UPDATE');
+      case UserGuildSettingsUpdateEvent():
+        talker.debug('[Gateway] USER_GUILD_SETTINGS_UPDATE: ${event.guildId}');
+      case UserPinnedDmsUpdateEvent():
+        talker.debug('[Gateway] USER_PINNED_DMS_UPDATE');
+      case UserNoteUpdateEvent():
+        talker.debug('[Gateway] USER_NOTE_UPDATE: ${event.userId}');
+      case UserConnectionsUpdateEvent():
+        talker.debug('[Gateway] USER_CONNECTIONS_UPDATE');
+      case AuthSessionChangeEvent():
+        talker.debug('[Gateway] AUTH_SESSION_CHANGE');
+      case InviteCreateEvent():
+        talker.debug('[Gateway] INVITE_CREATE');
+      case InviteDeleteEvent():
+        talker.debug('[Gateway] INVITE_DELETE: ${event.code}');
+      case SavedMessageCreateEvent():
+        talker.debug('[Gateway] SAVED_MESSAGE_CREATE');
+      case SavedMessageDeleteEvent():
+        talker.debug('[Gateway] SAVED_MESSAGE_DELETE: ${event.messageId}');
+      case RecentMentionDeleteEvent():
+        talker.debug('[Gateway] RECENT_MENTION_DELETE: ${event.messageId}');
+      case WebhooksUpdateEvent():
+        talker.debug('[Gateway] WEBHOOKS_UPDATE: ${event.channelId}');
+      case FavoriteMemeCreateEvent():
+        talker.debug('[Gateway] FAVORITE_MEME_CREATE');
+      case FavoriteMemeUpdateEvent():
+        talker.debug('[Gateway] FAVORITE_MEME_UPDATE');
+      case FavoriteMemeDeleteEvent():
+        talker.debug('[Gateway] FAVORITE_MEME_DELETE: ${event.id}');
+      case SessionsReplaceEvent():
+        talker.debug('[Gateway] SESSIONS_REPLACE');
+      case GatewayErrorEvent():
+        talker.warning('[Gateway] Error: [${event.code}] ${event.message}');
       case UnknownGatewayEvent():
         talker.debug('[Gateway] Unknown event: ${event.eventType}');
     }
@@ -93,7 +183,16 @@ class GatewayEventHandler {
     if (event.guilds.isNotEmpty) {
       final guildCompanions = <db.ServersCompanion>[];
       for (var i = 0; i < event.guilds.length; i++) {
-        guildCompanions.add(guildFromSdk(event.guilds[i], position: i));
+        final g = event.guilds[i];
+        guildCompanions.add(
+          db.ServersCompanion.insert(
+            id: g.id,
+            name: g.name ?? '',
+            icon: Value(g.icon),
+            ownerId: Value(g.ownerId),
+            position: Value(i),
+          ),
+        );
       }
       unawaited(database.guildDao.upsertServers(guildCompanions));
     }
@@ -231,18 +330,96 @@ class GatewayEventHandler {
     unawaited(database.channelDao.deleteChannel(event.channel.id));
   }
 
+  void _handleUserUpdate(UserUpdateEvent event) {
+    unawaited(
+      database.userDao.upsertUser(
+        db.UsersCompanion.insert(
+          id: event.user.id,
+          username: event.user.username,
+          discriminator: Value(event.user.discriminator),
+          globalName: Value(event.user.globalName),
+          avatar: Value(event.user.avatar),
+          avatarColor: Value(event.user.avatarColor),
+          isBot: Value(event.user.bot ?? false),
+        ),
+      ),
+    );
+  }
+
+  void _handleMessageDeleteBulk(MessageDeleteBulkEvent event) {
+    for (final id in event.ids) {
+      unawaited(database.messageDao.deleteMessage(id));
+    }
+  }
+
+  void _handleRoleUpsert(String guildId, GuildRoleResponse role) {
+    unawaited(database.roleDao.upsertRoles([roleFromSdk(role, guildId)]));
+  }
+
+  void _handleRoleUpdateBulk(GuildRoleUpdateBulkEvent event) {
+    unawaited(
+      database.roleDao.upsertRoles(
+        event.roles.map((r) => roleFromSdk(r, event.guildId)).toList(),
+      ),
+    );
+  }
+
+  void _handleMembersChunk(GuildMembersChunkEvent event) {
+    for (final member in event.members) {
+      _handleMemberUpsert(event.guildId, member);
+    }
+  }
+
+  void _handlePresenceUpdateBulk(PresenceUpdateBulkEvent event) {
+    for (final p in event.presences) {
+      final userId = (p['user'] as Map<String, dynamic>?)?['id'] as String?;
+      final status = p['status'] as String?;
+      if (userId != null && status != null) {
+        unawaited(
+          database.userDao.upsertUser(
+            db.UsersCompanion(id: Value(userId), status: Value(status)),
+          ),
+        );
+      }
+    }
+  }
+
   void _handleGuildCreate(GuildCreateEvent event) {
-    unawaited(database.guildDao.upsertServer(guildFromSdk(event.guild)));
+    unawaited(database.guildDao.upsertServer(guildFromSdk(event.guild.guild)));
+
+    // Upsert channels and roles from the guild create payload.
+    for (final channel in event.guild.channels) {
+      final guildId = channel.guildId;
+      if (guildId != null) {
+        unawaited(
+          database.channelDao.upsertChannel(channelFromSdk(channel, guildId)),
+        );
+      }
+    }
+
+    if (event.guild.roles.isNotEmpty) {
+      unawaited(
+        database.roleDao.upsertRoles(
+          event.guild.roles
+              .map((r) => roleFromSdk(r, event.guild.guild.id))
+              .toList(),
+        ),
+      );
+    }
+
+    // Upsert members.
+    for (final member in event.guild.members) {
+      _handleMemberUpsert(event.guild.guild.id, member);
+    }
   }
 
   void _handleGuildUpdate(GuildUpdateEvent event) {
-    unawaited(database.guildDao.upsertServer(guildFromSdk(event.guild)));
+    unawaited(database.guildDao.upsertServer(guildFromSdk(event.guild.guild)));
   }
 
   void _handleGuildDelete(GuildDeleteEvent event) {
-    // GuildDao does not expose a delete method; clearing channels is sufficient
-    // for now until a deleteServer method is added.
     unawaited(database.channelDao.deleteChannelsForServer(event.guildId));
+    unawaited(database.guildDao.deleteServer(event.guildId));
   }
 
   void _handleRelationshipUpsert(RelationshipResponse relationship) {
