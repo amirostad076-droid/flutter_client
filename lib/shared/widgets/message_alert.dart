@@ -1,0 +1,90 @@
+import 'package:flutter/material.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+/// > [!NOTE], > [!TIP], > [!IMPORTANT], > [!WARNING], > [!CAUTION]
+enum AlertType {
+  note(label: 'Note', icon: PhosphorIconsFill.info),
+  tip(label: 'Tip', icon: PhosphorIconsFill.lightbulbFilament),
+  important(label: 'Important', icon: PhosphorIconsFill.warning),
+  warning(label: 'Warning', icon: PhosphorIconsFill.warningOctagon),
+  caution(label: 'Caution', icon: PhosphorIconsFill.warningCircle);
+
+  const AlertType({required this.label, required this.icon});
+
+  final String label;
+  final IconData icon;
+
+  static AlertType? tryParse(String raw) {
+    final key = raw.trim().toLowerCase();
+    for (final t in values) {
+      if (t.name == key) return t;
+    }
+    return null;
+  }
+
+  Color accentColor(BuildContext context) {
+    final colors = context.colors;
+    return switch (this) {
+      AlertType.note => colors.alertNote,
+      AlertType.tip => colors.alertTip,
+      AlertType.important => colors.alertImportant,
+      AlertType.warning => colors.alertWarning,
+      AlertType.caution => colors.alertCaution,
+    };
+  }
+}
+
+class MessageAlert extends StatelessWidget {
+  const MessageAlert({
+    required this.type,
+    required this.body,
+    this.baseStyle,
+    super.key,
+  });
+
+  final AlertType type;
+  final String body;
+  final TextStyle? baseStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = type.accentColor(context);
+    final style = baseStyle ?? const TextStyle();
+    final colors = context.colors;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        border: Border(left: BorderSide(color: accent, width: 4)),
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(4),
+          bottomRight: Radius.circular(4),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(type.icon, size: 16, color: accent),
+              const SizedBox(width: 6),
+              Text(
+                type.label,
+                style: style.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w600,
+                  fontSize: (style.fontSize ?? 16) * 0.875,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(body, style: style.copyWith(color: colors.textPrimary)),
+        ],
+      ),
+    );
+  }
+}

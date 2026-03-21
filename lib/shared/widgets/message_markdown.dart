@@ -38,6 +38,7 @@ import 'package:highlight/languages/swift.dart';
 import 'package:highlight/languages/typescript.dart';
 import 'package:highlight/languages/xml.dart';
 import 'package:highlight/languages/yaml.dart';
+import 'package:fluxeron/shared/widgets/message_alert.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -100,6 +101,69 @@ void _ensureLanguagesRegistered() {
   _kLanguages.forEach(highlight.registerLanguage);
 }
 
+sealed class _Segment {}
+
+final class _MarkdownSegment extends _Segment {
+  _MarkdownSegment(this.text);
+  final String text;
+}
+
+final class _AlertSegment extends _Segment {
+  _AlertSegment({required this.type, required this.body});
+  final AlertType type;
+  final String body;
+}
+
+/// Parses alert blocks out of [text], returns interleaved markdown and alert segmentss
+List<_Segment> _parseSegments(String text) {
+  final openRe = RegExp(
+    r'^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$',
+    caseSensitive: false,
+  );
+  final lineRe = RegExp(r'^>\s?(.*)$');
+
+  final lines = text.split('\n');
+  final segments = <_Segment>[];
+  final mdBuffer = StringBuffer();
+
+  int i = 0;
+  while (i < lines.length) {
+    final match = openRe.firstMatch(lines[i]);
+    if (match == null) {
+      mdBuffer.writeln(lines[i]);
+      i++;
+      continue;
+    }
+
+    final pending = mdBuffer.toString().trim();
+    if (pending.isNotEmpty) {
+      segments.add(_MarkdownSegment(pending));
+      mdBuffer.clear();
+    }
+
+    final rawType = match.group(1)!;
+    final type = AlertType.tryParse(rawType)!;
+    i++;
+
+    final bodyLines = <String>[];
+    while (i < lines.length) {
+      final bodyMatch = lineRe.firstMatch(lines[i]);
+      if (bodyMatch == null) break;
+      bodyLines.add(bodyMatch.group(1) ?? '');
+      i++;
+    }
+
+    segments.add(_AlertSegment(type: type, body: bodyLines.join('\n').trim()));
+  }
+
+  final remaining = mdBuffer.toString().trim();
+  if (remaining.isNotEmpty) {
+    segments.add(_MarkdownSegment(remaining));
+  }
+
+  return segments;
+}
+
 class MessageMarkdown extends StatelessWidget {
   const MessageMarkdown({
     required this.data,
@@ -153,19 +217,55 @@ class MessageMarkdown extends StatelessWidget {
       tableBorder: TableBorder.all(color: colors.borderColor),
     );
 
-    return MarkdownBody(
-      data: data,
-      styleSheet: sheet,
-      selectable: selectable,
-      inlineSyntaxes: [_SpoilerSyntax()],
-      builders: {
-        _SpoilerSyntax.tag: _SpoilerBuilder(),
-        'code': _CodeBlockBuilder(isDark: isDark, baseStyle: style),
-      },
-      extensionSet: md.ExtensionSet.gitHubFlavored,
-      onTapLink: (_, href, _) => _onTapLink(href),
+    final segments = _parseSegments(data);
+
+    if (segments.length == 1 && segments.first is _MarkdownSegment) {
+      return _buildMarkdown(
+        (segments.first as _MarkdownSegment).text,
+        sheet,
+        isDark,
+        style,
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: segments.map((seg) {
+        return switch (seg) {
+          _MarkdownSegment(:final text) => _buildMarkdown(
+            text,
+            sheet,
+            isDark,
+            style,
+          ),
+          _AlertSegment(:final type, :final body) => MessageAlert(
+            type: type,
+            body: body,
+            baseStyle: style,
+          ),
+        };
+      }).toList(),
     );
   }
+
+  Widget _buildMarkdown(
+    String text,
+    MarkdownStyleSheet sheet,
+    bool isDark,
+    TextStyle style,
+  ) =>
+      MarkdownBody(
+        data: text,
+        styleSheet: sheet,
+        selectable: selectable,
+        inlineSyntaxes: [_SpoilerSyntax()],
+        builders: {
+          _SpoilerSyntax.tag: _SpoilerBuilder(),
+          'code': _CodeBlockBuilder(isDark: isDark, baseStyle: style),
+        },
+        extensionSet: md.ExtensionSet.gitHubFlavored,
+        onTapLink: (_, href, _) => _onTapLink(href),
+      );
 
   void _onTapLink(String? href) {
     if (href == null) {
