@@ -21,6 +21,8 @@ GatewayConnection gatewayConnection(Ref ref) {
     throw StateError('Cannot create gateway connection without auth token');
   }
 
+  final isDesktop = Platform.isLinux || Platform.isMacOS || Platform.isWindows;
+
   final connection = GatewayConnection(
     token: token,
     dio: dio,
@@ -28,6 +30,11 @@ GatewayConnection gatewayConnection(Ref ref) {
       os: Platform.operatingSystem,
       browser: 'fluxeron',
       device: Platform.operatingSystem,
+      osVersion: Platform.operatingSystemVersion,
+      locale: Platform.localeName,
+      browserVersion: '1.0.0',
+      desktopAppVersion: isDesktop ? '1.0.0' : null,
+      desktopOs: isDesktop ? Platform.operatingSystem : null,
     ),
   );
 
