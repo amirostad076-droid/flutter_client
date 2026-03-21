@@ -45,8 +45,9 @@ class AppStartup extends _$AppStartup {
     await ref.read(themePreferenceProvider.notifier).load(session.userId);
 
     unawaited(ref.read(gatewayConnectionProvider).connect());
-    ref.read(gatewayEventListenerProvider);
-    ref.read(gatewayStateListenerProvider);
+    ref
+      ..read(gatewayEventListenerProvider)
+      ..read(gatewayStateListenerProvider);
 
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
 
