@@ -9,7 +9,6 @@ import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/router/route_state_providers.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/features/channels/providers/unread_provider.dart';
 import 'package:fluxeron/features/friends/providers/friend_providers.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart';
@@ -18,7 +17,10 @@ import 'package:fluxeron/features/guilds/presentation/'
 import 'package:fluxeron/features/guilds/presentation/'
     'widgets/guild_context_menu.dart';
 import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxeron/features/guilds/providers/guild_mute_provider.dart';
+import 'package:fluxeron/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/unread_badge.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -40,6 +42,7 @@ class GuildNavbar extends ConsumerWidget {
     final currentUserId = ref.watch(
       userSettingsViewModelProvider.select((s) => s.userId),
     );
+    final unavailableCount = guilds.where((g) => g.isUnavailable).length;
 
     return Container(
       width: 72,
@@ -80,6 +83,12 @@ class GuildNavbar extends ConsumerWidget {
                   final unread = ref
                       .watch(serverUnreadProvider(guild.id))
                       .value;
+                  final muteState = ref
+                      .watch(guildMuteProvider(guild.id))
+                      .value;
+                  final voiceActivity = ref.watch(
+                    guildVoiceActivityProvider(guild.id),
+                  );
                   return _GuildListItem(
                     label: guild.name,
                     guild: guild,
@@ -87,6 +96,10 @@ class GuildNavbar extends ConsumerWidget {
                     isOwner: guild.ownerId == currentUserId,
                     iconUrl: guild.iconUrl,
                     isUnavailable: guild.isUnavailable,
+                    unavailableCount: unavailableCount,
+                    isMuted: muteState?.isMuted ?? false,
+                    muteEndTime: muteState?.muteEndTime,
+                    voiceActivity: voiceActivity,
                     hasUnread:
                         !guild.isUnavailable && (unread?.hasUnread ?? false),
                     mentionCount: guild.isUnavailable
@@ -127,6 +140,10 @@ class _GuildListItem extends StatefulWidget {
   final bool isSelected;
   final bool isOwner;
   final bool isUnavailable;
+  final int unavailableCount;
+  final bool isMuted;
+  final DateTime? muteEndTime;
+  final VoiceActivityType voiceActivity;
   final IconData? icon;
   final String? svgAsset;
   final VoidCallback onTap;
@@ -141,6 +158,10 @@ class _GuildListItem extends StatefulWidget {
     this.isSelected = false,
     this.isOwner = false,
     this.isUnavailable = false,
+    this.unavailableCount = 0,
+    this.isMuted = false,
+    this.muteEndTime,
+    this.voiceActivity = VoiceActivityType.none,
     this.icon,
     this.svgAsset,
     this.iconUrl,
@@ -182,8 +203,10 @@ class _GuildListItemState extends State<_GuildListItem> {
   Widget build(BuildContext context) {
     final isActive = widget.isSelected || _isHovered;
     final borderRadius = isActive ? 13.0 : 22.0;
-    final hasImage = widget.iconUrl != null;
-    final bgColor = hasImage
+    final hasImage = widget.iconUrl != null && !widget.isUnavailable;
+    final bgColor = widget.isUnavailable
+        ? context.colors.statusDanger
+        : hasImage
         ? Colors.transparent
         : isActive
         ? context.colors.brandPrimary
@@ -217,8 +240,19 @@ class _GuildListItemState extends State<_GuildListItem> {
             clipBehavior: Clip.none,
             children: [
               _RightTooltip(
+                backgroundColor: widget.isUnavailable
+                    ? context.colors.statusDanger
+                    : null,
+                borderColor: widget.isUnavailable
+                    ? context.colors.statusDanger
+                    : null,
                 content: widget.guild != null
-                    ? _GuildTooltipContent(guild: widget.guild!)
+                    ? _GuildTooltipContent(
+                        guild: widget.guild!,
+                        unavailableCount: widget.unavailableCount,
+                        isMuted: widget.isMuted,
+                        muteEndTime: widget.muteEndTime,
+                      )
                     : _TooltipLabel(label: widget.label),
                 child: MouseRegion(
                   onEnter: (_) => setState(() => _isHovered = true),
@@ -250,9 +284,22 @@ class _GuildListItemState extends State<_GuildListItem> {
                             borderRadius: BorderRadiusGeometry.circular(
                               borderRadius,
                             ),
-                            child: widget.iconUrl != null
+                            child: widget.isUnavailable
+                                ? const Center(
+                                    child: PhosphorIcon(
+                                      PhosphorIconsRegular.exclamationMark,
+                                      color: Colors.white,
+                                      size: 32,
+                                    ),
+                                  )
+                                : widget.iconUrl != null
                                 ? CachedNetworkImage(
-                                    imageUrl: widget.iconUrl!,
+                                    imageUrl:
+                                        _isHovered &&
+                                            widget.guild?.animatedIconUrl !=
+                                                null
+                                        ? widget.guild!.animatedIconUrl!
+                                        : widget.iconUrl!,
                                     errorWidget: (context, url, error) =>
                                         _buildBackupIcon(
                                           context,
@@ -273,37 +320,21 @@ class _GuildListItemState extends State<_GuildListItem> {
                   ),
                 ),
               ),
-              if (widget.isUnavailable)
-                Positioned(
-                  top: -2,
-                  right: -2,
-                  child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: context.colors.serverSidebarBackground,
-                          spreadRadius: 3,
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: PhosphorIcon(
-                        PhosphorIconsRegular.exclamationMark,
-                        color: context.colors.statusDanger,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                )
-              else if (!widget.isSelected && widget.mentionCount > 0)
+              if (!widget.isUnavailable &&
+                  !widget.isSelected &&
+                  widget.mentionCount > 0)
                 Positioned(
                   bottom: -4,
                   right: -4,
                   child: UnreadBadge(mentionCount: widget.mentionCount),
+                ),
+              if (!widget.isUnavailable &&
+                  widget.mentionCount == 0 &&
+                  widget.voiceActivity != VoiceActivityType.none)
+                Positioned(
+                  bottom: -4,
+                  right: -4,
+                  child: _VoiceActivityBadge(type: widget.voiceActivity),
                 ),
             ],
           ),
@@ -543,8 +574,15 @@ class _DashedBorderPainter extends CustomPainter {
 class _RightTooltip extends StatefulWidget {
   final Widget content;
   final Widget child;
+  final Color? backgroundColor;
+  final Color? borderColor;
 
-  const _RightTooltip({required this.content, required this.child});
+  const _RightTooltip({
+    required this.content,
+    required this.child,
+    this.backgroundColor,
+    this.borderColor,
+  });
 
   @override
   State<_RightTooltip> createState() => _RightTooltipState();
@@ -577,8 +615,9 @@ class _RightTooltipState extends State<_RightTooltip>
       return;
     }
     final overlay = Overlay.of(context);
-    final bgColor = context.colors.backgroundPrimary;
-    final borderColor = context.colors.backgroundHeaderSecondary;
+    final bgColor = widget.backgroundColor ?? context.colors.backgroundPrimary;
+    final borderColor =
+        widget.borderColor ?? context.colors.backgroundHeaderSecondary;
 
     _entry = OverlayEntry(
       builder: (_) => UnconstrainedBox(
@@ -701,62 +740,126 @@ class _TooltipLabel extends StatelessWidget {
 
 class _GuildTooltipContent extends StatelessWidget {
   final Guild guild;
+  final int unavailableCount;
+  final bool isMuted;
+  final DateTime? muteEndTime;
 
-  const _GuildTooltipContent({required this.guild});
+  const _GuildTooltipContent({
+    required this.guild,
+    this.unavailableCount = 0,
+    this.isMuted = false,
+    this.muteEndTime,
+  });
+
+  String get _mutedText {
+    if (muteEndTime == null) {
+      return 'Muted';
+    }
+    final month = _monthAbbr(muteEndTime!.month);
+    final day = muteEndTime!.day;
+    final year = muteEndTime!.year;
+    final hour = muteEndTime!.hour > 12
+        ? muteEndTime!.hour - 12
+        : muteEndTime!.hour == 0
+        ? 12
+        : muteEndTime!.hour;
+    final minute = muteEndTime!.minute.toString().padLeft(2, '0');
+    final period = muteEndTime!.hour >= 12 ? 'PM' : 'AM';
+    return 'Muted until $month $day, $year $hour:$minute $period';
+  }
+
+  static String _monthAbbr(int month) => const [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ][month - 1];
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (guild.isPartnered || guild.isVerified) ...[
-                _GuildBadge(isPartnered: guild.isPartnered),
-                const SizedBox(width: 6),
-              ],
-              Flexible(
-                child: Text(
-                  guild.name,
-                  style: TextStyle(
-                    color: context.colors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+      child: guild.unavailable
+          ? Text(
+              '$unavailableCount '
+              '${unavailableCount == 1 ? 'community is' : 'communities are'}'
+              ' temporarily unavailable\n'
+              'due to a flux capacitor malfunction.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (guild.isPartnered || guild.isVerified) ...[
+                      _GuildBadge(isPartnered: guild.isPartnered),
+                      const SizedBox(width: 6),
+                    ],
+                    Flexible(
+                      child: Text(
+                        guild.name,
+                        style: TextStyle(
+                          color: context.colors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          if (guild.unavailable) ...[
-            const SizedBox(height: 6),
-            Text(
-              "We fluxed up! Hang tight, we're working on it.",
-              style: TextStyle(
-                color: context.colors.textSecondary,
-                fontSize: 14,
-              ),
+                if (guild.features.contains(
+                  'UNAVAILABLE_FOR_EVERYONE_BUT_STAFF',
+                )) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Only accessible to Fluxer staff',
+                    style: TextStyle(
+                      color: context.colors.statusDanger,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+                if (isMuted) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PhosphorIcon(
+                        PhosphorIconsFill.bellSlash,
+                        color: context.colors.textSecondary,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _mutedText,
+                        style: TextStyle(
+                          color: context.colors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
             ),
-          ],
-          if (guild.features.contains(
-            'UNAVAILABLE_FOR_EVERYONE_BUT_STAFF',
-          )) ...[
-            const SizedBox(height: 6),
-            Text(
-              'Only accessible to Fluxer staff',
-              style: TextStyle(
-                color: context.colors.statusDanger,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }
@@ -789,6 +892,40 @@ class _GuildBadge extends StatelessWidget {
       PhosphorIconsFill.sealCheck,
       color: context.colors.textPrimary,
       size: 16,
+    );
+  }
+}
+
+class _VoiceActivityBadge extends StatelessWidget {
+  final VoiceActivityType type;
+
+  const _VoiceActivityBadge({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final IconData icon;
+    switch (type) {
+      case VoiceActivityType.video:
+        icon = PhosphorIconsFill.videoCamera;
+      case VoiceActivityType.screenshare:
+        icon = PhosphorIconsFill.monitor;
+      case VoiceActivityType.voice:
+        icon = PhosphorIconsFill.speakerHigh;
+      case VoiceActivityType.none:
+        return const SizedBox.shrink();
+    }
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        color: context.colors.statusOnline,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: context.colors.serverSidebarBackground,
+          width: 3,
+        ),
+      ),
+      child: Center(child: PhosphorIcon(icon, color: Colors.white, size: 10)),
     );
   }
 }

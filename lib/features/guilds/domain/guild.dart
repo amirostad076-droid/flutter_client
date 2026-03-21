@@ -70,11 +70,20 @@ class Guild {
   bool get isUnavailable =>
       unavailable || features.contains('UNAVAILABLE_FOR_EVERYONE_BUT_STAFF');
 
+  bool get hasAnimatedIcon => icon?.startsWith('a_') ?? false;
+
   String? get iconUrl {
     if (icon == null) {
       return null;
     }
     return '$fluxerMediaCdn/icons/$id/$icon.png';
+  }
+
+  String? get animatedIconUrl {
+    if (icon == null || !hasAnimatedIcon) {
+      return null;
+    }
+    return '$fluxerMediaCdn/icons/$id/$icon.gif';
   }
 
   String? get bannerUrl {
