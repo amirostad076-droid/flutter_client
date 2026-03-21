@@ -38,6 +38,10 @@ import 'package:highlight/languages/swift.dart';
 import 'package:highlight/languages/typescript.dart';
 import 'package:highlight/languages/xml.dart';
 import 'package:highlight/languages/yaml.dart';
+import 'package:cached_network_image_ce/cached_network_image.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluxeron/shared/utils/emoji_registry.dart';
+import 'package:fluxeron/shared/utils/emoji_utils.dart';
 import 'package:fluxeron/shared/widgets/message_alert.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:url_launcher/url_launcher.dart';
@@ -93,7 +97,27 @@ final Map<String, Mode> _kLanguages = {
   'yml': yaml,
 };
 
+const _kJumboMaxCount = 6;
+const _kEmojiSizeNormal = 22.0;
+const _kEmojiSizeJumbo = 48.0;
+
 bool _languagesRegistered = false;
+
+bool isJumboEmoji(String text) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return false;
+
+  final tokenRe = RegExp(
+    r':[a-zA-Z0-9_+\-]+:|<a?:[a-zA-Z0-9_]+:\d+>|\s',
+  );
+  final emojiRe = RegExp(r':[a-zA-Z0-9_+\-]+:|<a?:[a-zA-Z0-9_]+:\d+>');
+
+  final withoutTokens = trimmed.replaceAll(tokenRe, '');
+  if (withoutTokens.isNotEmpty) return false;
+
+  final count = emojiRe.allMatches(trimmed).length;
+  return count >= 1 && count <= _kJumboMaxCount;
+}
 
 void _ensureLanguagesRegistered() {
   if (_languagesRegistered) return;
@@ -253,19 +277,27 @@ class MessageMarkdown extends StatelessWidget {
     MarkdownStyleSheet sheet,
     bool isDark,
     TextStyle style,
-  ) =>
-      MarkdownBody(
-        data: text,
-        styleSheet: sheet,
-        selectable: selectable,
-        inlineSyntaxes: [_SpoilerSyntax()],
-        builders: {
-          _SpoilerSyntax.tag: _SpoilerBuilder(),
-          'code': _CodeBlockBuilder(isDark: isDark, baseStyle: style),
-        },
-        extensionSet: md.ExtensionSet.gitHubFlavored,
-        onTapLink: (_, href, _) => _onTapLink(href),
-      );
+  ) {
+    final jumbo = isJumboEmoji(text);
+    return MarkdownBody(
+      data: text,
+      styleSheet: sheet,
+      selectable: selectable,
+      inlineSyntaxes: [
+        _SpoilerSyntax(),
+        _UnicodeEmojiSyntax(),
+        _CustomEmojiSyntax(),
+      ],
+      builders: {
+        _SpoilerSyntax.tag: _SpoilerBuilder(),
+        _UnicodeEmojiSyntax.tag: _EmojiBuilder(baseStyle: style, jumbo: jumbo),
+        _CustomEmojiSyntax.tag: _EmojiBuilder(baseStyle: style, jumbo: jumbo),
+        'code': _CodeBlockBuilder(isDark: isDark, baseStyle: style),
+      },
+      extensionSet: md.ExtensionSet.gitHubFlavored,
+      onTapLink: (_, href, _) => _onTapLink(href),
+    );
+  }
 
   void _onTapLink(String? href) {
     if (href == null) {
@@ -457,4 +489,93 @@ class _PlainCodeBlock extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _UnicodeEmojiSyntax extends md.InlineSyntax {
+  _UnicodeEmojiSyntax() : super(r':([a-zA-Z0-9_+\-]+):');
+
+  static const tag = 'emoji-unicode';
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final name = match[1];
+    if (name == null || name.isEmpty) return false;
+    final surrogate = EmojiRegistry.resolveSync(name);
+    if (surrogate == null) return false;
+    final el = md.Element.text(tag, name)
+      ..attributes['surrogate'] = surrogate;
+    parser.addNode(el);
+    return true;
+  }
+}
+
+class _CustomEmojiSyntax extends md.InlineSyntax {
+  _CustomEmojiSyntax() : super(r'<(a?):([a-zA-Z0-9_]+):(\d+)>');
+
+  static const tag = 'emoji-custom';
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final animated = match[1] == 'a';
+    final name = match[2] ?? '';
+    final id = match[3];
+    if (id == null) return false;
+    final el = md.Element.text(tag, name)
+      ..attributes['id'] = id
+      ..attributes['animated'] = animated.toString();
+    parser.addNode(el);
+    return true;
+  }
+}
+
+class _EmojiBuilder extends MarkdownElementBuilder {
+  _EmojiBuilder({required this.baseStyle, this.jumbo = false});
+
+  final TextStyle baseStyle;
+  final bool jumbo;
+
+  @override
+  Widget visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final size = jumbo ? _kEmojiSizeJumbo : _kEmojiSizeNormal;
+    if (element.tag == _CustomEmojiSyntax.tag) {
+      return _buildCustom(element, size);
+    }
+    return _buildUnicode(element, size);
+  }
+
+  Widget _buildUnicode(md.Element element, double size) {
+    final surrogate = element.attributes['surrogate'] ?? element.textContent;
+    final url = getTwemojiUrl(surrogate);
+    if (url == null) {
+      return Text(surrogate, style: TextStyle(fontSize: size));
+    }
+    return SvgPicture.network(
+      url,
+      width: size,
+      height: size,
+      placeholderBuilder: (_) => Text(
+        surrogate,
+        style: TextStyle(fontSize: size),
+      ),
+    );
+  }
+
+  Widget _buildCustom(md.Element element, double size) {
+    final id = element.attributes['id'] ?? '';
+    final animated = element.attributes['animated'] == 'true';
+    final name = element.textContent;
+    final cdnSize = jumbo ? 240 : 96;
+    final url = getCustomEmojiUrl(id: id, animated: animated, size: cdnSize);
+    return CachedNetworkImage(
+      imageUrl: url,
+      width: size,
+      height: size,
+      errorBuilder: (_, __, ___) => Text(':$name:'),
+    );
+  }
 }

@@ -11,6 +11,7 @@ import 'package:fluxeron/core/providers/database_provider.dart';
 // import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/providers/theme_preference_provider.dart';
+import 'package:fluxeron/shared/utils/emoji_registry.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_startup_provider.g.dart';
@@ -34,6 +35,7 @@ class AppStartup extends _$AppStartup {
   }
 
   Future<void> _validateAndRestore() async {
+    await EmojiRegistry.preload();
     final database = ref.read(fluxerDatabaseProvider);
     debugPrint('[AppStartup] Database obtained, querying session…');
     final session = await database.authSessionDao.getSession();
