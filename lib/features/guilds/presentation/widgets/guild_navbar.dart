@@ -889,7 +889,7 @@ class _GuildTooltipContent extends StatelessWidget {
                             ? PhosphorIconsFill.monitor
                             : PhosphorIconsFill.speakerHigh,
                         color: context.colors.textSecondary,
-                        size: 14,
+                        size: 28,
                       ),
                       const SizedBox(width: 6),
                       _AvatarStack(avatarUrls: row.avatarUrls),

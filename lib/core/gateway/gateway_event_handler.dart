@@ -412,6 +412,10 @@ class GatewayEventHandler {
               ),
             );
           }
+
+          if (guildData.voiceStates.isNotEmpty) {
+            onVoiceStatesBulk?.call(guildData.voiceStates);
+          }
         }
       }
 
