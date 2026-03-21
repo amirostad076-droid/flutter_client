@@ -204,7 +204,7 @@ class MessageMarkdown extends StatelessWidget {
       codeblockPadding: const EdgeInsets.all(8),
       blockquoteDecoration: BoxDecoration(
         border: Border(
-          left: BorderSide(color: colors.bgBlockquote, width: 4),
+          left: BorderSide(color: colors.interactiveMuted, width: 4),
         ),
       ),
       blockquotePadding: const EdgeInsets.only(left: 10),
