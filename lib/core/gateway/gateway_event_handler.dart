@@ -11,17 +11,38 @@ import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/shared/utils/sdk_converters.dart';
 
 typedef TypingCallback = void Function(String channelId, String userId);
+typedef VoiceStateCallback = void Function(VoiceState state);
+typedef VoiceBulkCallback = void Function(List<VoiceState> states);
+typedef CallCreateCallback = void Function(CallCreateEvent event);
+typedef CallUpdateCallback = void Function(CallUpdateEvent event);
+typedef ChannelCallback = void Function(String channelId);
+typedef InviteCreateCallback = void Function(Map<String, dynamic> data);
+typedef InviteDeleteCallback = void Function(String code);
 
 class GatewayEventHandler {
   GatewayEventHandler({
     required this.database,
     this.onTypingStart,
     this.onTypingClear,
+    this.onVoiceStateUpdate,
+    this.onVoiceStatesBulk,
+    this.onCallCreate,
+    this.onCallUpdate,
+    this.onCallDelete,
+    this.onInviteCreate,
+    this.onInviteDelete,
   });
 
   final db.FluxerDatabase database;
   final TypingCallback? onTypingStart;
   final TypingCallback? onTypingClear;
+  final VoiceStateCallback? onVoiceStateUpdate;
+  final VoiceBulkCallback? onVoiceStatesBulk;
+  final CallCreateCallback? onCallCreate;
+  final CallUpdateCallback? onCallUpdate;
+  final ChannelCallback? onCallDelete;
+  final InviteCreateCallback? onInviteCreate;
+  final InviteDeleteCallback? onInviteDelete;
 
   /// The current user's ID, set during READY processing.
   String? _currentUserId;
@@ -126,15 +147,15 @@ class GatewayEventHandler {
       case PresenceUpdateBulkEvent():
         _handlePresenceUpdateBulk(event);
       case VoiceStateUpdateEvent():
-        talker.debug('[Gateway] VOICE_STATE_UPDATE: ${event.state.userId}');
+        onVoiceStateUpdate?.call(event.state);
       case VoiceServerUpdateEvent():
         talker.debug('[Gateway] VOICE_SERVER_UPDATE');
       case CallCreateEvent():
-        talker.debug('[Gateway] CALL_CREATE: ${event.channelId}');
+        onCallCreate?.call(event);
       case CallUpdateEvent():
-        talker.debug('[Gateway] CALL_UPDATE: ${event.channelId}');
+        onCallUpdate?.call(event);
       case CallDeleteEvent():
-        talker.debug('[Gateway] CALL_DELETE: ${event.channelId}');
+        onCallDelete?.call(event.channelId);
       case UserSettingsUpdateEvent():
         unawaited(_handleUserSettingsUpdate(event));
       case UserGuildSettingsUpdateEvent():
@@ -148,9 +169,9 @@ class GatewayEventHandler {
       case AuthSessionChangeEvent():
         talker.debug('[Gateway] AUTH_SESSION_CHANGE');
       case InviteCreateEvent():
-        talker.debug('[Gateway] INVITE_CREATE');
+        onInviteCreate?.call(event.data);
       case InviteDeleteEvent():
-        talker.debug('[Gateway] INVITE_DELETE: ${event.code}');
+        onInviteDelete?.call(event.code);
       case SavedMessageCreateEvent():
         unawaited(database.savedMessageDao.addSavedMessage(event.message.id));
       case SavedMessageDeleteEvent():
@@ -703,6 +724,11 @@ class GatewayEventHandler {
               .toList(),
         ),
       );
+    }
+
+    // Populate voice states from guild payload.
+    if (event.guild.voiceStates.isNotEmpty) {
+      onVoiceStatesBulk?.call(event.guild.voiceStates);
     }
   }
 

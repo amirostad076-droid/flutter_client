@@ -62,6 +62,43 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
           .read(typingIndicatorsProvider.notifier)
           .removeTyping(channelId, userId);
     },
+    onVoiceStateUpdate: (state) {
+      ref.read(voiceStatesMapProvider.notifier).update(state);
+    },
+    onVoiceStatesBulk: (states) {
+      ref.read(voiceStatesMapProvider.notifier).updateBulk(states);
+    },
+    onCallCreate: (event) {
+      ref
+          .read(activeCallsProvider.notifier)
+          .createCall(
+            event.channelId,
+            messageId: event.messageId,
+            region: event.region,
+            ringing: event.ringing,
+            voiceStates: event.voiceStates,
+          );
+    },
+    onCallUpdate: (event) {
+      ref
+          .read(activeCallsProvider.notifier)
+          .updateCall(
+            event.channelId,
+            messageId: event.messageId,
+            region: event.region,
+            ringing: event.ringing,
+            voiceStates: event.voiceStates,
+          );
+    },
+    onCallDelete: (channelId) {
+      ref.read(activeCallsProvider.notifier).deleteCall(channelId);
+    },
+    onInviteCreate: (data) {
+      ref.read(inviteCacheProvider.notifier).addInvite(data);
+    },
+    onInviteDelete: (code) {
+      ref.read(inviteCacheProvider.notifier).removeInvite(code);
+    },
   );
 
   final subscription = connection.events.listen(
