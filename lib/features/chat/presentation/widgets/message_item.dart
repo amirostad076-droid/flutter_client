@@ -231,7 +231,7 @@ class _MessageItemState extends State<MessageItem> {
   /// Returns the content, embeds, and reactions
   /// widgets for a message.
   List<Widget> _buildMessageContent(BuildContext context, Message msg) => [
-    if (msg.content.isNotEmpty)
+    if (msg.content.isNotEmpty && !msg.shouldHideContent)
       MessageMarkdown(
         data: msg.content,
         selectable: true,

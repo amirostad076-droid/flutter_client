@@ -486,6 +486,15 @@ class Message {
   bool get hasEmbeds => embeds.isNotEmpty;
   bool get hasAttachments => attachments.isNotEmpty;
   bool get isReply => replyToId != null;
+  bool get shouldHideContent {
+    if (embeds.isEmpty) return false;
+    final allMedia = embeds.every(
+      (e) => e.type == EmbedType.image || e.type == EmbedType.gifv,
+    );
+    if (!allMedia) return false;
+    final trimmed = content.trim();
+    return Uri.tryParse(trimmed)?.hasAbsolutePath ?? false;
+  }
   bool get isForwarded => forwardedFrom != null;
   bool get isEdited => editedTimestamp != null;
   bool get isSystemMessage => type != 0 && type != 1 && type != 19;
