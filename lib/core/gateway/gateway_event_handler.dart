@@ -71,9 +71,9 @@ class GatewayEventHandler {
       case MessageDeleteBulkEvent():
         _handleMessageDeleteBulk(event);
       case MessageAckEvent():
-        talker.debug('[Gateway] MESSAGE_ACK: ${event.channelId}');
+        _handleMessageAck(event);
       case MessageReactionAddManyEvent():
-        talker.debug('[Gateway] MESSAGE_REACTION_ADD_MANY');
+        _handleReactionAddMany(event);
       case ChannelUpdateBulkEvent():
         for (final channel in event.channels) {
           _handleChannelUpsert(channel);
@@ -83,11 +83,11 @@ class GatewayEventHandler {
       case ChannelPinsAckEvent():
         talker.debug('[Gateway] CHANNEL_PINS_ACK: ${event.channelId}');
       case ChannelRecipientAddEvent():
-        talker.debug('[Gateway] CHANNEL_RECIPIENT_ADD: ${event.channelId}');
+        unawaited(database.userDao.upsertUser(userFromPartialSdk(event.user)));
       case ChannelRecipientRemoveEvent():
         talker.debug('[Gateway] CHANNEL_RECIPIENT_REMOVE: ${event.channelId}');
       case PassiveUpdatesEvent():
-        talker.debug('[Gateway] PASSIVE_UPDATES: ${event.guildId}');
+        _handlePassiveUpdates(event);
       case GuildRoleCreateEvent():
         _handleRoleUpsert(event.guildId, event.role);
       case GuildRoleUpdateEvent():
@@ -518,6 +518,60 @@ class GatewayEventHandler {
             (r['emojiId'] as String?) == emojiId,
       );
     await database.messageDao.updateReactions(messageId, jsonEncode(reactions));
+  }
+
+  void _handleMessageAck(MessageAckEvent event) {
+    unawaited(
+      database.readStateDao.upsertReadState(
+        db.ReadStatesCompanion(
+          channelId: Value(event.channelId),
+          lastMessageId: Value(event.messageId),
+          mentionCount: Value(event.mentionCount ?? 0),
+        ),
+      ),
+    );
+  }
+
+  void _handleReactionAddMany(MessageReactionAddManyEvent event) {
+    for (final r in event.reactions) {
+      final emoji = r['emoji'] as Map<String, dynamic>?;
+      if (emoji == null) {
+        continue;
+      }
+      unawaited(
+        _modifyReaction(
+          event.messageId,
+          ReactionEmoji(
+            name: emoji['name'] as String? ?? '',
+            id: emoji['id'] as String?,
+          ),
+          isAdd: true,
+        ),
+      );
+    }
+  }
+
+  void _handlePassiveUpdates(PassiveUpdatesEvent event) {
+    // Handle channel creates.
+    if (event.createdChannels != null) {
+      for (final channel in event.createdChannels!) {
+        _handleChannelUpsert(channel);
+      }
+    }
+
+    // Handle channel updates.
+    if (event.updatedChannels != null) {
+      for (final channel in event.updatedChannels!) {
+        _handleChannelUpsert(channel);
+      }
+    }
+
+    // Handle channel deletes.
+    if (event.deletedChannelIds != null) {
+      for (final id in event.deletedChannelIds!) {
+        unawaited(database.channelDao.deleteChannel(id));
+      }
+    }
   }
 
   List<Map<String, dynamic>> _decodeReactions(String json) {
