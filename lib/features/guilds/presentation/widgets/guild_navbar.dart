@@ -89,6 +89,9 @@ class GuildNavbar extends ConsumerWidget {
                   final voiceActivity = ref.watch(
                     guildVoiceActivityProvider(guild.id),
                   );
+                  final voiceRows = ref
+                      .watch(guildVoiceParticipantsProvider(guild.id))
+                      .value;
                   return _GuildListItem(
                     label: guild.name,
                     guild: guild,
@@ -100,6 +103,7 @@ class GuildNavbar extends ConsumerWidget {
                     isMuted: muteState?.isMuted ?? false,
                     muteEndTime: muteState?.muteEndTime,
                     voiceActivity: voiceActivity,
+                    voiceRows: voiceRows ?? const [],
                     hasUnread:
                         !guild.isUnavailable && (unread?.hasUnread ?? false),
                     mentionCount: guild.isUnavailable
@@ -144,6 +148,7 @@ class _GuildListItem extends StatefulWidget {
   final bool isMuted;
   final DateTime? muteEndTime;
   final VoiceActivityType voiceActivity;
+  final List<VoiceParticipantRow> voiceRows;
   final IconData? icon;
   final String? svgAsset;
   final VoidCallback onTap;
@@ -162,6 +167,7 @@ class _GuildListItem extends StatefulWidget {
     this.isMuted = false,
     this.muteEndTime,
     this.voiceActivity = VoiceActivityType.none,
+    this.voiceRows = const [],
     this.icon,
     this.svgAsset,
     this.iconUrl,
@@ -250,8 +256,10 @@ class _GuildListItemState extends State<_GuildListItem> {
                     ? _GuildTooltipContent(
                         guild: widget.guild!,
                         unavailableCount: widget.unavailableCount,
+                        isOwner: widget.isOwner,
                         isMuted: widget.isMuted,
                         muteEndTime: widget.muteEndTime,
+                        voiceRows: widget.voiceRows,
                       )
                     : _TooltipLabel(label: widget.label),
                 child: MouseRegion(
@@ -740,14 +748,18 @@ class _TooltipLabel extends StatelessWidget {
 class _GuildTooltipContent extends StatelessWidget {
   final Guild guild;
   final int unavailableCount;
+  final bool isOwner;
   final bool isMuted;
   final DateTime? muteEndTime;
+  final List<VoiceParticipantRow> voiceRows;
 
   const _GuildTooltipContent({
     required this.guild,
     this.unavailableCount = 0,
+    this.isOwner = false,
     this.isMuted = false,
     this.muteEndTime,
+    this.voiceRows = const [],
   });
 
   String get _mutedText {
@@ -836,6 +848,16 @@ class _GuildTooltipContent extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (isOwner && guild.features.contains('INVITES_DISABLED')) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Invites are currently paused in this community',
+                    style: TextStyle(
+                      color: context.colors.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
                 if (isMuted) ...[
                   const SizedBox(height: 6),
                   Row(
@@ -857,8 +879,69 @@ class _GuildTooltipContent extends StatelessWidget {
                     ],
                   ),
                 ],
+                for (final row in voiceRows) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PhosphorIcon(
+                        row.isScreenshare
+                            ? PhosphorIconsFill.monitor
+                            : PhosphorIconsFill.speakerHigh,
+                        color: context.colors.textSecondary,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 6),
+                      _AvatarStack(avatarUrls: row.avatarUrls),
+                    ],
+                  ),
+                ],
               ],
             ),
+    );
+  }
+}
+
+class _AvatarStack extends StatelessWidget {
+  final List<String> avatarUrls;
+
+  const _AvatarStack({required this.avatarUrls});
+
+  @override
+  Widget build(BuildContext context) {
+    if (avatarUrls.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return SizedBox(
+      width: avatarUrls.length * 20.0 + 8,
+      height: 28,
+      child: Stack(
+        children: [
+          for (var i = 0; i < avatarUrls.length; i++)
+            Positioned(
+              left: i * 20.0,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: context.colors.backgroundPrimary,
+                    width: 2,
+                  ),
+                ),
+                child: ClipOval(
+                  child: CachedNetworkImage(
+                    imageUrl: avatarUrls[i],
+                    width: 24,
+                    height: 24,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
