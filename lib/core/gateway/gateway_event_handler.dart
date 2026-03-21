@@ -168,7 +168,6 @@ class GatewayEventHandler {
       case ChannelRecipientRemoveEvent():
         talker.debug('[Gateway] CHANNEL_RECIPIENT_REMOVE: ${event.channelId}');
       case PassiveUpdatesEvent():
-        talker.debug('[Gateway] PASSIVE_UPDATES');
         _handlePassiveUpdates(event);
       case GuildRoleCreateEvent():
         talker.debug('[Gateway] GUILD_ROLE_CREATE: ${event.role.id}');
@@ -961,23 +960,34 @@ class GatewayEventHandler {
   }
 
   void _handlePassiveUpdates(PassiveUpdatesEvent event) {
-    // Handle channel creates.
-    if (event.createdChannels != null) {
-      for (final channel in event.createdChannels!) {
+    final created = event.createdChannels;
+    final updated = event.updatedChannels;
+    final deleted = event.deletedChannelIds;
+
+    talker.debug(
+      '[Gateway] PASSIVE_UPDATES: '
+      'created=${created?.length ?? 0}, '
+      'updated=${updated?.length ?? 0}, '
+      'deleted=${deleted?.length ?? 0}',
+    );
+
+    if (created != null) {
+      for (final channel in created) {
+        talker.debug('[Gateway]   +channel: ${channel.id}');
         _handleChannelUpsert(channel);
       }
     }
 
-    // Handle channel updates.
-    if (event.updatedChannels != null) {
-      for (final channel in event.updatedChannels!) {
+    if (updated != null) {
+      for (final channel in updated) {
+        talker.debug('[Gateway]   ~channel: ${channel.id}');
         _handleChannelUpsert(channel);
       }
     }
 
-    // Handle channel deletes.
-    if (event.deletedChannelIds != null) {
-      for (final id in event.deletedChannelIds!) {
+    if (deleted != null) {
+      for (final id in deleted) {
+        talker.debug('[Gateway]   -channel: $id');
         unawaited(database.channelDao.deleteChannel(id));
       }
     }
