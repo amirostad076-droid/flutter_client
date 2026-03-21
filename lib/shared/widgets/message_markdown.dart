@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:flutter_highlight/themes/vs2015.dart';
@@ -191,10 +193,6 @@ List<_Segment> _parseSegments(String text) {
 
 String _sanitizeFluxerTags(String text) => text
     .replaceAllMapped(
-      RegExp(r'<t:(\d+)(?::[tTdDfFR])?>'),
-      (m) => 't:${m[1]}', // TODO: render as formatted timestamp
-    )
-    .replaceAllMapped(
       RegExp(r'<#(\d+)>'),
       (m) => '#${m[1]}', // TODO: render as channel mention
     )
@@ -304,11 +302,13 @@ class MessageMarkdown extends StatelessWidget {
       styleSheet: sheet,
       selectable: selectable,
       inlineSyntaxes: [
+        _TimestampSyntax(),
         _SpoilerSyntax(),
         _UnicodeEmojiSyntax(),
         _CustomEmojiSyntax(),
       ],
       builders: {
+        _TimestampSyntax.tag: _TimestampBuilder(baseStyle: style),
         _SpoilerSyntax.tag: _SpoilerBuilder(),
         _UnicodeEmojiSyntax.tag: _EmojiBuilder(
           baseStyle: style,
@@ -334,6 +334,104 @@ class MessageMarkdown extends StatelessWidget {
       return;
     }
     unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
+  }
+}
+
+/// Parses `<t:unix:flag>` timestamp tags.
+class _TimestampSyntax extends md.InlineSyntax {
+  _TimestampSyntax() : super(r'<t:(\d+)(?::([tTdDfFR]))?>');
+
+  static const tag = 'timestamp';
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final unix = match[1];
+    if (unix == null) return false;
+    final el = md.Element.text(tag, unix)
+      ..attributes['flag'] = match[2] ?? 'f';
+    parser.addNode(el);
+    return true;
+  }
+}
+
+class _TimestampBuilder extends MarkdownElementBuilder {
+  _TimestampBuilder({required this.baseStyle});
+
+  final TextStyle baseStyle;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final unix = int.tryParse(element.textContent);
+    if (unix == null) return null;
+    final dt = DateTime.fromMillisecondsSinceEpoch(unix * 1000);
+    final flag = element.attributes['flag'] ?? 'f';
+    final text = _format(dt, flag);
+    final colors = context.colors;
+    final fontSize = (baseStyle.fontSize ?? 16) * 0.85;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.backgroundModifierHover,
+        borderRadius: BorderRadius.circular(3),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            PhosphorIconsFill.clock,
+            size: fontSize,
+            color: (baseStyle.color ?? colors.textSecondary).withValues(alpha: 0.7),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            text,
+            style: baseStyle.copyWith(
+              fontSize: fontSize,
+              color: colors.textSecondary,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _format(DateTime dt, String flag) => switch (flag) {
+    't' => DateFormat.Hm().format(dt),
+    'T' => DateFormat.Hms().format(dt),
+    'd' => DateFormat.yMd().format(dt),
+    'D' => DateFormat.yMMMMd().format(dt),
+    'F' => DateFormat.yMMMMEEEEd().add_Hm().format(dt),
+    // relative: "2 hours ago" / "in 3 days"
+    'R' => _relative(dt),
+    _ => DateFormat.yMMMMd().add_Hm().format(dt), 
+  };
+
+  static String _relative(DateTime dt) {
+    final diff = dt.difference(DateTime.now());
+    final abs = diff.abs();
+    final future = diff.isNegative == false;
+    final String label;
+    if (abs.inSeconds < 60) {
+      label = '${abs.inSeconds} seconds';
+    } else if (abs.inMinutes < 60) {
+      label = '${abs.inMinutes} minutes';
+    } else if (abs.inHours < 24) {
+      label = '${abs.inHours} hours';
+    } else if (abs.inDays < 30) {
+      label = '${abs.inDays} days';
+    } else if (abs.inDays < 365) {
+      label = '${abs.inDays ~/ 30} months';
+    } else {
+      label = '${abs.inDays ~/ 365} years';
+    }
+    return future ? 'in $label' : '$label ago';
   }
 }
 
