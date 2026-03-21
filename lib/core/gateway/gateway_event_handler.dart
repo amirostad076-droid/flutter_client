@@ -373,6 +373,7 @@ class GatewayEventHandler {
               icon: Value(g.icon),
               ownerId: Value(g.ownerId),
               position: Value(position),
+              featuresJson: Value(jsonEncode(g.features)),
             ),
           );
         }

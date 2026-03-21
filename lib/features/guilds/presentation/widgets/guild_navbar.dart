@@ -329,10 +329,9 @@ class _GuildListItemState extends State<_GuildListItem> {
                   child: UnreadBadge(mentionCount: widget.mentionCount),
                 ),
               if (!widget.isUnavailable &&
-                  widget.mentionCount == 0 &&
                   widget.voiceActivity != VoiceActivityType.none)
                 Positioned(
-                  bottom: -4,
+                  top: -4,
                   right: -4,
                   child: _VoiceActivityBadge(type: widget.voiceActivity),
                 ),
@@ -915,8 +914,8 @@ class _VoiceActivityBadge extends StatelessWidget {
         return const SizedBox.shrink();
     }
     return Container(
-      width: 20,
-      height: 20,
+      width: 24,
+      height: 24,
       decoration: BoxDecoration(
         color: context.colors.statusOnline,
         shape: BoxShape.circle,
@@ -925,7 +924,7 @@ class _VoiceActivityBadge extends StatelessWidget {
           width: 3,
         ),
       ),
-      child: Center(child: PhosphorIcon(icon, color: Colors.white, size: 10)),
+      child: Center(child: PhosphorIcon(icon, color: Colors.white, size: 12)),
     );
   }
 }
