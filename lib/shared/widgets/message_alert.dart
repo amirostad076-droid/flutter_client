@@ -53,37 +53,45 @@ class MessageAlert extends StatelessWidget {
     final style = baseStyle ?? const TextStyle();
     final colors = context.colors;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
-        border: Border(left: BorderSide(color: accent, width: 4)),
-        color: accent.withValues(alpha: 0.08),
-        borderRadius: const BorderRadius.only(
-          topRight: Radius.circular(4),
-          bottomRight: Radius.circular(4),
-        ),
-      ),
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(type.icon, size: 16, color: accent),
-              const SizedBox(width: 6),
-              Text(
-                type.label,
-                style: style.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w600,
-                  fontSize: (style.fontSize ?? 16) * 0.875,
-                ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: accent,
+                borderRadius: BorderRadius.circular(4),
               ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(body, style: style.copyWith(color: colors.textPrimary)),
-        ],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(type.icon, size: 16, color: accent),
+                      const SizedBox(width: 6),
+                      Text(
+                        type.label,
+                        style: style.copyWith(
+                          color: accent,
+                          fontWeight: FontWeight.w600,
+                          fontSize: (style.fontSize ?? 16) * 0.875,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(body, style: style.copyWith(color: colors.textPrimary)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
