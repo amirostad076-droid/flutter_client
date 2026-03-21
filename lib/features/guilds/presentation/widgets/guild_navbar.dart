@@ -86,8 +86,12 @@ class GuildNavbar extends ConsumerWidget {
                     isSelected: guild.id == activeGuildId,
                     isOwner: guild.ownerId == currentUserId,
                     iconUrl: guild.iconUrl,
-                    hasUnread: unread?.hasUnread ?? false,
-                    mentionCount: unread?.mentionCount ?? 0,
+                    isUnavailable: guild.isUnavailable,
+                    hasUnread:
+                        !guild.isUnavailable && (unread?.hasUnread ?? false),
+                    mentionCount: guild.isUnavailable
+                        ? 0
+                        : unread?.mentionCount ?? 0,
                     onTap: () {
                       context.go(RoutePaths.guild(guild.id));
                     },
@@ -98,6 +102,11 @@ class GuildNavbar extends ConsumerWidget {
             _DashedGuildIcon(
               label: 'Add a Server',
               icon: PhosphorIconsRegular.plus,
+              onTap: () {},
+            ),
+            _DashedGuildIcon(
+              label: 'Explore Discoverable Servers',
+              icon: PhosphorIconsRegular.compass,
               onTap: () {},
             ),
             _DashedGuildIcon(
@@ -117,6 +126,7 @@ class _GuildListItem extends StatefulWidget {
   final Guild? guild;
   final bool isSelected;
   final bool isOwner;
+  final bool isUnavailable;
   final IconData? icon;
   final String? svgAsset;
   final VoidCallback onTap;
@@ -130,6 +140,7 @@ class _GuildListItem extends StatefulWidget {
     this.guild,
     this.isSelected = false,
     this.isOwner = false,
+    this.isUnavailable = false,
     this.icon,
     this.svgAsset,
     this.iconUrl,
@@ -262,7 +273,33 @@ class _GuildListItemState extends State<_GuildListItem> {
                   ),
                 ),
               ),
-              if (!widget.isSelected &&
+              if (widget.isUnavailable)
+                Positioned(
+                  top: -2,
+                  right: -2,
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: context.colors.serverSidebarBackground,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: PhosphorIcon(
+                        PhosphorIconsRegular.exclamationMark,
+                        color: context.colors.statusDanger,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                )
+              else if (!widget.isSelected &&
                   (widget.hasUnread || widget.mentionCount > 0))
                 Positioned(
                   bottom: -4,
@@ -672,25 +709,53 @@ class _GuildTooltipContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (guild.isPartnered || guild.isVerified) ...[
-            _GuildBadge(isPartnered: guild.isPartnered),
-            const SizedBox(width: 6),
-          ],
-          Flexible(
-            child: Text(
-              guild.name,
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (guild.isPartnered || guild.isVerified) ...[
+                _GuildBadge(isPartnered: guild.isPartnered),
+                const SizedBox(width: 6),
+              ],
+              Flexible(
+                child: Text(
+                  guild.name,
+                  style: TextStyle(
+                    color: context.colors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
+            ],
           ),
+          if (guild.unavailable) ...[
+            const SizedBox(height: 6),
+            Text(
+              "We fluxed up! Hang tight, we're working on it.",
+              style: TextStyle(
+                color: context.colors.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+          ],
+          if (guild.features.contains(
+            'UNAVAILABLE_FOR_EVERYONE_BUT_STAFF',
+          )) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Only accessible to Fluxer staff',
+              style: TextStyle(
+                color: context.colors.statusDanger,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ],
       ),
     );

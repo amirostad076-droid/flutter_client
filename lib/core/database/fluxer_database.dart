@@ -109,7 +109,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -188,6 +188,9 @@ class FluxerDatabase extends _$FluxerDatabase {
         await m.createTable(guildStickers);
         await m.createTable(savedMessages);
         await m.addColumn(readStates, readStates.lastPinTimestamp);
+      }
+      if (from < 12) {
+        await m.addColumn(servers, servers.unavailable);
       }
     },
   );

@@ -17,6 +17,7 @@ class Guild {
   final String? ownerId;
   final int position;
   final List<String> features;
+  final bool unavailable;
 
   const Guild({
     required this.id,
@@ -29,6 +30,7 @@ class Guild {
     this.ownerId,
     this.position = 0,
     this.features = const [],
+    this.unavailable = false,
   });
 
   factory Guild.fromRow(db.Server row) {
@@ -43,6 +45,7 @@ class Guild {
       ownerId: row.ownerId,
       position: row.position,
       features: (jsonDecode(row.featuresJson) as List<dynamic>).cast<String>(),
+      unavailable: row.unavailable,
     );
   }
 
@@ -58,11 +61,14 @@ class Guild {
       ownerId: Value(ownerId),
       position: Value(position),
       featuresJson: Value(jsonEncode(features)),
+      unavailable: Value(unavailable),
     );
   }
 
   bool get isVerified => features.contains('VERIFIED');
   bool get isPartnered => features.contains('PARTNERED');
+  bool get isUnavailable =>
+      unavailable || features.contains('UNAVAILABLE_FOR_EVERYONE_BUT_STAFF');
 
   String? get iconUrl {
     if (icon == null) {

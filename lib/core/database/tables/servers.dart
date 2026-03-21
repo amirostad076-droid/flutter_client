@@ -11,6 +11,7 @@ class Servers extends Table {
   TextColumn get ownerId => text().nullable()();
   IntColumn get position => integer().withDefault(const Constant(0))();
   TextColumn get featuresJson => text().withDefault(const Constant('[]'))();
+  BoolColumn get unavailable => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
