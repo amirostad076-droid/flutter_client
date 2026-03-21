@@ -18,10 +18,13 @@ class GatewayEventHandler {
   final db.FluxerDatabase database;
   final TypingCallback? onTypingStart;
 
-  void handle(GatewayEvent event) {
+  /// The current user's ID, set during READY processing.
+  String? _currentUserId;
+
+  Future<void> handle(GatewayEvent event) async {
     switch (event) {
       case ReadyEvent():
-        _handleReady(event);
+        await _handleReady(event);
       case ResumedEvent():
         talker.info('[Gateway] Session resumed');
       case MessageCreateEvent():
@@ -161,12 +164,30 @@ class GatewayEventHandler {
     }
   }
 
-  void _handleReady(ReadyEvent event) {
+  Future<void> _handleReady(ReadyEvent event) async {
     talker.info('[Gateway] READY received (session: ${event.sessionId})');
 
-    // Upsert current user.
-    unawaited(
-      database.userDao.upsertUser(
+    _currentUserId = event.user.id;
+
+    await database.transaction(() async {
+      // Clear all entity tables (full replace).
+      await database.userDao.clearAll();
+      await database.guildDao.clearAll();
+      await database.channelDao.clearAll();
+      await database.dmChannelDao.clearAll();
+      await database.memberDao.clearAll();
+      await database.roleDao.clearAll();
+      await database.relationshipDao.clearAll();
+      await database.readStateDao.clearAll();
+      await database.userSettingsDao.clearAll();
+      await database.userGuildSettingsDao.clearAll();
+      await database.userNotesDao.clearAll();
+      await database.pinnedDmsDao.clearAll();
+      await database.favoriteMemesDao.clearAll();
+      await database.rtcRegionsDao.clearAll();
+
+      // Insert current user.
+      await database.userDao.upsertUser(
         db.UsersCompanion.insert(
           id: event.user.id,
           username: event.user.username,
@@ -176,80 +197,205 @@ class GatewayEventHandler {
           avatarColor: Value(event.user.avatarColor),
           isBot: Value(event.user.bot ?? false),
         ),
-      ),
-    );
+      );
 
-    // Upsert guilds.
-    if (event.guilds.isNotEmpty) {
-      final guildCompanions = <db.ServersCompanion>[];
-      for (var i = 0; i < event.guilds.length; i++) {
-        final g = event.guilds[i];
-        guildCompanions.add(
-          db.ServersCompanion.insert(
-            id: g.id,
-            name: g.name ?? '',
-            icon: Value(g.icon),
-            ownerId: Value(g.ownerId),
-            position: Value(i),
-          ),
+      // Insert cached users.
+      final cachedUsers = event.users;
+      if (cachedUsers != null && cachedUsers.isNotEmpty) {
+        await database.userDao.upsertUsers(
+          cachedUsers
+              .map(
+                (u) => userFromPartialSdk(
+                  UserPartialResponse.fromJson(u.cast<String, Object?>()),
+                ),
+              )
+              .toList(),
         );
       }
-      unawaited(database.guildDao.upsertServers(guildCompanions));
-    }
 
-    // Upsert DM channels.
-    if (event.privateChannels.isNotEmpty) {
-      final dmCompanions = <db.DmChannelsCompanion>[];
-      for (final ch in event.privateChannels) {
-        final recipients = ch.recipients;
-        if (recipients == null || recipients.isEmpty) {
-          continue;
+      // Insert guilds with position index.
+      if (event.guilds.isNotEmpty) {
+        final guildCompanions = <db.ServersCompanion>[];
+        for (var i = 0; i < event.guilds.length; i++) {
+          final g = event.guilds[i];
+          guildCompanions.add(
+            db.ServersCompanion.insert(
+              id: g.id,
+              name: g.name ?? '',
+              icon: Value(g.icon),
+              ownerId: Value(g.ownerId),
+              position: Value(i),
+            ),
+          );
         }
-        for (final r in recipients) {
-          unawaited(database.userDao.upsertUser(userFromPartialSdk(r)));
+        await database.guildDao.upsertServers(guildCompanions);
+      }
+
+      // Insert DM channels (+ upsert recipients as users).
+      if (event.privateChannels.isNotEmpty) {
+        final dmCompanions = <db.DmChannelsCompanion>[];
+        final recipientUsers = <db.UsersCompanion>[];
+        for (final ch in event.privateChannels) {
+          final recipients = ch.recipients;
+          if (recipients == null || recipients.isEmpty) {
+            continue;
+          }
+          for (final r in recipients) {
+            recipientUsers.add(userFromPartialSdk(r));
+          }
+          dmCompanions.add(
+            db.DmChannelsCompanion.insert(
+              id: ch.id,
+              recipientId: recipients.first.id,
+              type: Value(ch.type),
+              name: Value(ch.name),
+              recipientCount: Value(recipients.length + 1),
+            ),
+          );
         }
-        dmCompanions.add(
-          db.DmChannelsCompanion.insert(
-            id: ch.id,
-            recipientId: recipients.first.id,
-            type: Value(ch.type),
-            name: Value(ch.name),
-            recipientCount: Value(recipients.length + 1),
-          ),
-        );
+        if (recipientUsers.isNotEmpty) {
+          await database.userDao.upsertUsers(recipientUsers);
+        }
+        await database.dmChannelDao.upsertDmChannels(dmCompanions);
       }
-      unawaited(database.dmChannelDao.upsertDmChannels(dmCompanions));
-    }
 
-    // Upsert relationships.
-    if (event.relationships.isNotEmpty) {
-      final relCompanions = <db.RelationshipsCompanion>[];
-      for (final rel in event.relationships) {
-        unawaited(database.userDao.upsertUser(userFromPartialSdk(rel.user)));
-        relCompanions.add(
-          db.RelationshipsCompanion.insert(
-            userId: rel.user.id,
-            type: rel.type.json ?? 1,
-            nickname: Value(rel.nickname),
-            since: Value(rel.since),
-          ),
-        );
+      // Insert relationships (+ upsert related users).
+      if (event.relationships.isNotEmpty) {
+        final relUsers = <db.UsersCompanion>[];
+        final relCompanions = <db.RelationshipsCompanion>[];
+        for (final rel in event.relationships) {
+          relUsers.add(userFromPartialSdk(rel.user));
+          relCompanions.add(
+            db.RelationshipsCompanion.insert(
+              userId: rel.user.id,
+              type: rel.type.json ?? 1,
+              nickname: Value(rel.nickname),
+              since: Value(rel.since),
+            ),
+          );
+        }
+        await database.userDao.upsertUsers(relUsers);
+        await database.relationshipDao.upsertRelationships(relCompanions);
       }
-      unawaited(database.relationshipDao.upsertRelationships(relCompanions));
-    }
 
-    // Upsert presences.
-    for (final p in event.presences) {
-      final userId = (p['user'] as Map<String, dynamic>?)?['id'] as String?;
-      final status = p['status'] as String?;
-      if (userId != null && status != null) {
-        unawaited(
-          database.userDao.upsertUser(
+      // Update user statuses from presences.
+      for (final p in event.presences) {
+        final userId = (p['user'] as Map<String, dynamic>?)?['id'] as String?;
+        final status = p['status'] as String?;
+        if (userId != null && status != null) {
+          await database.userDao.upsertUser(
             db.UsersCompanion(id: Value(userId), status: Value(status)),
+          );
+        }
+      }
+
+      // Insert read states.
+      if (event.readStates.isNotEmpty) {
+        for (final rs in event.readStates) {
+          await database.readStateDao.upsertReadState(
+            db.ReadStatesCompanion(
+              channelId: Value(rs.id),
+              lastMessageId: Value(rs.lastMessageId),
+              mentionCount: Value(rs.mentionCount),
+            ),
+          );
+        }
+      }
+
+      // Insert user settings (JSON blob).
+      final userSettings = event.userSettings;
+      if (userSettings != null) {
+        await database.userSettingsDao.upsertSettings(
+          db.UserSettingsTableCompanion(
+            userId: Value(event.user.id),
+            data: Value(jsonEncode(userSettings.toJson())),
           ),
         );
       }
-    }
+
+      // Insert user guild settings (JSON blob per guild).
+      final guildSettings = event.userGuildSettings;
+      if (guildSettings != null) {
+        for (final gs in guildSettings) {
+          final guildId = gs.guildId;
+          if (guildId == null) {
+            continue;
+          }
+          await database.userGuildSettingsDao.upsert(
+            db.UserGuildSettingsTableCompanion(
+              guildId: Value(guildId),
+              data: Value(jsonEncode(gs.toJson())),
+            ),
+          );
+        }
+      }
+
+      // Insert notes.
+      final notes = event.notes;
+      if (notes != null && notes.isNotEmpty) {
+        await database.userNotesDao.upsertNotes(
+          notes.entries
+              .map(
+                (e) => db.UserNotesTableCompanion(
+                  targetUserId: Value(e.key),
+                  content: Value(e.value),
+                ),
+              )
+              .toList(),
+        );
+      }
+
+      // Insert pinned DMs with position index (table already cleared above).
+      final pinnedDms = event.pinnedDms;
+      if (pinnedDms != null && pinnedDms.isNotEmpty) {
+        for (var i = 0; i < pinnedDms.length; i++) {
+          await database
+              .into(database.pinnedDmsTable)
+              .insert(
+                db.PinnedDmsTableCompanion(
+                  channelId: Value(pinnedDms[i]),
+                  position: Value(i),
+                ),
+              );
+        }
+      }
+
+      // Insert favorite memes (JSON blob per meme).
+      final favoriteMemes = event.favoriteMemes;
+      if (favoriteMemes != null) {
+        for (final meme in favoriteMemes) {
+          final id = meme['id'] as String?;
+          if (id == null) {
+            continue;
+          }
+          await database.favoriteMemesDao.upsert(
+            db.FavoriteMemesTableCompanion(
+              id: Value(id),
+              data: Value(jsonEncode(meme)),
+            ),
+          );
+        }
+      }
+
+      // Insert RTC regions (table already cleared above).
+      final rtcRegions = event.rtcRegions;
+      if (rtcRegions != null) {
+        for (final region in rtcRegions) {
+          final id = region['id'] as String?;
+          if (id == null) {
+            continue;
+          }
+          await database
+              .into(database.rtcRegionsTable)
+              .insert(
+                db.RtcRegionsTableCompanion(
+                  id: Value(id),
+                  data: Value(jsonEncode(region)),
+                ),
+              );
+        }
+      }
+    });
   }
 
   void _handleMessageCreate(MessageCreateEvent event) {
