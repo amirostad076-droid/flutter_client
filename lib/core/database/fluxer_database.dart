@@ -10,13 +10,16 @@ import 'package:fluxeron/core/database/daos/dm_channel_dao.dart';
 import 'package:fluxeron/core/database/daos/emoji_usage_dao.dart';
 import 'package:fluxeron/core/database/daos/favorite_memes_dao.dart';
 import 'package:fluxeron/core/database/daos/guild_dao.dart';
+import 'package:fluxeron/core/database/daos/guild_emoji_dao.dart';
 import 'package:fluxeron/core/database/daos/guild_last_channel_dao.dart';
+import 'package:fluxeron/core/database/daos/guild_sticker_dao.dart';
 import 'package:fluxeron/core/database/daos/member_dao.dart';
 import 'package:fluxeron/core/database/daos/message_dao.dart';
 import 'package:fluxeron/core/database/daos/pinned_dms_dao.dart';
 import 'package:fluxeron/core/database/daos/read_state_dao.dart';
 import 'package:fluxeron/core/database/daos/relationship_dao.dart';
 import 'package:fluxeron/core/database/daos/role_dao.dart';
+import 'package:fluxeron/core/database/daos/saved_message_dao.dart';
 import 'package:fluxeron/core/database/daos/rtc_regions_dao.dart';
 import 'package:fluxeron/core/database/daos/user_dao.dart';
 import 'package:fluxeron/core/database/daos/user_guild_settings_dao.dart';
@@ -28,13 +31,16 @@ import 'package:fluxeron/core/database/tables/channels.dart';
 import 'package:fluxeron/core/database/tables/dm_channels.dart';
 import 'package:fluxeron/core/database/tables/emoji_usage.dart';
 import 'package:fluxeron/core/database/tables/favorite_memes.dart';
+import 'package:fluxeron/core/database/tables/guild_emojis.dart';
 import 'package:fluxeron/core/database/tables/guild_last_channels.dart';
+import 'package:fluxeron/core/database/tables/guild_stickers.dart';
 import 'package:fluxeron/core/database/tables/members.dart';
 import 'package:fluxeron/core/database/tables/messages.dart';
 import 'package:fluxeron/core/database/tables/pinned_dms.dart';
 import 'package:fluxeron/core/database/tables/read_states.dart';
 import 'package:fluxeron/core/database/tables/relationships.dart';
 import 'package:fluxeron/core/database/tables/roles.dart';
+import 'package:fluxeron/core/database/tables/saved_messages.dart';
 import 'package:fluxeron/core/database/tables/rtc_regions.dart';
 import 'package:fluxeron/core/database/tables/servers.dart';
 import 'package:fluxeron/core/database/tables/user_guild_settings.dart';
@@ -68,6 +74,9 @@ part 'fluxer_database.g.dart';
     PinnedDmsTable,
     FavoriteMemesTable,
     RtcRegionsTable,
+    GuildEmojis,
+    GuildStickers,
+    SavedMessages,
   ],
   daos: [
     AuthSessionDao,
@@ -89,6 +98,9 @@ part 'fluxer_database.g.dart';
     PinnedDmsDao,
     FavoriteMemesDao,
     RtcRegionsDao,
+    GuildEmojiDao,
+    GuildStickerDao,
+    SavedMessageDao,
   ],
 )
 class FluxerDatabase extends _$FluxerDatabase {
@@ -97,7 +109,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -171,6 +183,12 @@ class FluxerDatabase extends _$FluxerDatabase {
         await m.createTable(favoriteMemesTable);
         await m.createTable(rtcRegionsTable);
       }
+      if (from < 11) {
+        await m.createTable(guildEmojis);
+        await m.createTable(guildStickers);
+        await m.createTable(savedMessages);
+        await m.addColumn(readStates, readStates.lastPinTimestamp);
+      }
     },
   );
 
@@ -195,6 +213,9 @@ class FluxerDatabase extends _$FluxerDatabase {
       await pinnedDmsDao.clearAll();
       await favoriteMemesDao.clearAll();
       await rtcRegionsDao.clearAll();
+      await guildEmojiDao.clearAll();
+      await guildStickerDao.clearAll();
+      await savedMessageDao.clearAll();
     });
   }
 

@@ -87,7 +87,12 @@ class GatewayEventHandler {
           _handleChannelUpsert(channel);
         }
       case ChannelPinsUpdateEvent():
-        talker.debug('[Gateway] CHANNEL_PINS_UPDATE: ${event.channelId}');
+        unawaited(
+          database.readStateDao.updatePinTimestamp(
+            event.channelId,
+            event.lastPinTimestamp,
+          ),
+        );
       case ChannelPinsAckEvent():
         talker.debug('[Gateway] CHANNEL_PINS_ACK: ${event.channelId}');
       case ChannelRecipientAddEvent():
@@ -109,9 +114,9 @@ class GatewayEventHandler {
       case GuildBanRemoveEvent():
         talker.debug('[Gateway] GUILD_BAN_REMOVE: ${event.guildId}');
       case GuildEmojisUpdateEvent():
-        talker.debug('[Gateway] GUILD_EMOJIS_UPDATE: ${event.guildId}');
+        unawaited(_handleGuildEmojisUpdate(event));
       case GuildStickersUpdateEvent():
-        talker.debug('[Gateway] GUILD_STICKERS_UPDATE: ${event.guildId}');
+        unawaited(_handleGuildStickersUpdate(event));
       case GuildSyncEvent():
         _handleGuildCreate(GuildCreateEvent(guild: event.guild));
       case GuildMembersChunkEvent():
@@ -147,9 +152,9 @@ class GatewayEventHandler {
       case InviteDeleteEvent():
         talker.debug('[Gateway] INVITE_DELETE: ${event.code}');
       case SavedMessageCreateEvent():
-        talker.debug('[Gateway] SAVED_MESSAGE_CREATE');
+        unawaited(database.savedMessageDao.addSavedMessage(event.message.id));
       case SavedMessageDeleteEvent():
-        talker.debug('[Gateway] SAVED_MESSAGE_DELETE: ${event.messageId}');
+        unawaited(database.savedMessageDao.removeSavedMessage(event.messageId));
       case RecentMentionDeleteEvent():
         talker.debug('[Gateway] RECENT_MENTION_DELETE: ${event.messageId}');
       case WebhooksUpdateEvent():
@@ -190,6 +195,8 @@ class GatewayEventHandler {
       await database.pinnedDmsDao.clearAll();
       await database.favoriteMemesDao.clearAll();
       await database.rtcRegionsDao.clearAll();
+      await database.guildEmojiDao.clearAll();
+      await database.guildStickerDao.clearAll();
 
       // Insert current user.
       await database.userDao.upsertUser(
@@ -300,6 +307,7 @@ class GatewayEventHandler {
               channelId: Value(rs.id),
               lastMessageId: Value(rs.lastMessageId),
               mentionCount: Value(rs.mentionCount),
+              lastPinTimestamp: Value(rs.lastPinTimestamp),
             ),
           );
         }
@@ -655,6 +663,47 @@ class GatewayEventHandler {
     for (final member in event.guild.members) {
       _handleMemberUpsert(event.guild.guild.id, member);
     }
+
+    // Upsert emojis.
+    final guildId = event.guild.guild.id;
+    if (event.guild.emojis.isNotEmpty) {
+      unawaited(
+        database.guildEmojiDao.replaceForGuild(
+          guildId,
+          event.guild.emojis
+              .map(
+                (e) => db.GuildEmojisCompanion.insert(
+                  id: e.id,
+                  guildId: guildId,
+                  name: e.name,
+                  animated: Value(e.animated),
+                ),
+              )
+              .toList(),
+        ),
+      );
+    }
+
+    // Upsert stickers.
+    if (event.guild.stickers.isNotEmpty) {
+      unawaited(
+        database.guildStickerDao.replaceForGuild(
+          guildId,
+          event.guild.stickers
+              .map(
+                (s) => db.GuildStickersCompanion.insert(
+                  id: s.id,
+                  guildId: guildId,
+                  name: s.name,
+                  description: Value(s.description),
+                  tagsJson: Value(jsonEncode(s.tags)),
+                  animated: Value(s.animated),
+                ),
+              )
+              .toList(),
+        ),
+      );
+    }
   }
 
   void _handleGuildUpdate(GuildUpdateEvent event) {
@@ -818,6 +867,42 @@ class GatewayEventHandler {
         unawaited(database.channelDao.deleteChannel(id));
       }
     }
+  }
+
+  Future<void> _handleGuildEmojisUpdate(GuildEmojisUpdateEvent event) async {
+    await database.guildEmojiDao.replaceForGuild(
+      event.guildId,
+      event.emojis
+          .map(
+            (e) => db.GuildEmojisCompanion.insert(
+              id: e.id,
+              guildId: event.guildId,
+              name: e.name,
+              animated: Value(e.animated),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Future<void> _handleGuildStickersUpdate(
+    GuildStickersUpdateEvent event,
+  ) async {
+    await database.guildStickerDao.replaceForGuild(
+      event.guildId,
+      event.stickers
+          .map(
+            (s) => db.GuildStickersCompanion.insert(
+              id: s.id,
+              guildId: event.guildId,
+              name: s.name,
+              description: Value(s.description),
+              tagsJson: Value(jsonEncode(s.tags)),
+              animated: Value(s.animated),
+            ),
+          )
+          .toList(),
+    );
   }
 
   List<Map<String, dynamic>> _decodeReactions(String json) {
