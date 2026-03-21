@@ -41,6 +41,7 @@ import 'package:highlight/languages/typescript.dart';
 import 'package:highlight/languages/xml.dart';
 import 'package:highlight/languages/yaml.dart';
 import 'package:cached_network_image_ce/cached_network_image.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/shared/utils/emoji_registry.dart';
 import 'package:fluxeron/shared/utils/emoji_utils.dart';
 import 'package:fluxeron/shared/widgets/message_alert.dart';
@@ -672,7 +673,19 @@ class _EmojiBuilder extends MarkdownElementBuilder {
 
   Widget _buildUnicode(md.Element element, double size) {
     final surrogate = element.attributes['surrogate'] ?? element.textContent;
-    return Text(surrogate, style: TextStyle(fontSize: size));
+    final url = getTwemojiUrl(surrogate);
+    if (url == null) {
+      return Text(surrogate, style: TextStyle(fontSize: size));
+    }
+    return SvgPicture.network(
+      url,
+      width: size,
+      height: size,
+      placeholderBuilder: (_) => Text(
+        surrogate,
+        style: TextStyle(fontSize: size),
+      ),
+    );
   }
 
   Widget _buildCustom(md.Element element, double size) {
