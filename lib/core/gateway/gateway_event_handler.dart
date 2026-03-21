@@ -18,10 +18,12 @@ typedef CallUpdateCallback = void Function(CallUpdateEvent event);
 typedef ChannelCallback = void Function(String channelId);
 typedef InviteCreateCallback = void Function(Map<String, dynamic> data);
 typedef InviteDeleteCallback = void Function(String code);
+typedef ReadyCallback = void Function();
 
 class GatewayEventHandler {
   GatewayEventHandler({
     required this.database,
+    this.onReady,
     this.onTypingStart,
     this.onTypingClear,
     this.onVoiceStateUpdate,
@@ -34,6 +36,7 @@ class GatewayEventHandler {
   });
 
   final db.FluxerDatabase database;
+  final ReadyCallback? onReady;
   final TypingCallback? onTypingStart;
   final TypingCallback? onTypingClear;
   final VoiceStateCallback? onVoiceStateUpdate;
@@ -341,20 +344,22 @@ class GatewayEventHandler {
         );
       }
 
-      // Insert guilds with position index.
+      // Insert guilds with position index (skip unavailable — no metadata).
       if (event.guilds.isNotEmpty) {
         final guildCompanions = <db.ServersCompanion>[];
-        for (var i = 0; i < event.guilds.length; i++) {
-          final g = event.guilds[i];
+        var position = 0;
+        for (final g in event.guilds) {
+          if (g.unavailable == true) continue;
           guildCompanions.add(
             db.ServersCompanion.insert(
               id: g.id,
               name: g.name ?? '',
               icon: Value(g.icon),
               ownerId: Value(g.ownerId),
-              position: Value(i),
+              position: Value(position),
             ),
           );
+          position++;
         }
         await database.guildDao.upsertServers(guildCompanions);
       }
@@ -525,6 +530,7 @@ class GatewayEventHandler {
     });
 
     talker.info('[Gateway] READY transaction committed successfully');
+    onReady?.call();
   }
 
   Future<void> _handleUserSettingsUpdate(UserSettingsUpdateEvent event) async {
@@ -834,6 +840,12 @@ class GatewayEventHandler {
   }
 
   void _handleGuildDelete(GuildDeleteEvent event) {
+    if (event.unavailable) {
+      // Guild went unavailable — keep it in the list but mark it.
+      unawaited(database.guildDao.markUnavailable(event.guildId));
+      return;
+    }
+    // Actually removed from guild — delete all associated data.
     unawaited(database.channelDao.deleteChannelsForServer(event.guildId));
     unawaited(database.memberDao.deleteMembersForServer(event.guildId));
     unawaited(database.roleDao.deleteRolesForServer(event.guildId));

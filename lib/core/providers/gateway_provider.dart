@@ -54,6 +54,10 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
 
   final handler = GatewayEventHandler(
     database: db,
+    onReady: () {
+      talker.info('[Gateway] Setting gatewayReady = true');
+      ref.read(gatewayReadyProvider.notifier).setReady();
+    },
     onTypingStart: (channelId, userId) {
       ref.read(typingIndicatorsProvider.notifier).addTyping(channelId, userId);
     },

@@ -87,6 +87,25 @@ class ServerReachable extends _$ServerReachable {
   }
 }
 
+/// Whether the gateway READY event has been fully processed.
+///
+/// Starts as `false` and is set to `true` after the READY handler commits
+/// all initial data to the database. The router gates navigation to the
+/// main UI on this provider so the user never sees empty screens.
+@Riverpod(keepAlive: true)
+class GatewayReady extends _$GatewayReady {
+  @override
+  bool build() => false;
+
+  void setReady() {
+    state = true;
+  }
+
+  void reset() {
+    state = false;
+  }
+}
+
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final _homeBranchKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _notificationsBranchKey = GlobalKey<NavigatorState>(
@@ -106,6 +125,7 @@ GoRouter fluxerRouter(Ref ref) {
   ref
     ..listen(authStateProvider, (_, _) => refreshNotifier.notify())
     ..listen(serverReachableProvider, (_, _) => refreshNotifier.notify())
+    ..listen(gatewayReadyProvider, (_, _) => refreshNotifier.notify())
     ..listen(appStartupProvider, (_, _) => refreshNotifier.notify());
 
   return GoRouter(
@@ -119,9 +139,16 @@ GoRouter fluxerRouter(Ref ref) {
 
       final isAuthenticated = ref.read(authStateProvider);
       final isReachable = ref.read(serverReachableProvider);
+      final isGatewayReady = ref.read(gatewayReadyProvider);
       final isStartupComplete = ref.read(appStartupProvider) is AsyncData;
 
+      // Still starting up — stay on splash.
       if (!isStartupComplete) {
+        return isOnLoading ? null : '/loading';
+      }
+
+      // Authenticated but gateway hasn't delivered READY yet — stay on splash.
+      if (isAuthenticated && !isGatewayReady) {
         return isOnLoading ? null : '/loading';
       }
 
