@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/gateway/gateway_event_handler.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
+import 'package:fluxeron/core/router/route_state_providers.dart';
 import 'package:fluxeron/core/talker.dart';
 import 'package:fluxeron/features/gateway/providers/gateway_event_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -23,9 +25,12 @@ GatewayConnection gatewayConnection(Ref ref) {
 
   final isDesktop = Platform.isLinux || Platform.isMacOS || Platform.isWindows;
 
+  final activeGuildId = ref.read(activeGuildIdProvider);
+
   final connection = GatewayConnection(
     token: token,
     dio: dio,
+    initialGuildId: activeGuildId,
     properties: GatewayIdentifyProperties(
       os: Platform.operatingSystem,
       browser: 'fluxeron',
@@ -79,6 +84,28 @@ Raw<StreamSubscription<GatewayState>?> gatewayStateListener(Ref ref) {
       case GatewayState.connecting:
       case GatewayState.reconnecting:
         break;
+    }
+  });
+
+  ref.onDispose(subscription.cancel);
+  return subscription;
+}
+
+/// Monitors network connectivity and triggers immediate gateway reconnect
+/// when the device comes back online.
+@Riverpod(keepAlive: true)
+Raw<StreamSubscription<List<ConnectivityResult>>?> connectivityListener(
+  Ref ref,
+) {
+  final connection = ref.watch(gatewayConnectionProvider);
+
+  final subscription = Connectivity().onConnectivityChanged.listen((results) {
+    final hasConnection =
+        results.any((r) => r != ConnectivityResult.none);
+
+    if (hasConnection && connection.state == GatewayState.disconnected) {
+      talker.info('[Gateway] Network restored, reconnecting immediately');
+      unawaited(connection.connect());
     }
   });
 
