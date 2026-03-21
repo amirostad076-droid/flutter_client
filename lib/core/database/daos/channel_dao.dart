@@ -33,6 +33,11 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
     });
   }
 
+  Future<void> updateLastMessageId(String channelId, String messageId) =>
+      (update(channels)..where((c) => c.id.equals(channelId))).write(
+        ChannelsCompanion(lastMessageId: Value(messageId)),
+      );
+
   Future<void> deleteChannel(String id) =>
       (delete(channels)..where((c) => c.id.equals(id))).go();
 

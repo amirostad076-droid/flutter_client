@@ -8,30 +8,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'guild_list_view_model.g.dart';
 
 class GuildListViewState {
-  static const _unset = Object();
-
   final List<Guild> guilds;
-  final bool isLoading;
-  final String? errorMessage;
 
-  const GuildListViewState({
-    required this.guilds,
-    required this.isLoading,
-    required this.errorMessage,
-  });
+  const GuildListViewState({required this.guilds});
 
-  GuildListViewState copyWith({
-    List<Guild>? guilds,
-    bool? isLoading,
-    Object? errorMessage = _unset,
-  }) {
-    return GuildListViewState(
-      guilds: guilds ?? this.guilds,
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage == _unset
-          ? this.errorMessage
-          : errorMessage as String?,
-    );
+  GuildListViewState copyWith({List<Guild>? guilds}) {
+    return GuildListViewState(guilds: guilds ?? this.guilds);
   }
 }
 
@@ -46,7 +28,7 @@ class GuildListViewModel extends _$GuildListViewModel {
     unawaited(_subscription?.cancel());
     _subscription = repo.watchServers().listen(
       (guilds) {
-        state = state.copyWith(guilds: guilds, isLoading: false);
+        state = state.copyWith(guilds: guilds);
       },
       onError: (Object error) {
         debugPrint('[GuildListViewModel] Watch error: $error');
@@ -55,26 +37,6 @@ class GuildListViewModel extends _$GuildListViewModel {
 
     ref.onDispose(() => _subscription?.cancel());
 
-    unawaited(Future<void>.microtask(_loadGuilds));
-    return const GuildListViewState(
-      guilds: [],
-      isLoading: true,
-      errorMessage: null,
-    );
+    return const GuildListViewState(guilds: []);
   }
-
-  Future<void> _loadGuilds() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    try {
-      await ref.read(guildRepositoryProvider).getServers();
-    } on Exception catch (e) {
-      debugPrint('[GuildListViewModel] Failed to load guilds: $e');
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to load guilds',
-      );
-    }
-  }
-
-  Future<void> refresh() => _loadGuilds();
 }

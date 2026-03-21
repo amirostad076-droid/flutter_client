@@ -37,5 +37,13 @@ class GuildDao extends DatabaseAccessor<FluxerDatabase> with _$GuildDaoMixin {
     });
   }
 
+  Future<void> markUnavailable(String id) =>
+      (update(servers)..where((s) => s.id.equals(id))).write(
+        const ServersCompanion(unavailable: Value(true)),
+      );
+
+  Future<void> deleteServer(String id) =>
+      (delete(servers)..where((s) => s.id.equals(id))).go();
+
   Future<void> clearAll() => delete(servers).go();
 }

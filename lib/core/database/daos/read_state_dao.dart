@@ -23,5 +23,13 @@ class ReadStateDao extends DatabaseAccessor<FluxerDatabase>
   Future<void> upsertReadState(ReadStatesCompanion state) =>
       into(readStates).insertOnConflictUpdate(state);
 
+  Future<void> updatePinTimestamp(String channelId, String? timestamp) =>
+      (update(readStates)..where((r) => r.channelId.equals(channelId))).write(
+        ReadStatesCompanion(lastPinTimestamp: Value(timestamp)),
+      );
+
+  Stream<List<ReadState>> watchReadStatesForChannels(List<String> channelIds) =>
+      (select(readStates)..where((r) => r.channelId.isIn(channelIds))).watch();
+
   Future<void> clearAll() => delete(readStates).go();
 }

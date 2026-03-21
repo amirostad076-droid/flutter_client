@@ -337,11 +337,6 @@ class FriendsList extends ConsumerWidget {
   );
 
   Widget _buildFriendsList(BuildContext context, DmViewState vm) {
-    if (vm.isLoading) {
-      return Center(
-        child: CircularProgressIndicator(color: context.colors.brandPrimary),
-      );
-    }
     final filtered = vm.filteredFriends;
     if (filtered.isEmpty) {
       return Center(

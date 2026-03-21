@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
@@ -19,7 +19,7 @@ DateTime _snowflakeToDateTime(String snowflake) {
 }
 
 class DmRepository {
-  final FluxerDart _client;
+  final FluxerClient _client;
   final db.FluxerDatabase _db;
 
   const DmRepository(this._client, this._db);
@@ -49,14 +49,10 @@ class DmRepository {
 
   Future<List<DmConversation>> getDmChannels() async {
     try {
-      final response = await _client.getUsersApi().listPrivateChannels();
-      final data = response.data;
-      if (data == null) {
-        return [];
-      }
+      final channels = await _client.users.listPrivateChannels();
 
       final companions = <db.DmChannelsCompanion>[];
-      for (final ch in data) {
+      for (final ch in channels) {
         if (ch.type != 1 && ch.type != 3) {
           continue;
         }
@@ -118,7 +114,7 @@ class DmRepository {
       _db.dmChannelDao.markAsRead(channelId);
 
   Future<void> closeDmChannel(String channelId) async {
-    await _client.getChannelsApi().deleteChannel(channelId: channelId);
+    await _client.channels.deleteChannel(channelId: channelId);
     await _db.dmChannelDao.deleteDmChannel(channelId);
   }
 }

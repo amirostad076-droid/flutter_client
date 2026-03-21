@@ -9,7 +9,6 @@ import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/router/route_state_providers.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/features/channels/providers/unread_provider.dart';
 import 'package:fluxeron/features/friends/providers/friend_providers.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart';
@@ -18,7 +17,11 @@ import 'package:fluxeron/features/guilds/presentation/'
 import 'package:fluxeron/features/guilds/presentation/'
     'widgets/guild_context_menu.dart';
 import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxeron/features/guilds/providers/guild_mute_provider.dart';
+import 'package:fluxeron/features/guilds/providers/guild_voice_provider.dart';
+import 'package:fluxeron/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxeron/shared/widgets/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/unread_badge.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -28,6 +31,7 @@ class GuildNavbar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final organizedItems = ref.watch(organizedGuildListProvider);
     final guilds = ref.watch(
       guildListViewModelProvider.select((s) => s.guilds),
     );
@@ -40,6 +44,7 @@ class GuildNavbar extends ConsumerWidget {
     final currentUserId = ref.watch(
       userSettingsViewModelProvider.select((s) => s.userId),
     );
+    final unavailableCount = guilds.where((g) => g.isUnavailable).length;
 
     return Container(
       width: 72,
@@ -74,30 +79,32 @@ class GuildNavbar extends ConsumerWidget {
               },
             ),
             _SidebarDivider(color: context.colors.backgroundModifierHover),
-            for (final guild in guilds)
-              Builder(
-                builder: (context) {
-                  final unread = ref
-                      .watch(serverUnreadProvider(guild.id))
-                      .value;
-                  return _GuildListItem(
-                    label: guild.name,
-                    guild: guild,
-                    isSelected: guild.id == activeGuildId,
-                    isOwner: guild.ownerId == currentUserId,
-                    iconUrl: guild.iconUrl,
-                    hasUnread: unread?.hasUnread ?? false,
-                    mentionCount: unread?.mentionCount ?? 0,
-                    onTap: () {
-                      context.go(RoutePaths.guild(guild.id));
-                    },
-                  );
-                },
-              ),
+            for (final item in organizedItems)
+              switch (item) {
+                GuildNavbarGuild(:final guild) => _buildGuildItem(
+                  ref,
+                  context,
+                  guild: guild,
+                  activeGuildId: activeGuildId,
+                  currentUserId: currentUserId,
+                  unavailableCount: unavailableCount,
+                ),
+                GuildNavbarFolder() => _GuildFolderWidget(
+                  folder: item,
+                  activeGuildId: activeGuildId,
+                  currentUserId: currentUserId,
+                  unavailableCount: unavailableCount,
+                ),
+              },
             _SidebarDivider(color: context.colors.backgroundModifierHover),
             _DashedGuildIcon(
               label: 'Add a Server',
               icon: PhosphorIconsRegular.plus,
+              onTap: () {},
+            ),
+            _DashedGuildIcon(
+              label: 'Explore Discoverable Servers',
+              icon: PhosphorIconsRegular.compass,
               onTap: () {},
             ),
             _DashedGuildIcon(
@@ -110,6 +117,317 @@ class GuildNavbar extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _buildGuildItem(
+    WidgetRef ref,
+    BuildContext context, {
+    required Guild guild,
+    required String? activeGuildId,
+    required String currentUserId,
+    required int unavailableCount,
+  }) {
+    return Builder(
+      builder: (context) {
+        final unread = ref.watch(serverUnreadProvider(guild.id)).value;
+        final muteState = ref.watch(guildMuteProvider(guild.id)).value;
+        final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
+        final voiceRows = ref
+            .watch(guildVoiceParticipantsProvider(guild.id))
+            .value;
+        return _GuildListItem(
+          label: guild.name,
+          guild: guild,
+          isSelected: guild.id == activeGuildId,
+          isOwner: guild.ownerId == currentUserId,
+          iconUrl: guild.iconUrl,
+          isUnavailable: guild.isUnavailable,
+          unavailableCount: unavailableCount,
+          isMuted: muteState?.isMuted ?? false,
+          muteEndTime: muteState?.muteEndTime,
+          voiceActivity: voiceActivity,
+          voiceRows: voiceRows ?? const [],
+          hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
+          mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
+          onTap: () {
+            context.go(RoutePaths.guild(guild.id));
+          },
+        );
+      },
+    );
+  }
+}
+
+class _GuildFolderWidget extends ConsumerWidget {
+  final GuildNavbarFolder folder;
+  final String? activeGuildId;
+  final String currentUserId;
+  final int unavailableCount;
+
+  const _GuildFolderWidget({
+    required this.folder,
+    required this.activeGuildId,
+    required this.currentUserId,
+    required this.unavailableCount,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isExpanded = ref.watch(
+      folderExpandedStateProvider.select((s) => s.contains(folder.id)),
+    );
+
+    // Aggregate unread/mention across all guilds in folder.
+    var anyUnread = false;
+    var totalMentions = 0;
+    for (final guild in folder.guilds) {
+      final unread = ref.watch(serverUnreadProvider(guild.id)).value;
+      if (!guild.isUnavailable && (unread?.hasUnread ?? false)) {
+        anyUnread = true;
+      }
+      if (!guild.isUnavailable) {
+        totalMentions += unread?.mentionCount ?? 0;
+      }
+    }
+
+    final folderColor = folder.color != null
+        ? Color(folder.color! | 0xFF000000)
+        : context.colors.brandPrimary;
+
+    if (isExpanded) {
+      return _buildExpanded(context, ref, folderColor);
+    }
+    return _buildCollapsed(
+      context,
+      ref,
+      folderColor: folderColor,
+      anyUnread: anyUnread,
+      totalMentions: totalMentions,
+    );
+  }
+
+  Widget _buildCollapsed(
+    BuildContext context,
+    WidgetRef ref, {
+    required Color folderColor,
+    required bool anyUnread,
+    required int totalMentions,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: const Cubic(0.25, 0.1, 0.25, 1),
+            width: 6,
+            height: anyUnread ? 8 : 0,
+            decoration: BoxDecoration(
+              color: context.colors.textPrimary,
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(999),
+                bottomRight: Radius.circular(999),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              _RightTooltip(
+                content: _TooltipLabel(
+                  label: folder.name ?? _derivedFolderName,
+                ),
+                child: GestureDetector(
+                  onTap: () => ref
+                      .read(folderExpandedStateProvider.notifier)
+                      .toggle(folder.id),
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: folderColor.withAlpha(80),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: _buildFolderContent(context, folderColor),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              if (totalMentions > 0)
+                Positioned(
+                  bottom: -4,
+                  right: -4,
+                  child: UnreadBadge(mentionCount: totalMentions),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFolderContent(BuildContext context, Color folderColor) {
+    if (folder.showIconWhenCollapsed && folder.icon != null) {
+      return Center(
+        child: PhosphorIcon(
+          _folderIcon(folder.icon),
+          color: folderColor,
+          size: 24,
+        ),
+      );
+    }
+
+    // 2x2 mini guild icon grid.
+    final gridGuilds = folder.guilds.take(4).toList();
+    return Padding(
+      padding: const EdgeInsets.all(4),
+      child: Wrap(
+        spacing: 2,
+        runSpacing: 2,
+        children: [
+          for (final guild in gridGuilds)
+            SizedBox(
+              width: 17,
+              height: 17,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: guild.iconUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: guild.iconUrl!,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        color: context.colors.serverIconBackground,
+                        child: Center(
+                          child: Text(
+                            guild.name.isNotEmpty
+                                ? guild.name[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpanded(
+    BuildContext context,
+    WidgetRef ref,
+    Color folderColor,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Folder toggle button.
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(
+            children: [
+              const SizedBox(width: 12),
+              _RightTooltip(
+                content: _TooltipLabel(
+                  label: 'Collapse ${folder.name ?? _derivedFolderName}',
+                ),
+                child: GestureDetector(
+                  onTap: () => ref
+                      .read(folderExpandedStateProvider.notifier)
+                      .toggle(folder.id),
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: folderColor.withAlpha(80),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: Center(
+                          child: PhosphorIcon(
+                            _folderIcon(folder.icon),
+                            color: folderColor,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Guild items inside folder.
+        for (final guild in folder.guilds)
+          _buildGuildItemInFolder(ref, context, guild),
+      ],
+    );
+  }
+
+  Widget _buildGuildItemInFolder(
+    WidgetRef ref,
+    BuildContext context,
+    Guild guild,
+  ) {
+    return Builder(
+      builder: (context) {
+        final unread = ref.watch(serverUnreadProvider(guild.id)).value;
+        final muteState = ref.watch(guildMuteProvider(guild.id)).value;
+        final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
+        final voiceRows = ref
+            .watch(guildVoiceParticipantsProvider(guild.id))
+            .value;
+        return _GuildListItem(
+          label: guild.name,
+          guild: guild,
+          isSelected: guild.id == activeGuildId,
+          isOwner: guild.ownerId == currentUserId,
+          iconUrl: guild.iconUrl,
+          isUnavailable: guild.isUnavailable,
+          unavailableCount: unavailableCount,
+          isMuted: muteState?.isMuted ?? false,
+          muteEndTime: muteState?.muteEndTime,
+          voiceActivity: voiceActivity,
+          voiceRows: voiceRows ?? const [],
+          hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
+          mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
+          onTap: () {
+            context.go(RoutePaths.guild(guild.id));
+          },
+        );
+      },
+    );
+  }
+
+  String get _derivedFolderName {
+    final names = folder.guilds.take(3).map((g) => g.name);
+    return names.join(', ');
+  }
+
+  static IconData _folderIcon(String? icon) {
+    return switch (icon) {
+      'star' => PhosphorIconsFill.star,
+      'heart' => PhosphorIconsFill.heart,
+      'bookmark' => PhosphorIconsFill.bookmarkSimple,
+      'game_controller' => PhosphorIconsFill.gameController,
+      'shield' => PhosphorIconsFill.shield,
+      'music_note' => PhosphorIconsFill.musicNote,
+      _ => PhosphorIconsFill.folder,
+    };
+  }
 }
 
 class _GuildListItem extends StatefulWidget {
@@ -117,6 +435,12 @@ class _GuildListItem extends StatefulWidget {
   final Guild? guild;
   final bool isSelected;
   final bool isOwner;
+  final bool isUnavailable;
+  final int unavailableCount;
+  final bool isMuted;
+  final DateTime? muteEndTime;
+  final VoiceActivityType voiceActivity;
+  final List<VoiceParticipantRow> voiceRows;
   final IconData? icon;
   final String? svgAsset;
   final VoidCallback onTap;
@@ -130,6 +454,12 @@ class _GuildListItem extends StatefulWidget {
     this.guild,
     this.isSelected = false,
     this.isOwner = false,
+    this.isUnavailable = false,
+    this.unavailableCount = 0,
+    this.isMuted = false,
+    this.muteEndTime,
+    this.voiceActivity = VoiceActivityType.none,
+    this.voiceRows = const [],
     this.icon,
     this.svgAsset,
     this.iconUrl,
@@ -171,8 +501,10 @@ class _GuildListItemState extends State<_GuildListItem> {
   Widget build(BuildContext context) {
     final isActive = widget.isSelected || _isHovered;
     final borderRadius = isActive ? 13.0 : 22.0;
-    final hasImage = widget.iconUrl != null;
-    final bgColor = hasImage
+    final hasImage = widget.iconUrl != null && !widget.isUnavailable;
+    final bgColor = widget.isUnavailable
+        ? context.colors.statusDanger
+        : hasImage
         ? Colors.transparent
         : isActive
         ? context.colors.brandPrimary
@@ -206,8 +538,21 @@ class _GuildListItemState extends State<_GuildListItem> {
             clipBehavior: Clip.none,
             children: [
               _RightTooltip(
+                backgroundColor: widget.isUnavailable
+                    ? context.colors.statusDanger
+                    : null,
+                borderColor: widget.isUnavailable
+                    ? context.colors.statusDanger
+                    : null,
                 content: widget.guild != null
-                    ? _GuildTooltipContent(guild: widget.guild!)
+                    ? _GuildTooltipContent(
+                        guild: widget.guild!,
+                        unavailableCount: widget.unavailableCount,
+                        isOwner: widget.isOwner,
+                        isMuted: widget.isMuted,
+                        muteEndTime: widget.muteEndTime,
+                        voiceRows: widget.voiceRows,
+                      )
                     : _TooltipLabel(label: widget.label),
                 child: MouseRegion(
                   onEnter: (_) => setState(() => _isHovered = true),
@@ -239,9 +584,22 @@ class _GuildListItemState extends State<_GuildListItem> {
                             borderRadius: BorderRadiusGeometry.circular(
                               borderRadius,
                             ),
-                            child: widget.iconUrl != null
+                            child: widget.isUnavailable
+                                ? const Center(
+                                    child: PhosphorIcon(
+                                      PhosphorIconsRegular.exclamationMark,
+                                      color: Colors.white,
+                                      size: 32,
+                                    ),
+                                  )
+                                : widget.iconUrl != null
                                 ? CachedNetworkImage(
-                                    imageUrl: widget.iconUrl!,
+                                    imageUrl:
+                                        _isHovered &&
+                                            widget.guild?.animatedIconUrl !=
+                                                null
+                                        ? widget.guild!.animatedIconUrl!
+                                        : widget.iconUrl!,
                                     errorWidget: (context, url, error) =>
                                         _buildBackupIcon(
                                           context,
@@ -262,12 +620,20 @@ class _GuildListItemState extends State<_GuildListItem> {
                   ),
                 ),
               ),
-              if (!widget.isSelected &&
-                  (widget.hasUnread || widget.mentionCount > 0))
+              if (!widget.isUnavailable &&
+                  !widget.isSelected &&
+                  widget.mentionCount > 0)
                 Positioned(
                   bottom: -4,
                   right: -4,
                   child: UnreadBadge(mentionCount: widget.mentionCount),
+                ),
+              if (!widget.isUnavailable &&
+                  widget.voiceActivity != VoiceActivityType.none)
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: _VoiceActivityBadge(type: widget.voiceActivity),
                 ),
             ],
           ),
@@ -507,8 +873,15 @@ class _DashedBorderPainter extends CustomPainter {
 class _RightTooltip extends StatefulWidget {
   final Widget content;
   final Widget child;
+  final Color? backgroundColor;
+  final Color? borderColor;
 
-  const _RightTooltip({required this.content, required this.child});
+  const _RightTooltip({
+    required this.content,
+    required this.child,
+    this.backgroundColor,
+    this.borderColor,
+  });
 
   @override
   State<_RightTooltip> createState() => _RightTooltipState();
@@ -541,8 +914,9 @@ class _RightTooltipState extends State<_RightTooltip>
       return;
     }
     final overlay = Overlay.of(context);
-    final bgColor = context.colors.backgroundPrimary;
-    final borderColor = context.colors.backgroundHeaderSecondary;
+    final bgColor = widget.backgroundColor ?? context.colors.backgroundPrimary;
+    final borderColor =
+        widget.borderColor ?? context.colors.backgroundHeaderSecondary;
 
     _entry = OverlayEntry(
       builder: (_) => UnconstrainedBox(
@@ -665,32 +1039,199 @@ class _TooltipLabel extends StatelessWidget {
 
 class _GuildTooltipContent extends StatelessWidget {
   final Guild guild;
+  final int unavailableCount;
+  final bool isOwner;
+  final bool isMuted;
+  final DateTime? muteEndTime;
+  final List<VoiceParticipantRow> voiceRows;
 
-  const _GuildTooltipContent({required this.guild});
+  const _GuildTooltipContent({
+    required this.guild,
+    this.unavailableCount = 0,
+    this.isOwner = false,
+    this.isMuted = false,
+    this.muteEndTime,
+    this.voiceRows = const [],
+  });
+
+  String get _mutedText {
+    if (muteEndTime == null) {
+      return 'Muted';
+    }
+    final month = _monthAbbr(muteEndTime!.month);
+    final day = muteEndTime!.day;
+    final year = muteEndTime!.year;
+    final hour = muteEndTime!.hour > 12
+        ? muteEndTime!.hour - 12
+        : muteEndTime!.hour == 0
+        ? 12
+        : muteEndTime!.hour;
+    final minute = muteEndTime!.minute.toString().padLeft(2, '0');
+    final period = muteEndTime!.hour >= 12 ? 'PM' : 'AM';
+    return 'Muted until $month $day, $year $hour:$minute $period';
+  }
+
+  static String _monthAbbr(int month) => const [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ][month - 1];
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (guild.isPartnered || guild.isVerified) ...[
-            _GuildBadge(isPartnered: guild.isPartnered),
-            const SizedBox(width: 6),
-          ],
-          Flexible(
-            child: Text(
-              guild.name,
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+      child: guild.unavailable
+          ? Text(
+              '$unavailableCount '
+              '${unavailableCount == 1 ? 'community is' : 'communities are'}'
+              ' temporarily unavailable\n'
+              'due to a flux capacitor malfunction.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (guild.isPartnered || guild.isVerified) ...[
+                      _GuildBadge(isPartnered: guild.isPartnered),
+                      const SizedBox(width: 6),
+                    ],
+                    Flexible(
+                      child: Text(
+                        guild.name,
+                        style: TextStyle(
+                          color: context.colors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                if (guild.features.contains(
+                  'UNAVAILABLE_FOR_EVERYONE_BUT_STAFF',
+                )) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Only accessible to Fluxer staff',
+                    style: TextStyle(
+                      color: context.colors.statusDanger,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+                if (isOwner && guild.features.contains('INVITES_DISABLED')) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Invites are currently paused in this community',
+                    style: TextStyle(
+                      color: context.colors.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+                if (isMuted) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PhosphorIcon(
+                        PhosphorIconsFill.bellSlash,
+                        color: context.colors.textSecondary,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _mutedText,
+                        style: TextStyle(
+                          color: context.colors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                for (final row in voiceRows) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PhosphorIcon(
+                        row.isScreenshare
+                            ? PhosphorIconsFill.monitor
+                            : PhosphorIconsFill.speakerHigh,
+                        color: context.colors.textSecondary,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 6),
+                      _AvatarStack(avatarUrls: row.avatarUrls),
+                    ],
+                  ),
+                ],
+              ],
             ),
-          ),
+    );
+  }
+}
+
+class _AvatarStack extends StatelessWidget {
+  final List<String> avatarUrls;
+
+  const _AvatarStack({required this.avatarUrls});
+
+  @override
+  Widget build(BuildContext context) {
+    if (avatarUrls.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return SizedBox(
+      width: avatarUrls.length * 20.0 + 8,
+      height: 28,
+      child: Stack(
+        children: [
+          for (var i = 0; i < avatarUrls.length; i++)
+            Positioned(
+              left: i * 20.0,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: context.colors.backgroundPrimary,
+                    width: 2,
+                  ),
+                ),
+                child: ClipOval(
+                  child: CachedNetworkImage(
+                    imageUrl: avatarUrls[i],
+                    width: 24,
+                    height: 24,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -725,6 +1266,40 @@ class _GuildBadge extends StatelessWidget {
       PhosphorIconsFill.sealCheck,
       color: context.colors.textPrimary,
       size: 16,
+    );
+  }
+}
+
+class _VoiceActivityBadge extends StatelessWidget {
+  final VoiceActivityType type;
+
+  const _VoiceActivityBadge({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final IconData icon;
+    switch (type) {
+      case VoiceActivityType.video:
+        icon = PhosphorIconsFill.videoCamera;
+      case VoiceActivityType.screenshare:
+        icon = PhosphorIconsFill.monitor;
+      case VoiceActivityType.voice:
+        icon = PhosphorIconsFill.speakerHigh;
+      case VoiceActivityType.none:
+        return const SizedBox.shrink();
+    }
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: context.colors.statusOnline,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: context.colors.serverSidebarBackground,
+          width: 3,
+        ),
+      ),
+      child: Center(child: PhosphorIcon(icon, color: Colors.white, size: 12)),
     );
   }
 }

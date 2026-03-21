@@ -8,6 +8,7 @@ part 'chat_providers.g.dart';
 @Riverpod(keepAlive: true)
 MessageRepository messageRepository(Ref ref) {
   final client = ref.watch(fluxerClientProvider);
+  final dio = ref.watch(fluxerDioProvider);
   final db = ref.watch(fluxerDatabaseProvider);
-  return MessageRepository(client, db);
+  return MessageRepository(client, dio, db);
 }

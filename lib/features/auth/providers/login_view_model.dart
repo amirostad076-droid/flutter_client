@@ -89,7 +89,7 @@ class LoginViewModel extends _$LoginViewModel {
       ref.read(fluxerAuthTokenProvider.notifier).setToken(session.token);
 
       // Fire-and-forget: gateway has its own reconnect logic.
-      unawaited(ref.read(gatewayClientProvider).connect(session.token));
+      unawaited(ref.read(gatewayConnectionProvider).connect());
 
       state = state.copyWith(isLoggingIn: false);
       ref.read(authStateProvider.notifier).setAuthenticated(value: true);

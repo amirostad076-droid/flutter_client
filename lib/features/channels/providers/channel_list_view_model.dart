@@ -12,7 +12,6 @@ class ChannelListState {
   final List<ChannelCategory> categories;
   final String? selectedChannelId;
   final Set<String> collapsedCategories;
-  final bool isLoading;
   final bool isMemberListVisible;
 
   const ChannelListState({
@@ -20,7 +19,6 @@ class ChannelListState {
     required this.categories,
     required this.selectedChannelId,
     required this.collapsedCategories,
-    required this.isLoading,
     this.isMemberListVisible = true,
   });
 
@@ -29,7 +27,6 @@ class ChannelListState {
     List<ChannelCategory>? categories,
     String? selectedChannelId,
     Set<String>? collapsedCategories,
-    bool? isLoading,
     bool? isMemberListVisible,
   }) {
     return ChannelListState(
@@ -37,7 +34,6 @@ class ChannelListState {
       categories: categories ?? this.categories,
       selectedChannelId: selectedChannelId ?? this.selectedChannelId,
       collapsedCategories: collapsedCategories ?? this.collapsedCategories,
-      isLoading: isLoading ?? this.isLoading,
       isMemberListVisible: isMemberListVisible ?? this.isMemberListVisible,
     );
   }
@@ -46,36 +42,45 @@ class ChannelListState {
 @Riverpod(keepAlive: true)
 class ChannelListViewModel extends _$ChannelListViewModel {
   String? _currentServerId;
+  StreamSubscription<List<Channel>>? _subscription;
 
   @override
   ChannelListState build() {
+    ref.onDispose(() => unawaited(_subscription?.cancel()));
     return const ChannelListState(
       serverName: '',
       categories: [],
       selectedChannelId: null,
       collapsedCategories: {},
-      isLoading: false,
     );
   }
 
-  Future<void> loadChannels(String serverId, {String? serverName}) async {
-    if (_currentServerId == serverId && state.categories.isNotEmpty) {
+  void loadChannels(String serverId, {String? serverName}) {
+    if (_currentServerId == serverId) {
+      if (serverName != null) {
+        state = state.copyWith(serverName: serverName);
+      }
       return;
     }
     _currentServerId = serverId;
     state = state.copyWith(
-      isLoading: true,
       serverName: serverName ?? state.serverName,
       collapsedCategories: {},
     );
-    try {
-      final repo = ref.read(channelRepositoryProvider);
-      final categories = await repo.getChannels(serverId);
-      state = state.copyWith(categories: categories, isLoading: false);
-    } on Exception catch (e) {
-      debugPrint('[ChannelListViewModel] Failed to load channels: $e');
-      state = state.copyWith(isLoading: false);
-    }
+
+    final repo = ref.read(channelRepositoryProvider);
+    unawaited(_subscription?.cancel());
+    _subscription = repo
+        .watchChannels(serverId)
+        .listen(
+          (channels) {
+            final categories = groupChannelsIntoCategories(channels);
+            state = state.copyWith(categories: categories);
+          },
+          onError: (Object error) {
+            debugPrint('[ChannelListViewModel] Watch error: $error');
+          },
+        );
   }
 
   void selectChannel(String channelId) {

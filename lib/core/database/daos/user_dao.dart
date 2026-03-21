@@ -36,5 +36,10 @@ class UserDao extends DatabaseAccessor<FluxerDatabase> with _$UserDaoMixin {
   Future<void> deleteUser(String id) =>
       (delete(users)..where((u) => u.id.equals(id))).go();
 
+  Future<void> updateStatus(String id, String status) =>
+      (update(users)..where((u) => u.id.equals(id))).write(
+        UsersCompanion(status: Value(status)),
+      );
+
   Future<void> clearAll() => delete(users).go();
 }

@@ -371,7 +371,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
   }
 
   Future<void> _logout() async {
-    await ref.read(gatewayClientProvider).disconnect();
+    await ref.read(gatewayConnectionProvider).disconnect();
     ref.read(fluxerAuthTokenProvider.notifier).setToken(null);
 
     ref

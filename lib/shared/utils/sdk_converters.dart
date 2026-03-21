@@ -1,20 +1,25 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 
 /// Converts SDK [GuildResponse] to a Drift companion for upserting.
-db.ServersCompanion guildFromSdk(GuildResponse sdk, {int position = 0}) {
+db.ServersCompanion guildFromSdk(
+  GuildResponse sdk, {
+  int position = 0,
+  bool unavailable = false,
+}) {
   return db.ServersCompanion.insert(
     id: sdk.id,
     name: sdk.name,
     icon: Value(sdk.icon),
     banner: Value(sdk.banner),
     ownerId: Value(sdk.ownerId),
-    featuresJson: Value(jsonEncode(sdk.features.toList())),
+    featuresJson: Value(jsonEncode(sdk.features)),
     position: Value(position),
+    unavailable: Value(unavailable),
   );
 }
 
@@ -28,6 +33,19 @@ db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String serverId) {
     topic: Value(sdk.topic),
     parentId: Value(sdk.parentId),
     position: Value(sdk.position ?? 0),
+    lastMessageId: Value(sdk.lastMessageId),
+  );
+}
+
+/// Converts SDK [GuildRoleResponse] to a Drift companion.
+db.RolesCompanion roleFromSdk(GuildRoleResponse sdk, String serverId) {
+  return db.RolesCompanion.insert(
+    id: sdk.id,
+    serverId: serverId,
+    name: sdk.name,
+    color: Value(sdk.color),
+    position: Value(sdk.position),
+    isHoisted: Value(sdk.hoist),
   );
 }
 

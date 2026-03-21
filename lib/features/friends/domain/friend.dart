@@ -1,4 +1,4 @@
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 
@@ -59,21 +59,13 @@ class Friend {
 
   String get displayName => globalName ?? username;
 
-  static FriendStatus _mapType(RelationshipTypes type) {
-    if (type == RelationshipTypes.number1) {
-      return FriendStatus.accepted;
-    }
-    if (type == RelationshipTypes.number2) {
-      return FriendStatus.blocked;
-    }
-    if (type == RelationshipTypes.number3) {
-      return FriendStatus.pendingIncoming;
-    }
-    if (type == RelationshipTypes.number4) {
-      return FriendStatus.pendingOutgoing;
-    }
-    return FriendStatus.accepted;
-  }
+  static FriendStatus _mapType(RelationshipTypes type) => switch (type) {
+    RelationshipTypes.friend => FriendStatus.accepted,
+    RelationshipTypes.blocked => FriendStatus.blocked,
+    RelationshipTypes.incomingRequest => FriendStatus.pendingIncoming,
+    RelationshipTypes.outgoingRequest => FriendStatus.pendingOutgoing,
+    RelationshipTypes.$unknown => FriendStatus.accepted,
+  };
 
   static FriendStatus _typeFromInt(int type) {
     switch (type) {

@@ -75,14 +75,10 @@ class _AppLayoutState extends ConsumerState<AppLayout>
       if (next != null) {
         final guilds = ref.read(guildListViewModelProvider).guilds;
         final guild = guilds.where((g) => g.id == next).firstOrNull;
-        unawaited(
-          ref
-              .read(channelListViewModelProvider.notifier)
-              .loadChannels(next, serverName: guild?.name),
-        );
-        unawaited(
-          ref.read(memberListViewModelProvider.notifier).loadMembers(next),
-        );
+        ref
+            .read(channelListViewModelProvider.notifier)
+            .loadChannels(next, serverName: guild?.name);
+        ref.read(memberListViewModelProvider.notifier).loadMembers(next);
       }
     });
 

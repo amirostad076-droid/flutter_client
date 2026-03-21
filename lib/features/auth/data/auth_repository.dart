@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' hide AuthSession;
 import 'package:fluxeron/features/auth/domain/auth_failure.dart';
 import 'package:fluxeron/features/auth/domain/auth_session.dart';
 
 class AuthRepository {
-  final FluxerDart _client;
+  final FluxerClient _client;
   final FluxerDatabase _db;
 
   const AuthRepository(this._client, this._db);
@@ -15,22 +15,16 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    final request = LoginRequest(
-      (builder) => builder
-        ..email = email.trim()
-        ..password = password,
-    );
+    final request = LoginRequest(email: email.trim(), password: password);
 
     try {
-      final response = await _client.getAuthApi().loginUser(
-        loginRequest: request,
-      );
+      final response = await _client.auth.loginUser(body: request);
 
-      final payload = response.data?.oneOf.value;
-      if (payload is AuthTokenWithUserIdResponse) {
+      try {
+        final tokenResponse = response.toAuthTokenWithUserIdResponse();
         final session = AuthSession(
-          token: payload.token,
-          userId: payload.userId,
+          token: tokenResponse.token,
+          userId: tokenResponse.userId,
         );
 
         await _db.authSessionDao.saveSession(
@@ -41,17 +35,26 @@ class AuthRepository {
         );
 
         return session;
+      } on Object {
+        // Not a token response — try MFA
       }
 
-      if (payload is AuthMfaRequiredResponse) {
-        final methods = payload.allowedMethods.join(', ');
+      try {
+        final mfaResponse = response.toAuthMfaRequiredResponse();
+        final methods = mfaResponse.allowedMethods.join(', ');
         final suffix = methods.isEmpty ? '' : ' ($methods)';
         throw AuthFailure(
           'MFA is required$suffix and is not supported in this client yet.',
         );
+      } on AuthFailure {
+        rethrow;
+      } on Object {
+        // Not an MFA response either
       }
 
       throw const AuthFailure('Unexpected login response from Fluxer API.');
+    } on AuthFailure {
+      rethrow;
     } on DioException catch (error) {
       throw AuthFailure(_messageFromDio(error));
     }

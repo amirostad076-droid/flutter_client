@@ -6,7 +6,6 @@ import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/members/domain/member.dart';
 import 'package:fluxeron/features/members/providers/member_list_view_model.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kPanelWidth = 264.0;
 
@@ -18,48 +17,8 @@ class ChannelMembers extends ConsumerWidget {
     final memberState = ref.watch(memberListViewModelProvider);
     final groups = memberState.roleGroups;
 
-    if (memberState.isLoading && groups.isEmpty) {
-      return const _ChannelMembersPanel(
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (memberState.errorMessage != null && groups.isEmpty) {
-      return _ChannelMembersPanel(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: context.layout.s6),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                PhosphorIcon(
-                  PhosphorIconsFill.users,
-                  size: context.layout.s12,
-                  color: context.colors.textPrimaryMuted,
-                ),
-                SizedBox(height: context.layout.s3),
-                Text(
-                  'Member List Unavailable',
-                  style: context.textStyles.heading.copyWith(
-                    color: context.colors.textChat,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: context.layout.s2),
-                Text(
-                  'Member lists are temporarily'
-                  '\nunavailable in this '
-                  'community',
-                  style: context.textStyles.bodyMedium.copyWith(
-                    color: context.colors.textPrimaryMuted,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+    if (groups.isEmpty) {
+      return const _ChannelMembersPanel(child: SizedBox.shrink());
     }
 
     return _ChannelMembersPanel(

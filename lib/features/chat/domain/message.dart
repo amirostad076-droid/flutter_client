@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
-import 'package:fluxer_dart/fluxer_dart.dart';
+import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/features/guilds/domain/guild.dart';
@@ -49,11 +49,7 @@ class EmbedFooter {
   final String? iconUrl;
   final String? proxyIconUrl;
 
-  const EmbedFooter({
-    required this.text,
-    this.iconUrl,
-    this.proxyIconUrl,
-  });
+  const EmbedFooter({required this.text, this.iconUrl, this.proxyIconUrl});
 
   factory EmbedFooter.fromSdk(EmbedFooterResponse sdk) => EmbedFooter(
     text: sdk.text,
@@ -81,12 +77,7 @@ class EmbedMedia {
   final int? width;
   final int? height;
 
-  const EmbedMedia({
-    required this.url,
-    this.proxyUrl,
-    this.width,
-    this.height,
-  });
+  const EmbedMedia({required this.url, this.proxyUrl, this.width, this.height});
 
   factory EmbedMedia.fromSdk(EmbedMediaResponse sdk) => EmbedMedia(
     url: sdk.url,
@@ -208,7 +199,8 @@ class Embed {
     video: json['video'] != null
         ? EmbedMedia.fromJson(json['video'] as Map<String, dynamic>)
         : null,
-    fields: (json['fields'] as List<dynamic>?)
+    fields:
+        (json['fields'] as List<dynamic>?)
             ?.map((e) => EmbedField.fromJson(e as Map<String, dynamic>))
             .toList() ??
         const [],
@@ -429,7 +421,7 @@ class Message {
       replyToId: sdk.referencedMessage?.id,
       isPinned: sdk.pinned,
       isMentioned: sdk.mentionEveryone,
-      type: int.tryParse(sdk.type.name.replaceFirst('number', '')) ?? 0,
+      type: sdk.type.json ?? 0,
     );
   }
 

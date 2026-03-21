@@ -5,30 +5,48 @@ import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxeron/core/database/daos/auth_session_dao.dart';
-import 'package:fluxeron/core/database/daos/emoji_usage_dao.dart';
-import 'package:fluxeron/core/database/daos/guild_last_channel_dao.dart';
 import 'package:fluxeron/core/database/daos/channel_dao.dart';
 import 'package:fluxeron/core/database/daos/dm_channel_dao.dart';
+import 'package:fluxeron/core/database/daos/emoji_usage_dao.dart';
+import 'package:fluxeron/core/database/daos/favorite_memes_dao.dart';
+import 'package:fluxeron/core/database/daos/guild_dao.dart';
+import 'package:fluxeron/core/database/daos/guild_emoji_dao.dart';
+import 'package:fluxeron/core/database/daos/guild_last_channel_dao.dart';
+import 'package:fluxeron/core/database/daos/guild_sticker_dao.dart';
 import 'package:fluxeron/core/database/daos/member_dao.dart';
 import 'package:fluxeron/core/database/daos/message_dao.dart';
+import 'package:fluxeron/core/database/daos/pinned_dms_dao.dart';
 import 'package:fluxeron/core/database/daos/read_state_dao.dart';
 import 'package:fluxeron/core/database/daos/relationship_dao.dart';
 import 'package:fluxeron/core/database/daos/role_dao.dart';
-import 'package:fluxeron/core/database/daos/guild_dao.dart';
+import 'package:fluxeron/core/database/daos/saved_message_dao.dart';
+import 'package:fluxeron/core/database/daos/rtc_regions_dao.dart';
 import 'package:fluxeron/core/database/daos/user_dao.dart';
+import 'package:fluxeron/core/database/daos/user_guild_settings_dao.dart';
+import 'package:fluxeron/core/database/daos/user_notes_dao.dart';
 import 'package:fluxeron/core/database/daos/user_preferences_dao.dart';
+import 'package:fluxeron/core/database/daos/user_settings_dao.dart';
 import 'package:fluxeron/core/database/tables/auth_sessions.dart';
-import 'package:fluxeron/core/database/tables/emoji_usage.dart';
-import 'package:fluxeron/core/database/tables/guild_last_channels.dart';
 import 'package:fluxeron/core/database/tables/channels.dart';
 import 'package:fluxeron/core/database/tables/dm_channels.dart';
+import 'package:fluxeron/core/database/tables/emoji_usage.dart';
+import 'package:fluxeron/core/database/tables/favorite_memes.dart';
+import 'package:fluxeron/core/database/tables/guild_emojis.dart';
+import 'package:fluxeron/core/database/tables/guild_last_channels.dart';
+import 'package:fluxeron/core/database/tables/guild_stickers.dart';
 import 'package:fluxeron/core/database/tables/members.dart';
 import 'package:fluxeron/core/database/tables/messages.dart';
+import 'package:fluxeron/core/database/tables/pinned_dms.dart';
 import 'package:fluxeron/core/database/tables/read_states.dart';
 import 'package:fluxeron/core/database/tables/relationships.dart';
 import 'package:fluxeron/core/database/tables/roles.dart';
+import 'package:fluxeron/core/database/tables/saved_messages.dart';
+import 'package:fluxeron/core/database/tables/rtc_regions.dart';
 import 'package:fluxeron/core/database/tables/servers.dart';
+import 'package:fluxeron/core/database/tables/user_guild_settings.dart';
+import 'package:fluxeron/core/database/tables/user_notes.dart';
 import 'package:fluxeron/core/database/tables/user_preferences.dart';
+import 'package:fluxeron/core/database/tables/user_settings.dart';
 import 'package:fluxeron/core/database/tables/users.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -50,6 +68,15 @@ part 'fluxer_database.g.dart';
     UserPreferencesTable,
     EmojiUsage,
     GuildLastChannels,
+    UserSettingsTable,
+    UserGuildSettingsTable,
+    UserNotesTable,
+    PinnedDmsTable,
+    FavoriteMemesTable,
+    RtcRegionsTable,
+    GuildEmojis,
+    GuildStickers,
+    SavedMessages,
   ],
   daos: [
     AuthSessionDao,
@@ -65,6 +92,15 @@ part 'fluxer_database.g.dart';
     UserPreferencesDao,
     EmojiUsageDao,
     GuildLastChannelDao,
+    UserSettingsDao,
+    UserGuildSettingsDao,
+    UserNotesDao,
+    PinnedDmsDao,
+    FavoriteMemesDao,
+    RtcRegionsDao,
+    GuildEmojiDao,
+    GuildStickerDao,
+    SavedMessageDao,
   ],
 )
 class FluxerDatabase extends _$FluxerDatabase {
@@ -73,7 +109,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -139,6 +175,26 @@ class FluxerDatabase extends _$FluxerDatabase {
       if (from < 9) {
         await m.addColumn(dmChannels, dmChannels.lastMessageAuthorId);
       }
+      if (from < 10) {
+        await m.createTable(userSettingsTable);
+        await m.createTable(userGuildSettingsTable);
+        await m.createTable(userNotesTable);
+        await m.createTable(pinnedDmsTable);
+        await m.createTable(favoriteMemesTable);
+        await m.createTable(rtcRegionsTable);
+      }
+      if (from < 11) {
+        await m.createTable(guildEmojis);
+        await m.createTable(guildStickers);
+        await m.createTable(savedMessages);
+        await m.addColumn(readStates, readStates.lastPinTimestamp);
+      }
+      if (from < 12) {
+        await m.addColumn(servers, servers.unavailable);
+      }
+      if (from < 13) {
+        await m.addColumn(channels, channels.lastMessageId);
+      }
     },
   );
 
@@ -157,6 +213,15 @@ class FluxerDatabase extends _$FluxerDatabase {
       await readStateDao.clearAll();
       await emojiUsageDao.clearAll();
       await guildLastChannelDao.clearAll();
+      await userSettingsDao.clearAll();
+      await userGuildSettingsDao.clearAll();
+      await userNotesDao.clearAll();
+      await pinnedDmsDao.clearAll();
+      await favoriteMemesDao.clearAll();
+      await rtcRegionsDao.clearAll();
+      await guildEmojiDao.clearAll();
+      await guildStickerDao.clearAll();
+      await savedMessageDao.clearAll();
     });
   }
 

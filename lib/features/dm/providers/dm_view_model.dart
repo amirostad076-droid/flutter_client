@@ -12,22 +12,16 @@ part 'dm_view_model.g.dart';
 enum FriendsTab { online, all, pending, blocked }
 
 class DmViewState {
-  static const _unset = Object();
-
   final List<DmConversation> conversations;
   final List<Friend> friendsList;
   final FriendsTab activeTab;
   final String searchQuery;
-  final bool isLoading;
-  final String? errorMessage;
 
   const DmViewState({
     required this.conversations,
     required this.friendsList,
     required this.activeTab,
     required this.searchQuery,
-    required this.isLoading,
-    required this.errorMessage,
   });
 
   List<Friend> get filteredFriends {
@@ -80,18 +74,12 @@ class DmViewState {
     List<Friend>? friendsList,
     FriendsTab? activeTab,
     String? searchQuery,
-    bool? isLoading,
-    Object? errorMessage = _unset,
   }) {
     return DmViewState(
       conversations: conversations ?? this.conversations,
       friendsList: friendsList ?? this.friendsList,
       activeTab: activeTab ?? this.activeTab,
       searchQuery: searchQuery ?? this.searchQuery,
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage == _unset
-          ? this.errorMessage
-          : errorMessage as String?,
     );
   }
 }
@@ -131,37 +119,13 @@ class DmViewModel extends _$DmViewModel {
       unawaited(_friendSub?.cancel());
     });
 
-    unawaited(Future<void>.microtask(_loadData));
     return const DmViewState(
       conversations: [],
       friendsList: [],
       activeTab: FriendsTab.online,
       searchQuery: '',
-      isLoading: true,
-      errorMessage: null,
     );
   }
-
-  Future<void> _loadData() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    try {
-      final dmRepo = ref.read(dmRepositoryProvider);
-      final friendRepo = ref.read(friendRepositoryProvider);
-      await Future.wait([
-        dmRepo.getDmChannels(),
-        friendRepo.getRelationships(),
-      ]);
-      state = state.copyWith(isLoading: false);
-    } on Exception catch (e) {
-      talker.error('[DmViewModel] Failed to load data: $e');
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to load conversations',
-      );
-    }
-  }
-
-  Future<void> refresh() => _loadData();
 
   void selectTab(FriendsTab tab) {
     state = state.copyWith(activeTab: tab);
