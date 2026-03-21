@@ -1,10 +1,7 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
-import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
-import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/core/deep_links/deep_link_handler.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/core/providers/gateway_provider.dart';
@@ -43,48 +40,13 @@ class AppStartup extends _$AppStartup {
     }
 
     ref.read(fluxerAuthTokenProvider.notifier).setToken(session.token);
-
-    try {
-      final user = await ref.read(fluxerClientProvider).users.getCurrentUser();
-
-      await database.userDao.upsertUser(
-        db.UsersCompanion.insert(
-          id: user.id,
-          username: user.username,
-          discriminator: Value(user.discriminator),
-          globalName: Value(user.globalName),
-          avatar: Value(user.avatar),
-          avatarColor: Value(user.avatarColor),
-        ),
-      );
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        debugPrint('[AppStartup] Stored session is invalid, clearing');
-        ref.read(fluxerAuthTokenProvider.notifier).setToken(null);
-        await database.authSessionDao.clearSession();
-        return;
-      }
-      // Got a response → server is reachable, treat as valid session
-      // (e.g. deserialization error from SDK).
-      if (e.response != null) {
-        debugPrint('[AppStartup] Response received but SDK threw: ${e.error}');
-        await _saveCurrentUserFromRaw(e.response!, database);
-      } else {
-        // No response at all → server unreachable.
-        debugPrint('[AppStartup] Server unreachable, waiting for reconnect');
-        ref.read(authStateProvider.notifier).setAuthenticated(value: true);
-        ref.read(serverReachableProvider.notifier).setReachable(value: false);
-        return;
-      }
-    }
-
-    ref.read(serverReachableProvider.notifier).setReachable(value: true);
     ref.read(authStateProvider.notifier).setAuthenticated(value: true);
     ref.read(currentUserIdProvider.notifier).set(session.userId);
     await ref.read(themePreferenceProvider.notifier).load(session.userId);
 
     unawaited(ref.read(gatewayConnectionProvider).connect());
     ref.read(gatewayEventListenerProvider);
+    ref.read(gatewayStateListenerProvider);
 
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
 
@@ -92,29 +54,5 @@ class AppStartup extends _$AppStartup {
       '[AppStartup] Session restored '
       'for user ${session.userId}',
     );
-  }
-
-  Future<void> _saveCurrentUserFromRaw(
-    Response<dynamic> response,
-    db.FluxerDatabase database,
-  ) async {
-    final data = response.data;
-    if (data is! Map<String, dynamic>) {
-      return;
-    }
-    try {
-      await database.userDao.upsertUser(
-        db.UsersCompanion.insert(
-          id: data['id'] as String,
-          username: data['username'] as String,
-          discriminator: Value(data['discriminator'] as String? ?? '0000'),
-          globalName: Value(data['global_name'] as String?),
-          avatar: Value(data['avatar'] as String?),
-          avatarColor: Value(data['avatar_color'] as int?),
-        ),
-      );
-    } on Exception catch (e) {
-      debugPrint('[AppStartup] Failed to save current user: $e');
-    }
   }
 }

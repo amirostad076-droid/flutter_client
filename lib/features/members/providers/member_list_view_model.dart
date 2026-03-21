@@ -11,29 +11,19 @@ class MemberListViewState {
   static const _unset = Object();
 
   final List<RoleGroup> roleGroups;
-  final bool isLoading;
-  final String? errorMessage;
   final String? selectedGuildId;
 
   const MemberListViewState({
     required this.roleGroups,
-    required this.isLoading,
-    required this.errorMessage,
     required this.selectedGuildId,
   });
 
   MemberListViewState copyWith({
     List<RoleGroup>? roleGroups,
-    bool? isLoading,
-    Object? errorMessage = _unset,
     Object? selectedGuildId = _unset,
   }) {
     return MemberListViewState(
       roleGroups: roleGroups ?? this.roleGroups,
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage == _unset
-          ? this.errorMessage
-          : errorMessage as String?,
       selectedGuildId: selectedGuildId == _unset
           ? this.selectedGuildId
           : selectedGuildId as String?,
@@ -48,24 +38,15 @@ class MemberListViewModel extends _$MemberListViewModel {
   @override
   MemberListViewState build() {
     ref.onDispose(() => unawaited(_subscription?.cancel()));
-    return const MemberListViewState(
-      roleGroups: [],
-      isLoading: false,
-      errorMessage: null,
-      selectedGuildId: null,
-    );
+    return const MemberListViewState(roleGroups: [], selectedGuildId: null);
   }
 
-  Future<void> loadMembers(String serverId) async {
-    if (serverId == state.selectedGuildId && state.roleGroups.isNotEmpty) {
+  void loadMembers(String serverId) {
+    if (serverId == state.selectedGuildId) {
       return;
     }
 
-    state = state.copyWith(
-      isLoading: true,
-      errorMessage: null,
-      selectedGuildId: serverId,
-    );
+    state = state.copyWith(selectedGuildId: serverId);
 
     final repo = ref.read(memberRepositoryProvider);
 
@@ -75,36 +56,11 @@ class MemberListViewModel extends _$MemberListViewModel {
         .listen(
           (members) {
             final grouped = groupMembersIntoRoles(members);
-            state = state.copyWith(roleGroups: grouped, isLoading: false);
+            state = state.copyWith(roleGroups: grouped);
           },
           onError: (Object error) {
             debugPrint('[MemberListViewModel] Watch error: $error');
           },
         );
-
-    try {
-      await repo.getRoles(serverId);
-    } on Exception catch (e) {
-      debugPrint('[MemberListViewModel] Failed to load roles: $e');
-    }
-
-    try {
-      await repo.getMembers(serverId);
-    } on Exception catch (e) {
-      debugPrint('[MemberListViewModel] Failed to load members: $e');
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to load members',
-      );
-    }
-  }
-
-  Future<void> refresh() async {
-    final serverId = state.selectedGuildId;
-    if (serverId == null) {
-      return;
-    }
-    state = state.copyWith(selectedGuildId: null);
-    await loadMembers(serverId);
   }
 }

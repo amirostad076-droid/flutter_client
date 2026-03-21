@@ -138,18 +138,12 @@ class _DMListState extends ConsumerState<DMList> {
                 _buildDmHeader(context),
               ],
               Expanded(
-                child: vm.isLoading
-                    ? Center(
-                        child: CircularProgressIndicator(
-                          color: context.colors.brandPrimary,
-                        ),
-                      )
-                    : _buildConvoList(
-                        context,
-                        filteredConvos,
-                        selectedId,
-                        isMobile: isMobile,
-                      ),
+                child: _buildConvoList(
+                  context,
+                  filteredConvos,
+                  selectedId,
+                  isMobile: isMobile,
+                ),
               ),
             ],
           ),
