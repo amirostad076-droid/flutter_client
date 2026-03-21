@@ -39,7 +39,6 @@ import 'package:highlight/languages/typescript.dart';
 import 'package:highlight/languages/xml.dart';
 import 'package:highlight/languages/yaml.dart';
 import 'package:cached_network_image_ce/cached_network_image.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/shared/utils/emoji_registry.dart';
 import 'package:fluxeron/shared/utils/emoji_utils.dart';
 import 'package:fluxeron/shared/widgets/message_alert.dart';
@@ -141,7 +140,7 @@ final class _AlertSegment extends _Segment {
 /// Parses alert blocks out of [text], returns interleaved markdown and alert segmentss
 List<_Segment> _parseSegments(String text) {
   final openRe = RegExp(
-    r'^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$',
+    r'^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*)',
     caseSensitive: false,
   );
   final lineRe = RegExp(r'^>\s?(.*)$');
@@ -167,9 +166,11 @@ List<_Segment> _parseSegments(String text) {
 
     final rawType = match.group(1)!;
     final type = AlertType.tryParse(rawType)!;
+    final inlineText = (match.group(2) ?? '').trim();
     i++;
 
     final bodyLines = <String>[];
+    if (inlineText.isNotEmpty) bodyLines.add(inlineText);
     while (i < lines.length) {
       final bodyMatch = lineRe.firstMatch(lines[i]);
       if (bodyMatch == null) break;
@@ -187,6 +188,24 @@ List<_Segment> _parseSegments(String text) {
 
   return segments;
 }
+
+String _sanitizeFluxerTags(String text) => text
+    .replaceAllMapped(
+      RegExp(r'<t:(\d+)(?::[tTdDfFR])?>'),
+      (m) => 't:${m[1]}', // TODO: render as formatted timestamp
+    )
+    .replaceAllMapped(
+      RegExp(r'<#(\d+)>'),
+      (m) => '#${m[1]}', // TODO: render as channel mention
+    )
+    .replaceAllMapped(
+      RegExp(r'<@&(\d+)>'),
+      (m) => '@role', // TODO: render as role mention
+    )
+    .replaceAllMapped(
+      RegExp(r'<@!?(\d+)>'),
+      (m) => '@user', // TODO: render as user mention
+    );
 
 class MessageMarkdown extends StatelessWidget {
   const MessageMarkdown({
@@ -264,7 +283,7 @@ class MessageMarkdown extends StatelessWidget {
           ),
           _AlertSegment(:final type, :final body) => MessageAlert(
             type: type,
-            body: body,
+            bodyWidget: _buildMarkdown(body, sheet, isDark, style),
             baseStyle: style,
           ),
         };
@@ -278,9 +297,10 @@ class MessageMarkdown extends StatelessWidget {
     bool isDark,
     TextStyle style,
   ) {
-    final jumbo = isJumboEmoji(text);
+    final sanitized = _sanitizeFluxerTags(text);
+    final jumbo = isJumboEmoji(sanitized);
     return MarkdownBody(
-      data: text,
+      data: sanitized,
       styleSheet: sheet,
       selectable: selectable,
       inlineSyntaxes: [
@@ -290,8 +310,14 @@ class MessageMarkdown extends StatelessWidget {
       ],
       builders: {
         _SpoilerSyntax.tag: _SpoilerBuilder(),
-        _UnicodeEmojiSyntax.tag: _EmojiBuilder(baseStyle: style, jumbo: jumbo),
-        _CustomEmojiSyntax.tag: _EmojiBuilder(baseStyle: style, jumbo: jumbo),
+        _UnicodeEmojiSyntax.tag: _EmojiBuilder(
+          baseStyle: style,
+          jumbo: jumbo,
+        ),
+        _CustomEmojiSyntax.tag: _EmojiBuilder(
+          baseStyle: style,
+          jumbo: jumbo,
+        ),
         'code': _CodeBlockBuilder(isDark: isDark, baseStyle: style),
       },
       extensionSet: md.ExtensionSet.gitHubFlavored,
@@ -501,7 +527,10 @@ class _UnicodeEmojiSyntax extends md.InlineSyntax {
     final name = match[1];
     if (name == null || name.isEmpty) return false;
     final surrogate = EmojiRegistry.resolveSync(name);
-    if (surrogate == null) return false;
+    if (surrogate == null) {
+      parser.addNode(md.Text(match[0]!));
+      return true;
+    }
     final el = md.Element.text(tag, name)
       ..attributes['surrogate'] = surrogate;
     parser.addNode(el);
@@ -535,12 +564,7 @@ class _EmojiBuilder extends MarkdownElementBuilder {
   final bool jumbo;
 
   @override
-  Widget visitElementAfterWithContext(
-    BuildContext context,
-    md.Element element,
-    TextStyle? preferredStyle,
-    TextStyle? parentStyle,
-  ) {
+  Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
     final size = jumbo ? _kEmojiSizeJumbo : _kEmojiSizeNormal;
     if (element.tag == _CustomEmojiSyntax.tag) {
       return _buildCustom(element, size);
@@ -550,32 +574,23 @@ class _EmojiBuilder extends MarkdownElementBuilder {
 
   Widget _buildUnicode(md.Element element, double size) {
     final surrogate = element.attributes['surrogate'] ?? element.textContent;
-    final url = getTwemojiUrl(surrogate);
-    if (url == null) {
-      return Text(surrogate, style: TextStyle(fontSize: size));
-    }
-    return SvgPicture.network(
-      url,
-      width: size,
-      height: size,
-      placeholderBuilder: (_) => Text(
-        surrogate,
-        style: TextStyle(fontSize: size),
-      ),
-    );
+    return Text(surrogate, style: TextStyle(fontSize: size));
   }
 
   Widget _buildCustom(md.Element element, double size) {
     final id = element.attributes['id'] ?? '';
-    final animated = element.attributes['animated'] == 'true';
     final name = element.textContent;
     final cdnSize = jumbo ? 240 : 96;
-    final url = getCustomEmojiUrl(id: id, animated: animated, size: cdnSize);
-    return CachedNetworkImage(
-      imageUrl: url,
+    final url = getCustomEmojiUrl(id: id, size: cdnSize);
+    return SizedBox(
       width: size,
       height: size,
-      errorBuilder: (_, __, ___) => Text(':$name:'),
+      child: CachedNetworkImage(
+        imageUrl: url,
+        width: size,
+        height: size,
+        errorBuilder: (_, __, ___) => Text(':$name:'),
+      ),
     );
   }
 }

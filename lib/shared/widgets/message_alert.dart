@@ -38,20 +38,19 @@ enum AlertType {
 class MessageAlert extends StatelessWidget {
   const MessageAlert({
     required this.type,
-    required this.body,
+    required this.bodyWidget,
     this.baseStyle,
     super.key,
   });
 
   final AlertType type;
-  final String body;
+  final Widget bodyWidget;
   final TextStyle? baseStyle;
 
   @override
   Widget build(BuildContext context) {
     final accent = type.accentColor(context);
     final style = baseStyle ?? const TextStyle();
-    final colors = context.colors;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -86,7 +85,7 @@ class MessageAlert extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(body, style: style.copyWith(color: colors.textPrimary)),
+                  bodyWidget,
                 ],
               ),
             ),

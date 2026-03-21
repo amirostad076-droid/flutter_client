@@ -19,9 +19,7 @@ String? getTwemojiUrl(String unicode) {
 
 String getCustomEmojiUrl({
   required String id,
-  bool animated = false,
-  int size = 96,
-}) {
-  final ext = animated ? 'gif' : 'png';
-  return '$fluxerMediaCdn/emojis/$id.$ext?size=$size';
-}
+  bool animated = true,
+  int size = 128,
+}) =>
+    '$fluxerMediaCdn/emojis/$id.webp?size=$size';
