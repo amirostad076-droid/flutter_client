@@ -39,6 +39,12 @@ class TypingIndicators extends _$TypingIndicators {
     ];
   }
 
+  void removeTyping(String channelId, String userId) {
+    state = state
+        .where((t) => !(t.channelId == channelId && t.userId == userId))
+        .toList();
+  }
+
   List<TypingUser> typingInChannel(String channelId) {
     final now = DateTime.now();
     return state

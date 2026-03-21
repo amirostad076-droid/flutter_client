@@ -13,10 +13,15 @@ import 'package:fluxeron/shared/utils/sdk_converters.dart';
 typedef TypingCallback = void Function(String channelId, String userId);
 
 class GatewayEventHandler {
-  GatewayEventHandler({required this.database, this.onTypingStart});
+  GatewayEventHandler({
+    required this.database,
+    this.onTypingStart,
+    this.onTypingClear,
+  });
 
   final db.FluxerDatabase database;
   final TypingCallback? onTypingStart;
+  final TypingCallback? onTypingClear;
 
   /// The current user's ID, set during READY processing.
   String? _currentUserId;
@@ -278,14 +283,12 @@ class GatewayEventHandler {
         await database.relationshipDao.upsertRelationships(relCompanions);
       }
 
-      // Update user statuses from presences.
+      // Update user statuses from presences (users already inserted above).
       for (final p in event.presences) {
         final userId = (p['user'] as Map<String, dynamic>?)?['id'] as String?;
         final status = p['status'] as String?;
         if (userId != null && status != null) {
-          await database.userDao.upsertUser(
-            db.UsersCompanion(id: Value(userId), status: Value(status)),
-          );
+          await database.userDao.updateStatus(userId, status);
         }
       }
 
@@ -481,6 +484,9 @@ class GatewayEventHandler {
   void _handleMessageCreate(MessageCreateEvent event) {
     final msg = Message.fromSdk(event.message);
 
+    // Clear typing indicator for the message author.
+    onTypingClear?.call(msg.channelId, msg.authorId);
+
     // Upsert the author.
     unawaited(
       database.userDao.upsertUser(userFromPartialSdk(event.message.author)),
@@ -513,11 +519,7 @@ class GatewayEventHandler {
   }
 
   void _handlePresenceUpdate(PresenceUpdateEvent event) {
-    unawaited(
-      database.userDao.upsertUser(
-        db.UsersCompanion(id: Value(event.userId), status: Value(event.status)),
-      ),
-    );
+    unawaited(database.userDao.updateStatus(event.userId, event.status));
   }
 
   void _handleMemberUpsert(String guildId, GuildMemberResponse member) {
@@ -543,17 +545,37 @@ class GatewayEventHandler {
 
   void _handleChannelUpsert(ChannelResponse channel) {
     final guildId = channel.guildId;
-    if (guildId == null) {
+    if (guildId != null) {
+      unawaited(
+        database.channelDao.upsertChannel(channelFromSdk(channel, guildId)),
+      );
       return;
     }
 
-    unawaited(
-      database.channelDao.upsertChannel(channelFromSdk(channel, guildId)),
-    );
+    // Handle DM channel create/update.
+    final recipients = channel.recipients;
+    if (recipients != null && recipients.isNotEmpty) {
+      for (final r in recipients) {
+        unawaited(database.userDao.upsertUser(userFromPartialSdk(r)));
+      }
+      unawaited(
+        database.dmChannelDao.upsertDmChannels([
+          db.DmChannelsCompanion.insert(
+            id: channel.id,
+            recipientId: recipients.first.id,
+            type: Value(channel.type),
+            name: Value(channel.name),
+            recipientCount: Value(recipients.length + 1),
+          ),
+        ]),
+      );
+    }
   }
 
   void _handleChannelDelete(ChannelDeleteEvent event) {
+    unawaited(database.messageDao.deleteMessagesForChannel(event.channel.id));
     unawaited(database.channelDao.deleteChannel(event.channel.id));
+    unawaited(database.dmChannelDao.deleteDmChannel(event.channel.id));
   }
 
   void _handleUserUpdate(UserUpdateEvent event) {
@@ -601,11 +623,7 @@ class GatewayEventHandler {
       final userId = (p['user'] as Map<String, dynamic>?)?['id'] as String?;
       final status = p['status'] as String?;
       if (userId != null && status != null) {
-        unawaited(
-          database.userDao.upsertUser(
-            db.UsersCompanion(id: Value(userId), status: Value(status)),
-          ),
-        );
+        unawaited(database.userDao.updateStatus(userId, status));
       }
     }
   }
@@ -645,6 +663,8 @@ class GatewayEventHandler {
 
   void _handleGuildDelete(GuildDeleteEvent event) {
     unawaited(database.channelDao.deleteChannelsForServer(event.guildId));
+    unawaited(database.memberDao.deleteMembersForServer(event.guildId));
+    unawaited(database.roleDao.deleteRolesForServer(event.guildId));
     unawaited(database.guildDao.deleteServer(event.guildId));
   }
 

@@ -57,6 +57,11 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     onTypingStart: (channelId, userId) {
       ref.read(typingIndicatorsProvider.notifier).addTyping(channelId, userId);
     },
+    onTypingClear: (channelId, userId) {
+      ref
+          .read(typingIndicatorsProvider.notifier)
+          .removeTyping(channelId, userId);
+    },
   );
 
   final subscription = connection.events.listen(
@@ -100,8 +105,7 @@ Raw<StreamSubscription<List<ConnectivityResult>>?> connectivityListener(
   final connection = ref.watch(gatewayConnectionProvider);
 
   final subscription = Connectivity().onConnectivityChanged.listen((results) {
-    final hasConnection =
-        results.any((r) => r != ConnectivityResult.none);
+    final hasConnection = results.any((r) => r != ConnectivityResult.none);
 
     if (hasConnection && connection.state == GatewayState.disconnected) {
       talker.info('[Gateway] Network restored, reconnecting immediately');
