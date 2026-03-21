@@ -28,7 +28,6 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) async* {
       continue;
     }
 
-    // Use cached messages to determine latest message ID.
     final messages = await db.messageDao.getMessages(channelId, limit: 1);
     if (messages.isEmpty) {
       yield UnreadState(
@@ -67,7 +66,6 @@ Stream<UnreadState> serverUnread(Ref ref, String serverId) {
       return;
     }
 
-    // Fetch mute settings for this guild.
     final guildSettings = await db.userGuildSettingsDao.getByGuildId(serverId);
     final mutedChannelIds = <String>{};
     var guildMuted = false;
@@ -84,7 +82,6 @@ Stream<UnreadState> serverUnread(Ref ref, String serverId) {
       }
     }
 
-    // Fetch read states for all channels in this server.
     final channelIds = channels.map((c) => c.id).toList();
     final readStates = await db.readStateDao
         .watchReadStatesForChannels(channelIds)
@@ -136,17 +133,14 @@ Stream<UnreadState> serverUnread(Ref ref, String serverId) {
     }
   }
 
-  // Recompute when channels change (new messages update lastMessageId).
   final channelSub = db.channelDao
       .watchChannels(serverId)
       .listen((_) => unawaited(recompute()));
 
-  // Recompute when any read state changes (user reads a channel).
   final readStateSub = db.readStateDao.watchReadStates().listen(
     (_) => unawaited(recompute()),
   );
 
-  // Initial computation.
   unawaited(recompute());
 
   ref.onDispose(() {

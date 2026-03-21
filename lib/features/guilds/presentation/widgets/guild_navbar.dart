@@ -299,8 +299,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                     ),
                   ),
                 )
-              else if (!widget.isSelected &&
-                  (widget.hasUnread || widget.mentionCount > 0))
+              else if (!widget.isSelected && widget.mentionCount > 0)
                 Positioned(
                   bottom: -4,
                   right: -4,

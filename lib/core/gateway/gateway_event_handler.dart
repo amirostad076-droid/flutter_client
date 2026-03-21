@@ -344,15 +344,28 @@ class GatewayEventHandler {
         );
       }
 
-      // Insert guilds with position index (skip unavailable — no metadata).
-      // Also extract channels, roles, and members from full guild data.
+      // Build guild position map from guild folders in user settings.
+      final guildPositions = <String, int>{};
+      final userSettings = event.userSettings;
+      if (userSettings != null) {
+        var pos = 0;
+        for (final folder in userSettings.guildFolders) {
+          for (final guildId in folder.guildIds) {
+            guildPositions[guildId] = pos;
+            pos++;
+          }
+        }
+      }
+
+      // Insert guilds (skip unavailable — no metadata).
       if (event.guilds.isNotEmpty) {
         final guildCompanions = <db.ServersCompanion>[];
-        var position = 0;
+        var fallbackPosition = guildPositions.length;
         for (final g in event.guilds) {
           if (g.unavailable ?? false) {
             continue;
           }
+          final position = guildPositions[g.id] ?? fallbackPosition++;
           guildCompanions.add(
             db.ServersCompanion.insert(
               id: g.id,
@@ -362,11 +375,9 @@ class GatewayEventHandler {
               position: Value(position),
             ),
           );
-          position++;
         }
         await database.guildDao.upsertServers(guildCompanions);
 
-        // Parse full guild data for channels, roles, and members.
         for (final rawGuild in event.rawGuilds) {
           final unavailable = rawGuild['unavailable'] as bool? ?? false;
           if (unavailable) {
@@ -375,21 +386,18 @@ class GatewayEventHandler {
           final guildData = GuildCreateData.fromJson(rawGuild);
           final guildId = rawGuild['id'] as String;
 
-          // Insert channels.
           for (final channel in guildData.channels) {
             await database.channelDao.upsertChannel(
               channelFromSdk(channel, guildId),
             );
           }
 
-          // Insert roles.
           if (guildData.roles.isNotEmpty) {
             await database.roleDao.upsertRoles(
               guildData.roles.map((r) => roleFromSdk(r, guildId)).toList(),
             );
           }
 
-          // Insert members.
           for (final member in guildData.members) {
             await database.userDao.upsertUser(userFromPartialSdk(member.user));
             await database.memberDao.upsertMember(
@@ -477,7 +485,6 @@ class GatewayEventHandler {
       }
 
       // Insert user settings (JSON blob).
-      final userSettings = event.userSettings;
       if (userSettings != null) {
         await database.userSettingsDao.upsertSettings(
           db.UserSettingsTableCompanion(
