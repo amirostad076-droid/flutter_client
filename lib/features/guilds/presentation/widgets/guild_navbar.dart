@@ -627,7 +627,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                               borderRadius,
                             ),
                             child: widget.isUnavailable
-                                ? const Center(
+                                ? Center(
                                     child: PhosphorIcon(
                                       PhosphorIconsRegular.exclamationMark,
                                       color: context.colors.textOnBrandPrimary,
