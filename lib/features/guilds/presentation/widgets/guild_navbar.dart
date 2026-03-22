@@ -205,12 +205,13 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
 
     final folderAccent = folder.color != null
         ? Color(folder.color! | 0xFF000000)
-        : context.colors.brandPrimaryLight;
+        : context.colors.brandPrimary;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final folderSurface = Color.lerp(
       context.colors.backgroundSecondary,
       folderAccent,
-      0.2,
+      isDark ? 0.2 : 0.15,
     )!;
 
     // Stack: background panel behind header + animated guild list.
