@@ -203,14 +203,14 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
       }
     }
 
-    final folderColor = folder.color != null
+    final folderAccent = folder.color != null
         ? Color(folder.color! | 0xFF000000)
-        : context.colors.brandPrimary;
+        : context.colors.brandPrimaryLight;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final folderSurface = Color.lerp(
       context.colors.backgroundSecondary,
-      folderColor,
+      folderAccent,
       isDark ? 0.2 : 0.15,
     )!;
 
@@ -241,7 +241,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             children: [
               _buildFolderButton(
                 context,
-                folderColor: folderColor,
+                folderAccent: folderAccent,
                 folderSurface: folderSurface,
                 anyUnread: anyUnread,
                 totalMentions: totalMentions,
@@ -275,7 +275,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
 
   Widget _buildFolderButton(
     BuildContext context, {
-    required Color folderColor,
+    required Color folderAccent,
     required Color folderSurface,
     required bool anyUnread,
     required int totalMentions,
@@ -343,7 +343,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                                 color: folderSurface,
                                 borderRadius: BorderRadius.circular(48 * 0.3),
                               ),
-                              child: _buildFolderContent(context, folderColor),
+                              child: _buildFolderContent(context, folderAccent),
                             ),
                           ),
                   ),
@@ -368,7 +368,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
     );
   }
 
-  Widget _buildFolderContent(BuildContext context, Color folderColor) {
+  Widget _buildFolderContent(BuildContext context, Color folderAccent) {
     final folder = widget.folder;
     if (folder.showIconWhenCollapsed && folder.icon != null) {
       return Center(
