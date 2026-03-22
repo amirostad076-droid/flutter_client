@@ -1,6 +1,5 @@
-import 'dart:async';
-
 import 'package:fluxeron/core/providers/database_provider.dart';
+import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart' show fluxerMediaCdn;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -63,9 +62,13 @@ class UserSettingsViewState {
 class UserSettingsViewModel extends _$UserSettingsViewModel {
   @override
   UserSettingsViewState build() {
-    unawaited(Future<void>.microtask(_loadCurrentUser));
-    return const UserSettingsViewState(
-      userId: '',
+    final userId = ref.watch(currentUserIdProvider);
+    if (userId != null) {
+      _watchUser(userId);
+    }
+
+    return UserSettingsViewState(
+      userId: userId ?? '',
       username: '',
       displayName: '',
       discriminator: '0',
@@ -75,24 +78,21 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
     );
   }
 
-  Future<void> _loadCurrentUser() async {
+  void _watchUser(String userId) {
     final db = ref.read(fluxerDatabaseProvider);
-    final session = await db.authSessionDao.getSession();
-    if (session == null) {
-      return;
-    }
-    final user = await db.userDao.getUserById(session.userId);
-    if (user == null) {
-      return;
-    }
-    state = state.copyWith(
-      userId: user.id,
-      username: user.username,
-      displayName: user.globalName ?? user.username,
-      discriminator: user.discriminator,
-      avatar: user.avatar,
-      avatarColor: user.avatarColor,
-    );
+    final subscription = db.userDao.watchUserById(userId).listen((user) {
+      if (user == null) {
+        return;
+      }
+      state = state.copyWith(
+        username: user.username,
+        displayName: user.globalName ?? user.username,
+        discriminator: user.discriminator,
+        avatar: user.avatar,
+        avatarColor: user.avatarColor,
+      );
+    });
+    ref.onDispose(subscription.cancel);
   }
 
   void toggleCompact() {

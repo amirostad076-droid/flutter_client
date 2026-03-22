@@ -1,9 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
-import 'package:fluxeron/core/api/fluxer_client_provider.dart';
-import 'package:fluxeron/core/providers/gateway_provider.dart';
-import 'package:fluxeron/core/router/fluxer_router.dart';
+import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/features/auth/domain/auth_failure.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -82,17 +78,15 @@ class LoginViewModel extends _$LoginViewModel {
     state = state.copyWith(errorMessage: null, isLoggingIn: true);
 
     try {
-      final session = await ref
+      await ref
           .read(authRepositoryProvider)
           .login(email: state.email, password: state.password);
 
-      ref.read(fluxerAuthTokenProvider.notifier).setToken(session.token);
-
-      // Fire-and-forget: gateway has its own reconnect logic.
-      unawaited(ref.read(gatewayConnectionProvider).connect());
+      // Session is persisted by AuthRepository. Trigger AppStartup
+      // to restore it (sets token, connects gateway, loads theme, etc).
+      ref.invalidate(appStartupProvider);
 
       state = state.copyWith(isLoggingIn: false);
-      ref.read(authStateProvider.notifier).setAuthenticated(value: true);
       return true;
     } on AuthFailure catch (error) {
       state = state.copyWith(errorMessage: error.message, isLoggingIn: false);

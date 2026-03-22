@@ -4,13 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/providers/app_runtime_info_provider.dart';
+import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
+import 'package:fluxeron/features/auth/providers/login_view_model.dart';
+import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
+import 'package:fluxeron/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxeron/features/guilds/providers/organized_guild_list_provider.dart';
+import 'package:fluxeron/features/members/providers/member_list_view_model.dart';
 import 'package:fluxeron/features/settings/presentation/widgets/settings_sidebar.dart';
 import 'package:fluxeron/features/settings/presentation/widgets/user_appearance.dart';
 import 'package:fluxeron/features/settings/presentation/widgets/user_profile.dart';
@@ -372,15 +378,37 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
 
   Future<void> _logout() async {
     await ref.read(gatewayConnectionProvider).disconnect();
+    ref.read(gatewayReadyProvider.notifier).reset();
     ref.read(fluxerAuthTokenProvider.notifier).setToken(null);
 
     ref
+      // Gateway
+      ..invalidate(gatewayConnectionProvider)
+      ..invalidate(gatewayEventListenerProvider)
+      ..invalidate(gatewayStateListenerProvider)
+      ..invalidate(connectivityListenerProvider)
+      // Gateway event state
+      ..invalidate(typingIndicatorsProvider)
+      ..invalidate(voiceStatesMapProvider)
+      ..invalidate(activeCallsProvider)
+      ..invalidate(inviteCacheProvider)
+      // Session
+      ..invalidate(currentUserIdProvider)
+      // View models
       ..invalidate(dmViewModelProvider)
       ..invalidate(guildListViewModelProvider)
-      ..invalidate(chatViewModelProvider);
+      ..invalidate(organizedGuildListProvider)
+      ..invalidate(folderExpandedStateProvider)
+      ..invalidate(channelListViewModelProvider)
+      ..invalidate(memberListViewModelProvider)
+      ..invalidate(chatViewModelProvider)
+      ..invalidate(userSettingsViewModelProvider)
+      ..invalidate(loginViewModelProvider);
 
     final repo = ref.read(authRepositoryProvider);
     await repo.logout();
+    // Invalidate after DB is cleared so a re-run finds no session.
+    ref.invalidate(appStartupProvider);
     ref.read(authStateProvider.notifier).setAuthenticated(value: false);
     if (mounted) {
       Navigator.of(context).pop();

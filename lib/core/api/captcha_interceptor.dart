@@ -4,9 +4,15 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_captcha/fluxer_captcha.dart';
+import 'package:fluxeron/core/talker.dart';
 
 /// Error codes the Fluxer API returns when captcha verification is needed.
 const _kCaptchaCodes = {'CAPTCHA_REQUIRED', 'INVALID_CAPTCHA'};
+
+/// Key in [RequestOptions.extra] to mark requests made internally by the
+/// captcha interceptor (config fetch and retry), preventing re-entrant
+/// captcha solving.
+const _kCaptchaInternalKey = '_captchaInternal';
 
 /// Captcha configuration extracted from the `.well-known/fluxer` response.
 class _CaptchaConfig {
@@ -50,6 +56,14 @@ class CaptchaInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    // Don't re-enter captcha solving for our own internal requests
+    // (config fetch or retry). Without this guard, a failed retry returning
+    // INVALID_CAPTCHA would recurse indefinitely.
+    if (err.requestOptions.extra[_kCaptchaInternalKey] == true) {
+      handler.next(err);
+      return;
+    }
+
     final response = err.response;
     if (response == null || response.statusCode != 400) {
       handler.next(err);
@@ -62,6 +76,10 @@ class CaptchaInterceptor extends Interceptor {
       return;
     }
 
+    talker.debug(
+      '[CaptchaInterceptor] Challenge received: $code '
+      'for ${err.requestOptions.path}',
+    );
     unawaited(_solveCaptchaAndRetry(err, handler));
   }
 
@@ -72,15 +90,25 @@ class CaptchaInterceptor extends Interceptor {
     try {
       final config = await _fetchCaptchaConfig();
       if (config == null) {
+        talker.warning('[CaptchaInterceptor] Config fetch returned null');
         handler.next(err);
         return;
       }
+
+      talker.debug(
+        '[CaptchaInterceptor] Config: provider=${config.provider.name}',
+      );
 
       var token = await _solveInvisible(
         provider: config.provider,
         siteKey: config.siteKey,
         baseUrl: config.baseUrl,
       );
+      talker.debug(
+        '[CaptchaInterceptor] Invisible solve: '
+        '${token != null ? 'success' : 'failed, trying dialog'}',
+      );
+
       token ??= await showCaptchaDialog(
         provider: config.provider,
         siteKey: config.siteKey,
@@ -88,6 +116,7 @@ class CaptchaInterceptor extends Interceptor {
       );
 
       if (token == null || token.isEmpty) {
+        talker.warning('[CaptchaInterceptor] No token obtained');
         handler.next(err);
         return;
       }
@@ -95,13 +124,20 @@ class CaptchaInterceptor extends Interceptor {
       final opts = err.requestOptions;
       opts.headers['X-Captcha-Token'] = token;
       opts.headers['X-Captcha-Type'] = config.provider.name;
+      opts.extra[_kCaptchaInternalKey] = true;
 
+      talker.debug('[CaptchaInterceptor] Retrying with captcha token');
       final retryResponse = await dio.fetch<dynamic>(opts);
       handler.resolve(retryResponse);
     } on DioException catch (retryError) {
+      talker.warning(
+        '[CaptchaInterceptor] Retry failed: '
+        '${retryError.response?.statusCode} ${retryError.message}',
+      );
       handler.next(retryError);
       // ignore: avoid_catches_without_on_clauses, WebView errors aren't Exception subtypes
-    } catch (_) {
+    } catch (e) {
+      talker.error('[CaptchaInterceptor] Unexpected error: $e');
       handler.next(err);
     }
   }
@@ -110,6 +146,7 @@ class CaptchaInterceptor extends Interceptor {
     try {
       final response = await dio.get<Map<String, dynamic>>(
         '/.well-known/fluxer',
+        options: Options(extra: {_kCaptchaInternalKey: true}),
       );
       final data = response.data;
       if (data == null) {
@@ -154,7 +191,8 @@ class CaptchaInterceptor extends Interceptor {
         siteKey: siteKey,
         baseUrl: baseUrl,
       );
-    } on Exception {
+    } on Exception catch (e) {
+      talker.warning('[CaptchaInterceptor] Config fetch error: $e');
       return null;
     }
   }

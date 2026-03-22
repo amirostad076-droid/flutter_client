@@ -49,7 +49,8 @@ class AppStartup extends _$AppStartup {
     unawaited(ref.read(gatewayConnectionProvider).connect());
     ref
       ..read(gatewayEventListenerProvider)
-      ..read(gatewayStateListenerProvider);
+      ..read(gatewayStateListenerProvider)
+      ..read(connectivityListenerProvider);
 
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
 
