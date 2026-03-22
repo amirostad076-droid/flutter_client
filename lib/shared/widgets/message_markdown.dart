@@ -45,6 +45,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/shared/utils/emoji_registry.dart';
 import 'package:fluxeron/shared/utils/emoji_utils.dart';
 import 'package:fluxeron/shared/widgets/message_alert.dart';
+import 'package:fluxeron/shared/widgets/message_mention.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -194,10 +195,6 @@ List<_Segment> _parseSegments(String text) {
 
 String _sanitizeFluxerTags(String text) => text
     .replaceAllMapped(
-      RegExp(r'<#(\d+)>'),
-      (m) => '#${m[1]}', // TODO: render as channel mention
-    )
-    .replaceAllMapped(
       RegExp(r'<@&(\d+)>'),
       (m) => '@role', // TODO: render as role mention
     )
@@ -303,12 +300,14 @@ class MessageMarkdown extends StatelessWidget {
       styleSheet: sheet,
       selectable: selectable,
       inlineSyntaxes: [
+        _ChannelMentionSyntax(),
         _TimestampSyntax(),
         _SpoilerSyntax(),
         _UnicodeEmojiSyntax(),
         _CustomEmojiSyntax(),
       ],
       builders: {
+        _ChannelMentionSyntax.tag: _ChannelMentionBuilder(baseStyle: style),
         _TimestampSyntax.tag: _TimestampBuilder(baseStyle: style),
         _SpoilerSyntax.tag: _SpoilerBuilder(),
         _UnicodeEmojiSyntax.tag: _EmojiBuilder(
@@ -336,6 +335,38 @@ class MessageMarkdown extends StatelessWidget {
     }
     unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
   }
+}
+
+/// Parses `<#Id>` channel mention tags.
+class _ChannelMentionSyntax extends md.InlineSyntax {
+  _ChannelMentionSyntax() : super(r'<#(\d+)>');
+
+  static const tag = 'mention-channel';
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final id = match[1];
+    if (id == null) return false;
+    parser.addNode(md.Element.text(tag, id));
+    return true;
+  }
+}
+
+class _ChannelMentionBuilder extends MarkdownElementBuilder {
+  _ChannelMentionBuilder({required this.baseStyle});
+
+  final TextStyle baseStyle;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) => ChannelMention(
+    channelId: element.textContent,
+    baseStyle: baseStyle,
+  );
 }
 
 /// Parses `<t:unix:flag>` timestamp tags.

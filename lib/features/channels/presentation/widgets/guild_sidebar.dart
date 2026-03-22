@@ -22,7 +22,7 @@ class GuildSidebar extends ConsumerWidget {
     final state = ref.watch(channelListViewModelProvider);
     final serverName = state.serverName;
     final categories = state.categories;
-    final selectedId = state.selectedChannelId;
+    final selectedId = ref.watch(activeChannelIdProvider);
     final collapsed = state.collapsedCategories;
 
     return Container(
@@ -177,9 +177,6 @@ class GuildSidebar extends ConsumerWidget {
       child: InkWell(
         onTap: () {
           final guildId = ref.read(activeGuildIdProvider);
-          ref
-              .read(channelListViewModelProvider.notifier)
-              .selectChannel(channel.id);
           if (guildId != null) {
             navigateToContent(
               context,

@@ -22,6 +22,9 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
             ..orderBy([(c) => OrderingTerm.asc(c.position)]))
           .get();
 
+  Future<Channel?> getChannelById(String id) =>
+      (select(channels)..where((c) => c.id.equals(id))).getSingleOrNull();
+
   Future<void> upsertChannel(ChannelsCompanion channel) =>
       into(channels).insertOnConflictUpdate(channel);
 
