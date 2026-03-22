@@ -203,11 +203,13 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
       }
     }
 
-    final folderAccent = folder.color != null
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final folderAccent = folder.color != null && folder.color != 0
         ? Color(folder.color! | 0xFF000000)
+        : isDark
+        ? context.colors.brandPrimaryLight
         : context.colors.brandPrimary;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final folderSurface = Color.lerp(
       context.colors.backgroundSecondary,
       folderAccent,
