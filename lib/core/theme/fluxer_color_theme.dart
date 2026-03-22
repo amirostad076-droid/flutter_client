@@ -30,6 +30,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     required this.statusDnd,
     required this.statusOffline,
     required this.statusDanger,
+    required this.statusWarning,
     // Text
     required this.textPrimary,
     required this.textSecondary,
@@ -70,6 +71,16 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     required this.markupJumpLinkHoverFill,
     required this.markupInteractiveHoverText,
     required this.markupInteractiveHoverFill,
+    required this.markupMentionBorder,
+    required this.markupJumpLinkText,
+    required this.markupJumpLinkFill,
+    required this.markupJumpLinkHoverFill,
+    required this.markupEveryoneText,
+    required this.markupEveryoneFill,
+    required this.markupEveryoneBorder,
+    required this.markupHereText,
+    required this.markupHereFill,
+    required this.markupHereBorder,
     // Button
     required this.buttonPrimaryFill,
     required this.buttonPrimaryActiveFill,
@@ -90,6 +101,20 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     required this.buttonOutlineBorder,
     required this.buttonOutlineText,
     required this.buttonOutlineActiveFill,
+    // Panel Control
+    required this.panelControlBg,
+    required this.panelControlBorder,
+    required this.panelControlDivider,
+    required this.panelControlHighlight,
+    // Control Button
+    required this.controlButtonNormalBg,
+    required this.controlButtonNormalText,
+    required this.controlButtonHoverBg,
+    required this.controlButtonHoverText,
+    required this.controlButtonActiveBg,
+    required this.controlButtonActiveText,
+    required this.controlButtonDangerText,
+    required this.controlButtonDangerHoverBg,
     // Content Background
     required this.bgCode,
     required this.bgCodeBlock,
@@ -105,6 +130,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     required this.scrollbarThumbBg,
     required this.scrollbarThumbBgHover,
     required this.scrollbarTrackBg,
+    // Text Selection
+    required this.textSelection,
     // UI-specific
     required this.chatBackground,
     required this.chatInputBackground,
@@ -119,6 +146,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     required this.embedBorder,
     required this.mentionBackground,
     required this.spoilerBackground,
+    required this.spoilerOverlayHoverColor,
     required this.focusPrimary,
     required this.interactiveActive,
     required this.interactiveNormal,
@@ -156,6 +184,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   final Color statusDnd;
   final Color statusOffline;
   final Color statusDanger;
+  final Color statusWarning;
 
   // Text
   final Color textPrimary;
@@ -201,6 +230,16 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   final Color markupJumpLinkHoverFill;
   final Color markupInteractiveHoverText;
   final Color markupInteractiveHoverFill;
+  final Color markupMentionBorder;
+  final Color markupJumpLinkText;
+  final Color markupJumpLinkFill;
+  final Color markupJumpLinkHoverFill;
+  final Color markupEveryoneText;
+  final Color markupEveryoneFill;
+  final Color markupEveryoneBorder;
+  final Color markupHereText;
+  final Color markupHereFill;
+  final Color markupHereBorder;
 
   // Button
   final Color buttonPrimaryFill;
@@ -223,6 +262,22 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   final Color buttonOutlineText;
   final Color buttonOutlineActiveFill;
 
+  // Panel Control
+  final Color panelControlBg;
+  final Color panelControlBorder;
+  final Color panelControlDivider;
+  final Color panelControlHighlight;
+
+  // Control Button
+  final Color controlButtonNormalBg;
+  final Color controlButtonNormalText;
+  final Color controlButtonHoverBg;
+  final Color controlButtonHoverText;
+  final Color controlButtonActiveBg;
+  final Color controlButtonActiveText;
+  final Color controlButtonDangerText;
+  final Color controlButtonDangerHoverBg;
+
   // Content Background
   final Color bgCode;
   final Color bgCodeBlock;
@@ -241,6 +296,9 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   final Color scrollbarThumbBgHover;
   final Color scrollbarTrackBg;
 
+  // Text Selection
+  final Color textSelection;
+
   // UI-specific
   final Color chatBackground;
   final Color chatInputBackground;
@@ -255,6 +313,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   final Color embedBorder;
   final Color mentionBackground;
   final Color spoilerBackground;
+  final Color spoilerOverlayHoverColor;
   final Color focusPrimary;
   final Color interactiveActive;
   final Color interactiveNormal;
@@ -291,6 +350,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     Color? statusDnd,
     Color? statusOffline,
     Color? statusDanger,
+    Color? statusWarning,
     // Text
     Color? textPrimary,
     Color? textSecondary,
@@ -331,6 +391,16 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     Color? markupJumpLinkHoverFill,
     Color? markupInteractiveHoverText,
     Color? markupInteractiveHoverFill,
+    Color? markupMentionBorder,
+    Color? markupJumpLinkText,
+    Color? markupJumpLinkFill,
+    Color? markupJumpLinkHoverFill,
+    Color? markupEveryoneText,
+    Color? markupEveryoneFill,
+    Color? markupEveryoneBorder,
+    Color? markupHereText,
+    Color? markupHereFill,
+    Color? markupHereBorder,
     // Button
     Color? buttonPrimaryFill,
     Color? buttonPrimaryActiveFill,
@@ -351,6 +421,20 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     Color? buttonOutlineBorder,
     Color? buttonOutlineText,
     Color? buttonOutlineActiveFill,
+    // Panel Control
+    Color? panelControlBg,
+    Color? panelControlBorder,
+    Color? panelControlDivider,
+    Color? panelControlHighlight,
+    // Control Button
+    Color? controlButtonNormalBg,
+    Color? controlButtonNormalText,
+    Color? controlButtonHoverBg,
+    Color? controlButtonHoverText,
+    Color? controlButtonActiveBg,
+    Color? controlButtonActiveText,
+    Color? controlButtonDangerText,
+    Color? controlButtonDangerHoverBg,
     // Content Background
     Color? bgCode,
     Color? bgCodeBlock,
@@ -366,6 +450,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     Color? scrollbarThumbBg,
     Color? scrollbarThumbBgHover,
     Color? scrollbarTrackBg,
+    // Text Selection
+    Color? textSelection,
     // UI-specific
     Color? chatBackground,
     Color? chatInputBackground,
@@ -380,6 +466,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     Color? embedBorder,
     Color? mentionBackground,
     Color? spoilerBackground,
+    Color? spoilerOverlayHoverColor,
     Color? focusPrimary,
     Color? interactiveActive,
     Color? interactiveNormal,
@@ -425,6 +512,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       statusDnd: statusDnd ?? this.statusDnd,
       statusOffline: statusOffline ?? this.statusOffline,
       statusDanger: statusDanger ?? this.statusDanger,
+      statusWarning: statusWarning ?? this.statusWarning,
       // Text
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
@@ -469,6 +557,17 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
           markupInteractiveHoverText ?? this.markupInteractiveHoverText,
       markupInteractiveHoverFill:
           markupInteractiveHoverFill ?? this.markupInteractiveHoverFill,
+      markupMentionBorder: markupMentionBorder ?? this.markupMentionBorder,
+      markupJumpLinkText: markupJumpLinkText ?? this.markupJumpLinkText,
+      markupJumpLinkFill: markupJumpLinkFill ?? this.markupJumpLinkFill,
+      markupJumpLinkHoverFill:
+          markupJumpLinkHoverFill ?? this.markupJumpLinkHoverFill,
+      markupEveryoneText: markupEveryoneText ?? this.markupEveryoneText,
+      markupEveryoneFill: markupEveryoneFill ?? this.markupEveryoneFill,
+      markupEveryoneBorder: markupEveryoneBorder ?? this.markupEveryoneBorder,
+      markupHereText: markupHereText ?? this.markupHereText,
+      markupHereFill: markupHereFill ?? this.markupHereFill,
+      markupHereBorder: markupHereBorder ?? this.markupHereBorder,
       // Button
       buttonPrimaryFill: buttonPrimaryFill ?? this.buttonPrimaryFill,
       buttonPrimaryActiveFill:
@@ -497,6 +596,28 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       buttonOutlineText: buttonOutlineText ?? this.buttonOutlineText,
       buttonOutlineActiveFill:
           buttonOutlineActiveFill ?? this.buttonOutlineActiveFill,
+      // Panel Control
+      panelControlBg: panelControlBg ?? this.panelControlBg,
+      panelControlBorder: panelControlBorder ?? this.panelControlBorder,
+      panelControlDivider: panelControlDivider ?? this.panelControlDivider,
+      panelControlHighlight:
+          panelControlHighlight ?? this.panelControlHighlight,
+      // Control Button
+      controlButtonNormalBg:
+          controlButtonNormalBg ?? this.controlButtonNormalBg,
+      controlButtonNormalText:
+          controlButtonNormalText ?? this.controlButtonNormalText,
+      controlButtonHoverBg: controlButtonHoverBg ?? this.controlButtonHoverBg,
+      controlButtonHoverText:
+          controlButtonHoverText ?? this.controlButtonHoverText,
+      controlButtonActiveBg:
+          controlButtonActiveBg ?? this.controlButtonActiveBg,
+      controlButtonActiveText:
+          controlButtonActiveText ?? this.controlButtonActiveText,
+      controlButtonDangerText:
+          controlButtonDangerText ?? this.controlButtonDangerText,
+      controlButtonDangerHoverBg:
+          controlButtonDangerHoverBg ?? this.controlButtonDangerHoverBg,
       // Content Background
       bgCode: bgCode ?? this.bgCode,
       bgCodeBlock: bgCodeBlock ?? this.bgCodeBlock,
@@ -517,6 +638,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       scrollbarThumbBgHover:
           scrollbarThumbBgHover ?? this.scrollbarThumbBgHover,
       scrollbarTrackBg: scrollbarTrackBg ?? this.scrollbarTrackBg,
+      // Text Selection
+      textSelection: textSelection ?? this.textSelection,
       // UI-specific
       chatBackground: chatBackground ?? this.chatBackground,
       chatInputBackground: chatInputBackground ?? this.chatInputBackground,
@@ -533,6 +656,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       embedBorder: embedBorder ?? this.embedBorder,
       mentionBackground: mentionBackground ?? this.mentionBackground,
       spoilerBackground: spoilerBackground ?? this.spoilerBackground,
+      spoilerOverlayHoverColor:
+          spoilerOverlayHoverColor ?? this.spoilerOverlayHoverColor,
       focusPrimary: focusPrimary ?? this.focusPrimary,
       interactiveActive: interactiveActive ?? this.interactiveActive,
       interactiveNormal: interactiveNormal ?? this.interactiveNormal,
@@ -647,6 +772,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       statusDnd: Color.lerp(statusDnd, other.statusDnd, t)!,
       statusOffline: Color.lerp(statusOffline, other.statusOffline, t)!,
       statusDanger: Color.lerp(statusDanger, other.statusDanger, t)!,
+      statusWarning: Color.lerp(statusWarning, other.statusWarning, t)!,
       // Text
       textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
@@ -737,6 +863,48 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       markupInteractiveHoverFill: Color.lerp(
         markupInteractiveHoverFill,
         other.markupInteractiveHoverFill,
+        t,
+      )!,
+      markupMentionBorder: Color.lerp(
+        markupMentionBorder,
+        other.markupMentionBorder,
+        t,
+      )!,
+      markupJumpLinkText: Color.lerp(
+        markupJumpLinkText,
+        other.markupJumpLinkText,
+        t,
+      )!,
+      markupJumpLinkFill: Color.lerp(
+        markupJumpLinkFill,
+        other.markupJumpLinkFill,
+        t,
+      )!,
+      markupJumpLinkHoverFill: Color.lerp(
+        markupJumpLinkHoverFill,
+        other.markupJumpLinkHoverFill,
+        t,
+      )!,
+      markupEveryoneText: Color.lerp(
+        markupEveryoneText,
+        other.markupEveryoneText,
+        t,
+      )!,
+      markupEveryoneFill: Color.lerp(
+        markupEveryoneFill,
+        other.markupEveryoneFill,
+        t,
+      )!,
+      markupEveryoneBorder: Color.lerp(
+        markupEveryoneBorder,
+        other.markupEveryoneBorder,
+        t,
+      )!,
+      markupHereText: Color.lerp(markupHereText, other.markupHereText, t)!,
+      markupHereFill: Color.lerp(markupHereFill, other.markupHereFill, t)!,
+      markupHereBorder: Color.lerp(
+        markupHereBorder,
+        other.markupHereBorder,
         t,
       )!,
       // Button
@@ -831,6 +999,64 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
         other.buttonOutlineActiveFill,
         t,
       )!,
+      // Panel Control
+      panelControlBg: Color.lerp(panelControlBg, other.panelControlBg, t)!,
+      panelControlBorder: Color.lerp(
+        panelControlBorder,
+        other.panelControlBorder,
+        t,
+      )!,
+      panelControlDivider: Color.lerp(
+        panelControlDivider,
+        other.panelControlDivider,
+        t,
+      )!,
+      panelControlHighlight: Color.lerp(
+        panelControlHighlight,
+        other.panelControlHighlight,
+        t,
+      )!,
+      // Control Button
+      controlButtonNormalBg: Color.lerp(
+        controlButtonNormalBg,
+        other.controlButtonNormalBg,
+        t,
+      )!,
+      controlButtonNormalText: Color.lerp(
+        controlButtonNormalText,
+        other.controlButtonNormalText,
+        t,
+      )!,
+      controlButtonHoverBg: Color.lerp(
+        controlButtonHoverBg,
+        other.controlButtonHoverBg,
+        t,
+      )!,
+      controlButtonHoverText: Color.lerp(
+        controlButtonHoverText,
+        other.controlButtonHoverText,
+        t,
+      )!,
+      controlButtonActiveBg: Color.lerp(
+        controlButtonActiveBg,
+        other.controlButtonActiveBg,
+        t,
+      )!,
+      controlButtonActiveText: Color.lerp(
+        controlButtonActiveText,
+        other.controlButtonActiveText,
+        t,
+      )!,
+      controlButtonDangerText: Color.lerp(
+        controlButtonDangerText,
+        other.controlButtonDangerText,
+        t,
+      )!,
+      controlButtonDangerHoverBg: Color.lerp(
+        controlButtonDangerHoverBg,
+        other.controlButtonDangerHoverBg,
+        t,
+      )!,
       // Content Background
       bgCode: Color.lerp(bgCode, other.bgCode, t)!,
       bgCodeBlock: Color.lerp(bgCodeBlock, other.bgCodeBlock, t)!,
@@ -870,6 +1096,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
         other.scrollbarTrackBg,
         t,
       )!,
+      // Text Selection
+      textSelection: Color.lerp(textSelection, other.textSelection, t)!,
       // UI-specific
       chatBackground: Color.lerp(chatBackground, other.chatBackground, t)!,
       chatInputBackground: Color.lerp(
@@ -922,6 +1150,11 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       spoilerBackground: Color.lerp(
         spoilerBackground,
         other.spoilerBackground,
+        t,
+      )!,
+      spoilerOverlayHoverColor: Color.lerp(
+        spoilerOverlayHoverColor,
+        other.spoilerOverlayHoverColor,
         t,
       )!,
       focusPrimary: Color.lerp(focusPrimary, other.focusPrimary, t)!,

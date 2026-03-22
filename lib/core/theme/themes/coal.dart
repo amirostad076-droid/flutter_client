@@ -140,7 +140,7 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     // Background (from coalSurface scale)
     backgroundPrimary: backgroundPrimary,
     backgroundSecondary: backgroundSecondary,
-    backgroundSecondaryLighter: coalSurface['backgroundSecondaryLighter']!,
+    backgroundSecondaryLighter: backgroundPrimary,
     backgroundSecondaryAlt: backgroundSecondaryAlt,
     backgroundTertiary: backgroundTertiary,
     backgroundTextarea: coalSurface['backgroundTextarea']!,
@@ -177,6 +177,7 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     statusDnd: statusDnd,
     statusOffline: tone(FluxerColorFamilies.statusOffline, 65),
     statusDanger: tone(FluxerColorFamilies.statusDanger, 55),
+    statusWarning: statusIdle,
 
     // Text (same as dark)
     textPrimary: textPrimary,
@@ -232,6 +233,36 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     markupJumpLinkHoverFill: textLink.withValues(alpha: 0.2),
     markupInteractiveHoverText: textLink,
     markupInteractiveHoverFill: textLink.withValues(alpha: 0.3),
+    markupMentionBorder: tone(FluxerColorFamilies.link, 70, alpha: 0.3),
+    markupJumpLinkText: textLink,
+    markupJumpLinkFill: textLink.withValues(alpha: 0.12),
+    markupJumpLinkHoverFill: textLink.withValues(alpha: 0.2),
+    markupEveryoneText: toneDirect(hue: 250, saturation: 80, lightness: 75),
+    markupEveryoneFill: toneDirect(
+      hue: 250,
+      saturation: 80,
+      lightness: 75,
+      alpha: 0.18,
+    ),
+    markupEveryoneBorder: toneDirect(
+      hue: 250,
+      saturation: 80,
+      lightness: 75,
+      alpha: 0.3,
+    ),
+    markupHereText: toneDirect(hue: 45, saturation: 90, lightness: 70),
+    markupHereFill: toneDirect(
+      hue: 45,
+      saturation: 90,
+      lightness: 70,
+      alpha: 0.18,
+    ),
+    markupHereBorder: toneDirect(
+      hue: 45,
+      saturation: 90,
+      lightness: 70,
+      alpha: 0.3,
+    ),
 
     // Button
     buttonPrimaryFill: toneDirect(hue: 139, saturation: 55, lightness: 44),
@@ -328,6 +359,39 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
       useSatFactor: false,
     ),
 
+    // Panel Control
+    panelControlBg: Color.alphaBlend(
+      backgroundPrimary.withValues(alpha: 0.9),
+      toneDirect(hue: 220, saturation: 13, lightness: 0),
+    ),
+    panelControlBorder: tone(
+      FluxerColorFamilies.neutralDark,
+      30,
+      saturation: 20,
+      alpha: 0.35,
+    ),
+    panelControlDivider: tone(
+      FluxerColorFamilies.neutralDark,
+      25,
+      saturation: 20,
+      alpha: 0.28,
+    ),
+    panelControlHighlight: const Color(0x0FFFFFFF),
+
+    // Control Button
+    controlButtonNormalBg: Colors.transparent,
+    controlButtonNormalText: darkText['textPrimaryMuted']!,
+    controlButtonHoverBg: tone(FluxerColorFamilies.neutralDark, 12),
+    controlButtonHoverText: textPrimary,
+    controlButtonActiveBg: tone(FluxerColorFamilies.neutralDark, 14),
+    controlButtonActiveText: textPrimary,
+    controlButtonDangerText: toneDirect(hue: 1, saturation: 77, lightness: 60),
+    controlButtonDangerHoverBg: toneDirect(
+      hue: 1,
+      saturation: 77,
+      lightness: 20,
+    ),
+
     // Content Background (coal overrides)
     bgCode: toneDirect(hue: 220, saturation: 13, lightness: 8),
     bgCodeBlock: backgroundSecondaryAlt,
@@ -346,6 +410,14 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     scrollbarThumbBgHover: const Color(0x8CC8C8C8),
     scrollbarTrackBg: const Color(0x73000000),
 
+    // Text Selection
+    textSelection: toneDirect(
+      hue: 210,
+      saturation: 90,
+      lightness: 70,
+      alpha: 0.35,
+    ),
+
     // UI-specific (derives from coal scale)
     chatBackground: backgroundSecondary,
     chatInputBackground: backgroundSecondary,
@@ -362,6 +434,7 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,
     spoilerBackground: toneDirect(hue: 220, saturation: 13, lightness: 8),
+    spoilerOverlayHoverColor: const Color(0x4D000000),
     focusPrimary: const Color(0xFF00B0F4),
     interactiveActive: toneDirect(
       hue: 0,

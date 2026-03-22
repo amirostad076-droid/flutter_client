@@ -166,6 +166,7 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
     statusDnd: statusDnd,
     statusOffline: tone(FluxerColorFamilies.statusOffline, 65),
     statusDanger: tone(FluxerColorFamilies.statusDanger, 55),
+    statusWarning: statusIdle,
 
     // Text (from darkText scale + individual tones)
     textPrimary: textPrimary,
@@ -221,6 +222,36 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
     markupJumpLinkHoverFill: textLink.withValues(alpha: 0.2),
     markupInteractiveHoverText: textLink,
     markupInteractiveHoverFill: textLink.withValues(alpha: 0.3),
+    markupMentionBorder: tone(FluxerColorFamilies.link, 70, alpha: 0.3),
+    markupJumpLinkText: textLink,
+    markupJumpLinkFill: textLink.withValues(alpha: 0.12),
+    markupJumpLinkHoverFill: textLink.withValues(alpha: 0.2),
+    markupEveryoneText: toneDirect(hue: 250, saturation: 80, lightness: 75),
+    markupEveryoneFill: toneDirect(
+      hue: 250,
+      saturation: 80,
+      lightness: 75,
+      alpha: 0.18,
+    ),
+    markupEveryoneBorder: toneDirect(
+      hue: 250,
+      saturation: 80,
+      lightness: 75,
+      alpha: 0.3,
+    ),
+    markupHereText: toneDirect(hue: 45, saturation: 90, lightness: 70),
+    markupHereFill: toneDirect(
+      hue: 45,
+      saturation: 90,
+      lightness: 70,
+      alpha: 0.18,
+    ),
+    markupHereBorder: toneDirect(
+      hue: 45,
+      saturation: 90,
+      lightness: 70,
+      alpha: 0.3,
+    ),
 
     // Button
     buttonPrimaryFill: toneDirect(hue: 139, saturation: 55, lightness: 44),
@@ -324,6 +355,39 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
       useSatFactor: false,
     ),
 
+    // Panel Control
+    panelControlBg: Color.alphaBlend(
+      backgroundSecondaryAlt.withValues(alpha: 0.8),
+      toneDirect(hue: 220, saturation: 13, lightness: 2),
+    ),
+    panelControlBorder: tone(
+      FluxerColorFamilies.neutralDark,
+      65,
+      saturation: 30,
+      alpha: 0.45,
+    ),
+    panelControlDivider: tone(
+      FluxerColorFamilies.neutralDark,
+      55,
+      saturation: 30,
+      alpha: 0.35,
+    ),
+    panelControlHighlight: const Color(0x0AFFFFFF),
+
+    // Control Button
+    controlButtonNormalBg: Colors.transparent,
+    controlButtonNormalText: darkText['textPrimaryMuted']!,
+    controlButtonHoverBg: tone(FluxerColorFamilies.neutralDark, 22),
+    controlButtonHoverText: textPrimary,
+    controlButtonActiveBg: tone(FluxerColorFamilies.neutralDark, 24),
+    controlButtonActiveText: textPrimary,
+    controlButtonDangerText: toneDirect(hue: 1, saturation: 77, lightness: 60),
+    controlButtonDangerHoverBg: toneDirect(
+      hue: 1,
+      saturation: 77,
+      lightness: 20,
+    ),
+
     // Content Background
     bgCode: tone(FluxerColorFamilies.neutralDark, 15, alpha: 0.8),
     bgCodeBlock: backgroundSecondaryAlt,
@@ -342,6 +406,14 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
     scrollbarThumbBgHover: const Color(0xB3797A7C),
     scrollbarTrackBg: Colors.transparent,
 
+    // Text Selection
+    textSelection: toneDirect(
+      hue: 210,
+      saturation: 90,
+      lightness: 70,
+      alpha: 0.35,
+    ),
+
     // UI-specific
     chatBackground: backgroundSecondary,
     chatInputBackground: backgroundSecondary,
@@ -358,6 +430,7 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,
     spoilerBackground: toneDirect(hue: 220, saturation: 13, lightness: 8),
+    spoilerOverlayHoverColor: const Color(0x4D000000),
     focusPrimary: const Color(0xFF00B0F4),
     interactiveActive: toneDirect(
       hue: 0,
