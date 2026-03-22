@@ -321,6 +321,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                 onEnter: (_) => setState(() => _isHovered = true),
                 onExit: (_) => setState(() => _isHovered = false),
                 child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () => ref
                       .read(folderExpandedStateProvider.notifier)
                       .toggle(folder.id),
