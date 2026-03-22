@@ -235,6 +235,7 @@ class _MessageItemState extends State<MessageItem> {
       MessageMarkdown(
         data: msg.content,
         selectable: true,
+        channelId: msg.channelId,
       ),
     ...msg.embeds.map(_buildEmbed),
     ...msg.attachments.map(_buildAttachment),

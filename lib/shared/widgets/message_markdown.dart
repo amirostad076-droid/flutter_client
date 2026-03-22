@@ -193,23 +193,19 @@ List<_Segment> _parseSegments(String text) {
   return segments;
 }
 
-String _sanitizeFluxerTags(String text) => text
-    .replaceAllMapped(
-      RegExp(r'<@!?(\d+)>'),
-      (m) => '@user', // TODO: render as user mention
-    );
-
 class MessageMarkdown extends StatelessWidget {
   const MessageMarkdown({
     required this.data,
     this.baseStyle,
     this.selectable = false,
+    this.channelId,
     super.key,
   });
 
   final String data;
   final TextStyle? baseStyle;
   final bool selectable;
+  final String? channelId;
 
   @override
   Widget build(BuildContext context) {
@@ -289,13 +285,13 @@ class MessageMarkdown extends StatelessWidget {
     bool isDark,
     TextStyle style,
   ) {
-    final sanitized = _sanitizeFluxerTags(text);
-    final jumbo = isJumboEmoji(sanitized);
+    final jumbo = isJumboEmoji(text);
     return MarkdownBody(
-      data: sanitized,
+      data: text,
       styleSheet: sheet,
       selectable: selectable,
       inlineSyntaxes: [
+        _UserMentionSyntax(),
         _ChannelMentionSyntax(),
         _RoleMentionSyntax(),
         _EveryoneMentionSyntax(),
@@ -305,6 +301,10 @@ class MessageMarkdown extends StatelessWidget {
         _CustomEmojiSyntax(),
       ],
       builders: {
+        _UserMentionSyntax.tag: _UserMentionBuilder(
+          baseStyle: style,
+          channelId: channelId,
+        ),
         _ChannelMentionSyntax.tag: _ChannelMentionBuilder(baseStyle: style),
         _RoleMentionSyntax.tag: _RoleMentionBuilder(baseStyle: style),
         _EveryoneMentionSyntax.tag: _EveryoneMentionBuilder(baseStyle: style),
@@ -335,6 +335,43 @@ class MessageMarkdown extends StatelessWidget {
     }
     unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
   }
+}
+
+/// Parses `<@userId>` and `<@!userId>` user mention tags.
+class _UserMentionSyntax extends md.InlineSyntax {
+  _UserMentionSyntax() : super(r'<@!?(\d+)>');
+
+  static const tag = 'mention-user';
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final id = match[1];
+    if (id == null) return false;
+    parser.addNode(md.Element.text(tag, id));
+    return true;
+  }
+}
+
+class _UserMentionBuilder extends MarkdownElementBuilder {
+  _UserMentionBuilder({
+    required this.baseStyle,
+    this.channelId,
+  });
+
+  final TextStyle baseStyle;
+  final String? channelId;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) => UserMention(
+    userId: element.textContent,
+    channelId: channelId,
+    baseStyle: baseStyle,
+  );
 }
 
 /// Parses `<#Id>` channel mention tags.

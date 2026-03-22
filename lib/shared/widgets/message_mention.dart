@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxeron/core/database/fluxer_database.dart';
+import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/core/router/route_names.dart';
+import 'package:fluxeron/core/router/route_state_providers.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
@@ -88,6 +91,65 @@ class _MentionPill extends StatelessWidget {
   }
 }
 
+
+class UserMention extends ConsumerWidget {
+  const UserMention({
+    required this.userId,
+    this.channelId,
+    this.baseStyle,
+    super.key,
+  });
+
+  final String userId;
+  final String? channelId;
+  final TextStyle? baseStyle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final guildId = ref.watch(activeGuildIdProvider);
+
+    final userAsync = ref.watch(
+      _userByIdProvider(userId),
+    );
+    final memberAsync = guildId != null
+        ? ref.watch(_memberByUserIdProvider((userId, guildId)))
+        : null;
+
+    final user = userAsync.value;
+    final member = memberAsync?.value;
+
+    final name = member?.nickname ??
+        user?.globalName ??
+        user?.username ??
+        userId;
+
+    final colors = context.colors;
+    final style = (baseStyle ?? const TextStyle()).copyWith(
+      color: colors.markupMentionText,
+      fontWeight: FontWeight.w500,
+    );
+    return GestureDetector(
+      // TODO(users): open user profile popout
+      onTap: () => debugPrint(
+        'test userId=$userId guildId=$guildId channelId=$channelId',
+      ),
+      child: _MentionPill(child: Text('@$name', style: style)),
+    );
+  }
+}
+
+final _userByIdProvider =
+    FutureProvider.autoDispose.family<User?, String>((ref, id) {
+  final db = ref.watch(fluxerDatabaseProvider);
+  return db.userDao.getUserById(id);
+});
+
+final _memberByUserIdProvider =
+    FutureProvider.autoDispose.family<Member?, (String, String)>((ref, args) {
+  final (userId, serverId) = args;
+  final db = ref.watch(fluxerDatabaseProvider);
+  return db.memberDao.getMemberByUserId(userId, serverId);
+});
 
 class RoleMention extends ConsumerWidget {
   const RoleMention({required this.roleId, this.baseStyle, super.key});
