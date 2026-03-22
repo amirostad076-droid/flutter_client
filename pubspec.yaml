@@ -11,8 +11,6 @@ dependencies:
   intl: ^0.20.2
   cached_network_image_ce: ^4.1.1
   connectivity_plus: ^7.0.0
-  cloudflare_turnstile:
-    path: cloudflare_turnstile
   cupertino_icons: ^1.0.8
   fluxer_captcha:
     path: fluxer_captcha

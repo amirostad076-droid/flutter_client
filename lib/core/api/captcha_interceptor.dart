@@ -121,7 +121,9 @@ class CaptchaInterceptor extends Interceptor {
       }
 
       final providerStr = captcha['provider'] as String? ?? 'none';
-      if (providerStr == 'none') return null;
+      if (providerStr == 'none') {
+        return null;
+      }
 
       final CaptchaProvider provider;
       String? siteKey;
@@ -162,7 +164,9 @@ class CaptchaInterceptor extends Interceptor {
     required String baseUrl,
   }) async {
     // Invisible mode uses a headless WebView — not available on web.
-    if (kIsWeb) return null;
+    if (kIsWeb) {
+      return null;
+    }
 
     FluxerCaptcha? captcha;
     try {
