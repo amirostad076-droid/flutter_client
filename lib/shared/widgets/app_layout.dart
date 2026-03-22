@@ -238,6 +238,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     return ColoredBox(
       color: context.colors.channelSidebarBackground,
       child: SafeArea(
+        bottom: false,
         child: Row(
           children: [
             const GuildNavbar(),
