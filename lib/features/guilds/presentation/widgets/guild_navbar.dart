@@ -49,7 +49,7 @@ class GuildNavbar extends ConsumerWidget {
     return Container(
       width: 72,
       decoration: BoxDecoration(
-        color: context.colors.serverSidebarBackground,
+        color: context.colors.backgroundSecondary,
         border: Border(right: BorderSide(color: context.colors.borderColor)),
       ),
       child: ScrollConfiguration(
