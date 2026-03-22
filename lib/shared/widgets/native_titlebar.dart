@@ -29,8 +29,7 @@ class NativeTitlebar extends ConsumerWidget {
     );
     final router = ref.watch(fluxerRouterProvider);
     final config = router.routerDelegate.currentConfiguration;
-    final location =
-        config.isNotEmpty ? config.last.matchedLocation : '/';
+    final location = config.isNotEmpty ? config.last.matchedLocation : '/';
     final activeGuildId = ref.watch(activeGuildIdProvider);
     final title = _resolveTitle(guilds, location, activeGuildId);
 

@@ -120,11 +120,13 @@ List<ChannelCategory> groupChannelsIntoCategories(List<Channel> channels) {
   final result = <ChannelCategory>[];
 
   if (uncategorized.isNotEmpty) {
-    result.add(ChannelCategory(
-      id: '_uncategorized',
-      name: 'Channels',
-      channels: uncategorized,
-    ));
+    result.add(
+      ChannelCategory(
+        id: '_uncategorized',
+        name: 'Channels',
+        channels: uncategorized,
+      ),
+    );
   }
 
   for (final cat in categories) {

@@ -32,8 +32,7 @@ class EmbedAuthor {
     name: json['name'] as String? ?? '',
     url: json['url'] as String?,
     iconUrl: (json['iconUrl'] ?? json['icon_url']) as String?,
-    proxyIconUrl:
-        (json['proxyIconUrl'] ?? json['proxy_icon_url']) as String?,
+    proxyIconUrl: (json['proxyIconUrl'] ?? json['proxy_icon_url']) as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -60,8 +59,7 @@ class EmbedFooter {
   factory EmbedFooter.fromJson(Map<String, dynamic> json) => EmbedFooter(
     text: json['text'] as String? ?? '',
     iconUrl: (json['iconUrl'] ?? json['icon_url']) as String?,
-    proxyIconUrl:
-        (json['proxyIconUrl'] ?? json['proxy_icon_url']) as String?,
+    proxyIconUrl: (json['proxyIconUrl'] ?? json['proxy_icon_url']) as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -204,7 +202,8 @@ class Embed {
             ?.map((e) => EmbedField.fromJson(e as Map<String, dynamic>))
             .toList() ??
         const [],
-    providerName: (json['providerName'] as String?) ??
+    providerName:
+        (json['providerName'] as String?) ??
         ((json['provider'] as Map<String, dynamic>?)?['name'] as String?),
   );
 
@@ -487,6 +486,7 @@ class Message {
     final trimmed = content.trim();
     return Uri.tryParse(trimmed)?.hasAbsolutePath ?? false;
   }
+
   bool get isForwarded => forwardedFrom != null;
   bool get isEdited => editedTimestamp != null;
   bool get isSystemMessage => type != 0 && type != 1 && type != 19;

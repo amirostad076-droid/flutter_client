@@ -21,5 +21,4 @@ String getCustomEmojiUrl({
   required String id,
   bool animated = true,
   int size = 128,
-}) =>
-    '$fluxerMediaCdn/emojis/$id.webp?size=$size';
+}) => '$fluxerMediaCdn/emojis/$id.webp?size=$size';

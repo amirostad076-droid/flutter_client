@@ -17,7 +17,8 @@ class EmbedRich extends StatelessWidget {
         ? Color(0xFF000000 | (embed.color! & 0xFFFFFF))
         : context.colors.backgroundSecondaryAlt;
 
-    final hasThumbnail = embed.thumbnail != null &&
+    final hasThumbnail =
+        embed.thumbnail != null &&
         embed.type != EmbedType.image &&
         embed.type != EmbedType.gifv;
 
@@ -43,8 +44,9 @@ class EmbedRich extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
                         embed.providerName!,
-                        style: context.textStyles.embedFooter
-                            .copyWith(fontSize: 12),
+                        style: context.textStyles.embedFooter.copyWith(
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   if (embed.author != null)
@@ -55,10 +57,7 @@ class EmbedRich extends StatelessWidget {
                   if (embed.title != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
-                      child: EmbedTitle(
-                        title: embed.title!,
-                        url: embed.url,
-                      ),
+                      child: EmbedTitle(title: embed.title!, url: embed.url),
                     ),
                   if (embed.description != null)
                     Padding(
@@ -94,8 +93,7 @@ class EmbedRich extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: CachedNetworkImage(
-                  imageUrl:
-                      embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
+                  imageUrl: embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
                   width: 72,
                   height: 72,
                   fit: BoxFit.cover,
@@ -177,10 +175,7 @@ class _EmbedFieldTile extends StatelessWidget {
         const SizedBox(height: 2),
         MessageMarkdown(
           data: field.value,
-          baseStyle: TextStyle(
-            color: context.colors.textChat,
-            fontSize: 13,
-          ),
+          baseStyle: TextStyle(color: context.colors.textChat, fontSize: 13),
         ),
       ],
     ),

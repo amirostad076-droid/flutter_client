@@ -28,10 +28,7 @@ class EmbedTitle extends StatelessWidget {
     }
     return GestureDetector(
       onTap: _launch,
-      child: Text(
-        title,
-        style: context.textStyles.embedTitle,
-      ),
+      child: Text(title, style: context.textStyles.embedTitle),
     );
   }
 }

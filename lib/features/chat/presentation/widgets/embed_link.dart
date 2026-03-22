@@ -35,8 +35,7 @@ class EmbedLink extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
                   embed.providerName!,
-                  style: context.textStyles.embedFooter
-                      .copyWith(fontSize: 12),
+                  style: context.textStyles.embedFooter.copyWith(fontSize: 12),
                 ),
               ),
             if (embed.author != null)
@@ -47,10 +46,7 @@ class EmbedLink extends StatelessWidget {
             if (embed.title != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
-                child: EmbedTitle(
-                  title: embed.title!,
-                  url: embed.url,
-                ),
+                child: EmbedTitle(title: embed.title!, url: embed.url),
               ),
             if (embed.description != null)
               Padding(
@@ -66,8 +62,7 @@ class EmbedLink extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: CachedNetworkImage(
-                    imageUrl:
-                        embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
+                    imageUrl: embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (_, e, _s) => const SizedBox.shrink(),

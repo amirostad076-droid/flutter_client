@@ -113,9 +113,7 @@ bool isJumboEmoji(String text) {
   final trimmed = text.trim();
   if (trimmed.isEmpty) return false;
 
-  final tokenRe = RegExp(
-    r':[a-zA-Z0-9_+\-]+:|<a?:[a-zA-Z0-9_]+:\d+>|\s',
-  );
+  final tokenRe = RegExp(r':[a-zA-Z0-9_+\-]+:|<a?:[a-zA-Z0-9_]+:\d+>|\s');
   final emojiRe = RegExp(r':[a-zA-Z0-9_+\-]+:|<a?:[a-zA-Z0-9_]+:\d+>');
 
   final withoutTokens = trimmed.replaceAll(tokenRe, '');
@@ -318,14 +316,8 @@ class MessageMarkdown extends StatelessWidget {
         _EveryoneMentionSyntax.tag: _EveryoneMentionBuilder(baseStyle: style),
         _TimestampSyntax.tag: _TimestampBuilder(baseStyle: style),
         _SpoilerSyntax.tag: _SpoilerBuilder(),
-        _UnicodeEmojiSyntax.tag: _EmojiBuilder(
-          baseStyle: style,
-          jumbo: jumbo,
-        ),
-        _CustomEmojiSyntax.tag: _EmojiBuilder(
-          baseStyle: style,
-          jumbo: jumbo,
-        ),
+        _UnicodeEmojiSyntax.tag: _EmojiBuilder(baseStyle: style, jumbo: jumbo),
+        _CustomEmojiSyntax.tag: _EmojiBuilder(baseStyle: style, jumbo: jumbo),
         'code': _CodeBlockBuilder(isDark: isDark, baseStyle: style),
       },
       extensionSet: md.ExtensionSet.gitHubFlavored,
@@ -485,8 +477,7 @@ class _TimestampSyntax extends md.InlineSyntax {
   bool onMatch(md.InlineParser parser, Match match) {
     final unix = match[1];
     if (unix == null) return false;
-    final el = md.Element.text(tag, unix)
-      ..attributes['flag'] = match[2] ?? 'f';
+    final el = md.Element.text(tag, unix)..attributes['flag'] = match[2] ?? 'f';
     parser.addNode(el);
     return true;
   }
@@ -524,7 +515,9 @@ class _TimestampBuilder extends MarkdownElementBuilder {
           Icon(
             PhosphorIconsFill.clock,
             size: fontSize,
-            color: (baseStyle.color ?? colors.textSecondary).withValues(alpha: 0.7),
+            color: (baseStyle.color ?? colors.textSecondary).withValues(
+              alpha: 0.7,
+            ),
           ),
           const SizedBox(width: 3),
           Text(
@@ -548,7 +541,7 @@ class _TimestampBuilder extends MarkdownElementBuilder {
     'F' => DateFormat.yMMMMEEEEd().add_Hm().format(dt),
     // relative: "2 hours ago" / "in 3 days"
     'R' => _relative(dt),
-    _ => DateFormat.yMMMMd().add_Hm().format(dt), 
+    _ => DateFormat.yMMMMd().add_Hm().format(dt),
   };
 
   static String _relative(DateTime dt) {
@@ -597,10 +590,9 @@ class _SpoilerBuilder extends MarkdownElementBuilder {
     md.Element element,
     TextStyle? preferredStyle,
     TextStyle? parentStyle,
-  ) =>
-      _SpoilerSpan(
-        child: Text(element.textContent, style: preferredStyle ?? parentStyle),
-      );
+  ) => _SpoilerSpan(
+    child: Text(element.textContent, style: preferredStyle ?? parentStyle),
+  );
 }
 
 class _SpoilerSpan extends StatefulWidget {
@@ -661,7 +653,6 @@ class _SpoilerSpanState extends State<_SpoilerSpan>
   );
 }
 
-
 class _CodeBlockBuilder extends MarkdownElementBuilder {
   _CodeBlockBuilder({required this.isDark, required this.baseStyle});
 
@@ -683,9 +674,7 @@ class _CodeBlockBuilder extends MarkdownElementBuilder {
       return const SizedBox.shrink();
     }
 
-    final rawLang = rawClass
-        .replaceFirst('language-', '')
-        .toLowerCase();
+    final rawLang = rawClass.replaceFirst('language-', '').toLowerCase();
 
     var code = element.textContent;
     if (code.endsWith('\n')) {
@@ -705,7 +694,11 @@ class _CodeBlockBuilder extends MarkdownElementBuilder {
         : (githubTheme['root']?.backgroundColor ?? colors.bgCodeBlock);
 
     if (knownLang == null) {
-      return _PlainCodeBlock(code: code, bgColor: bgColor, baseStyle: baseStyle);
+      return _PlainCodeBlock(
+        code: code,
+        bgColor: bgColor,
+        baseStyle: baseStyle,
+      );
     }
 
     return ClipRRect(
@@ -767,8 +760,7 @@ class _UnicodeEmojiSyntax extends md.InlineSyntax {
       parser.addNode(md.Text(match[0]!));
       return true;
     }
-    final el = md.Element.text(tag, name)
-      ..attributes['surrogate'] = surrogate;
+    final el = md.Element.text(tag, name)..attributes['surrogate'] = surrogate;
     parser.addNode(el);
     return true;
   }
@@ -818,10 +810,8 @@ class _EmojiBuilder extends MarkdownElementBuilder {
       url,
       width: size,
       height: size,
-      placeholderBuilder: (_) => Text(
-        surrogate,
-        style: TextStyle(fontSize: size),
-      ),
+      placeholderBuilder: (_) =>
+          Text(surrogate, style: TextStyle(fontSize: size)),
     );
   }
 
@@ -842,6 +832,7 @@ class _EmojiBuilder extends MarkdownElementBuilder {
     );
   }
 }
+
 
 class _JumpLinkSyntax extends md.InlineSyntax {
   _JumpLinkSyntax()

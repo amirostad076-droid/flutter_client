@@ -17,9 +17,7 @@ class EmbedVideo extends StatelessWidget {
   const EmbedVideo({required this.embed, super.key});
 
   bool get _hasHeader =>
-      embed.providerName != null ||
-      embed.author != null ||
-      embed.title != null;
+      embed.providerName != null || embed.author != null || embed.title != null;
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +45,9 @@ class EmbedVideo extends StatelessWidget {
                   if (embed.providerName != null)
                     Text(
                       embed.providerName!,
-                      style: context.textStyles.embedFooter
-                          .copyWith(fontSize: 12),
+                      style: context.textStyles.embedFooter.copyWith(
+                        fontSize: 12,
+                      ),
                     ),
                   if (embed.author != null)
                     Padding(
@@ -58,10 +57,7 @@ class EmbedVideo extends StatelessWidget {
                   if (embed.title != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
-                      child: EmbedTitle(
-                        title: embed.title!,
-                        url: embed.url,
-                      ),
+                      child: EmbedTitle(title: embed.title!, url: embed.url),
                     ),
                 ],
               ),
@@ -103,7 +99,7 @@ class _VideoPlayerState extends State<_VideoPlayer> {
     if (w != null && h != null && w > 0 && h > 0) return w / h;
     return 16 / 9;
   }
-  
+
   bool get _isYouTube {
     final url = widget.embed.video?.url ?? widget.embed.url ?? '';
     final host = Uri.tryParse(url)?.host ?? '';
@@ -209,9 +205,8 @@ class _VideoPlayerState extends State<_VideoPlayer> {
                 child: CachedNetworkImage(
                   imageUrl: thumbUrl,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, e, s) => Container(
-                    color: context.colors.backgroundFloating,
-                  ),
+                  errorBuilder: (_, e, s) =>
+                      Container(color: context.colors.backgroundFloating),
                 ),
               )
             else
