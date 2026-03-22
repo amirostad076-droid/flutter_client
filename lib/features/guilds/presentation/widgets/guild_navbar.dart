@@ -157,7 +157,7 @@ class GuildNavbar extends ConsumerWidget {
   }
 }
 
-class _GuildFolderWidget extends ConsumerWidget {
+class _GuildFolderWidget extends ConsumerStatefulWidget {
   final GuildNavbarFolder folder;
   final String? activeGuildId;
   final String currentUserId;
@@ -171,14 +171,24 @@ class _GuildFolderWidget extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_GuildFolderWidget> createState() => _GuildFolderWidgetState();
+}
+
+class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
+    with SingleTickerProviderStateMixin {
+  var _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final folder = widget.folder;
     final isExpanded = ref.watch(
       folderExpandedStateProvider.select((s) => s.contains(folder.id)),
     );
 
-    // Aggregate unread/mention across all guilds in folder.
+    // Aggregate unread/mention/voice across all guilds in folder.
     var anyUnread = false;
     var totalMentions = 0;
+    var folderVoiceActivity = VoiceActivityType.none;
     for (final guild in folder.guilds) {
       final unread = ref.watch(serverUnreadProvider(guild.id)).value;
       if (!guild.isUnavailable && (unread?.hasUnread ?? false)) {
@@ -187,83 +197,76 @@ class _GuildFolderWidget extends ConsumerWidget {
       if (!guild.isUnavailable) {
         totalMentions += unread?.mentionCount ?? 0;
       }
+      final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
+      if (voiceActivity.index > folderVoiceActivity.index) {
+        folderVoiceActivity = voiceActivity;
+      }
     }
 
     final folderColor = folder.color != null
         ? Color(folder.color! | 0xFF000000)
         : context.colors.brandPrimary;
 
-    if (isExpanded) {
-      return _buildExpanded(context, ref, folderColor);
-    }
-    return _buildCollapsed(
-      context,
-      ref,
-      folderColor: folderColor,
-      anyUnread: anyUnread,
-      totalMentions: totalMentions,
-    );
-  }
+    // Folder surface: accent blended with background to create a visible
+    // tinted panel distinct from the navbar background.
+    final folderSurface = Color.lerp(
+      context.colors.backgroundSecondaryLighter,
+      folderColor,
+      0.35,
+    )!;
 
-  Widget _buildCollapsed(
-    BuildContext context,
-    WidgetRef ref, {
-    required Color folderColor,
-    required bool anyUnread,
-    required int totalMentions,
-  }) {
+    // Stack: background panel behind header + animated guild list.
+    // Background spans from header through guild items when expanded.
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topCenter,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: const Cubic(0.25, 0.1, 0.25, 1),
-            width: 6,
-            height: anyUnread ? 8 : 0,
-            decoration: BoxDecoration(
-              color: context.colors.textPrimary,
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(999),
-                bottomRight: Radius.circular(999),
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              _RightTooltip(
-                content: _TooltipLabel(
-                  label: folder.name ?? _derivedFolderName,
-                ),
-                child: GestureDetector(
-                  onTap: () => ref
-                      .read(folderExpandedStateProvider.notifier)
-                      .toggle(folder.id),
-                  child: SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Center(
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: folderColor.withAlpha(80),
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                        child: _buildFolderContent(context, folderColor),
-                      ),
-                    ),
+          // Background panel (behind everything, spans full height).
+          if (isExpanded)
+            Positioned.fill(
+              child: Center(
+                child: Container(
+                  width: 48,
+                  decoration: BoxDecoration(
+                    color: folderSurface,
+                    borderRadius: BorderRadius.circular(48 * 0.3),
                   ),
                 ),
               ),
-              if (totalMentions > 0)
-                Positioned(
-                  bottom: -4,
-                  right: -4,
-                  child: UnreadBadge(mentionCount: totalMentions),
-                ),
+            ),
+          // Content column: header + animated guild list.
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildFolderButton(
+                context,
+                folderColor: folderColor,
+                folderSurface: folderSurface,
+                anyUnread: anyUnread,
+                totalMentions: totalMentions,
+                folderVoiceActivity: folderVoiceActivity,
+                isExpanded: isExpanded,
+              ),
+              // Animated expand/collapse of guild items.
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                curve: const Cubic(0.25, 0.1, 0.25, 1),
+                alignment: Alignment.topCenter,
+                child: isExpanded
+                    ? Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (final guild in folder.guilds)
+                              _buildGuildItemInFolder(context, guild),
+                          ],
+                        ),
+                      )
+                    : const SizedBox(width: 72),
+              ),
             ],
           ),
         ],
@@ -271,12 +274,108 @@ class _GuildFolderWidget extends ConsumerWidget {
     );
   }
 
+  Widget _buildFolderButton(
+    BuildContext context, {
+    required Color folderColor,
+    required Color folderSurface,
+    required bool anyUnread,
+    required int totalMentions,
+    required VoiceActivityType folderVoiceActivity,
+    required bool isExpanded,
+  }) {
+    final folder = widget.folder;
+    return Row(
+      children: [
+        if (!isExpanded)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: const Cubic(0.25, 0.1, 0.25, 1),
+            width: 6,
+            height: _isHovered
+                ? 20
+                : anyUnread
+                ? 8
+                : 0,
+            decoration: BoxDecoration(
+              color: context.colors.textPrimary,
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(999),
+                bottomRight: Radius.circular(999),
+              ),
+            ),
+          )
+        else
+          const SizedBox(width: 6),
+        const SizedBox(width: 6),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            _RightTooltip(
+              content: _TooltipLabel(
+                label: isExpanded
+                    ? 'Collapse ${folder.name ?? _derivedFolderName}'
+                    : folder.name ?? _derivedFolderName,
+              ),
+              child: MouseRegion(
+                onEnter: (_) => setState(() => _isHovered = true),
+                onExit: (_) => setState(() => _isHovered = false),
+                child: GestureDetector(
+                  onTap: () => ref
+                      .read(folderExpandedStateProvider.notifier)
+                      .toggle(folder.id),
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: isExpanded
+                        ? Center(
+                            child: PhosphorIcon(
+                              _folderIcon(folder.icon),
+                              color: context.colors.textPrimary,
+                              size: 24,
+                            ),
+                          )
+                        : Center(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 70),
+                              curve: Curves.easeOut,
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: folderSurface,
+                                borderRadius: BorderRadius.circular(48 * 0.3),
+                              ),
+                              child: _buildFolderContent(context, folderColor),
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+            ),
+            if (!isExpanded && totalMentions > 0)
+              Positioned(
+                bottom: -4,
+                right: -4,
+                child: UnreadBadge(mentionCount: totalMentions),
+              ),
+            if (!isExpanded && folderVoiceActivity != VoiceActivityType.none)
+              Positioned(
+                top: -4,
+                right: -4,
+                child: _VoiceActivityBadge(type: folderVoiceActivity),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildFolderContent(BuildContext context, Color folderColor) {
+    final folder = widget.folder;
     if (folder.showIconWhenCollapsed && folder.icon != null) {
       return Center(
         child: PhosphorIcon(
           _folderIcon(folder.icon),
-          color: folderColor,
+          color: context.colors.textPrimary,
           size: 24,
         ),
       );
@@ -285,17 +384,17 @@ class _GuildFolderWidget extends ConsumerWidget {
     // 2x2 mini guild icon grid.
     final gridGuilds = folder.guilds.take(4).toList();
     return Padding(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(6),
       child: Wrap(
         spacing: 2,
         runSpacing: 2,
         children: [
           for (final guild in gridGuilds)
             SizedBox(
-              width: 17,
-              height: 17,
+              width: 16,
+              height: 16,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(16 * 0.3),
                 child: guild.iconUrl != null
                     ? CachedNetworkImage(
                         imageUrl: guild.iconUrl!,
@@ -309,7 +408,7 @@ class _GuildFolderWidget extends ConsumerWidget {
                                 ? guild.name[0].toUpperCase()
                                 : '?',
                             style: const TextStyle(
-                              fontSize: 9,
+                              fontSize: 8,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -322,66 +421,7 @@ class _GuildFolderWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildExpanded(
-    BuildContext context,
-    WidgetRef ref,
-    Color folderColor,
-  ) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Folder toggle button.
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Row(
-            children: [
-              const SizedBox(width: 12),
-              _RightTooltip(
-                content: _TooltipLabel(
-                  label: 'Collapse ${folder.name ?? _derivedFolderName}',
-                ),
-                child: GestureDetector(
-                  onTap: () => ref
-                      .read(folderExpandedStateProvider.notifier)
-                      .toggle(folder.id),
-                  child: SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Center(
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: folderColor.withAlpha(80),
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                        child: Center(
-                          child: PhosphorIcon(
-                            _folderIcon(folder.icon),
-                            color: folderColor,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Guild items inside folder.
-        for (final guild in folder.guilds)
-          _buildGuildItemInFolder(ref, context, guild),
-      ],
-    );
-  }
-
-  Widget _buildGuildItemInFolder(
-    WidgetRef ref,
-    BuildContext context,
-    Guild guild,
-  ) {
+  Widget _buildGuildItemInFolder(BuildContext context, Guild guild) {
     return Builder(
       builder: (context) {
         final unread = ref.watch(serverUnreadProvider(guild.id)).value;
@@ -393,11 +433,11 @@ class _GuildFolderWidget extends ConsumerWidget {
         return _GuildListItem(
           label: guild.name,
           guild: guild,
-          isSelected: guild.id == activeGuildId,
-          isOwner: guild.ownerId == currentUserId,
+          isSelected: guild.id == widget.activeGuildId,
+          isOwner: guild.ownerId == widget.currentUserId,
           iconUrl: guild.iconUrl,
           isUnavailable: guild.isUnavailable,
-          unavailableCount: unavailableCount,
+          unavailableCount: widget.unavailableCount,
           isMuted: muteState?.isMuted ?? false,
           muteEndTime: muteState?.muteEndTime,
           voiceActivity: voiceActivity,
@@ -413,7 +453,7 @@ class _GuildFolderWidget extends ConsumerWidget {
   }
 
   String get _derivedFolderName {
-    final names = folder.guilds.take(3).map((g) => g.name);
+    final names = widget.folder.guilds.take(3).map((g) => g.name);
     return names.join(', ');
   }
 
