@@ -6,7 +6,7 @@ import 'package:fluxer_captcha/src/widget/captcha_options.dart';
 /// Callback invoked upon successful token reception.
 ///
 /// The callback receives a [token] that can be validated.
-typedef OnTokenReceived = Function(String token);
+typedef OnTokenReceived = void Function(String token);
 
 /// Callback invoked when the token expires.
 ///
@@ -17,7 +17,7 @@ typedef OnTokenExpired = void Function();
 ///
 /// The callback receives a [CaptchaException] object, [error], which provides
 /// details about the error, such as network issues or a challenge failure.
-typedef OnError = Function(CaptchaException error);
+typedef OnError = void Function(CaptchaException error);
 
 /// Callback invoked when the captcha widget fails to load within a timeout.
 ///
@@ -79,7 +79,7 @@ abstract class FluxerCaptcha {
   final CaptchaOptions? options;
 
   /// A controller for managing interactions with the captcha widget.
-  final CaptchaController<dynamic>? controller;
+  final CaptchaController? controller;
 
   /// A callback invoked upon success of the challenge.
   /// The callback is passed a `token` that can be validated.
