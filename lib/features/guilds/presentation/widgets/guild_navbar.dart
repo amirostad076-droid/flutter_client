@@ -16,6 +16,8 @@ import 'package:fluxeron/features/guilds/presentation/'
     'widgets/guild_bottom_sheet.dart';
 import 'package:fluxeron/features/guilds/presentation/'
     'widgets/guild_context_menu.dart';
+import 'package:fluxeron/features/guilds/presentation/'
+    'widgets/guild_drag_wrapper.dart';
 import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxeron/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxeron/features/guilds/providers/guild_voice_provider.dart';
@@ -81,19 +83,27 @@ class GuildNavbar extends ConsumerWidget {
             _SidebarDivider(color: context.colors.backgroundModifierHover),
             for (final item in organizedItems)
               switch (item) {
-                GuildNavbarGuild(:final guild) => _buildGuildItem(
-                  ref,
-                  context,
-                  guild: guild,
-                  activeGuildId: activeGuildId,
-                  currentUserId: currentUserId,
-                  unavailableCount: unavailableCount,
+                GuildNavbarGuild(:final guild) => GuildDragWrapper(
+                  itemId: guild.id,
+                  isFolder: false,
+                  child: _buildGuildItem(
+                    ref,
+                    context,
+                    guild: guild,
+                    activeGuildId: activeGuildId,
+                    currentUserId: currentUserId,
+                    unavailableCount: unavailableCount,
+                  ),
                 ),
-                GuildNavbarFolder() => _GuildFolderWidget(
-                  folder: item,
-                  activeGuildId: activeGuildId,
-                  currentUserId: currentUserId,
-                  unavailableCount: unavailableCount,
+                GuildNavbarFolder(:final id) => GuildDragWrapper(
+                  itemId: id.toString(),
+                  isFolder: true,
+                  child: _GuildFolderWidget(
+                    folder: item,
+                    activeGuildId: activeGuildId,
+                    currentUserId: currentUserId,
+                    unavailableCount: unavailableCount,
+                  ),
                 ),
               },
             _SidebarDivider(color: context.colors.backgroundModifierHover),
@@ -432,23 +442,27 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
         final voiceRows = ref
             .watch(guildVoiceParticipantsProvider(guild.id))
             .value;
-        return _GuildListItem(
-          label: guild.name,
-          guild: guild,
-          isSelected: guild.id == widget.activeGuildId,
-          isOwner: guild.ownerId == widget.currentUserId,
-          iconUrl: guild.iconUrl,
-          isUnavailable: guild.isUnavailable,
-          unavailableCount: widget.unavailableCount,
-          isMuted: muteState?.isMuted ?? false,
-          muteEndTime: muteState?.muteEndTime,
-          voiceActivity: voiceActivity,
-          voiceRows: voiceRows ?? const [],
-          hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
-          mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
-          onTap: () {
-            context.go(RoutePaths.guild(guild.id));
-          },
+        return GuildDragWrapper(
+          itemId: guild.id,
+          isFolder: false,
+          child: _GuildListItem(
+            label: guild.name,
+            guild: guild,
+            isSelected: guild.id == widget.activeGuildId,
+            isOwner: guild.ownerId == widget.currentUserId,
+            iconUrl: guild.iconUrl,
+            isUnavailable: guild.isUnavailable,
+            unavailableCount: widget.unavailableCount,
+            isMuted: muteState?.isMuted ?? false,
+            muteEndTime: muteState?.muteEndTime,
+            voiceActivity: voiceActivity,
+            voiceRows: voiceRows ?? const [],
+            hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
+            mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
+            onTap: () {
+              context.go(RoutePaths.guild(guild.id));
+            },
+          ),
         );
       },
     );
