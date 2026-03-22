@@ -86,6 +86,7 @@ class GuildNavbar extends ConsumerWidget {
                 GuildNavbarGuild(:final guild) => GuildDragWrapper(
                   itemId: guild.id,
                   isFolder: false,
+                  enabled: !guild.isUnavailable,
                   child: _buildGuildItem(
                     ref,
                     context,

@@ -128,7 +128,9 @@ class OrganizedGuildList extends _$OrganizedGuildList {
     final items = [...state];
     final sourceIndex = _findTopLevelIndex(items, sourceId);
     final targetIndex = _findTopLevelIndex(items, targetId);
-    if (sourceIndex == -1 || targetIndex == -1) return;
+    if (sourceIndex == -1 || targetIndex == -1) {
+      return;
+    }
 
     final item = items.removeAt(sourceIndex);
     final adjustedTarget = sourceIndex < targetIndex
@@ -148,7 +150,9 @@ class OrganizedGuildList extends _$OrganizedGuildList {
     final items = [...state];
     final sourceIndex = _findTopLevelIndex(items, sourceGuildId);
     final targetIndex = _findTopLevelIndex(items, targetGuildId);
-    if (sourceIndex == -1 || targetIndex == -1) return;
+    if (sourceIndex == -1 || targetIndex == -1) {
+      return;
+    }
 
     final sourceItem = items[sourceIndex];
     final targetItem = items[targetIndex];
@@ -184,30 +188,69 @@ class OrganizedGuildList extends _$OrganizedGuildList {
 
   void moveIntoFolder({required String guildId, required int folderId}) {
     final items = [...state];
-    final sourceIndex = _findTopLevelIndex(items, guildId);
-    if (sourceIndex == -1) return;
 
-    final sourceItem = items[sourceIndex];
-    if (sourceItem is! GuildNavbarGuild) return;
+    // Check if the guild is inside another folder first.
+    Guild? sourceGuild;
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i];
+      if (item is GuildNavbarFolder) {
+        final guildIndex = item.guilds.indexWhere((g) => g.id == guildId);
+        if (guildIndex != -1) {
+          sourceGuild = item.guilds[guildIndex];
+          final remainingGuilds = [...item.guilds]..removeAt(guildIndex);
+          if (remainingGuilds.isEmpty) {
+            items.removeAt(i);
+          } else if (remainingGuilds.length == 1) {
+            // Dissolve folder into a standalone guild.
+            items[i] = GuildNavbarGuild(guild: remainingGuilds.first);
+          } else {
+            items[i] = GuildNavbarFolder(
+              id: item.id,
+              name: item.name,
+              color: item.color,
+              flags: item.flags,
+              icon: item.icon,
+              guilds: remainingGuilds,
+            );
+          }
+          break;
+        }
+      }
+    }
+
+    // If not found in a folder, look for a top-level guild.
+    if (sourceGuild == null) {
+      final sourceIndex = _findTopLevelIndex(items, guildId);
+      if (sourceIndex == -1) {
+        return;
+      }
+
+      final sourceItem = items[sourceIndex];
+      if (sourceItem is! GuildNavbarGuild) {
+        return;
+      }
+
+      sourceGuild = sourceItem.guild;
+      items.removeAt(sourceIndex);
+    }
 
     final folderIndex = _findTopLevelIndex(items, folderId.toString());
-    if (folderIndex == -1) return;
+    if (folderIndex == -1) {
+      return;
+    }
 
     final folderItem = items[folderIndex];
-    if (folderItem is! GuildNavbarFolder) return;
+    if (folderItem is! GuildNavbarFolder) {
+      return;
+    }
 
-    items.removeAt(sourceIndex);
-    final adjustedFolderIndex = sourceIndex < folderIndex
-        ? folderIndex - 1
-        : folderIndex;
-
-    items[adjustedFolderIndex] = GuildNavbarFolder(
+    items[folderIndex] = GuildNavbarFolder(
       id: folderItem.id,
       name: folderItem.name,
       color: folderItem.color,
       flags: folderItem.flags,
       icon: folderItem.icon,
-      guilds: [...folderItem.guilds, sourceItem.guild],
+      guilds: [...folderItem.guilds, sourceGuild],
     );
 
     state = items;
@@ -223,9 +266,13 @@ class OrganizedGuildList extends _$OrganizedGuildList {
       final item = items[i];
       switch (item) {
         case GuildNavbarGuild(:final guild):
-          if (guild.id == id) return i;
+          if (guild.id == id) {
+            return i;
+          }
         case GuildNavbarFolder():
-          if (item.id.toString() == id) return i;
+          if (item.id.toString() == id) {
+            return i;
+          }
       }
     }
     return -1;

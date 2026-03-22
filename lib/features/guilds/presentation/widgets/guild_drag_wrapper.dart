@@ -20,11 +20,13 @@ class GuildDragWrapper extends ConsumerWidget {
     required this.itemId,
     required this.isFolder,
     required this.child,
+    this.enabled = true,
     super.key,
   });
 
   final String itemId;
   final bool isFolder;
+  final bool enabled;
   final Widget child;
 
   @override
@@ -33,6 +35,105 @@ class GuildDragWrapper extends ConsumerWidget {
     final isHoverTarget = dragState.hoverTargetId == itemId;
     final dropPosition = isHoverTarget ? dragState.dropPosition : null;
     final isMobile = isMobileLayout(context);
+
+    final dragTarget = DragTarget<GuildDragData>(
+      onWillAcceptWithDetails: (details) => details.data.itemId != itemId,
+      onMove: (details) {
+        final renderBox = context.findRenderObject()! as RenderBox;
+        final localOffset = renderBox.globalToLocal(details.offset);
+        final height = renderBox.size.height;
+        final ratio = (localOffset.dy / height).clamp(0.0, 1.0);
+
+        final sourceIsFolder = details.data.isFolder;
+        final DropPosition position;
+
+        if (sourceIsFolder || isFolder) {
+          // Folder: only before/after (50/50 split).
+          position = ratio < 0.5
+              ? DropPosition
+                    .before //
+              : DropPosition.after;
+        } else {
+          // Both guilds: before/combine/after.
+          if (ratio < 0.25) {
+            position = DropPosition.before;
+          } else if (ratio > 0.75) {
+            position = DropPosition.after;
+          } else {
+            position = DropPosition.combine;
+          }
+        }
+
+        ref
+            .read(guildDragProvider.notifier)
+            .updateHover(
+              targetId: itemId,
+              isFolder: isFolder,
+              position: position,
+            );
+      },
+      onLeave: (_) => ref.read(guildDragProvider.notifier).clearHover(),
+      onAcceptWithDetails: (details) {
+        final sourceId = details.data.itemId;
+        final position = ref.read(guildDragProvider).dropPosition;
+        if (position == null) {
+          return;
+        }
+
+        final notifier = ref.read(organizedGuildListProvider.notifier);
+
+        if (position == DropPosition.before || position == DropPosition.after) {
+          notifier.reorder(
+            sourceId: sourceId,
+            targetId: itemId,
+            insertAfter: position == DropPosition.after,
+          );
+        } else if (isFolder) {
+          notifier.moveIntoFolder(
+            guildId: sourceId,
+            folderId: int.parse(itemId),
+          );
+        } else {
+          notifier.combineIntoFolder(
+            sourceGuildId: sourceId,
+            targetGuildId: itemId,
+          );
+        }
+      },
+      builder: (context, candidateData, rejectedData) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (dropPosition == DropPosition.before)
+              _DropIndicatorLine(color: context.colors.brandPrimary),
+            if (dropPosition == DropPosition.combine)
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.colors.brandPrimaryLight.withValues(
+                        alpha: 0.6,
+                      ),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: child,
+              )
+            else
+              child,
+            if (dropPosition == DropPosition.after)
+              _DropIndicatorLine(color: context.colors.brandPrimary),
+          ],
+        );
+      },
+    );
+
+    if (!enabled) {
+      return dragTarget;
+    }
 
     return LongPressDraggable<GuildDragData>(
       data: GuildDragData(itemId: itemId, isFolder: isFolder),
@@ -52,101 +153,7 @@ class GuildDragWrapper extends ConsumerWidget {
         ),
       ),
       childWhenDragging: Opacity(opacity: 0.5, child: child),
-      child: DragTarget<GuildDragData>(
-        onWillAcceptWithDetails: (details) => details.data.itemId != itemId,
-        onMove: (details) {
-          final renderBox = context.findRenderObject()! as RenderBox;
-          final localOffset = renderBox.globalToLocal(details.offset);
-          final height = renderBox.size.height;
-          final ratio = (localOffset.dy / height).clamp(0.0, 1.0);
-
-          final sourceIsFolder = details.data.isFolder;
-          final DropPosition position;
-
-          if (sourceIsFolder || isFolder) {
-            // Folder: only before/after (50/50 split).
-            position = ratio < 0.5
-                ? DropPosition
-                      .before //
-                : DropPosition.after;
-          } else {
-            // Both guilds: before/combine/after.
-            if (ratio < 0.25) {
-              position = DropPosition.before;
-            } else if (ratio > 0.75) {
-              position = DropPosition.after;
-            } else {
-              position = DropPosition.combine;
-            }
-          }
-
-          ref
-              .read(guildDragProvider.notifier)
-              .updateHover(
-                targetId: itemId,
-                isFolder: isFolder,
-                position: position,
-              );
-        },
-        onLeave: (_) => ref.read(guildDragProvider.notifier).clearHover(),
-        onAcceptWithDetails: (details) {
-          final sourceId = details.data.itemId;
-          final position = ref.read(guildDragProvider).dropPosition;
-          if (position == null) {
-            return;
-          }
-
-          final notifier = ref.read(organizedGuildListProvider.notifier);
-
-          if (position == DropPosition.before ||
-              position == DropPosition.after) {
-            notifier.reorder(
-              sourceId: sourceId,
-              targetId: itemId,
-              insertAfter: position == DropPosition.after,
-            );
-          } else if (isFolder) {
-            notifier.moveIntoFolder(
-              guildId: sourceId,
-              folderId: int.parse(itemId),
-            );
-          } else {
-            notifier.combineIntoFolder(
-              sourceGuildId: sourceId,
-              targetGuildId: itemId,
-            );
-          }
-        },
-        builder: (context, candidateData, rejectedData) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (dropPosition == DropPosition.before)
-                _DropIndicatorLine(color: context.colors.brandPrimary),
-              if (dropPosition == DropPosition.combine)
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: context.colors.brandPrimaryLight.withValues(
-                          alpha: 0.6,
-                        ),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: child,
-                )
-              else
-                child,
-              if (dropPosition == DropPosition.after)
-                _DropIndicatorLine(color: context.colors.brandPrimary),
-            ],
-          );
-        },
-      ),
+      child: dragTarget,
     );
   }
 }
