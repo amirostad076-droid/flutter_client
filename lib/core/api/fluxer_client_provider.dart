@@ -46,12 +46,14 @@ Dio fluxerDio(Ref ref) {
   dio.interceptors.add(
     CaptchaInterceptor(
       dio: dio,
-      showCaptchaDialog: ({required String siteKey, required String baseUrl}) =>
-          showCaptchaDialog(
-            navigatorKey: rootNavigatorKey,
-            siteKey: siteKey,
-            baseUrl: baseUrl,
-          ),
+      showCaptchaDialog:
+          ({required provider, required siteKey, required baseUrl}) =>
+              showCaptchaDialog(
+                navigatorKey: rootNavigatorKey,
+                provider: provider,
+                siteKey: siteKey,
+                baseUrl: baseUrl,
+              ),
     ),
   );
 

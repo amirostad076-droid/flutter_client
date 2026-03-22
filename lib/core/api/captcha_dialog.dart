@@ -1,19 +1,21 @@
-import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 import 'package:flutter/material.dart';
+import 'package:fluxer_captcha/fluxer_captcha.dart';
 
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 
-/// Dialog that shows a visible Cloudflare Turnstile captcha widget.
+/// Dialog that shows a visible captcha widget.
 ///
 /// Returns the captcha token via [Navigator.pop] on success, or `null`
 /// if dismissed.
 class CaptchaDialog extends StatelessWidget {
   const CaptchaDialog({
+    required this.provider,
     required this.siteKey,
     required this.baseUrl,
     super.key,
   });
 
+  final CaptchaProvider provider;
   final String siteKey;
   final String baseUrl;
 
@@ -36,10 +38,11 @@ class CaptchaDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            CloudflareTurnstile(
+            FluxerCaptcha(
+              provider: provider,
               siteKey: siteKey,
               baseUrl: baseUrl,
-              options: TurnstileOptions(theme: TurnstileTheme.dark),
+              options: CaptchaOptions(theme: CaptchaTheme.dark),
               onTokenReceived: (token) {
                 Navigator.of(context).pop(token);
               },
@@ -65,6 +68,7 @@ class CaptchaDialog extends StatelessWidget {
 /// Shows a [CaptchaDialog] using the given navigator key and returns the token.
 Future<String?> showCaptchaDialog({
   required GlobalKey<NavigatorState> navigatorKey,
+  required CaptchaProvider provider,
   required String siteKey,
   required String baseUrl,
 }) {
@@ -77,6 +81,7 @@ Future<String?> showCaptchaDialog({
     context: context,
     barrierDismissible: false,
     barrierColor: Colors.black54,
-    builder: (_) => CaptchaDialog(siteKey: siteKey, baseUrl: baseUrl),
+    builder: (_) =>
+        CaptchaDialog(provider: provider, siteKey: siteKey, baseUrl: baseUrl),
   );
 }
