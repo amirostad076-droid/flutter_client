@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kRetryDelay = Duration(seconds: 5);
@@ -41,6 +42,7 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final FluxerLocalizations strings = FluxerLocalizations.of(context);
     return Scaffold(
       backgroundColor: context.colors.backgroundPrimary,
       body: Center(
@@ -54,7 +56,7 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'We fluxed up!',
+              strings.reconnectingTitle,
               style: TextStyle(
                 color: context.colors.textPrimary,
                 fontSize: 28,
@@ -63,8 +65,7 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Something is wrong with the servers.\n'
-              'Should be fixed in a second!',
+              strings.reconnectingBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: context.colors.textPrimaryMuted,

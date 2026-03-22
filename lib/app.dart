@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
+import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxeron/core/theme/fluxer_theme.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxeron/core/theme/providers/theme_preference_provider.dart';
@@ -24,6 +25,8 @@ class FluxeronApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Fluxer',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+      supportedLocales: FluxerLocalizations.supportedLocales,
       theme: buildFluxerTheme(
         colorTheme: themePref.colorTheme,
         textTheme: themePref.textTheme,

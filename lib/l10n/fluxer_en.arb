@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "reconnectingTitle": "We fluxed up!",
+  "@reconnectingTitle": {
+    "description": "Title on the reconnecting / server error screen."
+  },
+  "reconnectingBody": "Something is wrong with the servers.\nShould be fixed in a second!",
+  "@reconnectingBody": {
+    "description": "Subtitle on the reconnecting screen explaining temporary server issues."
+  }
+}

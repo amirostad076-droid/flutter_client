@@ -1,0 +1,8 @@
+arb-dir: lib/l10n
+output-class: FluxerLocalizations
+output-localization-file: fluxer_localizations.dart
+output-dir: lib/l10n/generated
+template-arb-file: fluxer_en.arb
+preferred-supported-locales: ["en"]
+nullable-getter: false
+format: true
