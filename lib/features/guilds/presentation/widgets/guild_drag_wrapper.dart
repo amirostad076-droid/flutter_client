@@ -135,24 +135,47 @@ class GuildDragWrapper extends ConsumerWidget {
       return dragTarget;
     }
 
-    return LongPressDraggable<GuildDragData>(
-      data: GuildDragData(itemId: itemId, isFolder: isFolder),
-      delay: Duration(milliseconds: isMobile ? 500 : 100),
-      onDragStarted: () {
-        unawaited(HapticFeedback.mediumImpact());
-        ref.read(guildDragProvider.notifier).startDrag(itemId);
-      },
-      onDragEnd: (_) => ref.read(guildDragProvider.notifier).endDrag(),
-      onDraggableCanceled: (velocity, offset) =>
-          ref.read(guildDragProvider.notifier).endDrag(),
-      feedback: Transform.scale(
-        scale: 0.9,
-        child: Opacity(
-          opacity: 0.8,
-          child: Material(color: Colors.transparent, child: child),
-        ),
+    final data = GuildDragData(itemId: itemId, isFolder: isFolder);
+    final feedback = Transform.scale(
+      scale: 0.9,
+      child: Opacity(
+        opacity: 0.8,
+        child: Material(color: Colors.transparent, child: child),
       ),
-      childWhenDragging: Opacity(opacity: 0.5, child: child),
+    );
+    final childWhenDragging = Opacity(opacity: 0.5, child: child);
+
+    // Desktop: Draggable (click+move, no delay). The immediate recognizer
+    // wins the gesture arena over the ListView's scroll recognizer because
+    // child recognizers are routed before parent ones.
+    // Mobile: LongPressDraggable (hold 500ms then move) so normal touch
+    // scrolling still works for quick flicks.
+    if (isMobile) {
+      return LongPressDraggable<GuildDragData>(
+        data: data,
+        delay: const Duration(milliseconds: 500),
+        onDragStarted: () {
+          unawaited(HapticFeedback.mediumImpact());
+          ref.read(guildDragProvider.notifier).startDrag(itemId);
+        },
+        onDragEnd: (_) => ref.read(guildDragProvider.notifier).endDrag(),
+        onDraggableCanceled: (_, __) =>
+            ref.read(guildDragProvider.notifier).endDrag(),
+        feedback: feedback,
+        childWhenDragging: childWhenDragging,
+        child: dragTarget,
+      );
+    }
+
+    return Draggable<GuildDragData>(
+      data: data,
+      onDragStarted: () =>
+          ref.read(guildDragProvider.notifier).startDrag(itemId),
+      onDragEnd: (_) => ref.read(guildDragProvider.notifier).endDrag(),
+      onDraggableCanceled: (_, __) =>
+          ref.read(guildDragProvider.notifier).endDrag(),
+      feedback: feedback,
+      childWhenDragging: childWhenDragging,
       child: dragTarget,
     );
   }
