@@ -100,7 +100,8 @@ class CaptchaInterceptor extends Interceptor {
       handler.resolve(retryResponse);
     } on DioException catch (retryError) {
       handler.next(retryError);
-    } on Exception {
+      // ignore: avoid_catches_without_on_clauses, WebView errors aren't Exception subtypes
+    } catch (_) {
       handler.next(err);
     }
   }
@@ -177,10 +178,14 @@ class CaptchaInterceptor extends Interceptor {
       );
       final token = await captcha.getToken();
       return token;
-    } on Exception {
+      // ignore: avoid_catches_without_on_clauses, WebView errors aren't Exception subtypes
+    } catch (_) {
       return null;
     } finally {
-      await captcha?.dispose();
+      try {
+        await captcha?.dispose();
+        // ignore: avoid_catches_without_on_clauses, dispose may fail after renderer crash
+      } catch (_) {}
     }
   }
 
