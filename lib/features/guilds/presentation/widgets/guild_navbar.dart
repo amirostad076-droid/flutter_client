@@ -207,12 +207,11 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
         ? Color(folder.color! | 0xFF000000)
         : context.colors.brandPrimary;
 
-    // Folder surface: accent blended with background to create a visible
-    // tinted panel distinct from the navbar background.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final folderSurface = Color.lerp(
-      context.colors.backgroundSecondaryLighter,
+      context.colors.backgroundSecondary,
       folderColor,
-      0.35,
+      isDark ? 0.2 : 0.15,
     )!;
 
     // Stack: background panel behind header + animated guild list.
