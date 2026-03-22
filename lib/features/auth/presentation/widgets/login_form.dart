@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
+import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class LoginForm extends ConsumerWidget {
@@ -14,6 +15,7 @@ class LoginForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final FluxerLocalizations strings = FluxerLocalizations.of(context);
     final vm = ref.watch(loginViewModelProvider);
     final notifier = ref.read(loginViewModelProvider.notifier);
 
@@ -24,7 +26,7 @@ class LoginForm extends ConsumerWidget {
         children: [
           Center(
             child: Text(
-              'Welcome back',
+              strings.welcomeBack,
               style: TextStyle(
                 color: context.colors.textPrimary,
                 fontSize: 24,
@@ -33,7 +35,7 @@ class LoginForm extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildLabel(context, 'Email'),
+          _buildLabel(context, strings.email),
           const SizedBox(height: 8),
           _buildTextField(
             context,
@@ -43,7 +45,7 @@ class LoginForm extends ConsumerWidget {
             obscure: false,
           ),
           const SizedBox(height: 20),
-          _buildLabel(context, 'Password'),
+          _buildLabel(context, strings.password),
           const SizedBox(height: 8),
           _buildTextField(
             context,
@@ -71,7 +73,7 @@ class LoginForm extends ConsumerWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: Text(
-              'Forgot your password?',
+              strings.forgotPassword,
               style: TextStyle(
                 color: context.colors.textPrimaryMuted,
                 fontSize: 14,
@@ -111,9 +113,9 @@ class LoginForm extends ConsumerWidget {
                         color: context.colors.textPrimary,
                       ),
                     )
-                  : const Text(
-                      'Log in',
-                      style: TextStyle(
+                  : Text(
+                      strings.logIn,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -121,12 +123,12 @@ class LoginForm extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildOrDivider(context),
+          _buildOrDivider(context, strings),
           const SizedBox(height: 16),
           _buildSecondaryButton(
             context,
             icon: PhosphorIconsFill.key,
-            label: 'Log in with a passkey',
+            label: strings.logInWithPasskey,
             onTap: () {},
           ),
           if (showBrowserLogin) ...[
@@ -134,7 +136,7 @@ class LoginForm extends ConsumerWidget {
             _buildSecondaryButton(
               context,
               icon: PhosphorIconsFill.monitor,
-              label: 'Log in via browser',
+              label: strings.logInViaBrowser,
               onTap: () {},
             ),
           ],
@@ -142,7 +144,7 @@ class LoginForm extends ConsumerWidget {
           Row(
             children: [
               Text(
-                'Need an account? ',
+                strings.needAccountPrompt,
                 style: TextStyle(
                   color: context.colors.textPrimaryMuted,
                   fontSize: 14,
@@ -156,7 +158,7 @@ class LoginForm extends ConsumerWidget {
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
-                  'Register',
+                  strings.register,
                   style: TextStyle(
                     color: context.colors.textLink,
                     fontSize: 14,
@@ -196,22 +198,23 @@ class LoginForm extends ConsumerWidget {
     decoration: InputDecoration(suffixIcon: suffixIcon),
   );
 
-  Widget _buildOrDivider(BuildContext context) => Row(
-    children: [
-      Expanded(child: Divider(color: context.colors.borderColor)),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Text(
-          'OR',
-          style: TextStyle(
-            color: context.colors.textPrimaryMuted,
-            fontSize: 12,
+  Widget _buildOrDivider(BuildContext context, FluxerLocalizations strings) =>
+      Row(
+        children: [
+          Expanded(child: Divider(color: context.colors.borderColor)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              strings.orDivider,
+              style: TextStyle(
+                color: context.colors.textPrimaryMuted,
+                fontSize: 12,
+              ),
+            ),
           ),
-        ),
-      ),
-      Expanded(child: Divider(color: context.colors.borderColor)),
-    ],
-  );
+          Expanded(child: Divider(color: context.colors.borderColor)),
+        ],
+      );
 
   Widget _buildSecondaryButton(
     BuildContext context, {

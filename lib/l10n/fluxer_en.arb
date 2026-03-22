@@ -7,5 +7,58 @@
   "reconnectingBody": "Something is wrong with the servers.\nShould be fixed in a second!",
   "@reconnectingBody": {
     "description": "Subtitle on the reconnecting screen explaining temporary server issues."
+  },
+  "splashStartupFailed": "Failed to start: {error}",
+  "@splashStartupFailed": {
+    "description": "Error message on the splash screen when app startup fails.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Generic label for retry actions (splash, errors, network, etc.)."
+  },
+  "welcomeBack": "Welcome back",
+  "@welcomeBack": {
+    "description": "Greeting on the login screen; usable wherever returning users are welcomed."
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Generic label for an email field."
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Generic label for a password field."
+  },
+  "forgotPassword": "Forgot your password?",
+  "@forgotPassword": {
+    "description": "Link or button to start password recovery."
+  },
+  "logIn": "Log in",
+  "@logIn": {
+    "description": "Primary login submit action."
+  },
+  "logInWithPasskey": "Log in with a passkey",
+  "@logInWithPasskey": {
+    "description": "Secondary login using a passkey."
+  },
+  "logInViaBrowser": "Log in via browser",
+  "@logInViaBrowser": {
+    "description": "Secondary login that opens or uses the system browser."
+  },
+  "needAccountPrompt": "Need an account? ",
+  "@needAccountPrompt": {
+    "description": "Lead text before a register link; trailing space keeps spacing before the link."
+  },
+  "register": "Register",
+  "@register": {
+    "description": "Generic label to create a new account."
+  },
+  "orDivider": "OR",
+  "@orDivider": {
+    "description": "Divider between alternative actions (e.g. email login vs SSO)."
   }
 }

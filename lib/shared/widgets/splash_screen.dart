@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -36,6 +37,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final FluxerLocalizations strings = FluxerLocalizations.of(context);
     final startup = ref.watch(appStartupProvider);
 
     return Scaffold(
@@ -87,7 +89,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(
-                  'Failed to start: ${startup.error}',
+                  strings.splashStartupFailed(startup.error.toString()),
                   style: context.textStyles.smallText.copyWith(
                     color: context.colors.textDanger,
                   ),
@@ -102,7 +104,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 style: FilledButton.styleFrom(
                   backgroundColor: context.colors.brandPrimary,
                 ),
-                child: const Text('Retry'),
+                child: Text(strings.retry),
               ),
             ],
           ],

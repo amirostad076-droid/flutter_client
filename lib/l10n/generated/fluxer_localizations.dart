@@ -105,6 +105,78 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Something is wrong with the servers.\nShould be fixed in a second!'**
   String get reconnectingBody;
+
+  /// Error message on the splash screen when app startup fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to start: {error}'**
+  String splashStartupFailed(String error);
+
+  /// Generic label for retry actions (splash, errors, network, etc.).
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// Greeting on the login screen; usable wherever returning users are welcomed.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get welcomeBack;
+
+  /// Generic label for an email field.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// Generic label for a password field.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// Link or button to start password recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your password?'**
+  String get forgotPassword;
+
+  /// Primary login submit action.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get logIn;
+
+  /// Secondary login using a passkey.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in with a passkey'**
+  String get logInWithPasskey;
+
+  /// Secondary login that opens or uses the system browser.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in via browser'**
+  String get logInViaBrowser;
+
+  /// Lead text before a register link; trailing space keeps spacing before the link.
+  ///
+  /// In en, this message translates to:
+  /// **'Need an account? '**
+  String get needAccountPrompt;
+
+  /// Generic label to create a new account.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
+
+  /// Divider between alternative actions (e.g. email login vs SSO).
+  ///
+  /// In en, this message translates to:
+  /// **'OR'**
+  String get orDivider;
 }
 
 class _FluxerLocalizationsDelegate
