@@ -109,10 +109,10 @@ class CaptchaController extends ChangeNotifier
   /// This method can only be called when [widgetId] is not null.
   @override
   Future<void> refreshToken() async {
+    _token = null;
     globalContext
         .getProperty<JSObject>(_jsGlobal.toJS)
         .callMethod('reset'.toJS, _widgetId?.toJS);
-    _token = null;
   }
 
   /// Checks if the captcha widget has expired.

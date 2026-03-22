@@ -136,7 +136,7 @@ class CaptchaException implements Exception {
 
     switch (code) {
       case 'rate-limited':
-        retryable = true;
+        retryable = false;
         errorType = CaptchaError.RATE_LIMITED;
         message = 'The user has been rate limited.';
       case 'network-error':
@@ -161,8 +161,8 @@ class CaptchaException implements Exception {
         errorType = CaptchaError.INITIALIZATION_PROBLEM;
         message = 'The captcha element is missing from the page.';
       case 'invalid-captcha-id':
-        errorType = CaptchaError.INVALID_SITEKEY;
-        message = 'The captcha ID or sitekey is invalid.';
+        errorType = CaptchaError.INVALID_PARAMETERS;
+        message = 'The captcha widget instance ID is invalid.';
       case 'internal-error':
         retryable = true;
         errorType = CaptchaError.INTERNAL_ERROR;

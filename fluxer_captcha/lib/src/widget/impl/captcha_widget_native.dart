@@ -121,6 +121,15 @@ const String _hcaptchaSource = """
 
 """;
 
+String _escapeHtml(String input) {
+  return input
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+}
+
 /// Captcha view builder for Turnstile provider.
 String _buildTurnstileHTML({
   required String siteKey,
@@ -141,11 +150,11 @@ String _buildTurnstileHTML({
   return _turnstileSource.replaceAllMapped(exp, (match) {
     switch (match.group(1)) {
       case 'SITE_KEY':
-        return siteKey;
+        return _escapeHtml(siteKey);
       case 'ACTION':
-        return action ?? '';
+        return _escapeHtml(action ?? '');
       case 'CDATA':
-        return cData ?? '';
+        return _escapeHtml(cData ?? '');
       case 'THEME':
         return options.theme.name;
       case 'SIZE':
@@ -195,7 +204,7 @@ String _buildHCaptchaHTML({
   return _hcaptchaSource.replaceAllMapped(exp, (match) {
     switch (match.group(1)) {
       case 'SITE_KEY':
-        return siteKey;
+        return _escapeHtml(siteKey);
       case 'THEME':
         return options.theme.name;
       case 'SIZE':

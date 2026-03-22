@@ -572,7 +572,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
       },
       onTokenExpired: () {
         onTokenExpired?.call();
-        if (!_completer!.isCompleted) {
+        if (_completer != null && !_completer!.isCompleted) {
           _completer?.complete(null);
         }
       },
