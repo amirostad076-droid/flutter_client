@@ -27,6 +27,8 @@ PODS:
     - Flutter
   - package_info_plus (0.4.5):
     - Flutter
+  - pointer_interceptor_ios (0.0.1):
+    - Flutter
   - sqlite3 (3.52.0):
     - sqlite3/common (= 3.52.0)
   - sqlite3/common (3.52.0)
@@ -85,6 +87,7 @@ DEPENDENCIES:
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
+  - pointer_interceptor_ios (from `.symlinks/plugins/pointer_interceptor_ios/ios`)
   - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
@@ -117,6 +120,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/media_kit_video/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
+  pointer_interceptor_ios:
+    :path: ".symlinks/plugins/pointer_interceptor_ios/ios"
   sqlite3_flutter_libs:
     :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
   url_launcher_ios:
@@ -136,6 +141,7 @@ SPEC CHECKSUMS:
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
+  pointer_interceptor_ios: da06a662d5bfd329602b45b2ab41bc0fb5fdb0f0
   sqlite3: a51c07cf16e023d6c48abd5e5791a61a47354921
   sqlite3_flutter_libs: b3e120efe9a82017e5552a620f696589ed4f62ab
   swift-collections: ba248ecaf44ef500b27d5cf94d304218c89892ff
