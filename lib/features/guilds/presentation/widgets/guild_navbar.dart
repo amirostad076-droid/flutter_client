@@ -515,7 +515,9 @@ class _GuildListItemState extends State<_GuildListItem> {
   var _isHovered = false;
 
   Widget _buildBackupIcon(BuildContext context, {required bool isActive}) {
-    final iconColor = isActive ? Colors.white : context.colors.textPrimary;
+    final iconColor = isActive
+        ? context.colors.textOnBrandPrimary
+        : context.colors.textPrimary;
     return Center(
       child: widget.svgAsset != null
           ? SvgPicture.asset(
@@ -628,7 +630,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                                 ? const Center(
                                     child: PhosphorIcon(
                                       PhosphorIconsRegular.exclamationMark,
-                                      color: Colors.white,
+                                      color: context.colors.textOnBrandPrimary,
                                       size: 32,
                                     ),
                                   )
@@ -1137,8 +1139,8 @@ class _GuildTooltipContent extends StatelessWidget {
               ' temporarily unavailable\n'
               'due to a flux capacitor malfunction.',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: context.colors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -1293,10 +1295,10 @@ class _GuildBadge extends StatelessWidget {
           color: context.colors.brandPrimary,
           shape: BoxShape.circle,
         ),
-        child: const Center(
+        child: Center(
           child: PhosphorIcon(
             PhosphorIconsBold.infinity,
-            color: Colors.white,
+            color: context.colors.textOnBrandPrimary,
             size: 10,
           ),
         ),
@@ -1339,7 +1341,13 @@ class _VoiceActivityBadge extends StatelessWidget {
           width: 3,
         ),
       ),
-      child: Center(child: PhosphorIcon(icon, color: Colors.white, size: 12)),
+      child: Center(
+        child: PhosphorIcon(
+          icon,
+          color: context.colors.textOnBrandPrimary,
+          size: 12,
+        ),
+      ),
     );
   }
 }

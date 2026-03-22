@@ -93,7 +93,7 @@ class NativeTitlebar extends ConsumerWidget {
                     _WindowButton(
                       icon: PhosphorIconsRegular.x,
                       hoverColor: context.colors.textDanger,
-                      hoverIconColor: Colors.white,
+                      hoverIconColor: context.colors.textOnBrandPrimary,
                       onPressed: windowManager.close,
                     ),
                   ],

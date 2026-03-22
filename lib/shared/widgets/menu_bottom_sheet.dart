@@ -341,11 +341,11 @@ class MenuCheckboxItem extends StatelessWidget {
                 color: isChecked ? colors.brandPrimary : Colors.transparent,
               ),
               child: isChecked
-                  ? const Center(
+                  ? Center(
                       child: PhosphorIcon(
                         PhosphorIconsBold.check,
                         size: 12,
-                        color: Colors.white,
+                        color: colors.textOnBrandPrimary,
                       ),
                     )
                   : null,

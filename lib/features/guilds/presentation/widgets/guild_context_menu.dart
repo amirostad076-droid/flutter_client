@@ -742,11 +742,11 @@ class _CheckboxMenuItemState extends State<_CheckboxMenuItem> {
                       : Colors.transparent,
                 ),
                 child: widget.isChecked
-                    ? const Center(
+                    ? Center(
                         child: PhosphorIcon(
                           PhosphorIconsBold.check,
                           size: 12,
-                          color: Colors.white,
+                          color: colors.textOnBrandPrimary,
                         ),
                       )
                     : null,

@@ -210,6 +210,7 @@ class _MessageItemState extends State<MessageItem> {
           lineTop: lineTop,
           lineBottom: lineBottom,
           horizontalEnd: horizontalEnd,
+          color: context.colors.interactiveMuted,
         ),
         child: Padding(
           padding: const EdgeInsets.only(

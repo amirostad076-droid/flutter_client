@@ -222,9 +222,9 @@ class _VideoPlayerState extends State<_VideoPlayer> {
                     color: Colors.black.withValues(alpha: 0.6),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.play_arrow,
-                    color: Colors.white,
+                    color: context.colors.textOnBrandPrimary,
                     size: 28,
                   ),
                 ),
