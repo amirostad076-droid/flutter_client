@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cloudflare_turnstile/cloudflare_turnstile.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:fluxer_captcha/fluxer_captcha.dart';
 
 /// Error codes the Fluxer API returns when captcha verification is needed.
 const _kCaptchaCodes = {'CAPTCHA_REQUIRED', 'INVALID_CAPTCHA'};
@@ -16,10 +16,10 @@ class _CaptchaConfig {
     required this.baseUrl,
   });
 
-  final String provider;
+  final CaptchaProvider provider;
   final String siteKey;
 
-  /// The webapp URL used as the WebView origin so Cloudflare Turnstile
+  /// The webapp URL used as the WebView origin so the captcha provider
   /// recognises the domain against the site key's allowed origins.
   final String baseUrl;
 }
@@ -39,9 +39,10 @@ class CaptchaInterceptor extends Interceptor {
   /// The Dio instance used to retry requests and fetch captcha config.
   final Dio dio;
 
-  /// Callback that shows a visible Turnstile dialog and returns
+  /// Callback that shows a visible captcha dialog and returns
   /// the token. Used as fallback when invisible mode fails.
   final Future<String?> Function({
+    required CaptchaProvider provider,
     required String siteKey,
     required String baseUrl,
   })
@@ -76,10 +77,12 @@ class CaptchaInterceptor extends Interceptor {
       }
 
       var token = await _solveInvisible(
+        provider: config.provider,
         siteKey: config.siteKey,
         baseUrl: config.baseUrl,
       );
       token ??= await showCaptchaDialog(
+        provider: config.provider,
         siteKey: config.siteKey,
         baseUrl: config.baseUrl,
       );
@@ -91,7 +94,7 @@ class CaptchaInterceptor extends Interceptor {
 
       final opts = err.requestOptions;
       opts.headers['X-Captcha-Token'] = token;
-      opts.headers['X-Captcha-Type'] = config.provider;
+      opts.headers['X-Captcha-Type'] = config.provider.name;
 
       final retryResponse = await dio.fetch<dynamic>(opts);
       handler.resolve(retryResponse);
@@ -117,16 +120,20 @@ class CaptchaInterceptor extends Interceptor {
         return null;
       }
 
-      final provider = captcha['provider'] as String? ?? 'none';
-      if (provider == 'none') {
-        return null;
-      }
+      final providerStr = captcha['provider'] as String? ?? 'none';
+      if (providerStr == 'none') return null;
 
+      final CaptchaProvider provider;
       String? siteKey;
-      if (provider == 'turnstile') {
+
+      if (providerStr == 'turnstile') {
+        provider = CaptchaProvider.turnstile;
         siteKey = captcha['turnstile_site_key'] as String?;
-      } else if (provider == 'hcaptcha') {
+      } else if (providerStr == 'hcaptcha') {
+        provider = CaptchaProvider.hcaptcha;
         siteKey = captcha['hcaptcha_site_key'] as String?;
+      } else {
+        return null;
       }
 
       if (siteKey == null || siteKey.isEmpty) {
@@ -150,26 +157,26 @@ class CaptchaInterceptor extends Interceptor {
   }
 
   Future<String?> _solveInvisible({
+    required CaptchaProvider provider,
     required String siteKey,
     required String baseUrl,
   }) async {
     // Invisible mode uses a headless WebView — not available on web.
-    if (kIsWeb) {
-      return null;
-    }
+    if (kIsWeb) return null;
 
-    CloudflareTurnstile? turnstile;
+    FluxerCaptcha? captcha;
     try {
-      turnstile = CloudflareTurnstile.invisible(
+      captcha = FluxerCaptcha.invisible(
+        provider: provider,
         siteKey: siteKey,
         baseUrl: baseUrl,
       );
-      final token = await turnstile.getToken();
+      final token = await captcha.getToken();
       return token;
     } on Exception {
       return null;
     } finally {
-      await turnstile?.dispose();
+      await captcha?.dispose();
     }
   }
 
