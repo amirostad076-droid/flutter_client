@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -156,7 +157,7 @@ String _buildTurnstileHTML({
       case 'CDATA':
         return _escapeHtml(cData ?? '');
       case 'THEME':
-        return options.theme.name;
+        return _resolveTheme(options);
       case 'SIZE':
         return options.size.name;
       case 'LANGUAGE':
@@ -206,7 +207,7 @@ String _buildHCaptchaHTML({
       case 'SITE_KEY':
         return _escapeHtml(siteKey);
       case 'THEME':
-        return options.theme.name;
+        return _resolveTheme(options);
       case 'SIZE':
         return sizeValue;
       case 'TOKEN_RECEIVED':
@@ -221,6 +222,17 @@ String _buildHCaptchaHTML({
         return match.group(0) ?? '';
     }
   });
+}
+
+/// Resolves `auto` theme to `light` or `dark` using platform brightness.
+///
+/// hCaptcha does not support `auto` — it must always be resolved.
+/// Turnstile supports `auto` natively, but we resolve it here too for
+/// consistency (matching the original cloudflare_turnstile behavior).
+String _resolveTheme(CaptchaOptions options) {
+  if (options.theme != CaptchaTheme.auto) return options.theme.name;
+  final brightness = PlatformDispatcher.instance.platformBrightness;
+  return brightness == Brightness.dark ? 'dark' : 'light';
 }
 
 /// Build HTML for the given captcha [provider].

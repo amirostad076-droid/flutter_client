@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
+import 'dart:ui';
 import 'dart:ui_web' as ui;
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,13 @@ import 'package:fluxer_captcha/src/controller/impl/captcha_controller_web.dart'
 import 'package:fluxer_captcha/src/widget/captcha_options.dart';
 import 'package:fluxer_captcha/src/widget/interface.dart' as i;
 import 'package:web/web.dart' as web;
+
+/// Resolves `auto` theme to `light` or `dark` using platform brightness.
+String _resolveTheme(CaptchaOptions options) {
+  if (options.theme != CaptchaTheme.auto) return options.theme.name;
+  final brightness = PlatformDispatcher.instance.platformBrightness;
+  return brightness == Brightness.dark ? 'dark' : 'light';
+}
 
 class _DartCaptcha {
   const _DartCaptcha({
@@ -83,7 +91,7 @@ class _DartCaptcha {
       ..style.width = '100%'
       ..style.height = '100%'
       ..setAttribute('data-sitekey', siteKey)
-      ..setAttribute('data-theme', options.theme.name)
+      ..setAttribute('data-theme', _resolveTheme(options))
       ..setAttribute('data-size', options.size.name)
       ..setAttribute('data-callback', 'onCaptchaTokenReceived')
       ..setAttribute('data-expired-callback', 'onCaptchaTokenExpired')
