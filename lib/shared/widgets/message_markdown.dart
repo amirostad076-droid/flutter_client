@@ -195,10 +195,6 @@ List<_Segment> _parseSegments(String text) {
 
 String _sanitizeFluxerTags(String text) => text
     .replaceAllMapped(
-      RegExp(r'<@&(\d+)>'),
-      (m) => '@role', // TODO: render as role mention
-    )
-    .replaceAllMapped(
       RegExp(r'<@!?(\d+)>'),
       (m) => '@user', // TODO: render as user mention
     );
@@ -301,6 +297,8 @@ class MessageMarkdown extends StatelessWidget {
       selectable: selectable,
       inlineSyntaxes: [
         _ChannelMentionSyntax(),
+        _RoleMentionSyntax(),
+        _EveryoneMentionSyntax(),
         _TimestampSyntax(),
         _SpoilerSyntax(),
         _UnicodeEmojiSyntax(),
@@ -308,6 +306,8 @@ class MessageMarkdown extends StatelessWidget {
       ],
       builders: {
         _ChannelMentionSyntax.tag: _ChannelMentionBuilder(baseStyle: style),
+        _RoleMentionSyntax.tag: _RoleMentionBuilder(baseStyle: style),
+        _EveryoneMentionSyntax.tag: _EveryoneMentionBuilder(baseStyle: style),
         _TimestampSyntax.tag: _TimestampBuilder(baseStyle: style),
         _SpoilerSyntax.tag: _SpoilerBuilder(),
         _UnicodeEmojiSyntax.tag: _EmojiBuilder(
@@ -367,6 +367,63 @@ class _ChannelMentionBuilder extends MarkdownElementBuilder {
     channelId: element.textContent,
     baseStyle: baseStyle,
   );
+}
+
+/// Parses plain-text `@everyone` and `@here` mentions.
+class _EveryoneMentionSyntax extends md.InlineSyntax {
+  _EveryoneMentionSyntax() : super(r'@(everyone|here)');
+
+  static const tag = 'mention-everyone';
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final el = md.Element.text(tag, '@${match[1]}');
+    parser.addNode(el);
+    return true;
+  }
+}
+
+class _EveryoneMentionBuilder extends MarkdownElementBuilder {
+  _EveryoneMentionBuilder({required this.baseStyle});
+
+  final TextStyle baseStyle;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) => TextMention(label: element.textContent, baseStyle: baseStyle);
+}
+
+/// Parses `<@&roleId>` role mention tags.
+class _RoleMentionSyntax extends md.InlineSyntax {
+  _RoleMentionSyntax() : super(r'<@&(\d+)>');
+
+  static const tag = 'mention-role';
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final id = match[1];
+    if (id == null) return false;
+    parser.addNode(md.Element.text(tag, id));
+    return true;
+  }
+}
+
+class _RoleMentionBuilder extends MarkdownElementBuilder {
+  _RoleMentionBuilder({required this.baseStyle});
+
+  final TextStyle baseStyle;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) => RoleMention(roleId: element.textContent, baseStyle: baseStyle);
 }
 
 /// Parses `<t:unix:flag>` timestamp tags.

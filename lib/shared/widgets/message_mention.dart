@@ -5,6 +5,7 @@ import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxeron/features/channels/providers/channel_providers.dart';
+import 'package:fluxeron/features/guilds/providers/role_providers.dart';
 import 'package:go_router/go_router.dart';
 
 class ChannelMention extends ConsumerWidget {
@@ -68,20 +69,51 @@ class TextMention extends StatelessWidget {
 }
 
 class _MentionPill extends StatelessWidget {
-  const _MentionPill({required this.child});
+  const _MentionPill({required this.child, this.color});
 
   final Widget child;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     return Container(
       decoration: BoxDecoration(
-        color: colors.markupMentionFill,
+        color: color ?? colors.markupMentionFill,
         borderRadius: BorderRadius.circular(3),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
       child: child,
+    );
+  }
+}
+
+
+class RoleMention extends ConsumerWidget {
+  const RoleMention({required this.roleId, this.baseStyle, super.key});
+
+  final String roleId;
+  final TextStyle? baseStyle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(roleByIdProvider(roleId));
+    final colors = context.colors;
+    final role = async.value;
+
+    final hasColor = (role?.color ?? 0) != 0;
+    final roleColor = hasColor ? Color(role!.color | 0xFF000000) : null;
+    // 0.1 opacity fill matching web app
+    final fillColor = roleColor?.withValues(alpha: 0.1);
+
+    final style = (baseStyle ?? const TextStyle()).copyWith(
+      color: roleColor ?? colors.markupMentionText,
+      fontWeight: FontWeight.w500,
+    );
+
+    return _MentionPill(
+      color: fillColor,
+      child: Text('@${role?.name ?? roleId}', style: style),
     );
   }
 }

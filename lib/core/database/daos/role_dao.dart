@@ -21,6 +21,9 @@ class RoleDao extends DatabaseAccessor<FluxerDatabase> with _$RoleDaoMixin {
             ..orderBy([(r) => OrderingTerm.desc(r.position)]))
           .watch();
 
+  Future<Role?> getRoleById(String id) =>
+      (select(roles)..where((r) => r.id.equals(id))).getSingleOrNull();
+
   Future<void> upsertRoles(List<RolesCompanion> roleList) async {
     await batch((b) {
       for (final role in roleList) {
