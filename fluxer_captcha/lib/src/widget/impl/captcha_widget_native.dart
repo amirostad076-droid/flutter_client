@@ -110,6 +110,7 @@ const String _hcaptchaSource = """
                  }
               });
               <CAPTCHA_CREATED>
+              <CAPTCHA_EXECUTE>
           }
       }
    </script>
@@ -192,14 +193,22 @@ String _buildHCaptchaHTML({
   required String onCaptchaError,
   required String onTokenExpired,
   required String onWidgetCreated,
+  bool isInvisible = false,
 }) {
+  // hCaptcha invisible mode requires size='invisible'.
   // hCaptcha does not support 'flexible' size; map to 'normal'.
-  final sizeValue =
-      options.size == CaptchaSize.flexible ? 'normal' : options.size.name;
+  final String sizeValue;
+  if (isInvisible) {
+    sizeValue = 'invisible';
+  } else if (options.size == CaptchaSize.flexible) {
+    sizeValue = 'normal';
+  } else {
+    sizeValue = options.size.name;
+  }
 
   final exp = RegExp(
     '<CAPTCHA_(SITE_KEY|THEME|SIZE'
-    '|TOKEN_RECEIVED|ERROR|TOKEN_EXPIRED|CREATED)>',
+    '|TOKEN_RECEIVED|ERROR|TOKEN_EXPIRED|CREATED|EXECUTE)>',
   );
 
   return _hcaptchaSource.replaceAllMapped(exp, (match) {
@@ -218,6 +227,11 @@ String _buildHCaptchaHTML({
         return onTokenExpired;
       case 'CREATED':
         return onWidgetCreated;
+      case 'EXECUTE':
+        // hCaptcha invisible mode requires explicit execute() after render.
+        return isInvisible
+            ? 'hcaptcha.execute(widgetId, { async: false });'
+            : '';
       default:
         return match.group(0) ?? '';
     }
@@ -246,6 +260,7 @@ String buildHTML({
   required String onWidgetCreated,
   String? action,
   String? cData,
+  bool isInvisible = false,
 }) {
   return switch (provider) {
     CaptchaProvider.turnstile => _buildTurnstileHTML(
@@ -264,6 +279,7 @@ String buildHTML({
         onTokenReceived: onTokenReceived,
         onCaptchaError: onCaptchaError,
         onTokenExpired: onTokenExpired,
+        isInvisible: isInvisible,
         onWidgetCreated: onWidgetCreated,
       ),
   };
@@ -792,6 +808,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
       action: action,
       cData: cData,
       options: options!,
+      isInvisible: true,
       onTokenReceived: _tokenReceivedJSHandler,
       onCaptchaError: _errorJSHandler,
       onTokenExpired: _tokenExpiredJSHandler,
@@ -896,6 +913,10 @@ class _CaptchaInvisible extends FluxerCaptcha {
     _scriptLoadTimer = Timer(const Duration(milliseconds: 8000), () {
       if (!_isRendered) {
         onTimeout?.call();
+        // Complete with null so the caller can fall back to visible mode.
+        if (_completer != null && !_completer!.isCompleted) {
+          _completer!.complete(null);
+        }
       }
     });
 
