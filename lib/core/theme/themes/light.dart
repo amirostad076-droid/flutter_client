@@ -226,6 +226,9 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
     // Markup
     markupMentionText: textLink,
     markupMentionFill: textLink.withValues(alpha: 0.2),
+    markupMentionBorder: textLink.withValues(alpha: 0.4),
+    markupJumpLinkFill: textLink.withValues(alpha: 0.08),
+    markupJumpLinkHoverFill: textLink.withValues(alpha: 0.15),
     markupInteractiveHoverText: textLink,
     markupInteractiveHoverFill: textLink.withValues(alpha: 0.3),
 

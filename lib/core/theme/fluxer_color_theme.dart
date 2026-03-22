@@ -65,6 +65,9 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     // Markup
     required this.markupMentionText,
     required this.markupMentionFill,
+    required this.markupMentionBorder,
+    required this.markupJumpLinkFill,
+    required this.markupJumpLinkHoverFill,
     required this.markupInteractiveHoverText,
     required this.markupInteractiveHoverFill,
     // Button
@@ -193,6 +196,9 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   // Markup
   final Color markupMentionText;
   final Color markupMentionFill;
+  final Color markupMentionBorder;
+  final Color markupJumpLinkFill;
+  final Color markupJumpLinkHoverFill;
   final Color markupInteractiveHoverText;
   final Color markupInteractiveHoverFill;
 
@@ -320,6 +326,9 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     // Markup
     Color? markupMentionText,
     Color? markupMentionFill,
+    Color? markupMentionBorder,
+    Color? markupJumpLinkFill,
+    Color? markupJumpLinkHoverFill,
     Color? markupInteractiveHoverText,
     Color? markupInteractiveHoverFill,
     // Button
@@ -452,6 +461,10 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       // Markup
       markupMentionText: markupMentionText ?? this.markupMentionText,
       markupMentionFill: markupMentionFill ?? this.markupMentionFill,
+      markupMentionBorder: markupMentionBorder ?? this.markupMentionBorder,
+      markupJumpLinkFill: markupJumpLinkFill ?? this.markupJumpLinkFill,
+      markupJumpLinkHoverFill:
+          markupJumpLinkHoverFill ?? this.markupJumpLinkHoverFill,
       markupInteractiveHoverText:
           markupInteractiveHoverText ?? this.markupInteractiveHoverText,
       markupInteractiveHoverFill:
@@ -699,6 +712,21 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       markupMentionFill: Color.lerp(
         markupMentionFill,
         other.markupMentionFill,
+        t,
+      )!,
+      markupMentionBorder: Color.lerp(
+        markupMentionBorder,
+        other.markupMentionBorder,
+        t,
+      )!,
+      markupJumpLinkFill: Color.lerp(
+        markupJumpLinkFill,
+        other.markupJumpLinkFill,
+        t,
+      )!,
+      markupJumpLinkHoverFill: Color.lerp(
+        markupJumpLinkHoverFill,
+        other.markupJumpLinkHoverFill,
         t,
       )!,
       markupInteractiveHoverText: Color.lerp(

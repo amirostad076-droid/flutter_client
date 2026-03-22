@@ -7,7 +7,10 @@ import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/core/utils/channel_jump_link.dart';
+import 'package:go_router/go_router.dart';
 import 'package:highlight/highlight.dart' show highlight, Mode;
 import 'package:highlight/languages/bash.dart';
 import 'package:highlight/languages/cpp.dart';
@@ -256,6 +259,7 @@ class MessageMarkdown extends StatelessWidget {
         sheet,
         isDark,
         style,
+        context,
       );
     }
 
@@ -268,10 +272,11 @@ class MessageMarkdown extends StatelessWidget {
             sheet,
             isDark,
             style,
+            context,
           ),
           _AlertSegment(:final type, :final body) => MessageAlert(
             type: type,
-            bodyWidget: _buildMarkdown(body, sheet, isDark, style),
+            bodyWidget: _buildMarkdown(body, sheet, isDark, style, context),
             baseStyle: style,
           ),
         };
@@ -284,6 +289,7 @@ class MessageMarkdown extends StatelessWidget {
     MarkdownStyleSheet sheet,
     bool isDark,
     TextStyle style,
+    BuildContext context,
   ) {
     final jumbo = isJumboEmoji(text);
     return MarkdownBody(
@@ -291,6 +297,7 @@ class MessageMarkdown extends StatelessWidget {
       styleSheet: sheet,
       selectable: selectable,
       inlineSyntaxes: [
+        _JumpLinkSyntax(),
         _UserMentionSyntax(),
         _ChannelMentionSyntax(),
         _RoleMentionSyntax(),
@@ -301,6 +308,7 @@ class MessageMarkdown extends StatelessWidget {
         _CustomEmojiSyntax(),
       ],
       builders: {
+        _JumpLinkSyntax.tag: _JumpLinkBuilder(baseStyle: style),
         _UserMentionSyntax.tag: _UserMentionBuilder(
           baseStyle: style,
           channelId: channelId,
@@ -321,18 +329,22 @@ class MessageMarkdown extends StatelessWidget {
         'code': _CodeBlockBuilder(isDark: isDark, baseStyle: style),
       },
       extensionSet: md.ExtensionSet.gitHubFlavored,
-      onTapLink: (_, href, _) => _onTapLink(href),
+      onTapLink: (_, href, _) => _onTapLink(href, context),
     );
   }
 
-  void _onTapLink(String? href) {
-    if (href == null) {
+  void _onTapLink(String? href, BuildContext context) {
+    if (href == null) return;
+    final jump = parseChannelJumpLink(href);
+    if (jump != null) {
+      final path = jump.isDm
+          ? RoutePaths.dmChannel(jump.channelId)
+          : RoutePaths.guildChannel(jump.scope, jump.channelId);
+      context.go(path);
       return;
     }
     final uri = Uri.tryParse(href);
-    if (uri == null) {
-      return;
-    }
+    if (uri == null) return;
     unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
   }
 }
@@ -828,5 +840,42 @@ class _EmojiBuilder extends MarkdownElementBuilder {
         errorBuilder: (_, __, ___) => Text(':$name:'),
       ),
     );
+  }
+}
+
+class _JumpLinkSyntax extends md.InlineSyntax {
+  _JumpLinkSyntax()
+      : super(
+          r'https?://(?:canary\.)?fluxer\.app/channels/'
+          r'(?:@me|\d{15,21})/\d{15,21}(?:/\d{15,21})?',
+        );
+
+  static const tag = 'jump-link';
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final url = match[0]!;
+    final el = md.Element.text(tag, url)..attributes['href'] = url;
+    parser.addNode(el);
+    return true;
+  }
+}
+
+class _JumpLinkBuilder extends MarkdownElementBuilder {
+  _JumpLinkBuilder({required this.baseStyle});
+
+  final TextStyle baseStyle;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final url = element.attributes['href'] ?? element.textContent;
+    final link = parseChannelJumpLink(url);
+    if (link == null) return null;
+    return ChannelJumpLinkMention(link: link, baseStyle: baseStyle);
   }
 }

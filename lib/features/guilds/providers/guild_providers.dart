@@ -1,6 +1,7 @@
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/features/guilds/data/guild_repository.dart';
+import 'package:fluxeron/features/guilds/domain/guild.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'guild_providers.g.dart';
@@ -10,4 +11,11 @@ GuildRepository guildRepository(Ref ref) {
   final client = ref.watch(fluxerClientProvider);
   final db = ref.watch(fluxerDatabaseProvider);
   return GuildRepository(client, db);
+}
+
+@riverpod
+Future<Guild?> guildById(Ref ref, String id) async {
+  final db = ref.watch(fluxerDatabaseProvider);
+  final row = await db.guildDao.getServerById(id);
+  return row == null ? null : Guild.fromRow(row);
 }

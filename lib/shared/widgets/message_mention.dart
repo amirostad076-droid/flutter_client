@@ -1,3 +1,4 @@
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/database/fluxer_database.dart';
@@ -5,11 +6,14 @@ import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/router/route_state_providers.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/core/utils/channel_jump_link.dart';
 import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxeron/features/channels/providers/channel_providers.dart';
+import 'package:fluxeron/features/guilds/domain/guild.dart';
 import 'package:fluxeron/features/guilds/providers/role_providers.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ChannelMention extends ConsumerWidget {
   const ChannelMention({required this.channelId, this.baseStyle, super.key});
@@ -72,20 +76,24 @@ class TextMention extends StatelessWidget {
 }
 
 class _MentionPill extends StatelessWidget {
-  const _MentionPill({required this.child, this.color});
+  const _MentionPill({required this.child, this.fillColor});
 
   final Widget child;
-  final Color? color;
+  final Color? fillColor;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     return Container(
       decoration: BoxDecoration(
-        color: color ?? colors.markupMentionFill,
-        borderRadius: BorderRadius.circular(3),
+        color: fillColor ?? colors.markupMentionFill,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: colors.markupMentionBorder,
+          width: 1,
+        ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 3.2),
       child: child,
     );
   }
@@ -174,8 +182,178 @@ class RoleMention extends ConsumerWidget {
     );
 
     return _MentionPill(
-      color: fillColor,
+      fillColor: fillColor,
       child: Text('@${role?.name ?? roleId}', style: style),
+    );
+  }
+}
+
+final _guildByIdProvider =
+    FutureProvider.autoDispose.family<Guild?, String>((ref, id) async {
+  final db = ref.watch(fluxerDatabaseProvider);
+  final row = await db.guildDao.getServerById(id);
+  return row == null ? null : Guild.fromRow(row);
+});
+
+class ChannelJumpLinkMention extends ConsumerWidget {
+  const ChannelJumpLinkMention({
+    required this.link,
+    this.baseStyle,
+    super.key,
+  });
+
+  final ChannelJumpLink link;
+  final TextStyle? baseStyle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final channelAsync = ref.watch(channelByIdProvider(link.channelId));
+    final guildAsync = link.isDm
+        ? null
+        : ref.watch(_guildByIdProvider(link.scope));
+
+    final channel = channelAsync.value;
+    final guild = guildAsync?.value;
+
+    final colors = context.colors;
+    final style = (baseStyle ?? const TextStyle()).copyWith(
+      color: colors.markupMentionText,
+      fontWeight: FontWeight.w500,
+    );
+    final iconSize = (style.fontSize ?? 14) * 0.9;
+
+    return _JumpLinkPill(
+      onTap: channel == null
+          ? null
+          : () => context.go(
+              RoutePaths.guildChannel(link.scope, link.channelId),
+            ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (guild != null) ...[
+            _GuildIcon(guild: guild, size: iconSize),
+            SizedBox(width: iconSize * 0.2),
+            Text(guild.name, style: style),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: iconSize * 0.1),
+              child: PhosphorIcon(
+                PhosphorIconsBold.caretRight,
+                size: iconSize * 0.6,
+                color: colors.markupMentionText,
+              ),
+            ),
+          ],
+          ChannelIcon(
+            type: channel?.type ?? ChannelType.text,
+            size: iconSize,
+            color: colors.markupMentionText,
+          ),
+          SizedBox(width: iconSize * 0.2),
+          Text(
+            channel?.name ?? link.channelId,
+            style: style,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _JumpLinkPill extends StatefulWidget {
+  const _JumpLinkPill({required this.child, this.onTap});
+
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  State<_JumpLinkPill> createState() => _JumpLinkPillState();
+}
+
+class _JumpLinkPillState extends State<_JumpLinkPill> {
+  var _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 50),
+          decoration: BoxDecoration(
+            color: _hovered
+                ? colors.markupJumpLinkHoverFill
+                : colors.markupJumpLinkFill,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: colors.markupMentionBorder,
+              width: 1,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 3.2),
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
+class _GuildIcon extends StatelessWidget {
+  const _GuildIcon({required this.guild, required this.size});
+
+  final Guild guild;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = guild.iconUrl;
+    if (url != null) {
+      return ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: url,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _GuildInitials(guild: guild, size: size),
+        ),
+      );
+    }
+    return _GuildInitials(guild: guild, size: size);
+  }
+}
+
+class _GuildInitials extends StatelessWidget {
+  const _GuildInitials({required this.guild, required this.size});
+
+  final Guild guild;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = guild.name.isNotEmpty
+        ? guild.name[0].toUpperCase()
+        : '?';
+    final colors = context.colors;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: colors.backgroundSecondary,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        initial,
+        style: TextStyle(
+          fontSize: size * 0.6,
+          fontWeight: FontWeight.w700,
+          color: colors.markupMentionText,
+          height: 1,
+        ),
+      ),
     );
   }
 }
