@@ -1,6 +1,3 @@
 [submodule "dart_sdk"]
 	path = dart_sdk
 	url = https://github.com/fluxerapp/dart_sdk.git
-[submodule "cloudflare_turnstile"]
-	path = cloudflare_turnstile
-	url = https://github.com/M0n7y5/cloudflare_turnstile.git
