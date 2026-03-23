@@ -590,18 +590,21 @@ class _CaptchaInvisible extends FluxerCaptcha {
 
   late web.HTMLDivElement _widget;
   late String _iframeViewType;
-  Completer<dynamic>? _completer;
+  Completer<String?>? _completer;
   Timer? _scriptLoadTimer;
 
   @override
   Future<String?> getToken() async {
+    if (_completer != null && !_completer!.isCompleted) {
+      return _completer!.future;
+    }
     _completer = Completer<String?>();
 
     if (token != null) {
       await controller?.refreshToken();
     }
 
-    return _completer!.future as Future<String?>;
+    return _completer!.future;
   }
 
   @override
@@ -614,6 +617,10 @@ class _CaptchaInvisible extends FluxerCaptcha {
 
   @override
   Future<void> refresh({bool forceRefresh = true}) async {
+    if (_completer != null && !_completer!.isCompleted) {
+      await _completer!.future;
+      return;
+    }
     if (!controller!.isWidgetReady || forceRefresh) {
       await getToken();
     } else if (controller!.isWidgetReady) {
@@ -623,13 +630,12 @@ class _CaptchaInvisible extends FluxerCaptcha {
         if (!await controller!.isExpired()) {
           if (!_completer!.isCompleted) {
             _completer?.complete(token);
-            return _completer!.future;
+            return;
           }
         }
       }
 
       await controller?.refreshToken();
-      return _completer!.future;
     }
   }
 
