@@ -21,101 +21,119 @@ class LoginScreen extends StatelessWidget {
     return _buildDesktopLayout(context);
   }
 
-  Widget _buildDesktopLayout(BuildContext context) => Scaffold(
-    backgroundColor: context.colors.brandPrimary,
-    body: Stack(
-      children: [
-        const Positioned.fill(child: _TiledPatternBackground()),
-        Center(
-          child: Container(
-            width: 800,
-            margin: const EdgeInsets.all(20),
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: context.colors.backgroundSecondary,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  spreadRadius: 8,
-                  blurRadius: 24,
-                ),
-              ],
-            ),
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: ColoredBox(
-                      color: context.colors.backgroundSecondary,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SvgPicture.asset(
-                            Assets.fluxerLogoColor,
-                            width: 128,
-                            height: 128,
-                          ),
-                          const SizedBox(height: 16),
-                          SvgPicture.asset(
-                            Assets.fluxerLogoText,
-                            height: 36,
-                            colorFilter: ColorFilter.mode(
-                              context.colors.textPrimary,
-                              BlendMode.srcIn,
+  Widget _buildDesktopLayout(BuildContext context) {
+    final layout = context.layout;
+
+    return Scaffold(
+      backgroundColor: context.colors.brandPrimary,
+      body: Stack(
+        children: [
+          const Positioned.fill(child: _TiledPatternBackground()),
+          Center(
+            child: Container(
+              width: 800,
+              margin: EdgeInsets.all(layout.s5),
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: context.colors.backgroundSecondary,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    spreadRadius: 8,
+                    blurRadius: 24,
+                  ),
+                ],
+              ),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: ColoredBox(
+                        color: context.colors.backgroundSecondary,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.fluxerLogoColor,
+                              width: 128,
+                              height: 128,
                             ),
-                          ),
-                        ],
+                            SizedBox(height: layout.s4),
+                            SvgPicture.asset(
+                              Assets.fluxerLogoText,
+                              height: 36,
+                              colorFilter: ColorFilter.mode(
+                                context.colors.textPrimary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                    VerticalDivider(
+                      color: context.colors.borderColor,
+                      width: 1,
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(layout.s8),
+                        child: const LoginForm(showBrowserLogin: true),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context) {
+    final layout = context.layout;
+
+    return Scaffold(
+      backgroundColor: context.colors.backgroundSecondary,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: layout.s6,
+            vertical: layout.s8,
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    Assets.fluxerLogoColor,
+                    width: 36,
+                    height: 36,
                   ),
-                  VerticalDivider(color: context.colors.borderColor, width: 1),
-                  const Expanded(
-                    flex: 2,
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.all(32),
-                      child: LoginForm(showBrowserLogin: true),
+                  SizedBox(width: layout.s2),
+                  SvgPicture.asset(
+                    Assets.fluxerLogoText,
+                    height: 24,
+                    colorFilter: ColorFilter.mode(
+                      context.colors.textPrimary,
+                      BlendMode.srcIn,
                     ),
                   ),
                 ],
               ),
-            ),
+              SizedBox(height: layout.s6),
+              const LoginForm(showBrowserLogin: false),
+            ],
           ),
         ),
-      ],
-    ),
-  );
-
-  Widget _buildMobileLayout(BuildContext context) => Scaffold(
-    backgroundColor: context.colors.backgroundSecondary,
-    body: SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.asset(Assets.fluxerLogoColor, width: 36, height: 36),
-                const SizedBox(width: 8),
-                SvgPicture.asset(
-                  Assets.fluxerLogoText,
-                  height: 24,
-                  colorFilter: ColorFilter.mode(
-                    context.colors.textPrimary,
-                    BlendMode.srcIn,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            const LoginForm(showBrowserLogin: false),
-          ],
-        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _TiledPatternBackground extends StatefulWidget {

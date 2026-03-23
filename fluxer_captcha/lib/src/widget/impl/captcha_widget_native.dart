@@ -707,8 +707,6 @@ class _CaptchaInvisible extends FluxerCaptcha {
       (controller! as native_ctrl.CaptchaController).provider = provider;
     }
 
-    _completer = Completer<String?>();
-
     final data = buildHTML(
       provider: provider,
       siteKey: siteKey,
@@ -744,7 +742,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
           return;
         }
         controller?.error = CaptchaException(error.description);
-        if (!_completer!.isCompleted) {
+        if (_completer != null && !_completer!.isCompleted) {
           _completer?.completeError(error);
         }
       },
@@ -765,7 +763,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
           final token = args[0] as String;
           controller?.token = token;
           onTokenReceived?.call(token);
-          if (!_completer!.isCompleted) {
+          if (_completer != null && !_completer!.isCompleted) {
             _completer?.complete(token);
           }
         },
@@ -780,7 +778,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
             CaptchaProvider.hcaptcha => CaptchaException.fromHCaptchaCode(code),
           };
 
-          if (!_completer!.isCompleted) {
+          if (_completer != null && !_completer!.isCompleted) {
             _completer?.completeError(error);
           }
         },
@@ -797,7 +795,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
         handlerName: 'TokenExpired',
         callback: (List<dynamic> message) {
           onTokenExpired?.call();
-          if (!_completer!.isCompleted) {
+          if (_completer != null && !_completer!.isCompleted) {
             _completer?.complete(null);
           }
         },

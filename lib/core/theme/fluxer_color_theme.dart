@@ -67,11 +67,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     required this.markupMentionText,
     required this.markupMentionFill,
     required this.markupMentionBorder,
-    required this.markupJumpLinkFill,
-    required this.markupJumpLinkHoverFill,
     required this.markupInteractiveHoverText,
     required this.markupInteractiveHoverFill,
-    required this.markupMentionBorder,
     required this.markupJumpLinkText,
     required this.markupJumpLinkFill,
     required this.markupJumpLinkHoverFill,
@@ -226,11 +223,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   final Color markupMentionText;
   final Color markupMentionFill;
   final Color markupMentionBorder;
-  final Color markupJumpLinkFill;
-  final Color markupJumpLinkHoverFill;
   final Color markupInteractiveHoverText;
   final Color markupInteractiveHoverFill;
-  final Color markupMentionBorder;
   final Color markupJumpLinkText;
   final Color markupJumpLinkFill;
   final Color markupJumpLinkHoverFill;
@@ -387,11 +381,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     Color? markupMentionText,
     Color? markupMentionFill,
     Color? markupMentionBorder,
-    Color? markupJumpLinkFill,
-    Color? markupJumpLinkHoverFill,
     Color? markupInteractiveHoverText,
     Color? markupInteractiveHoverFill,
-    Color? markupMentionBorder,
     Color? markupJumpLinkText,
     Color? markupJumpLinkFill,
     Color? markupJumpLinkHoverFill,
@@ -550,14 +541,10 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       markupMentionText: markupMentionText ?? this.markupMentionText,
       markupMentionFill: markupMentionFill ?? this.markupMentionFill,
       markupMentionBorder: markupMentionBorder ?? this.markupMentionBorder,
-      markupJumpLinkFill: markupJumpLinkFill ?? this.markupJumpLinkFill,
-      markupJumpLinkHoverFill:
-          markupJumpLinkHoverFill ?? this.markupJumpLinkHoverFill,
       markupInteractiveHoverText:
           markupInteractiveHoverText ?? this.markupInteractiveHoverText,
       markupInteractiveHoverFill:
           markupInteractiveHoverFill ?? this.markupInteractiveHoverFill,
-      markupMentionBorder: markupMentionBorder ?? this.markupMentionBorder,
       markupJumpLinkText: markupJumpLinkText ?? this.markupJumpLinkText,
       markupJumpLinkFill: markupJumpLinkFill ?? this.markupJumpLinkFill,
       markupJumpLinkHoverFill:
@@ -845,16 +832,6 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
         other.markupMentionBorder,
         t,
       )!,
-      markupJumpLinkFill: Color.lerp(
-        markupJumpLinkFill,
-        other.markupJumpLinkFill,
-        t,
-      )!,
-      markupJumpLinkHoverFill: Color.lerp(
-        markupJumpLinkHoverFill,
-        other.markupJumpLinkHoverFill,
-        t,
-      )!,
       markupInteractiveHoverText: Color.lerp(
         markupInteractiveHoverText,
         other.markupInteractiveHoverText,
@@ -863,11 +840,6 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       markupInteractiveHoverFill: Color.lerp(
         markupInteractiveHoverFill,
         other.markupInteractiveHoverFill,
-        t,
-      )!,
-      markupMentionBorder: Color.lerp(
-        markupMentionBorder,
-        other.markupMentionBorder,
         t,
       )!,
       markupJumpLinkText: Color.lerp(

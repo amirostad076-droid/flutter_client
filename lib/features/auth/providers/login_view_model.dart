@@ -86,7 +86,8 @@ class LoginViewModel extends _$LoginViewModel {
       // to restore it (sets token, connects gateway, loads theme, etc).
       ref.invalidate(appStartupProvider);
 
-      state = state.copyWith(isLoggingIn: false);
+      // Clear credentials from memory after successful login.
+      state = state.copyWith(email: '', password: '', isLoggingIn: false);
       return true;
     } on AuthFailure catch (error) {
       state = state.copyWith(errorMessage: error.message, isLoggingIn: false);

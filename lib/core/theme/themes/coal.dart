@@ -228,12 +228,9 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     // Markup (same as dark)
     markupMentionText: textLink,
     markupMentionFill: textLink.withValues(alpha: 0.2),
-    markupMentionBorder: textLink.withValues(alpha: 0.3),
-    markupJumpLinkFill: textLink.withValues(alpha: 0.12),
-    markupJumpLinkHoverFill: textLink.withValues(alpha: 0.2),
+    markupMentionBorder: tone(FluxerColorFamilies.link, 70, alpha: 0.3),
     markupInteractiveHoverText: textLink,
     markupInteractiveHoverFill: textLink.withValues(alpha: 0.3),
-    markupMentionBorder: tone(FluxerColorFamilies.link, 70, alpha: 0.3),
     markupJumpLinkText: textLink,
     markupJumpLinkFill: textLink.withValues(alpha: 0.12),
     markupJumpLinkHoverFill: textLink.withValues(alpha: 0.2),
