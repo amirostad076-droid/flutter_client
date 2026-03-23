@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 /// Configuration options for the captcha widget.
 ///
 /// Supports both Cloudflare Turnstile and hCaptcha. Fields marked as
-/// "Turnstile-only" are ignored when using hCaptcha.
+/// "Turnstile only" are ignored when using hCaptcha.
 class CaptchaOptions {
-  /// Creates a captcha options configuration.
   CaptchaOptions({
     this.size = CaptchaSize.normal,
     this.theme = CaptchaTheme.auto,
@@ -20,82 +19,34 @@ class CaptchaOptions {
   });
 
   /// The widget size.
-  ///
-  /// Can be set to [CaptchaSize.normal], [CaptchaSize.compact], or
-  /// [CaptchaSize.flexible].
-  /// The default value is [CaptchaSize.normal].
   final CaptchaSize size;
 
-  /// The theme of the widget.
-  ///
-  /// Defaults to [CaptchaTheme.auto], which automatically adjusts based on
-  /// the device's brightness setting. Can also be set to [CaptchaTheme.dark]
-  /// or [CaptchaTheme.light].
+  /// The widget theme. [CaptchaTheme.auto] adjusts based on device brightness.
   CaptchaTheme theme;
 
-  /// The language to display in the widget.
-  ///
-  /// Defaults to 'auto', which uses the language chosen by the visitor.
-  /// You can set an ISO 639-1 two-letter language code (e.g., 'en' for
-  /// English), or a language and country code (e.g., 'en-US').
+  /// The language to display. ISO 639-1 code (e.g., 'en', 'en-US') or 'auto'.
   final String language;
 
-  /// Whether the widget should automatically retry obtaining a token if
-  /// the challenge fails.
-  ///
-  /// Defaults to `true`, which enables automatic retry. Set to `false` to
-  /// disable automatic retry on failure.
-  ///
-  /// Ignored for hCaptcha.
+  /// Whether to automatically retry on challenge failure. Turnstile only.
   final bool retryAutomatically;
 
-  /// The interval between retry attempts when [retryAutomatically] is enabled.
-  ///
-  /// The value is specified as a [Duration], with the default being 8 seconds
-  /// (8000 milliseconds). This value must be a positive integer and less than
-  /// 900000 milliseconds (15 minutes).
-  ///
-  /// Ignored for hCaptcha.
+  /// Interval between retry attempts. Must be between 0 and 900000ms.
+  /// Turnstile only.
   final Duration retryInterval;
 
-  /// Behavior for refreshing the token when it expires.
-  ///
-  /// Can be set to [CaptchaRefreshExpired.auto],
-  /// [CaptchaRefreshExpired.manual], or [CaptchaRefreshExpired.never].
-  ///
-  /// The default is [CaptchaRefreshExpired.auto], which refreshes the token
-  /// automatically when it expires.
-  ///
-  /// Ignored for hCaptcha.
+  /// Token refresh behavior on expiry. Turnstile only.
   final CaptchaRefreshExpired refreshExpired;
 
-  /// Controls how the widget behaves when a timeout occurs during an
-  /// interactive challenge.
-  ///
-  /// Can be set to [CaptchaRefreshTimeout.auto] (automatic refresh),
-  /// [CaptchaRefreshTimeout.manual] (manual refresh by the visitor), or
-  /// [CaptchaRefreshTimeout.never] (show a timeout without refreshing).
-  /// The default is [CaptchaRefreshTimeout.auto].
-  ///
-  /// Ignored for hCaptcha.
+  /// Widget behavior on interactive challenge timeout. Turnstile only.
   final CaptchaRefreshTimeout refreshTimeout;
 
-  /// The border radius applied to the widget.
-  ///
-  /// This allows customization of the widget's appearance by rounding the
-  /// corners. The default is a circular radius of 4 pixels.
+  /// Border radius applied to the widget.
   final BorderRadiusGeometry? borderRadius;
 
-  /// The duration of animations when displaying the widget.
-  ///
-  /// This defines how long animations take to complete.
-  /// The default value is 500 milliseconds.
+  /// Duration of show/hide animations.
   final Duration? animationDuration;
 
-  /// The curve applied to animations when displaying the widget.
-  ///
-  /// This allows for different animation styles during the display.
-  /// The default is [Curves.linearToEaseOut].
+  /// Curve applied to show/hide animations.
   final Curve? curves;
 }
 
@@ -129,60 +80,24 @@ enum CaptchaSize {
   final double height;
 }
 
-/// Defines the themes for the captcha widget.
+/// Theme for the captcha widget.
 enum CaptchaTheme {
-  /// Automatic theme.
-  ///
-  /// The theme is automatically selected based on the context.
+  /// Automatically selected based on device brightness.
   auto,
-
-  /// Dark theme.
-  ///
-  /// The widget uses a dark theme.
   dark,
-
-  /// Light theme.
-  ///
-  /// The widget uses a light theme.
   light,
 }
 
-/// Defines the refresh behavior when the token expires.
-///
-/// Applies to Cloudflare Turnstile only.
+/// Refresh behavior when the token expires. Turnstile only.
 enum CaptchaRefreshExpired {
-  /// Automatic refresh.
-  ///
-  /// The widget automatically refreshes when the token expires.
   auto,
-
-  /// Manual refresh.
-  ///
-  /// The widget requires manual refresh when the token expires.
   manual,
-
-  /// Never refresh.
-  ///
-  /// The widget does not refresh when the token expires.
   never,
 }
 
-/// Defines the refresh behavior when the token times out.
-///
-/// Applies to Cloudflare Turnstile only.
+/// Refresh behavior when the token times out. Turnstile only.
 enum CaptchaRefreshTimeout {
-  /// Automatic refresh.
-  ///
-  /// The widget automatically refreshes when the token times out.
   auto,
-
-  /// Manual refresh.
-  ///
-  /// The widget requires manual refresh when the token times out.
   manual,
-
-  /// Never refresh.
-  ///
-  /// The widget does not refresh when the token times out.
   never,
 }

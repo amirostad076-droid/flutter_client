@@ -5,69 +5,46 @@ abstract class CaptchaController<T> {
   /// The connector associated with this controller.
   late T connector;
 
-  /// Retrieves the current token from the widget.
-  ///
-  /// Returns `null` if no token is available.
+  /// The current captcha token, or `null` if unavailable.
   String? get token;
 
-  /// Retrieves the current widget ID.
-  ///
-  /// This ID is used to uniquely identify the captcha widget instance.
+  /// The captcha widget instance ID.
   String? get widgetId;
 
-  /// Retrieves the widget's ready state.
-  ///
-  /// Returns `true` if the widget is ready for interaction, otherwise `false`.
+  /// Whether the widget is ready for interaction.
   bool get isWidgetReady;
 
-  /// Retrieves the current error state of the captcha widget, if any.
-  ///
-  /// Returns a [CaptchaException] object if an error exists, otherwise `null`.
+  /// The current error, if any.
   CaptchaException? get error;
 
   /// Sets a new connector.
   void setConnector(T newConnector);
 
-  /// Sets a new token.
-  ///
-  /// Use this method to manually set or override the current token value.
+  /// Sets the captcha token manually.
   set token(String? token);
 
   /// Sets the captcha widget ID.
-  ///
-  /// This assigns a new ID to the current captcha widget instance.
   set widgetId(String? id);
 
   /// Sets the widget's ready state.
-  ///
-  /// Use this to indicate whether the widget is ready for interaction.
   set isWidgetReady(bool isReady);
 
-  /// Sets the error state for the captcha widget.
-  ///
-  /// This method updates the error state of the widget, allowing it to
-  /// reflect the current issue encountered.
+  /// Sets the error state.
   set error(CaptchaException? error);
 
   /// Refreshes the captcha token.
   ///
-  /// This method can only be called when [widgetId] is not null.
+  /// Can only be called when [widgetId] is not null.
   Future<void> refreshToken();
 
   /// Checks if the captcha widget has expired.
   ///
-  /// This method can only be called when [widgetId] is not null.
+  /// Can only be called when [widgetId] is not null.
   Future<bool> isExpired();
 
-  /// Registers a callback to be invoked when an error occurs.
-  ///
-  /// The [callback] function is invoked whenever an error arises in processes
-  /// like token fetching or widget initialization.
+  /// Registers a callback for captcha errors.
   void onError(void Function(CaptchaException error) callback);
 
-  /// Registers a callback to be invoked when a new token is successfully
-  /// received.
-  ///
-  /// Use this method to track when new tokens are generated.
+  /// Registers a callback for new token reception.
   void onTokenReceived(void Function(String token) callback);
 }

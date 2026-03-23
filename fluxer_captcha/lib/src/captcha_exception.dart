@@ -7,11 +7,6 @@
 /// This exception supports both Cloudflare Turnstile and hCaptcha error codes,
 /// mapping them to a unified [CaptchaError] type.
 class CaptchaException implements Exception {
-  /// Creates a [CaptchaException].
-  ///
-  /// If no [code] is provided, the default value is `'-1'`.
-  /// If no [errorType] is provided, the default is [CaptchaError.UNKNOWN].
-  /// If no [retryable] is provided, the default is `false`.
   const CaptchaException(
     this.message, {
     this.code = '-1',
@@ -19,13 +14,9 @@ class CaptchaException implements Exception {
     this.retryable = false,
   });
 
-  /// Factory constructor to create a [CaptchaException] from a Turnstile
-  /// numeric error [code].
+  /// Creates from a Turnstile numeric error [code].
   ///
-  /// Maps Cloudflare Turnstile error codes to corresponding [CaptchaError]
-  /// types and messages.
-  ///
-  /// Refer to [Client-side errors](https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/).
+  /// See [Client-side errors](https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/).
   factory CaptchaException.fromTurnstileCode(int code) {
     var message = 'unknown error';
     var retryable = false;
@@ -124,11 +115,7 @@ class CaptchaException implements Exception {
     );
   }
 
-  /// Factory constructor to create a [CaptchaException] from an hCaptcha
-  /// string error [code].
-  ///
-  /// Maps hCaptcha error codes to corresponding [CaptchaError] types and
-  /// messages.
+  /// Creates from an hCaptcha string error [code].
   factory CaptchaException.fromHCaptchaCode(String code) {
     var message = 'unknown error';
     var retryable = false;
@@ -180,25 +167,15 @@ class CaptchaException implements Exception {
     );
   }
 
-  /// The error code associated with the captcha error.
-  ///
-  /// For Turnstile this is a numeric code as a string. For hCaptcha this is a
-  /// string error code.
+  /// Turnstile: numeric code as string. hCaptcha: string error code.
   final String code;
 
-  /// The error message associated with the captcha error.
   final String message;
 
-  /// The specific type of error categorized by [CaptchaError].
-  ///
-  /// Defaults to [CaptchaError.UNKNOWN] if no specific error type is
-  /// identified.
+  /// The unified error type. Defaults to [CaptchaError.UNKNOWN].
   final CaptchaError errorType;
 
-  /// Indicates whether the error is retryable.
-  ///
-  /// If `true`, it suggests that the operation can be retried to potentially
-  /// resolve the error. Defaults to `false` if not specified.
+  /// Whether the operation can be retried to resolve this error.
   final bool retryable;
 
   @override

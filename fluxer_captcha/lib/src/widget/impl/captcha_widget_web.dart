@@ -141,9 +141,8 @@ String? _renderWidget(CaptchaProvider provider, String target) {
   return (result as JSString?)?.toDart;
 }
 
-/// FluxerCaptcha web implementation.
+/// FluxerCaptcha for web platforms.
 class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
-  /// Create a FluxerCaptcha widget.
   FluxerCaptcha({
     required this.provider,
     required this.siteKey,
@@ -182,29 +181,7 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
     }
   }
 
-  /// Create an invisible captcha widget.
-  ///
-  /// [provider] - The captcha provider to use.
-  ///
-  /// [siteKey] - A captcha sitekey.
-  ///
-  /// [action] - A customer value that can be used to differentiate widgets
-  /// under the same sitekey in analytics and which is returned upon
-  /// validation. Turnstile only.
-  ///
-  /// [cData] - A customer payload that can be used to attach customer data
-  /// to the challenge throughout its issuance and which is returned upon
-  /// validation. Turnstile only.
-  ///
-  /// [baseUrl] - A website URL corresponding to the current captcha widget.
-  ///
-  /// [options] - Configuration options for the captcha widget.
-  ///
-  /// [onTokenReceived] - A callback invoked upon success of the challenge.
-  /// The callback is passed a `token` that can be validated.
-  ///
-  /// [onTokenExpired] - A callback invoked when the token expires and does
-  /// not reset the widget.
+  /// Creates an invisible (headless) captcha widget.
   factory FluxerCaptcha.invisible({
     required CaptchaProvider provider,
     required String siteKey,
@@ -229,85 +206,52 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
     );
   }
 
-  /// The captcha provider to use.
   @override
   final CaptchaProvider provider;
 
-  /// This [siteKey] is associated with the corresponding widget configuration
-  /// and is created upon the widget creation.
   @override
   final String siteKey;
 
-  /// A customer value that can be used to differentiate widgets under the
-  /// same sitekey in analytics and which is returned upon validation.
-  ///
-  /// This can only contain up to 32 alphanumeric characters including _ and -.
-  /// Turnstile only.
   @override
   final String? action;
 
-  /// A customer payload that can be used to attach customer data to the
-  /// challenge throughout its issuance and which is returned upon validation.
-  ///
-  /// This can only contain up to 255 alphanumeric characters including _ and -.
-  /// Turnstile only.
   @override
   final String? cData;
 
-  /// The base URL of the captcha site.
-  ///
-  /// Defaults to 'http://localhost/'.
   @override
   final String baseUrl;
 
-  /// Configuration options for the captcha widget.
-  ///
-  /// If no options are provided, the default [CaptchaOptions] are used.
   @override
   final CaptchaOptions? options;
 
-  /// A controller for managing interactions with the captcha widget.
   @override
   final CaptchaController? controller;
 
-  /// A callback invoked upon success of the challenge.
-  /// The callback is passed a `token` that can be validated.
   @override
   final i.OnTokenReceived? onTokenReceived;
 
-  /// A callback invoked when the token expires and does not reset the widget.
   @override
   final i.OnTokenExpired? onTokenExpired;
 
-  /// A callback invoked when there is an error
-  /// (e.g., network error or challenge failed).
   @override
   final i.OnError? onError;
 
-  /// Callback invoked when the captcha widget fails to load in time.
   @override
   final i.OnTimeout? onTimeout;
 
   @override
   State<FluxerCaptcha> createState() => _FluxerCaptchaState();
 
-  /// Retrieves the current token from the widget.
-  ///
-  /// Returns `null` if no token is available.
   @override
   String? get token => throw UnimplementedError(
         'This function cannot be called in interactive widget mode.',
       );
 
-  /// Retrieves the current widget id.
-  ///
-  /// This `id` is used to uniquely identify the captcha widget instance.
   @override
   String? get id => throw UnimplementedError(
         'This function cannot be called in interactive widget mode.',
       );
 
-  /// Refreshes the captcha challenge.
   @override
   Future<void> refresh({bool forceRefresh = true}) {
     throw UnimplementedError(
@@ -315,8 +259,6 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
     );
   }
 
-  /// Starts a captcha challenge and returns a token, or `null` if the
-  /// challenge failed or an error occurred.
   @override
   Future<String?> getToken() {
     throw UnimplementedError(
@@ -324,7 +266,6 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
     );
   }
 
-  /// Checks if the captcha widget has expired.
   @override
   Future<bool> isExpired() {
     throw UnimplementedError(
@@ -332,7 +273,6 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
     );
   }
 
-  /// Disposes the captcha widget and frees up resources.
   @override
   Future<void> dispose() {
     throw UnimplementedError(
