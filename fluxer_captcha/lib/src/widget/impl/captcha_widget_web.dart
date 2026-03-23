@@ -125,10 +125,9 @@ class _DartCaptcha {
   }
 }
 
-String _createViewType() {
-  final widgetId = '_${DateTime.now().microsecondsSinceEpoch}';
-  return '_captcha_$widgetId';
-}
+int _nextViewId = 0;
+
+String _createViewType() => '_captcha_${_nextViewId++}';
 
 String? _renderWidget(CaptchaProvider provider, String target) {
   final jsGlobal = switch (provider) {

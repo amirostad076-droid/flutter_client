@@ -1,4 +1,5 @@
 import 'package:fluxer_captcha/src/captcha_exception.dart';
+import 'package:meta/meta.dart';
 
 /// Interface for the Captcha Controller.
 abstract class CaptchaController<T> {
@@ -18,18 +19,23 @@ abstract class CaptchaController<T> {
   CaptchaException? get error;
 
   /// Sets a new connector.
+  @internal
   void setConnector(T newConnector);
 
   /// Sets the captcha token manually.
+  @internal
   set token(String? token);
 
   /// Sets the captcha widget ID.
+  @internal
   set widgetId(String? id);
 
   /// Sets the widget's ready state.
+  @internal
   set isWidgetReady(bool isReady);
 
   /// Sets the error state.
+  @internal
   set error(CaptchaException? error);
 
   /// Refreshes the captcha token.
