@@ -1,0 +1,135 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
+import 'package:fluxeron/core/theme/fluxer_theme.dart';
+import 'package:fluxeron/core/theme/themes/dark.dart';
+import 'package:fluxeron/features/ui/action_menu/fluxer_action_menu.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+Widget buildTestApp(Widget child) {
+  final colorTheme = buildDarkColorTheme();
+  return MaterialApp(
+    theme: buildFluxerTheme(
+      colorTheme: colorTheme,
+      textTheme: FluxerTextTheme.fromColors(colorTheme),
+      layoutTheme: FluxerLayoutTheme.scaled(),
+    ),
+    home: Scaffold(body: child),
+  );
+}
+
+void main() {
+  group('FluxerActionMenu', () {
+    testWidgets('shows menu items when FluxerActionMenu.show is called', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () {
+                unawaited(
+                  FluxerActionMenu.show(
+                    context,
+                    position: const Offset(100, 100),
+                    builder: (context, close) => [
+                      FluxerMenuItem(label: 'Edit', onPressed: () {}),
+                      const FluxerMenuDivider(),
+                      FluxerMenuItem(
+                        label: 'Delete',
+                        onPressed: () {},
+                        icon: PhosphorIconsRegular.trash,
+                        isDanger: true,
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('Open Menu'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Menu'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+    });
+
+    testWidgets('calls onPressed when menu item is tapped', (tester) async {
+      var editPressed = false;
+
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () {
+                unawaited(
+                  FluxerActionMenu.show(
+                    context,
+                    position: const Offset(100, 100),
+                    builder: (context, close) => [
+                      FluxerMenuItem(
+                        label: 'Edit',
+                        onPressed: () {
+                          editPressed = true;
+                          close();
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('Open Menu'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Menu'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+
+      expect(editPressed, isTrue);
+    });
+
+    testWidgets('dismisses when tapping outside the menu', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () {
+                unawaited(
+                  FluxerActionMenu.show(
+                    context,
+                    position: const Offset(100, 100),
+                    builder: (context, close) => [
+                      FluxerMenuItem(label: 'Edit', onPressed: () {}),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('Open Menu'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Menu'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit'), findsOneWidget);
+
+      // Tap outside the menu area
+      await tester.tapAt(const Offset(500, 500));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit'), findsNothing);
+    });
+  });
+}
