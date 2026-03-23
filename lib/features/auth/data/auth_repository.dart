@@ -56,7 +56,7 @@ class AuthRepository {
     } on AuthFailure {
       rethrow;
     } on DioException catch (error) {
-      throw AuthFailure(_messageFromDio(error));
+      throw _failureFromDio(error);
     }
   }
 
@@ -72,36 +72,52 @@ class AuthRepository {
     await _db.clearAll();
   }
 
-  String _messageFromDio(DioException error) {
+  AuthFailure _failureFromDio(DioException error) {
     final responseData = error.response?.data;
 
     if (responseData is Map<String, dynamic>) {
-      final message = responseData['message'];
-      if (message is String && message.isNotEmpty) {
-        return message;
-      }
+      try {
+        final apiError = Error.fromJson(responseData);
+        final validationErrors = apiError.errors;
 
-      final code = responseData['code'];
-      if (code is String && code.isNotEmpty) {
-        return code;
+        // Map field-specific validation errors by path.
+        if (validationErrors != null && validationErrors.isNotEmpty) {
+          final fieldErrors = <String, String>{};
+          for (final e in validationErrors) {
+            fieldErrors.putIfAbsent(e.path, () => e.message);
+          }
+          return AuthFailure(apiError.message, fieldErrors: fieldErrors);
+        }
+
+        if (apiError.message.isNotEmpty) {
+          return AuthFailure(apiError.message);
+        }
+      } on Object {
+        // Fallback to raw extraction if the SDK model can't parse it.
+        final message = responseData['message'];
+        if (message is String && message.isNotEmpty) {
+          return AuthFailure(message);
+        }
       }
     }
 
     if (responseData is String && responseData.isNotEmpty) {
-      return responseData;
+      return AuthFailure(responseData);
     }
 
     switch (error.response?.statusCode) {
       case 401:
-        return 'Invalid email or password.';
+        return const AuthFailure('Invalid email or password.');
       case 429:
-        return 'Too many attempts. Please wait and try again.';
+        return const AuthFailure(
+          'Too many attempts. Please wait and try again.',
+        );
     }
 
     if (error.message != null && error.message!.isNotEmpty) {
-      return error.message!;
+      return AuthFailure(error.message!);
     }
 
-    return 'Unable to sign in right now. Please try again.';
+    return const AuthFailure('Unable to sign in right now. Please try again.');
   }
 }

@@ -13,6 +13,7 @@ class LoginViewState {
   final String password;
   final bool isPasswordVisible;
   final String? errorMessage;
+  final Map<String, String> fieldErrors;
   final bool isLoggingIn;
 
   const LoginViewState({
@@ -20,6 +21,7 @@ class LoginViewState {
     required this.password,
     required this.isPasswordVisible,
     required this.errorMessage,
+    required this.fieldErrors,
     required this.isLoggingIn,
   });
 
@@ -31,6 +33,7 @@ class LoginViewState {
     String? password,
     bool? isPasswordVisible,
     Object? errorMessage = _unset,
+    Map<String, String>? fieldErrors,
     bool? isLoggingIn,
   }) {
     return LoginViewState(
@@ -40,6 +43,7 @@ class LoginViewState {
       errorMessage: errorMessage == _unset
           ? this.errorMessage
           : errorMessage as String?,
+      fieldErrors: fieldErrors ?? this.fieldErrors,
       isLoggingIn: isLoggingIn ?? this.isLoggingIn,
     );
   }
@@ -54,6 +58,7 @@ class LoginViewModel extends _$LoginViewModel {
       password: '',
       isPasswordVisible: false,
       errorMessage: null,
+      fieldErrors: {},
       isLoggingIn: false,
     );
   }
@@ -75,7 +80,11 @@ class LoginViewModel extends _$LoginViewModel {
       return false;
     }
 
-    state = state.copyWith(errorMessage: null, isLoggingIn: true);
+    state = state.copyWith(
+      errorMessage: null,
+      fieldErrors: const {},
+      isLoggingIn: true,
+    );
 
     try {
       await ref
@@ -90,7 +99,11 @@ class LoginViewModel extends _$LoginViewModel {
       state = state.copyWith(email: '', password: '', isLoggingIn: false);
       return true;
     } on AuthFailure catch (error) {
-      state = state.copyWith(errorMessage: error.message, isLoggingIn: false);
+      state = state.copyWith(
+        errorMessage: error.fieldErrors.isEmpty ? error.message : null,
+        fieldErrors: error.fieldErrors,
+        isLoggingIn: false,
+      );
       return false;
     } on Exception catch (e) {
       debugPrint('[LoginViewModel] Unexpected error: $e');
