@@ -1,0 +1,60 @@
+import 'package:flutter/material.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+enum FluxerAlertVariant { info, warning, danger }
+
+class FluxerWarningAlert extends StatelessWidget {
+  const FluxerWarningAlert({
+    required this.message,
+    this.variant = FluxerAlertVariant.warning,
+    super.key,
+  });
+
+  final String message;
+  final FluxerAlertVariant variant;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final layout = context.layout;
+
+    final Color borderColor;
+    final IconData icon;
+
+    switch (variant) {
+      case FluxerAlertVariant.info:
+        borderColor = colors.accentInfo;
+        icon = PhosphorIconsBold.info;
+      case FluxerAlertVariant.warning:
+        borderColor = colors.accentWarning;
+        icon = PhosphorIconsBold.warning;
+      case FluxerAlertVariant.danger:
+        borderColor = colors.accentDanger;
+        icon = PhosphorIconsBold.warningCircle;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.backgroundSecondaryAlt,
+        border: Border(left: BorderSide(color: borderColor, width: 4)),
+        borderRadius: layout.radiusSm,
+      ),
+      padding: EdgeInsets.symmetric(horizontal: layout.s3, vertical: layout.s2),
+      child: Row(
+        children: [
+          Icon(icon, color: borderColor, size: 20),
+          SizedBox(width: layout.s2),
+          Expanded(
+            child: Text(
+              message,
+              style: context.textStyles.bodySmall.copyWith(
+                color: colors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

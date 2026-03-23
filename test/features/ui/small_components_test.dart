@@ -1,0 +1,129 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
+import 'package:fluxeron/core/theme/fluxer_theme.dart';
+import 'package:fluxeron/core/theme/themes/dark.dart';
+import 'package:fluxeron/features/ui/character_counter/fluxer_character_counter.dart';
+import 'package:fluxeron/features/ui/keybind_hint/fluxer_keybind_hint.dart';
+import 'package:fluxeron/features/ui/scroller/fluxer_scroller.dart';
+import 'package:fluxeron/features/ui/warning_alert/fluxer_warning_alert.dart';
+
+Widget buildTestApp(Widget child) {
+  final colorTheme = buildDarkColorTheme();
+  return MaterialApp(
+    theme: buildFluxerTheme(
+      colorTheme: colorTheme,
+      textTheme: FluxerTextTheme.fromColors(colorTheme),
+      layoutTheme: FluxerLayoutTheme.scaled(),
+    ),
+    home: Scaffold(body: child),
+  );
+}
+
+void main() {
+  group('FluxerCharacterCounter', () {
+    testWidgets('shows current/max text', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(const FluxerCharacterCounter(current: 42, max: 200)),
+      );
+
+      expect(find.text('42/200'), findsOneWidget);
+    });
+
+    testWidgets('shows warning color at 80% threshold', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(const FluxerCharacterCounter(current: 160, max: 200)),
+      );
+
+      expect(find.text('160/200'), findsOneWidget);
+    });
+
+    testWidgets('shows danger color over 100%', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(const FluxerCharacterCounter(current: 250, max: 200)),
+      );
+
+      expect(find.text('250/200'), findsOneWidget);
+    });
+  });
+
+  group('FluxerWarningAlert', () {
+    testWidgets('shows message text', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(const FluxerWarningAlert(message: 'Something went wrong')),
+      );
+
+      expect(find.text('Something went wrong'), findsOneWidget);
+    });
+
+    testWidgets('renders all variants', (tester) async {
+      for (final variant in FluxerAlertVariant.values) {
+        await tester.pumpWidget(
+          buildTestApp(
+            FluxerWarningAlert(message: 'Test $variant', variant: variant),
+          ),
+        );
+
+        expect(find.text('Test $variant'), findsOneWidget);
+      }
+    });
+  });
+
+  group('FluxerKeybindHint', () {
+    testWidgets('renders all keys', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(const FluxerKeybindHint(keys: ['Ctrl', 'Shift', 'P'])),
+      );
+
+      expect(find.text('Ctrl'), findsOneWidget);
+      expect(find.text('Shift'), findsOneWidget);
+      expect(find.text('P'), findsOneWidget);
+      expect(find.text('+'), findsNWidgets(2));
+    });
+
+    testWidgets('renders single key without separator', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(const FluxerKeybindHint(keys: ['Esc'])),
+      );
+
+      expect(find.text('Esc'), findsOneWidget);
+      expect(find.text('+'), findsNothing);
+    });
+  });
+
+  group('FluxerScroller', () {
+    testWidgets('renders child', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          const FluxerScroller(
+            child: SingleChildScrollView(child: Text('Scrollable content')),
+          ),
+        ),
+      );
+
+      expect(find.text('Scrollable content'), findsOneWidget);
+      expect(find.byType(Scrollbar), findsOneWidget);
+    });
+
+    testWidgets('uses provided controller', (tester) async {
+      final controller = ScrollController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        buildTestApp(
+          FluxerScroller(
+            controller: controller,
+            child: ListView.builder(
+              controller: controller,
+              itemCount: 100,
+              itemBuilder: (context, index) => Text('Item $index'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(Scrollbar), findsOneWidget);
+    });
+  });
+}
