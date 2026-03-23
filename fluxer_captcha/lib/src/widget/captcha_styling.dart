@@ -16,8 +16,8 @@ class CaptchaStyling {
   ) {
     final resolvedTheme = options.theme == CaptchaTheme.auto
         ? (brightness == Brightness.dark
-            ? CaptchaTheme.dark
-            : CaptchaTheme.light)
+              ? CaptchaTheme.dark
+              : CaptchaTheme.light)
         : options.theme;
 
     return CaptchaStyling(

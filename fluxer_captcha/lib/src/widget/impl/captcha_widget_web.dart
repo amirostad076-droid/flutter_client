@@ -71,8 +71,9 @@ class _DartCaptcha {
         CaptchaProvider.turnstile =>
           'https://challenges.cloudflare.com/turnstile/v0/api.js'
               '?render=explicit&onload=onCaptchaReady',
-        CaptchaProvider.hcaptcha => 'https://js.hcaptcha.com/1/api.js'
-            '?render=explicit&onload=onCaptchaReady',
+        CaptchaProvider.hcaptcha =>
+          'https://js.hcaptcha.com/1/api.js'
+              '?render=explicit&onload=onCaptchaReady',
       };
 
       final mainScript = web.HTMLScriptElement()
@@ -234,13 +235,13 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
 
   @override
   String? get token => throw UnimplementedError(
-        'This function cannot be called in interactive widget mode.',
-      );
+    'This function cannot be called in interactive widget mode.',
+  );
 
   @override
   String? get id => throw UnimplementedError(
-        'This function cannot be called in interactive widget mode.',
-      );
+    'This function cannot be called in interactive widget mode.',
+  );
 
   @override
   Future<void> refresh({bool forceRefresh = true}) {
@@ -309,8 +310,9 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
       onRawError: (code) {
         if (_isDisposed) return;
         final exception = switch (widget.provider) {
-          CaptchaProvider.turnstile =>
-            CaptchaException.fromTurnstileCode(int.tryParse(code) ?? -1),
+          CaptchaProvider.turnstile => CaptchaException.fromTurnstileCode(
+            int.tryParse(code) ?? -1,
+          ),
           CaptchaProvider.hcaptcha => CaptchaException.fromHCaptchaCode(code),
         };
         _addError(exception);
@@ -428,8 +430,9 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
       widget.options!,
       MediaQuery.of(context).platformBrightness,
     );
-    final adaptiveBorderColor =
-        _isWidgetReady ? styling.secondaryColor : Colors.transparent;
+    final adaptiveBorderColor = _isWidgetReady
+        ? styling.secondaryColor
+        : Colors.transparent;
 
     final isErrorResolvable = _hasError != null && _hasError!.retryable;
 
@@ -475,8 +478,8 @@ class _CaptchaInvisible extends FluxerCaptcha {
     super.onTimeout,
     super.options,
   }) : super(
-          controller: CaptchaController(),
-        ) {
+         controller: CaptchaController(),
+       ) {
     _register();
   }
 
@@ -504,8 +507,9 @@ class _CaptchaInvisible extends FluxerCaptcha {
       },
       onRawError: (code) {
         final error = switch (provider) {
-          CaptchaProvider.turnstile =>
-            CaptchaException.fromTurnstileCode(int.tryParse(code) ?? -1),
+          CaptchaProvider.turnstile => CaptchaException.fromTurnstileCode(
+            int.tryParse(code) ?? -1,
+          ),
           CaptchaProvider.hcaptcha => CaptchaException.fromHCaptchaCode(code),
         };
         controller?.error = error;

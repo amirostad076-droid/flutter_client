@@ -72,7 +72,8 @@ class CaptchaException implements Exception {
       case var _ when code >= 110600 && code < 110620:
         retryable = true;
         errorType = CaptchaError.CHALLENGE_TIMED_OUT;
-        message = 'The visitor took too long to solve the challenge and the '
+        message =
+            'The visitor took too long to solve the challenge and the '
             'challenge timed out.';
       case var _ when code >= 110620 && code < 120000:
         retryable = true;
@@ -97,7 +98,8 @@ class CaptchaException implements Exception {
             'solving a challenge.';
       case var _ when code >= 400000 && code < 401000:
         errorType = CaptchaError.INCORRECT_CONFIGURATION;
-        message = 'The configuration for Turnstile is incorrect or incomplete. '
+        message =
+            'The configuration for Turnstile is incorrect or incomplete. '
             'Check the site key, secret key, and domain setup.';
       case var _ when code >= 600000 && code < 601000:
         retryable = true;

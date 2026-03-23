@@ -97,13 +97,17 @@ class CaptchaController extends ChangeNotifier
     final jsObj = globalContext.getProperty<JSObject>(_jsGlobal.toJS);
 
     if (provider == CaptchaProvider.hcaptcha) {
-      final response =
-          jsObj.callMethod<JSString>('getResponse'.toJS, _widgetId?.toJS);
+      final response = jsObj.callMethod<JSString>(
+        'getResponse'.toJS,
+        _widgetId?.toJS,
+      );
       return response.toDart.isEmpty;
     }
 
-    final expired =
-        jsObj.callMethod<JSBoolean>('isExpired'.toJS, _widgetId?.toJS);
+    final expired = jsObj.callMethod<JSBoolean>(
+      'isExpired'.toJS,
+      _widgetId?.toJS,
+    );
     return expired.toDart;
   }
 

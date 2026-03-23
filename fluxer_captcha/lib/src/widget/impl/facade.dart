@@ -76,15 +76,15 @@ class FluxerCaptcha extends StatelessWidget implements i.FluxerCaptcha {
 
   @override
   String? get token => throw UnimplementedError(
-        'Cannot call this method on the facade implementation of '
-        'FluxerCaptcha.',
-      );
+    'Cannot call this method on the facade implementation of '
+    'FluxerCaptcha.',
+  );
 
   @override
   String? get id => throw UnimplementedError(
-        'Cannot call this method on the facade implementation of '
-        'FluxerCaptcha.',
-      );
+    'Cannot call this method on the facade implementation of '
+    'FluxerCaptcha.',
+  );
 
   @override
   Future<void> refresh({bool forceRefresh = true}) {

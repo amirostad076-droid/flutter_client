@@ -266,24 +266,24 @@ String buildHTML({
 }) {
   return switch (provider) {
     CaptchaProvider.turnstile => _buildTurnstileHTML(
-        siteKey: siteKey,
-        options: options,
-        onTokenReceived: onTokenReceived,
-        onCaptchaError: onCaptchaError,
-        onTokenExpired: onTokenExpired,
-        onWidgetCreated: onWidgetCreated,
-        action: action,
-        cData: cData,
-      ),
+      siteKey: siteKey,
+      options: options,
+      onTokenReceived: onTokenReceived,
+      onCaptchaError: onCaptchaError,
+      onTokenExpired: onTokenExpired,
+      onWidgetCreated: onWidgetCreated,
+      action: action,
+      cData: cData,
+    ),
     CaptchaProvider.hcaptcha => _buildHCaptchaHTML(
-        siteKey: siteKey,
-        options: options,
-        onTokenReceived: onTokenReceived,
-        onCaptchaError: onCaptchaError,
-        onTokenExpired: onTokenExpired,
-        isInvisible: isInvisible,
-        onWidgetCreated: onWidgetCreated,
-      ),
+      siteKey: siteKey,
+      options: options,
+      onTokenReceived: onTokenReceived,
+      onCaptchaError: onCaptchaError,
+      onTokenExpired: onTokenExpired,
+      isInvisible: isInvisible,
+      onWidgetCreated: onWidgetCreated,
+    ),
   };
 }
 
@@ -374,13 +374,13 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
 
   @override
   String? get token => throw UnimplementedError(
-        'This function cannot be called in interactive widget mode.',
-      );
+    'This function cannot be called in interactive widget mode.',
+  );
 
   @override
   String? get id => throw UnimplementedError(
-        'This function cannot be called in interactive widget mode.',
-      );
+    'This function cannot be called in interactive widget mode.',
+  );
 
   @override
   Future<void> refresh({bool forceRefresh = true}) {
@@ -488,8 +488,9 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
           if (!mounted || _hasError != null) return;
           final code = args[0] as String;
           final error = switch (widget.provider) {
-            CaptchaProvider.turnstile =>
-              CaptchaException.fromTurnstileCode(int.tryParse(code) ?? -1),
+            CaptchaProvider.turnstile => CaptchaException.fromTurnstileCode(
+              int.tryParse(code) ?? -1,
+            ),
             CaptchaProvider.hcaptcha => CaptchaException.fromHCaptchaCode(code),
           };
           _addError(error);
@@ -631,8 +632,9 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
       widget.options!,
       MediaQuery.of(context).platformBrightness,
     );
-    final adaptiveBorderColor =
-        _isWidgetReady ? styling.secondaryColor : Colors.transparent;
+    final adaptiveBorderColor = _isWidgetReady
+        ? styling.secondaryColor
+        : Colors.transparent;
 
     final isErrorResolvable = _hasError != null && _hasError!.retryable;
 
@@ -687,10 +689,10 @@ class _CaptchaInvisible extends FluxerCaptcha {
     super.onTokenExpired,
     super.onTimeout,
   }) : super(
-          provider: provider,
-          siteKey: siteKey,
-          controller: CaptchaController(),
-        ) {
+         provider: provider,
+         siteKey: siteKey,
+         controller: CaptchaController(),
+       ) {
     if (!(Platform.isAndroid ||
         Platform.isIOS ||
         Platform.isLinux ||
@@ -773,8 +775,9 @@ class _CaptchaInvisible extends FluxerCaptcha {
         callback: (List<dynamic> args) {
           final code = args[0] as String;
           final error = switch (provider) {
-            CaptchaProvider.turnstile =>
-              CaptchaException.fromTurnstileCode(int.tryParse(code) ?? -1),
+            CaptchaProvider.turnstile => CaptchaException.fromTurnstileCode(
+              int.tryParse(code) ?? -1,
+            ),
             CaptchaProvider.hcaptcha => CaptchaException.fromHCaptchaCode(code),
           };
 

@@ -65,7 +65,8 @@ enum CaptchaSize {
   /// Flexible size for the widget.
   ///
   /// Width is flexible (min 300px), and height is fixed at 65px.
-  flexible(double.maxFinite, 65);
+  flexible(double.maxFinite, 65)
+  ;
 
   /// Creates a [CaptchaSize] with the specified [width] and [height].
   const CaptchaSize(

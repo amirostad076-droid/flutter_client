@@ -91,8 +91,9 @@ class CaptchaController extends ChangeNotifier
       await connector.reload();
       return;
     }
-    await connector
-        .evaluateJavascript(source: '''$_jsGlobal.reset(`$_widgetId`);''');
+    await connector.evaluateJavascript(
+      source: '''$_jsGlobal.reset(`$_widgetId`);''',
+    );
   }
 
   @override
