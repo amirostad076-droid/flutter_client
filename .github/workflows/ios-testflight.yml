@@ -89,6 +89,13 @@ jobs:
           PROFILE_UUID=$(security cms -D -i "$PROFILES_DIR/profile.mobileprovision" | plutil -extract UUID raw -)
           echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
 
+      - name: Configure manual signing for CI
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          sed -i '' "s/DEVELOPMENT_TEAM = [A-Z0-9]\\{10\\};/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/g" ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' "s/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g" ios/Runner.xcodeproj/project.pbxproj
+
       - name: Create ExportOptions.plist
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -118,7 +125,7 @@ jobs:
           sed -i '' "s/PLACEHOLDER_PROFILE_UUID/$PROFILE_UUID/g" ios/ExportOptions.plist
 
       - name: Build IPA
-        run: flutter build ipa --flavor canary --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=apple --export-options-plist=ios/ExportOptions.plist
+        run: flutter build ipa --release --flavor canary --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=apple --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload to TestFlight
         env:
