@@ -166,9 +166,6 @@ class _GuildBottomSheet extends StatelessWidget {
         return SafeArea(
           child: Column(
             children: [
-              SizedBox(height: layout.s2),
-              const FluxerBottomSheetDragHandle(),
-              SizedBox(height: layout.s3),
               FluxerBottomSheetHeader(
                 leading: _GuildAvatar(guild: guild),
                 title: guild.name,
@@ -239,9 +236,6 @@ class _GuildSettingsSheet extends StatelessWidget {
         return SafeArea(
           child: Column(
             children: [
-              SizedBox(height: layout.s2),
-              const FluxerBottomSheetDragHandle(),
-              SizedBox(height: layout.s3),
               FluxerBottomSheetSubmenuHeader(
                 title: 'Community Settings',
                 onBack: () => Navigator.of(context).pop(),
@@ -347,9 +341,6 @@ class _GuildMuteSheet extends StatelessWidget {
         return SafeArea(
           child: Column(
             children: [
-              SizedBox(height: layout.s2),
-              const FluxerBottomSheetDragHandle(),
-              SizedBox(height: layout.s3),
               FluxerBottomSheetSubmenuHeader(
                 title: isMuted ? 'Unmute Community' : 'Mute Community',
                 onBack: () => Navigator.of(context).pop(),

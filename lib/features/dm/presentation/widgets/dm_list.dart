@@ -1043,9 +1043,6 @@ class _DmBottomSheet extends StatelessWidget {
         return SafeArea(
           child: Column(
             children: [
-              SizedBox(height: layout.s2),
-              const FluxerBottomSheetDragHandle(),
-              SizedBox(height: layout.s3),
               FluxerBottomSheetHeader(
                 leading: convo.isGroup
                     ? Container(
@@ -1145,9 +1142,6 @@ class _DmMuteSheet extends StatelessWidget {
         return SafeArea(
           child: Column(
             children: [
-              SizedBox(height: layout.s2),
-              const FluxerBottomSheetDragHandle(),
-              SizedBox(height: layout.s3),
               FluxerBottomSheetSubmenuHeader(
                 title: isMuted ? 'Unmute Conversation' : 'Mute Conversation',
                 onBack: () => Navigator.of(context).pop(),
@@ -1241,9 +1235,6 @@ class _DmInviteSheet extends ConsumerWidget {
         return SafeArea(
           child: Column(
             children: [
-              SizedBox(height: layout.s2),
-              const FluxerBottomSheetDragHandle(),
-              SizedBox(height: layout.s3),
               FluxerBottomSheetSubmenuHeader(
                 title: 'Invite to Community',
                 onBack: () => Navigator.of(context).pop(),
