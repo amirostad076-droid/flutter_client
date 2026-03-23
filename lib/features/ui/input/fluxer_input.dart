@@ -8,6 +8,7 @@ import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 class FluxerInput extends StatelessWidget {
   const FluxerInput({
     this.controller,
+    this.focusNode,
     this.label,
     this.hint,
     this.errorText,
@@ -22,6 +23,8 @@ class FluxerInput extends StatelessWidget {
     this.onSubmitted,
     this.validator,
     this.keyboardType,
+    this.textInputAction,
+    this.autofillHints,
     this.maxLines = 1,
     this.minLines,
     super.key,
@@ -29,6 +32,7 @@ class FluxerInput extends StatelessWidget {
 
   const FluxerInput.multiline({
     this.controller,
+    this.focusNode,
     this.label,
     this.hint,
     this.errorText,
@@ -43,12 +47,15 @@ class FluxerInput extends StatelessWidget {
     this.onSubmitted,
     this.validator,
     this.keyboardType,
+    this.textInputAction,
+    this.autofillHints,
     this.maxLines,
     this.minLines = 3,
     super.key,
   });
 
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String? label;
   final String? hint;
   final String? errorText;
@@ -63,6 +70,8 @@ class FluxerInput extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final FormFieldValidator<String>? validator;
   final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final Iterable<String>? autofillHints;
   final int? maxLines;
   final int? minLines;
 
@@ -90,6 +99,8 @@ class FluxerInput extends StatelessWidget {
           ),
         TextFormField(
           controller: controller,
+          focusNode: focusNode,
+          textInputAction: textInputAction,
           decoration: InputDecoration(
             hintText: hint,
             errorText: errorText,
@@ -98,6 +109,7 @@ class FluxerInput extends StatelessWidget {
             counterText: maxLength != null ? '' : null,
           ),
           obscureText: obscureText,
+          autofillHints: autofillHints,
           enabled: enabled,
           autofocus: autofocus,
           maxLength: maxLength,
