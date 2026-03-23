@@ -8,6 +8,10 @@ class Assets {
   /// Fluxer Logo Text SVG
   static const String fluxerLogoText = 'assets/images/fluxer-logo-text.svg';
 
+  /// Fluxer Wordmark Monochrome SVG (text only, no icon)
+  static const String fluxerWordmarkMonochrome =
+      'assets/images/fluxer-logo-wordmark-monochrome.svg';
+
   /// Pattern Login Background SVG
   static const String patternLoginBackground =
       'assets/images/pattern-login-background.svg';

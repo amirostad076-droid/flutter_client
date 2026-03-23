@@ -5,16 +5,39 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
+import 'package:fluxeron/features/ui/button/fluxer_button.dart';
+import 'package:fluxeron/features/ui/input/fluxer_input.dart';
 import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-class LoginForm extends ConsumerWidget {
+class LoginForm extends ConsumerStatefulWidget {
   final bool showBrowserLogin;
 
   const LoginForm({required this.showBrowserLogin, super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LoginForm> createState() => _LoginFormState();
+}
+
+class _LoginFormState extends ConsumerState<LoginForm> {
+  final _passwordFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _passwordFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _submitLogin() {
+    final notifier = ref.read(loginViewModelProvider.notifier);
+    if (ref.read(loginViewModelProvider).canLogin) {
+      unawaited(notifier.login());
+      TextInput.finishAutofillContext();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final strings = FluxerLocalizations.of(context);
     final vm = ref.watch(loginViewModelProvider);
     final notifier = ref.read(loginViewModelProvider.notifier);
@@ -36,36 +59,35 @@ class LoginForm extends ConsumerWidget {
                   style: context.textStyles.heading,
                 ),
               ),
-              SizedBox(height: layout.s6),
-              _buildLabel(context, strings.email),
-              SizedBox(height: layout.s2),
-              TextField(
+              SizedBox(height: layout.s8),
+              FluxerInput(
+                label: strings.email,
                 autofillHints: const [AutofillHints.email],
                 onChanged: notifier.updateEmail,
                 keyboardType: TextInputType.emailAddress,
-                style: context.textStyles.inputText,
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_) => _passwordFocusNode.requestFocus(),
+                errorText: vm.fieldErrors['email'],
               ),
-              SizedBox(height: layout.s5),
-              _buildLabel(context, strings.password),
-              SizedBox(height: layout.s2),
-              TextField(
+              SizedBox(height: layout.s6),
+              FluxerInput(
+                label: strings.password,
+                focusNode: _passwordFocusNode,
                 autofillHints: const [AutofillHints.password],
                 onChanged: notifier.updatePassword,
                 obscureText: !vm.isPasswordVisible,
                 keyboardType: TextInputType.visiblePassword,
-                style: context.textStyles.inputText,
-                decoration: InputDecoration(
-                  suffixIcon: IconButton(
-                    icon: PhosphorIcon(
-                      vm.isPasswordVisible
-                          ? PhosphorIconsFill.eyeSlash
-                          : PhosphorIconsFill.eye,
-                      color: context.colors.textPrimaryMuted,
-                      size: 20,
-                    ),
-                    onPressed: notifier.togglePassword,
-                  ),
+                textInputAction: TextInputAction.go,
+                onSubmitted: (_) => _submitLogin(),
+                errorText: vm.fieldErrors['password'],
+                suffixIcon: PhosphorIcon(
+                  vm.isPasswordVisible
+                      ? PhosphorIconsFill.eyeSlash
+                      : PhosphorIconsFill.eye,
+                  color: context.colors.textPrimaryMuted,
+                  size: 20,
                 ),
+                onSuffixTap: notifier.togglePassword,
               ),
               SizedBox(height: layout.s1),
               TextButton(
@@ -78,11 +100,11 @@ class LoginForm extends ConsumerWidget {
                 child: Text(
                   strings.forgotPassword,
                   style: context.textStyles.bodySmall.copyWith(
-                    color: context.colors.textPrimaryMuted,
+                    color: context.colors.textTertiary,
                   ),
                 ),
               ),
-              SizedBox(height: layout.s5),
+              SizedBox(height: layout.s6),
               AnimatedSize(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOut,
@@ -99,55 +121,34 @@ class LoginForm extends ConsumerWidget {
                       )
                     : const SizedBox.shrink(),
               ),
-              SizedBox(
-                width: double.infinity,
-                height: 44,
-                child: ElevatedButton(
-                  onPressed: vm.canLogin
-                      ? () {
-                          unawaited(
-                            ref.read(loginViewModelProvider.notifier).login(),
-                          );
-                          TextInput.finishAutofillContext();
-                        }
-                      : null,
-                  child: vm.isLoggingIn
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: context.colors.buttonPrimaryText,
-                          ),
-                        )
-                      : Text(strings.logIn),
-                ),
+              FluxerButton.primary(
+                onPressed: vm.canLogin ? _submitLogin : null,
+                label: strings.logIn,
+                isLoading: vm.isLoggingIn,
               ),
-              SizedBox(height: layout.s4),
+              SizedBox(height: layout.s6),
               _buildOrDivider(context, strings),
-              SizedBox(height: layout.s4),
-              _buildSecondaryButton(
-                context,
+              SizedBox(height: layout.s6),
+              FluxerButton.secondary(
+                onPressed: () {},
                 icon: PhosphorIconsFill.key,
                 label: strings.logInWithPasskey,
-                onTap: () {},
               ),
-              if (showBrowserLogin) ...[
+              if (widget.showBrowserLogin) ...[
                 SizedBox(height: layout.s2),
-                _buildSecondaryButton(
-                  context,
+                FluxerButton.secondary(
+                  onPressed: () {},
                   icon: PhosphorIconsFill.monitor,
                   label: strings.logInViaBrowser,
-                  onTap: () {},
                 ),
               ],
-              SizedBox(height: layout.s4),
+              SizedBox(height: layout.s5),
               Row(
                 children: [
                   Text(
                     strings.needAccountPrompt,
                     style: context.textStyles.bodySmall.copyWith(
-                      color: context.colors.textPrimaryMuted,
+                      color: context.colors.textTertiary,
                     ),
                   ),
                   TextButton(
@@ -173,14 +174,6 @@ class LoginForm extends ConsumerWidget {
     );
   }
 
-  Widget _buildLabel(BuildContext context, String text) => Text(
-    text,
-    style: context.textStyles.label.copyWith(
-      color: context.colors.textPrimaryMuted,
-      letterSpacing: 0.5,
-    ),
-  );
-
   Widget _buildOrDivider(BuildContext context, FluxerLocalizations strings) =>
       Row(
         children: [
@@ -190,7 +183,7 @@ class LoginForm extends ConsumerWidget {
             child: Text(
               strings.orDivider,
               style: context.textStyles.bodySmall.copyWith(
-                color: context.colors.textPrimaryMuted,
+                color: context.colors.textTertiary,
                 fontSize: 12,
               ),
             ),
@@ -198,23 +191,4 @@ class LoginForm extends ConsumerWidget {
           Expanded(child: Divider(color: context.colors.borderColor)),
         ],
       );
-
-  Widget _buildSecondaryButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) => SizedBox(
-    width: double.infinity,
-    height: 44,
-    child: ElevatedButton.icon(
-      onPressed: onTap,
-      icon: PhosphorIcon(icon, size: 18),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: context.colors.backgroundTertiary,
-        foregroundColor: context.colors.textChat,
-      ),
-    ),
-  );
 }

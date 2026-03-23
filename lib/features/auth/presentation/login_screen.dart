@@ -100,35 +100,29 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: context.colors.backgroundSecondary,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: layout.s6,
-            vertical: layout.s8,
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 448),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: layout.s6,
+                vertical: layout.s8,
+              ),
+              child: Column(
                 children: [
                   SvgPicture.asset(
-                    Assets.fluxerLogoColor,
-                    width: 36,
-                    height: 36,
-                  ),
-                  SizedBox(width: layout.s2),
-                  SvgPicture.asset(
-                    Assets.fluxerLogoText,
-                    height: 24,
+                    Assets.fluxerWordmarkMonochrome,
+                    height: 32,
                     colorFilter: ColorFilter.mode(
                       context.colors.textPrimary,
                       BlendMode.srcIn,
                     ),
                   ),
+                  SizedBox(height: layout.s8),
+                  const LoginForm(showBrowserLogin: false),
                 ],
               ),
-              SizedBox(height: layout.s6),
-              const LoginForm(showBrowserLogin: false),
-            ],
+            ),
           ),
         ),
       ),
