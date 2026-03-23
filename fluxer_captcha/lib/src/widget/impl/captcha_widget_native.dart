@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:fluxer_captcha/src/captcha_exception.dart';
+import 'package:fluxer_captcha/src/widget/captcha_styling.dart';
 import 'package:fluxer_captcha/src/captcha_validation.dart';
 import 'package:fluxer_captcha/src/captcha_provider.dart';
 import 'package:fluxer_captcha/src/controller/captcha_controller.dart';
@@ -626,19 +627,12 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedTheme = widget.options!.theme == CaptchaTheme.auto
-        ? (MediaQuery.of(context).platformBrightness == Brightness.dark
-            ? CaptchaTheme.dark
-            : CaptchaTheme.light)
-        : widget.options!.theme;
-    final primaryColor = resolvedTheme == CaptchaTheme.light
-        ? const Color(0xFFFAFAFA)
-        : const Color(0xFF232323);
-    final secondaryColor = resolvedTheme == CaptchaTheme.light
-        ? const Color(0xFFDEDEDE)
-        : const Color(0xFF9A9A9A);
+    final styling = CaptchaStyling.resolve(
+      widget.options!,
+      MediaQuery.of(context).platformBrightness,
+    );
     final adaptiveBorderColor =
-        _isWidgetReady ? secondaryColor : Colors.transparent;
+        _isWidgetReady ? styling.secondaryColor : Colors.transparent;
 
     final isErrorResolvable = _hasError != null && _hasError!.retryable;
 
@@ -653,7 +647,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
           width: widget.options!.size.width,
           height: widget.options!.size.height,
           decoration: BoxDecoration(
-            color: primaryColor,
+            color: styling.primaryColor,
             borderRadius: widget.options!.borderRadius,
           ),
           foregroundDecoration: BoxDecoration(
