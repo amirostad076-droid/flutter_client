@@ -10,10 +10,9 @@ class MemberDao extends DatabaseAccessor<FluxerDatabase> with _$MemberDaoMixin {
   MemberDao(super.attachedDatabase);
 
   Future<Member?> getMemberByUserId(String userId, String serverId) =>
-      (select(members)
-            ..where(
-              (m) => m.userId.equals(userId) & m.serverId.equals(serverId),
-            ))
+      (select(members)..where(
+            (m) => m.userId.equals(userId) & m.serverId.equals(serverId),
+          ))
           .getSingleOrNull();
 
   Future<List<Member>> getMembers(String serverId) =>
