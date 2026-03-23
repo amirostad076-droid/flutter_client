@@ -17,7 +17,7 @@ import 'package:fluxeron/features/chat/presentation/'
 import 'package:fluxeron/features/chat/presentation/'
     'widgets/message_context_menu.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
-import 'package:fluxeron/shared/widgets/message_markdown.dart';
+import 'package:fluxeron/features/chat/presentation/widgets/message_markdown.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';

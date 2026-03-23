@@ -47,8 +47,8 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/shared/utils/emoji_registry.dart';
 import 'package:fluxeron/shared/utils/emoji_utils.dart';
-import 'package:fluxeron/shared/widgets/message_alert.dart';
-import 'package:fluxeron/shared/widgets/message_mention.dart';
+import 'package:fluxeron/features/chat/presentation/widgets/message_alert.dart';
+import 'package:fluxeron/features/chat/presentation/widgets/message_mention.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -357,10 +357,7 @@ class _UserMentionSyntax extends md.InlineSyntax {
 }
 
 class _UserMentionBuilder extends MarkdownElementBuilder {
-  _UserMentionBuilder({
-    required this.baseStyle,
-    this.channelId,
-  });
+  _UserMentionBuilder({required this.baseStyle, this.channelId});
 
   final TextStyle baseStyle;
   final String? channelId;
@@ -404,10 +401,7 @@ class _ChannelMentionBuilder extends MarkdownElementBuilder {
     md.Element element,
     TextStyle? preferredStyle,
     TextStyle? parentStyle,
-  ) => ChannelMention(
-    channelId: element.textContent,
-    baseStyle: baseStyle,
-  );
+  ) => ChannelMention(channelId: element.textContent, baseStyle: baseStyle);
 }
 
 /// Parses plain-text `@everyone` and `@here` mentions.
@@ -833,13 +827,12 @@ class _EmojiBuilder extends MarkdownElementBuilder {
   }
 }
 
-
 class _JumpLinkSyntax extends md.InlineSyntax {
   _JumpLinkSyntax()
-      : super(
-          r'https?://(?:canary\.)?fluxer\.app/channels/'
-          r'(?:@me|\d{15,21})/\d{15,21}(?:/\d{15,21})?',
-        );
+    : super(
+        r'https?://(?:canary\.)?fluxer\.app/channels/'
+        r'(?:@me|\d{15,21})/\d{15,21}(?:/\d{15,21})?',
+      );
 
   static const tag = 'jump-link';
 

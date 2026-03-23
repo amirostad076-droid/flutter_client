@@ -88,17 +88,13 @@ class _MentionPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: fillColor ?? colors.markupMentionFill,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: colors.markupMentionBorder,
-          width: 1,
-        ),
+        border: Border.all(color: colors.markupMentionBorder, width: 1),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 3.2),
       child: child,
     );
   }
 }
-
 
 class UserMention extends ConsumerWidget {
   const UserMention({
@@ -116,9 +112,7 @@ class UserMention extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final guildId = ref.watch(activeGuildIdProvider);
 
-    final userAsync = ref.watch(
-      _userByIdProvider(userId),
-    );
+    final userAsync = ref.watch(_userByIdProvider(userId));
     final memberAsync = guildId != null
         ? ref.watch(_memberByUserIdProvider((userId, guildId)))
         : null;
@@ -126,10 +120,8 @@ class UserMention extends ConsumerWidget {
     final user = userAsync.value;
     final member = memberAsync?.value;
 
-    final name = member?.nickname ??
-        user?.globalName ??
-        user?.username ??
-        userId;
+    final name =
+        member?.nickname ?? user?.globalName ?? user?.username ?? userId;
 
     final colors = context.colors;
     final style = (baseStyle ?? const TextStyle()).copyWith(
@@ -146,18 +138,20 @@ class UserMention extends ConsumerWidget {
   }
 }
 
-final _userByIdProvider =
-    FutureProvider.autoDispose.family<User?, String>((ref, id) {
+final _userByIdProvider = FutureProvider.autoDispose.family<User?, String>((
+  ref,
+  id,
+) {
   final db = ref.watch(fluxerDatabaseProvider);
   return db.userDao.getUserById(id);
 });
 
-final _memberByUserIdProvider =
-    FutureProvider.autoDispose.family<Member?, (String, String)>((ref, args) {
-  final (userId, serverId) = args;
-  final db = ref.watch(fluxerDatabaseProvider);
-  return db.memberDao.getMemberByUserId(userId, serverId);
-});
+final _memberByUserIdProvider = FutureProvider.autoDispose
+    .family<Member?, (String, String)>((ref, args) {
+      final (userId, serverId) = args;
+      final db = ref.watch(fluxerDatabaseProvider);
+      return db.memberDao.getMemberByUserId(userId, serverId);
+    });
 
 class RoleMention extends ConsumerWidget {
   const RoleMention({required this.roleId, this.baseStyle, super.key});
@@ -188,19 +182,17 @@ class RoleMention extends ConsumerWidget {
   }
 }
 
-final _guildByIdProvider =
-    FutureProvider.autoDispose.family<Guild?, String>((ref, id) async {
+final _guildByIdProvider = FutureProvider.autoDispose.family<Guild?, String>((
+  ref,
+  id,
+) async {
   final db = ref.watch(fluxerDatabaseProvider);
   final row = await db.guildDao.getServerById(id);
   return row == null ? null : Guild.fromRow(row);
 });
 
 class ChannelJumpLinkMention extends ConsumerWidget {
-  const ChannelJumpLinkMention({
-    required this.link,
-    this.baseStyle,
-    super.key,
-  });
+  const ChannelJumpLinkMention({required this.link, this.baseStyle, super.key});
 
   final ChannelJumpLink link;
   final TextStyle? baseStyle;
@@ -225,9 +217,8 @@ class ChannelJumpLinkMention extends ConsumerWidget {
     return _JumpLinkPill(
       onTap: channel == null
           ? null
-          : () => context.go(
-              RoutePaths.guildChannel(link.scope, link.channelId),
-            ),
+          : () =>
+                context.go(RoutePaths.guildChannel(link.scope, link.channelId)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -250,10 +241,7 @@ class ChannelJumpLinkMention extends ConsumerWidget {
             color: colors.markupMentionText,
           ),
           SizedBox(width: iconSize * 0.2),
-          Text(
-            channel?.name ?? link.channelId,
-            style: style,
-          ),
+          Text(channel?.name ?? link.channelId, style: style),
         ],
       ),
     );
@@ -288,10 +276,7 @@ class _JumpLinkPillState extends State<_JumpLinkPill> {
                 ? colors.markupJumpLinkHoverFill
                 : colors.markupJumpLinkFill,
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: colors.markupMentionBorder,
-              width: 1,
-            ),
+            border: Border.all(color: colors.markupMentionBorder, width: 1),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 3.2),
           child: widget.child,
@@ -317,7 +302,8 @@ class _GuildIcon extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _GuildInitials(guild: guild, size: size),
+          errorBuilder: (_, __, ___) =>
+              _GuildInitials(guild: guild, size: size),
         ),
       );
     }
@@ -333,9 +319,7 @@ class _GuildInitials extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial = guild.name.isNotEmpty
-        ? guild.name[0].toUpperCase()
-        : '?';
+    final initial = guild.name.isNotEmpty ? guild.name[0].toUpperCase() : '?';
     final colors = context.colors;
     return Container(
       width: size,

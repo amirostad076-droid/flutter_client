@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/embed_shared.dart';
-import 'package:fluxeron/shared/widgets/message_markdown.dart';
+import 'package:fluxeron/features/chat/presentation/widgets/message_markdown.dart';
 
 /// A rich embed card
 class EmbedRich extends StatelessWidget {
