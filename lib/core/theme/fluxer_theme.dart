@@ -65,11 +65,9 @@ ThemeData buildFluxerTheme({
     // Buttons — web: 44px height, 96px min-width, 600w 14px, 8px radius
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: colorTheme.buttonPrimaryFill,
-        foregroundColor: colorTheme.buttonPrimaryText,
-        disabledBackgroundColor: colorTheme.buttonPrimaryFill.withValues(
-          alpha: 0.5,
-        ),
+        backgroundColor: colorTheme.brandPrimary,
+        foregroundColor: colorTheme.textOnBrandPrimary,
+        disabledBackgroundColor: colorTheme.brandPrimary.withValues(alpha: 0.5),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         minimumSize: const Size(96, 44),
         textStyle: TextStyle(
@@ -110,10 +108,11 @@ ThemeData buildFluxerTheme({
       ),
     ),
 
-    // Inputs — web: unfilled, 8px radius, modifier-accent border,
-    // modifier-accent-focus on focus, status-danger on error
+    // Inputs — web: filled (FormSurface bg-tertiary), 8px radius,
+    // modifier-accent border, modifier-accent-focus on focus,
+    // status-danger on error
     inputDecorationTheme: InputDecorationTheme(
-      filled: false,
+      filled: true,
       fillColor: colorTheme.backgroundTertiary,
       border: OutlineInputBorder(
         borderRadius: layoutTheme.radiusLg,

@@ -12,7 +12,7 @@ enum FluxerButtonVariant {
   ghost;
 
   Color fill(FluxerColorTheme colors) => switch (this) {
-    primary => colors.buttonPrimaryFill,
+    primary => colors.brandPrimary,
     secondary => colors.buttonSecondaryFill,
     dangerPrimary => colors.buttonDangerFill,
     dangerSecondary => colors.buttonSecondaryFill,
@@ -22,7 +22,7 @@ enum FluxerButtonVariant {
   };
 
   Color activeFill(FluxerColorTheme colors) => switch (this) {
-    primary => colors.buttonPrimaryActiveFill,
+    primary => colors.brandSecondary,
     secondary => colors.buttonSecondaryActiveFill,
     dangerPrimary => colors.buttonDangerActiveFill,
     dangerSecondary => colors.buttonDangerOutlineActiveFill,
@@ -32,7 +32,7 @@ enum FluxerButtonVariant {
   };
 
   Color textColor(FluxerColorTheme colors) => switch (this) {
-    primary => colors.buttonPrimaryText,
+    primary => colors.textOnBrandPrimary,
     secondary => colors.buttonSecondaryText,
     dangerPrimary => colors.buttonDangerText,
     dangerSecondary => colors.buttonDangerOutlineText,
