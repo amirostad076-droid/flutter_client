@@ -26,6 +26,7 @@ String _resolveTheme(CaptchaOptions options) {
 class _DartCaptcha {
   const _DartCaptcha({
     required this.provider,
+    required this.instanceId,
     this.onTokenReceived,
     this.onTokenExpired,
     this.onRawError,
@@ -33,6 +34,7 @@ class _DartCaptcha {
   });
 
   final CaptchaProvider provider;
+  final String instanceId;
   final i.OnTokenReceived? onTokenReceived;
   final i.OnTokenExpired? onTokenExpired;
   final void Function(String code)? onRawError;
@@ -95,9 +97,12 @@ class _DartCaptcha {
       ..setAttribute('data-sitekey', siteKey)
       ..setAttribute('data-theme', _resolveTheme(options))
       ..setAttribute('data-size', options.size.name)
-      ..setAttribute('data-callback', 'onCaptchaTokenReceived')
-      ..setAttribute('data-expired-callback', 'onCaptchaTokenExpired')
-      ..setAttribute('data-error-callback', 'onCaptchaError');
+      ..setAttribute('data-callback', 'onCaptchaTokenReceived_$instanceId')
+      ..setAttribute(
+        'data-expired-callback',
+        'onCaptchaTokenExpired_$instanceId',
+      )
+      ..setAttribute('data-error-callback', 'onCaptchaError_$instanceId');
 
     if (provider == CaptchaProvider.turnstile) {
       widget
@@ -291,6 +296,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
     _widgetViewId = _createViewType();
     _captcha = _DartCaptcha(
       provider: widget.provider,
+      instanceId: _widgetViewId,
       onTokenReceived: (token) {
         if (_isDisposed) return;
         widget.onTokenReceived?.call(token);
@@ -314,15 +320,15 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
 
     globalContext
       ..setProperty(
-        'onCaptchaTokenReceived'.toJS,
+        'onCaptchaTokenReceived_$_widgetViewId'.toJS,
         _captcha.onReceived.toJS,
       )
       ..setProperty(
-        'onCaptchaTokenExpired'.toJS,
+        'onCaptchaTokenExpired_$_widgetViewId'.toJS,
         _captcha.onExpired.toJS,
       )
       ..setProperty(
-        'onCaptchaError'.toJS,
+        'onCaptchaError_$_widgetViewId'.toJS,
         _captcha.onError.toJS,
       )
       ..setProperty(
@@ -409,6 +415,10 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
     _scriptLoadTimer?.cancel();
     _scriptLoadTimer = null;
     _widget.remove();
+    globalContext
+      ..delete('onCaptchaTokenReceived_$_widgetViewId'.toJS)
+      ..delete('onCaptchaTokenExpired_$_widgetViewId'.toJS)
+      ..delete('onCaptchaError_$_widgetViewId'.toJS);
     super.dispose();
   }
 
@@ -478,6 +488,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
     _iframeViewType = _createViewType();
     final captcha = _DartCaptcha(
       provider: provider,
+      instanceId: _iframeViewType,
       onTokenReceived: (token) {
         controller?.token = token;
         onTokenReceived?.call(token);
@@ -514,15 +525,15 @@ class _CaptchaInvisible extends FluxerCaptcha {
 
     globalContext
       ..setProperty(
-        'onCaptchaTokenReceived'.toJS,
+        'onCaptchaTokenReceived_$_iframeViewType'.toJS,
         captcha.onReceived.toJS,
       )
       ..setProperty(
-        'onCaptchaTokenExpired'.toJS,
+        'onCaptchaTokenExpired_$_iframeViewType'.toJS,
         captcha.onExpired.toJS,
       )
       ..setProperty(
-        'onCaptchaError'.toJS,
+        'onCaptchaError_$_iframeViewType'.toJS,
         captcha.onError.toJS,
       )
       ..setProperty(
@@ -613,5 +624,9 @@ class _CaptchaInvisible extends FluxerCaptcha {
   Future<void> dispose() async {
     _scriptLoadTimer?.cancel();
     _widget.remove();
+    globalContext
+      ..delete('onCaptchaTokenReceived_$_iframeViewType'.toJS)
+      ..delete('onCaptchaTokenExpired_$_iframeViewType'.toJS)
+      ..delete('onCaptchaError_$_iframeViewType'.toJS);
   }
 }
