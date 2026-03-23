@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluxeron/core/theme/fluxer_color_theme.dart';
 import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxeron/core/theme/fluxer_motion_theme.dart';
 import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
 
 /// Build Fluxer-styled ThemeData from theme extensions.
@@ -19,7 +20,12 @@ ThemeData buildFluxerTheme({
     canvasColor: colorTheme.backgroundSecondary,
     cardColor: colorTheme.embedBackground,
     dividerColor: colorTheme.borderColor,
-    extensions: [colorTheme, textTheme, layoutTheme],
+    extensions: [
+      colorTheme,
+      textTheme,
+      layoutTheme,
+      const FluxerMotionTheme.standard(),
+    ],
     colorScheme: ColorScheme(
       brightness: brightness,
       primary: colorTheme.brandPrimary,
