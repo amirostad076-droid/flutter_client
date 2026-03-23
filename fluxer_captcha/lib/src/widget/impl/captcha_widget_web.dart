@@ -167,8 +167,8 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
 
       if (cData != null) {
         assert(
-          cData!.length <= 32 && RegExp(r'^[a-zA-Z0-9_-]*$').hasMatch(cData!),
-          'cData must contain up to 32 characters including _ and -.',
+          cData!.length <= 255 && RegExp(r'^[a-zA-Z0-9_-]*$').hasMatch(cData!),
+          'cData must contain up to 255 characters including _ and -.',
         );
       }
 

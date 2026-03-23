@@ -311,8 +311,8 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
 
       if (cData != null) {
         assert(
-          cData!.length <= 32 && RegExp(r'^[a-zA-Z0-9_-]*$').hasMatch(cData!),
-          'cData must contain up to 32 characters including _ and -.',
+          cData!.length <= 255 && RegExp(r'^[a-zA-Z0-9_-]*$').hasMatch(cData!),
+          'cData must contain up to 255 characters including _ and -.',
         );
       }
 
@@ -511,7 +511,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
       ..addJavaScriptHandler(
         handlerName: 'CaptchaError',
         callback: (List<dynamic> args) {
-          if (_hasError != null) return;
+          if (!mounted || _hasError != null) return;
           final code = args[0] as String;
           final error = switch (widget.provider) {
             CaptchaProvider.turnstile =>
@@ -611,7 +611,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
       return NavigationActionPolicy.CANCEL;
     },
     onLoadStop: (controller, uri) async {
-      if (!_isWidgetReady && !mounted) {
+      if (!_isWidgetReady && mounted) {
         final contentWidth = await controller.getContentWidth();
         if (contentWidth != null && contentWidth <= 0) {
           dev.log(
@@ -647,11 +647,8 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
 
   @override
   void dispose() {
-    super.dispose();
-    if (!Platform.isWindows) {
-      unawaited(InAppWebViewController.clearAllCache());
-    }
     _scriptLoadTimer?.cancel();
+    super.dispose();
   }
 
   @override

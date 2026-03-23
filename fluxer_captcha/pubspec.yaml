@@ -11,7 +11,7 @@ platforms:
   web:
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.11.0
   flutter: ">=3.24.0"
 
 dependencies:
