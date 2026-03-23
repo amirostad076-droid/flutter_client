@@ -303,12 +303,6 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
           widget.provider;
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _setCaptchaTheme();
-      }
-    });
-
     _widgetViewId = _createViewType();
     _captcha = _DartCaptcha(
       provider: widget.provider,
@@ -381,14 +375,6 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
     _scriptLoadTimer?.cancel();
   }
 
-  void _setCaptchaTheme() {
-    if (widget.options!.theme == CaptchaTheme.auto) {
-      final brightness = MediaQuery.of(context).platformBrightness;
-      final isDark = brightness == Brightness.dark;
-      widget.options!.theme = isDark ? CaptchaTheme.dark : CaptchaTheme.light;
-    }
-  }
-
   void _registerView(String viewType) {
     ui.platformViewRegistry.registerViewFactory(
       viewType,
@@ -443,12 +429,15 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
 
   @override
   Widget build(BuildContext context) {
-    _setCaptchaTheme();
-
-    final primaryColor = widget.options!.theme == CaptchaTheme.light
+    final resolvedTheme = widget.options!.theme == CaptchaTheme.auto
+        ? (MediaQuery.of(context).platformBrightness == Brightness.dark
+            ? CaptchaTheme.dark
+            : CaptchaTheme.light)
+        : widget.options!.theme;
+    final primaryColor = resolvedTheme == CaptchaTheme.light
         ? const Color(0xFFFAFAFA)
         : const Color(0xFF232323);
-    final secondaryColor = widget.options!.theme == CaptchaTheme.light
+    final secondaryColor = resolvedTheme == CaptchaTheme.light
         ? const Color(0xFFDEDEDE)
         : const Color(0xFF9A9A9A);
     final adaptiveBorderColor =

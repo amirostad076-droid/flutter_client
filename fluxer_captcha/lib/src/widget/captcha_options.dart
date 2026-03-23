@@ -22,7 +22,7 @@ class CaptchaOptions {
   final CaptchaSize size;
 
   /// The widget theme. [CaptchaTheme.auto] adjusts based on device brightness.
-  CaptchaTheme theme;
+  final CaptchaTheme theme;
 
   /// The language to display. ISO 639-1 code (e.g., 'en', 'en-US') or 'auto'.
   final String language;
