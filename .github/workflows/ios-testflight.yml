@@ -41,6 +41,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Sync submodules
+        run: git submodule update --init --recursive
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
