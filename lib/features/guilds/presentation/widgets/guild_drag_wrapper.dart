@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/guilds/providers/guild_drag_provider.dart';
 import 'package:fluxeron/features/guilds/providers/organized_guild_list_provider.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
+import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 
 class GuildDragData {
   const GuildDragData({required this.itemId, required this.isFolder});

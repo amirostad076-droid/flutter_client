@@ -8,7 +8,7 @@ import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxeron/core/theme/fluxer_theme.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxeron/core/theme/providers/theme_preference_provider.dart';
-import 'package:fluxeron/shared/widgets/native_titlebar.dart';
+import 'package:fluxeron/features/shell/presentation/native_titlebar.dart';
 import 'package:window_manager/window_manager.dart';
 
 bool get _isDesktopPlatform =>

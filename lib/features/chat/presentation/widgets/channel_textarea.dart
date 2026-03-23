@@ -12,7 +12,7 @@ import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/shared/utils/chat_context_utils.dart';
 import 'package:fluxeron/shared/widgets/circle_icon_button.dart';
 import 'package:fluxeron/shared/widgets/fade_icon_button.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
+import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The chat input bar at the bottom of the chat area.

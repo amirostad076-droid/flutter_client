@@ -21,7 +21,7 @@ import 'package:fluxeron/features/settings/presentation/widgets/settings_sidebar
 import 'package:fluxeron/features/settings/presentation/widgets/user_appearance.dart';
 import 'package:fluxeron/features/settings/presentation/widgets/user_profile.dart';
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
+import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class UserSettingsModal extends ConsumerStatefulWidget {

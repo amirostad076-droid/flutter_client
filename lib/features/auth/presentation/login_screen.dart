@@ -6,7 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/login_form.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
+import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});

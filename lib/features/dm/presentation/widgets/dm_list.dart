@@ -13,7 +13,7 @@ import 'package:fluxeron/features/friends/providers/friend_providers.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart' show fluxerMediaCdn;
 import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxeron/shared/widgets/menu_bottom_sheet.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
+import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';

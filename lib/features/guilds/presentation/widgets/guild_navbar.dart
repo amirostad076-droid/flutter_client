@@ -23,7 +23,7 @@ import 'package:fluxeron/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxeron/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxeron/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
+import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/unread_badge.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';

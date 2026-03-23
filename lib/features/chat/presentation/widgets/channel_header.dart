@@ -10,7 +10,7 @@ import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart';
 import 'package:fluxeron/shared/utils/chat_context_utils.dart';
 import 'package:fluxeron/shared/widgets/circle_icon_button.dart';
-import 'package:fluxeron/shared/widgets/responsive_layout.dart';
+import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxeron/shared/widgets/user_avatar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
