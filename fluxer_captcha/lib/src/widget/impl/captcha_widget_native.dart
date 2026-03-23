@@ -162,7 +162,7 @@ String _buildTurnstileHTML({
       case 'SIZE':
         return options.size.name;
       case 'LANGUAGE':
-        return options.language;
+        return _escapeHtml(options.language);
       case 'RETRY':
         return options.retryAutomatically ? 'auto' : 'never';
       case 'RETRY_INTERVAL':
