@@ -1,0 +1,110 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/ui/tappable/fluxer_tappable.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+class FluxerAccordion extends StatefulWidget {
+  const FluxerAccordion({
+    required this.title,
+    required this.child,
+    this.initiallyExpanded = false,
+    super.key,
+  });
+
+  final String title;
+  final Widget child;
+  final bool initiallyExpanded;
+
+  @override
+  State<FluxerAccordion> createState() => _FluxerAccordionState();
+}
+
+class _FluxerAccordionState extends State<FluxerAccordion>
+    with SingleTickerProviderStateMixin {
+  late bool _isExpanded;
+  late final AnimationController _controller;
+  late final Animation<double> _sizeFactor;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = widget.initiallyExpanded;
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+      value: _isExpanded ? 1.0 : 0.0,
+    );
+    _sizeFactor = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final motion = context.motion;
+    _controller.duration = motion.slow;
+    (_sizeFactor as CurvedAnimation).curve = motion.emphasizedCurve;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggle() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        unawaited(_controller.forward());
+      } else {
+        unawaited(_controller.reverse());
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FluxerTappable(
+          onTap: _toggle,
+          semanticLabel: widget.title,
+          builder: (context, states) {
+            return Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: textStyles.label.copyWith(color: colors.textPrimary),
+                  ),
+                ),
+                AnimatedRotation(
+                  turns: _isExpanded ? 0.5 : 0.0,
+                  duration: context.motion.slow,
+                  curve: context.motion.emphasizedCurve,
+                  child: PhosphorIcon(
+                    PhosphorIconsBold.caretDown,
+                    size: 16,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        SizeTransition(
+          sizeFactor: _sizeFactor,
+          axisAlignment: -1,
+          child: widget.child,
+        ),
+      ],
+    );
+  }
+}
