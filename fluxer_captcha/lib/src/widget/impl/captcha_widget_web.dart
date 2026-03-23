@@ -6,6 +6,7 @@ import 'dart:ui_web' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:fluxer_captcha/src/captcha_exception.dart';
+import 'package:fluxer_captcha/src/captcha_validation.dart';
 import 'package:fluxer_captcha/src/captcha_provider.dart';
 import 'package:fluxer_captcha/src/controller/captcha_controller.dart';
 import 'package:fluxer_captcha/src/controller/impl/captcha_controller_web.dart'
@@ -156,28 +157,12 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
     this.onError,
     this.onTimeout,
   }) : options = options ?? CaptchaOptions() {
-    if (provider == CaptchaProvider.turnstile) {
-      if (action != null) {
-        assert(
-          action!.length <= 32 && RegExp(r'^[a-zA-Z0-9_-]*$').hasMatch(action!),
-          'action must contain up to 32 characters including _ and -.',
-        );
-      }
-
-      if (cData != null) {
-        assert(
-          cData!.length <= 255 && RegExp(r'^[a-zA-Z0-9_-]*$').hasMatch(cData!),
-          'cData must contain up to 255 characters including _ and -.',
-        );
-      }
-
-      assert(
-        this.options!.retryInterval.inMilliseconds > 0 &&
-            this.options!.retryInterval.inMilliseconds <= 900000,
-        'Duration must be greater than 0 and less than or equal to '
-        '900000 milliseconds.',
-      );
-    }
+    CaptchaValidation.assertTurnstileParams(
+      provider: provider,
+      options: this.options!,
+      action: action,
+      cData: cData,
+    );
   }
 
   /// Creates an invisible (headless) captcha widget.
