@@ -15,7 +15,7 @@ import 'package:fluxeron/features/settings/presentation/user_settings_modal.dart
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxeron/features/shell/presentation/user_area.dart';
-import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -263,10 +263,10 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),
       opacity: isSelected ? 1 : 0.5,
-      child: UserAvatar(
-        displayName: user.displayName,
+      child: FluxerAvatar.user(
+        fallbackText: user.displayName,
         userId: user.userId,
-        avatarUrl: user.avatarUrl,
+        imageUrl: user.avatarUrl,
         avatarColor: user.avatarColor,
         size: 24,
       ),

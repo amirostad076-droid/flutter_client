@@ -10,9 +10,8 @@ import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/shared/utils/chat_context_utils.dart';
-import 'package:fluxeron/shared/widgets/circle_icon_button.dart';
-import 'package:fluxeron/shared/widgets/fade_icon_button.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The chat input bar at the bottom of the chat area.
@@ -177,11 +176,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     return Row(
       children: [
-        CircleIconButton(
+        FluxerButton.secondary(
           icon: PhosphorIconsFill.plusCircle,
-          backgroundColor: context.colors.backgroundTertiary,
-          iconColor: context.colors.interactiveNormal,
-          onTap: () {},
+          isSquare: true,
+          size: FluxerButtonSize.compact,
+          onPressed: () {},
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -276,11 +275,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
     return Row(
       children: [
-        CircleIconButton(
+        FluxerButton.secondary(
           icon: Icons.add_rounded,
-          backgroundColor: context.colors.backgroundTertiary,
-          iconColor: context.colors.interactiveNormal,
-          onTap: () {},
+          isSquare: true,
+          size: FluxerButtonSize.compact,
+          onPressed: () {},
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -315,11 +314,14 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 borderSide: BorderSide.none,
               ),
               isDense: true,
-              suffixIcon: FadeIconButton(
-                icon: PhosphorIconsFill.smiley,
-                iconColor: context.colors.textTertiaryMuted,
-                onTap: () {},
+              suffixIcon: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 7),
+                child: FluxerButton.ghost(
+                  icon: PhosphorIconsFill.smiley,
+                  isSquare: true,
+                  size: FluxerButtonSize.compact,
+                  onPressed: () {},
+                ),
               ),
               suffixIconConstraints: const BoxConstraints(),
             ),
@@ -344,19 +346,19 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       transitionBuilder: (child, animation) =>
           FadeTransition(opacity: animation, child: child),
       child: hasText
-          ? CircleIconButton(
+          ? FluxerButton.primary(
               key: const ValueKey('send'),
               icon: Icons.arrow_upward_rounded,
-              backgroundColor: context.colors.brandPrimary,
-              iconColor: context.colors.textOnBrandPrimary,
-              onTap: chatNotifier.sendMessage,
+              isSquare: true,
+              size: FluxerButtonSize.compact,
+              onPressed: chatNotifier.sendMessage,
             )
-          : CircleIconButton(
+          : FluxerButton.secondary(
               key: const ValueKey('voice'),
               icon: PhosphorIconsFill.microphone,
-              backgroundColor: context.colors.backgroundTertiary,
-              iconColor: context.colors.interactiveNormal,
-              onTap: () {},
+              isSquare: true,
+              size: FluxerButtonSize.compact,
+              onPressed: () {},
             ),
     );
   }

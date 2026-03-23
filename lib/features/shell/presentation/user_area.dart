@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
-import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class UserArea extends ConsumerWidget {
@@ -40,10 +40,10 @@ class UserArea extends ConsumerWidget {
                     height: 40,
                     child: Row(
                       children: [
-                        UserAvatar(
-                          displayName: user.displayName,
+                        FluxerAvatar.user(
+                          fallbackText: user.displayName,
                           userId: user.userId,
-                          avatarUrl: user.avatarUrl,
+                          imageUrl: user.avatarUrl,
                           avatarColor: user.avatarColor,
                           size: 36,
                         ),

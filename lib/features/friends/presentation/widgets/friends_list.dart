@@ -5,7 +5,7 @@ import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/features/friends/domain/friend.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart';
-import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kActiveNowMinWidth = 1100.0;
@@ -407,10 +407,10 @@ class FriendsList extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              UserAvatar(
-                displayName: friend.displayName,
+              FluxerAvatar.user(
+                fallbackText: friend.displayName,
                 userId: friend.id,
-                avatarUrl: _friendAvatarUrl(friend),
+                imageUrl: _friendAvatarUrl(friend),
                 avatarColor: friend.avatarColor,
                 status: friend.status,
                 size: 36,

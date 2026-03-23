@@ -7,7 +7,7 @@ import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart';
 import 'package:fluxeron/features/guilds/presentation/'
     'widgets/guild_context_menu.dart';
-import 'package:fluxeron/shared/widgets/menu_bottom_sheet.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 Future<GuildAction?> showGuildBottomSheet(
@@ -17,9 +17,9 @@ Future<GuildAction?> showGuildBottomSheet(
   bool isMuted = false,
   bool isOwner = false,
 }) async {
-  final result = await showStyledBottomSheet<GuildAction>(
+  final result = await FluxerBottomSheet.show<GuildAction>(
     context,
-    builder: (context) => _GuildBottomSheet(
+    builder: (context, _) => _GuildBottomSheet(
       guild: guild,
       hasUnread: hasUnread,
       isMuted: isMuted,
@@ -54,30 +54,30 @@ class _GuildBottomSheet extends StatelessWidget {
 
     final groups = <Widget>[
       // Group 1: Quick Actions
-      MenuGroup(
+      FluxerMenuGroup(
         children: [
           if (hasUnread)
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               label: 'Mark as Read',
               icon: PhosphorIconsFill.eye,
               onTap: () => pop(GuildAction.markAsRead),
             ),
-          MenuItem(
+          FluxerBottomSheetMenuItem(
             label: 'Invite Members',
             icon: PhosphorIconsFill.userPlus,
             onTap: () => pop(GuildAction.inviteMembers),
           ),
           if (isOwner) ...[
-            MenuSubmenuItem(
+            FluxerBottomSheetSubmenuItem(
               label: 'Community Settings',
               onTap: () => _openSettingsSheet(context),
             ),
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               label: 'Create Channel',
               icon: PhosphorIconsFill.plusCircle,
               onTap: () => pop(GuildAction.createChannel),
             ),
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               label: 'Create Category',
               icon: PhosphorIconsFill.folderPlus,
               onTap: () => pop(GuildAction.createCategory),
@@ -87,19 +87,19 @@ class _GuildBottomSheet extends StatelessWidget {
       ),
 
       // Group 2: Preferences
-      MenuGroup(
+      FluxerMenuGroup(
         children: [
-          MenuItem(
+          FluxerBottomSheetMenuItem(
             label: 'Notification Settings',
             icon: PhosphorIconsFill.bell,
             onTap: () => pop(GuildAction.notificationSettings),
           ),
-          MenuItem(
+          FluxerBottomSheetMenuItem(
             label: 'Privacy Settings',
             icon: PhosphorIconsFill.shield,
             onTap: () => pop(GuildAction.privacySettings),
           ),
-          MenuItem(
+          FluxerBottomSheetMenuItem(
             label: 'Edit Community Profile',
             icon: PhosphorIconsFill.userCircle,
             onTap: () => pop(GuildAction.editCommunityProfile),
@@ -108,13 +108,13 @@ class _GuildBottomSheet extends StatelessWidget {
       ),
 
       // Group 3: Mute & Hide
-      MenuGroup(
+      FluxerMenuGroup(
         children: [
-          MenuSubmenuItem(
+          FluxerBottomSheetSubmenuItem(
             label: isMuted ? 'Unmute Community' : 'Mute Community',
             onTap: () => _openMuteSheet(context),
           ),
-          MenuCheckboxItem(
+          FluxerBottomSheetCheckboxItem(
             label: 'Hide Muted Channels',
             isChecked: false,
             onTap: () => pop(GuildAction.hideMutedChannels),
@@ -124,15 +124,15 @@ class _GuildBottomSheet extends StatelessWidget {
 
       // Group 4: Danger (non-owners only)
       if (!isOwner)
-        MenuGroup(
+        FluxerMenuGroup(
           children: [
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               label: 'Leave Community',
               icon: PhosphorIconsFill.signOut,
               isDanger: true,
               onTap: () => pop(GuildAction.leaveGuild),
             ),
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               label: 'Report Community',
               icon: PhosphorIconsFill.flag,
               isDanger: true,
@@ -142,14 +142,14 @@ class _GuildBottomSheet extends StatelessWidget {
         ),
 
       // Group 5: Utilities
-      MenuGroup(
+      FluxerMenuGroup(
         children: [
-          MenuItem(
+          FluxerBottomSheetMenuItem(
             label: 'Debug Community',
             icon: PhosphorIconsFill.bug,
             onTap: () => pop(GuildAction.debugCommunity),
           ),
-          MenuItem(
+          FluxerBottomSheetMenuItem(
             label: 'Copy Community ID',
             icon: PhosphorIconsRegular.snowflake,
             onTap: () => pop(GuildAction.copyGuildId),
@@ -167,9 +167,9 @@ class _GuildBottomSheet extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(height: layout.s2),
-              const BottomSheetDragHandle(),
+              const FluxerBottomSheetDragHandle(),
               SizedBox(height: layout.s3),
-              BottomSheetHeader(
+              FluxerBottomSheetHeader(
                 leading: _GuildAvatar(guild: guild),
                 title: guild.name,
                 subtitle: _GuildStats(guild: guild),
@@ -184,7 +184,7 @@ class _GuildBottomSheet extends StatelessWidget {
                     layout.s4,
                     layout.s4,
                   ),
-                  children: [MenuGroupColumn(children: groups)],
+                  children: [FluxerBottomSheetGroupColumn(children: groups)],
                 ),
               ),
             ],
@@ -197,9 +197,9 @@ class _GuildBottomSheet extends StatelessWidget {
   void _openSettingsSheet(BuildContext context) {
     final nav = Navigator.of(context);
     unawaited(
-      showStyledBottomSheet<GuildAction>(
+      FluxerBottomSheet.show<GuildAction>(
         context,
-        builder: (_) => const _GuildSettingsSheet(),
+        builder: (_, _) => const _GuildSettingsSheet(),
       ).then((result) {
         if (result != null) {
           nav.pop(result);
@@ -211,9 +211,9 @@ class _GuildBottomSheet extends StatelessWidget {
   void _openMuteSheet(BuildContext context) {
     final nav = Navigator.of(context);
     unawaited(
-      showStyledBottomSheet<GuildAction>(
+      FluxerBottomSheet.show<GuildAction>(
         context,
-        builder: (_) => _GuildMuteSheet(isMuted: isMuted),
+        builder: (_, _) => _GuildMuteSheet(isMuted: isMuted),
       ).then((result) {
         if (result != null) {
           nav.pop(result);
@@ -240,9 +240,9 @@ class _GuildSettingsSheet extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(height: layout.s2),
-              const BottomSheetDragHandle(),
+              const FluxerBottomSheetDragHandle(),
               SizedBox(height: layout.s3),
-              BottomSheetSubmenuHeader(
+              FluxerBottomSheetSubmenuHeader(
                 title: 'Community Settings',
                 onBack: () => Navigator.of(context).pop(),
               ),
@@ -257,61 +257,61 @@ class _GuildSettingsSheet extends StatelessWidget {
                     layout.s4,
                   ),
                   children: [
-                    MenuGroupColumn(
+                    FluxerBottomSheetGroupColumn(
                       children: [
-                        MenuGroup(
+                        FluxerMenuGroup(
                           children: [
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'General',
                               onTap: () => pop(GuildAction.settingsOverview),
                             ),
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Roles & Permissions',
                               onTap: () => pop(GuildAction.settingsRoles),
                             ),
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Custom Emoji',
                               onTap: () => pop(GuildAction.settingsEmoji),
                             ),
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Custom Stickers',
                               onTap: () => pop(GuildAction.settingsStickers),
                             ),
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Safety & Moderation',
                               onTap: () =>
                                   pop(GuildAction.settingsSafetyModeration),
                             ),
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Activity Log',
                               onTap: () => pop(GuildAction.settingsActivityLog),
                             ),
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Webhooks',
                               onTap: () => pop(GuildAction.settingsWebhooks),
                             ),
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Custom Invite URL',
                               onTap: () =>
                                   pop(GuildAction.settingsCustomInviteUrl),
                             ),
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Discovery',
                               onTap: () => pop(GuildAction.settingsDiscovery),
                             ),
                           ],
                         ),
-                        MenuGroup(
+                        FluxerMenuGroup(
                           children: [
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Members',
                               onTap: () => pop(GuildAction.settingsMembers),
                             ),
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Invite Links',
                               onTap: () => pop(GuildAction.settingsInviteLinks),
                             ),
-                            MenuItem(
+                            FluxerBottomSheetMenuItem(
                               label: 'Bans',
                               onTap: () => pop(GuildAction.settingsBans),
                             ),
@@ -348,9 +348,9 @@ class _GuildMuteSheet extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(height: layout.s2),
-              const BottomSheetDragHandle(),
+              const FluxerBottomSheetDragHandle(),
               SizedBox(height: layout.s3),
-              BottomSheetSubmenuHeader(
+              FluxerBottomSheetSubmenuHeader(
                 title: isMuted ? 'Unmute Community' : 'Mute Community',
                 onBack: () => Navigator.of(context).pop(),
               ),
@@ -365,50 +365,50 @@ class _GuildMuteSheet extends StatelessWidget {
                     layout.s4,
                   ),
                   children: [
-                    MenuGroupColumn(
+                    FluxerBottomSheetGroupColumn(
                       children: [
-                        MenuGroup(
+                        FluxerMenuGroup(
                           children: isMuted
                               ? [
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'Unmute Community',
                                     onTap: () => pop(GuildAction.unmute),
                                   ),
                                 ]
                               : [
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 15 minutes',
                                     onTap: () => pop(GuildAction.mute15Min),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 30 minutes',
                                     onTap: () => pop(GuildAction.mute30Min),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 1 hour',
                                     onTap: () => pop(GuildAction.mute1Hour),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 3 hours',
                                     onTap: () => pop(GuildAction.mute3Hours),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 4 hours',
                                     onTap: () => pop(GuildAction.mute4Hours),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 8 hours',
                                     onTap: () => pop(GuildAction.mute8Hours),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 24 hours',
                                     onTap: () => pop(GuildAction.mute24Hours),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 3 days',
                                     onTap: () => pop(GuildAction.mute3Days),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'Until I turn it back on',
                                     onTap: () => pop(GuildAction.muteForever),
                                   ),

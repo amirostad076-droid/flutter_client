@@ -10,7 +10,7 @@ import 'package:fluxeron/features/channels/domain/channel.dart';
 import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/channels/providers/unread_provider.dart';
-import 'package:fluxeron/shared/widgets/unread_badge.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -209,7 +209,9 @@ class GuildSidebar extends ConsumerWidget {
                 ),
               ),
               if (!isSelected && (hasUnread || mentionCount > 0))
-                UnreadBadge(mentionCount: mentionCount),
+                mentionCount > 0
+                    ? FluxerBadge.count(count: mentionCount)
+                    : const FluxerBadge.dot(),
             ],
           ),
         ),

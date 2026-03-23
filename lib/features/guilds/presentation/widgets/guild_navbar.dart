@@ -24,7 +24,7 @@ import 'package:fluxeron/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxeron/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxeron/shared/widgets/unread_badge.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -368,7 +368,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
               Positioned(
                 bottom: -4,
                 right: -4,
-                child: UnreadBadge(mentionCount: totalMentions),
+                child: FluxerBadge.count(count: totalMentions),
               ),
             if (!isExpanded && folderVoiceActivity != VoiceActivityType.none)
               Positioned(
@@ -685,7 +685,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                 Positioned(
                   bottom: -4,
                   right: -4,
-                  child: UnreadBadge(mentionCount: widget.mentionCount),
+                  child: FluxerBadge.count(count: widget.mentionCount),
                 ),
               if (!widget.isUnavailable &&
                   widget.voiceActivity != VoiceActivityType.none)

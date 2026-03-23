@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class SettingsSidebar extends StatelessWidget {
@@ -73,10 +73,10 @@ class SettingsSidebar extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(18, 8, 16, 24),
             child: Row(
               children: [
-                UserAvatar(
-                  displayName: username!,
+                FluxerAvatar.user(
+                  fallbackText: username!,
                   userId: userId ?? '',
-                  avatarUrl: avatarUrl,
+                  imageUrl: avatarUrl,
                   avatarColor: avatarColor,
                   size: 32,
                   showStatus: false,

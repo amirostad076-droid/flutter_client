@@ -18,6 +18,7 @@ export 'package:fluxeron/features/ui/accordion/fluxer_accordion.dart';
 export 'package:fluxeron/features/ui/avatar/fluxer_avatar.dart';
 export 'package:fluxeron/features/ui/badge/fluxer_badge.dart';
 export 'package:fluxeron/features/ui/status_indicator/fluxer_status_indicator.dart';
+export 'package:fluxeron/features/ui/text_link/fluxer_text_link.dart';
 export 'package:fluxeron/features/ui/tooltip/fluxer_tooltip.dart';
 
 // Navigation

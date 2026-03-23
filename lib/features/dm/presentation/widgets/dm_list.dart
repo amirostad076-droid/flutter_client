@@ -12,9 +12,8 @@ import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/features/friends/providers/friend_providers.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart' show fluxerMediaCdn;
 import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
-import 'package:fluxeron/shared/widgets/menu_bottom_sheet.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -624,10 +623,10 @@ class _DMListState extends ConsumerState<DMList> {
                   isSelected: isSelected,
                 )
               else
-                UserAvatar(
-                  displayName: c.recipientName,
+                FluxerAvatar.user(
+                  fallbackText: c.recipientName,
                   userId: c.recipientId,
-                  avatarUrl: _dmAvatarUrl(c),
+                  imageUrl: _dmAvatarUrl(c),
                   status: c.recipientStatus,
                   size: avatarSize,
                 ),
@@ -684,9 +683,9 @@ class _DMListState extends ConsumerState<DMList> {
     DmConversation convo,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
-    final result = await showStyledBottomSheet<Object>(
+    final result = await FluxerBottomSheet.show<Object>(
       context,
-      builder: (context) => _DmBottomSheet(convo: convo, isMuted: false),
+      builder: (context, _) => _DmBottomSheet(convo: convo, isMuted: false),
     );
 
     if (result == null || !mounted) {
@@ -924,9 +923,9 @@ class _DmBottomSheet extends StatelessWidget {
     // Group 1: Mark as Read
     if (hasUnread) {
       groups.add(
-        MenuGroup(
+        FluxerMenuGroup(
           children: [
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               icon: PhosphorIconsFill.eye,
               label: 'Mark as Read',
               onTap: () => pop(_DmAction.markAsRead),
@@ -939,19 +938,19 @@ class _DmBottomSheet extends StatelessWidget {
     // Group 2: Profile actions (1-on-1 DMs only)
     if (!convo.isGroup) {
       groups.add(
-        MenuGroup(
+        FluxerMenuGroup(
           children: [
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               icon: PhosphorIconsFill.user,
               label: 'View Profile',
               onTap: () => pop(_DmAction.viewProfile),
             ),
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               icon: PhosphorIconsFill.phone,
               label: 'Voice Call',
               onTap: () => pop(_DmAction.voiceCall),
             ),
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               icon: PhosphorIconsFill.notePencil,
               label: 'Add Note',
               onTap: () => pop(_DmAction.addNote),
@@ -963,19 +962,19 @@ class _DmBottomSheet extends StatelessWidget {
 
     // Group 3: Mute & Pin (+ Edit Group for group DMs)
     groups.add(
-      MenuGroup(
+      FluxerMenuGroup(
         children: [
           if (convo.isGroup)
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               icon: PhosphorIconsFill.pencilSimple,
               label: 'Edit Group',
               onTap: () => pop(_DmAction.editGroup),
             ),
-          MenuSubmenuItem(
+          FluxerBottomSheetSubmenuItem(
             label: isMuted ? 'Unmute Conversation' : 'Mute Conversation',
             onTap: () => _openMuteSheet(context),
           ),
-          MenuItem(
+          FluxerBottomSheetMenuItem(
             icon: PhosphorIconsFill.pushPin,
             label: 'Pin DM',
             onTap: () => pop(_DmAction.pinToggle),
@@ -987,13 +986,13 @@ class _DmBottomSheet extends StatelessWidget {
     // Group 4: Relationship actions (1-on-1 DMs only)
     if (!convo.isGroup) {
       groups.add(
-        MenuGroup(
+        FluxerMenuGroup(
           children: [
-            MenuSubmenuItem(
+            FluxerBottomSheetSubmenuItem(
               label: 'Invite to Community',
               onTap: () => _openInviteSheet(context),
             ),
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               icon: PhosphorIconsFill.prohibit,
               label: 'Block',
               isDanger: true,
@@ -1007,9 +1006,9 @@ class _DmBottomSheet extends StatelessWidget {
     // Group 5: Close / Leave (danger) + Group 6: Copy IDs
     groups
       ..add(
-        MenuGroup(
+        FluxerMenuGroup(
           children: [
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               icon: PhosphorIconsFill.xCircle,
               label: convo.isGroup ? 'Leave Group' : 'Close DM',
               isDanger: true,
@@ -1019,15 +1018,15 @@ class _DmBottomSheet extends StatelessWidget {
         ),
       )
       ..add(
-        MenuGroup(
+        FluxerMenuGroup(
           children: [
             if (!convo.isGroup)
-              MenuItem(
+              FluxerBottomSheetMenuItem(
                 icon: PhosphorIconsRegular.snowflake,
                 label: 'Copy User ID',
                 onTap: () => pop(_DmAction.copyUserId),
               ),
-            MenuItem(
+            FluxerBottomSheetMenuItem(
               icon: PhosphorIconsRegular.snowflake,
               label: 'Copy Channel ID',
               onTap: () => pop(_DmAction.copyChannelId),
@@ -1045,9 +1044,9 @@ class _DmBottomSheet extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(height: layout.s2),
-              const BottomSheetDragHandle(),
+              const FluxerBottomSheetDragHandle(),
               SizedBox(height: layout.s3),
-              BottomSheetHeader(
+              FluxerBottomSheetHeader(
                 leading: convo.isGroup
                     ? Container(
                         width: 48,
@@ -1063,10 +1062,10 @@ class _DmBottomSheet extends StatelessWidget {
                           color: context.colors.interactiveNormal,
                         ),
                       )
-                    : UserAvatar(
-                        displayName: convo.recipientName,
+                    : FluxerAvatar.user(
+                        fallbackText: convo.recipientName,
                         userId: convo.recipientId,
-                        avatarUrl: _dmAvatarUrl(convo),
+                        imageUrl: _dmAvatarUrl(convo),
                         status: convo.recipientStatus,
                         size: 48,
                       ),
@@ -1090,7 +1089,7 @@ class _DmBottomSheet extends StatelessWidget {
                     layout.s4,
                     layout.s4,
                   ),
-                  children: [MenuGroupColumn(children: groups)],
+                  children: [FluxerBottomSheetGroupColumn(children: groups)],
                 ),
               ),
             ],
@@ -1103,9 +1102,9 @@ class _DmBottomSheet extends StatelessWidget {
   void _openMuteSheet(BuildContext context) {
     final nav = Navigator.of(context);
     unawaited(
-      showStyledBottomSheet<_DmAction>(
+      FluxerBottomSheet.show<_DmAction>(
         context,
-        builder: (_) => _DmMuteSheet(isMuted: isMuted),
+        builder: (_, _) => _DmMuteSheet(isMuted: isMuted),
       ).then((result) {
         if (result != null) {
           nav.pop(result);
@@ -1117,9 +1116,9 @@ class _DmBottomSheet extends StatelessWidget {
   void _openInviteSheet(BuildContext context) {
     final nav = Navigator.of(context);
     unawaited(
-      showStyledBottomSheet<_InviteToGuildAction>(
+      FluxerBottomSheet.show<_InviteToGuildAction>(
         context,
-        builder: (_) => const _DmInviteSheet(),
+        builder: (_, _) => const _DmInviteSheet(),
       ).then((result) {
         if (result != null) {
           nav.pop(result);
@@ -1147,9 +1146,9 @@ class _DmMuteSheet extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(height: layout.s2),
-              const BottomSheetDragHandle(),
+              const FluxerBottomSheetDragHandle(),
               SizedBox(height: layout.s3),
-              BottomSheetSubmenuHeader(
+              FluxerBottomSheetSubmenuHeader(
                 title: isMuted ? 'Unmute Conversation' : 'Mute Conversation',
                 onBack: () => Navigator.of(context).pop(),
               ),
@@ -1164,50 +1163,50 @@ class _DmMuteSheet extends StatelessWidget {
                     layout.s4,
                   ),
                   children: [
-                    MenuGroupColumn(
+                    FluxerBottomSheetGroupColumn(
                       children: [
-                        MenuGroup(
+                        FluxerMenuGroup(
                           children: isMuted
                               ? [
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'Unmute Conversation',
                                     onTap: () => pop(_DmAction.unmute),
                                   ),
                                 ]
                               : [
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 15 minutes',
                                     onTap: () => pop(_DmAction.mute15Min),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 30 minutes',
                                     onTap: () => pop(_DmAction.mute30Min),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 1 hour',
                                     onTap: () => pop(_DmAction.mute1Hour),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 3 hours',
                                     onTap: () => pop(_DmAction.mute3Hours),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 4 hours',
                                     onTap: () => pop(_DmAction.mute4Hours),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 8 hours',
                                     onTap: () => pop(_DmAction.mute8Hours),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 24 hours',
                                     onTap: () => pop(_DmAction.mute24Hours),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'For 3 days',
                                     onTap: () => pop(_DmAction.mute3Days),
                                   ),
-                                  MenuItem(
+                                  FluxerBottomSheetMenuItem(
                                     label: 'Until I turn it back on',
                                     onTap: () => pop(_DmAction.muteForever),
                                   ),
@@ -1243,9 +1242,9 @@ class _DmInviteSheet extends ConsumerWidget {
           child: Column(
             children: [
               SizedBox(height: layout.s2),
-              const BottomSheetDragHandle(),
+              const FluxerBottomSheetDragHandle(),
               SizedBox(height: layout.s3),
-              BottomSheetSubmenuHeader(
+              FluxerBottomSheetSubmenuHeader(
                 title: 'Invite to Community',
                 onBack: () => Navigator.of(context).pop(),
               ),
@@ -1260,9 +1259,9 @@ class _DmInviteSheet extends ConsumerWidget {
                     layout.s4,
                   ),
                   children: [
-                    MenuGroupColumn(
+                    FluxerBottomSheetGroupColumn(
                       children: [
-                        MenuGroup(
+                        FluxerMenuGroup(
                           children: guilds.isEmpty
                               ? [
                                   Padding(
@@ -1276,7 +1275,7 @@ class _DmInviteSheet extends ConsumerWidget {
                                 ]
                               : [
                                   for (final guild in guilds)
-                                    MenuItem(
+                                    FluxerBottomSheetMenuItem(
                                       label: guild.name,
                                       onTap: () => Navigator.of(
                                         context,

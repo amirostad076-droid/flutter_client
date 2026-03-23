@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_thumbhash/flutter_thumbhash.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
-import 'package:fluxeron/shared/widgets/text_link.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -65,9 +65,10 @@ class AttachmentImage extends StatelessWidget {
           ),
         ),
         if (attachment.expiresAt != null)
-          TextLink(
-            'Expires on ${DateFormat('dd MMM, yyyy').format(attachment.expiresAt!)}',
-            link: 'https://help.fluxer.app/en/articles/13984638',
+          FluxerTextLink(
+            text:
+                'Expires on ${DateFormat('dd MMM, yyyy').format(attachment.expiresAt!)}',
+            url: 'https://help.fluxer.app/en/articles/13984638',
             style: context.textStyles.embedFooter,
           ),
       ],

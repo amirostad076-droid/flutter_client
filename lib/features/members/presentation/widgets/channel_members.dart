@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/members/domain/member.dart';
 import 'package:fluxeron/features/members/providers/member_list_view_model.dart';
-import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 
 const _kPanelWidth = 264.0;
 
@@ -120,10 +120,10 @@ class _MemberListItemState extends State<_MemberListItem> {
               ),
               child: Row(
                 children: [
-                  UserAvatar(
-                    displayName: member.displayName,
+                  FluxerAvatar.user(
+                    fallbackText: member.displayName,
                     userId: member.id,
-                    avatarUrl: member.avatarUrl,
+                    imageUrl: member.avatarUrl,
                     avatarColor: member.avatarColor,
                     roleColor: member.roleColor,
                     status: member.status,

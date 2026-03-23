@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
-import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 
 class UserProfile extends StatelessWidget {
   final UserSettingsViewState userState;
@@ -51,10 +51,10 @@ class UserProfile extends StatelessWidget {
                                 width: 6,
                               ),
                             ),
-                            child: UserAvatar(
-                              displayName: userState.displayName,
+                            child: FluxerAvatar.user(
+                              fallbackText: userState.displayName,
                               userId: userState.userId,
-                              avatarUrl: userState.avatarUrl,
+                              imageUrl: userState.avatarUrl,
                               avatarColor: userState.avatarColor,
                               size: 80,
                               showStatus: false,

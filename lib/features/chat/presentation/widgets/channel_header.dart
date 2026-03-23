@@ -9,9 +9,8 @@ import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart';
 import 'package:fluxeron/shared/utils/chat_context_utils.dart';
-import 'package:fluxeron/shared/widgets/circle_icon_button.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -97,21 +96,21 @@ class ChannelHeader extends ConsumerWidget {
           if (dm != null)
             Padding(
               padding: const EdgeInsets.only(right: 6),
-              child: CircleIconButton(
+              child: FluxerButton.secondary(
                 icon: PhosphorIconsFill.phoneCall,
-                backgroundColor: context.colors.backgroundTertiary,
-                iconColor: context.colors.interactiveNormal,
-                onTap: () {},
+                isSquare: true,
+                size: FluxerButtonSize.compact,
+                onPressed: () {},
               ),
             ),
           if (dm != null)
             Padding(
               padding: const EdgeInsets.only(right: 4),
-              child: CircleIconButton(
+              child: FluxerButton.secondary(
                 icon: PhosphorIconsFill.videoCamera,
-                backgroundColor: context.colors.backgroundTertiary,
-                iconColor: context.colors.interactiveNormal,
-                onTap: () {},
+                isSquare: true,
+                size: FluxerButtonSize.compact,
+                onPressed: () {},
               ),
             ),
           if (dm == null)
@@ -207,10 +206,10 @@ class ChannelHeader extends ConsumerWidget {
       return ChannelIcon(type: channel.type);
     }
     if (dm != null) {
-      return UserAvatar(
-        displayName: dm.recipientName,
+      return FluxerAvatar.user(
+        fallbackText: dm.recipientName,
         userId: dm.recipientId,
-        avatarUrl: _dmAvatarUrl(dm),
+        imageUrl: _dmAvatarUrl(dm),
         status: dm.recipientStatus,
         size: 28,
       );

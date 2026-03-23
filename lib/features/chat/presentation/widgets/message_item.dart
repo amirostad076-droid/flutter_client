@@ -19,7 +19,7 @@ import 'package:fluxeron/features/chat/presentation/'
 import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxeron/features/chat/presentation/widgets/message_markdown.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxeron/shared/widgets/user_avatar.dart';
+import 'package:fluxeron/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Avatar column width: 40px avatar + 16px gap to the
@@ -297,10 +297,10 @@ class _MessageItemState extends State<MessageItem> {
     children: [
       Padding(
         padding: const EdgeInsets.only(top: 2),
-        child: UserAvatar(
-          displayName: msg.authorName,
+        child: FluxerAvatar.user(
+          fallbackText: msg.authorName,
           userId: msg.authorId,
-          avatarUrl: msg.authorAvatarUrl,
+          imageUrl: msg.authorAvatarUrl,
           avatarColor: msg.authorAvatarColor,
         ),
       ),
