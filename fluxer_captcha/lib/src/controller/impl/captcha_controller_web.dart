@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_captcha/src/captcha_exception.dart';
 import 'package:fluxer_captcha/src/captcha_provider.dart';
 import 'package:fluxer_captcha/src/controller/interface.dart' as i;
+import 'package:meta/meta.dart';
 
 /// Captcha controller for web platforms.
 class CaptchaController extends ChangeNotifier
@@ -35,9 +36,11 @@ class CaptchaController extends ChangeNotifier
   @override
   CaptchaException? get error => _error;
 
+  @internal
   @override
   void setConnector(dynamic newConnector) {}
 
+  @internal
   @override
   set token(String? token) {
     _token = token;
@@ -49,6 +52,7 @@ class CaptchaController extends ChangeNotifier
     notifyListeners();
   }
 
+  @internal
   @override
   set widgetId(String? id) {
     if (_widgetId != id) {
@@ -57,6 +61,7 @@ class CaptchaController extends ChangeNotifier
     }
   }
 
+  @internal
   @override
   set isWidgetReady(bool isReady) {
     if (_isReady != isReady) {
@@ -65,6 +70,7 @@ class CaptchaController extends ChangeNotifier
     }
   }
 
+  @internal
   @override
   set error(CaptchaException? error) {
     _error = error;

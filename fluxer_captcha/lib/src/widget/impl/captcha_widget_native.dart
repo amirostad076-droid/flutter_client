@@ -855,13 +855,13 @@ class _CaptchaInvisible extends FluxerCaptcha {
       if (token != null) {
         if (!await controller!.isExpired()) {
           if (!_completer!.isCompleted) {
-            _completer?.complete(token);
+            _completer!.complete(token);
             return;
           }
         }
       }
 
-      await controller?.refreshToken();
+      await controller!.refreshToken();
     }
   }
 
