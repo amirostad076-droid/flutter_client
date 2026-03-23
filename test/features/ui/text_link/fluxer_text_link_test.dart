@@ -1,0 +1,66 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
+import 'package:fluxeron/core/theme/fluxer_theme.dart';
+import 'package:fluxeron/core/theme/themes/dark.dart';
+import 'package:fluxeron/features/ui/text_link/fluxer_text_link.dart';
+
+Widget buildTestApp(Widget child) {
+  final colorTheme = buildDarkColorTheme();
+  return MaterialApp(
+    theme: buildFluxerTheme(
+      colorTheme: colorTheme,
+      textTheme: FluxerTextTheme.fromColors(colorTheme),
+      layoutTheme: FluxerLayoutTheme.scaled(),
+    ),
+    home: Scaffold(body: child),
+  );
+}
+
+void main() {
+  group('FluxerTextLink', () {
+    testWidgets('renders text content', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(const FluxerTextLink(text: 'Visit site')),
+      );
+
+      expect(find.text('Visit site'), findsOneWidget);
+    });
+
+    testWidgets('calls onTap when tapped', (tester) async {
+      var tapped = false;
+      await tester.pumpWidget(
+        buildTestApp(
+          FluxerTextLink(text: 'Click me', onTap: () => tapped = true),
+        ),
+      );
+
+      await tester.tap(find.text('Click me'));
+      expect(tapped, isTrue);
+    });
+
+    testWidgets('renders selectable text when selectable is true', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          const FluxerTextLink(text: 'Selectable link', selectable: true),
+        ),
+      );
+
+      expect(find.byType(SelectableText), findsOneWidget);
+      expect(find.text('Selectable link'), findsOneWidget);
+    });
+
+    testWidgets('has link semantics', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          const FluxerTextLink(text: 'A link', url: 'https://example.com'),
+        ),
+      );
+
+      expect(find.bySemanticsLabel('A link'), findsWidgets);
+    });
+  });
+}
