@@ -267,6 +267,138 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get back;
+
+  /// Title for the MFA challenge screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-factor authentication'**
+  String get mfaTitle;
+
+  /// Description text when multiple MFA methods are available.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a verification method'**
+  String get mfaChooseMethod;
+
+  /// Label for the TOTP authenticator method.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticator App'**
+  String get mfaMethodTotp;
+
+  /// Label for the SMS code method.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS Code'**
+  String get mfaMethodSms;
+
+  /// Label for the WebAuthn security key method.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Key / Passkey'**
+  String get mfaMethodWebauthn;
+
+  /// Description for the TOTP code entry screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code from your authenticator app or one of your backup codes.'**
+  String get mfaTotpDescription;
+
+  /// Description for the SMS code entry screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code sent to your phone.'**
+  String get mfaSmsDescription;
+
+  /// Button label to send an SMS verification code.
+  ///
+  /// In en, this message translates to:
+  /// **'Send SMS Code'**
+  String get mfaSendSmsCode;
+
+  /// Label for the MFA code input field.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get mfaCodeLabel;
+
+  /// Link to switch to a different MFA method.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another method'**
+  String get mfaTryAnotherMethod;
+
+  /// Link to switch to WebAuthn from code entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try security key / passkey instead'**
+  String get mfaUseSecurityKey;
+
+  /// Title for the account selector on the login screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an account'**
+  String get accountSelectorTitle;
+
+  /// Description for the account selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an account to continue, or add a different one.'**
+  String get accountSelectorDescription;
+
+  /// Button to add a new account.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an account'**
+  String get accountAdd;
+
+  /// Context menu option to remove a stored account.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get accountRemove;
+
+  /// Title for the remove account confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {username}'**
+  String accountRemoveTitle(String username);
+
+  /// Description for the remove account confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove the saved session for this account.'**
+  String get accountRemoveDescription;
+
+  /// Description when removing the last stored account.
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove the only saved account on this device.'**
+  String get accountRemoveOnlyDescription;
+
+  /// Label shown on accounts with expired sessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get accountExpired;
+
+  /// Message when selecting an expired account.
+  ///
+  /// In en, this message translates to:
+  /// **'Session expired for {identifier}. Please log in again.'**
+  String accountSessionExpired(String identifier);
+
+  /// Badge shown on the currently active account.
+  ///
+  /// In en, this message translates to:
+  /// **'Active account'**
+  String get accountActive;
+
+  /// Context menu option to sign out of current account.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOut;
 }
 
 class _FluxerLocalizationsDelegate

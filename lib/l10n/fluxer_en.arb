@@ -130,5 +130,99 @@
   "back": "Back",
   "@back": {
     "description": "Generic back navigation label."
+  },
+  "mfaTitle": "Two-factor authentication",
+  "@mfaTitle": {
+    "description": "Title for the MFA challenge screen."
+  },
+  "mfaChooseMethod": "Choose a verification method",
+  "@mfaChooseMethod": {
+    "description": "Description text when multiple MFA methods are available."
+  },
+  "mfaMethodTotp": "Authenticator App",
+  "@mfaMethodTotp": {
+    "description": "Label for the TOTP authenticator method."
+  },
+  "mfaMethodSms": "SMS Code",
+  "@mfaMethodSms": {
+    "description": "Label for the SMS code method."
+  },
+  "mfaMethodWebauthn": "Security Key / Passkey",
+  "@mfaMethodWebauthn": {
+    "description": "Label for the WebAuthn security key method."
+  },
+  "mfaTotpDescription": "Enter the 6-digit code from your authenticator app or one of your backup codes.",
+  "@mfaTotpDescription": {
+    "description": "Description for the TOTP code entry screen."
+  },
+  "mfaSmsDescription": "Enter the 6-digit code sent to your phone.",
+  "@mfaSmsDescription": {
+    "description": "Description for the SMS code entry screen."
+  },
+  "mfaSendSmsCode": "Send SMS Code",
+  "@mfaSendSmsCode": {
+    "description": "Button label to send an SMS verification code."
+  },
+  "mfaCodeLabel": "Code",
+  "@mfaCodeLabel": {
+    "description": "Label for the MFA code input field."
+  },
+  "mfaTryAnotherMethod": "Try another method",
+  "@mfaTryAnotherMethod": {
+    "description": "Link to switch to a different MFA method."
+  },
+  "mfaUseSecurityKey": "Try security key / passkey instead",
+  "@mfaUseSecurityKey": {
+    "description": "Link to switch to WebAuthn from code entry."
+  },
+  "accountSelectorTitle": "Choose an account",
+  "@accountSelectorTitle": {
+    "description": "Title for the account selector on the login screen."
+  },
+  "accountSelectorDescription": "Select an account to continue, or add a different one.",
+  "@accountSelectorDescription": {
+    "description": "Description for the account selector."
+  },
+  "accountAdd": "Add an account",
+  "@accountAdd": {
+    "description": "Button to add a new account."
+  },
+  "accountRemove": "Remove",
+  "@accountRemove": {
+    "description": "Context menu option to remove a stored account."
+  },
+  "accountRemoveTitle": "Remove {username}",
+  "@accountRemoveTitle": {
+    "description": "Title for the remove account confirmation modal.",
+    "placeholders": {
+      "username": { "type": "String" }
+    }
+  },
+  "accountRemoveDescription": "This will remove the saved session for this account.",
+  "@accountRemoveDescription": {
+    "description": "Description for the remove account confirmation modal."
+  },
+  "accountRemoveOnlyDescription": "This will remove the only saved account on this device.",
+  "@accountRemoveOnlyDescription": {
+    "description": "Description when removing the last stored account."
+  },
+  "accountExpired": "Expired",
+  "@accountExpired": {
+    "description": "Label shown on accounts with expired sessions."
+  },
+  "accountSessionExpired": "Session expired for {identifier}. Please log in again.",
+  "@accountSessionExpired": {
+    "description": "Message when selecting an expired account.",
+    "placeholders": {
+      "identifier": { "type": "String" }
+    }
+  },
+  "accountActive": "Active account",
+  "@accountActive": {
+    "description": "Badge shown on the currently active account."
+  },
+  "signOut": "Sign out",
+  "@signOut": {
+    "description": "Context menu option to sign out of current account."
   }
 }

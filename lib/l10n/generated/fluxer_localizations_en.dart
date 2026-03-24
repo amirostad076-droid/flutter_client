@@ -103,4 +103,78 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get back => 'Back';
+
+  @override
+  String get mfaTitle => 'Two-factor authentication';
+
+  @override
+  String get mfaChooseMethod => 'Choose a verification method';
+
+  @override
+  String get mfaMethodTotp => 'Authenticator App';
+
+  @override
+  String get mfaMethodSms => 'SMS Code';
+
+  @override
+  String get mfaMethodWebauthn => 'Security Key / Passkey';
+
+  @override
+  String get mfaTotpDescription =>
+      'Enter the 6-digit code from your authenticator app or one of your backup codes.';
+
+  @override
+  String get mfaSmsDescription => 'Enter the 6-digit code sent to your phone.';
+
+  @override
+  String get mfaSendSmsCode => 'Send SMS Code';
+
+  @override
+  String get mfaCodeLabel => 'Code';
+
+  @override
+  String get mfaTryAnotherMethod => 'Try another method';
+
+  @override
+  String get mfaUseSecurityKey => 'Try security key / passkey instead';
+
+  @override
+  String get accountSelectorTitle => 'Choose an account';
+
+  @override
+  String get accountSelectorDescription =>
+      'Select an account to continue, or add a different one.';
+
+  @override
+  String get accountAdd => 'Add an account';
+
+  @override
+  String get accountRemove => 'Remove';
+
+  @override
+  String accountRemoveTitle(String username) {
+    return 'Remove $username';
+  }
+
+  @override
+  String get accountRemoveDescription =>
+      'This will remove the saved session for this account.';
+
+  @override
+  String get accountRemoveOnlyDescription =>
+      'This will remove the only saved account on this device.';
+
+  @override
+  String get accountExpired => 'Expired';
+
+  @override
+  String accountSessionExpired(String identifier) {
+    return 'Session expired for $identifier. Please log in again.';
+  }
+
+  @override
+  String get accountActive => 'Active account';
+
+  @override
+  String get signOut => 'Sign out';
 }
