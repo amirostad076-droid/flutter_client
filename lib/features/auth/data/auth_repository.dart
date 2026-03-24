@@ -4,6 +4,8 @@ import 'package:fluxer_dart/export.dart';
 import 'package:fluxeron/core/database/fluxer_database.dart' hide AuthSession;
 import 'package:fluxeron/features/auth/domain/auth_failure.dart';
 import 'package:fluxeron/features/auth/domain/auth_session.dart';
+import 'package:fluxeron/features/auth/domain/ip_authorization_challenge.dart';
+import 'package:fluxeron/features/auth/domain/login_result.dart';
 
 class AuthRepository {
   final FluxerClient _client;
@@ -11,7 +13,7 @@ class AuthRepository {
 
   const AuthRepository(this._client, this._db);
 
-  Future<AuthSession> login({
+  Future<LoginResult> login({
     required String email,
     required String password,
   }) async {
@@ -34,7 +36,7 @@ class AuthRepository {
           ),
         );
 
-        return session;
+        return LoginSuccess(session);
       } on Object {
         // Not a token response — try MFA
       }
@@ -56,6 +58,10 @@ class AuthRepository {
     } on AuthFailure {
       rethrow;
     } on DioException catch (error) {
+      final ipChallenge = _extractIpAuthChallenge(error);
+      if (ipChallenge != null) {
+        return LoginIpAuthRequired(ipChallenge);
+      }
       throw _failureFromDio(error);
     }
   }
@@ -70,6 +76,64 @@ class AuthRepository {
 
   Future<void> logout() async {
     await _db.clearAll();
+  }
+
+  Future<AuthSession?> pollIpAuthorization(String ticket) async {
+    final response = await _client.auth.pollIpAuthorization(ticket: ticket);
+    if (response.completed &&
+        response.token != null &&
+        response.userId != null) {
+      final session = AuthSession(
+        token: response.token!,
+        userId: response.userId!,
+      );
+
+      await _db.authSessionDao.saveSession(
+        AuthSessionsCompanion.insert(
+          token: session.token,
+          userId: session.userId,
+        ),
+      );
+
+      return session;
+    }
+    return null;
+  }
+
+  Future<void> resendIpAuthorization(String ticket) async {
+    await _client.auth.resendIpAuthorization(
+      body: MfaTicketRequest(ticket: ticket),
+    );
+  }
+
+  IpAuthorizationChallenge? _extractIpAuthChallenge(DioException error) {
+    if (error.response?.statusCode != 403) {
+      return null;
+    }
+
+    final data = error.response?.data;
+    if (data is! Map<String, dynamic>) {
+      return null;
+    }
+
+    final code = data['code'] as String?;
+    if (code != 'IP_AUTHORIZATION_REQUIRED') {
+      return null;
+    }
+
+    final ticket = data['ticket'] as String?;
+    final email = data['email'] as String?;
+    final resendIn = data['resend_available_in'] as int?;
+
+    if (ticket == null || email == null) {
+      return null;
+    }
+
+    return IpAuthorizationChallenge(
+      ticket: ticket,
+      email: email,
+      resendAvailableIn: resendIn ?? 0,
+    );
   }
 
   AuthFailure _failureFromDio(DioException error) {
