@@ -1,63 +1,227 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
+import 'package:fluxeron/features/auth/providers/mfa_view_model.dart';
+import 'package:fluxeron/features/ui/button/fluxer_button.dart';
+import 'package:fluxeron/features/ui/input/fluxer_input.dart';
+import 'package:fluxeron/features/ui/text_link/fluxer_text_link.dart';
+import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-class MfaScreen extends StatelessWidget {
-  const MfaScreen({super.key});
+class MfaScreen extends ConsumerWidget {
+  final MfaChallenge challenge;
+  final VoidCallback onBack;
+  final VoidCallback onAuthorized;
+
+  const MfaScreen({
+    required this.challenge,
+    required this.onBack,
+    required this.onAuthorized,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vm = ref.watch(mfaViewModelProvider(challenge));
+    final notifier = ref.read(mfaViewModelProvider(challenge).notifier);
+    final l10n = FluxerLocalizations.of(context);
+    final layout = context.layout;
+    final textStyles = context.textStyles;
+    final colors = context.colors;
+
+    // Listen for completion.
+    ref.listen(
+      mfaViewModelProvider(challenge).select((s) => s.completedSession),
+      (_, session) {
+        if (session != null) {
+          onAuthorized();
+        }
+      },
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(child: Text(l10n.mfaTitle, style: textStyles.heading)),
+        SizedBox(height: layout.s4),
+        if (vm.selectedMethod == null)
+          _MethodSelector(
+            challenge: challenge,
+            onSelect: notifier.selectMethod,
+            onWebauthn: notifier.startWebauthn,
+            webauthnLoading: vm.webauthnLoading,
+            l10n: l10n,
+          )
+        else
+          _CodeEntry(
+            challenge: challenge,
+            vm: vm,
+            notifier: notifier,
+            l10n: l10n,
+          ),
+        if (vm.error != null) ...[
+          SizedBox(height: layout.s3),
+          Text(
+            vm.error!,
+            style: textStyles.bodySmall.copyWith(color: colors.textDanger),
+          ),
+        ],
+        SizedBox(height: layout.s6),
+        if (vm.selectedMethod != null && challenge.hasMultipleMethods) ...[
+          if (challenge.webauthn && vm.selectedMethod != MfaMethod.webauthn)
+            Padding(
+              padding: EdgeInsets.only(bottom: layout.s2),
+              child: FluxerTextLink(
+                text: l10n.mfaUseSecurityKey,
+                onTap: vm.isSubmitting ? null : notifier.startWebauthn,
+              ),
+            ),
+          FluxerTextLink(
+            text: l10n.mfaTryAnotherMethod,
+            onTap: vm.isSubmitting ? null : notifier.clearMethod,
+          ),
+          SizedBox(height: layout.s2),
+        ],
+        FluxerTextLink(text: l10n.back, onTap: vm.isSubmitting ? null : onBack),
+      ],
+    );
+  }
+}
+
+class _MethodSelector extends StatelessWidget {
+  final MfaChallenge challenge;
+  final void Function(MfaMethod) onSelect;
+  final VoidCallback onWebauthn;
+  final bool webauthnLoading;
+  final FluxerLocalizations l10n;
+
+  const _MethodSelector({
+    required this.challenge,
+    required this.onSelect,
+    required this.onWebauthn,
+    required this.webauthnLoading,
+    required this.l10n,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.colors.brandPrimary,
-      body: Center(
-        child: Container(
-          width: 480,
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: context.colors.backgroundPrimary,
-            borderRadius: BorderRadius.circular(4),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 16,
-                offset: Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Two-Factor Authentication',
-                style: TextStyle(
-                  color: context.colors.textPrimary,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Enter the code from your '
-                'authenticator app.',
-                style: TextStyle(
-                  color: context.colors.textPrimaryMuted,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 32),
-              Text(
-                'MFA is not yet supported '
-                'in this client.',
-                style: TextStyle(
-                  color: context.colors.textDanger,
-                  fontSize: 14,
-                ),
-              ),
-            ],
+    final layout = context.layout;
+    final textStyles = context.textStyles;
+    final colors = context.colors;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Text(
+            l10n.mfaChooseMethod,
+            style: textStyles.bodySmall.copyWith(
+              color: colors.textPrimaryMuted,
+            ),
           ),
         ),
-      ),
+        SizedBox(height: layout.s4),
+        if (challenge.totp)
+          Padding(
+            padding: EdgeInsets.only(bottom: layout.s2),
+            child: FluxerButton.primary(
+              onPressed: () => onSelect(MfaMethod.totp),
+              label: l10n.mfaMethodTotp,
+              icon: PhosphorIconsFill.shieldCheck,
+            ),
+          ),
+        if (challenge.sms)
+          Padding(
+            padding: EdgeInsets.only(bottom: layout.s2),
+            child: FluxerButton.secondary(
+              onPressed: () => onSelect(MfaMethod.sms),
+              label: l10n.mfaMethodSms,
+              icon: PhosphorIconsFill.chatText,
+            ),
+          ),
+        if (challenge.webauthn)
+          FluxerButton.secondary(
+            onPressed: webauthnLoading ? null : onWebauthn,
+            label: l10n.mfaMethodWebauthn,
+            icon: PhosphorIconsFill.key,
+            isLoading: webauthnLoading,
+          ),
+      ],
+    );
+  }
+}
+
+class _CodeEntry extends StatelessWidget {
+  final MfaChallenge challenge;
+  final MfaViewState vm;
+  final MfaViewModel notifier;
+  final FluxerLocalizations l10n;
+
+  const _CodeEntry({
+    required this.challenge,
+    required this.vm,
+    required this.notifier,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.layout;
+    final textStyles = context.textStyles;
+    final colors = context.colors;
+
+    final description = vm.selectedMethod == MfaMethod.sms
+        ? l10n.mfaSmsDescription
+        : l10n.mfaTotpDescription;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Text(
+            description,
+            style: textStyles.bodySmall.copyWith(
+              color: colors.textPrimaryMuted,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        SizedBox(height: layout.s4),
+        if (vm.selectedMethod == MfaMethod.sms && !vm.smsSent) ...[
+          FluxerButton.primary(
+            onPressed: vm.isSubmitting ? null : notifier.sendSms,
+            label: l10n.mfaSendSmsCode,
+            isLoading: vm.isSubmitting,
+          ),
+          SizedBox(height: layout.s4),
+        ],
+        if (vm.selectedMethod != MfaMethod.sms || vm.smsSent) ...[
+          FluxerInput(
+            label: l10n.mfaCodeLabel,
+            onChanged: notifier.updateCode,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.go,
+            autofillHints: const [AutofillHints.oneTimeCode],
+            onSubmitted: (_) {
+              if (vm.canSubmitCode) {
+                unawaited(notifier.submitCode());
+              }
+            },
+          ),
+          SizedBox(height: layout.s4),
+          FluxerButton.primary(
+            onPressed: vm.canSubmitCode ? notifier.submitCode : null,
+            label: l10n.logIn,
+            isLoading: vm.isSubmitting,
+          ),
+        ],
+      ],
     );
   }
 }
