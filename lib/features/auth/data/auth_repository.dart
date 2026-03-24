@@ -6,6 +6,7 @@ import 'package:fluxeron/features/auth/domain/auth_failure.dart';
 import 'package:fluxeron/features/auth/domain/auth_session.dart';
 import 'package:fluxeron/features/auth/domain/ip_authorization_challenge.dart';
 import 'package:fluxeron/features/auth/domain/login_result.dart';
+import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
 
 class AuthRepository {
   final FluxerClient _client;
@@ -29,12 +30,7 @@ class AuthRepository {
           userId: tokenResponse.userId,
         );
 
-        await _db.authSessionDao.saveSession(
-          AuthSessionsCompanion.insert(
-            token: session.token,
-            userId: session.userId,
-          ),
-        );
+        await _saveSession(session);
 
         return LoginSuccess(session);
       } on Object {
@@ -43,13 +39,15 @@ class AuthRepository {
 
       try {
         final mfaResponse = response.toAuthMfaRequiredResponse();
-        final methods = mfaResponse.allowedMethods.join(', ');
-        final suffix = methods.isEmpty ? '' : ' ($methods)';
-        throw AuthFailure(
-          'MFA is required$suffix and is not supported in this client yet.',
+        return LoginMfaRequired(
+          MfaChallenge(
+            ticket: mfaResponse.ticket,
+            totp: mfaResponse.totp,
+            sms: mfaResponse.sms,
+            webauthn: mfaResponse.webauthn,
+            smsPhoneHint: mfaResponse.smsPhoneHint,
+          ),
         );
-      } on AuthFailure {
-        rethrow;
       } on Object {
         // Not an MFA response either
       }
@@ -88,12 +86,7 @@ class AuthRepository {
         userId: response.userId!,
       );
 
-      await _db.authSessionDao.saveSession(
-        AuthSessionsCompanion.insert(
-          token: session.token,
-          userId: session.userId,
-        ),
-      );
+      await _saveSession(session);
 
       return session;
     }
@@ -104,6 +97,97 @@ class AuthRepository {
     await _client.auth.resendIpAuthorization(
       body: MfaTicketRequest(ticket: ticket),
     );
+  }
+
+  Future<void> _saveSession(AuthSession session) async {
+    await _db.authSessionDao.saveSession(
+      AuthSessionsCompanion.insert(
+        token: session.token,
+        userId: session.userId,
+      ),
+    );
+  }
+
+  Future<AuthSession> verifyMfaTotp({
+    required String ticket,
+    required String code,
+  }) async {
+    try {
+      final response = await _client.auth.loginWithTotp(
+        body: MfaTotpRequest(code: code, ticket: ticket),
+      );
+      final session = AuthSession(
+        token: response.token,
+        userId: response.userId,
+      );
+      await _saveSession(session);
+      return session;
+    } on DioException catch (error) {
+      throw _failureFromDio(error);
+    }
+  }
+
+  Future<AuthSession> verifyMfaSms({
+    required String ticket,
+    required String code,
+  }) async {
+    try {
+      final response = await _client.auth.loginWithSmsMfa(
+        body: MfaSmsRequest(code: code, ticket: ticket),
+      );
+      final session = AuthSession(
+        token: response.token,
+        userId: response.userId,
+      );
+      await _saveSession(session);
+      return session;
+    } on DioException catch (error) {
+      throw _failureFromDio(error);
+    }
+  }
+
+  Future<void> sendMfaSms({required String ticket}) async {
+    try {
+      await _client.auth.sendSmsMfaCode(
+        body: MfaTicketRequest(ticket: ticket),
+      );
+    } on DioException catch (error) {
+      throw _failureFromDio(error);
+    }
+  }
+
+  Future<dynamic> getMfaWebauthnOptions({required String ticket}) async {
+    try {
+      return await _client.auth.getWebauthnMfaOptions(
+        body: MfaTicketRequest(ticket: ticket),
+      );
+    } on DioException catch (error) {
+      throw _failureFromDio(error);
+    }
+  }
+
+  Future<AuthSession> verifyMfaWebauthn({
+    required String ticket,
+    required dynamic response,
+    required String challenge,
+  }) async {
+    try {
+      final result = await _client.auth.loginWithWebauthnMfa(
+        body: WebAuthnMfaRequest(
+          response: response,
+          challenge: challenge,
+          ticket: ticket,
+        ),
+      );
+      final session = AuthSession(
+        token: result.token,
+        userId: result.userId,
+      );
+      await _saveSession(session);
+      return session;
+    } on DioException catch (error) {
+      throw _failureFromDio(error);
+    }
   }
 
   IpAuthorizationChallenge? _extractIpAuthChallenge(DioException error) {
