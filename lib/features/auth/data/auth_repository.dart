@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:drift/drift.dart';
 import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' hide AuthSession;
@@ -7,6 +8,7 @@ import 'package:fluxeron/features/auth/domain/auth_session.dart';
 import 'package:fluxeron/features/auth/domain/ip_authorization_challenge.dart';
 import 'package:fluxeron/features/auth/domain/login_result.dart';
 import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
+import 'package:fluxeron/features/auth/domain/stored_account.dart';
 
 class AuthRepository {
   final FluxerClient _client;
@@ -65,15 +67,21 @@ class AuthRepository {
   }
 
   Future<AuthSession?> restoreSession() async {
-    final row = await _db.authSessionDao.getSession();
+    final row = await _db.authSessionDao.getActiveSession();
     if (row == null) {
       return null;
     }
     return AuthSession(token: row.token, userId: row.userId);
   }
 
-  Future<void> logout() async {
-    await _db.clearAll();
+  Future<void> logout(String userId) async {
+    try {
+      await _client.auth.logoutUser();
+    } on Object {
+      // Best-effort API call — proceed with local cleanup regardless.
+    }
+    await _db.authSessionDao.markInvalid(userId);
+    await _db.clearUserData();
   }
 
   Future<AuthSession?> pollIpAuthorization(String ticket) async {
@@ -99,11 +107,19 @@ class AuthRepository {
     );
   }
 
-  Future<void> _saveSession(AuthSession session) async {
+  Future<void> _saveSession(
+    AuthSession session, {
+    String? username,
+    String? discriminator,
+    String? avatar,
+  }) async {
     await _db.authSessionDao.saveSession(
       AuthSessionsCompanion.insert(
         token: session.token,
         userId: session.userId,
+        username: Value(username),
+        discriminator: Value(discriminator),
+        avatar: Value(avatar),
       ),
     );
   }
@@ -188,6 +204,40 @@ class AuthRepository {
     } on DioException catch (error) {
       throw _failureFromDio(error);
     }
+  }
+
+  Future<void> updateStoredUserData({
+    required String userId,
+    required String? username,
+    required String? discriminator,
+    required String? avatar,
+  }) async {
+    await _db.authSessionDao.updateUserData(
+      userId: userId,
+      username: username,
+      discriminator: discriminator,
+      avatar: avatar,
+    );
+  }
+
+  Future<List<StoredAccount>> getStoredAccounts() async {
+    final sessions = await _db.authSessionDao.getAllSessions();
+    return sessions
+        .map(
+          (s) => StoredAccount(
+            userId: s.userId,
+            isValid: s.isValid,
+            lastActive: s.lastActive,
+            username: s.username,
+            discriminator: s.discriminator,
+            avatar: s.avatar,
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> removeStoredAccount(String userId) async {
+    await _db.authSessionDao.removeSession(userId);
   }
 
   IpAuthorizationChallenge? _extractIpAuthChallenge(DioException error) {
