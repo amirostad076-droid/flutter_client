@@ -34,6 +34,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   package_info_plus: ^9.0.0
+  passkeys: ^2.8.2
   phosphor_flutter: ^2.1.0
   riverpod_annotation: ^4.0.2
   web_socket_channel: ^3.0.2

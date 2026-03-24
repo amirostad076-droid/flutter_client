@@ -1,4 +1,5 @@
 import 'package:fluxeron/core/talker.dart';
+import 'package:fluxeron/features/auth/data/webauthn_service.dart';
 import 'package:fluxeron/features/auth/domain/auth_failure.dart';
 import 'package:fluxeron/features/auth/domain/auth_session.dart';
 import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
@@ -170,16 +171,29 @@ class MfaViewModel extends _$MfaViewModel {
 
     try {
       final repo = ref.read(authRepositoryProvider);
+      final authenticator = ref.read(passkeyAuthenticatorProvider);
+      final webauthnService = WebAuthnService(authenticator);
 
       // 1. Get WebAuthn options from server.
-      // ignore: unused_local_variable
-      final options = await repo.getMfaWebauthnOptions(
-        ticket: _challenge.ticket,
+      final options =
+          await repo.getMfaWebauthnOptions(ticket: _challenge.ticket);
+
+      // 2. Trigger platform authenticator.
+      final authResponse = await webauthnService.authenticate(
+        options as Map<String, dynamic>,
       );
 
-      // 2. Trigger platform authenticator via passkeys package.
-      // TODO(auth): Integrate passkeys package here (Task 6).
-      throw UnimplementedError('WebAuthn passkeys integration pending');
+      // 3. Verify with server.
+      final session = await repo.verifyMfaWebauthn(
+        ticket: _challenge.ticket,
+        response: authResponse,
+        challenge: options['challenge'] as String,
+      );
+
+      state = state.copyWith(
+        webauthnLoading: false,
+        completedSession: session,
+      );
     } on AuthFailure catch (e) {
       state = state.copyWith(webauthnLoading: false, error: e.message);
     } on Exception catch (e) {
