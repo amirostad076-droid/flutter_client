@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/auth/presentation/mfa_screen.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/ip_authorization_screen.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/login_form.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
@@ -21,6 +22,14 @@ class LoginScreen extends ConsumerWidget {
   }) {
     final vm = ref.watch(loginViewModelProvider);
     final notifier = ref.read(loginViewModelProvider.notifier);
+
+    if (vm.mfaChallenge != null) {
+      return MfaScreen(
+        challenge: vm.mfaChallenge!,
+        onAuthorized: notifier.completeMfa,
+        onBack: notifier.clearMfaChallenge,
+      );
+    }
 
     if (vm.ipAuthChallenge != null) {
       return IpAuthorizationScreen(

@@ -3,6 +3,7 @@ import 'package:fluxeron/core/talker.dart';
 import 'package:fluxeron/features/auth/domain/auth_failure.dart';
 import 'package:fluxeron/features/auth/domain/ip_authorization_challenge.dart';
 import 'package:fluxeron/features/auth/domain/login_result.dart';
+import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -18,6 +19,7 @@ class LoginViewState {
   final Map<String, String> fieldErrors;
   final bool isLoggingIn;
   final IpAuthorizationChallenge? ipAuthChallenge;
+  final MfaChallenge? mfaChallenge;
 
   const LoginViewState({
     required this.email,
@@ -27,6 +29,7 @@ class LoginViewState {
     required this.fieldErrors,
     required this.isLoggingIn,
     required this.ipAuthChallenge,
+    required this.mfaChallenge,
   });
 
   bool get canLogin =>
@@ -40,6 +43,7 @@ class LoginViewState {
     Map<String, String>? fieldErrors,
     bool? isLoggingIn,
     Object? ipAuthChallenge = _unset,
+    Object? mfaChallenge = _unset,
   }) {
     return LoginViewState(
       email: email ?? this.email,
@@ -53,6 +57,9 @@ class LoginViewState {
       ipAuthChallenge: ipAuthChallenge == _unset
           ? this.ipAuthChallenge
           : ipAuthChallenge as IpAuthorizationChallenge?,
+      mfaChallenge: mfaChallenge == _unset
+          ? this.mfaChallenge
+          : mfaChallenge as MfaChallenge?,
     );
   }
 }
@@ -69,6 +76,7 @@ class LoginViewModel extends _$LoginViewModel {
       fieldErrors: {},
       isLoggingIn: false,
       ipAuthChallenge: null,
+      mfaChallenge: null,
     );
   }
 
@@ -91,6 +99,20 @@ class LoginViewModel extends _$LoginViewModel {
 
   void clearIpAuthChallenge() {
     state = state.copyWith(ipAuthChallenge: null);
+  }
+
+  void clearMfaChallenge() {
+    state = state.copyWith(mfaChallenge: null);
+  }
+
+  void completeMfa() {
+    ref.invalidate(appStartupProvider);
+    state = state.copyWith(
+      email: '',
+      password: '',
+      mfaChallenge: null,
+      isLoggingIn: false,
+    );
   }
 
   void completeIpAuth() {
@@ -136,6 +158,12 @@ class LoginViewModel extends _$LoginViewModel {
         case LoginIpAuthRequired(:final challenge):
           state = state.copyWith(
             ipAuthChallenge: challenge,
+            isLoggingIn: false,
+          );
+          return false;
+        case LoginMfaRequired(:final challenge):
+          state = state.copyWith(
+            mfaChallenge: challenge,
             isLoggingIn: false,
           );
           return false;
