@@ -164,9 +164,7 @@ class AuthRepository {
 
   Future<void> sendMfaSms({required String ticket}) async {
     try {
-      await _client.auth.sendSmsMfaCode(
-        body: MfaTicketRequest(ticket: ticket),
-      );
+      await _client.auth.sendSmsMfaCode(body: MfaTicketRequest(ticket: ticket));
     } on DioException catch (error) {
       throw _failureFromDio(error);
     }
@@ -195,10 +193,7 @@ class AuthRepository {
           ticket: ticket,
         ),
       );
-      final session = AuthSession(
-        token: result.token,
-        userId: result.userId,
-      );
+      final session = AuthSession(token: result.token, userId: result.userId);
       await _saveSession(session);
       return session;
     } on DioException catch (error) {

@@ -175,8 +175,9 @@ class MfaViewModel extends _$MfaViewModel {
       final webauthnService = WebAuthnService(authenticator);
 
       // 1. Get WebAuthn options from server.
-      final options =
-          await repo.getMfaWebauthnOptions(ticket: _challenge.ticket);
+      final options = await repo.getMfaWebauthnOptions(
+        ticket: _challenge.ticket,
+      );
 
       // 2. Trigger platform authenticator.
       final authResponse = await webauthnService.authenticate(
@@ -190,10 +191,7 @@ class MfaViewModel extends _$MfaViewModel {
         challenge: options['challenge'] as String,
       );
 
-      state = state.copyWith(
-        webauthnLoading: false,
-        completedSession: session,
-      );
+      state = state.copyWith(webauthnLoading: false, completedSession: session);
     } on AuthFailure catch (e) {
       state = state.copyWith(webauthnLoading: false, error: e.message);
     } on Exception catch (e) {

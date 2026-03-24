@@ -11,28 +11,27 @@ class AuthSessionDao extends DatabaseAccessor<FluxerDatabase>
   AuthSessionDao(super.attachedDatabase);
 
   /// Returns all stored sessions ordered by most recently active.
-  Future<List<AuthSession>> getAllSessions() =>
-      (select(authSessions)
-            ..orderBy([(t) => OrderingTerm.desc(t.lastActive)]))
-          .get();
+  Future<List<AuthSession>> getAllSessions() => (select(
+    authSessions,
+  )..orderBy([(t) => OrderingTerm.desc(t.lastActive)])).get();
 
   /// Returns a specific session by user ID.
-  Future<AuthSession?> getSession(String userId) =>
-      (select(authSessions)..where((t) => t.userId.equals(userId)))
-          .getSingleOrNull();
+  Future<AuthSession?> getSession(String userId) => (select(
+    authSessions,
+  )..where((t) => t.userId.equals(userId))).getSingleOrNull();
 
   /// Returns the most recently active valid session (for app startup).
-  Future<AuthSession?> getActiveSession() => (select(authSessions)
-        ..where((t) => t.isValid.equals(true))
-        ..orderBy([(t) => OrderingTerm.desc(t.lastActive)])
-        ..limit(1))
-      .getSingleOrNull();
+  Future<AuthSession?> getActiveSession() =>
+      (select(authSessions)
+            ..where((t) => t.isValid.equals(true))
+            ..orderBy([(t) => OrderingTerm.desc(t.lastActive)])
+            ..limit(1))
+          .getSingleOrNull();
 
   /// Upserts a session with updated lastActive timestamp.
-  Future<void> saveSession(AuthSessionsCompanion session) =>
-      into(authSessions).insertOnConflictUpdate(
-        session.copyWith(lastActive: Value(DateTime.now())),
-      );
+  Future<void> saveSession(AuthSessionsCompanion session) => into(
+    authSessions,
+  ).insertOnConflictUpdate(session.copyWith(lastActive: Value(DateTime.now())));
 
   /// Updates the cached user data for a session.
   Future<void> updateUserData({
@@ -40,15 +39,14 @@ class AuthSessionDao extends DatabaseAccessor<FluxerDatabase>
     required String? username,
     required String? discriminator,
     required String? avatar,
-  }) =>
-      (update(authSessions)..where((t) => t.userId.equals(userId))).write(
-        AuthSessionsCompanion(
-          username: Value(username),
-          discriminator: Value(discriminator),
-          avatar: Value(avatar),
-          lastActive: Value(DateTime.now()),
-        ),
-      );
+  }) => (update(authSessions)..where((t) => t.userId.equals(userId))).write(
+    AuthSessionsCompanion(
+      username: Value(username),
+      discriminator: Value(discriminator),
+      avatar: Value(avatar),
+      lastActive: Value(DateTime.now()),
+    ),
+  );
 
   /// Marks a session as invalid (expired/logged out) without removing it.
   Future<void> markInvalid(String userId) =>

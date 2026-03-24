@@ -63,8 +63,7 @@ class LoginViewState {
       mfaChallenge: mfaChallenge == _unset
           ? this.mfaChallenge
           : mfaChallenge as MfaChallenge?,
-      showAccountSelector:
-          showAccountSelector ?? this.showAccountSelector,
+      showAccountSelector: showAccountSelector ?? this.showAccountSelector,
     );
   }
 }
@@ -176,10 +175,7 @@ class LoginViewModel extends _$LoginViewModel {
           );
           return false;
         case LoginMfaRequired(:final challenge):
-          state = state.copyWith(
-            mfaChallenge: challenge,
-            isLoggingIn: false,
-          );
+          state = state.copyWith(mfaChallenge: challenge, isLoggingIn: false);
           return false;
       }
     } on AuthFailure catch (error) {
