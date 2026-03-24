@@ -60,5 +60,67 @@
   "orDivider": "OR",
   "@orDivider": {
     "description": "Divider between alternative actions (e.g. email login vs SSO)."
+  },
+  "captchaTitle": "Verify you're human",
+  "@captchaTitle": {
+    "description": "Title for the captcha verification modal."
+  },
+  "captchaDescription": "We need to make sure you're not a bot. Please complete the verification below.",
+  "@captchaDescription": {
+    "description": "Explanatory text in the captcha modal body."
+  },
+  "captchaSwitchToHcaptcha": "Having issues? Try hCaptcha instead",
+  "@captchaSwitchToHcaptcha": {
+    "description": "Link to switch from Turnstile to hCaptcha provider."
+  },
+  "captchaSwitchToTurnstile": "Try Turnstile instead",
+  "@captchaSwitchToTurnstile": {
+    "description": "Link to switch from hCaptcha to Turnstile provider."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Generic cancel action label."
+  },
+  "ipAuthCheckEmail": "Check your email",
+  "@ipAuthCheckEmail": {
+    "description": "Title when IP authorization email has been sent."
+  },
+  "ipAuthDescription": "We emailed a link to authorize this login. Please open your inbox for {email}.",
+  "@ipAuthDescription": {
+    "description": "Description telling the user to check their email for IP auth.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "ipAuthConnectionLost": "Connection lost",
+  "@ipAuthConnectionLost": {
+    "description": "Title when polling for IP authorization fails."
+  },
+  "ipAuthConnectionLostDescription": "We lost the connection while waiting for authorization. Please try again.",
+  "@ipAuthConnectionLostDescription": {
+    "description": "Description when IP authorization polling fails."
+  },
+  "ipAuthResendEmail": "Resend email",
+  "@ipAuthResendEmail": {
+    "description": "Button to resend the IP authorization email."
+  },
+  "ipAuthResent": "Resent",
+  "@ipAuthResent": {
+    "description": "Button label after IP authorization email has been resent."
+  },
+  "ipAuthResendCountdown": "{seconds}s",
+  "@ipAuthResendCountdown": {
+    "description": "Countdown suffix for the resend button cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Generic back navigation label."
   }
 }

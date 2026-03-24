@@ -177,6 +177,84 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'OR'**
   String get orDivider;
+
+  /// Title for the captcha verification modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify you\'re human'**
+  String get captchaTitle;
+
+  /// Explanatory text in the captcha modal body.
+  ///
+  /// In en, this message translates to:
+  /// **'We need to make sure you\'re not a bot. Please complete the verification below.'**
+  String get captchaDescription;
+
+  /// Link to switch from Turnstile to hCaptcha provider.
+  ///
+  /// In en, this message translates to:
+  /// **'Having issues? Try hCaptcha instead'**
+  String get captchaSwitchToHcaptcha;
+
+  /// Link to switch from hCaptcha to Turnstile provider.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Turnstile instead'**
+  String get captchaSwitchToTurnstile;
+
+  /// Generic cancel action label.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// Title when IP authorization email has been sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email'**
+  String get ipAuthCheckEmail;
+
+  /// Description telling the user to check their email for IP auth.
+  ///
+  /// In en, this message translates to:
+  /// **'We emailed a link to authorize this login. Please open your inbox for {email}.'**
+  String ipAuthDescription(String email);
+
+  /// Title when polling for IP authorization fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost'**
+  String get ipAuthConnectionLost;
+
+  /// Description when IP authorization polling fails.
+  ///
+  /// In en, this message translates to:
+  /// **'We lost the connection while waiting for authorization. Please try again.'**
+  String get ipAuthConnectionLostDescription;
+
+  /// Button to resend the IP authorization email.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend email'**
+  String get ipAuthResendEmail;
+
+  /// Button label after IP authorization email has been resent.
+  ///
+  /// In en, this message translates to:
+  /// **'Resent'**
+  String get ipAuthResent;
+
+  /// Countdown suffix for the resend button cooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s'**
+  String ipAuthResendCountdown(int seconds);
+
+  /// Generic back navigation label.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
 }
 
 class _FluxerLocalizationsDelegate

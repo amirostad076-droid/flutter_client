@@ -52,4 +52,49 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get orDivider => 'OR';
+
+  @override
+  String get captchaTitle => 'Verify you\'re human';
+
+  @override
+  String get captchaDescription =>
+      'We need to make sure you\'re not a bot. Please complete the verification below.';
+
+  @override
+  String get captchaSwitchToHcaptcha => 'Having issues? Try hCaptcha instead';
+
+  @override
+  String get captchaSwitchToTurnstile => 'Try Turnstile instead';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get ipAuthCheckEmail => 'Check your email';
+
+  @override
+  String ipAuthDescription(String email) {
+    return 'We emailed a link to authorize this login. Please open your inbox for $email.';
+  }
+
+  @override
+  String get ipAuthConnectionLost => 'Connection lost';
+
+  @override
+  String get ipAuthConnectionLostDescription =>
+      'We lost the connection while waiting for authorization. Please try again.';
+
+  @override
+  String get ipAuthResendEmail => 'Resend email';
+
+  @override
+  String get ipAuthResent => 'Resent';
+
+  @override
+  String ipAuthResendCountdown(int seconds) {
+    return '${seconds}s';
+  }
+
+  @override
+  String get back => 'Back';
 }
