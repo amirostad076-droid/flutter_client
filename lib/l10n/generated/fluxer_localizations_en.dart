@@ -33,6 +33,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get email => 'Email';
 
   @override
+  String get emailInvalid => 'Please enter a valid email address.';
+
+  @override
   String get password => 'Password';
 
   @override

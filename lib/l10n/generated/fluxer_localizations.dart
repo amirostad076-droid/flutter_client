@@ -136,6 +136,12 @@ abstract class FluxerLocalizations {
   /// **'Email'**
   String get email;
 
+  /// Error shown when the email field contains an invalid email format.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email address.'**
+  String get emailInvalid;
+
   /// Generic label for a password field.
   ///
   /// In en, this message translates to:

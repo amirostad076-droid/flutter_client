@@ -73,7 +73,12 @@ class LoginViewModel extends _$LoginViewModel {
   }
 
   void updateEmail(String value) {
-    state = state.copyWith(email: value);
+    state = state.copyWith(
+      email: value,
+      fieldErrors: state.fieldErrors.containsKey('email')
+          ? const {}
+          : state.fieldErrors,
+    );
   }
 
   void updatePassword(String value) {
@@ -98,8 +103,17 @@ class LoginViewModel extends _$LoginViewModel {
     );
   }
 
+  static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
   Future<bool> login() async {
     if (!state.canLogin) {
+      return false;
+    }
+
+    if (!_emailRegex.hasMatch(state.email.trim())) {
+      state = state.copyWith(
+        fieldErrors: const {'email': 'Please enter a valid email address.'},
+      );
       return false;
     }
 

@@ -33,6 +33,10 @@
   "@email": {
     "description": "Generic label for an email field."
   },
+  "emailInvalid": "Please enter a valid email address.",
+  "@emailInvalid": {
+    "description": "Error shown when the email field contains an invalid email format."
+  },
   "password": "Password",
   "@password": {
     "description": "Generic label for a password field."
