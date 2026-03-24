@@ -1,87 +1,176 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_captcha/fluxer_captcha.dart';
-
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/ui/button/fluxer_button.dart';
+import 'package:fluxeron/features/ui/modal/fluxer_modal.dart';
+import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 
-/// Dialog that shows a visible captcha widget.
+/// Shows a captcha verification modal that supports error display and provider
+/// switching.
 ///
-/// Returns the captcha token via [Navigator.pop] on success, or `null`
-/// if dismissed.
-class CaptchaDialog extends StatelessWidget {
-  const CaptchaDialog({
-    required this.provider,
-    required this.siteKey,
-    required this.baseUrl,
-    super.key,
-  });
-
-  final CaptchaProvider provider;
-  final String siteKey;
-  final String baseUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: context.colors.backgroundSecondary,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Verify you are human',
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 16),
-            FluxerCaptcha(
-              provider: provider,
-              siteKey: siteKey,
-              baseUrl: baseUrl,
-              options: CaptchaOptions(theme: CaptchaTheme.dark),
-              onTokenReceived: (token) {
-                Navigator.of(context).pop(token);
-              },
-              onError: (_) {
-                Navigator.of(context).pop();
-              },
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: context.colors.textPrimaryMuted),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Shows a [CaptchaDialog] using the given navigator key and returns the token.
-Future<String?> showCaptchaDialog({
+/// Returns a record of `(token, providerUsed)` on success, or `null` if
+/// cancelled.
+Future<(String, CaptchaProvider)?> showCaptchaDialog({
   required GlobalKey<NavigatorState> navigatorKey,
-  required CaptchaProvider provider,
-  required String siteKey,
+  required CaptchaProvider preferredProvider,
+  required String? turnstileSiteKey,
+  required String? hcaptchaSiteKey,
   required String baseUrl,
 }) {
   final context = navigatorKey.currentState?.context;
   if (context == null) {
-    return Future<String?>.value();
+    return Future.value();
   }
 
-  return showDialog<String>(
-    context: context,
-    barrierDismissible: false,
-    barrierColor: Colors.black54,
-    builder: (_) =>
-        CaptchaDialog(provider: provider, siteKey: siteKey, baseUrl: baseUrl),
+  final l10n = FluxerLocalizations.of(context);
+
+  return FluxerModal.show<(String, CaptchaProvider)>(
+    context,
+    title: l10n.captchaTitle,
+    builder: (dialogContext, close) => _CaptchaDialogContent(
+      preferredProvider: preferredProvider,
+      turnstileSiteKey: turnstileSiteKey,
+      hcaptchaSiteKey: hcaptchaSiteKey,
+      baseUrl: baseUrl,
+      onVerified: (token, provider) {
+        Navigator.of(dialogContext).pop((token, provider));
+      },
+    ),
+    actions: [
+      FluxerButton.secondary(
+        onPressed: () => Navigator.of(context).pop(),
+        label: l10n.cancel,
+        fitContent: true,
+      ),
+    ],
   );
+}
+
+class _CaptchaDialogContent extends StatefulWidget {
+  const _CaptchaDialogContent({
+    required this.preferredProvider,
+    required this.turnstileSiteKey,
+    required this.hcaptchaSiteKey,
+    required this.baseUrl,
+    required this.onVerified,
+  });
+
+  final CaptchaProvider preferredProvider;
+  final String? turnstileSiteKey;
+  final String? hcaptchaSiteKey;
+  final String baseUrl;
+  final void Function(String token, CaptchaProvider provider) onVerified;
+
+  @override
+  State<_CaptchaDialogContent> createState() => _CaptchaDialogContentState();
+}
+
+class _CaptchaDialogContentState extends State<_CaptchaDialogContent> {
+  late CaptchaProvider _currentProvider;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentProvider = _resolveInitialProvider();
+  }
+
+  CaptchaProvider _resolveInitialProvider() {
+    if (widget.preferredProvider == CaptchaProvider.turnstile &&
+        widget.turnstileSiteKey != null) {
+      return CaptchaProvider.turnstile;
+    }
+    if (widget.preferredProvider == CaptchaProvider.hcaptcha &&
+        widget.hcaptchaSiteKey != null) {
+      return CaptchaProvider.hcaptcha;
+    }
+    if (widget.turnstileSiteKey != null) {
+      return CaptchaProvider.turnstile;
+    }
+    return CaptchaProvider.hcaptcha;
+  }
+
+  String? get _currentSiteKey => _currentProvider == CaptchaProvider.turnstile
+      ? widget.turnstileSiteKey
+      : widget.hcaptchaSiteKey;
+
+  bool get _canSwitch {
+    final alternateKey = _currentProvider == CaptchaProvider.turnstile
+        ? widget.hcaptchaSiteKey
+        : widget.turnstileSiteKey;
+    return alternateKey != null;
+  }
+
+  void _switchProvider() {
+    setState(() {
+      _error = null;
+      _currentProvider = _currentProvider == CaptchaProvider.turnstile
+          ? CaptchaProvider.hcaptcha
+          : CaptchaProvider.turnstile;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+    final layout = context.layout;
+    final l10n = FluxerLocalizations.of(context);
+    final siteKey = _currentSiteKey;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.captchaDescription,
+          style: textStyles.bodySmall.copyWith(color: colors.textPrimaryMuted),
+        ),
+        SizedBox(height: layout.s3),
+        if (_error != null) ...[
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(layout.s3),
+            decoration: BoxDecoration(
+              color: colors.textDanger.withValues(alpha: 0.1),
+              borderRadius: layout.radiusSm,
+            ),
+            child: Text(
+              _error!,
+              style: textStyles.bodySmall.copyWith(color: colors.textDanger),
+            ),
+          ),
+          SizedBox(height: layout.s3),
+        ],
+        if (siteKey != null)
+          FluxerCaptcha(
+            key: ValueKey(_currentProvider),
+            provider: _currentProvider,
+            siteKey: siteKey,
+            baseUrl: widget.baseUrl,
+            options: CaptchaOptions(theme: CaptchaTheme.dark),
+            onTokenReceived: (token) {
+              widget.onVerified(token, _currentProvider);
+            },
+            onError: (error) {
+              setState(() {
+                _error = error.message;
+              });
+            },
+          ),
+        if (_canSwitch) ...[
+          SizedBox(height: layout.s4),
+          GestureDetector(
+            onTap: _switchProvider,
+            child: Text(
+              _currentProvider == CaptchaProvider.turnstile
+                  ? l10n.captchaSwitchToHcaptcha
+                  : l10n.captchaSwitchToTurnstile,
+              style: textStyles.bodySmall.copyWith(color: colors.textLink),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }
