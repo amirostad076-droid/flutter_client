@@ -1,6 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
+import 'package:fluxeron/core/talker.dart';
 import 'package:fluxeron/features/auth/domain/auth_failure.dart';
+import 'package:fluxeron/features/auth/domain/ip_authorization_challenge.dart';
+import 'package:fluxeron/features/auth/domain/login_result.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -15,6 +17,7 @@ class LoginViewState {
   final String? errorMessage;
   final Map<String, String> fieldErrors;
   final bool isLoggingIn;
+  final IpAuthorizationChallenge? ipAuthChallenge;
 
   const LoginViewState({
     required this.email,
@@ -23,6 +26,7 @@ class LoginViewState {
     required this.errorMessage,
     required this.fieldErrors,
     required this.isLoggingIn,
+    required this.ipAuthChallenge,
   });
 
   bool get canLogin =>
@@ -35,6 +39,7 @@ class LoginViewState {
     Object? errorMessage = _unset,
     Map<String, String>? fieldErrors,
     bool? isLoggingIn,
+    Object? ipAuthChallenge = _unset,
   }) {
     return LoginViewState(
       email: email ?? this.email,
@@ -45,6 +50,9 @@ class LoginViewState {
           : errorMessage as String?,
       fieldErrors: fieldErrors ?? this.fieldErrors,
       isLoggingIn: isLoggingIn ?? this.isLoggingIn,
+      ipAuthChallenge: ipAuthChallenge == _unset
+          ? this.ipAuthChallenge
+          : ipAuthChallenge as IpAuthorizationChallenge?,
     );
   }
 }
@@ -60,6 +68,7 @@ class LoginViewModel extends _$LoginViewModel {
       errorMessage: null,
       fieldErrors: {},
       isLoggingIn: false,
+      ipAuthChallenge: null,
     );
   }
 
@@ -75,6 +84,20 @@ class LoginViewModel extends _$LoginViewModel {
     state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
   }
 
+  void clearIpAuthChallenge() {
+    state = state.copyWith(ipAuthChallenge: null);
+  }
+
+  void completeIpAuth() {
+    ref.invalidate(appStartupProvider);
+    state = state.copyWith(
+      email: '',
+      password: '',
+      ipAuthChallenge: null,
+      isLoggingIn: false,
+    );
+  }
+
   Future<bool> login() async {
     if (!state.canLogin) {
       return false;
@@ -87,17 +110,22 @@ class LoginViewModel extends _$LoginViewModel {
     );
 
     try {
-      await ref
+      final result = await ref
           .read(authRepositoryProvider)
           .login(email: state.email, password: state.password);
 
-      // Session is persisted by AuthRepository. Trigger AppStartup
-      // to restore it (sets token, connects gateway, loads theme, etc).
-      ref.invalidate(appStartupProvider);
-
-      // Clear credentials from memory after successful login.
-      state = state.copyWith(email: '', password: '', isLoggingIn: false);
-      return true;
+      switch (result) {
+        case LoginSuccess():
+          ref.invalidate(appStartupProvider);
+          state = state.copyWith(email: '', password: '', isLoggingIn: false);
+          return true;
+        case LoginIpAuthRequired(:final challenge):
+          state = state.copyWith(
+            ipAuthChallenge: challenge,
+            isLoggingIn: false,
+          );
+          return false;
+      }
     } on AuthFailure catch (error) {
       state = state.copyWith(
         errorMessage: error.fieldErrors.isEmpty ? error.message : null,
@@ -106,7 +134,7 @@ class LoginViewModel extends _$LoginViewModel {
       );
       return false;
     } on Exception catch (e) {
-      debugPrint('[LoginViewModel] Unexpected error: $e');
+      talker.error('[LoginViewModel] Unexpected error: $e');
       state = state.copyWith(
         errorMessage: 'Unable to sign in right now. Please try again.',
         isLoggingIn: false,
