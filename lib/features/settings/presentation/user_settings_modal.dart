@@ -4,11 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/providers/app_runtime_info_provider.dart';
-import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/auth/providers/auth_providers.dart';
+import 'package:fluxeron/features/auth/providers/account_manager_provider.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
@@ -431,11 +430,8 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
       ..invalidate(userSettingsViewModelProvider)
       ..invalidate(loginViewModelProvider);
 
-    final repo = ref.read(authRepositoryProvider);
-    await repo.logout();
-    // Invalidate after DB is cleared so a re-run finds no session.
-    ref.invalidate(appStartupProvider);
-    ref.read(authStateProvider.notifier).setAuthenticated(value: false);
+    final userId = ref.read(currentUserIdProvider) ?? '';
+    await ref.read(accountManagerProvider.notifier).signOut(userId);
     if (mounted) {
       Navigator.of(context).pop();
     }
