@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
+import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/presentation/mfa_screen.dart';
+import 'package:fluxeron/features/auth/presentation/widgets/account_selector.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/ip_authorization_screen.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/login_form.dart';
+import 'package:fluxeron/features/auth/providers/account_manager_provider.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 
@@ -39,11 +42,42 @@ class LoginScreen extends ConsumerWidget {
       );
     }
 
+    final accountState = ref.watch(accountManagerProvider);
+
+    // Account selector when accounts exist and not adding new.
+    if (vm.showAccountSelector && accountState.accounts.isNotEmpty) {
+      return AccountSelector(
+        currentUserId: ref.read(currentUserIdProvider) ?? '',
+        onSelectAccount: (account) {
+          if (account.isValid) {
+            unawaited(
+              ref
+                  .read(accountManagerProvider.notifier)
+                  .switchToAccount(account.userId),
+            );
+          } else {
+            // Pre-fill email for expired account.
+            notifier
+              ..updateEmail(account.identifier)
+              ..hideAccountSelector();
+          }
+        },
+        onAddAccount: notifier.hideAccountSelector,
+      );
+    }
+
     return LoginForm(showBrowserLogin: showBrowserLogin);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Load stored accounts on first build.
+    ref.listen(accountManagerProvider, (_, _) {});
+    final accountManager = ref.read(accountManagerProvider);
+    if (accountManager.accounts.isEmpty) {
+      unawaited(ref.read(accountManagerProvider.notifier).loadAccounts());
+    }
+
     final isMobile = isMobileLayout(context);
 
     if (isMobile) {

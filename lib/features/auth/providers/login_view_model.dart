@@ -20,6 +20,7 @@ class LoginViewState {
   final bool isLoggingIn;
   final IpAuthorizationChallenge? ipAuthChallenge;
   final MfaChallenge? mfaChallenge;
+  final bool showAccountSelector;
 
   const LoginViewState({
     required this.email,
@@ -30,6 +31,7 @@ class LoginViewState {
     required this.isLoggingIn,
     required this.ipAuthChallenge,
     required this.mfaChallenge,
+    required this.showAccountSelector,
   });
 
   bool get canLogin =>
@@ -44,6 +46,7 @@ class LoginViewState {
     bool? isLoggingIn,
     Object? ipAuthChallenge = _unset,
     Object? mfaChallenge = _unset,
+    bool? showAccountSelector,
   }) {
     return LoginViewState(
       email: email ?? this.email,
@@ -60,6 +63,8 @@ class LoginViewState {
       mfaChallenge: mfaChallenge == _unset
           ? this.mfaChallenge
           : mfaChallenge as MfaChallenge?,
+      showAccountSelector:
+          showAccountSelector ?? this.showAccountSelector,
     );
   }
 }
@@ -77,6 +82,7 @@ class LoginViewModel extends _$LoginViewModel {
       isLoggingIn: false,
       ipAuthChallenge: null,
       mfaChallenge: null,
+      showAccountSelector: true,
     );
   }
 
@@ -103,6 +109,14 @@ class LoginViewModel extends _$LoginViewModel {
 
   void clearMfaChallenge() {
     state = state.copyWith(mfaChallenge: null);
+  }
+
+  void hideAccountSelector() {
+    state = state.copyWith(showAccountSelector: false);
+  }
+
+  void showAccountSelectorAgain() {
+    state = state.copyWith(showAccountSelector: true);
   }
 
   void completeMfa() {
