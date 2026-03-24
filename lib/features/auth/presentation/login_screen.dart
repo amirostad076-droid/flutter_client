@@ -2,26 +2,48 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/auth/presentation/widgets/ip_authorization_screen.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/login_form.dart';
+import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
 
+  Widget _buildAuthContent(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool showBrowserLogin,
+  }) {
+    final vm = ref.watch(loginViewModelProvider);
+    final notifier = ref.read(loginViewModelProvider.notifier);
+
+    if (vm.ipAuthChallenge != null) {
+      return IpAuthorizationScreen(
+        challenge: vm.ipAuthChallenge!,
+        onAuthorized: notifier.completeIpAuth,
+        onBack: notifier.clearIpAuthChallenge,
+      );
+    }
+
+    return LoginForm(showBrowserLogin: showBrowserLogin);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = isMobileLayout(context);
 
     if (isMobile) {
-      return _buildMobileLayout(context);
+      return _buildMobileLayout(context, ref);
     }
-    return _buildDesktopLayout(context);
+    return _buildDesktopLayout(context, ref);
   }
 
-  Widget _buildDesktopLayout(BuildContext context) {
+  Widget _buildDesktopLayout(BuildContext context, WidgetRef ref) {
     final layout = context.layout;
 
     return Scaffold(
@@ -81,7 +103,11 @@ class LoginScreen extends StatelessWidget {
                       flex: 2,
                       child: SingleChildScrollView(
                         padding: EdgeInsets.all(layout.s8),
-                        child: const LoginForm(showBrowserLogin: true),
+                        child: _buildAuthContent(
+                          context,
+                          ref,
+                          showBrowserLogin: true,
+                        ),
                       ),
                     ),
                   ],
@@ -94,7 +120,7 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context) {
+  Widget _buildMobileLayout(BuildContext context, WidgetRef ref) {
     final layout = context.layout;
 
     return Scaffold(
@@ -119,7 +145,7 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: layout.s8),
-                  const LoginForm(showBrowserLogin: false),
+                  _buildAuthContent(context, ref, showBrowserLogin: false),
                 ],
               ),
             ),
