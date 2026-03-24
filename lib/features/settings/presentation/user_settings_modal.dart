@@ -25,9 +25,14 @@ import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class UserSettingsModal extends ConsumerStatefulWidget {
-  const UserSettingsModal({super.key});
+  const UserSettingsModal({this.openProfileSection = false, super.key});
 
-  static Future<void> show(BuildContext context) {
+  final bool openProfileSection;
+
+  static Future<void> show(
+    BuildContext context, {
+    bool openProfileSection = false,
+  }) {
     return showModalBottomSheet<void>(
       elevation: 7,
       context: context,
@@ -39,7 +44,7 @@ class UserSettingsModal extends ConsumerStatefulWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => const UserSettingsModal(),
+      builder: (_) => UserSettingsModal(openProfileSection: openProfileSection),
     );
   }
 
@@ -105,6 +110,27 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
         .animate(
           CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
         );
+    if (widget.openProfileSection) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !isMobileLayout(context)) {
+          return;
+        }
+        final int profileIndex = _indexOfProfileSidebarItem();
+        if (profileIndex >= 0) {
+          _openMobileContent(profileIndex);
+        }
+      });
+    }
+  }
+
+  int _indexOfProfileSidebarItem() {
+    for (var i = 0; i < _items.length; i++) {
+      final SettingsSidebarItem item = _items[i];
+      if (!item.isSeparator && item.label == 'Profile') {
+        return i;
+      }
+    }
+    return -1;
   }
 
   @override
@@ -478,7 +504,6 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
       child: Align(
-        alignment: Alignment.center,
         child: Text(
           text,
           textAlign: TextAlign.center,

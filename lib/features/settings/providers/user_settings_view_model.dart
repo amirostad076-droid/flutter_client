@@ -1,6 +1,7 @@
 import 'package:fluxeron/core/providers/database_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/features/guilds/domain/guild.dart' show fluxerMediaCdn;
+import 'package:fluxeron/shared/utils/snowflake_time.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_settings_view_model.g.dart';
@@ -14,6 +15,8 @@ class UserSettingsViewState {
   final String discriminator;
   final String? avatar;
   final int? avatarColor;
+  final DateTime? memberSince;
+  final String status;
   final bool messageDisplayCompact;
 
   const UserSettingsViewState({
@@ -23,6 +26,8 @@ class UserSettingsViewState {
     required this.discriminator,
     required this.avatar,
     required this.avatarColor,
+    required this.memberSince,
+    required this.status,
     required this.messageDisplayCompact,
   });
 
@@ -34,6 +39,16 @@ class UserSettingsViewState {
         '/avatars/$userId/$avatar.png';
   }
 
+  /// Stored member date, or derived from [userId] snowflake, or Fluxer epoch.
+  DateTime get resolvedMemberSince {
+    final DateTime? stored = memberSince;
+    if (stored != null) {
+      return stored;
+    }
+    return dateTimeFromUserSnowflakeOrNull(userId) ??
+        DateTime.fromMillisecondsSinceEpoch(kSnowflakeEpochMs, isUtc: true);
+  }
+
   UserSettingsViewState copyWith({
     String? userId,
     String? username,
@@ -41,6 +56,8 @@ class UserSettingsViewState {
     String? discriminator,
     Object? avatar = _unset,
     Object? avatarColor = _unset,
+    Object? memberSince = _unset,
+    String? status,
     bool? messageDisplayCompact,
   }) {
     return UserSettingsViewState(
@@ -52,6 +69,10 @@ class UserSettingsViewState {
       avatarColor: avatarColor == _unset
           ? this.avatarColor
           : avatarColor as int?,
+      memberSince: memberSince == _unset
+          ? this.memberSince
+          : memberSince as DateTime?,
+      status: status ?? this.status,
       messageDisplayCompact:
           messageDisplayCompact ?? this.messageDisplayCompact,
     );
@@ -74,6 +95,8 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       discriminator: '0',
       avatar: null,
       avatarColor: null,
+      memberSince: null,
+      status: 'offline',
       messageDisplayCompact: false,
     );
   }

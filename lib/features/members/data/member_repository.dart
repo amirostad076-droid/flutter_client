@@ -6,6 +6,7 @@ import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/features/members/domain/member.dart';
+import 'package:fluxeron/shared/utils/snowflake_time.dart';
 
 class MemberRepository {
   final FluxerClient _client;
@@ -68,15 +69,17 @@ class MemberRepository {
       final map = item as Map<String, dynamic>;
       final user = map['user'] as Map<String, dynamic>;
 
+      final userId = user['id'] as String;
       userCompanions.add(
         db.UsersCompanion.insert(
-          id: user['id'] as String,
+          id: userId,
           username: user['username'] as String,
           discriminator: Value(user['discriminator'] as String? ?? '0000'),
           globalName: Value(user['global_name'] as String?),
           avatar: Value(user['avatar'] as String?),
           avatarColor: Value(user['avatar_color'] as int?),
           isBot: Value(user['bot'] as bool? ?? false),
+          memberSince: Value(dateTimeFromUserSnowflakeOrNull(userId)),
         ),
       );
 

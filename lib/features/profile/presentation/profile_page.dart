@@ -1,37 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/settings/presentation/user_settings_modal.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:fluxeron/shared/widgets/profile_content.dart';
+import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final UserSettingsViewState state = ref.watch(
+      userSettingsViewModelProvider,
+    );
     return Scaffold(
       backgroundColor: context.colors.backgroundPrimary,
-      appBar: AppBar(
-        backgroundColor: context.colors.backgroundPrimary,
-        title: const Text('You'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: PhosphorIcon(
-              PhosphorIconsRegular.gear,
-              color: context.colors.interactiveNormal,
-            ),
-            onPressed: () => UserSettingsModal.show(context),
-          ),
-        ],
-      ),
-      body: Center(
-        child: Text(
-          'Profile',
-          style: TextStyle(
-            color: context.colors.textPrimaryMuted,
-            fontSize: 18,
-          ),
-        ),
+      body: ProfileContent(
+        userId: state.userId,
+        displayName: state.displayName,
+        username: state.username,
+        discriminator: state.discriminator,
+        avatarUrl: state.avatarUrl,
+        avatarColor: state.avatarColor,
       ),
     );
   }

@@ -9,6 +9,7 @@ import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/core/talker.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/shared/utils/sdk_converters.dart';
+import 'package:fluxeron/shared/utils/snowflake_time.dart';
 
 typedef TypingCallback = void Function(String channelId, String userId);
 typedef VoiceStateCallback = void Function(VoiceState state);
@@ -327,6 +328,7 @@ class GatewayEventHandler {
           avatar: Value(event.user.avatar),
           avatarColor: Value(event.user.avatarColor),
           isBot: Value(event.user.bot ?? false),
+          memberSince: Value(dateTimeFromUserSnowflakeOrNull(event.user.id)),
         ),
       );
 
@@ -778,6 +780,7 @@ class GatewayEventHandler {
           avatar: Value(event.user.avatar),
           avatarColor: Value(event.user.avatarColor),
           isBot: Value(event.user.bot ?? false),
+          memberSince: Value(dateTimeFromUserSnowflakeOrNull(event.user.id)),
         ),
       ),
     );

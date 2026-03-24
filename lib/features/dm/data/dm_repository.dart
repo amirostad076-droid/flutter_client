@@ -5,18 +5,7 @@ import 'package:fluxer_dart/export.dart';
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
 import 'package:fluxeron/shared/utils/sdk_converters.dart';
-
-/// Discord epoch (2015-01-01T00:00:00Z) in milliseconds.
-const _kDiscordEpoch = 1420070400000;
-
-/// Extracts a [DateTime] from a Discord/Fluxer snowflake ID.
-DateTime _snowflakeToDateTime(String snowflake) {
-  final id = int.tryParse(snowflake);
-  if (id == null) {
-    return DateTime.now();
-  }
-  return DateTime.fromMillisecondsSinceEpoch((id >> 22) + _kDiscordEpoch);
-}
+import 'package:fluxeron/shared/utils/snowflake_time.dart';
 
 class DmRepository {
   final FluxerClient _client;
@@ -75,8 +64,8 @@ class DmRepository {
             lastMessage: const Value(''),
             lastMessageTime: Value(
               ch.lastMessageId != null
-                  ? _snowflakeToDateTime(ch.lastMessageId!)
-                  : _snowflakeToDateTime(ch.id),
+                  ? dateTimeFromSnowflakeAsLocalOrNow(ch.lastMessageId!)
+                  : dateTimeFromSnowflakeAsLocalOrNow(ch.id),
             ),
           ),
         );

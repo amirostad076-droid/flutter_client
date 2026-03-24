@@ -10,6 +10,7 @@ class Users extends Table {
   BoolColumn get isBot => boolean().withDefault(const Constant(false))();
   TextColumn get status => text().withDefault(const Constant('offline'))();
   TextColumn get customStatus => text().nullable()();
+  DateTimeColumn get memberSince => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:drift/drift.dart';
 import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 import 'package:fluxeron/core/talker.dart';
 import 'package:fluxeron/features/chat/domain/message.dart';
 import 'package:fluxeron/shared/utils/sdk_converters.dart';
+import 'package:fluxeron/shared/utils/snowflake_time.dart';
 
 class MessageRepository {
   final FluxerClient _client;
@@ -114,10 +116,12 @@ class MessageRepository {
           ),
         );
 
+        final authorId = author['id'] as String;
         await _db.userDao.upsertUser(
           db.UsersCompanion.insert(
-            id: author['id'] as String,
+            id: authorId,
             username: (author['username'] as String?) ?? '',
+            memberSince: Value(dateTimeFromUserSnowflakeOrNull(authorId)),
           ),
         );
       } on Object catch (e) {

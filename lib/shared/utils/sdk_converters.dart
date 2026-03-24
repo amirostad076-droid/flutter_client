@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
+import 'package:fluxeron/shared/utils/snowflake_time.dart';
 
 /// Converts SDK [GuildResponse] to a Drift companion for upserting.
 db.ServersCompanion guildFromSdk(
@@ -59,5 +60,6 @@ db.UsersCompanion userFromPartialSdk(UserPartialResponse sdk) {
     avatar: Value(sdk.avatar),
     avatarColor: Value(sdk.avatarColor),
     isBot: Value(sdk.bot ?? false),
+    memberSince: Value(dateTimeFromUserSnowflakeOrNull(sdk.id)),
   );
 }
