@@ -1,0 +1,135 @@
+import 'dart:async';
+
+import 'package:fluxeron/core/talker.dart';
+import 'package:fluxeron/features/auth/domain/auth_session.dart';
+import 'package:fluxeron/features/auth/providers/auth_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'ip_authorization_view_model.g.dart';
+
+enum IpAuthPollingState { polling, error }
+
+class IpAuthViewState {
+  final IpAuthPollingState pollingState;
+  final int resendIn;
+  final bool resendUsed;
+  final AuthSession? completedSession;
+
+  const IpAuthViewState({
+    required this.pollingState,
+    required this.resendIn,
+    required this.resendUsed,
+    required this.completedSession,
+  });
+
+  IpAuthViewState copyWith({
+    IpAuthPollingState? pollingState,
+    int? resendIn,
+    bool? resendUsed,
+    AuthSession? completedSession,
+  }) {
+    return IpAuthViewState(
+      pollingState: pollingState ?? this.pollingState,
+      resendIn: resendIn ?? this.resendIn,
+      resendUsed: resendUsed ?? this.resendUsed,
+      completedSession: completedSession ?? this.completedSession,
+    );
+  }
+}
+
+@riverpod
+class IpAuthorizationViewModel extends _$IpAuthorizationViewModel {
+  static const _pollInterval = Duration(seconds: 2);
+  static const _maxPollErrors = 3;
+
+  Timer? _pollTimer;
+  Timer? _countdownTimer;
+  int _consecutiveErrors = 0;
+
+  @override
+  IpAuthViewState build(String ticket, int initialResendIn) {
+    ref.onDispose(() {
+      _pollTimer?.cancel();
+      _countdownTimer?.cancel();
+    });
+
+    _startPolling();
+    _startCountdown(initialResendIn);
+
+    return IpAuthViewState(
+      pollingState: IpAuthPollingState.polling,
+      resendIn: initialResendIn,
+      resendUsed: false,
+      completedSession: null,
+    );
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _consecutiveErrors = 0;
+    unawaited(_poll());
+  }
+
+  Future<void> _poll() async {
+    try {
+      final session = await ref
+          .read(authRepositoryProvider)
+          .pollIpAuthorization(ticket);
+
+      if (session != null) {
+        _pollTimer?.cancel();
+        state = state.copyWith(completedSession: session);
+        return;
+      }
+
+      _consecutiveErrors = 0;
+      _pollTimer = Timer(_pollInterval, _poll);
+    } on Exception catch (e) {
+      _consecutiveErrors++;
+
+      if (_consecutiveErrors >= _maxPollErrors) {
+        _pollTimer?.cancel();
+        talker.error(
+          '[IpAuth] Polling failed after $_maxPollErrors retries',
+          e,
+        );
+        state = state.copyWith(pollingState: IpAuthPollingState.error);
+      } else {
+        _pollTimer = Timer(_pollInterval, _poll);
+      }
+    }
+  }
+
+  void _startCountdown(int seconds) {
+    _countdownTimer?.cancel();
+    if (seconds <= 0) {
+      return;
+    }
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final next = state.resendIn - 1;
+      state = state.copyWith(resendIn: next);
+      if (next <= 0) {
+        _countdownTimer?.cancel();
+      }
+    });
+  }
+
+  Future<void> resend() async {
+    if (state.resendIn > 0 || state.resendUsed) {
+      return;
+    }
+    try {
+      await ref.read(authRepositoryProvider).resendIpAuthorization(ticket);
+      state = state.copyWith(resendUsed: true);
+      _startCountdown(30);
+    } on Exception catch (e) {
+      talker.error('[IpAuth] Failed to resend email', e);
+    }
+  }
+
+  void retry() {
+    state = state.copyWith(pollingState: IpAuthPollingState.polling);
+    _startPolling();
+  }
+}
