@@ -197,6 +197,11 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 14) {
         await m.addColumn(users, users.memberSince);
+        await m.addColumn(authSessions, authSessions.username);
+        await m.addColumn(authSessions, authSessions.discriminator);
+        await m.addColumn(authSessions, authSessions.avatar);
+        await m.addColumn(authSessions, authSessions.isValid);
+        await m.addColumn(authSessions, authSessions.lastActive);
       }
     },
   );
