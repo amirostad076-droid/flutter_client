@@ -17,17 +17,38 @@ const _kCaptchaInternalKey = '_captchaInternal';
 /// Captcha configuration extracted from the `.well-known/fluxer` response.
 class _CaptchaConfig {
   const _CaptchaConfig({
-    required this.provider,
-    required this.siteKey,
+    required this.preferredProvider,
+    required this.turnstileSiteKey,
+    required this.hcaptchaSiteKey,
     required this.baseUrl,
   });
 
-  final CaptchaProvider provider;
-  final String siteKey;
+  final CaptchaProvider preferredProvider;
+  final String? turnstileSiteKey;
+  final String? hcaptchaSiteKey;
 
   /// The webapp URL used as the WebView origin so the captcha provider
   /// recognises the domain against the site key's allowed origins.
   final String baseUrl;
+
+  /// Returns the provider to start with and its site key.
+  (CaptchaProvider, String) get initial {
+    if (preferredProvider == CaptchaProvider.turnstile &&
+        turnstileSiteKey != null) {
+      return (CaptchaProvider.turnstile, turnstileSiteKey!);
+    }
+    if (preferredProvider == CaptchaProvider.hcaptcha &&
+        hcaptchaSiteKey != null) {
+      return (CaptchaProvider.hcaptcha, hcaptchaSiteKey!);
+    }
+    if (turnstileSiteKey != null) {
+      return (CaptchaProvider.turnstile, turnstileSiteKey!);
+    }
+    if (hcaptchaSiteKey != null) {
+      return (CaptchaProvider.hcaptcha, hcaptchaSiteKey!);
+    }
+    throw StateError('No captcha provider configured');
+  }
 }
 
 /// Dio interceptor that handles captcha challenges from the Fluxer API.
@@ -46,10 +67,12 @@ class CaptchaInterceptor extends Interceptor {
   final Dio dio;
 
   /// Callback that shows a visible captcha dialog and returns
-  /// the token. Used as fallback when invisible mode fails.
-  final Future<String?> Function({
-    required CaptchaProvider provider,
-    required String siteKey,
+  /// the solved token along with the provider that was used.
+  /// Used as fallback when invisible mode fails.
+  final Future<(String token, CaptchaProvider type)?> Function({
+    required CaptchaProvider preferredProvider,
+    required String? turnstileSiteKey,
+    required String? hcaptchaSiteKey,
     required String baseUrl,
   })
   showCaptchaDialog;
@@ -95,13 +118,13 @@ class CaptchaInterceptor extends Interceptor {
         return;
       }
 
-      talker.debug(
-        '[CaptchaInterceptor] Config: provider=${config.provider.name}',
-      );
+      final (provider, siteKey) = config.initial;
+
+      talker.debug('[CaptchaInterceptor] Config: provider=${provider.name}');
 
       var token = await _solveInvisible(
-        provider: config.provider,
-        siteKey: config.siteKey,
+        provider: provider,
+        siteKey: siteKey,
         baseUrl: config.baseUrl,
       );
       talker.debug(
@@ -109,11 +132,21 @@ class CaptchaInterceptor extends Interceptor {
         '${token != null ? 'success' : 'failed, trying dialog'}',
       );
 
-      token ??= await showCaptchaDialog(
-        provider: config.provider,
-        siteKey: config.siteKey,
-        baseUrl: config.baseUrl,
-      );
+      var finalProvider = provider;
+
+      if (token == null) {
+        final result = await showCaptchaDialog(
+          preferredProvider: provider,
+          turnstileSiteKey: config.turnstileSiteKey,
+          hcaptchaSiteKey: config.hcaptchaSiteKey,
+          baseUrl: config.baseUrl,
+        );
+
+        if (result != null) {
+          token = result.$1;
+          finalProvider = result.$2;
+        }
+      }
 
       if (token == null || token.isEmpty) {
         talker.warning('[CaptchaInterceptor] No token obtained');
@@ -123,7 +156,7 @@ class CaptchaInterceptor extends Interceptor {
 
       final opts = err.requestOptions;
       opts.headers['X-Captcha-Token'] = token;
-      opts.headers['X-Captcha-Type'] = config.provider.name;
+      opts.headers['X-Captcha-Type'] = finalProvider.name;
       opts.extra[_kCaptchaInternalKey] = true;
 
       talker.debug('[CaptchaInterceptor] Retrying with captcha token');
@@ -163,32 +196,32 @@ class CaptchaInterceptor extends Interceptor {
         return null;
       }
 
-      final CaptchaProvider provider;
-      String? siteKey;
-
+      final CaptchaProvider preferredProvider;
       if (providerStr == 'turnstile') {
-        provider = CaptchaProvider.turnstile;
-        siteKey = captcha['turnstile_site_key'] as String?;
+        preferredProvider = CaptchaProvider.turnstile;
       } else if (providerStr == 'hcaptcha') {
-        provider = CaptchaProvider.hcaptcha;
-        siteKey = captcha['hcaptcha_site_key'] as String?;
+        preferredProvider = CaptchaProvider.hcaptcha;
       } else {
         return null;
       }
 
-      if (siteKey == null || siteKey.isEmpty) {
+      final turnstileKey = captcha['turnstile_site_key'] as String?;
+      final hcaptchaKey = captcha['hcaptcha_site_key'] as String?;
+
+      final hasTurnstile = turnstileKey != null && turnstileKey.isNotEmpty;
+      final hasHcaptcha = hcaptchaKey != null && hcaptchaKey.isNotEmpty;
+
+      if (!hasTurnstile && !hasHcaptcha) {
         return null;
       }
 
-      // Use the webapp endpoint as the WebView base URL so the
-      // page origin matches the Turnstile site key's allowed
-      // domains.
       final endpoints = data['endpoints'] as Map<String, dynamic>?;
       final baseUrl = endpoints?['webapp'] as String? ?? 'http://localhost';
 
       return _CaptchaConfig(
-        provider: provider,
-        siteKey: siteKey,
+        preferredProvider: preferredProvider,
+        turnstileSiteKey: hasTurnstile ? turnstileKey : null,
+        hcaptchaSiteKey: hasHcaptcha ? hcaptchaKey : null,
         baseUrl: baseUrl,
       );
     } on Exception catch (e) {

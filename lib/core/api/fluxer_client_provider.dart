@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:fluxer_captcha/fluxer_captcha.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxeron/core/api/captcha_dialog.dart';
 import 'package:fluxeron/core/api/captcha_interceptor.dart';
@@ -47,13 +48,46 @@ Dio fluxerDio(Ref ref) {
     CaptchaInterceptor(
       dio: dio,
       showCaptchaDialog:
-          ({required provider, required siteKey, required baseUrl}) =>
-              showCaptchaDialog(
-                navigatorKey: rootNavigatorKey,
-                provider: provider,
-                siteKey: siteKey,
-                baseUrl: baseUrl,
-              ),
+          ({
+            required preferredProvider,
+            required turnstileSiteKey,
+            required hcaptchaSiteKey,
+            required baseUrl,
+          }) async {
+            // Determine which site key to use based on preferred provider.
+            // The dialog will be updated to support both providers in a
+            // later task; for now we pass the preferred one.
+            final String? siteKey;
+            if (preferredProvider == CaptchaProvider.turnstile &&
+                turnstileSiteKey != null) {
+              siteKey = turnstileSiteKey;
+            } else if (preferredProvider == CaptchaProvider.hcaptcha &&
+                hcaptchaSiteKey != null) {
+              siteKey = hcaptchaSiteKey;
+            } else {
+              siteKey = turnstileSiteKey ?? hcaptchaSiteKey;
+            }
+
+            if (siteKey == null) {
+              return null;
+            }
+
+            final provider = siteKey == turnstileSiteKey
+                ? CaptchaProvider.turnstile
+                : CaptchaProvider.hcaptcha;
+
+            final token = await showCaptchaDialog(
+              navigatorKey: rootNavigatorKey,
+              provider: provider,
+              siteKey: siteKey,
+              baseUrl: baseUrl,
+            );
+
+            if (token == null) {
+              return null;
+            }
+            return (token, provider);
+          },
     ),
   );
 
