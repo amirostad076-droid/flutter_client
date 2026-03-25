@@ -99,6 +99,9 @@ jobs:
             exit 1
           fi
 
+      - name: Prepare Flutter iOS config for canary
+        run: flutter build ios --release --flavor canary --no-codesign --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=apple
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
