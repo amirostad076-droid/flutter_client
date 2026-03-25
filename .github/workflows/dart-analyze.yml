@@ -9,9 +9,13 @@ on:
   push:
     branches:
       - canary
+    paths:
+      - "**/*.dart"
   pull_request:
     branches:
       - canary
+    paths:
+      - "**/*.dart"
 
 jobs:
   analyze:
