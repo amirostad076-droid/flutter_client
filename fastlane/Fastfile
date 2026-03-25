@@ -38,10 +38,24 @@ platform :ios do
         "CODE_SIGN_STYLE=Manual",
       ].join(" ")
     )
-    upload_to_testflight(
-      api_key: api_key,
-      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
-      skip_waiting_for_build_processing: true
-    )
+    maximum_attempts = 3
+    attempt_index = 1
+    begin
+      upload_to_testflight(
+        api_key: api_key,
+        ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+        skip_waiting_for_build_processing: true
+      )
+    rescue => err
+      if attempt_index >= maximum_attempts
+        raise err
+      end
+      retry_delay_seconds = attempt_index * 30
+      UI.important("TestFlight upload failed on attempt #{attempt_index}/#{maximum_attempts}: #{err.message}")
+      UI.important("Retrying upload in #{retry_delay_seconds} seconds...")
+      sleep(retry_delay_seconds)
+      attempt_index += 1
+      retry
+    end
   end
 end
