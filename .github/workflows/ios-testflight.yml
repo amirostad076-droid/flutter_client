@@ -91,65 +91,23 @@ jobs:
           PROFILE_TEAM_ID=$(security cms -D -i "$PROFILES_DIR/profile.mobileprovision" | plutil -extract TeamIdentifier.0 raw -)
           IS_DEVELOPMENT_PROFILE=$(security cms -D -i "$PROFILES_DIR/profile.mobileprovision" | plutil -extract Entitlements.get-task-allow raw - 2>/dev/null || echo "false")
           echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
+          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
           echo "PROFILE_TEAM_ID=$PROFILE_TEAM_ID" >> $GITHUB_ENV
           echo "::notice::Provisioning profile metadata - name: $PROFILE_NAME, uuid: $PROFILE_UUID, team: $PROFILE_TEAM_ID, development: $IS_DEVELOPMENT_PROFILE"
-
-      - name: Configure manual signing for CI
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          sed -i '' "s/DEVELOPMENT_TEAM = [A-Z0-9]\\{10\\};/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/g" ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' "s/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g" ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' "s/\\\"CODE_SIGN_IDENTITY\\[sdk=iphoneos\\*\\]\\\" = \\\"iPhone Developer\\\";/\\\"CODE_SIGN_IDENTITY[sdk=iphoneos*]\\\" = \\\"Apple Distribution\\\";/g" ios/Runner.xcodeproj/project.pbxproj
-          IS_DEVELOPMENT_PROFILE=$(security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision" | plutil -extract Entitlements.get-task-allow raw - 2>/dev/null || echo "false")
-          echo "::notice::Signing metadata - requested team: $APPLE_TEAM_ID, profile team: ${PROFILE_TEAM_ID:-unknown}, profile development: $IS_DEVELOPMENT_PROFILE"
           if [ "$IS_DEVELOPMENT_PROFILE" = "true" ]; then
             echo "::error::Provisioning profile is Development type. Use an App Store distribution profile for TestFlight."
             exit 1
           fi
 
-      - name: Create ExportOptions.plist
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Build and upload with Fastlane
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          cat > ios/ExportOptions.plist << 'PLIST_EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store</string>
-            <key>teamID</key>
-            <string>PLACEHOLDER_TEAM_ID</string>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>app.fluxer</key>
-              <string>PLACEHOLDER_PROFILE_UUID</string>
-            </dict>
-            <key>signingCertificate</key>
-            <string>Apple Distribution</string>
-            <key>signingStyle</key>
-            <string>manual</string>
-          </dict>
-          </plist>
-          PLIST_EOF
-          sed -i '' "s/PLACEHOLDER_TEAM_ID/$APPLE_TEAM_ID/g" ios/ExportOptions.plist
-          sed -i '' "s/PLACEHOLDER_PROFILE_UUID/$PROFILE_UUID/g" ios/ExportOptions.plist
-
-      - name: Build IPA
-        run: flutter build ipa --release --flavor canary --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=apple --export-options-plist=ios/ExportOptions.plist
-
-      - name: Upload to TestFlight
-        env:
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
-        run: |
-          mkdir -p .private_key
-          echo "$APPSTORE_PRIVATE_KEY" > .private_key/AuthKey.p8
-          xcrun altool --upload-app \
-            --type ios \
-            --file build/ios/ipa/*.ipa \
-            --apiKey "$APPSTORE_KEY_ID" \
-            --apiIssuer "$APPSTORE_ISSUER_ID"
-          rm -rf .private_key
+        run: bundle exec fastlane ios testflight_canary

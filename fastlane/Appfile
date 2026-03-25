@@ -1,0 +1,2 @@
+app_identifier("app.fluxer")
+team_id(ENV["APPLE_TEAM_ID"])
