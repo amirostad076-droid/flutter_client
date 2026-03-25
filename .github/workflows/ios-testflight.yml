@@ -37,10 +37,10 @@ jobs:
   build-and-upload:
     name: Build and upload to TestFlight
     needs: check-actor
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
 
