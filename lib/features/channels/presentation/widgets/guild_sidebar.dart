@@ -127,17 +127,9 @@ class GuildSidebar extends ConsumerWidget {
         .read(channelListViewModelProvider.notifier)
         .toggleCategory(category.id),
     child: Padding(
-      padding: const EdgeInsets.only(left: 4, right: 8, top: 16, bottom: 4),
+      padding: const EdgeInsets.only(left: 12, right: 8, top: 16, bottom: 4),
       child: Row(
         children: [
-          PhosphorIcon(
-            isCollapsed
-                ? PhosphorIconsFill.caretRight
-                : PhosphorIconsFill.caretDown,
-            size: 12,
-            color: context.colors.textPrimaryMuted,
-          ),
-          const SizedBox(width: 2),
           Expanded(
             child: Text(
               category.name,
@@ -145,9 +137,12 @@ class GuildSidebar extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          const SizedBox(width: 4),
           PhosphorIcon(
-            PhosphorIconsFill.plus,
-            size: 16,
+            isCollapsed
+                ? PhosphorIconsRegular.caretRight
+                : PhosphorIconsRegular.caretDown,
+            size: 12,
             color: context.colors.textPrimaryMuted,
           ),
         ],
@@ -185,7 +180,7 @@ class GuildSidebar extends ConsumerWidget {
           }
         },
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+          margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
             color: isSelected
