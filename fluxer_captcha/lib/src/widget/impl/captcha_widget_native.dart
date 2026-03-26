@@ -446,9 +446,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
         Platform.isLinux ||
         Platform.isWindows ||
         Platform.isMacOS)) {
-      throw UnsupportedError(
-        'FluxerCaptcha does not support this platform.',
-      );
+      throw UnsupportedError('FluxerCaptcha does not support this platform.');
     }
 
     PlatformInAppWebViewController.debugLoggingSettings.enabled = false;
@@ -659,9 +657,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
           child: ClipRRect(
             clipBehavior: Clip.hardEdge,
             borderRadius: widget.options!.borderRadius!.add(
-              const BorderRadius.all(
-                Radius.circular(1),
-              ),
+              const BorderRadius.all(Radius.circular(1)),
             ),
             child: _view,
           ),
@@ -669,9 +665,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
       ),
     );
 
-    return Wrap(
-      children: [captchaWidget],
-    );
+    return Wrap(children: [captchaWidget]);
   }
 }
 
@@ -698,9 +692,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
         Platform.isLinux ||
         Platform.isWindows ||
         Platform.isMacOS)) {
-      throw UnsupportedError(
-        'FluxerCaptcha does not support this platform.',
-      );
+      throw UnsupportedError('FluxerCaptcha does not support this platform.');
     }
 
     PlatformInAppWebViewController.debugLoggingSettings.enabled = false;

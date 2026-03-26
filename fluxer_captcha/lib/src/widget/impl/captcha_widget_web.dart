@@ -329,14 +329,8 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
         'onCaptchaTokenExpired_$_widgetViewId'.toJS,
         _captcha.onExpired.toJS,
       )
-      ..setProperty(
-        'onCaptchaError_$_widgetViewId'.toJS,
-        _captcha.onError.toJS,
-      )
-      ..setProperty(
-        'onCaptchaReady'.toJS,
-        _captcha.onReady.toJS,
-      );
+      ..setProperty('onCaptchaError_$_widgetViewId'.toJS, _captcha.onError.toJS)
+      ..setProperty('onCaptchaReady'.toJS, _captcha.onReady.toJS);
 
     _widget = _captcha.buildWidget(
       siteKey: widget.siteKey,
@@ -369,12 +363,12 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
   }
 
   void _registerView(String viewType) {
-    ui.platformViewRegistry.registerViewFactory(
-      viewType,
-      (int viewId, {Object? params}) {
-        return _widget;
-      },
-    );
+    ui.platformViewRegistry.registerViewFactory(viewType, (
+      int viewId, {
+      Object? params,
+    }) {
+      return _widget;
+    });
   }
 
   void _addError(CaptchaException error) {
@@ -450,9 +444,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
         decoration: BoxDecoration(
           color: styling.primaryColor,
           borderRadius: widget.options!.borderRadius!.add(
-            const BorderRadius.all(
-              Radius.circular(1),
-            ),
+            const BorderRadius.all(Radius.circular(1)),
           ),
         ),
         clipBehavior: Clip.hardEdge,
@@ -477,9 +469,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
     super.onTokenExpired,
     super.onTimeout,
     super.options,
-  }) : super(
-         controller: CaptchaController(),
-       ) {
+  }) : super(controller: CaptchaController()) {
     _register();
   }
 
@@ -540,10 +530,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
         'onCaptchaError_$_iframeViewType'.toJS,
         captcha.onError.toJS,
       )
-      ..setProperty(
-        'onCaptchaReady'.toJS,
-        captcha.onReady.toJS,
-      );
+      ..setProperty('onCaptchaReady'.toJS, captcha.onReady.toJS);
 
     _widget = captcha.buildWidget(
       siteKey: siteKey,

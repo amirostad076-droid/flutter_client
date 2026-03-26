@@ -65,14 +65,10 @@ enum CaptchaSize {
   /// Flexible size for the widget.
   ///
   /// Width is flexible (min 300px), and height is fixed at 65px.
-  flexible(double.maxFinite, 65)
-  ;
+  flexible(double.maxFinite, 65);
 
   /// Creates a [CaptchaSize] with the specified [width] and [height].
-  const CaptchaSize(
-    this.width,
-    this.height,
-  );
+  const CaptchaSize(this.width, this.height);
 
   /// The width of the widget.
   final double width;
@@ -90,15 +86,7 @@ enum CaptchaTheme {
 }
 
 /// Refresh behavior when the token expires. Turnstile only.
-enum CaptchaRefreshExpired {
-  auto,
-  manual,
-  never,
-}
+enum CaptchaRefreshExpired { auto, manual, never }
 
 /// Refresh behavior when the token times out. Turnstile only.
-enum CaptchaRefreshTimeout {
-  auto,
-  manual,
-  never,
-}
+enum CaptchaRefreshTimeout { auto, manual, never }
