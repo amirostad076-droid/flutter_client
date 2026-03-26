@@ -290,4 +290,41 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get resetPasswordMismatch => 'Passwords do not match.';
+
+  @override
+  String get registerTitle => 'Create an account';
+
+  @override
+  String get registerDisplayName => 'Display name';
+
+  @override
+  String get registerDisplayNameHint => 'What should people call you?';
+
+  @override
+  String get registerUsername => 'Username';
+
+  @override
+  String get registerUsernameHint => 'Leave blank for a random username';
+
+  @override
+  String get registerDateOfBirth => 'Date of birth';
+
+  @override
+  String get registerMonth => 'Month';
+
+  @override
+  String get registerDay => 'Day';
+
+  @override
+  String get registerYear => 'Year';
+
+  @override
+  String get registerConsent =>
+      'I agree to the Terms of Service and Privacy Policy';
+
+  @override
+  String get registerSubmit => 'Create account';
+
+  @override
+  String get registerHaveAccount => 'Already have an account? ';
 }

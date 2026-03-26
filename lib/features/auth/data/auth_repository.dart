@@ -90,6 +90,10 @@ class AuthRepository {
     }
   }
 
+  /// Resets the password using a token from a reset email.
+  ///
+  /// Returns [LoginSuccess] (auto-login) or [LoginMfaRequired] if the user
+  /// has MFA enabled.
   Future<LoginResult> resetPassword({
     required String token,
     required String password,
@@ -111,24 +115,51 @@ class AuthRepository {
         // Not a token response — try MFA
       }
 
-      try {
-        final mfaResponse = response.toAuthMfaRequiredResponse();
-        return LoginMfaRequired(
-          MfaChallenge(
-            ticket: mfaResponse.ticket,
-            totp: mfaResponse.totp,
-            sms: mfaResponse.sms,
-            webauthn: mfaResponse.webauthn,
-            smsPhoneHint: mfaResponse.smsPhoneHint,
-          ),
-        );
-      } on Object {
-        // Not an MFA response either
-      }
+      final mfaResponse = response.toAuthMfaRequiredResponse();
+      return LoginMfaRequired(
+        MfaChallenge(
+          ticket: mfaResponse.ticket,
+          totp: mfaResponse.totp,
+          sms: mfaResponse.sms,
+          webauthn: mfaResponse.webauthn,
+          smsPhoneHint: mfaResponse.smsPhoneHint,
+        ),
+      );
+    } on DioException catch (error) {
+      throw _failureFromDio(error);
+    }
+  }
 
-      throw const AuthFailure('Unexpected response from password reset.');
-    } on AuthFailure {
-      rethrow;
+  Future<AuthSession> register({
+    required String email,
+    required String password,
+    required String dateOfBirth,
+    String? username,
+    String? displayName,
+  }) async {
+    try {
+      final response = await _client.auth.registerAccount(
+        body: RegisterRequest(
+          email: email.trim(),
+          password: password,
+          dateOfBirth: dateOfBirth,
+          consent: true,
+          username: (username?.trim().isNotEmpty ?? false)
+              ? username!.trim()
+              : null,
+          globalName: (displayName?.trim().isNotEmpty ?? false)
+              ? displayName!.trim()
+              : null,
+        ),
+      );
+
+      final tokenResponse = response.toAuthTokenWithUserIdResponse();
+      final session = AuthSession(
+        token: tokenResponse.token,
+        userId: tokenResponse.userId,
+      );
+      await _saveSession(session);
+      return session;
     } on DioException catch (error) {
       throw _failureFromDio(error);
     }

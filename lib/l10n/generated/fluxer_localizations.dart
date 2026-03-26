@@ -603,6 +603,78 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Passwords do not match.'**
   String get resetPasswordMismatch;
+
+  /// Title for the registration screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account'**
+  String get registerTitle;
+
+  /// Label for the display name field.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get registerDisplayName;
+
+  /// Hint for the display name field.
+  ///
+  /// In en, this message translates to:
+  /// **'What should people call you?'**
+  String get registerDisplayNameHint;
+
+  /// Label for the username field.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get registerUsername;
+
+  /// Hint for the username field.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank for a random username'**
+  String get registerUsernameHint;
+
+  /// Label for the date of birth field.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get registerDateOfBirth;
+
+  /// Placeholder for the month select.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get registerMonth;
+
+  /// Placeholder for the day select.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get registerDay;
+
+  /// Placeholder for the year select.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get registerYear;
+
+  /// Consent checkbox label for registration.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the Terms of Service and Privacy Policy'**
+  String get registerConsent;
+
+  /// Button to submit the registration form.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get registerSubmit;
+
+  /// Text before the login link on the register screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? '**
+  String get registerHaveAccount;
 }
 
 class _FluxerLocalizationsDelegate

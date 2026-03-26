@@ -29,6 +29,7 @@ class LoginViewState {
   final bool showForgotPassword;
   final bool forgotPasswordEmailSent;
   final String? resetToken;
+  final bool showRegister;
 
   const LoginViewState({
     required this.email,
@@ -44,6 +45,7 @@ class LoginViewState {
     required this.showForgotPassword,
     required this.forgotPasswordEmailSent,
     required this.resetToken,
+    required this.showRegister,
   });
 
   bool get canLogin =>
@@ -63,6 +65,7 @@ class LoginViewState {
     bool? showForgotPassword,
     bool? forgotPasswordEmailSent,
     Object? resetToken = _unset,
+    bool? showRegister,
   }) {
     return LoginViewState(
       email: email ?? this.email,
@@ -89,6 +92,7 @@ class LoginViewState {
       resetToken: resetToken == _unset
           ? this.resetToken
           : resetToken as String?,
+      showRegister: showRegister ?? this.showRegister,
     );
   }
 }
@@ -111,6 +115,7 @@ class LoginViewModel extends _$LoginViewModel {
       showForgotPassword: false,
       forgotPasswordEmailSent: false,
       resetToken: null,
+      showRegister: false,
     );
   }
 
@@ -146,6 +151,63 @@ class LoginViewModel extends _$LoginViewModel {
 
   void setError(String message) {
     state = state.copyWith(errorMessage: message);
+  }
+
+  void showRegisterScreen() {
+    state = state.copyWith(
+      showRegister: true,
+      errorMessage: null,
+      fieldErrors: const {},
+    );
+  }
+
+  void backFromRegister() {
+    state = state.copyWith(
+      showRegister: false,
+      errorMessage: null,
+      fieldErrors: const {},
+    );
+  }
+
+  Future<void> submitRegister({
+    required String email,
+    required String password,
+    required String dateOfBirth,
+    String? username,
+    String? displayName,
+  }) async {
+    state = state.copyWith(
+      isLoggingIn: true,
+      errorMessage: null,
+      fieldErrors: const {},
+    );
+
+    try {
+      await ref
+          .read(authRepositoryProvider)
+          .register(
+            email: email,
+            password: password,
+            dateOfBirth: dateOfBirth,
+            username: username,
+            displayName: displayName,
+          );
+
+      ref.invalidate(appStartupProvider);
+      state = state.copyWith(showRegister: false, isLoggingIn: false);
+    } on AuthFailure catch (error) {
+      state = state.copyWith(
+        errorMessage: error.fieldErrors.isEmpty ? error.message : null,
+        fieldErrors: error.fieldErrors,
+        isLoggingIn: false,
+      );
+    } on Exception catch (e) {
+      talker.error('[LoginViewModel] Register error: $e');
+      state = state.copyWith(
+        errorMessage: 'Unable to create account. Please try again.',
+        isLoggingIn: false,
+      );
+    }
   }
 
   void hideAccountSelector() {
@@ -274,19 +336,9 @@ class LoginViewModel extends _$LoginViewModel {
             resetToken: null,
             isLoggingIn: false,
           );
-        case LoginIpAuthRequired(:final challenge):
-          state = state.copyWith(
-            ipAuthChallenge: challenge,
-            resetToken: null,
-            isLoggingIn: false,
-          );
-        case LoginSuspended(:final banViewInfo):
-          unawaited(ref.read(banViewProvider.notifier).initialize(banViewInfo));
-          state = state.copyWith(
-            banViewInfo: banViewInfo,
-            resetToken: null,
-            isLoggingIn: false,
-          );
+        case LoginIpAuthRequired() || LoginSuspended():
+          // Unreachable — password reset only returns success or MFA.
+          state = state.copyWith(resetToken: null, isLoggingIn: false);
       }
     } on AuthFailure catch (error) {
       state = state.copyWith(

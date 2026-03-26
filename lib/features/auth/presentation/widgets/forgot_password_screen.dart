@@ -11,9 +11,14 @@ import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
-  const ForgotPasswordScreen({required this.onBack, super.key});
+  const ForgotPasswordScreen({
+    required this.onBack,
+    required this.onRegister,
+    super.key,
+  });
 
   final VoidCallback onBack;
+  final VoidCallback onRegister;
 
   @override
   ConsumerState<ForgotPasswordScreen> createState() =>
@@ -51,6 +56,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         );
       },
       onBack: widget.onBack,
+      onRegister: widget.onRegister,
       l10n: l10n,
     );
   }
@@ -64,6 +70,7 @@ class _EmailEntryView extends StatelessWidget {
     required this.fieldErrors,
     required this.onSubmit,
     required this.onBack,
+    required this.onRegister,
     required this.l10n,
   });
 
@@ -73,6 +80,7 @@ class _EmailEntryView extends StatelessWidget {
   final Map<String, String> fieldErrors;
   final VoidCallback onSubmit;
   final VoidCallback onBack;
+  final VoidCallback onRegister;
   final FluxerLocalizations l10n;
 
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
@@ -151,7 +159,7 @@ class _EmailEntryView extends StatelessWidget {
                 ),
                 FluxerTextLink(
                   text: l10n.register,
-                  onTap: () {},
+                  onTap: onRegister,
                   style: textStyles.bodySmall,
                 ),
               ],

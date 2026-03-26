@@ -13,6 +13,7 @@ import 'package:fluxeron/features/auth/presentation/widgets/account_selector.dar
 import 'package:fluxeron/features/auth/presentation/widgets/ip_authorization_screen.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/forgot_password_screen.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/login_form.dart';
+import 'package:fluxeron/features/auth/presentation/widgets/register_screen.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/reset_password_screen.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/suspended_account_screen.dart';
 import 'package:fluxeron/features/auth/providers/account_manager_provider.dart';
@@ -59,7 +60,14 @@ class LoginScreen extends ConsumerWidget {
     }
 
     if (vm.showForgotPassword) {
-      return ForgotPasswordScreen(onBack: notifier.backFromForgotPassword);
+      return ForgotPasswordScreen(
+        onBack: notifier.backFromForgotPassword,
+        onRegister: notifier.showRegisterScreen,
+      );
+    }
+
+    if (vm.showRegister) {
+      return RegisterScreen(onBack: notifier.backFromRegister);
     }
 
     final accountState = ref.watch(accountManagerProvider);

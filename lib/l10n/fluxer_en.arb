@@ -368,5 +368,54 @@
   "resetPasswordMismatch": "Passwords do not match.",
   "@resetPasswordMismatch": {
     "description": "Error when password and confirmation don't match."
+  },
+
+  "registerTitle": "Create an account",
+  "@registerTitle": {
+    "description": "Title for the registration screen."
+  },
+  "registerDisplayName": "Display name",
+  "@registerDisplayName": {
+    "description": "Label for the display name field."
+  },
+  "registerDisplayNameHint": "What should people call you?",
+  "@registerDisplayNameHint": {
+    "description": "Hint for the display name field."
+  },
+  "registerUsername": "Username",
+  "@registerUsername": {
+    "description": "Label for the username field."
+  },
+  "registerUsernameHint": "Leave blank for a random username",
+  "@registerUsernameHint": {
+    "description": "Hint for the username field."
+  },
+  "registerDateOfBirth": "Date of birth",
+  "@registerDateOfBirth": {
+    "description": "Label for the date of birth field."
+  },
+  "registerMonth": "Month",
+  "@registerMonth": {
+    "description": "Placeholder for the month select."
+  },
+  "registerDay": "Day",
+  "@registerDay": {
+    "description": "Placeholder for the day select."
+  },
+  "registerYear": "Year",
+  "@registerYear": {
+    "description": "Placeholder for the year select."
+  },
+  "registerConsent": "I agree to the Terms of Service and Privacy Policy",
+  "@registerConsent": {
+    "description": "Consent checkbox label for registration."
+  },
+  "registerSubmit": "Create account",
+  "@registerSubmit": {
+    "description": "Button to submit the registration form."
+  },
+  "registerHaveAccount": "Already have an account? ",
+  "@registerHaveAccount": {
+    "description": "Text before the login link on the register screen."
   }
 }

@@ -147,7 +147,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                   ),
                   FluxerTextLink(
                     text: strings.register,
-                    onTap: () {},
+                    onTap: notifier.showRegisterScreen,
                     style: context.textStyles.bodySmall,
                   ),
                 ],
