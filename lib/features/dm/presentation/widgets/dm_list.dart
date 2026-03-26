@@ -186,7 +186,10 @@ class _DMListState extends ConsumerState<DMList> {
                 fontSize: 16,
               ),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 5,
+                horizontal: 5,
+              ),
               isDense: true,
             ),
             onChanged: (value) => setState(() => _searchQuery = value),
