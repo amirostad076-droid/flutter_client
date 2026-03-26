@@ -147,11 +147,7 @@ class _DMListState extends ConsumerState<DMList> {
             ],
           ),
           if (isMobile && !_isSearching)
-            Positioned(
-              right: 16,
-              bottom: 16 + MediaQuery.of(context).padding.bottom,
-              child: _buildComposeFab(context),
-            ),
+            Positioned(right: 16, bottom: 16, child: _buildComposeFab(context)),
         ],
       ),
     );
