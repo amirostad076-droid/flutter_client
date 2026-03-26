@@ -35,6 +35,8 @@ class ChannelIcon extends StatelessWidget {
         return PhosphorIconsFill.broadcast;
       case ChannelType.category:
         return PhosphorIconsFill.folder;
+      case ChannelType.link:
+        return PhosphorIconsRegular.link;
     }
   }
 }

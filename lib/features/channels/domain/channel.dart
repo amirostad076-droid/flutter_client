@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fluxeron/core/database/fluxer_database.dart' as db;
 
-enum ChannelType { text, voice, announcement, stage, category }
+enum ChannelType { text, voice, announcement, stage, category, link }
 
 ChannelType channelTypeFromInt(int type) {
   switch (type) {
@@ -16,6 +16,8 @@ ChannelType channelTypeFromInt(int type) {
       return ChannelType.announcement;
     case 13:
       return ChannelType.stage;
+    case 998:
+      return ChannelType.link;
     default:
       return ChannelType.text;
   }
@@ -33,6 +35,8 @@ int channelTypeToInt(ChannelType type) {
       return 5;
     case ChannelType.stage:
       return 13;
+    case ChannelType.link:
+      return 998;
   }
 }
 
