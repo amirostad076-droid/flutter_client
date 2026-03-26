@@ -26,12 +26,13 @@ part 'fluxer_router.g.dart';
 CustomTransitionPage<void> _fadeTransitionPage({
   required LocalKey key,
   required Widget child,
+  Duration duration = const Duration(milliseconds: 150),
 }) {
   return CustomTransitionPage<void>(
     key: key,
     child: child,
-    transitionDuration: const Duration(milliseconds: 150),
-    reverseTransitionDuration: const Duration(milliseconds: 150),
+    transitionDuration: duration,
+    reverseTransitionDuration: duration,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       return FadeTransition(opacity: animation, child: child);
     },
@@ -227,8 +228,11 @@ GoRouter fluxerRouter(Ref ref) {
 
       // Main app shell
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            AppLayout(navigationShell: navigationShell),
+        pageBuilder: (context, state, navigationShell) => _fadeTransitionPage(
+          key: state.pageKey,
+          child: AppLayout(navigationShell: navigationShell),
+          duration: const Duration(milliseconds: 550),
+        ),
         branches: [
           // Branch 0: Home
           StatefulShellBranch(
