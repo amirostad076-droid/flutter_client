@@ -24,6 +24,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get retry => 'Retry';
 
   @override
+  String get connectingCaps => 'CONNECTING';
+
+  @override
   String get welcomeBack => 'Welcome back';
 
   @override

@@ -118,6 +118,12 @@ abstract class FluxerLocalizations {
   /// **'Retry'**
   String get retry;
 
+  /// Connecting text on the splash screen
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTING'**
+  String get connectingCaps;
+
   /// Greeting on the login screen; usable wherever returning users are welcomed.
   ///
   /// In en, this message translates to:

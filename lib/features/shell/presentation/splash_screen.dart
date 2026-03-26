@@ -39,6 +39,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     final FluxerLocalizations strings = FluxerLocalizations.of(context);
     final startup = ref.watch(appStartupProvider);
+    final AsyncError<dynamic>? startupError =
+        startup is AsyncError<dynamic> ? startup : null;
+    final String statusText = startupError == null
+        ? strings.connectingCaps
+        : strings.splashStartupFailed(startupError.error.toString());
+    final Color statusTextColor = startupError == null
+        ? context.colors.textChatMuted
+        : context.colors.textDanger;
+    final int statusTextMaxLines = startupError == null ? 1 : 3;
 
     return Scaffold(
       backgroundColor: context.colors.backgroundSecondary,
@@ -84,20 +93,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 ],
               ),
             ),
-            if (startup is AsyncError) ...[
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Text(
-                  strings.splashStartupFailed(startup.error.toString()),
-                  style: context.textStyles.smallText.copyWith(
-                    color: context.colors.textDanger,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                statusText,
+                style: context.textStyles.smallText.copyWith(
+                  color: statusTextColor,
                 ),
+                textAlign: TextAlign.center,
+                maxLines: statusTextMaxLines,
+                overflow: TextOverflow.ellipsis,
               ),
+            ),
+            if (startupError != null) ...[
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.read(appStartupProvider.notifier).retry(),

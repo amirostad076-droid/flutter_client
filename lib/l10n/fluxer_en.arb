@@ -21,6 +21,10 @@
   "@retry": {
     "description": "Generic label for retry actions (splash, errors, network, etc.)."
   },
+  "connectingCaps": "CONNECTING",
+  "@connectingCaps": {
+    "description": "Connecting text on the splash screen"
+  },
   "welcomeBack": "Welcome back",
   "@welcomeBack": {
     "description": "Greeting on the login screen; usable wherever returning users are welcomed."
