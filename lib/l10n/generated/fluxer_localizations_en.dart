@@ -177,4 +177,117 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get signOut => 'Sign out';
+
+  @override
+  String get suspendedPermanentTitle => 'Account Permanently Suspended';
+
+  @override
+  String get suspendedTemporaryTitle => 'Account Suspended';
+
+  @override
+  String get suspendedPermanentDescription =>
+      'Your account has been permanently suspended for violating our Terms of Service.';
+
+  @override
+  String get suspendedTemporaryDescription =>
+      'Your account has been temporarily suspended. You will be able to access your account once the suspension period ends.';
+
+  @override
+  String get suspendedIssuedAt => 'Issued';
+
+  @override
+  String get suspendedEndsAt => 'Ends';
+
+  @override
+  String get suspendedDuration => 'Duration';
+
+  @override
+  String get suspendedPermanent => 'Permanent';
+
+  @override
+  String get suspendedReason => 'Reason';
+
+  @override
+  String get suspendedAppealDeadline => 'Appeal Deadline';
+
+  @override
+  String suspendedDeletionWarning(String date) {
+    return 'Your account is scheduled for deletion on $date.';
+  }
+
+  @override
+  String get suspendedRecheck => 'Check for Updates';
+
+  @override
+  String suspendedRecheckCooldown(int seconds) {
+    return 'Check again in ${seconds}s';
+  }
+
+  @override
+  String get suspendedBackToLogin => 'Back to Login';
+
+  @override
+  String get suspendedAppealTitle => 'Appeal';
+
+  @override
+  String get suspendedAppealHint =>
+      'Explain why your suspension should be reconsidered (minimum 50 characters)...';
+
+  @override
+  String get suspendedAppealSubmit => 'Submit Appeal';
+
+  @override
+  String get suspendedAppealPending => 'Pending Review';
+
+  @override
+  String get suspendedAppealAccepted => 'Appeal Accepted';
+
+  @override
+  String get suspendedAppealRejected => 'Appeal Rejected';
+
+  @override
+  String get suspendedAppealAcceptedDescription =>
+      'Your appeal has been accepted and your account has been reinstated.';
+
+  @override
+  String get suspendedSignIn => 'Sign In to Your Account';
+
+  @override
+  String get forgotPasswordTitle => 'Forgot your password?';
+
+  @override
+  String get forgotPasswordDescription =>
+      'Enter your email address and we\'ll send you a link to reset your password.';
+
+  @override
+  String get forgotPasswordSubmit => 'Send reset link';
+
+  @override
+  String get forgotPasswordSentTitle => 'Check your email';
+
+  @override
+  String get forgotPasswordSentDescription =>
+      'We\'ve sent password reset instructions to your email address. Please check your inbox and follow the link to reset your password.';
+
+  @override
+  String get forgotPasswordBackToLogin => 'Return to login';
+
+  @override
+  String get resetPasswordTitle => 'Set new password';
+
+  @override
+  String get resetPasswordDescription =>
+      'Enter your new password below to complete the reset process.';
+
+  @override
+  String get resetPasswordNewPassword => 'New password';
+
+  @override
+  String get resetPasswordConfirm => 'Confirm new password';
+
+  @override
+  String get resetPasswordSubmit => 'Reset password';
+
+  @override
+  String get resetPasswordMismatch => 'Passwords do not match.';
 }

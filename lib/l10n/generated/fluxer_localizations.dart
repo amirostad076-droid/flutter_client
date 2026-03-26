@@ -399,6 +399,210 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get signOut;
+
+  /// Title when account is permanently banned.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Permanently Suspended'**
+  String get suspendedPermanentTitle;
+
+  /// Title when account is temporarily suspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Suspended'**
+  String get suspendedTemporaryTitle;
+
+  /// Description for permanent suspension.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been permanently suspended for violating our Terms of Service.'**
+  String get suspendedPermanentDescription;
+
+  /// Description for temporary suspension.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been temporarily suspended. You will be able to access your account once the suspension period ends.'**
+  String get suspendedTemporaryDescription;
+
+  /// Label for when the ban was issued.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get suspendedIssuedAt;
+
+  /// Label for when a temporary ban ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends'**
+  String get suspendedEndsAt;
+
+  /// Label for ban duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get suspendedDuration;
+
+  /// Value shown for permanent ban duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanent'**
+  String get suspendedPermanent;
+
+  /// Label for ban reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get suspendedReason;
+
+  /// Label for appeal deadline date.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal Deadline'**
+  String get suspendedAppealDeadline;
+
+  /// Warning about scheduled account deletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is scheduled for deletion on {date}.'**
+  String suspendedDeletionWarning(String date);
+
+  /// Button to recheck ban status.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for Updates'**
+  String get suspendedRecheck;
+
+  /// Recheck button with cooldown timer.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again in {seconds}s'**
+  String suspendedRecheckCooldown(int seconds);
+
+  /// Button to return to login screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Login'**
+  String get suspendedBackToLogin;
+
+  /// Title for the appeal section.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal'**
+  String get suspendedAppealTitle;
+
+  /// Placeholder text for the appeal textarea.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain why your suspension should be reconsidered (minimum 50 characters)...'**
+  String get suspendedAppealHint;
+
+  /// Button to submit an appeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Appeal'**
+  String get suspendedAppealSubmit;
+
+  /// Badge for appeal with pending status.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Review'**
+  String get suspendedAppealPending;
+
+  /// Badge for accepted appeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal Accepted'**
+  String get suspendedAppealAccepted;
+
+  /// Badge for rejected appeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal Rejected'**
+  String get suspendedAppealRejected;
+
+  /// Message when appeal is accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your appeal has been accepted and your account has been reinstated.'**
+  String get suspendedAppealAcceptedDescription;
+
+  /// Button to sign in after appeal is accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In to Your Account'**
+  String get suspendedSignIn;
+
+  /// Title for the forgot password screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your password?'**
+  String get forgotPasswordTitle;
+
+  /// Description for the forgot password screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address and we\'ll send you a link to reset your password.'**
+  String get forgotPasswordDescription;
+
+  /// Button to submit the forgot password form.
+  ///
+  /// In en, this message translates to:
+  /// **'Send reset link'**
+  String get forgotPasswordSubmit;
+
+  /// Title after forgot password email is sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email'**
+  String get forgotPasswordSentTitle;
+
+  /// Description after forgot password email is sent.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve sent password reset instructions to your email address. Please check your inbox and follow the link to reset your password.'**
+  String get forgotPasswordSentDescription;
+
+  /// Link to go back to login from forgot password.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to login'**
+  String get forgotPasswordBackToLogin;
+
+  /// Title for the reset password screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Set new password'**
+  String get resetPasswordTitle;
+
+  /// Description for the reset password screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your new password below to complete the reset process.'**
+  String get resetPasswordDescription;
+
+  /// Label for the new password field.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get resetPasswordNewPassword;
+
+  /// Label for the confirm password field.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get resetPasswordConfirm;
+
+  /// Button to submit the password reset form.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get resetPasswordSubmit;
+
+  /// Error when password and confirmation don't match.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get resetPasswordMismatch;
 }
 
 class _FluxerLocalizationsDelegate

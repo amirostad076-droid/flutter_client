@@ -4,6 +4,7 @@ import 'package:app_links/app_links.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/talker.dart';
+import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -45,6 +46,11 @@ class DeepLinkHandler extends _$DeepLinkHandler {
   void _handleDeepLink(Uri uri) {
     talker.info('[DeepLink] Received: $uri');
 
+    // Password reset links work without authentication.
+    if (_tryHandleResetLink(uri)) {
+      return;
+    }
+
     final isAuthenticated = ref.read(authStateProvider);
     if (!isAuthenticated) {
       _pendingDeepLink = uri;
@@ -53,6 +59,34 @@ class DeepLinkHandler extends _$DeepLinkHandler {
     }
 
     _processDeepLink(uri);
+  }
+
+  /// Handles `/reset#token=<TOKEN>` or `/reset?token=<TOKEN>` deep links.
+  bool _tryHandleResetLink(Uri uri) {
+    if (uri.pathSegments.firstOrNull != 'reset') {
+      return false;
+    }
+
+    // Token can be in query params or fragment (web app uses hash: #token=xxx).
+    var token = uri.queryParameters['token'];
+    if (token == null && uri.fragment.isNotEmpty) {
+      final fragmentParams = Uri.splitQueryString(uri.fragment);
+      token = fragmentParams['token'];
+    }
+
+    if (token == null || token.isEmpty) {
+      talker.warning('[DeepLink] Reset link missing token');
+      return false;
+    }
+
+    talker.info('[DeepLink] Password reset token received');
+    ref.read(loginViewModelProvider.notifier).setResetToken(token);
+
+    // Navigate to login screen if not already there.
+    final router = ref.read(fluxerRouterProvider);
+    router.go('/login');
+
+    return true;
   }
 
   void processPendingDeepLink() {
