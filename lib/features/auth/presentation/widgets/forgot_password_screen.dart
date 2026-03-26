@@ -75,6 +75,8 @@ class _EmailEntryView extends StatelessWidget {
   final VoidCallback onBack;
   final FluxerLocalizations l10n;
 
+  static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -121,10 +123,16 @@ class _EmailEntryView extends StatelessWidget {
               ),
               SizedBox(height: layout.s2),
             ],
-            FluxerButton.primary(
-              onPressed: onSubmit,
-              label: l10n.forgotPasswordSubmit,
-              isLoading: isSubmitting,
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (context, value, _) {
+                final isValid = _emailRegex.hasMatch(value.text.trim());
+                return FluxerButton.primary(
+                  onPressed: isValid && !isSubmitting ? onSubmit : null,
+                  label: l10n.forgotPasswordSubmit,
+                  isLoading: isSubmitting,
+                );
+              },
             ),
             SizedBox(height: layout.s5),
             FluxerButton.ghost(

@@ -213,7 +213,10 @@ class LoginViewModel extends _$LoginViewModel {
   }
 
   Future<void> submitForgotPassword(String email) async {
-    if (email.trim().isEmpty) {
+    if (!_emailRegex.hasMatch(email.trim())) {
+      state = state.copyWith(
+        fieldErrors: const {'email': 'Please enter a valid email address.'},
+      );
       return;
     }
 
