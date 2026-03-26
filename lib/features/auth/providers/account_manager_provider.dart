@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:fluxeron/core/api/fluxer_client_provider.dart';
 import 'package:fluxeron/core/database/fluxer_database.dart' hide AuthSession;
@@ -59,7 +60,11 @@ class AccountManager extends _$AccountManager {
     );
   }
 
-  /// Switches to a different stored account by invalidating app startup.
+  /// Switches to a different stored account.
+  ///
+  /// Validates the token with the server first (`GET /users/@me`). If the
+  /// token is expired or invalid, the account is marked invalid and a
+  /// [SessionExpiredFailure] is thrown so the UI can prompt re-login.
   Future<void> switchToAccount(String userId) async {
     state = state.copyWith(isSwitching: true);
 
@@ -69,6 +74,15 @@ class AccountManager extends _$AccountManager {
 
       if (session == null || !session.isValid) {
         throw const AuthFailure('Session is no longer valid.');
+      }
+
+      // Validate the stored token against the server before switching.
+      final isValid = await _validateToken(session.token);
+      if (!isValid) {
+        await db.authSessionDao.markInvalid(userId);
+        await loadAccounts();
+        state = state.copyWith(isSwitching: false);
+        throw SessionExpiredFailure(userId);
       }
 
       // Update lastActive to make this the active session.
@@ -86,6 +100,8 @@ class AccountManager extends _$AccountManager {
       ref.invalidate(appStartupProvider);
 
       state = state.copyWith(isSwitching: false);
+    } on SessionExpiredFailure {
+      rethrow;
     } on Exception catch (e) {
       talker.error('[AccountManager] Switch failed: $e');
       state = state.copyWith(isSwitching: false);
@@ -93,29 +109,67 @@ class AccountManager extends _$AccountManager {
     }
   }
 
-  /// Signs out the current account (marks invalid, switches to next or login).
+  /// Validates a token by calling `GET /users/@me` with the account's own
+  /// token. Returns `false` on 401 or network failure.
+  Future<bool> _validateToken(String token) async {
+    try {
+      final baseUrl = ref.read(fluxerBaseUrlProvider);
+      await Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          headers: {'Authorization': token},
+          connectTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+        ),
+      ).get<void>('/users/@me');
+      return true;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        return false;
+      }
+      // Network errors — don't mark invalid, just fail the switch.
+      rethrow;
+    }
+  }
+
+  /// Signs out an account and navigates to login (which shows account selector).
   Future<void> signOut(String userId) async {
     final repo = ref.read(authRepositoryProvider);
 
     await repo.logout(userId);
     await loadAccounts();
 
-    // Try switching to next valid account.
-    final nextValid = state.accounts.where((a) => a.isValid).firstOrNull;
-    if (nextValid != null) {
-      await switchToAccount(nextValid.userId);
-    } else {
-      // No valid sessions — go to login.
-      ref.read(fluxerAuthTokenProvider.notifier).setToken(null);
-      ref.read(authStateProvider.notifier).setAuthenticated(value: false);
-      ref.read(currentUserIdProvider.notifier).set('');
-    }
+    // Always go to login — account selector shows remaining accounts.
+    ref.read(fluxerAuthTokenProvider.notifier).setToken(null);
+    ref.read(authStateProvider.notifier).setAuthenticated(value: false);
   }
 
-  /// Removes a stored account entirely.
+  /// Removes a non-current stored account (invalidates its server session
+  /// using the account's own token, then deletes locally).
   Future<void> removeAccount(String userId) async {
     final db = ref.read(fluxerDatabaseProvider);
-    await db.authSessionDao.removeSession(userId);
+    final session = await db.authSessionDao.getSession(userId);
+
+    if (session != null) {
+      // Best-effort server logout using the stored account's own token,
+      // matching the web app behavior (skipAuth + account-specific token).
+      try {
+        final baseUrl = ref.read(fluxerBaseUrlProvider);
+        await Dio(
+          BaseOptions(
+            baseUrl: baseUrl,
+            headers: {'Authorization': session.token},
+            connectTimeout: const Duration(seconds: 5),
+            receiveTimeout: const Duration(seconds: 5),
+          ),
+        ).post<void>('/auth/logout');
+      } on Object catch (e) {
+        talker.warning('[AccountManager] Failed to logout stored account: $e');
+      }
+
+      await db.authSessionDao.removeSession(userId);
+    }
+
     await loadAccounts();
   }
 }

@@ -6,8 +6,10 @@ import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/domain/stored_account.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/account_row.dart';
 import 'package:fluxeron/features/auth/providers/account_manager_provider.dart';
+import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:fluxeron/features/ui/button/fluxer_button.dart';
 import 'package:fluxeron/features/ui/modal/fluxer_modal.dart';
+import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class AccountSelector extends ConsumerWidget {
@@ -22,25 +24,27 @@ class AccountSelector extends ConsumerWidget {
   final void Function(StoredAccount account) onSelectAccount;
   final VoidCallback onAddAccount;
 
-  Future<void> _confirmRemove(
+  Future<void> _confirmSignOut(
     BuildContext context,
     WidgetRef ref,
-    StoredAccount account,
-  ) async {
+    StoredAccount account, {
+    required bool isCurrent,
+  }) async {
+    final l10n = FluxerLocalizations.of(context);
+    final manager = ref.read(accountManagerProvider.notifier);
+
     await FluxerConfirmModal.show(
       context,
-      title: 'Remove account',
-      description:
-          'Remove ${account.identifier} from this device? '
-          'You can add it again later.',
-      confirmLabel: 'Remove',
+      title: l10n.signOut,
+      description: l10n.accountRemoveDescription,
+      confirmLabel: l10n.signOut,
       isDanger: true,
       onConfirm: () {
-        unawaited(
-          ref
-              .read(accountManagerProvider.notifier)
-              .removeAccount(account.userId),
-        );
+        if (isCurrent) {
+          unawaited(manager.signOut(account.userId));
+        } else {
+          unawaited(manager.removeAccount(account.userId));
+        }
       },
     );
   }
@@ -57,27 +61,39 @@ class AccountSelector extends ConsumerWidget {
     final colors = context.colors;
     final textStyles = context.textStyles;
     final layout = context.layout;
+    final l10n = FluxerLocalizations.of(context);
 
     return AbsorbPointer(
       absorbing: state.isSwitching,
       child: AnimatedOpacity(
         opacity: state.isSwitching ? 0.5 : 1.0,
-        duration: const Duration(milliseconds: 150),
+        duration: context.motion.fast,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Choose an account',
+              l10n.accountSelectorTitle,
               style: textStyles.heading.copyWith(color: colors.textPrimary),
             ),
             SizedBox(height: layout.s2),
             Text(
-              'Select an account to switch to, or add a new one.',
+              l10n.accountSelectorDescription,
               style: textStyles.bodySmall.copyWith(
                 color: colors.textPrimaryMuted,
               ),
             ),
+            if (ref.watch(loginViewModelProvider).errorMessage
+                case final errorMessage? when errorMessage.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(bottom: layout.s2),
+                child: Text(
+                  errorMessage,
+                  style: textStyles.bodySmall.copyWith(
+                    color: colors.textDanger,
+                  ),
+                ),
+              ),
             SizedBox(height: layout.s3),
             ...accounts.map(
               (account) => Padding(
@@ -86,14 +102,19 @@ class AccountSelector extends ConsumerWidget {
                   account: account,
                   isCurrent: account.userId == currentUserId,
                   onTap: () => onSelectAccount(account),
-                  onRemove: () => _confirmRemove(context, ref, account),
+                  onSignOut: () => _confirmSignOut(
+                    context,
+                    ref,
+                    account,
+                    isCurrent: account.userId == currentUserId,
+                  ),
                 ),
               ),
             ),
             SizedBox(height: layout.s2),
             FluxerButton.secondary(
               onPressed: onAddAccount,
-              label: 'Add an account',
+              label: l10n.accountAdd,
               icon: PhosphorIconsBold.plus,
               fitContent: true,
             ),

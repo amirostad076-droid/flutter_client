@@ -1,7 +1,7 @@
 abstract final class RouteNames {
   // Auth
   static const login = 'login';
-  static const mfa = 'mfa';
+
   static const loading = 'loading';
   static const reconnecting = 'reconnecting';
 

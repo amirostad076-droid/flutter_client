@@ -40,6 +40,8 @@ class FluxerBottomSheet {
       builder: (sheetContext) {
         void close() => Navigator.of(sheetContext).pop();
 
+        final bottomPadding = MediaQuery.paddingOf(sheetContext).bottom;
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -55,6 +57,7 @@ class FluxerBottomSheet {
             ],
             SizedBox(height: layout.s2),
             Flexible(child: builder(sheetContext, close)),
+            SizedBox(height: bottomPadding > 0 ? bottomPadding : layout.s4),
           ],
         );
       },

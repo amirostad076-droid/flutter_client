@@ -5,7 +5,7 @@ import 'package:fluxeron/core/router/channel_persistence_observer.dart';
 import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/presentation/login_screen.dart';
-import 'package:fluxeron/features/auth/presentation/mfa_screen.dart';
+
 import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxeron/features/chat/presentation/channel_layout.dart';
 import 'package:fluxeron/features/dm/presentation/dm_layout.dart';
@@ -163,7 +163,7 @@ GoRouter fluxerRouter(Ref ref) {
         return RoutePaths.me;
       }
 
-      final isLoggingIn = location == '/login' || location == '/mfa';
+      final isLoggingIn = location == '/login';
       final isOnReconnecting = location == '/reconnecting';
 
       if (!isAuthenticated && !isLoggingIn) {
@@ -188,11 +188,6 @@ GoRouter fluxerRouter(Ref ref) {
         path: '/login',
         name: RouteNames.login,
         builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: '/mfa',
-        name: RouteNames.mfa,
-        builder: (context, state) => const MfaScreen(),
       ),
       GoRoute(
         path: '/reconnecting',

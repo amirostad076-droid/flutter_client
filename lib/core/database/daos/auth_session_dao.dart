@@ -28,10 +28,14 @@ class AuthSessionDao extends DatabaseAccessor<FluxerDatabase>
             ..limit(1))
           .getSingleOrNull();
 
-  /// Upserts a session with updated lastActive timestamp.
-  Future<void> saveSession(AuthSessionsCompanion session) => into(
-    authSessions,
-  ).insertOnConflictUpdate(session.copyWith(lastActive: Value(DateTime.now())));
+  /// Upserts a session with updated lastActive timestamp and marks it valid.
+  Future<void> saveSession(AuthSessionsCompanion session) =>
+      into(authSessions).insertOnConflictUpdate(
+        session.copyWith(
+          isValid: const Value(true),
+          lastActive: Value(DateTime.now()),
+        ),
+      );
 
   /// Updates the cached user data for a session.
   Future<void> updateUserData({

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/api/fluxer_client_provider.dart';
+
 import 'package:fluxeron/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxeron/core/providers/gateway_provider.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
@@ -402,9 +402,10 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
   }
 
   Future<void> _logout() async {
+    final userId = ref.read(currentUserIdProvider) ?? '';
+
     await ref.read(gatewayConnectionProvider).disconnect();
     ref.read(gatewayReadyProvider.notifier).reset();
-    ref.read(fluxerAuthTokenProvider.notifier).setToken(null);
 
     ref
       // Gateway
@@ -430,7 +431,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
       ..invalidate(userSettingsViewModelProvider)
       ..invalidate(loginViewModelProvider);
 
-    final userId = ref.read(currentUserIdProvider) ?? '';
+    // AccountManager handles API logout + auth state reset.
     await ref.read(accountManagerProvider.notifier).signOut(userId);
     if (mounted) {
       Navigator.of(context).pop();

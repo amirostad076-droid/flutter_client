@@ -4,6 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/shell/presentation/responsive_layout.dart'
+    show isMobileLayout;
+import 'package:fluxeron/features/ui/bottom_sheet/fluxer_bottom_sheet.dart'
+    show
+        FluxerBottomSheetDragHandle,
+        FluxerBottomSheetMenuItem,
+        FluxerMenuGroup;
 import 'package:fluxeron/features/ui/tappable/fluxer_tappable.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -17,11 +24,73 @@ typedef FluxerActionMenuBuilder =
 class FluxerActionMenu {
   FluxerActionMenu._();
 
-  /// Shows an action menu at [position] with items from [builder].
+  /// Shows an action menu with items from [builder].
   ///
-  /// The menu is dismissed when tapping outside, pressing Escape,
-  /// or calling the `close` callback passed to [builder].
+  /// On mobile, displays a bottom sheet. On tablet/desktop, shows a positioned
+  /// overlay at [position]. The menu is dismissed when tapping outside,
+  /// pressing Escape, or calling the `close` callback passed to [builder].
   static Future<void> show(
+    BuildContext context, {
+    required Offset position,
+    required FluxerActionMenuBuilder builder,
+  }) {
+    if (isMobileLayout(context)) {
+      return _showAsBottomSheet(context, builder: builder);
+    }
+    return _showAsOverlay(context, position: position, builder: builder);
+  }
+
+  static Future<void> _showAsBottomSheet(
+    BuildContext context, {
+    required FluxerActionMenuBuilder builder,
+  }) async {
+    final colors = context.colors;
+    final outerLayout = context.layout;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: colors.backgroundSecondary,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: outerLayout.radiusXxl.topLeft),
+      ),
+      builder: (sheetContext) {
+        void close() => Navigator.of(sheetContext, rootNavigator: true).pop();
+        final layout = sheetContext.layout;
+        final bottomPadding = MediaQuery.paddingOf(sheetContext).bottom;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: layout.s2),
+            const FluxerBottomSheetDragHandle(),
+            SizedBox(height: layout.s2),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: layout.s4),
+              child: FluxerMenuGroup(
+                children: builder(sheetContext, close)
+                    .whereType<FluxerMenuItem>()
+                    .map(
+                      (item) => FluxerBottomSheetMenuItem(
+                        label: item.label,
+                        icon: item.icon,
+                        isDanger: item.isDanger,
+                        onTap: item.onPressed,
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+            SizedBox(height: bottomPadding > 0 ? bottomPadding : layout.s4),
+          ],
+        );
+      },
+    );
+  }
+
+  static Future<void> _showAsOverlay(
     BuildContext context, {
     required Offset position,
     required FluxerActionMenuBuilder builder,
@@ -105,9 +174,8 @@ class _ActionMenuOverlay extends StatelessWidget {
               child: const ColoredBox(color: Colors.transparent),
             ),
           ),
-          Positioned(
-            left: position.dx,
-            top: position.dy,
+          CustomSingleChildLayout(
+            delegate: _MenuPositionDelegate(position),
             child: FadeTransition(
               opacity: fadeAnimation,
               child: IntrinsicWidth(
@@ -139,6 +207,36 @@ class _ActionMenuOverlay extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _MenuPositionDelegate extends SingleChildLayoutDelegate {
+  _MenuPositionDelegate(this.position);
+
+  final Offset position;
+  static const _edgePadding = 12.0;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    return BoxConstraints.loose(constraints.biggest);
+  }
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    final dx = position.dx.clamp(
+      _edgePadding,
+      size.width - childSize.width - _edgePadding,
+    );
+    final dy = position.dy.clamp(
+      _edgePadding,
+      size.height - childSize.height - _edgePadding,
+    );
+    return Offset(dx, dy);
+  }
+
+  @override
+  bool shouldRelayout(_MenuPositionDelegate oldDelegate) {
+    return position != oldDelegate.position;
   }
 }
 
