@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/talker.dart';
 import 'package:fluxeron/features/auth/domain/auth_failure.dart';
+import 'package:fluxeron/features/auth/domain/ban_view.dart';
 import 'package:fluxeron/features/auth/domain/ip_authorization_challenge.dart';
 import 'package:fluxeron/features/auth/domain/login_result.dart';
 import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
+import 'package:fluxeron/features/auth/providers/ban_view_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'login_view_model.g.dart';
@@ -20,7 +24,11 @@ class LoginViewState {
   final bool isLoggingIn;
   final IpAuthorizationChallenge? ipAuthChallenge;
   final MfaChallenge? mfaChallenge;
+  final BanViewInfo? banViewInfo;
   final bool showAccountSelector;
+  final bool showForgotPassword;
+  final bool forgotPasswordEmailSent;
+  final String? resetToken;
 
   const LoginViewState({
     required this.email,
@@ -31,7 +39,11 @@ class LoginViewState {
     required this.isLoggingIn,
     required this.ipAuthChallenge,
     required this.mfaChallenge,
+    required this.banViewInfo,
     required this.showAccountSelector,
+    required this.showForgotPassword,
+    required this.forgotPasswordEmailSent,
+    required this.resetToken,
   });
 
   bool get canLogin =>
@@ -46,7 +58,11 @@ class LoginViewState {
     bool? isLoggingIn,
     Object? ipAuthChallenge = _unset,
     Object? mfaChallenge = _unset,
+    Object? banViewInfo = _unset,
     bool? showAccountSelector,
+    bool? showForgotPassword,
+    bool? forgotPasswordEmailSent,
+    Object? resetToken = _unset,
   }) {
     return LoginViewState(
       email: email ?? this.email,
@@ -63,7 +79,16 @@ class LoginViewState {
       mfaChallenge: mfaChallenge == _unset
           ? this.mfaChallenge
           : mfaChallenge as MfaChallenge?,
+      banViewInfo: banViewInfo == _unset
+          ? this.banViewInfo
+          : banViewInfo as BanViewInfo?,
       showAccountSelector: showAccountSelector ?? this.showAccountSelector,
+      showForgotPassword: showForgotPassword ?? this.showForgotPassword,
+      forgotPasswordEmailSent:
+          forgotPasswordEmailSent ?? this.forgotPasswordEmailSent,
+      resetToken: resetToken == _unset
+          ? this.resetToken
+          : resetToken as String?,
     );
   }
 }
@@ -81,7 +106,11 @@ class LoginViewModel extends _$LoginViewModel {
       isLoggingIn: false,
       ipAuthChallenge: null,
       mfaChallenge: null,
+      banViewInfo: null,
       showAccountSelector: true,
+      showForgotPassword: false,
+      forgotPasswordEmailSent: false,
+      resetToken: null,
     );
   }
 
@@ -110,6 +139,15 @@ class LoginViewModel extends _$LoginViewModel {
     state = state.copyWith(mfaChallenge: null);
   }
 
+  void clearBanView() {
+    ref.read(banViewProvider.notifier).clear();
+    state = state.copyWith(banViewInfo: null);
+  }
+
+  void setError(String message) {
+    state = state.copyWith(errorMessage: message);
+  }
+
   void hideAccountSelector() {
     state = state.copyWith(showAccountSelector: false);
   }
@@ -136,6 +174,130 @@ class LoginViewModel extends _$LoginViewModel {
       ipAuthChallenge: null,
       isLoggingIn: false,
     );
+  }
+
+  void showForgotPasswordScreen() {
+    state = state.copyWith(
+      showForgotPassword: true,
+      forgotPasswordEmailSent: false,
+      errorMessage: null,
+      fieldErrors: const {},
+    );
+  }
+
+  void backFromForgotPassword() {
+    state = state.copyWith(
+      showForgotPassword: false,
+      forgotPasswordEmailSent: false,
+      errorMessage: null,
+      fieldErrors: const {},
+    );
+  }
+
+  void setResetToken(String token) {
+    state = state.copyWith(
+      resetToken: token,
+      showForgotPassword: false,
+      forgotPasswordEmailSent: false,
+      errorMessage: null,
+      fieldErrors: const {},
+    );
+  }
+
+  void clearResetToken() {
+    state = state.copyWith(
+      resetToken: null,
+      errorMessage: null,
+      fieldErrors: const {},
+    );
+  }
+
+  Future<void> submitForgotPassword(String email) async {
+    if (email.trim().isEmpty) {
+      return;
+    }
+
+    state = state.copyWith(
+      isLoggingIn: true,
+      errorMessage: null,
+      fieldErrors: const {},
+    );
+
+    try {
+      await ref.read(authRepositoryProvider).forgotPassword(email: email);
+      state = state.copyWith(forgotPasswordEmailSent: true, isLoggingIn: false);
+    } on AuthFailure catch (error) {
+      state = state.copyWith(
+        errorMessage: error.fieldErrors.isEmpty ? error.message : null,
+        fieldErrors: error.fieldErrors,
+        isLoggingIn: false,
+      );
+    } on Exception catch (e) {
+      talker.error('[LoginViewModel] Forgot password error: $e');
+      state = state.copyWith(
+        errorMessage: 'Unable to send reset link. Please try again.',
+        isLoggingIn: false,
+      );
+    }
+  }
+
+  Future<void> submitResetPassword({
+    required String token,
+    required String password,
+  }) async {
+    state = state.copyWith(
+      isLoggingIn: true,
+      errorMessage: null,
+      fieldErrors: const {},
+    );
+
+    try {
+      final result = await ref
+          .read(authRepositoryProvider)
+          .resetPassword(token: token, password: password);
+
+      switch (result) {
+        case LoginSuccess():
+          ref.invalidate(appStartupProvider);
+          state = state.copyWith(
+            email: '',
+            password: '',
+            resetToken: null,
+            isLoggingIn: false,
+          );
+        case LoginMfaRequired(:final challenge):
+          state = state.copyWith(
+            mfaChallenge: challenge,
+            resetToken: null,
+            isLoggingIn: false,
+          );
+        case LoginIpAuthRequired(:final challenge):
+          state = state.copyWith(
+            ipAuthChallenge: challenge,
+            resetToken: null,
+            isLoggingIn: false,
+          );
+        case LoginSuspended(:final banViewInfo):
+          unawaited(ref.read(banViewProvider.notifier).initialize(banViewInfo));
+          state = state.copyWith(
+            banViewInfo: banViewInfo,
+            resetToken: null,
+            isLoggingIn: false,
+          );
+      }
+    } on AuthFailure catch (error) {
+      state = state.copyWith(
+        errorMessage: error.fieldErrors.isEmpty ? error.message : null,
+        fieldErrors: error.fieldErrors,
+        isLoggingIn: false,
+      );
+    } on Exception catch (e) {
+      talker.error('[LoginViewModel] Reset password error: $e');
+      state = state.copyWith(
+        errorMessage: 'Unable to reset password. Please try again.',
+        isLoggingIn: false,
+      );
+    }
   }
 
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
@@ -176,6 +338,10 @@ class LoginViewModel extends _$LoginViewModel {
           return false;
         case LoginMfaRequired(:final challenge):
           state = state.copyWith(mfaChallenge: challenge, isLoggingIn: false);
+          return false;
+        case LoginSuspended(:final banViewInfo):
+          unawaited(ref.read(banViewProvider.notifier).initialize(banViewInfo));
+          state = state.copyWith(banViewInfo: banViewInfo, isLoggingIn: false);
           return false;
       }
     } on AuthFailure catch (error) {

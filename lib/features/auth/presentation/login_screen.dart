@@ -7,13 +7,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxeron/core/constants/assets.dart';
 import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/auth/domain/auth_failure.dart';
 import 'package:fluxeron/features/auth/presentation/mfa_screen.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/account_selector.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/ip_authorization_screen.dart';
+import 'package:fluxeron/features/auth/presentation/widgets/forgot_password_screen.dart';
 import 'package:fluxeron/features/auth/presentation/widgets/login_form.dart';
+import 'package:fluxeron/features/auth/presentation/widgets/reset_password_screen.dart';
+import 'package:fluxeron/features/auth/presentation/widgets/suspended_account_screen.dart';
 import 'package:fluxeron/features/auth/providers/account_manager_provider.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -42,6 +47,21 @@ class LoginScreen extends ConsumerWidget {
       );
     }
 
+    if (vm.banViewInfo != null) {
+      return SuspendedAccountScreen(onBack: notifier.clearBanView);
+    }
+
+    if (vm.resetToken != null) {
+      return ResetPasswordScreen(
+        token: vm.resetToken!,
+        onBack: notifier.clearResetToken,
+      );
+    }
+
+    if (vm.showForgotPassword) {
+      return ForgotPasswordScreen(onBack: notifier.backFromForgotPassword);
+    }
+
     final accountState = ref.watch(accountManagerProvider);
 
     // Account selector when accounts exist and not adding new.
@@ -50,10 +70,18 @@ class LoginScreen extends ConsumerWidget {
         currentUserId: ref.read(currentUserIdProvider) ?? '',
         onSelectAccount: (account) {
           if (account.isValid) {
+            final l10n = FluxerLocalizations.of(context);
             unawaited(
               ref
                   .read(accountManagerProvider.notifier)
-                  .switchToAccount(account.userId),
+                  .switchToAccount(account.userId)
+                  .catchError((Object e) {
+                    if (e is SessionExpiredFailure) {
+                      notifier.setError(
+                        l10n.accountSessionExpired(account.identifier),
+                      );
+                    }
+                  }),
             );
           } else {
             // Pre-fill email for expired account.

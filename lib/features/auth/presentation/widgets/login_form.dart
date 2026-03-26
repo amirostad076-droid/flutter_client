@@ -7,6 +7,7 @@ import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:fluxeron/features/ui/button/fluxer_button.dart';
 import 'package:fluxeron/features/ui/input/fluxer_input.dart';
+import 'package:fluxeron/features/ui/text_link/fluxer_text_link.dart';
 import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -47,7 +48,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       absorbing: vm.isLoggingIn,
       child: AnimatedOpacity(
         opacity: vm.isLoggingIn ? 0.6 : 1.0,
-        duration: const Duration(milliseconds: 200),
+        duration: context.motion.fast,
         child: AutofillGroup(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -90,24 +91,17 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 onSuffixTap: notifier.togglePassword,
               ),
               SizedBox(height: layout.s1),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  strings.forgotPassword,
-                  style: context.textStyles.bodySmall.copyWith(
-                    color: context.colors.textTertiary,
-                  ),
+              FluxerTextLink(
+                text: strings.forgotPassword,
+                onTap: notifier.showForgotPasswordScreen,
+                style: context.textStyles.bodySmall.copyWith(
+                  color: context.colors.textTertiary,
                 ),
               ),
               SizedBox(height: layout.s6),
               AnimatedSize(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
+                duration: context.motion.fast,
+                curve: context.motion.curve,
                 alignment: Alignment.topCenter,
                 child: vm.errorMessage != null && vm.errorMessage!.isNotEmpty
                     ? Padding(
@@ -151,19 +145,10 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                       color: context.colors.textTertiary,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {},
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      strings.register,
-                      style: context.textStyles.bodySmall.copyWith(
-                        color: context.colors.textLink,
-                      ),
-                    ),
+                  FluxerTextLink(
+                    text: strings.register,
+                    onTap: () {},
+                    style: context.textStyles.bodySmall,
                   ),
                 ],
               ),

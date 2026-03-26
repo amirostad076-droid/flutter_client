@@ -1,4 +1,5 @@
 import 'package:fluxeron/features/auth/domain/auth_session.dart';
+import 'package:fluxeron/features/auth/domain/ban_view.dart';
 import 'package:fluxeron/features/auth/domain/ip_authorization_challenge.dart';
 import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
 
@@ -19,4 +20,9 @@ class LoginIpAuthRequired extends LoginResult {
 class LoginMfaRequired extends LoginResult {
   final MfaChallenge challenge;
   const LoginMfaRequired(this.challenge);
+}
+
+class LoginSuspended extends LoginResult {
+  final BanViewInfo banViewInfo;
+  const LoginSuspended(this.banViewInfo);
 }
