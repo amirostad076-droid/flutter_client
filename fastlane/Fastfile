@@ -26,6 +26,10 @@ platform :ios do
       build_configuration: "Release-canary",
       code_signing_identity: "Apple Distribution"
     )
+    cocoapods(
+      podfile: "ios/Podfile",
+      clean_install: true
+    )
 
     sh(
       "flutter",

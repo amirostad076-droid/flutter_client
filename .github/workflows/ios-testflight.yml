@@ -59,10 +59,6 @@ jobs:
       - name: Run build_runner
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Install CocoaPods
-        run: |
-          cd ios && pod install && cd ..
-
       - name: Create keychain and import certificate
         env:
           CERTIFICATES_P12: ${{ secrets.CERTIFICATES_P12 }}
