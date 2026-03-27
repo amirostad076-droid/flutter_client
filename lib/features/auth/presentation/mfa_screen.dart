@@ -56,6 +56,8 @@ class MfaScreen extends ConsumerWidget {
             webauthnLoading: vm.webauthnLoading,
             l10n: l10n,
           )
+        else if (vm.selectedMethod == MfaMethod.webauthn)
+          _WebauthnEntry(vm: vm, notifier: notifier, l10n: l10n)
         else
           _CodeEntry(
             challenge: challenge,
@@ -151,6 +153,36 @@ class _MethodSelector extends StatelessWidget {
             icon: PhosphorIconsFill.key,
             isLoading: webauthnLoading,
           ),
+      ],
+    );
+  }
+}
+
+class _WebauthnEntry extends StatelessWidget {
+  final MfaViewState vm;
+  final MfaViewModel notifier;
+  final FluxerLocalizations l10n;
+
+  const _WebauthnEntry({
+    required this.vm,
+    required this.notifier,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.layout;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FluxerButton.primary(
+          onPressed: vm.webauthnLoading ? null : notifier.startWebauthn,
+          label: l10n.mfaMethodWebauthn,
+          icon: PhosphorIconsFill.key,
+          isLoading: vm.webauthnLoading,
+        ),
+        SizedBox(height: layout.s4),
       ],
     );
   }

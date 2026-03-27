@@ -26,7 +26,6 @@ enum LoginError {
   passkeyDeviceNotSupported,
   passkeyDomainNotAssociated,
   passkeyTimeout,
-  passkeyNotAvailable,
   passkeyFailed,
 }
 
@@ -491,27 +490,42 @@ class LoginViewModel extends _$LoginViewModel {
     } on PasskeyAuthCancelledException {
       state = state.copyWith(isLoggingIn: false);
     } on AuthenticatorException catch (e) {
-      talker.error('[LoginViewModel] Passkey login error: $e');
+      talker.error('[LoginViewModel] Passkey error: $e');
+      final (errorType, errorMessage) = _passkeyError(e);
       state = state.copyWith(
-        errorType: _passkeyErrorType(e),
+        errorType: errorType,
+        errorMessage: errorMessage,
         isLoggingIn: false,
       );
     } on Exception catch (e) {
-      talker.error('[LoginViewModel] Passkey login error: $e');
+      talker.error('[LoginViewModel] Passkey error: $e');
       state = state.copyWith(isLoggingIn: false);
     }
   }
 
-  static LoginError _passkeyErrorType(AuthenticatorException e) {
+  static (LoginError?, String?) _passkeyError(AuthenticatorException e) {
     return switch (e) {
-      NoCredentialsAvailableException() => LoginError.passkeyNoCredentials,
-      DeviceNotSupportedException() => LoginError.passkeyDeviceNotSupported,
-      DomainNotAssociatedException() => LoginError.passkeyDomainNotAssociated,
-      TimeoutException() => LoginError.passkeyTimeout,
-      UnhandledAuthenticatorException(:final code)
-          when code.contains('TYPE_UNKNOWN') =>
-        LoginError.passkeyNotAvailable,
-      _ => LoginError.passkeyFailed,
+      NoCredentialsAvailableException() => (
+        LoginError.passkeyNoCredentials,
+        null,
+      ),
+      DeviceNotSupportedException() => (
+        LoginError.passkeyDeviceNotSupported,
+        null,
+      ),
+      DomainNotAssociatedException() => (
+        LoginError.passkeyDomainNotAssociated,
+        null,
+      ),
+      TimeoutException() => (LoginError.passkeyTimeout, null),
+      // TYPE_UNKNOWN includes OS-localized messages (e.g. verification
+      // failure, domain mismatch). Pass the message through directly
+      // since it's already in the user's language.
+      UnhandledAuthenticatorException(:final message) when message != null => (
+        null,
+        message,
+      ),
+      _ => (LoginError.passkeyFailed, null),
     };
   }
 }

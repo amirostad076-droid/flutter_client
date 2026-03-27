@@ -14,6 +14,18 @@
             ]
         },
         {
+            "name": "Android Canary FCM (Profile)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "args": [
+                "--flavor",
+                "canaryFcm",
+                "--dart-define=APP_ENVIRONMENT=canary",
+                "--dart-define=PUSH_PROVIDER=firebase"
+            ]
+        },
+        {
             "name": "Android Production FCM",
             "request": "launch",
             "type": "dart",

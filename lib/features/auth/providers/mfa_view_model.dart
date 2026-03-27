@@ -67,15 +67,14 @@ class MfaViewModel extends _$MfaViewModel {
   MfaViewState build(MfaChallenge challenge) {
     _challenge = challenge;
 
-    // Auto-select if only one method available.
+    // Auto-select code-based method if only one available.
+    // WebAuthn requires user interaction so it stays on the selector.
     MfaMethod? initialMethod;
     if (!challenge.hasMultipleMethods) {
       if (challenge.totp) {
         initialMethod = MfaMethod.totp;
       } else if (challenge.sms) {
         initialMethod = MfaMethod.sms;
-      } else if (challenge.webauthn) {
-        initialMethod = MfaMethod.webauthn;
       }
     }
 

@@ -1,4 +1,3 @@
-import 'package:fluxeron/core/talker.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -21,13 +20,8 @@ class WebAuthnService {
   Future<Map<String, dynamic>> authenticate(
     Map<String, dynamic> options,
   ) async {
-    try {
-      final request = AuthenticateRequestType.fromJson(options);
-      final response = await _authenticator.authenticate(request);
-      return response.toJson();
-    } on Exception catch (e) {
-      talker.error('[WebAuthnService] Authentication failed: $e');
-      rethrow;
-    }
+    final request = AuthenticateRequestType.fromJson(options);
+    final response = await _authenticator.authenticate(request);
+    return response.toJson();
   }
 }

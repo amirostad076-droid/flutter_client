@@ -13,7 +13,6 @@ extension LoginErrorL10n on LoginError {
       LoginError.passkeyDeviceNotSupported => l10n.passkeyDeviceNotSupported,
       LoginError.passkeyDomainNotAssociated => l10n.passkeyDomainNotAssociated,
       LoginError.passkeyTimeout => l10n.passkeyTimeout,
-      LoginError.passkeyNotAvailable => l10n.passkeyNotAvailable,
       LoginError.passkeyFailed => l10n.passkeyFailed,
     };
   }
