@@ -1,0 +1,103 @@
+name: Android Beta FCM Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-actor:
+    name: Check allowed user
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+    steps:
+      - name: Check actor against allowlist
+        id: check
+        run: |
+          ALLOWED="${{ vars.ALLOWED_TESTFLIGHT_ACTORS }}"
+          if [ -z "$ALLOWED" ]; then
+            echo "::error::Repository variable ALLOWED_TESTFLIGHT_ACTORS is not set. Add a comma-separated list of GitHub usernames in Settings -> Secrets and variables -> Actions -> Variables."
+            exit 1
+          fi
+          ACTOR="${{ github.actor }}"
+          ALLOWED_ARR="${ALLOWED//,/ }"
+          FOUND=false
+          for user_name in $ALLOWED_ARR; do
+            user_name_trimmed=$(echo "$user_name" | xargs)
+            if [ "$user_name_trimmed" = "$ACTOR" ]; then
+              FOUND=true
+              break
+            fi
+          done
+          if [ "$FOUND" != "true" ]; then
+            echo "::error::User $ACTOR is not allowed to run this workflow. Allowed users are listed in ALLOWED_TESTFLIGHT_ACTORS."
+            exit 1
+          fi
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+  build-beta:
+    name: Build beta APK
+    needs: check-actor
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Sync submodules
+        run: git submodule update --init --recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Create Android signing files
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          KEYSTORE_PATH="$RUNNER_TEMP/upload-keystore.jks"
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          cat > android/key.properties << EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=$KEYSTORE_PATH
+          EOF
+
+      - name: Configure Google services for beta
+        env:
+          GOOGLE_SERVICES_JSON_ANDROID_BETA: ${{ secrets.GOOGLE_SERVICES_JSON_ANDROID_BETA }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON_ANDROID_BETA" ]; then
+            echo "$GOOGLE_SERVICES_JSON_ANDROID_BETA" > android/app/google-services.json
+          else
+            echo "::warning::GOOGLE_SERVICES_JSON_ANDROID_BETA secret is not set. Existing android/app/google-services.json will be used."
+          fi
+
+      - name: Build beta APK
+        run: flutter build apk --release --flavor betaFcm --dart-define=APP_ENVIRONMENT=beta --dart-define=PUSH_PROVIDER=fcm
+
+      - name: Upload beta APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-fcm-apk
+          path: build/app/outputs/flutter-apk/app-beta-fcm-release.apk
+          if-no-files-found: error
