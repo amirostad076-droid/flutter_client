@@ -221,6 +221,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               hint: l10n.registerDisplayNameHint,
               textInputAction: TextInputAction.next,
               onSubmitted: (_) => _usernameFocus.requestFocus(),
+              onChanged: (value) {
+                ref
+                    .read(loginViewModelProvider.notifier)
+                    .fetchUsernameSuggestions(value);
+              },
               errorText: vm.fieldErrors['global_name'],
             ),
             SizedBox(height: layout.s5),
@@ -244,6 +249,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 fontSize: 12,
               ),
             ),
+            if (vm.usernameSuggestions.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(top: layout.s2),
+                child: Wrap(
+                  spacing: layout.s2,
+                  runSpacing: layout.s1,
+                  children: vm.usernameSuggestions.map((username) {
+                    return ActionChip(
+                      label: Text(
+                        username,
+                        style: textStyles.bodySmall,
+                      ),
+                      backgroundColor: colors.backgroundTertiary,
+                      side: BorderSide.none,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: layout.radiusMd,
+                      ),
+                      onPressed: () {
+                        _usernameController.text = username;
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
             SizedBox(height: layout.s5),
 
             // Password

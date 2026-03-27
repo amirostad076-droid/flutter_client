@@ -48,6 +48,7 @@ class LoginViewState {
   final bool forgotPasswordEmailSent;
   final String? resetToken;
   final bool showRegister;
+  final List<String> usernameSuggestions;
 
   const LoginViewState({
     required this.email,
@@ -65,6 +66,7 @@ class LoginViewState {
     required this.forgotPasswordEmailSent,
     required this.resetToken,
     required this.showRegister,
+    this.usernameSuggestions = const [],
   });
 
   bool get canLogin =>
@@ -89,6 +91,7 @@ class LoginViewState {
     bool? forgotPasswordEmailSent,
     Object? resetToken = _unset,
     bool? showRegister,
+    List<String>? usernameSuggestions,
   }) {
     return LoginViewState(
       email: email ?? this.email,
@@ -119,14 +122,19 @@ class LoginViewState {
           ? this.resetToken
           : resetToken as String?,
       showRegister: showRegister ?? this.showRegister,
+      usernameSuggestions:
+          usernameSuggestions ?? this.usernameSuggestions,
     );
   }
 }
 
 @Riverpod(keepAlive: true)
 class LoginViewModel extends _$LoginViewModel {
+  Timer? _suggestionTimer;
+
   @override
   LoginViewState build() {
+    ref.onDispose(() => _suggestionTimer?.cancel());
     return const LoginViewState(
       email: '',
       password: '',
@@ -197,7 +205,33 @@ class LoginViewModel extends _$LoginViewModel {
       showRegister: false,
       errorMessage: null,
       fieldErrors: const {},
+      usernameSuggestions: const [],
     );
+  }
+
+  void fetchUsernameSuggestions(String displayName) {
+    _suggestionTimer?.cancel();
+    final trimmed = displayName.trim();
+
+    if (trimmed.isEmpty) {
+      state = state.copyWith(usernameSuggestions: const []);
+      return;
+    }
+
+    _suggestionTimer = Timer(const Duration(milliseconds: 500), () {
+      unawaited(_loadSuggestions(trimmed));
+    });
+  }
+
+  Future<void> _loadSuggestions(String globalName) async {
+    try {
+      final suggestions = await ref
+          .read(authRepositoryProvider)
+          .getUsernameSuggestions(globalName: globalName);
+      state = state.copyWith(usernameSuggestions: suggestions);
+    } on Exception catch (e) {
+      talker.warning('[LoginViewModel] Username suggestions failed: $e');
+    }
   }
 
   Future<void> submitRegister({

@@ -135,6 +135,19 @@ class AuthRepository {
     }
   }
 
+  Future<List<String>> getUsernameSuggestions({
+    required String globalName,
+  }) async {
+    try {
+      final response = await _client.auth.getUsernameSuggestions(
+        body: UsernameSuggestionsRequest(globalName: globalName),
+      );
+      return response.suggestions;
+    } on DioException catch (error) {
+      throw _failureFromDio(error);
+    }
+  }
+
   Future<AuthSession> register({
     required String email,
     required String password,
