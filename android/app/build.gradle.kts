@@ -31,6 +31,15 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "canary-debug"
+            keyAlias = "canary"
+            keyPassword = "canary-debug"
+        }
+    }
+
     defaultConfig {
         applicationId = "app.fluxer"
         minSdk = flutter.minSdkVersion
