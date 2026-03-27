@@ -23,6 +23,8 @@ You can follow more about the V1 development in [this issue.](https://github.com
 
 We welcome contributions from the community. Please check out the V1 umbrella issue to see how you can help.
 
+Pull requests should target the `canary` branch. For local testing, use the `canary` build flavor so your build matches that branch (see Mobile builds below).
+
 ### Build generated files
 
 Riverpod generated files are not committed, so you need to generate them before running the project.
@@ -31,51 +33,27 @@ Riverpod generated files are not committed, so you need to generate them before 
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-### Android build flavors
+### Mobile builds
 
-Android uses two flavor dimensions:
+**Environments** are `canary`, `beta`, and `production`. Set `APP_ENVIRONMENT` to match.
 
-- environment: `canary`, `beta`, `production` (application id `app.fluxer` for `beta` and `production`; `app.fluxer.canary` for `canary`)
-- push: `fcm`, `unifiedpush`
+**Application ID / bundle ID:** `beta` and `production` use `app.fluxer`. `canary` uses `app.fluxer.canary`
 
-Example variant names combine both dimensions in camelCase, for example `betaFcm`, `productionUnifiedpush`, `canaryFcm`.
+**Android** uses two Gradle flavor dimensions: environment plus push (`fcm` or `unifiedpush`). The variant name combines both in camelCase (for example `productionFcm`, `betaUnifiedpush`). `PUSH_PROVIDER` must match the push dimension: `fcm` for Firebase Cloud Messaging (adds deps via `pubspec.firebase.deps.yaml`) or `unifiedpush` for UnifiedPush.
 
-Android FCM builds require Firebase deps from `pubspec.firebase.deps.yaml`.
-UnifiedPush builds use `pubspec.yaml` as-is.
+**iOS** uses schemes with the same environment names (`canary`, `beta`, `production`). There is no push flavor dimension; push is always Apple Push Notification service, so use `PUSH_PROVIDER=apns`.
 
-Examples:
+Example (Android, production with FCM):
 
 ```text
-flutter run --flavor canaryFcm --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=fcm
-
-flutter run --flavor betaFcm --dart-define=APP_ENVIRONMENT=beta --dart-define=PUSH_PROVIDER=fcm
-
-flutter run --flavor productionUnifiedpush --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=unifiedpush
-
-flutter build apk --flavor productionFcm --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=fcm
+flutter run --flavor productionFcm --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=fcm
 ```
 
-### iOS build flavors
+For the same environment on iOS, swap the flavor for the scheme and set `PUSH_PROVIDER=apns`, for example `--flavor production` and `--dart-define=PUSH_PROVIDER=apns`.
 
-iOS uses flavor schemes:
+### Desktop builds
 
-- `canary` — bundle id `app.fluxer.canary`
-- `beta` — bundle id `app.fluxer`
-- `production` — bundle id `app.fluxer`
-
-iOS is APNs-only at runtime; push flavor dimensions exist only on Android.
-
-Examples:
-
-```text
-flutter run --flavor canary --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=apns
-
-flutter run --flavor beta --dart-define=APP_ENVIRONMENT=beta --dart-define=PUSH_PROVIDER=apns
-
-flutter run --flavor production --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=apns
-
-flutter build ipa --flavor production --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=apns
-```
+Coming soon!
 
 ### API
 
