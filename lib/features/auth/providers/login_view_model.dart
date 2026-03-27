@@ -510,12 +510,9 @@ class LoginViewModel extends _$LoginViewModel {
       final authResponse = await webauthnService.authenticate(
         options as Map<String, dynamic>,
       );
-      final inviteCode =
-          ref.read(pendingInviteCodeProvider.notifier).consume();
       final result = await repo.loginWithPasskey(
         response: authResponse,
         challenge: options['challenge'] as String,
-        inviteCode: inviteCode,
       );
 
       switch (result) {

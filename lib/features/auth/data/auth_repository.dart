@@ -331,7 +331,6 @@ class AuthRepository {
   Future<LoginResult> loginWithPasskey({
     required dynamic response,
     required String challenge,
-    String? inviteCode,
   }) async {
     try {
       final result = await _client.auth.authenticateWithWebauthn(

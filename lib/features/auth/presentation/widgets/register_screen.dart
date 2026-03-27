@@ -40,6 +40,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   int? _birthDay;
   int? _birthYear;
   bool _consent = false;
+  bool _isRestoringDraft = false;
 
   int get _daysInMonth {
     if (_birthYear != null && _birthMonth != null) {
@@ -125,6 +126,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
       _restoreDraft();
     });
     _emailController.addListener(_saveDraft);
@@ -139,6 +143,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (draft.isEmpty) {
       return;
     }
+    _isRestoringDraft = true;
     setState(() {
       _emailController.text = draft.email;
       _displayNameController.text = draft.displayName;
@@ -150,9 +155,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       _birthYear = draft.birthYear;
       _consent = draft.consent;
     });
+    _isRestoringDraft = false;
   }
 
   void _saveDraft() {
+    if (_isRestoringDraft) {
+      return;
+    }
     ref.read(registrationDraftProvider.notifier).update(
       RegistrationDraft(
         email: _emailController.text,
@@ -319,6 +328,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                       onPressed: () {
                         _usernameController.text = username;
+                        ref
+                            .read(loginViewModelProvider.notifier)
+                            .fetchUsernameSuggestions('');
                       },
                     );
                   }).toList(),
