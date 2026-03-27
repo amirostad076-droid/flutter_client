@@ -1,1 +1,1 @@
-enum AppBuildEnvironment { canary, production }
+enum AppBuildEnvironment { canary, beta, production }

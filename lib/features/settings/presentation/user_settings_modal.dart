@@ -516,11 +516,11 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
   String _formatProviderLabel(String providerName) {
     switch (providerName) {
       case 'firebaseMessaging':
-        return 'firebase';
+        return 'fcm';
       case 'unifiedPush':
         return 'unifiedpush';
       case 'apple':
-        return 'apple';
+        return 'apns';
       default:
         return providerName;
     }

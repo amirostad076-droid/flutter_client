@@ -10,7 +10,7 @@
                 "--flavor",
                 "canaryFcm",
                 "--dart-define=APP_ENVIRONMENT=canary",
-                "--dart-define=PUSH_PROVIDER=firebase"
+                "--dart-define=PUSH_PROVIDER=fcm"
             ]
         },
         {
@@ -22,7 +22,19 @@
                 "--flavor",
                 "canaryFcm",
                 "--dart-define=APP_ENVIRONMENT=canary",
-                "--dart-define=PUSH_PROVIDER=firebase"
+                "--dart-define=PUSH_PROVIDER=fcm"
+            ]
+        },
+        {
+            "name": "Android Beta FCM",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "betaFcm",
+                "--dart-define=APP_ENVIRONMENT=beta",
+                "--dart-define=PUSH_PROVIDER=fcm"
             ]
         },
         {
@@ -34,7 +46,7 @@
                 "--flavor",
                 "productionFcm",
                 "--dart-define=APP_ENVIRONMENT=production",
-                "--dart-define=PUSH_PROVIDER=firebase"
+                "--dart-define=PUSH_PROVIDER=fcm"
             ]
         },
         {
@@ -46,6 +58,18 @@
                 "--flavor",
                 "canaryUnifiedpush",
                 "--dart-define=APP_ENVIRONMENT=canary",
+                "--dart-define=PUSH_PROVIDER=unifiedpush"
+            ]
+        },
+        {
+            "name": "Android Beta UnifiedPush",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "betaUnifiedpush",
+                "--dart-define=APP_ENVIRONMENT=beta",
                 "--dart-define=PUSH_PROVIDER=unifiedpush"
             ]
         },
@@ -70,7 +94,19 @@
                 "--flavor",
                 "canary",
                 "--dart-define=APP_ENVIRONMENT=canary",
-                "--dart-define=PUSH_PROVIDER=apple"
+                "--dart-define=PUSH_PROVIDER=apns"
+            ]
+        },
+        {
+            "name": "iOS Beta APNs",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "beta",
+                "--dart-define=APP_ENVIRONMENT=beta",
+                "--dart-define=PUSH_PROVIDER=apns"
             ]
         },
         {
@@ -82,7 +118,7 @@
                 "--flavor",
                 "production",
                 "--dart-define=APP_ENVIRONMENT=production",
-                "--dart-define=PUSH_PROVIDER=apple"
+                "--dart-define=PUSH_PROVIDER=apns"
             ]
         }
     ]

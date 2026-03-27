@@ -8,12 +8,15 @@ project 'Runner', {
   'Debug' => :debug,
   'Debug-canary' => :debug,
   'Debug-production' => :debug,
+  'Debug-beta' => :debug,
   'Profile' => :release,
   'Profile-canary' => :release,
   'Profile-production' => :release,
+  'Profile-beta' => :release,
   'Release' => :release,
   'Release-canary' => :release,
   'Release-production' => :release,
+  'Release-beta' => :release,
 }
 
 def flutter_root

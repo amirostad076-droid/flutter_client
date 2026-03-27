@@ -35,15 +35,10 @@ dart run build_runner build --delete-conflicting-outputs
 
 Android uses two flavor dimensions:
 
-- environment: `canary`, `production`
+- environment: `canary`, `beta`, `production` (application id `app.fluxer` for `beta` and `production`; `app.fluxer.canary` for `canary`)
 - push: `fcm`, `unifiedpush`
 
-This creates four variants:
-
-- `canaryFcm`
-- `canaryUnifiedpush`
-- `productionFcm`
-- `productionUnifiedpush`
+Example variant names combine both dimensions in camelCase, for example `betaFcm`, `productionUnifiedpush`, `canaryFcm`.
 
 Android FCM builds require Firebase deps from `pubspec.firebase.deps.yaml`.
 UnifiedPush builds use `pubspec.yaml` as-is.
@@ -51,30 +46,35 @@ UnifiedPush builds use `pubspec.yaml` as-is.
 Examples:
 
 ```text
-flutter run --flavor canaryFcm --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=firebase
+flutter run --flavor canaryFcm --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=fcm
+
+flutter run --flavor betaFcm --dart-define=APP_ENVIRONMENT=beta --dart-define=PUSH_PROVIDER=fcm
 
 flutter run --flavor productionUnifiedpush --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=unifiedpush
 
-flutter build apk --flavor productionFcm --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=firebase
+flutter build apk --flavor productionFcm --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=fcm
 ```
 
 ### iOS build flavors
 
 iOS uses flavor schemes:
 
-- `canary`
-- `production`
+- `canary` — bundle id `app.fluxer.canary`
+- `beta` — bundle id `app.fluxer`
+- `production` — bundle id `app.fluxer`
 
-iOS is APNs-only and won't work with any other provider.
+iOS is APNs-only at runtime; push flavor dimensions exist only on Android.
 
 Examples:
 
 ```text
-flutter run --flavor canary --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=apple
+flutter run --flavor canary --dart-define=APP_ENVIRONMENT=canary --dart-define=PUSH_PROVIDER=apns
 
-flutter run --flavor production --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=apple
+flutter run --flavor beta --dart-define=APP_ENVIRONMENT=beta --dart-define=PUSH_PROVIDER=apns
 
-flutter build ipa --flavor production --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=apple
+flutter run --flavor production --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=apns
+
+flutter build ipa --flavor production --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=apns
 ```
 
 ### API

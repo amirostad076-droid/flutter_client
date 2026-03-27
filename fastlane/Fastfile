@@ -1,8 +1,8 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Build canary archive and upload to TestFlight"
-  lane :testflight_canary do
+  desc "Build beta archive and upload to TestFlight"
+  lane :testflight_beta do
     profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision")
 
     api_key = app_store_connect_api_key(
@@ -23,7 +23,7 @@ platform :ios do
       xcodeproj: "ios/Runner.xcodeproj",
       profile: profile_path,
       target_filter: "^Runner$",
-      build_configuration: "Release-canary",
+      build_configuration: "Release-beta",
       code_signing_identity: "Apple Distribution"
     )
     cocoapods(
@@ -37,17 +37,17 @@ platform :ios do
       "ios",
       "--release",
       "--flavor",
-      "canary",
+      "beta",
       "--no-codesign",
       "--build-number",
       flutter_build_number.to_s,
-      "--dart-define=APP_ENVIRONMENT=canary",
-      "--dart-define=PUSH_PROVIDER=apple"
+      "--dart-define=APP_ENVIRONMENT=beta",
+      "--dart-define=PUSH_PROVIDER=apns"
     )
     build_app(
       workspace: "ios/Runner.xcworkspace",
-      scheme: "canary",
-      configuration: "Release-canary",
+      scheme: "beta",
+      configuration: "Release-beta",
       clean: true,
       output_directory: "build/ios/ipa",
       export_method: "app-store",

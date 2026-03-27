@@ -1,4 +1,4 @@
-name: iOS TestFlight Build
+name: iOS Beta TestFlight Build
 
 on:
   workflow_dispatch:
@@ -107,4 +107,4 @@ jobs:
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
-        run: bundle exec fastlane ios testflight_canary
+        run: bundle exec fastlane ios testflight_beta
