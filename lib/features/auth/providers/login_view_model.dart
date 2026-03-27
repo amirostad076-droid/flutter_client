@@ -10,6 +10,7 @@ import 'package:fluxeron/features/auth/domain/login_result.dart';
 import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
 import 'package:fluxeron/features/auth/providers/ban_view_provider.dart';
+import 'package:fluxeron/features/auth/providers/pending_invite_code_provider.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/exceptions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -214,14 +215,15 @@ class LoginViewModel extends _$LoginViewModel {
     );
 
     try {
-      await ref
-          .read(authRepositoryProvider)
-          .register(
+      final inviteCode =
+          ref.read(pendingInviteCodeProvider.notifier).consume();
+      await ref.read(authRepositoryProvider).register(
             email: email,
             password: password,
             dateOfBirth: dateOfBirth,
             username: username,
             displayName: displayName,
+            inviteCode: inviteCode,
           );
 
       ref.invalidate(appStartupProvider);
@@ -412,9 +414,13 @@ class LoginViewModel extends _$LoginViewModel {
     );
 
     try {
-      final result = await ref
-          .read(authRepositoryProvider)
-          .login(email: state.email, password: state.password);
+      final inviteCode =
+          ref.read(pendingInviteCodeProvider.notifier).consume();
+      final result = await ref.read(authRepositoryProvider).login(
+            email: state.email,
+            password: state.password,
+            inviteCode: inviteCode,
+          );
 
       switch (result) {
         case LoginSuccess():
@@ -468,9 +474,12 @@ class LoginViewModel extends _$LoginViewModel {
       final authResponse = await webauthnService.authenticate(
         options as Map<String, dynamic>,
       );
+      final inviteCode =
+          ref.read(pendingInviteCodeProvider.notifier).consume();
       final result = await repo.loginWithPasskey(
         response: authResponse,
         challenge: options['challenge'] as String,
+        inviteCode: inviteCode,
       );
 
       switch (result) {

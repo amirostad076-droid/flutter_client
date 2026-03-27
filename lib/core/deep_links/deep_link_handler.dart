@@ -5,6 +5,7 @@ import 'package:fluxeron/core/router/fluxer_router.dart';
 import 'package:fluxeron/core/router/route_names.dart';
 import 'package:fluxeron/core/talker.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
+import 'package:fluxeron/features/auth/providers/pending_invite_code_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -54,11 +55,20 @@ class DeepLinkHandler extends _$DeepLinkHandler {
     final isAuthenticated = ref.read(authStateProvider);
     if (!isAuthenticated) {
       _pendingDeepLink = uri;
+      _extractInviteCode(uri);
       talker.info('[DeepLink] Queued for after auth');
       return;
     }
 
     _processDeepLink(uri);
+  }
+
+  void _extractInviteCode(Uri uri) {
+    if (uri.pathSegments.length >= 2 && uri.pathSegments.first == 'invite') {
+      final code = uri.pathSegments[1];
+      ref.read(pendingInviteCodeProvider.notifier).store(code);
+      talker.info('[DeepLink] Stored invite code for auth flow');
+    }
   }
 
   /// Handles `/reset#token=<TOKEN>` or `/reset?token=<TOKEN>` deep links.

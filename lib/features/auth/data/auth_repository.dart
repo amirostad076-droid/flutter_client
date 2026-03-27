@@ -20,8 +20,13 @@ class AuthRepository {
   Future<LoginResult> login({
     required String email,
     required String password,
+    String? inviteCode,
   }) async {
-    final request = LoginRequest(email: email.trim(), password: password);
+    final request = LoginRequest(
+      email: email.trim(),
+      password: password,
+      inviteCode: inviteCode,
+    );
 
     try {
       final response = await _client.auth.loginUser(body: request);
@@ -136,6 +141,7 @@ class AuthRepository {
     required String dateOfBirth,
     String? username,
     String? displayName,
+    String? inviteCode,
   }) async {
     try {
       final response = await _client.auth.registerAccount(
@@ -150,6 +156,7 @@ class AuthRepository {
           globalName: (displayName?.trim().isNotEmpty ?? false)
               ? displayName!.trim()
               : null,
+          inviteCode: inviteCode,
         ),
       );
 
@@ -311,6 +318,7 @@ class AuthRepository {
   Future<LoginResult> loginWithPasskey({
     required dynamic response,
     required String challenge,
+    String? inviteCode,
   }) async {
     try {
       final result = await _client.auth.authenticateWithWebauthn(
