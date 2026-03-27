@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxeron/features/auth/providers/login_error_l10n.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
+import 'package:fluxeron/features/auth/providers/registration_draft_provider.dart';
 import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxeron/features/ui/button/fluxer_button.dart';
 import 'package:fluxeron/features/ui/checkbox/fluxer_checkbox.dart';
@@ -54,6 +55,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         _birthDay = null;
       }
     });
+    _saveDraft();
   }
 
   void _onYearChanged(int? year) {
@@ -63,6 +65,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         _birthDay = null;
       }
     });
+    _saveDraft();
   }
 
   Future<void> _pickDateOfBirth() async {
@@ -83,6 +86,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         _birthMonth = picked.month;
         _birthDay = picked.day;
       });
+      _saveDraft();
     }
   }
 
@@ -116,6 +120,53 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _restoreDraft();
+    });
+    _emailController.addListener(_saveDraft);
+    _displayNameController.addListener(_saveDraft);
+    _usernameController.addListener(_saveDraft);
+    _passwordController.addListener(_saveDraft);
+    _confirmController.addListener(_saveDraft);
+  }
+
+  void _restoreDraft() {
+    final draft = ref.read(registrationDraftProvider);
+    if (draft.isEmpty) {
+      return;
+    }
+    setState(() {
+      _emailController.text = draft.email;
+      _displayNameController.text = draft.displayName;
+      _usernameController.text = draft.username;
+      _passwordController.text = draft.password;
+      _confirmController.text = draft.confirmPassword;
+      _birthMonth = draft.birthMonth;
+      _birthDay = draft.birthDay;
+      _birthYear = draft.birthYear;
+      _consent = draft.consent;
+    });
+  }
+
+  void _saveDraft() {
+    ref.read(registrationDraftProvider.notifier).update(
+      RegistrationDraft(
+        email: _emailController.text,
+        displayName: _displayNameController.text,
+        username: _usernameController.text,
+        password: _passwordController.text,
+        confirmPassword: _confirmController.text,
+        birthMonth: _birthMonth,
+        birthDay: _birthDay,
+        birthYear: _birthYear,
+        consent: _consent,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -371,7 +422,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       child: FluxerSelect<int>(
                         hint: l10n.registerDay,
                         value: _birthDay,
-                        onChanged: (v) => setState(() => _birthDay = v),
+                        onChanged: (v) {
+                          setState(() => _birthDay = v);
+                          _saveDraft();
+                        },
                         items: List.generate(
                           _daysInMonth,
                           (i) =>
@@ -415,7 +469,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             // Terms consent
             FluxerCheckbox(
               value: _consent,
-              onChanged: (v) => setState(() => _consent = v ?? false),
+              onChanged: (v) {
+                setState(() => _consent = v ?? false);
+                _saveDraft();
+              },
               child: Text.rich(
                 TextSpan(
                   style: textStyles.bodySmall.copyWith(

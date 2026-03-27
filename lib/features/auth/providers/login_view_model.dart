@@ -11,6 +11,7 @@ import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
 import 'package:fluxeron/features/auth/providers/ban_view_provider.dart';
 import 'package:fluxeron/features/auth/providers/pending_invite_code_provider.dart';
+import 'package:fluxeron/features/auth/providers/registration_draft_provider.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/exceptions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -260,6 +261,7 @@ class LoginViewModel extends _$LoginViewModel {
             inviteCode: inviteCode,
           );
 
+      ref.read(registrationDraftProvider.notifier).clear();
       ref.invalidate(appStartupProvider);
       state = state.copyWith(showRegister: false, isLoggingIn: false);
     } on AuthFailure catch (error) {
