@@ -613,7 +613,7 @@ abstract class FluxerLocalizations {
   /// Label for the display name field.
   ///
   /// In en, this message translates to:
-  /// **'Display name'**
+  /// **'Display Name (Optional)'**
   String get registerDisplayName;
 
   /// Hint for the display name field.
@@ -625,7 +625,7 @@ abstract class FluxerLocalizations {
   /// Label for the username field.
   ///
   /// In en, this message translates to:
-  /// **'Username'**
+  /// **'Username (Optional)'**
   String get registerUsername;
 
   /// Hint for the username field.
@@ -633,6 +633,12 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Leave blank for a random username'**
   String get registerUsernameHint;
+
+  /// Helper text shown below the username field explaining automatic tag generation.
+  ///
+  /// In en, this message translates to:
+  /// **'A 4-digit tag will be added automatically to ensure uniqueness'**
+  String get registerUsernameTagHint;
 
   /// Label for the date of birth field.
   ///
@@ -658,11 +664,41 @@ abstract class FluxerLocalizations {
   /// **'Year'**
   String get registerYear;
 
-  /// Consent checkbox label for registration.
+  /// Consent checkbox label for registration (plain text fallback).
   ///
   /// In en, this message translates to:
   /// **'I agree to the Terms of Service and Privacy Policy'**
   String get registerConsent;
+
+  /// Text before the Terms of Service link in the consent checkbox.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the '**
+  String get registerConsentPrefix;
+
+  /// Terms of Service link text in the consent checkbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get registerConsentTerms;
+
+  /// Conjunction between Terms and Privacy links.
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get registerConsentAnd;
+
+  /// Privacy Policy link text in the consent checkbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get registerConsentPrivacy;
+
+  /// Label for the confirm password field on the register screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get registerConfirmPassword;
 
   /// Button to submit the registration form.
   ///
@@ -675,6 +711,66 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Already have an account? '**
   String get registerHaveAccount;
+
+  /// Error when user has no passkeys registered and tries passkey login.
+  ///
+  /// In en, this message translates to:
+  /// **'No passkeys found for this app. Log in with email and password instead.'**
+  String get passkeyNoCredentials;
+
+  /// Error when device does not support passkeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Passkeys are not supported on this device.'**
+  String get passkeyDeviceNotSupported;
+
+  /// Error when passkey domain association is missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Passkeys are not configured for this app. Log in with email and password instead.'**
+  String get passkeyDomainNotAssociated;
+
+  /// Error when passkey authentication times out.
+  ///
+  /// In en, this message translates to:
+  /// **'Passkey authentication timed out. Please try again.'**
+  String get passkeyTimeout;
+
+  /// Error for unknown passkey provider errors (e.g. TYPE_UNKNOWN).
+  ///
+  /// In en, this message translates to:
+  /// **'Passkeys are not available for this app. Log in with email and password instead.'**
+  String get passkeyNotAvailable;
+
+  /// Generic fallback error for passkey authentication.
+  ///
+  /// In en, this message translates to:
+  /// **'Passkey authentication failed. Please try again.'**
+  String get passkeyFailed;
+
+  /// Generic fallback error when registration fails unexpectedly.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to create account. Please try again.'**
+  String get errorUnableToCreateAccount;
+
+  /// Generic fallback error when login fails unexpectedly.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to sign in right now. Please try again.'**
+  String get errorUnableToSignIn;
+
+  /// Generic fallback error when forgot password request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to send reset link. Please try again.'**
+  String get errorUnableToSendResetLink;
+
+  /// Generic fallback error when password reset fails unexpectedly.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to reset password. Please try again.'**
+  String get errorUnableToResetPassword;
 }
 
 class _FluxerLocalizationsDelegate

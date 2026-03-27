@@ -374,7 +374,7 @@
   "@registerTitle": {
     "description": "Title for the registration screen."
   },
-  "registerDisplayName": "Display name",
+  "registerDisplayName": "Display Name (Optional)",
   "@registerDisplayName": {
     "description": "Label for the display name field."
   },
@@ -382,13 +382,17 @@
   "@registerDisplayNameHint": {
     "description": "Hint for the display name field."
   },
-  "registerUsername": "Username",
+  "registerUsername": "Username (Optional)",
   "@registerUsername": {
     "description": "Label for the username field."
   },
   "registerUsernameHint": "Leave blank for a random username",
   "@registerUsernameHint": {
     "description": "Hint for the username field."
+  },
+  "registerUsernameTagHint": "A 4-digit tag will be added automatically to ensure uniqueness",
+  "@registerUsernameTagHint": {
+    "description": "Helper text shown below the username field explaining automatic tag generation."
   },
   "registerDateOfBirth": "Date of birth",
   "@registerDateOfBirth": {
@@ -408,7 +412,27 @@
   },
   "registerConsent": "I agree to the Terms of Service and Privacy Policy",
   "@registerConsent": {
-    "description": "Consent checkbox label for registration."
+    "description": "Consent checkbox label for registration (plain text fallback)."
+  },
+  "registerConsentPrefix": "I agree to the ",
+  "@registerConsentPrefix": {
+    "description": "Text before the Terms of Service link in the consent checkbox."
+  },
+  "registerConsentTerms": "Terms of Service",
+  "@registerConsentTerms": {
+    "description": "Terms of Service link text in the consent checkbox."
+  },
+  "registerConsentAnd": " and ",
+  "@registerConsentAnd": {
+    "description": "Conjunction between Terms and Privacy links."
+  },
+  "registerConsentPrivacy": "Privacy Policy",
+  "@registerConsentPrivacy": {
+    "description": "Privacy Policy link text in the consent checkbox."
+  },
+  "registerConfirmPassword": "Confirm Password",
+  "@registerConfirmPassword": {
+    "description": "Label for the confirm password field on the register screen."
   },
   "registerSubmit": "Create account",
   "@registerSubmit": {
@@ -417,5 +441,47 @@
   "registerHaveAccount": "Already have an account? ",
   "@registerHaveAccount": {
     "description": "Text before the login link on the register screen."
+  },
+
+  "passkeyNoCredentials": "No passkeys found for this app. Log in with email and password instead.",
+  "@passkeyNoCredentials": {
+    "description": "Error when user has no passkeys registered and tries passkey login."
+  },
+  "passkeyDeviceNotSupported": "Passkeys are not supported on this device.",
+  "@passkeyDeviceNotSupported": {
+    "description": "Error when device does not support passkeys."
+  },
+  "passkeyDomainNotAssociated": "Passkeys are not configured for this app. Log in with email and password instead.",
+  "@passkeyDomainNotAssociated": {
+    "description": "Error when passkey domain association is missing."
+  },
+  "passkeyTimeout": "Passkey authentication timed out. Please try again.",
+  "@passkeyTimeout": {
+    "description": "Error when passkey authentication times out."
+  },
+  "passkeyNotAvailable": "Passkeys are not available for this app. Log in with email and password instead.",
+  "@passkeyNotAvailable": {
+    "description": "Error for unknown passkey provider errors (e.g. TYPE_UNKNOWN)."
+  },
+  "passkeyFailed": "Passkey authentication failed. Please try again.",
+  "@passkeyFailed": {
+    "description": "Generic fallback error for passkey authentication."
+  },
+
+  "errorUnableToCreateAccount": "Unable to create account. Please try again.",
+  "@errorUnableToCreateAccount": {
+    "description": "Generic fallback error when registration fails unexpectedly."
+  },
+  "errorUnableToSignIn": "Unable to sign in right now. Please try again.",
+  "@errorUnableToSignIn": {
+    "description": "Generic fallback error when login fails unexpectedly."
+  },
+  "errorUnableToSendResetLink": "Unable to send reset link. Please try again.",
+  "@errorUnableToSendResetLink": {
+    "description": "Generic fallback error when forgot password request fails."
+  },
+  "errorUnableToResetPassword": "Unable to reset password. Please try again.",
+  "@errorUnableToResetPassword": {
+    "description": "Generic fallback error when password reset fails unexpectedly."
   }
 }

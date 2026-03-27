@@ -300,6 +300,37 @@ class AuthRepository {
     }
   }
 
+  Future<dynamic> getPasskeyLoginOptions() async {
+    try {
+      return await _client.auth.getWebauthnAuthenticationOptions();
+    } on DioException catch (error) {
+      throw _failureFromDio(error);
+    }
+  }
+
+  Future<LoginResult> loginWithPasskey({
+    required dynamic response,
+    required String challenge,
+  }) async {
+    try {
+      final result = await _client.auth.authenticateWithWebauthn(
+        body: WebAuthnAuthenticateRequest(
+          response: response,
+          challenge: challenge,
+        ),
+      );
+      final session = AuthSession(token: result.token, userId: result.userId);
+      await _saveSession(session);
+      return LoginSuccess(session);
+    } on DioException catch (error) {
+      final ipChallenge = _extractIpAuthChallenge(error);
+      if (ipChallenge != null) {
+        return LoginIpAuthRequired(ipChallenge);
+      }
+      throw _failureFromDio(error);
+    }
+  }
+
   Future<void> updateStoredUserData({
     required String userId,
     required String? username,

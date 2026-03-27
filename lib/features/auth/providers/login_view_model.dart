@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fluxeron/core/providers/app_startup_provider.dart';
 import 'package:fluxeron/core/talker.dart';
+import 'package:fluxeron/features/auth/data/webauthn_service.dart';
 import 'package:fluxeron/features/auth/domain/auth_failure.dart';
 import 'package:fluxeron/features/auth/domain/ban_view.dart';
 import 'package:fluxeron/features/auth/domain/ip_authorization_challenge.dart';
@@ -9,9 +10,25 @@ import 'package:fluxeron/features/auth/domain/login_result.dart';
 import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
 import 'package:fluxeron/features/auth/providers/auth_providers.dart';
 import 'package:fluxeron/features/auth/providers/ban_view_provider.dart';
+import 'package:passkeys/authenticator.dart';
+import 'package:passkeys/exceptions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'login_view_model.g.dart';
+
+enum LoginError {
+  invalidEmail,
+  unableToCreateAccount,
+  unableToSignIn,
+  unableToSendResetLink,
+  unableToResetPassword,
+  passkeyNoCredentials,
+  passkeyDeviceNotSupported,
+  passkeyDomainNotAssociated,
+  passkeyTimeout,
+  passkeyNotAvailable,
+  passkeyFailed,
+}
 
 class LoginViewState {
   static const _unset = Object();
@@ -20,6 +37,7 @@ class LoginViewState {
   final String password;
   final bool isPasswordVisible;
   final String? errorMessage;
+  final LoginError? errorType;
   final Map<String, String> fieldErrors;
   final bool isLoggingIn;
   final IpAuthorizationChallenge? ipAuthChallenge;
@@ -36,6 +54,7 @@ class LoginViewState {
     required this.password,
     required this.isPasswordVisible,
     required this.errorMessage,
+    required this.errorType,
     required this.fieldErrors,
     required this.isLoggingIn,
     required this.ipAuthChallenge,
@@ -51,11 +70,15 @@ class LoginViewState {
   bool get canLogin =>
       !isLoggingIn && email.trim().isNotEmpty && password.isNotEmpty;
 
+  bool get hasError =>
+      errorMessage != null && errorMessage!.isNotEmpty || errorType != null;
+
   LoginViewState copyWith({
     String? email,
     String? password,
     bool? isPasswordVisible,
     Object? errorMessage = _unset,
+    Object? errorType = _unset,
     Map<String, String>? fieldErrors,
     bool? isLoggingIn,
     Object? ipAuthChallenge = _unset,
@@ -74,6 +97,9 @@ class LoginViewState {
       errorMessage: errorMessage == _unset
           ? this.errorMessage
           : errorMessage as String?,
+      errorType: errorType == _unset
+          ? this.errorType
+          : errorType as LoginError?,
       fieldErrors: fieldErrors ?? this.fieldErrors,
       isLoggingIn: isLoggingIn ?? this.isLoggingIn,
       ipAuthChallenge: ipAuthChallenge == _unset
@@ -106,6 +132,7 @@ class LoginViewModel extends _$LoginViewModel {
       password: '',
       isPasswordVisible: false,
       errorMessage: null,
+      errorType: null,
       fieldErrors: {},
       isLoggingIn: false,
       ipAuthChallenge: null,
@@ -150,7 +177,11 @@ class LoginViewModel extends _$LoginViewModel {
   }
 
   void setError(String message) {
-    state = state.copyWith(errorMessage: message);
+    state = state.copyWith(errorMessage: message, errorType: null);
+  }
+
+  void setErrorType(LoginError type) {
+    state = state.copyWith(errorType: type, errorMessage: null);
   }
 
   void showRegisterScreen() {
@@ -179,6 +210,7 @@ class LoginViewModel extends _$LoginViewModel {
     state = state.copyWith(
       isLoggingIn: true,
       errorMessage: null,
+      errorType: null,
       fieldErrors: const {},
     );
 
@@ -204,7 +236,7 @@ class LoginViewModel extends _$LoginViewModel {
     } on Exception catch (e) {
       talker.error('[LoginViewModel] Register error: $e');
       state = state.copyWith(
-        errorMessage: 'Unable to create account. Please try again.',
+        errorType: LoginError.unableToCreateAccount,
         isLoggingIn: false,
       );
     }
@@ -277,7 +309,8 @@ class LoginViewModel extends _$LoginViewModel {
   Future<void> submitForgotPassword(String email) async {
     if (!_emailRegex.hasMatch(email.trim())) {
       state = state.copyWith(
-        fieldErrors: const {'email': 'Please enter a valid email address.'},
+        errorType: LoginError.invalidEmail,
+        fieldErrors: const {},
       );
       return;
     }
@@ -285,6 +318,7 @@ class LoginViewModel extends _$LoginViewModel {
     state = state.copyWith(
       isLoggingIn: true,
       errorMessage: null,
+      errorType: null,
       fieldErrors: const {},
     );
 
@@ -300,7 +334,7 @@ class LoginViewModel extends _$LoginViewModel {
     } on Exception catch (e) {
       talker.error('[LoginViewModel] Forgot password error: $e');
       state = state.copyWith(
-        errorMessage: 'Unable to send reset link. Please try again.',
+        errorType: LoginError.unableToSendResetLink,
         isLoggingIn: false,
       );
     }
@@ -313,6 +347,7 @@ class LoginViewModel extends _$LoginViewModel {
     state = state.copyWith(
       isLoggingIn: true,
       errorMessage: null,
+      errorType: null,
       fieldErrors: const {},
     );
 
@@ -349,7 +384,7 @@ class LoginViewModel extends _$LoginViewModel {
     } on Exception catch (e) {
       talker.error('[LoginViewModel] Reset password error: $e');
       state = state.copyWith(
-        errorMessage: 'Unable to reset password. Please try again.',
+        errorType: LoginError.unableToResetPassword,
         isLoggingIn: false,
       );
     }
@@ -364,13 +399,15 @@ class LoginViewModel extends _$LoginViewModel {
 
     if (!_emailRegex.hasMatch(state.email.trim())) {
       state = state.copyWith(
-        fieldErrors: const {'email': 'Please enter a valid email address.'},
+        errorType: LoginError.invalidEmail,
+        fieldErrors: const {},
       );
       return false;
     }
 
     state = state.copyWith(
       errorMessage: null,
+      errorType: null,
       fieldErrors: const {},
       isLoggingIn: true,
     );
@@ -409,10 +446,72 @@ class LoginViewModel extends _$LoginViewModel {
     } on Exception catch (e) {
       talker.error('[LoginViewModel] Unexpected error: $e');
       state = state.copyWith(
-        errorMessage: 'Unable to sign in right now. Please try again.',
+        errorType: LoginError.unableToSignIn,
         isLoggingIn: false,
       );
       return false;
     }
+  }
+
+  Future<void> loginWithPasskey() async {
+    state = state.copyWith(
+      errorMessage: null,
+      errorType: null,
+      fieldErrors: const {},
+      isLoggingIn: true,
+    );
+
+    try {
+      final repo = ref.read(authRepositoryProvider);
+      final webauthnService = WebAuthnService(PasskeyAuthenticator());
+
+      final options = await repo.getPasskeyLoginOptions();
+      final authResponse = await webauthnService.authenticate(
+        options as Map<String, dynamic>,
+      );
+      final result = await repo.loginWithPasskey(
+        response: authResponse,
+        challenge: options['challenge'] as String,
+      );
+
+      switch (result) {
+        case LoginSuccess():
+          ref.invalidate(appStartupProvider);
+          state = state.copyWith(email: '', password: '', isLoggingIn: false);
+        case LoginIpAuthRequired(:final challenge):
+          state = state.copyWith(
+            ipAuthChallenge: challenge,
+            isLoggingIn: false,
+          );
+        case LoginMfaRequired() || LoginSuspended():
+          state = state.copyWith(isLoggingIn: false);
+      }
+    } on AuthFailure catch (error) {
+      state = state.copyWith(errorMessage: error.message, isLoggingIn: false);
+    } on PasskeyAuthCancelledException {
+      state = state.copyWith(isLoggingIn: false);
+    } on AuthenticatorException catch (e) {
+      talker.error('[LoginViewModel] Passkey login error: $e');
+      state = state.copyWith(
+        errorType: _passkeyErrorType(e),
+        isLoggingIn: false,
+      );
+    } on Exception catch (e) {
+      talker.error('[LoginViewModel] Passkey login error: $e');
+      state = state.copyWith(isLoggingIn: false);
+    }
+  }
+
+  static LoginError _passkeyErrorType(AuthenticatorException e) {
+    return switch (e) {
+      NoCredentialsAvailableException() => LoginError.passkeyNoCredentials,
+      DeviceNotSupportedException() => LoginError.passkeyDeviceNotSupported,
+      DomainNotAssociatedException() => LoginError.passkeyDomainNotAssociated,
+      TimeoutException() => LoginError.passkeyTimeout,
+      UnhandledAuthenticatorException(:final code)
+          when code.contains('TYPE_UNKNOWN') =>
+        LoginError.passkeyNotAvailable,
+      _ => LoginError.passkeyFailed,
+    };
   }
 }

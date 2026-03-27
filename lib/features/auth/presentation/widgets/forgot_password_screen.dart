@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/auth/providers/login_error_l10n.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:fluxeron/features/ui/button/fluxer_button.dart';
 import 'package:fluxeron/features/ui/input/fluxer_input.dart';
@@ -46,7 +47,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     return _EmailEntryView(
       controller: _emailController,
       isSubmitting: vm.isLoggingIn,
-      errorMessage: vm.errorMessage,
+      errorMessage: resolveLoginError(vm, l10n),
       fieldErrors: vm.fieldErrors,
       onSubmit: () {
         unawaited(

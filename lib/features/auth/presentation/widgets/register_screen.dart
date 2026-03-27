@@ -3,13 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/auth/providers/login_error_l10n.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
+import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxeron/features/ui/button/fluxer_button.dart';
 import 'package:fluxeron/features/ui/checkbox/fluxer_checkbox.dart';
 import 'package:fluxeron/features/ui/input/fluxer_input.dart';
 import 'package:fluxeron/features/ui/select/fluxer_select.dart';
 import 'package:fluxeron/features/ui/text_link/fluxer_text_link.dart';
 import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
+import 'package:intl/intl.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({required this.onBack, super.key});
@@ -36,6 +39,81 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   int? _birthDay;
   int? _birthYear;
   bool _consent = false;
+
+  int get _daysInMonth {
+    if (_birthYear != null && _birthMonth != null) {
+      return DateTime(_birthYear!, _birthMonth! + 1, 0).day;
+    }
+    return 31;
+  }
+
+  void _onMonthChanged(int? month) {
+    setState(() {
+      _birthMonth = month;
+      if (_birthDay != null && _birthDay! > _daysInMonth) {
+        _birthDay = null;
+      }
+    });
+  }
+
+  void _onYearChanged(int? year) {
+    setState(() {
+      _birthYear = year;
+      if (_birthDay != null && _birthDay! > _daysInMonth) {
+        _birthDay = null;
+      }
+    });
+  }
+
+  Future<void> _pickDateOfBirth() async {
+    final now = DateTime.now();
+    final initial =
+        (_birthYear != null && _birthMonth != null && _birthDay != null)
+        ? DateTime(_birthYear!, _birthMonth!, _birthDay!)
+        : DateTime(now.year - 18);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(now.year - 150),
+      lastDate: now,
+    );
+    if (picked != null) {
+      setState(() {
+        _birthYear = picked.year;
+        _birthMonth = picked.month;
+        _birthDay = picked.day;
+      });
+    }
+  }
+
+  String get _formattedDateOfBirth {
+    if (_birthYear == null || _birthMonth == null || _birthDay == null) {
+      return '';
+    }
+    final locale = Localizations.localeOf(context).toString();
+    final date = DateTime(_birthYear!, _birthMonth!, _birthDay!);
+    return DateFormat.yMMMMd(locale).format(date);
+  }
+
+  /// Returns date field order based on locale, matching web app behavior.
+  static List<String> _dateFieldOrder(String locale) {
+    final pattern = DateFormat.yMd(locale).pattern ?? 'M/d/y';
+    final order = <String>[];
+    for (final char in pattern.codeUnits) {
+      final c = String.fromCharCode(char);
+      if ((c == 'M' || c == 'L') && !order.contains('month')) {
+        order.add('month');
+      } else if (c == 'd' && !order.contains('day')) {
+        order.add('day');
+      } else if (c == 'y' && !order.contains('year')) {
+        order.add('year');
+      }
+    }
+    if (order.length < 3) {
+      return ['month', 'day', 'year'];
+    }
+    return order;
+  }
 
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
@@ -133,7 +211,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               onChanged: (_) => setState(() {}),
               errorText: vm.fieldErrors['email'],
             ),
-            SizedBox(height: layout.s4),
+            SizedBox(height: layout.s5),
 
             // Display name
             FluxerInput(
@@ -145,7 +223,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               onSubmitted: (_) => _usernameFocus.requestFocus(),
               errorText: vm.fieldErrors['global_name'],
             ),
-            SizedBox(height: layout.s4),
+            SizedBox(height: layout.s5),
 
             // Username
             FluxerInput(
@@ -158,7 +236,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               onSubmitted: (_) => _passwordFocus.requestFocus(),
               errorText: vm.fieldErrors['username'],
             ),
-            SizedBox(height: layout.s4),
+            SizedBox(height: layout.s1),
+            Text(
+              l10n.registerUsernameTagHint,
+              style: textStyles.bodySmall.copyWith(
+                color: colors.textTertiary,
+                fontSize: 12,
+              ),
+            ),
+            SizedBox(height: layout.s5),
 
             // Password
             FluxerInput(
@@ -173,13 +259,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               onChanged: (_) => setState(() {}),
               errorText: vm.fieldErrors['password'],
             ),
-            SizedBox(height: layout.s4),
+            SizedBox(height: layout.s5),
 
             // Confirm password
             FluxerInput(
               controller: _confirmController,
               focusNode: _confirmFocus,
-              label: l10n.resetPasswordConfirm,
+              label: l10n.registerConfirmPassword,
               obscureText: true,
               autofillHints: const [AutofillHints.newPassword],
               keyboardType: TextInputType.visiblePassword,
@@ -187,57 +273,107 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               onSubmitted: (_) => _submit(),
               onChanged: (_) => setState(() {}),
             ),
-            SizedBox(height: layout.s4),
+            SizedBox(height: layout.s5),
 
             // Date of birth
             Text(
               l10n.registerDateOfBirth,
-              style: textStyles.label.copyWith(color: colors.textSecondary),
+              style: textStyles.label.copyWith(color: colors.textPrimary),
             ),
-            SizedBox(height: layout.s1_5),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: FluxerSelect<int>(
-                    hint: l10n.registerMonth,
-                    value: _birthMonth,
-                    onChanged: (v) => setState(() => _birthMonth = v),
-                    items: List.generate(
-                      12,
-                      (i) => FluxerSelectItem(
-                        value: i + 1,
-                        label: _monthName(i + 1, l10n),
+            SizedBox(height: layout.s2),
+            if (isMobileLayout(context))
+              GestureDetector(
+                onTap: _pickDateOfBirth,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.backgroundTertiary,
+                    borderRadius: layout.radiusMd,
+                    border: Border.all(
+                      color: vm.fieldErrors['date_of_birth'] != null
+                          ? colors.textDanger
+                          : colors.backgroundModifierAccent,
+                    ),
+                  ),
+                  child: Text(
+                    _formattedDateOfBirth.isNotEmpty
+                        ? _formattedDateOfBirth
+                        : DateFormat.yMd(
+                                Localizations.localeOf(context).toString(),
+                              )
+                              .format(DateTime(2000, 12, 30))
+                              .replaceAll('2000', 'yyyy')
+                              .replaceAll('30', 'dd')
+                              .replaceAll('12', 'mm'),
+                    style: textStyles.bodySmall.copyWith(
+                      color: _formattedDateOfBirth.isNotEmpty
+                          ? colors.textPrimary
+                          : colors.textTertiary,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Builder(
+                builder: (context) {
+                  final locale = Localizations.localeOf(context).toString();
+                  final fields = <String, Widget>{
+                    'month': Expanded(
+                      flex: 4,
+                      child: FluxerSelect<int>(
+                        hint: l10n.registerMonth,
+                        value: _birthMonth,
+                        onChanged: _onMonthChanged,
+                        items: List.generate(
+                          12,
+                          (i) => FluxerSelectItem(
+                            value: i + 1,
+                            label: _monthName(i + 1),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                SizedBox(width: layout.s2),
-                Expanded(
-                  child: FluxerSelect<int>(
-                    hint: l10n.registerDay,
-                    value: _birthDay,
-                    onChanged: (v) => setState(() => _birthDay = v),
-                    items: List.generate(
-                      31,
-                      (i) => FluxerSelectItem(value: i + 1, label: '${i + 1}'),
+                    'day': Expanded(
+                      flex: 3,
+                      child: FluxerSelect<int>(
+                        hint: l10n.registerDay,
+                        value: _birthDay,
+                        onChanged: (v) => setState(() => _birthDay = v),
+                        items: List.generate(
+                          _daysInMonth,
+                          (i) =>
+                              FluxerSelectItem(value: i + 1, label: '${i + 1}'),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                SizedBox(width: layout.s2),
-                Expanded(
-                  child: FluxerSelect<int>(
-                    hint: l10n.registerYear,
-                    value: _birthYear,
-                    onChanged: (v) => setState(() => _birthYear = v),
-                    items: List.generate(100, (i) {
-                      final year = DateTime.now().year - 13 - i;
-                      return FluxerSelectItem(value: year, label: '$year');
-                    }),
-                  ),
-                ),
-              ],
-            ),
+                    'year': Expanded(
+                      flex: 3,
+                      child: FluxerSelect<int>(
+                        hint: l10n.registerYear,
+                        value: _birthYear,
+                        onChanged: _onYearChanged,
+                        items: List.generate(150, (i) {
+                          final year = DateTime.now().year - i;
+                          return FluxerSelectItem(value: year, label: '$year');
+                        }),
+                      ),
+                    ),
+                  };
+                  final order = _dateFieldOrder(locale);
+                  return Row(
+                    children: [
+                      for (var i = 0; i < order.length; i++) ...[
+                        if (i > 0) SizedBox(width: layout.s2),
+                        fields[order[i]]!,
+                      ],
+                    ],
+                  );
+                },
+              ),
             if (vm.fieldErrors['date_of_birth'] != null) ...[
               SizedBox(height: layout.s1),
               Text(
@@ -245,20 +381,48 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 style: textStyles.bodySmall.copyWith(color: colors.textDanger),
               ),
             ],
-            SizedBox(height: layout.s4),
+            SizedBox(height: layout.s5),
 
             // Terms consent
             FluxerCheckbox(
               value: _consent,
               onChanged: (v) => setState(() => _consent = v ?? false),
-              label: l10n.registerConsent,
+              child: Text.rich(
+                TextSpan(
+                  style: textStyles.bodySmall.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                  children: [
+                    TextSpan(text: l10n.registerConsentPrefix),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.baseline,
+                      baseline: TextBaseline.alphabetic,
+                      child: FluxerTextLink(
+                        text: l10n.registerConsentTerms,
+                        url: 'https://fluxer.app/terms',
+                        style: textStyles.bodySmall,
+                      ),
+                    ),
+                    TextSpan(text: l10n.registerConsentAnd),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.baseline,
+                      baseline: TextBaseline.alphabetic,
+                      child: FluxerTextLink(
+                        text: l10n.registerConsentPrivacy,
+                        url: 'https://fluxer.app/privacy',
+                        style: textStyles.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            SizedBox(height: layout.s6),
+            SizedBox(height: layout.s5),
 
             // Error message
-            if (vm.errorMessage != null && vm.errorMessage!.isNotEmpty) ...[
+            if (resolveLoginError(vm, l10n) case final errorText?) ...[
               Text(
-                vm.errorMessage!,
+                errorText,
                 style: textStyles.bodySmall.copyWith(color: colors.textDanger),
               ),
               SizedBox(height: layout.s2),
@@ -270,11 +434,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               label: l10n.registerSubmit,
               isLoading: vm.isLoggingIn,
             ),
-            SizedBox(height: layout.s5),
+            SizedBox(height: layout.s4),
 
             // Back to login
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   l10n.registerHaveAccount,
@@ -295,21 +458,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  String _monthName(int month, FluxerLocalizations l10n) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return months[month - 1];
+  String _monthName(int month) {
+    final locale = Localizations.localeOf(context).toString();
+    return DateFormat.MMMM(locale).format(DateTime(2000, month));
   }
 }

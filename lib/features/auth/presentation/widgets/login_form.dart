@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/auth/providers/login_error_l10n.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:fluxeron/features/ui/button/fluxer_button.dart';
 import 'package:fluxeron/features/ui/input/fluxer_input.dart';
@@ -43,6 +44,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     final vm = ref.watch(loginViewModelProvider);
     final notifier = ref.read(loginViewModelProvider.notifier);
     final layout = context.layout;
+    final errorText = resolveLoginError(vm, strings);
 
     return AbsorbPointer(
       absorbing: vm.isLoggingIn,
@@ -94,20 +96,19 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               FluxerTextLink(
                 text: strings.forgotPassword,
                 onTap: notifier.showForgotPasswordScreen,
-                style: context.textStyles.bodySmall.copyWith(
-                  color: context.colors.textTertiary,
-                ),
+                style: context.textStyles.bodySmall,
+                color: context.colors.textTertiary,
               ),
               SizedBox(height: layout.s6),
               AnimatedSize(
                 duration: context.motion.fast,
                 curve: context.motion.curve,
                 alignment: Alignment.topCenter,
-                child: vm.errorMessage != null && vm.errorMessage!.isNotEmpty
+                child: errorText != null
                     ? Padding(
                         padding: EdgeInsets.only(bottom: layout.s2),
                         child: Text(
-                          vm.errorMessage!,
+                          errorText,
                           style: context.textStyles.bodySmall.copyWith(
                             color: context.colors.textDanger,
                           ),
@@ -124,7 +125,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               _buildOrDivider(context, strings),
               SizedBox(height: layout.s6),
               FluxerButton.secondary(
-                onPressed: () {},
+                onPressed: vm.isLoggingIn
+                    ? null
+                    : () => unawaited(notifier.loginWithPasskey()),
                 icon: PhosphorIconsFill.key,
                 label: strings.logInWithPasskey,
               ),

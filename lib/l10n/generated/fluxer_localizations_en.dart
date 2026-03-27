@@ -295,16 +295,20 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get registerTitle => 'Create an account';
 
   @override
-  String get registerDisplayName => 'Display name';
+  String get registerDisplayName => 'Display Name (Optional)';
 
   @override
   String get registerDisplayNameHint => 'What should people call you?';
 
   @override
-  String get registerUsername => 'Username';
+  String get registerUsername => 'Username (Optional)';
 
   @override
   String get registerUsernameHint => 'Leave blank for a random username';
+
+  @override
+  String get registerUsernameTagHint =>
+      'A 4-digit tag will be added automatically to ensure uniqueness';
 
   @override
   String get registerDateOfBirth => 'Date of birth';
@@ -323,8 +327,63 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'I agree to the Terms of Service and Privacy Policy';
 
   @override
+  String get registerConsentPrefix => 'I agree to the ';
+
+  @override
+  String get registerConsentTerms => 'Terms of Service';
+
+  @override
+  String get registerConsentAnd => ' and ';
+
+  @override
+  String get registerConsentPrivacy => 'Privacy Policy';
+
+  @override
+  String get registerConfirmPassword => 'Confirm Password';
+
+  @override
   String get registerSubmit => 'Create account';
 
   @override
   String get registerHaveAccount => 'Already have an account? ';
+
+  @override
+  String get passkeyNoCredentials =>
+      'No passkeys found for this app. Log in with email and password instead.';
+
+  @override
+  String get passkeyDeviceNotSupported =>
+      'Passkeys are not supported on this device.';
+
+  @override
+  String get passkeyDomainNotAssociated =>
+      'Passkeys are not configured for this app. Log in with email and password instead.';
+
+  @override
+  String get passkeyTimeout =>
+      'Passkey authentication timed out. Please try again.';
+
+  @override
+  String get passkeyNotAvailable =>
+      'Passkeys are not available for this app. Log in with email and password instead.';
+
+  @override
+  String get passkeyFailed =>
+      'Passkey authentication failed. Please try again.';
+
+  @override
+  String get errorUnableToCreateAccount =>
+      'Unable to create account. Please try again.';
+
+  @override
+  String get errorUnableToSignIn =>
+      'Unable to sign in right now. Please try again.';
+
+  @override
+  String get errorUnableToSendResetLink =>
+      'Unable to send reset link. Please try again.';
+
+  @override
+  String get errorUnableToResetPassword =>
+      'Unable to reset password. Please try again.';
 }

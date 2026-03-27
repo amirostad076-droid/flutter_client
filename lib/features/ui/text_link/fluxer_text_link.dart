@@ -11,6 +11,7 @@ class FluxerTextLink extends StatelessWidget {
     this.url,
     this.onTap,
     this.style,
+    this.color,
     this.selectable = false,
     super.key,
   });
@@ -19,6 +20,7 @@ class FluxerTextLink extends StatelessWidget {
   final String? url;
   final VoidCallback? onTap;
   final TextStyle? style;
+  final Color? color;
   final bool selectable;
 
   void _handleTap() {
@@ -35,7 +37,7 @@ class FluxerTextLink extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final baseStyle = (style ?? DefaultTextStyle.of(context).style).copyWith(
-      color: style?.color ?? colors.textLink,
+      color: color ?? colors.textLink,
     );
 
     return Semantics(

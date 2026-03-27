@@ -10,6 +10,7 @@ class FluxerCheckbox extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.label,
+    this.child,
     this.enabled = true,
     super.key,
   });
@@ -17,6 +18,7 @@ class FluxerCheckbox extends StatelessWidget {
   final bool value;
   final ValueChanged<bool?> onChanged;
   final String? label;
+  final Widget? child;
   final bool enabled;
 
   @override
@@ -24,21 +26,37 @@ class FluxerCheckbox extends StatelessWidget {
     final colors = context.colors;
     final textStyles = context.textStyles;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Checkbox(value: value, onChanged: enabled ? onChanged : null),
-        if (label != null)
-          GestureDetector(
-            onTap: enabled ? () => onChanged(!value) : null,
-            child: Text(
-              label!,
-              style: textStyles.bodyMedium.copyWith(
-                color: enabled ? colors.textPrimary : colors.textTertiary,
-              ),
+    return GestureDetector(
+      onTap: enabled ? () => onChanged(!value) : null,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: value,
+              onChanged: enabled ? onChanged : null,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
             ),
           ),
-      ],
+          if (child != null || label != null) ...[
+            const SizedBox(width: 8),
+            Flexible(
+              child:
+                  child ??
+                  Text(
+                    label!,
+                    style: textStyles.bodySmall.copyWith(
+                      color: enabled ? colors.textPrimary : colors.textTertiary,
+                    ),
+                  ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

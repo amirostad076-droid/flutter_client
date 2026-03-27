@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxeron/features/auth/providers/login_error_l10n.dart';
 import 'package:fluxeron/features/auth/providers/login_view_model.dart';
 import 'package:fluxeron/features/ui/button/fluxer_button.dart';
 import 'package:fluxeron/features/ui/input/fluxer_input.dart';
@@ -119,9 +120,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               onSubmitted: (_) => _submit(),
             ),
             SizedBox(height: layout.s6),
-            if (vm.errorMessage != null && vm.errorMessage!.isNotEmpty) ...[
+            if (resolveLoginError(vm, l10n) case final errorText?) ...[
               Text(
-                vm.errorMessage!,
+                errorText,
                 style: textStyles.bodySmall.copyWith(color: colors.textDanger),
               ),
               SizedBox(height: layout.s2),
