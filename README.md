@@ -27,7 +27,7 @@ You can follow more about the V1 development in [this issue.](https://github.com
 
 **Android APK**: You can find both production/beta in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](https://obtainium.imranr.dev) for auto updates.
 
-**Android APK OSS**: Coming soon! (this build will come without Firebase Messenger for push notification and will use [UnifiedPush](https://unifiedpush.org))
+**Android APK OSS**: Coming soon! (this build will come without Firebase Messenger for push notification and will use [UnifiedPush](https://unifiedpush.org) for push notifications)
 
 Production and beta Android release builds are signed with this SHA-256 certificate fingerprint:
 `91:E4:98:E1:B8:A6:C8:BA:99:41:5E:DB:29:78:29:6B:6C:58:BA:A5:E2:D2:A6:49:CE:C6:2D:A7:A8:29:C7:BC`
