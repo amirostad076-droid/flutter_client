@@ -41,6 +41,7 @@ class ContextMenuPanel extends StatelessWidget {
 
 class ContextMenuItem extends StatefulWidget {
   final String label;
+  final String? hint;
   final IconData? icon;
   final bool isDanger;
   final VoidCallback onTap;
@@ -48,6 +49,7 @@ class ContextMenuItem extends StatefulWidget {
   const ContextMenuItem({
     required this.label,
     required this.onTap,
+    this.hint,
     this.icon,
     this.isDanger = false,
     super.key,
@@ -98,10 +100,24 @@ class _ContextMenuItemState extends State<ContextMenuItem> {
           child: Row(
             children: [
               Expanded(
-                child: Text(
-                  widget.label,
-                  style: context.textStyles.label.copyWith(color: activeColor),
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.label,
+                      style: context.textStyles.label.copyWith(color: activeColor),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (widget.hint != null)
+                      Text(
+                        widget.hint!,
+                        style: context.textStyles.timestamp.copyWith(
+                          color: colors.textTertiary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
                 ),
               ),
               if (widget.icon != null) ...[

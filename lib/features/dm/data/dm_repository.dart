@@ -99,8 +99,23 @@ class DmRepository {
     }
   }
 
-  Future<void> markAsRead(String channelId) =>
-      _db.dmChannelDao.markAsRead(channelId);
+  Future<void> markAsRead(String channelId) async {
+    await _db.dmChannelDao.markAsRead(channelId);
+
+    // Find the latest message to ack: prefer cached messages, fall back
+    // to the read state's ack point.
+    final messages = await _db.messageDao.getMessages(channelId, limit: 1);
+    final messageId = messages.isNotEmpty
+        ? messages.last.id
+        : (await _db.readStateDao.getReadState(channelId))?.lastMessageId;
+    if (messageId != null) {
+      await _client.channels.acknowledgeMessage(
+        channelId: channelId,
+        messageId: messageId,
+        body: const MessageAckRequest(),
+      );
+    }
+  }
 
   Future<void> closeDmChannel(String channelId) async {
     await _client.channels.deleteChannel(channelId: channelId);

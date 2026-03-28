@@ -2,12 +2,18 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluxer_dart/export.dart';
+
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/constants/assets.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -26,12 +32,16 @@ import 'package:fluxer_app/features/guilds/presentation/'
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_drag_wrapper.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
+    'widgets/guild_menu_data.dart';
+import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_scroll_indicator.dart';
+import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
@@ -503,24 +513,43 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         final invitesPaused =
             guild.features.contains('INVITES_DISABLED') &&
             hasPermission(permissions, Permission.manageGuild);
+        final currentUserId = ref.watch(currentUserIdProvider);
+        final developerMode = ref.watch(
+          userSettingsViewModelProvider.select((s) => s.developerMode),
+        );
         return _GuildListItem(
           key: itemKey,
           label: guild.name,
           guild: guild,
           isSelected: guild.id == activeGuildId,
           permissions: permissions,
+          isOwner: guild.ownerId == currentUserId,
           iconUrl: guild.iconUrl,
           isUnavailable: guild.isUnavailable,
           unavailableCount: unavailableCount,
           isMuted: muteState?.isMuted ?? false,
           muteEndTime: muteState?.muteEndTime,
+          hideMutedChannels: muteState?.hideMutedChannels ?? false,
           voiceActivity: voiceActivity,
           voiceRows: voiceRows ?? const [],
           hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
           mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
           invitesPaused: invitesPaused,
+          developerMode: developerMode,
           onTap: () {
             context.go(RoutePaths.guild(guild.id));
+          },
+          onMenuOpened: () {
+            ref.read(guildSyncProvider.notifier).syncIfNeeded(guild.id);
+          },
+          onMarkAsRead: () {
+            unawaited(
+              markGuildAsRead(
+                guild.id,
+                ref.read(fluxerDatabaseProvider),
+                ref.read(fluxerClientProvider),
+              ),
+            );
           },
         );
       },
@@ -807,6 +836,10 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
         final invitesPaused =
             guild.features.contains('INVITES_DISABLED') &&
             hasPermission(permissions, Permission.manageGuild);
+        final currentUserId = ref.watch(currentUserIdProvider);
+        final developerMode = ref.watch(
+          userSettingsViewModelProvider.select((s) => s.developerMode),
+        );
         return GuildDragWrapper(
           itemId: guild.id,
           isFolder: false,
@@ -815,18 +848,33 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             guild: guild,
             isSelected: guild.id == widget.activeGuildId,
             permissions: permissions,
+            isOwner: guild.ownerId == currentUserId,
             iconUrl: guild.iconUrl,
             isUnavailable: guild.isUnavailable,
             unavailableCount: widget.unavailableCount,
             isMuted: muteState?.isMuted ?? false,
             muteEndTime: muteState?.muteEndTime,
+            hideMutedChannels: muteState?.hideMutedChannels ?? false,
             voiceActivity: voiceActivity,
             voiceRows: voiceRows ?? const [],
             hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
             mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
             invitesPaused: invitesPaused,
+            developerMode: developerMode,
             onTap: () {
               context.go(RoutePaths.guild(guild.id));
+            },
+            onMenuOpened: () {
+              ref.read(guildSyncProvider.notifier).syncIfNeeded(guild.id);
+            },
+            onMarkAsRead: () {
+              unawaited(
+                markGuildAsRead(
+                  guild.id,
+                  ref.read(fluxerDatabaseProvider),
+                  ref.read(fluxerClientProvider),
+                ),
+              );
             },
           ),
         );
@@ -852,24 +900,80 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
   }
 }
 
+Future<void> markGuildAsRead(
+  String guildId,
+  FluxerDatabase db,
+  FluxerClient client,
+) async {
+  final channels = await db.channelDao.getChannels(guildId);
+  final channelIds = channels.map((c) => c.id).toList();
+  final readStates =
+      await db.readStateDao.watchReadStatesForChannels(channelIds).first;
+  final readStateMap = {for (final rs in readStates) rs.channelId: rs};
+
+  final ackEntries = <ReadStateAckBulkRequestReadStates>[];
+  for (final channel in channels) {
+    final lastMsgId = channel.lastMessageId;
+    if (lastMsgId == null) {
+      continue;
+    }
+    final ackId = readStateMap[channel.id]?.lastMessageId;
+    if (ackId == lastMsgId) {
+      continue;
+    }
+    ackEntries.add(
+      ReadStateAckBulkRequestReadStates(
+        channelId: channel.id,
+        messageId: lastMsgId,
+      ),
+    );
+  }
+
+  if (ackEntries.isEmpty) {
+    return;
+  }
+
+  // Optimistically update local read states so the UI clears immediately.
+  for (final entry in ackEntries) {
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: Value(entry.channelId),
+        lastMessageId: Value(entry.messageId),
+        mentionCount: const Value(0),
+      ),
+    );
+  }
+
+  unawaited(
+    client.readStates.ackBulkMessages(
+      body: ReadStateAckBulkRequest(readStates: ackEntries),
+    ),
+  );
+}
+
 class _GuildListItem extends StatefulWidget {
   final String label;
   final Guild? guild;
   final bool isSelected;
   final int permissions;
+  final bool isOwner;
   final bool isUnavailable;
   final int unavailableCount;
   final bool isMuted;
   final DateTime? muteEndTime;
+  final bool hideMutedChannels;
   final VoiceActivityType voiceActivity;
   final List<VoiceParticipantRow> voiceRows;
   final IconData? icon;
   final String? svgAsset;
   final VoidCallback onTap;
+  final VoidCallback? onMenuOpened;
   final String? iconUrl;
   final bool hasUnread;
   final int mentionCount;
   final bool invitesPaused;
+  final bool developerMode;
+  final VoidCallback? onMarkAsRead;
 
   const _GuildListItem({
     required this.label,
@@ -878,18 +982,23 @@ class _GuildListItem extends StatefulWidget {
     this.guild,
     this.isSelected = false,
     this.permissions = 0,
+    this.isOwner = false,
     this.isUnavailable = false,
     this.unavailableCount = 0,
     this.isMuted = false,
     this.muteEndTime,
+    this.hideMutedChannels = false,
     this.voiceActivity = VoiceActivityType.none,
     this.voiceRows = const [],
     this.icon,
     this.svgAsset,
     this.iconUrl,
+    this.onMenuOpened,
     this.hasUnread = false,
     this.mentionCount = 0,
     this.invitesPaused = false,
+    this.developerMode = false,
+    this.onMarkAsRead,
   });
 
   @override
@@ -1087,12 +1196,18 @@ class _GuildListItemState extends State<_GuildListItem> {
     if (widget.guild == null) {
       return;
     }
+    widget.onMenuOpened?.call();
     final action = await showGuildContextMenu(
       context,
       position: position,
       guild: widget.guild!,
       hasUnread: widget.hasUnread,
+      isMuted: widget.isMuted,
+      isOwner: widget.isOwner,
       permissions: widget.permissions,
+      muteEndTime: widget.muteEndTime,
+      hideMutedChannels: widget.hideMutedChannels,
+      developerMode: widget.developerMode,
     );
     if (context.mounted && action != null) {
       _handleAction(context, action);
@@ -1103,6 +1218,7 @@ class _GuildListItemState extends State<_GuildListItem> {
     if (widget.guild == null) {
       return;
     }
+    widget.onMenuOpened?.call();
     final isMobile = MediaQuery.of(context).size.width < Breakpoints.tablet;
     if (!isMobile) {
       return;
@@ -1111,7 +1227,12 @@ class _GuildListItemState extends State<_GuildListItem> {
       context,
       guild: widget.guild!,
       hasUnread: widget.hasUnread,
+      isMuted: widget.isMuted,
+      isOwner: widget.isOwner,
       permissions: widget.permissions,
+      muteEndTime: widget.muteEndTime,
+      hideMutedChannels: widget.hideMutedChannels,
+      developerMode: widget.developerMode,
     );
     if (context.mounted && action != null) {
       _handleAction(context, action);
@@ -1119,23 +1240,43 @@ class _GuildListItemState extends State<_GuildListItem> {
   }
 
   void _handleAction(BuildContext context, GuildAction action) {
+    final guildId = widget.guild!.id;
     switch (action) {
       case GuildAction.settingsOverview:
+        unawaited(
+          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'overview')),
+        );
       case GuildAction.settingsRoles:
+        unawaited(
+          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'roles')),
+        );
       case GuildAction.settingsEmoji:
+        unawaited(
+          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'emoji')),
+        );
       case GuildAction.settingsStickers:
+        unawaited(
+          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'stickers')),
+        );
       case GuildAction.settingsSafetyModeration:
       case GuildAction.settingsActivityLog:
       case GuildAction.settingsWebhooks:
       case GuildAction.settingsCustomInviteUrl:
       case GuildAction.settingsDiscovery:
-      case GuildAction.settingsMembers:
       case GuildAction.settingsInviteLinks:
+        unawaited(context.push(RoutePaths.guildSettingsPath(guildId)));
+      case GuildAction.settingsMembers:
+        unawaited(
+          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'members')),
+        );
       case GuildAction.settingsBans:
-        unawaited(context.push(RoutePaths.guildSettingsPath(widget.guild!.id)));
+        unawaited(
+          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'bans')),
+        );
       case GuildAction.copyGuildId:
         break;
       case GuildAction.markAsRead:
+        widget.onMarkAsRead?.call();
       case GuildAction.inviteMembers:
       case GuildAction.createChannel:
       case GuildAction.createCategory:
@@ -1145,6 +1286,7 @@ class _GuildListItemState extends State<_GuildListItem> {
       case GuildAction.hideMutedChannels:
       case GuildAction.leaveGuild:
       case GuildAction.reportCommunity:
+      case GuildAction.reportRaid:
       case GuildAction.debugCommunity:
       case GuildAction.mute15Min:
       case GuildAction.mute30Min:

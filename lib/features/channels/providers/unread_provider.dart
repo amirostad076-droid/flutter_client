@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 
 part 'unread_provider.g.dart';
 
@@ -17,6 +20,26 @@ class UnreadState {
 /// guild-level unread unless they have mentions.
 const _voiceType = 2;
 const _categoryType = 4;
+
+/// Messages older than 7 days are suppressed from unread indicators
+/// unless the channel was recently visited or has mentions.
+const _oldMessageThreshold = Duration(days: 7);
+
+/// A channel is considered "recently visited" if it was acked within
+/// the last 3 days.
+const _recentVisitThreshold = Duration(days: 3);
+
+/// Extracts millisecond timestamp from a snowflake ID, or 0 if invalid.
+int _snowflakeTimestamp(String? id) {
+  if (id == null) {
+    return 0;
+  }
+  final parsed = int.tryParse(id);
+  if (parsed == null) {
+    return 0;
+  }
+  return (parsed >> 22) + kSnowflakeEpochMs;
+}
 
 @riverpod
 Stream<UnreadState> channelUnread(Ref ref, String channelId) async* {
@@ -70,13 +93,13 @@ Stream<UnreadState> serverUnread(Ref ref, String serverId) {
     final mutedChannelIds = <String>{};
     var guildMuted = false;
     if (guildSettings != null) {
-      final data = jsonDecode(guildSettings.data) as Map<String, dynamic>;
-      guildMuted = data['muted'] as bool? ?? false;
-      final overrides =
-          data['channel_overrides'] as Map<String, dynamic>? ?? {};
+      final gs = UserGuildSettingsResponse.fromJson(
+        jsonDecode(guildSettings.data) as Map<String, dynamic>,
+      );
+      guildMuted = gs.muted;
+      final overrides = gs.channelOverrides ?? {};
       for (final entry in overrides.entries) {
-        final override = entry.value as Map<String, dynamic>;
-        if (override['muted'] == true) {
+        if (entry.value.muted) {
           mutedChannelIds.add(entry.key);
         }
       }
@@ -88,6 +111,7 @@ Stream<UnreadState> serverUnread(Ref ref, String serverId) {
         .first;
     final readStateMap = {for (final rs in readStates) rs.channelId: rs};
 
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
     var anyUnread = false;
     var totalMentions = 0;
 
@@ -116,10 +140,27 @@ Stream<UnreadState> serverUnread(Ref ref, String serverId) {
         continue;
       }
 
+      final channelLastMsg = channel.lastMessageId;
+      final lastMsgTs = _snowflakeTimestamp(channelLastMsg);
+      final ackTs = _snowflakeTimestamp(readState.lastMessageId);
+
+      // Suppress old unreads: messages older than 7 days are hidden unless
+      // the channel was recently visited (acked within 3 days) or has
+      // mentions.
+      if (lastMsgTs > 0 &&
+          lastMsgTs < nowMs - _oldMessageThreshold.inMilliseconds) {
+        final recentlyVisited =
+            ackTs > 0 &&
+            ackTs > nowMs - _recentVisitThreshold.inMilliseconds;
+        if (!recentlyVisited && mentions == 0) {
+          continue;
+        }
+      }
+
       totalMentions += mentions;
 
-      final channelLastMsg = channel.lastMessageId;
-      if (channelLastMsg != null && channelLastMsg != readState.lastMessageId) {
+      // Use snowflake timestamp comparison: unread if ack < last message.
+      if (lastMsgTs > 0 && ackTs < lastMsgTs) {
         anyUnread = true;
       } else if (mentions > 0) {
         anyUnread = true;

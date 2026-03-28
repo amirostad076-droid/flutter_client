@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -139,6 +140,7 @@ Raw<StreamSubscription<GatewayState>?> gatewayStateListener(Ref ref) {
         reachable.setReachable(value: true);
       case GatewayState.disconnected:
         reachable.setReachable(value: false);
+        ref.read(guildSyncProvider.notifier).clearAll();
       case GatewayState.connecting:
       case GatewayState.reconnecting:
         break;

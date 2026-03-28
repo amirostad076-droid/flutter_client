@@ -50,7 +50,11 @@ abstract final class RoutePaths {
   static String inviteLink(String code) => '/invite/$code';
   static String giftLink(String code) => '/gift/$code';
   static String themeLink(String themeId) => '/theme/$themeId';
-  static String guildSettingsPath(String guildId) => '/settings/guild/$guildId';
+  static String guildSettingsPath(String guildId, {String? tab}) {
+    final base = '/settings/guild/$guildId';
+    if (tab == null) return base;
+    return '$base?tab=$tab';
+  }
 
   static const notificationsPath = '/notifications';
   static const youPath = '/you';

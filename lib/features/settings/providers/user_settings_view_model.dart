@@ -1,8 +1,11 @@
+import 'dart:convert';
+
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart' show fluxerMediaCdn;
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_settings_view_model.g.dart';
 
@@ -18,6 +21,7 @@ class UserSettingsViewState {
   final DateTime? memberSince;
   final String status;
   final bool messageDisplayCompact;
+  final bool developerMode;
 
   const UserSettingsViewState({
     required this.userId,
@@ -29,6 +33,7 @@ class UserSettingsViewState {
     required this.memberSince,
     required this.status,
     required this.messageDisplayCompact,
+    required this.developerMode,
   });
 
   String? get avatarUrl {
@@ -59,6 +64,7 @@ class UserSettingsViewState {
     Object? memberSince = _unset,
     String? status,
     bool? messageDisplayCompact,
+    bool? developerMode,
   }) {
     return UserSettingsViewState(
       userId: userId ?? this.userId,
@@ -75,6 +81,7 @@ class UserSettingsViewState {
       status: status ?? this.status,
       messageDisplayCompact:
           messageDisplayCompact ?? this.messageDisplayCompact,
+      developerMode: developerMode ?? this.developerMode,
     );
   }
 }
@@ -86,6 +93,7 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
     final userId = ref.watch(currentUserIdProvider);
     if (userId != null) {
       _watchUser(userId);
+      _watchSettings(userId);
     }
 
     return UserSettingsViewState(
@@ -98,6 +106,7 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       memberSince: null,
       status: 'offline',
       messageDisplayCompact: false,
+      developerMode: false,
     );
   }
 
@@ -114,6 +123,19 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         avatar: user.avatar,
         avatarColor: user.avatarColor,
       );
+    });
+    ref.onDispose(subscription.cancel);
+  }
+
+  void _watchSettings(String userId) {
+    final db = ref.read(fluxerDatabaseProvider);
+    final subscription = db.userSettingsDao.watchSettings(userId).listen((row) {
+      if (row == null) {
+        return;
+      }
+      final data = jsonDecode(row.data) as Map<String, dynamic>;
+      final developerMode = data['developer_mode'] as bool? ?? false;
+      state = state.copyWith(developerMode: developerMode);
     });
     ref.onDispose(subscription.cancel);
   }

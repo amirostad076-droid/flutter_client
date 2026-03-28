@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/permissions/permission_resolver.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
@@ -58,6 +59,10 @@ class GuildPermissions extends _$GuildPermissions {
     final Guild? guild = guilds.where((g) => g.id == guildId).firstOrNull;
     if (guild == null) {
       return 0;
+    }
+
+    if (currentUserId == guild.ownerId) {
+      return allPermissions;
     }
 
     final allRoles = await db.roleDao.getRoles(guildId);

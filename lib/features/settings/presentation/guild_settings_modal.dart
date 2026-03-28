@@ -10,8 +10,13 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class GuildSettingsModal extends ConsumerStatefulWidget {
   final String serverId;
+  final int initialTab;
 
-  const GuildSettingsModal({required this.serverId, super.key});
+  const GuildSettingsModal({
+    required this.serverId,
+    this.initialTab = 0,
+    super.key,
+  });
 
   @override
   ConsumerState<GuildSettingsModal> createState() => _GuildSettingsModalState();
@@ -30,7 +35,7 @@ class _GuildSettingsModalState extends ConsumerState<GuildSettingsModal> {
     SettingsSidebarItem('Bans'),
   ];
 
-  var _selectedIndex = 0;
+  late int _selectedIndex = widget.initialTab;
 
   @override
   void initState() {

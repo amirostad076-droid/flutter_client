@@ -58,6 +58,19 @@ CustomTransitionPage<void> _slideTransitionPage({
   );
 }
 
+int _guildSettingsTabIndex(String? tab) {
+  return switch (tab) {
+    'overview' => 0,
+    'roles' => 1,
+    'emoji' => 3,
+    'stickers' => 4,
+    'members' => 6,
+    'channels' => 7,
+    'bans' => 8,
+    _ => 0,
+  };
+}
+
 @Riverpod(keepAlive: true)
 class AuthState extends _$AuthState {
   @override
@@ -217,8 +230,12 @@ GoRouter fluxerRouter(Ref ref) {
         path: '/settings/guild/:guildId',
         name: RouteNames.guildSettings,
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) =>
-            GuildSettingsModal(serverId: state.pathParameters['guildId'] ?? ''),
+        builder: (context, state) => GuildSettingsModal(
+          serverId: state.pathParameters['guildId'] ?? '',
+          initialTab: _guildSettingsTabIndex(
+            state.uri.queryParameters['tab'],
+          ),
+        ),
       ),
 
       // Main app shell

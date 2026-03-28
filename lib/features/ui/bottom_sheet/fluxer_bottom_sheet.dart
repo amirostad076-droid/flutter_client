@@ -235,6 +235,7 @@ List<Widget> _intersperseDividers(List<Widget> items, FluxerColorTheme colors) {
 
 class FluxerBottomSheetMenuItem extends StatelessWidget {
   final String label;
+  final String? hint;
   final VoidCallback onTap;
   final IconData? icon;
   final bool isDanger;
@@ -243,6 +244,7 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
     required this.label,
     required this.onTap,
     super.key,
+    this.hint,
     this.icon,
     this.isDanger = false,
   });
@@ -270,9 +272,23 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
                 const SizedBox(width: 12),
               ],
               Expanded(
-                child: Text(
-                  label,
-                  style: context.textStyles.username.copyWith(color: color),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: context.textStyles.username
+                          .copyWith(color: color),
+                    ),
+                    if (hint != null)
+                      Text(
+                        hint!,
+                        style: context.textStyles.timestamp.copyWith(
+                          color: colors.textTertiary,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
@@ -285,11 +301,13 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
 
 class FluxerBottomSheetSubmenuItem extends StatelessWidget {
   final String label;
+  final String? hint;
   final VoidCallback onTap;
 
   const FluxerBottomSheetSubmenuItem({
     required this.label,
     required this.onTap,
+    this.hint,
     super.key,
   });
 
@@ -305,11 +323,24 @@ class FluxerBottomSheetSubmenuItem extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Text(
-                  label,
-                  style: context.textStyles.username.copyWith(
-                    color: colors.textPrimary,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: context.textStyles.username.copyWith(
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    if (hint != null)
+                      Text(
+                        hint!,
+                        style: context.textStyles.timestamp.copyWith(
+                          color: colors.textTertiary,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               PhosphorIcon(
