@@ -6,10 +6,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/core/constants/assets.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
+import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_context_menu.dart';
+import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_item.dart';
+import 'package:fluxer_app/features/dm/providers/dm_folder_view_model.dart';
+import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
+import 'package:fluxer_app/features/dm/providers/unread_dm_provider.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
@@ -18,21 +25,187 @@ import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_context_menu.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_drag_wrapper.dart';
+import 'package:fluxer_app/features/guilds/presentation/'
+    'widgets/guild_scroll_indicator.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
-import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-class GuildNavbar extends ConsumerWidget {
+class GuildNavbar extends ConsumerStatefulWidget {
   const GuildNavbar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GuildNavbar> createState() => _GuildNavbarState();
+}
+
+class _GuildNavbarState extends ConsumerState<GuildNavbar> {
+  final _scrollController = ScrollController();
+  final _itemKeys = <String, GlobalKey>{};
+  bool _showTopIndicator = false;
+  bool _showBottomIndicator = false;
+  ScrollIndicatorSeverity _topSeverity = ScrollIndicatorSeverity.unread;
+  ScrollIndicatorSeverity _bottomSeverity = ScrollIndicatorSeverity.unread;
+  String? _topTargetId;
+  String? _bottomTargetId;
+  bool _scrollIndicatorUpdateScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scheduleScrollIndicatorUpdate);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_scheduleScrollIndicatorUpdate)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _scheduleScrollIndicatorUpdate() {
+    if (_scrollIndicatorUpdateScheduled) {
+      return;
+    }
+    _scrollIndicatorUpdateScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollIndicatorUpdateScheduled = false;
+      _updateScrollIndicators();
+    });
+  }
+
+  void _updateScrollIndicators() {
+    if (!_scrollController.hasClients || !mounted) {
+      return;
+    }
+
+    final scrollPosition = _scrollController.position;
+
+    var showTop = false;
+    var showBottom = false;
+    var topSeverity = ScrollIndicatorSeverity.unread;
+    var bottomSeverity = ScrollIndicatorSeverity.unread;
+    String? topTarget;
+    String? bottomTarget;
+    var topDistance = double.infinity;
+    var bottomDistance = double.infinity;
+
+    for (final entry in _itemKeys.entries) {
+      final severity = _getItemSeverity(entry.key);
+      if (severity == null) {
+        continue;
+      }
+
+      final key = entry.value;
+      final renderObject = key.currentContext?.findRenderObject();
+      if (renderObject is! RenderBox || !renderObject.attached) {
+        continue;
+      }
+
+      final scrollableContext = scrollPosition.context.storageContext;
+      final scrollableRenderObject =
+          scrollableContext.findRenderObject()! as RenderBox;
+      final scrollableTop = scrollableRenderObject
+          .localToGlobal(Offset.zero)
+          .dy;
+      final scrollableBottom = scrollableTop + scrollPosition.viewportDimension;
+
+      final itemTop = renderObject.localToGlobal(Offset.zero).dy;
+      final itemBottom = itemTop + renderObject.size.height;
+
+      if (itemBottom < scrollableTop) {
+        final distance = scrollableTop - itemBottom;
+        final severityPriority = severity == ScrollIndicatorSeverity.mention
+            ? 2
+            : 1;
+        final currentTopPriority =
+            topSeverity == ScrollIndicatorSeverity.mention ? 2 : 1;
+
+        if (!showTop ||
+            severityPriority > currentTopPriority ||
+            (severityPriority == currentTopPriority &&
+                distance < topDistance)) {
+          showTop = true;
+          topSeverity = severity;
+          topTarget = entry.key;
+          topDistance = distance;
+        }
+      } else if (itemTop > scrollableBottom) {
+        final distance = itemTop - scrollableBottom;
+        final severityPriority = severity == ScrollIndicatorSeverity.mention
+            ? 2
+            : 1;
+        final currentBottomPriority =
+            bottomSeverity == ScrollIndicatorSeverity.mention ? 2 : 1;
+
+        if (!showBottom ||
+            severityPriority > currentBottomPriority ||
+            (severityPriority == currentBottomPriority &&
+                distance < bottomDistance)) {
+          showBottom = true;
+          bottomSeverity = severity;
+          bottomTarget = entry.key;
+          bottomDistance = distance;
+        }
+      }
+    }
+
+    if (showTop != _showTopIndicator ||
+        showBottom != _showBottomIndicator ||
+        topSeverity != _topSeverity ||
+        bottomSeverity != _bottomSeverity ||
+        topTarget != _topTargetId ||
+        bottomTarget != _bottomTargetId) {
+      setState(() {
+        _showTopIndicator = showTop;
+        _showBottomIndicator = showBottom;
+        _topSeverity = topSeverity;
+        _bottomSeverity = bottomSeverity;
+        _topTargetId = topTarget;
+        _bottomTargetId = bottomTarget;
+      });
+    }
+  }
+
+  ScrollIndicatorSeverity? _getItemSeverity(String guildId) {
+    final unread = ref.read(serverUnreadProvider(guildId)).value;
+    if (unread == null) {
+      return null;
+    }
+    if (unread.mentionCount > 0) {
+      return ScrollIndicatorSeverity.mention;
+    }
+    if (unread.hasUnread) {
+      return ScrollIndicatorSeverity.unread;
+    }
+    return null;
+  }
+
+  void _scrollToItem(String? itemId) {
+    if (itemId == null) {
+      return;
+    }
+    final key = _itemKeys[itemId];
+    if (key?.currentContext == null) {
+      return;
+    }
+    unawaited(
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final organizedItems = ref.watch(organizedGuildListProvider);
     final guilds = ref.watch(
       guildListViewModelProvider.select((s) => s.guilds),
@@ -43,10 +216,50 @@ class GuildNavbar extends ConsumerWidget {
     final isFavorites = currentLocation.startsWith('/channels/@favorites');
     final pendingFriendCount =
         ref.watch(pendingFriendRequestCountProvider).value ?? 0;
-    final currentUserId = ref.watch(
-      userSettingsViewModelProvider.select((s) => s.userId),
-    );
     final unavailableCount = guilds.where((g) => g.isUnavailable).length;
+
+    final dmFolderState = ref.watch(dmFolderProvider);
+    final unreadDms = ref.watch(unreadDmChannelsProvider).channels;
+
+    final List<DmChannel> allowlistedDms;
+    final List<DmChannel> regularDms;
+
+    if (dmFolderState.collapseDMs && !dmFolderState.expanded) {
+      allowlistedDms = unreadDms
+          .where((dm) => dmFolderState.allowlistedIds.contains(dm.id))
+          .toList();
+      regularDms = unreadDms
+          .where((dm) => !dmFolderState.allowlistedIds.contains(dm.id))
+          .toList();
+    } else {
+      allowlistedDms = [];
+      regularDms = unreadDms;
+    }
+
+    final dmItemsVisible = !dmFolderState.collapseDMs || dmFolderState.expanded;
+
+    final int dmMentionCount;
+    if (dmFolderState.collapseDMs && !dmFolderState.expanded) {
+      dmMentionCount = unreadDms.fold(0, (sum, dm) => sum + dm.unreadCount);
+    } else {
+      dmMentionCount = 0;
+    }
+
+    final permissionsNotifier = ref.read(guildPermissionsProvider.notifier);
+    for (final item in organizedItems) {
+      switch (item) {
+        case GuildNavbarGuild(:final guild):
+          unawaited(permissionsNotifier.getPermissions(guild.id));
+        case GuildNavbarFolder(:final guilds):
+          for (final guild in guilds) {
+            unawaited(permissionsNotifier.getPermissions(guild.id));
+          }
+      }
+    }
+
+    _scheduleScrollIndicatorUpdate();
+
+    final topPadding = max<double>(MediaQuery.of(context).padding.top, 4);
 
     return Container(
       width: 72,
@@ -56,72 +269,171 @@ class GuildNavbar extends ConsumerWidget {
       ),
       child: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.only(
-            top: max(MediaQuery.of(context).padding.top, 4),
-            bottom: 8,
-          ),
+        child: Stack(
           children: [
-            _GuildListItem(
-              label: 'Direct Messages',
-              isSelected: isDm,
-              svgAsset: Assets.fluxerSymbol,
-              mentionCount: pendingFriendCount,
-              onTap: () {
-                context.go(RoutePaths.me);
-              },
+            ListView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.only(top: topPadding, bottom: 8),
+              children: [
+                _GuildListItem(
+                  label: 'Direct Messages',
+                  isSelected: isDm,
+                  svgAsset: Assets.fluxerSymbol,
+                  mentionCount: pendingFriendCount + dmMentionCount,
+                  onTap: () {
+                    if (dmFolderState.collapseDMs && isDm) {
+                      ref.read(dmFolderProvider.notifier).toggleExpanded();
+                      return;
+                    }
+                    context.go(RoutePaths.me);
+                  },
+                ),
+                _GuildListItem(
+                  label: 'Favorites',
+                  isSelected: isFavorites,
+                  icon: PhosphorIconsFill.star,
+                  onTap: () {
+                    context.go(RoutePaths.favoritesBase);
+                  },
+                ),
+                for (final dm in allowlistedDms)
+                  DmNavbarItem(
+                    key: ValueKey('dm-${dm.id}'),
+                    channelId: dm.id,
+                    recipientId: dm.recipientId,
+                    displayName: dm.name ?? 'Direct Message',
+                    mentionCount: dm.unreadCount,
+                    type: dm.type,
+                    isSelected: currentLocation.contains(dm.id),
+                    onContextMenu: (position) => _handleDmContextMenu(
+                      context,
+                      position: position,
+                      dm: dm,
+                      isCollapsed: dmFolderState.collapseDMs,
+                      isAllowlisted: true,
+                    ),
+                  ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  alignment: Alignment.topCenter,
+                  child: dmItemsVisible && regularDms.isNotEmpty
+                      ? AnimatedOpacity(
+                          opacity: dmItemsVisible ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              for (final dm in regularDms)
+                                DmNavbarItem(
+                                  key: ValueKey('dm-${dm.id}'),
+                                  channelId: dm.id,
+                                  recipientId: dm.recipientId,
+                                  displayName: dm.name ?? 'Direct Message',
+                                  mentionCount: dm.unreadCount,
+                                  type: dm.type,
+                                  isSelected: currentLocation.contains(dm.id),
+                                  onContextMenu: (position) => _handleDmContextMenu(
+                                    context,
+                                    position: position,
+                                    dm: dm,
+                                    isCollapsed: dmFolderState.collapseDMs,
+                                    isAllowlisted: false,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+                _SidebarDivider(color: context.colors.backgroundModifierHover),
+                for (final item in organizedItems)
+                  switch (item) {
+                    GuildNavbarGuild(:final guild) => GuildDragWrapper(
+                      itemId: guild.id,
+                      isFolder: false,
+                      enabled: !guild.isUnavailable,
+                      child: _buildGuildItem(
+                        context,
+                        guild: guild,
+                        activeGuildId: activeGuildId,
+                        unavailableCount: unavailableCount,
+                      ),
+                    ),
+                    GuildNavbarFolder(:final id) => GuildDragWrapper(
+                      itemId: id.toString(),
+                      isFolder: true,
+                      child: _GuildFolderWidget(
+                        folder: item,
+                        activeGuildId: activeGuildId,
+                        unavailableCount: unavailableCount,
+                      ),
+                    ),
+                  },
+                _SidebarDivider(color: context.colors.backgroundModifierHover),
+                _DashedGuildIcon(
+                  label: 'Add a Server',
+                  icon: PhosphorIconsRegular.plus,
+                  onTap: () {},
+                ),
+                _DashedGuildIcon(
+                  label: 'Explore Discoverable Servers',
+                  icon: PhosphorIconsRegular.compass,
+                  onTap: () {},
+                ),
+                _DashedGuildIcon(
+                  label: 'Help',
+                  icon: PhosphorIconsRegular.question,
+                  onTap: () {},
+                ),
+              ],
             ),
-            _GuildListItem(
-              label: 'Favorites',
-              isSelected: isFavorites,
-              icon: PhosphorIconsFill.star,
-              onTap: () {
-                context.go(RoutePaths.favoritesBase);
-              },
-            ),
-            _SidebarDivider(color: context.colors.backgroundModifierHover),
-            for (final item in organizedItems)
-              switch (item) {
-                GuildNavbarGuild(:final guild) => GuildDragWrapper(
-                  itemId: guild.id,
-                  isFolder: false,
-                  enabled: !guild.isUnavailable,
-                  child: _buildGuildItem(
-                    ref,
-                    context,
-                    guild: guild,
-                    activeGuildId: activeGuildId,
-                    currentUserId: currentUserId,
-                    unavailableCount: unavailableCount,
+            Positioned(
+              top: 8 + topPadding,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: IgnorePointer(
+                  ignoring: !_showTopIndicator,
+                  child: AnimatedSlide(
+                    offset: Offset(0, _showTopIndicator ? 0 : -1),
+                    duration: const Duration(milliseconds: 150),
+                    curve: Curves.easeOut,
+                    child: AnimatedOpacity(
+                      opacity: _showTopIndicator ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 150),
+                      child: GuildScrollIndicator(
+                        severity: _topSeverity,
+                        onTap: () => _scrollToItem(_topTargetId),
+                      ),
+                    ),
                   ),
                 ),
-                GuildNavbarFolder(:final id) => GuildDragWrapper(
-                  itemId: id.toString(),
-                  isFolder: true,
-                  child: _GuildFolderWidget(
-                    folder: item,
-                    activeGuildId: activeGuildId,
-                    currentUserId: currentUserId,
-                    unavailableCount: unavailableCount,
+              ),
+            ),
+            Positioned(
+              bottom: 8,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: IgnorePointer(
+                  ignoring: !_showBottomIndicator,
+                  child: AnimatedSlide(
+                    offset: Offset(0, _showBottomIndicator ? 0 : 1),
+                    duration: const Duration(milliseconds: 150),
+                    curve: Curves.easeOut,
+                    child: AnimatedOpacity(
+                      opacity: _showBottomIndicator ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 150),
+                      child: GuildScrollIndicator(
+                        severity: _bottomSeverity,
+                        onTap: () => _scrollToItem(_bottomTargetId),
+                      ),
+                    ),
                   ),
                 ),
-              },
-            _SidebarDivider(color: context.colors.backgroundModifierHover),
-            _DashedGuildIcon(
-              label: 'Add a Server',
-              icon: PhosphorIconsRegular.plus,
-              onTap: () {},
-            ),
-            _DashedGuildIcon(
-              label: 'Explore Discoverable Servers',
-              icon: PhosphorIconsRegular.compass,
-              onTap: () {},
-            ),
-            _DashedGuildIcon(
-              label: 'Help',
-              icon: PhosphorIconsRegular.question,
-              onTap: () {},
+              ),
             ),
           ],
         ),
@@ -129,14 +441,54 @@ class GuildNavbar extends ConsumerWidget {
     );
   }
 
+  Future<void> _handleDmContextMenu(
+    BuildContext context, {
+    required Offset position,
+    required DmChannel dm,
+    required bool isCollapsed,
+    required bool isAllowlisted,
+  }) async {
+    final action = await showDmNavbarContextMenu(
+      context,
+      position: position,
+      channelId: dm.id,
+      hasUnread: dm.unreadCount > 0,
+      isMuted: false,
+      isPinned: false,
+      isCollapsed: isCollapsed,
+      isAllowlisted: isAllowlisted,
+    );
+
+    if (action == null || !context.mounted) {
+      return;
+    }
+
+    final dmFolderNotifier = ref.read(dmFolderProvider.notifier);
+
+    switch (action) {
+      case DmNavbarAction.markAsRead:
+        unawaited(ref.read(dmRepositoryProvider).markAsRead(dm.id));
+      case DmNavbarAction.alwaysShow:
+        dmFolderNotifier.addToAllowlist(dm.id);
+      case DmNavbarAction.removeAlwaysShow:
+        dmFolderNotifier.removeFromAllowlist(dm.id);
+      case DmNavbarAction.closeDm:
+        unawaited(ref.read(dmRepositoryProvider).closeDmChannel(dm.id));
+      case DmNavbarAction.mute:
+      case DmNavbarAction.unmute:
+      case DmNavbarAction.pinDm:
+      case DmNavbarAction.unpinDm:
+        break;
+    }
+  }
+
   Widget _buildGuildItem(
-    WidgetRef ref,
     BuildContext context, {
     required Guild guild,
     required String? activeGuildId,
-    required String currentUserId,
     required int unavailableCount,
   }) {
+    final itemKey = _itemKeys.putIfAbsent(guild.id, GlobalKey.new);
     return Builder(
       builder: (context) {
         final unread = ref.watch(serverUnreadProvider(guild.id)).value;
@@ -145,11 +497,18 @@ class GuildNavbar extends ConsumerWidget {
         final voiceRows = ref
             .watch(guildVoiceParticipantsProvider(guild.id))
             .value;
+        final permissions = ref.watch(
+          guildPermissionsProvider.select((s) => s[guild.id] ?? 0),
+        );
+        final invitesPaused =
+            guild.features.contains('INVITES_DISABLED') &&
+            hasPermission(permissions, Permission.manageGuild);
         return _GuildListItem(
+          key: itemKey,
           label: guild.name,
           guild: guild,
           isSelected: guild.id == activeGuildId,
-          isOwner: guild.ownerId == currentUserId,
+          permissions: permissions,
           iconUrl: guild.iconUrl,
           isUnavailable: guild.isUnavailable,
           unavailableCount: unavailableCount,
@@ -159,6 +518,7 @@ class GuildNavbar extends ConsumerWidget {
           voiceRows: voiceRows ?? const [],
           hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
           mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
+          invitesPaused: invitesPaused,
           onTap: () {
             context.go(RoutePaths.guild(guild.id));
           },
@@ -171,13 +531,11 @@ class GuildNavbar extends ConsumerWidget {
 class _GuildFolderWidget extends ConsumerStatefulWidget {
   final GuildNavbarFolder folder;
   final String? activeGuildId;
-  final String currentUserId;
   final int unavailableCount;
 
   const _GuildFolderWidget({
     required this.folder,
     required this.activeGuildId,
-    required this.currentUserId,
     required this.unavailableCount,
   });
 
@@ -443,6 +801,12 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
         final voiceRows = ref
             .watch(guildVoiceParticipantsProvider(guild.id))
             .value;
+        final permissions = ref.watch(
+          guildPermissionsProvider.select((s) => s[guild.id] ?? 0),
+        );
+        final invitesPaused =
+            guild.features.contains('INVITES_DISABLED') &&
+            hasPermission(permissions, Permission.manageGuild);
         return GuildDragWrapper(
           itemId: guild.id,
           isFolder: false,
@@ -450,7 +814,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             label: guild.name,
             guild: guild,
             isSelected: guild.id == widget.activeGuildId,
-            isOwner: guild.ownerId == widget.currentUserId,
+            permissions: permissions,
             iconUrl: guild.iconUrl,
             isUnavailable: guild.isUnavailable,
             unavailableCount: widget.unavailableCount,
@@ -460,6 +824,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             voiceRows: voiceRows ?? const [],
             hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
             mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
+            invitesPaused: invitesPaused,
             onTap: () {
               context.go(RoutePaths.guild(guild.id));
             },
@@ -491,7 +856,7 @@ class _GuildListItem extends StatefulWidget {
   final String label;
   final Guild? guild;
   final bool isSelected;
-  final bool isOwner;
+  final int permissions;
   final bool isUnavailable;
   final int unavailableCount;
   final bool isMuted;
@@ -504,13 +869,15 @@ class _GuildListItem extends StatefulWidget {
   final String? iconUrl;
   final bool hasUnread;
   final int mentionCount;
+  final bool invitesPaused;
 
   const _GuildListItem({
     required this.label,
     required this.onTap,
+    super.key,
     this.guild,
     this.isSelected = false,
-    this.isOwner = false,
+    this.permissions = 0,
     this.isUnavailable = false,
     this.unavailableCount = 0,
     this.isMuted = false,
@@ -522,6 +889,7 @@ class _GuildListItem extends StatefulWidget {
     this.iconUrl,
     this.hasUnread = false,
     this.mentionCount = 0,
+    this.invitesPaused = false,
   });
 
   @override
@@ -607,7 +975,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                     ? _GuildTooltipContent(
                         guild: widget.guild!,
                         unavailableCount: widget.unavailableCount,
-                        isOwner: widget.isOwner,
+                        permissions: widget.permissions,
                         isMuted: widget.isMuted,
                         muteEndTime: widget.muteEndTime,
                         voiceRows: widget.voiceRows,
@@ -694,6 +1062,12 @@ class _GuildListItemState extends State<_GuildListItem> {
                   right: -4,
                   child: _VoiceActivityBadge(type: widget.voiceActivity),
                 ),
+              if (!widget.isUnavailable &&
+                  !widget.isSelected &&
+                  widget.invitesPaused &&
+                  widget.mentionCount == 0 &&
+                  widget.voiceActivity == VoiceActivityType.none)
+                const Positioned(bottom: -4, right: -4, child: _PauseBadge()),
             ],
           ),
         ],
@@ -718,7 +1092,7 @@ class _GuildListItemState extends State<_GuildListItem> {
       position: position,
       guild: widget.guild!,
       hasUnread: widget.hasUnread,
-      isOwner: widget.isOwner,
+      permissions: widget.permissions,
     );
     if (context.mounted && action != null) {
       _handleAction(context, action);
@@ -737,7 +1111,7 @@ class _GuildListItemState extends State<_GuildListItem> {
       context,
       guild: widget.guild!,
       hasUnread: widget.hasUnread,
-      isOwner: widget.isOwner,
+      permissions: widget.permissions,
     );
     if (context.mounted && action != null) {
       _handleAction(context, action);
@@ -1099,7 +1473,7 @@ class _TooltipLabel extends StatelessWidget {
 class _GuildTooltipContent extends StatelessWidget {
   final Guild guild;
   final int unavailableCount;
-  final bool isOwner;
+  final int permissions;
   final bool isMuted;
   final DateTime? muteEndTime;
   final List<VoiceParticipantRow> voiceRows;
@@ -1107,7 +1481,7 @@ class _GuildTooltipContent extends StatelessWidget {
   const _GuildTooltipContent({
     required this.guild,
     this.unavailableCount = 0,
-    this.isOwner = false,
+    this.permissions = 0,
     this.isMuted = false,
     this.muteEndTime,
     this.voiceRows = const [],
@@ -1199,7 +1573,8 @@ class _GuildTooltipContent extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (isOwner && guild.features.contains('INVITES_DISABLED')) ...[
+                if (hasPermission(permissions, Permission.manageGuild) &&
+                    guild.features.contains('INVITES_DISABLED')) ...[
                   const SizedBox(height: 6),
                   Text(
                     'Invites are currently paused in this community',
@@ -1363,6 +1738,33 @@ class _VoiceActivityBadge extends StatelessWidget {
           icon,
           color: context.colors.textOnBrandPrimary,
           size: 12,
+        ),
+      ),
+    );
+  }
+}
+
+class _PauseBadge extends StatelessWidget {
+  const _PauseBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: context.colors.interactiveMuted,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: context.colors.serverSidebarBackground,
+          width: 3,
+        ),
+      ),
+      child: Center(
+        child: PhosphorIcon(
+          PhosphorIconsFill.pause,
+          size: 12,
+          color: context.colors.textOnBrandPrimary,
         ),
       ),
     );

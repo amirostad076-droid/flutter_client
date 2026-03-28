@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/shell/presentation/responsive_layout.dart'
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart'
     show isMobileLayout;
-import 'package:fluxeron/features/ui/action_menu/context_menu_widgets.dart';
-import 'package:fluxeron/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
+import 'package:fluxer_app/features/ui/action_menu/context_menu_widgets.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum DmNavbarAction {
