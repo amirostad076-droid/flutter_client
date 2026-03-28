@@ -42,6 +42,7 @@ class MessageList extends ConsumerStatefulWidget {
 
 class _MessageListState extends ConsumerState<MessageList> {
   final _scrollController = ScrollController();
+  final _itemKeys = <String, GlobalKey>{};
 
   @override
   void initState() {
@@ -58,9 +59,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onScroll() {
-    if (!_scrollController.hasClients) {
-      return;
-    }
+    if (!_scrollController.hasClients) return;
     final pos = _scrollController.position;
     if (pos.pixels >= pos.maxScrollExtent - _kLoadMoreThreshold) {
       unawaited(ref.read(chatViewModelProvider.notifier).loadMore());
@@ -81,6 +80,47 @@ class _MessageListState extends ConsumerState<MessageList> {
     });
   }
 
+  void _onScrollToMessage(String messageId) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      final messages = ref.read(chatViewModelProvider).messages;
+      final idx = messages.indexWhere((m) => m.id == messageId);
+      if (idx == -1) return;
+
+      final existingCtx = _itemKeys[messageId]?.currentContext;
+      if (existingCtx != null) {
+        unawaited(
+          Scrollable.ensureVisible(
+            existingCtx,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            alignment: 0.5,
+          ),
+        );
+        return;
+      }
+
+      final reversedIdx = messages.length - 1 - idx;
+      final extent = _scrollController.position.maxScrollExtent;
+      final approx = (reversedIdx / messages.length * extent)
+          .clamp(0.0, extent);
+      _scrollController.jumpTo(approx);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = _itemKeys[messageId]?.currentContext;
+        if (ctx == null) return;
+        unawaited(
+          Scrollable.ensureVisible(
+            ctx,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            alignment: 0.5,
+          ),
+        );
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<int>(
@@ -92,9 +132,20 @@ class _MessageListState extends ConsumerState<MessageList> {
       },
     );
 
+    ref.listen<(String, int)?>(
+      chatViewModelProvider.select((s) => s.scrollToMessageSignal),
+      (previous, next) {
+        if (next != null && next != previous) {
+          _onScrollToMessage(next.$1);
+        }
+      },
+    );
+
     final currentUserId = ref.watch(currentUserIdProvider);
     final state = ref.watch(chatViewModelProvider);
     final messages = state.messages;
+
+    if (messages.isEmpty) _itemKeys.clear();
 
     if (state.isLoading) {
       return Center(
@@ -188,8 +239,9 @@ class _MessageListState extends ConsumerState<MessageList> {
 
         final isGrouped = !isNewDay && _shouldGroup(msg, prevMsg);
 
+        final itemKey = _itemKeys.putIfAbsent(msg.id, GlobalKey.new);
         final bubble = MessageItem(
-          key: ValueKey(msg.id),
+          key: itemKey,
           message: msg,
           isGrouped: isGrouped,
           currentUserId: currentUserId,

@@ -14,10 +14,12 @@ import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 class ChannelChatContent extends ConsumerStatefulWidget {
   final String channelId;
   final bool showTopBar;
+  final String? targetMessageId;
 
   const ChannelChatContent({
     required this.channelId,
     this.showTopBar = true,
+    this.targetMessageId,
     super.key,
   });
 
@@ -35,13 +37,18 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
   @override
   void didUpdateWidget(ChannelChatContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.channelId != widget.channelId) {
+    if (oldWidget.channelId != widget.channelId ||
+        oldWidget.targetMessageId != widget.targetMessageId) {
       unawaited(Future(_switchChannel));
     }
   }
 
-  Future<void> _switchChannel() =>
-      ref.read(chatViewModelProvider.notifier).switchChannel(widget.channelId);
+  Future<void> _switchChannel() => ref
+      .read(chatViewModelProvider.notifier)
+      .switchChannel(
+        widget.channelId,
+        targetMessageId: widget.targetMessageId,
+      );
 
   @override
   Widget build(BuildContext context) {

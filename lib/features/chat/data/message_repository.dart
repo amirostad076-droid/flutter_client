@@ -25,12 +25,14 @@ class MessageRepository {
     required String channelId,
     int limit = 30,
     String? before,
+    String? around,
   }) async {
     try {
       final data = await _client.channels.listMessages(
         channelId: channelId,
         limit: limit.toString(),
         before: before,
+        around: around,
       );
 
       final messages = data.map(Message.fromSdk).toList().reversed.toList();
@@ -55,6 +57,7 @@ class MessageRepository {
           channelId: channelId,
           limit: limit,
           before: before,
+          around: around,
         );
       }
       throw Exception(
@@ -69,8 +72,13 @@ class MessageRepository {
     required String channelId,
     int limit = 30,
     String? before,
+    String? around,
   }) async {
-    final queryParams = <String, dynamic>{'limit': limit, 'before': ?before};
+    final queryParams = <String, dynamic>{
+      'limit': limit,
+      if (before != null) 'before': before,
+      if (around != null) 'around': around,
+    };
     final response = await _dio.get<List<dynamic>>(
       '/channels/$channelId/messages',
       queryParameters: queryParams,

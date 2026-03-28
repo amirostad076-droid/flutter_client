@@ -19,6 +19,7 @@ class ChatViewState {
   final Message? forwardingFrom;
   final String messageText;
   final int scrollToBottomSignal;
+  final (String messageId, int version)? scrollToMessageSignal;
   final bool isLoading;
   final bool isLoadingMore;
   final bool hasMoreMessages;
@@ -31,6 +32,7 @@ class ChatViewState {
     required this.forwardingFrom,
     required this.messageText,
     required this.scrollToBottomSignal,
+    this.scrollToMessageSignal,
     required this.isLoading,
     required this.isLoadingMore,
     required this.hasMoreMessages,
@@ -46,6 +48,7 @@ class ChatViewState {
     Object? forwardingFrom = _unset,
     String? messageText,
     int? scrollToBottomSignal,
+    Object? scrollToMessageSignal = _unset,
     bool? isLoading,
     bool? isLoadingMore,
     bool? hasMoreMessages,
@@ -62,6 +65,9 @@ class ChatViewState {
           : forwardingFrom as Message?,
       messageText: messageText ?? this.messageText,
       scrollToBottomSignal: scrollToBottomSignal ?? this.scrollToBottomSignal,
+      scrollToMessageSignal: scrollToMessageSignal == _unset
+          ? this.scrollToMessageSignal
+          : scrollToMessageSignal as (String, int)?,
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMoreMessages: hasMoreMessages ?? this.hasMoreMessages,
@@ -83,6 +89,7 @@ class ChatViewModel extends _$ChatViewModel {
       forwardingFrom: null,
       messageText: '',
       scrollToBottomSignal: 0,
+      scrollToMessageSignal: null,
       isLoading: false,
       isLoadingMore: false,
       hasMoreMessages: true,
@@ -90,7 +97,7 @@ class ChatViewModel extends _$ChatViewModel {
     );
   }
 
-  Future<void> switchChannel(String channelId) async {
+  Future<void> switchChannel(String channelId, {String? targetMessageId}) async {
     state = ChatViewState(
       channelId: channelId,
       messages: const [],
@@ -98,23 +105,35 @@ class ChatViewModel extends _$ChatViewModel {
       forwardingFrom: null,
       messageText: '',
       scrollToBottomSignal: state.scrollToBottomSignal,
+      scrollToMessageSignal: null,
       isLoading: true,
       isLoadingMore: false,
       hasMoreMessages: true,
       errorMessage: null,
     );
-    await _loadMessages(channelId);
+    await _loadMessages(channelId, targetMessageId: targetMessageId);
   }
 
-  Future<void> _loadMessages(String channelId) async {
+  Future<void> _loadMessages(
+    String channelId, {
+    String? targetMessageId,
+  }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final repo = ref.read(messageRepositoryProvider);
-      final messages = await repo.getMessages(channelId: channelId);
+      final messages = await repo.getMessages(
+        channelId: channelId,
+        around: targetMessageId,
+      );
+      final signal = targetMessageId != null &&
+              messages.any((m) => m.id == targetMessageId)
+          ? (targetMessageId, (state.scrollToMessageSignal?.$2 ?? 0) + 1)
+          : null;
       state = state.copyWith(
         messages: messages,
         isLoading: false,
         hasMoreMessages: messages.length >= _kPageSize,
+        scrollToMessageSignal: signal,
       );
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load messages: $e');

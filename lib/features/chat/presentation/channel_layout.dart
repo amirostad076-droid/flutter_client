@@ -12,10 +12,12 @@ import 'package:fluxer_app/features/members/presentation/widgets/channel_members
 class ChannelLayout extends ConsumerWidget {
   final String serverId;
   final String channelId;
+  final String? messageId;
 
   const ChannelLayout({
     required this.serverId,
     required this.channelId,
+    this.messageId,
     super.key,
   });
 
@@ -45,6 +47,7 @@ class ChannelLayout extends ConsumerWidget {
                       Expanded(
                         child: ChannelChatContent(
                           channelId: channelId,
+                          targetMessageId: messageId,
                           showTopBar: false,
                         ),
                       ),

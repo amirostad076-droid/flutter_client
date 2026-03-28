@@ -353,12 +353,13 @@ GoRouter fluxerRouter(Ref ref) {
                         pageBuilder: (context, state) {
                           final guildId = state.pathParameters['guildId']!;
                           final channelId = state.pathParameters['channelId']!;
-                          // TODO: Scroll to messageId
+                          final messageId = state.pathParameters['messageId']!;
                           return _slideTransitionPage(
                             key: state.pageKey,
                             child: ChannelLayout(
                               serverId: guildId,
                               channelId: channelId,
+                              messageId: messageId,
                             ),
                           );
                         },

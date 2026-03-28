@@ -199,6 +199,8 @@ class ChannelJumpLinkMention extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMessage = link is MessageJumpLink;
+
     final channelAsync = ref.watch(channelByIdProvider(link.channelId));
     final guildAsync = link.isDm
         ? null
@@ -214,11 +216,23 @@ class ChannelJumpLinkMention extends ConsumerWidget {
     );
     final iconSize = (style.fontSize ?? 14) * 0.9;
 
+    void onTap() {
+      if (channel == null) return;
+      final messageId = isMessage ? (link as MessageJumpLink).messageId : null;
+      final path = link.isDm
+          ? RoutePaths.dmChannel(link.channelId)
+          : messageId != null
+              ? RoutePaths.guildChannelMessage(
+                  link.scope,
+                  link.channelId,
+                  messageId,
+                )
+              : RoutePaths.guildChannel(link.scope, link.channelId);
+      context.go(path);
+    }
+
     return _JumpLinkPill(
-      onTap: channel == null
-          ? null
-          : () =>
-                context.go(RoutePaths.guildChannel(link.scope, link.channelId)),
+      onTap: channel == null ? null : onTap,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -235,13 +249,21 @@ class ChannelJumpLinkMention extends ConsumerWidget {
               ),
             ),
           ],
-          ChannelIcon(
-            type: channel?.type ?? ChannelType.text,
-            size: iconSize,
-            color: colors.markupMentionText,
-          ),
-          SizedBox(width: iconSize * 0.2),
-          Text(channel?.name ?? link.channelId, style: style),
+          if (isMessage)
+            PhosphorIcon(
+              PhosphorIconsFill.chatCircle,
+              size: iconSize,
+              color: colors.markupMentionText,
+            )
+          else ...[
+            ChannelIcon(
+              type: channel?.type ?? ChannelType.text,
+              size: iconSize,
+              color: colors.markupMentionText,
+            ),
+            SizedBox(width: iconSize * 0.2),
+            Text(channel?.name ?? link.channelId, style: style),
+          ],
         ],
       ),
     );
