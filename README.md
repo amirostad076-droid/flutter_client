@@ -9,8 +9,8 @@
     <img src="https://img.shields.io/badge/Docs-docs.fluxer.app-blue" alt="Documentation" /></a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/License-AGPLv3-purple" alt="AGPLv3 License" /></a>
-  <a href="https://pub.dev/packages/fluxer_dart">
-    <img src="https://img.shields.io/badge/pub.dev-fluxer__dart-blue" alt="pub.dev package" /></a>
+  <a href="https://github.com/fluxerapp/flutter_client/actions/workflows/dart-analyze.yml">
+    <img src="https://github.com/fluxerapp/flutter_client/actions/workflows/dart-analyze.yml/badge.svg" alt="Dart analyze" /></a>
 </p>
 
 # Fluxer Flutter Client
