@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 
 class FluxerKeybindHint extends StatelessWidget {
   const FluxerKeybindHint({required this.keys, super.key});

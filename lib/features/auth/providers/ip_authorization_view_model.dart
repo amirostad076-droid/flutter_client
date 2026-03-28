@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:fluxeron/core/talker.dart';
-import 'package:fluxeron/features/auth/domain/auth_session.dart';
-import 'package:fluxeron/features/auth/providers/auth_providers.dart';
+import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/auth/domain/auth_session.dart';
+import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ip_authorization_view_model.g.dart';

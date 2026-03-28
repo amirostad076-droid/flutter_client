@@ -1,9 +1,9 @@
-import 'package:fluxeron/core/talker.dart';
-import 'package:fluxeron/features/auth/data/webauthn_service.dart';
-import 'package:fluxeron/features/auth/domain/auth_failure.dart';
-import 'package:fluxeron/features/auth/domain/auth_session.dart';
-import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
-import 'package:fluxeron/features/auth/providers/auth_providers.dart';
+import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/auth/data/webauthn_service.dart';
+import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
+import 'package:fluxer_app/features/auth/domain/auth_session.dart';
+import 'package:fluxer_app/features/auth/domain/mfa_challenge.dart';
+import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'mfa_view_model.g.dart';

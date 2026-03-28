@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/channel_header.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/channel_textarea.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/message_list.dart';
-import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/channel_header.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/channel_textarea.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/message_list.dart';
+import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 
 /// Composite chat view that assembles the top bar, message list,
 /// and input field. Works for both server channels and DMs.

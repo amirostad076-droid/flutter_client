@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum GuildAction {

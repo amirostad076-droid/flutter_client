@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/providers/app_startup_provider.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/core/providers/app_startup_provider.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kRetryDelay = Duration(seconds: 5);

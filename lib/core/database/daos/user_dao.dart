@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
-import 'package:fluxeron/core/database/fluxer_database.dart';
-import 'package:fluxeron/core/database/tables/users.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/tables/users.dart';
 
 part 'user_dao.g.dart';
 

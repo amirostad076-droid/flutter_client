@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_theme.dart';
-import 'package:fluxeron/core/theme/themes/dark.dart';
-import 'package:fluxeron/features/ui/toast/fluxer_toast.dart';
-import 'package:fluxeron/features/ui/toast/fluxer_toast_overlay.dart';
-import 'package:fluxeron/features/ui/toast/toast_provider.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme.dart';
+import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
+import 'package:fluxer_app/features/ui/toast/fluxer_toast_overlay.dart';
+import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();

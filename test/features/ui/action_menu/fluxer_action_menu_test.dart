@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_theme.dart';
-import 'package:fluxeron/core/theme/themes/dark.dart';
-import 'package:fluxeron/features/ui/action_menu/fluxer_action_menu.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme.dart';
+import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/features/ui/action_menu/fluxer_action_menu.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 Widget buildTestApp(Widget child) {

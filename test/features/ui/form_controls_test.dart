@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_theme.dart';
-import 'package:fluxeron/core/theme/themes/dark.dart';
-import 'package:fluxeron/features/ui/checkbox/fluxer_checkbox.dart';
-import 'package:fluxeron/features/ui/radio_group/fluxer_radio_group.dart';
-import 'package:fluxeron/features/ui/toggle_switch/fluxer_toggle_switch.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme.dart';
+import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/features/ui/checkbox/fluxer_checkbox.dart';
+import 'package:fluxer_app/features/ui/radio_group/fluxer_radio_group.dart';
+import 'package:fluxer_app/features/ui/toggle_switch/fluxer_toggle_switch.dart';
 
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();

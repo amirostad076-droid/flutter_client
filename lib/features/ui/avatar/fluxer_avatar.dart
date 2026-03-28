@@ -1,10 +1,10 @@
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import 'package:fluxeron/core/database/fluxer_database.dart' as db;
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/guilds/domain/guild.dart';
-import 'package:fluxeron/features/ui/status_indicator/fluxer_status_indicator.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/ui/status_indicator/fluxer_status_indicator.dart';
 
 const _kDefaultAvatarCount = 6;
 const _kStaticCdnUrl = 'https://fluxerstatic.com';

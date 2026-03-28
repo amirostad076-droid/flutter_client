@@ -5,26 +5,26 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fluxeron/core/constants/assets.dart';
-import 'package:fluxeron/core/router/route_names.dart';
-import 'package:fluxeron/core/router/route_state_providers.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/channels/providers/unread_provider.dart';
-import 'package:fluxeron/features/friends/providers/friend_providers.dart';
-import 'package:fluxeron/features/guilds/domain/guild.dart';
-import 'package:fluxeron/features/guilds/presentation/'
+import 'package:fluxer_app/core/constants/assets.dart';
+import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
+import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_bottom_sheet.dart';
-import 'package:fluxeron/features/guilds/presentation/'
+import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_context_menu.dart';
-import 'package:fluxeron/features/guilds/presentation/'
+import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_drag_wrapper.dart';
-import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
-import 'package:fluxeron/features/guilds/providers/guild_mute_provider.dart';
-import 'package:fluxeron/features/guilds/providers/guild_voice_provider.dart';
-import 'package:fluxeron/features/guilds/providers/organized_guild_list_provider.dart';
-import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
-import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxeron/features/ui/ui.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_voice_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 

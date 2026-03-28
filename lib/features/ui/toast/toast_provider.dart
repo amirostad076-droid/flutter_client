@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fluxeron/features/ui/toast/fluxer_toast.dart';
+import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'toast_provider.g.dart';

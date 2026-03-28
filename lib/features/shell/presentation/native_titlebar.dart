@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fluxeron/core/constants/assets.dart';
-import 'package:fluxeron/core/router/fluxer_router.dart';
-import 'package:fluxeron/core/router/route_state_providers.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/guilds/domain/guild.dart';
-import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/core/constants/assets.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 

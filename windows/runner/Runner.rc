@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.parakeetsoft" "\0"
-            VALUE "FileDescription", "fluxeron" "\0"
+            VALUE "FileDescription", "fluxer_app" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "fluxeron" "\0"
+            VALUE "InternalName", "fluxer_app" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.parakeetsoft. All rights reserved." "\0"
-            VALUE "OriginalFilename", "fluxeron.exe" "\0"
-            VALUE "ProductName", "fluxeron" "\0"
+            VALUE "OriginalFilename", "fluxer_app.exe" "\0"
+            VALUE "ProductName", "fluxer_app" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

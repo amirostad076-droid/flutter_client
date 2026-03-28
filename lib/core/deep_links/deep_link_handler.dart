@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
-import 'package:fluxeron/core/router/fluxer_router.dart';
-import 'package:fluxeron/core/router/route_names.dart';
-import 'package:fluxeron/core/talker.dart';
-import 'package:fluxeron/features/auth/providers/login_view_model.dart';
-import 'package:fluxeron/features/auth/providers/pending_invite_code_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
+import 'package:fluxer_app/features/auth/providers/pending_invite_code_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

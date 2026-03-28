@@ -1,5 +1,5 @@
-import 'package:fluxeron/features/auth/providers/login_view_model.dart';
-import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 extension LoginErrorL10n on LoginError {
   String resolve(FluxerLocalizations l10n) {

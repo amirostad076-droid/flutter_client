@@ -1,7 +1,7 @@
-import 'package:fluxeron/features/auth/domain/auth_session.dart';
-import 'package:fluxeron/features/auth/domain/ban_view.dart';
-import 'package:fluxeron/features/auth/domain/ip_authorization_challenge.dart';
-import 'package:fluxeron/features/auth/domain/mfa_challenge.dart';
+import 'package:fluxer_app/features/auth/domain/auth_session.dart';
+import 'package:fluxer_app/features/auth/domain/ban_view.dart';
+import 'package:fluxer_app/features/auth/domain/ip_authorization_challenge.dart';
+import 'package:fluxer_app/features/auth/domain/mfa_challenge.dart';
 
 sealed class LoginResult {
   const LoginResult();

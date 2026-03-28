@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluxeron/core/theme/fluxer_motion_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_motion_theme.dart';
 
 void main() {
   group('FluxerMotionTheme', () {

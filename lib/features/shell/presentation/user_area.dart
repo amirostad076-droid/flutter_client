@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/settings/providers/user_settings_view_model.dart';
-import 'package:fluxeron/features/ui/ui.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class UserArea extends ConsumerWidget {

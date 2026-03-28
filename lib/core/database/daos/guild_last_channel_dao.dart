@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'package:fluxeron/core/database/fluxer_database.dart';
-import 'package:fluxeron/core/database/tables/guild_last_channels.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/tables/guild_last_channels.dart';
 
 part 'guild_last_channel_dao.g.dart';
 

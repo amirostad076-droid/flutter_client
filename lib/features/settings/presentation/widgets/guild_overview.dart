@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 
 class GuildOverview extends StatelessWidget {
   final Guild guild;

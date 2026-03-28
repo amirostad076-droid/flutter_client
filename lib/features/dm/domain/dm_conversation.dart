@@ -1,4 +1,4 @@
-import 'package:fluxeron/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 
 class DmConversation {
   final String id;

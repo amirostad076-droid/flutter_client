@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/app.dart';
-import 'package:fluxeron/core/providers/app_startup_provider.dart';
+import 'package:fluxer_app/app.dart';
+import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -32,6 +32,6 @@ Future<void> main() async {
   final container = ProviderContainer()..read(appStartupProvider);
 
   runApp(
-    UncontrolledProviderScope(container: container, child: const FluxeronApp()),
+    UncontrolledProviderScope(container: container, child: const FluxerApp()),
   );
 }

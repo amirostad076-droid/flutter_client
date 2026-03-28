@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import 'package:fluxeron/features/auth/domain/ban_view.dart';
+import 'package:fluxer_app/features/auth/domain/ban_view.dart';
 
 /// Repository for ban view API calls.
 ///

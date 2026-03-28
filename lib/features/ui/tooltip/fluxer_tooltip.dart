@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 
 /// Position of the tooltip relative to its target.
 enum FluxerTooltipPosition { above, below, left, right }

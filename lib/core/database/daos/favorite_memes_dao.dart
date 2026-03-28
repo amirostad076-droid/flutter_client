@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'package:fluxeron/core/database/fluxer_database.dart';
-import 'package:fluxeron/core/database/tables/favorite_memes.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/tables/favorite_memes.dart';
 
 part 'favorite_memes_dao.g.dart';
 

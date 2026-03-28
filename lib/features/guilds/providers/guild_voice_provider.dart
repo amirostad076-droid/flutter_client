@@ -1,6 +1,6 @@
-import 'package:fluxeron/core/providers/database_provider.dart';
-import 'package:fluxeron/features/gateway/providers/gateway_event_providers.dart';
-import 'package:fluxeron/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'guild_voice_provider.g.dart';

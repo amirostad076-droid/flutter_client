@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
-import 'package:fluxeron/core/database/fluxer_database.dart';
-import 'package:fluxeron/core/database/tables/roles.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/tables/roles.dart';
 
 part 'role_dao.g.dart';
 

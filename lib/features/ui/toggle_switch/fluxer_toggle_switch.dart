@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 
 /// A themed toggle switch with an optional tappable label on the left.
 ///

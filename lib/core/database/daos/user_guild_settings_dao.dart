@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'package:fluxeron/core/database/fluxer_database.dart';
-import 'package:fluxeron/core/database/tables/user_guild_settings.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/tables/user_guild_settings.dart';
 
 part 'user_guild_settings_dao.g.dart';
 

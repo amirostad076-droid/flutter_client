@@ -1,5 +1,5 @@
-import 'package:fluxeron/core/build/app_build_environment.dart';
-import 'package:fluxeron/core/build/push_provider_kind.dart';
+import 'package:fluxer_app/core/build/app_build_environment.dart';
+import 'package:fluxer_app/core/build/push_provider_kind.dart';
 
 class AppBuildConfig {
   const AppBuildConfig._();

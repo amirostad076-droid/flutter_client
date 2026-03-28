@@ -5,11 +5,11 @@ import 'package:drift/drift.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 
-import 'package:fluxeron/core/database/fluxer_database.dart' as db;
-import 'package:fluxeron/core/talker.dart';
-import 'package:fluxeron/features/chat/domain/message.dart';
-import 'package:fluxeron/shared/utils/sdk_converters.dart';
-import 'package:fluxeron/shared/utils/snowflake_time.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/shared/utils/sdk_converters.dart';
+import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 
 typedef TypingCallback = void Function(String channelId, String userId);
 typedef VoiceStateCallback = void Function(VoiceState state);

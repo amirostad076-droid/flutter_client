@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/theme/color_families.dart';
-import 'package:fluxeron/core/theme/color_generator.dart';
-import 'package:fluxeron/core/theme/fluxer_color_theme.dart';
+import 'package:fluxer_app/core/theme/color_families.dart';
+import 'package:fluxer_app/core/theme/color_generator.dart';
+import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 
 /// Builds the dark color theme using the color generator system.
 FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {

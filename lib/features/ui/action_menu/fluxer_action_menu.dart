@@ -3,15 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/shell/presentation/responsive_layout.dart'
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart'
     show isMobileLayout;
-import 'package:fluxeron/features/ui/bottom_sheet/fluxer_bottom_sheet.dart'
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart'
     show
         FluxerBottomSheetDragHandle,
         FluxerBottomSheetMenuItem,
         FluxerMenuGroup;
-import 'package:fluxeron/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Builder for action menu items that receives a close callback.

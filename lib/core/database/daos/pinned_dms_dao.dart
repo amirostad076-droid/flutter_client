@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'package:fluxeron/core/database/fluxer_database.dart';
-import 'package:fluxeron/core/database/tables/pinned_dms.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/tables/pinned_dms.dart';
 
 part 'pinned_dms_dao.g.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/theme/fluxer_color_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FluxerTextTheme extends ThemeExtension<FluxerTextTheme> {

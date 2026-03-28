@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/members/domain/member.dart';
-import 'package:fluxeron/features/members/providers/member_list_view_model.dart';
-import 'package:fluxeron/features/ui/ui.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/members/domain/member.dart';
+import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 
 const _kPanelWidth = 264.0;
 

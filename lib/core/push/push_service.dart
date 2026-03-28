@@ -1,4 +1,4 @@
-import 'package:fluxeron/core/push/push_message.dart';
+import 'package:fluxer_app/core/push/push_message.dart';
 
 abstract interface class PushService {
   Future<void> requestPermissions();

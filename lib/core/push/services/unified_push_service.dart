@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:fluxeron/core/push/push_message.dart';
-import 'package:fluxeron/core/push/push_service.dart';
+import 'package:fluxer_app/core/push/push_message.dart';
+import 'package:fluxer_app/core/push/push_service.dart';
 
 class UnifiedPushService implements PushService {
   const UnifiedPushService();

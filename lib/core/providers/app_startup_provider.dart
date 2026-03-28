@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:fluxeron/core/api/fluxer_client_provider.dart';
-import 'package:fluxeron/core/deep_links/deep_link_handler.dart';
-import 'package:fluxeron/core/providers/database_provider.dart';
-import 'package:fluxeron/core/providers/gateway_provider.dart';
-import 'package:fluxeron/core/router/fluxer_router.dart';
-import 'package:fluxeron/core/theme/providers/theme_preference_provider.dart';
-import 'package:fluxeron/shared/utils/emoji_registry.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/deep_links/deep_link_handler.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
+import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_startup_provider.g.dart';

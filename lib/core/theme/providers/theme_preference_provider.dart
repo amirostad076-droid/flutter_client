@@ -1,13 +1,13 @@
 import 'package:drift/drift.dart';
-import 'package:fluxeron/core/database/fluxer_database.dart';
-import 'package:fluxeron/core/providers/database_provider.dart';
-import 'package:fluxeron/core/theme/fluxer_color_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_mode.dart';
-import 'package:fluxeron/core/theme/themes/coal.dart';
-import 'package:fluxeron/core/theme/themes/dark.dart';
-import 'package:fluxeron/core/theme/themes/light.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
+import 'package:fluxer_app/core/theme/themes/coal.dart';
+import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/core/theme/themes/light.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'theme_preference_provider.g.dart';

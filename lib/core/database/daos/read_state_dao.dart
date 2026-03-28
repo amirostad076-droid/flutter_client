@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
-import 'package:fluxeron/core/database/fluxer_database.dart';
-import 'package:fluxeron/core/database/tables/read_states.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/tables/read_states.dart';
 
 part 'read_state_dao.g.dart';
 

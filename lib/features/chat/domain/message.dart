@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fluxer_dart/export.dart';
 
-import 'package:fluxeron/core/database/fluxer_database.dart' as db;
-import 'package:fluxeron/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 
 enum EmbedType { rich, image, gifv, link, video }
 

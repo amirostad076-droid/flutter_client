@@ -1,25 +1,25 @@
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/providers/database_provider.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/chat/domain/message.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/attachment_image.dart';
-import 'package:fluxeron/features/guilds/domain/guild.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/embed_image.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/embed_link.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/embed_rich.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/embed_video.dart';
-import 'package:fluxeron/features/chat/presentation/'
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachment_image.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embed_image.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embed_link.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embed_rich.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embed_video.dart';
+import 'package:fluxer_app/features/chat/presentation/'
     'widgets/forward_indicator.dart';
-import 'package:fluxeron/features/chat/presentation/'
+import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_bottom_sheet.dart';
-import 'package:fluxeron/features/chat/presentation/'
+import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_context_menu.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/reply_preview.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/message_markdown.dart';
-import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxeron/features/ui/ui.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Avatar column width: 40px avatar + 16px gap to the

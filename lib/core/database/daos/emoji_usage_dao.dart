@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:drift/drift.dart';
-import 'package:fluxeron/core/database/fluxer_database.dart';
-import 'package:fluxeron/core/database/tables/emoji_usage.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/tables/emoji_usage.dart';
 
 part 'emoji_usage_dao.g.dart';
 

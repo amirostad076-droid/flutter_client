@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 
 class FluxerTab {
   const FluxerTab({required this.label, this.icon});

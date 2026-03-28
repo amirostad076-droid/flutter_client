@@ -1,5 +1,5 @@
-import 'package:fluxeron/core/providers/database_provider.dart';
-import 'package:fluxeron/features/members/domain/member.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Fetches a single role by ID from the local database.

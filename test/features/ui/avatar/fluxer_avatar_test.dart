@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_theme.dart';
-import 'package:fluxeron/core/theme/themes/dark.dart';
-import 'package:fluxeron/features/ui/avatar/fluxer_avatar.dart';
-import 'package:fluxeron/features/ui/status_indicator/fluxer_status_indicator.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme.dart';
+import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
+import 'package:fluxer_app/features/ui/status_indicator/fluxer_status_indicator.dart';
 
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();

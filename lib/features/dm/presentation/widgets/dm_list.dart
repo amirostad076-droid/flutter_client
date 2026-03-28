@@ -3,17 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/router/fluxer_router.dart';
-import 'package:fluxeron/core/router/navigate_to_content.dart';
-import 'package:fluxeron/core/router/route_names.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
-import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
-import 'package:fluxeron/features/friends/providers/friend_providers.dart';
-import 'package:fluxeron/features/guilds/domain/guild.dart' show fluxerMediaCdn;
-import 'package:fluxeron/features/guilds/providers/guild_list_view_model.dart';
-import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxeron/features/ui/ui.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
+import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart' show fluxerMediaCdn;
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -692,7 +692,7 @@ class _DMListState extends ConsumerState<DMList> {
     }
 
     if (result is _InviteToGuildAction) {
-      // TODO(fluxeron): send invite for guild ${result.guildId} in DM
+      // TODO(fluxer_app): send invite for guild ${result.guildId} in DM
       return;
     }
 
@@ -701,13 +701,13 @@ class _DMListState extends ConsumerState<DMList> {
       case _DmAction.markAsRead:
         unawaited(ref.read(dmViewModelProvider.notifier).markAsRead(convo.id));
       case _DmAction.viewProfile:
-        // TODO(fluxeron): navigate to user profile sheet
+        // TODO(fluxer_app): navigate to user profile sheet
         break;
       case _DmAction.voiceCall:
-        // TODO(fluxeron): initiate voice call
+        // TODO(fluxer_app): initiate voice call
         break;
       case _DmAction.addNote:
-        // TODO(fluxeron): open add note sheet
+        // TODO(fluxer_app): open add note sheet
         break;
       case _DmAction.mute15Min:
       case _DmAction.mute30Min:
@@ -719,16 +719,16 @@ class _DMListState extends ConsumerState<DMList> {
       case _DmAction.mute3Days:
       case _DmAction.muteForever:
       case _DmAction.unmute:
-        // TODO(fluxeron): implement mute/unmute with selected duration
+        // TODO(fluxer_app): implement mute/unmute with selected duration
         break;
       case _DmAction.pinToggle:
-        // TODO(fluxeron): implement pin/unpin DM
+        // TODO(fluxer_app): implement pin/unpin DM
         break;
       case _DmAction.editGroup:
-        // TODO(fluxeron): open edit group sheet
+        // TODO(fluxer_app): open edit group sheet
         break;
       case _DmAction.block:
-        // TODO(fluxeron): implement block/unblock user
+        // TODO(fluxer_app): implement block/unblock user
         break;
       case _DmAction.closeDm:
         final success = await ref

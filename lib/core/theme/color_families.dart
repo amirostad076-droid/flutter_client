@@ -1,4 +1,4 @@
-import 'package:fluxeron/core/theme/color_generator.dart';
+import 'package:fluxer_app/core/theme/color_generator.dart';
 
 abstract final class FluxerColorFamilies {
   static const neutralDark = ColorFamily(hue: 220, saturation: 13);

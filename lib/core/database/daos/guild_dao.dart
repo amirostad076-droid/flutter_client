@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
-import 'package:fluxeron/core/database/fluxer_database.dart';
-import 'package:fluxeron/core/database/tables/servers.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/tables/servers.dart';
 
 part 'guild_dao.g.dart';
 

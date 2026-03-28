@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 
 /// A styled text input field with an optional label above
 /// and theme integration.

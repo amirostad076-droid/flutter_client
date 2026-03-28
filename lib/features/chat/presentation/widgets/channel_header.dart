@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/channels/domain/channel.dart';
-import 'package:fluxeron/features/channels/presentation/widgets/channel_icon.dart';
-import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
-import 'package:fluxeron/features/chat/providers/chat_view_model.dart';
-import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
-import 'package:fluxeron/features/dm/providers/dm_view_model.dart';
-import 'package:fluxeron/features/guilds/domain/guild.dart';
-import 'package:fluxeron/shared/utils/chat_context_utils.dart';
-import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxeron/features/ui/ui.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
+import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
+import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 

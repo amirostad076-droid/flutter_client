@@ -5,8 +5,8 @@ import UserNotifications
 final class ApplePushBridge: NSObject, FlutterStreamHandler {
   static let shared = ApplePushBridge()
 
-  private static let methodChannelName = "fluxeron/apple_push"
-  private static let eventChannelName = "fluxeron/apple_push/messages"
+  private static let methodChannelName = "fluxer_app/apple_push"
+  private static let eventChannelName = "fluxer_app/apple_push/messages"
 
   private var deviceTokenHex: String?
   private var eventSink: FlutterEventSink?

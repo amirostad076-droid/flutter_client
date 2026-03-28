@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/ui/tabs/fluxer_tabs.dart';
-import 'package:fluxeron/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/ui/tabs/fluxer_tabs.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 
 class FluxerSegmentedTabs extends StatelessWidget {
   const FluxerSegmentedTabs({

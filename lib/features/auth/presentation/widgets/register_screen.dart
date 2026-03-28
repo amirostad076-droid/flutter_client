@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/auth/providers/login_error_l10n.dart';
-import 'package:fluxeron/features/auth/providers/login_view_model.dart';
-import 'package:fluxeron/features/auth/providers/registration_draft_provider.dart';
-import 'package:fluxeron/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxeron/features/ui/button/fluxer_button.dart';
-import 'package:fluxeron/features/ui/checkbox/fluxer_checkbox.dart';
-import 'package:fluxeron/features/ui/input/fluxer_input.dart';
-import 'package:fluxeron/features/ui/select/fluxer_select.dart';
-import 'package:fluxeron/features/ui/text_link/fluxer_text_link.dart';
-import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/auth/providers/login_error_l10n.dart';
+import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
+import 'package:fluxer_app/features/auth/providers/registration_draft_provider.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/ui/checkbox/fluxer_checkbox.dart';
+import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
+import 'package:fluxer_app/features/ui/select/fluxer_select.dart';
+import 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:intl/intl.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {

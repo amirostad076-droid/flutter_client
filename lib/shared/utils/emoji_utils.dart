@@ -1,4 +1,4 @@
-import 'package:fluxeron/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 
 const _kTwemojiCdn = 'https://fluxerstatic.com/emoji';
 

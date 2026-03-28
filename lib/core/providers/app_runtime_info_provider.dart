@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/build/app_build_config.dart';
-import 'package:fluxeron/core/build/app_build_environment.dart';
-import 'package:fluxeron/core/build/push_provider_kind.dart';
+import 'package:fluxer_app/core/build/app_build_config.dart';
+import 'package:fluxer_app/core/build/app_build_environment.dart';
+import 'package:fluxer_app/core/build/push_provider_kind.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class AppRuntimeInfo {

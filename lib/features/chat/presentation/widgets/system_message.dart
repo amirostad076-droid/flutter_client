@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/chat/domain/message.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Renders a system message as a single row with an icon,

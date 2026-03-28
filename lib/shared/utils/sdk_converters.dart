@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fluxer_dart/export.dart';
 
-import 'package:fluxeron/core/database/fluxer_database.dart' as db;
-import 'package:fluxeron/shared/utils/snowflake_time.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 
 /// Converts SDK [GuildResponse] to a Drift companion for upserting.
 db.ServersCompanion guildFromSdk(

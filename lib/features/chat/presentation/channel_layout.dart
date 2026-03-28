@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/channels/providers/channel_list_view_model.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/channel_header.dart';
-import 'package:fluxeron/features/chat/presentation/widgets/channel_chat_content.dart';
-import 'package:fluxeron/features/members/presentation/widgets/channel_members.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/channel_header.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/channel_chat_content.dart';
+import 'package:fluxer_app/features/members/presentation/widgets/channel_members.dart';
 
 /// Wrapper screen for the chat area content.
 /// Takes serverId and channelId from go_router params.

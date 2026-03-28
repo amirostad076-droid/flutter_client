@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:fluxeron/core/api/fluxer_client_provider.dart';
-import 'package:fluxeron/core/talker.dart';
-import 'package:fluxeron/features/auth/data/ban_view_repository.dart';
-import 'package:fluxeron/features/auth/domain/ban_view.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/auth/data/ban_view_repository.dart';
+import 'package:fluxer_app/features/auth/domain/ban_view.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ban_view_provider.g.dart';

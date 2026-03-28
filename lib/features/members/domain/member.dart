@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:fluxeron/core/database/fluxer_database.dart' as db;
-import 'package:fluxeron/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 
 class MemberRole {
   final String id;

@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-import 'package:fluxeron/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 
 enum ChannelType { text, voice, announcement, stage, category, link }
 

@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/auth/domain/stored_account.dart';
-import 'package:fluxeron/features/auth/presentation/widgets/account_row.dart';
-import 'package:fluxeron/features/auth/providers/account_manager_provider.dart';
-import 'package:fluxeron/features/auth/providers/login_view_model.dart';
-import 'package:fluxeron/features/ui/button/fluxer_button.dart';
-import 'package:fluxeron/features/ui/modal/fluxer_modal.dart';
-import 'package:fluxeron/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/auth/domain/stored_account.dart';
+import 'package:fluxer_app/features/auth/presentation/widgets/account_row.dart';
+import 'package:fluxer_app/features/auth/providers/account_manager_provider.dart';
+import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class AccountSelector extends ConsumerWidget {

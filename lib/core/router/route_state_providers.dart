@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fluxeron/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'route_state_providers.g.dart';

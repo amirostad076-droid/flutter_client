@@ -1,14 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
-import 'package:fluxeron/core/api/fluxer_client_provider.dart';
-import 'package:fluxeron/core/database/fluxer_database.dart' hide AuthSession;
-import 'package:fluxeron/core/providers/app_startup_provider.dart';
-import 'package:fluxeron/core/providers/database_provider.dart';
-import 'package:fluxeron/core/router/fluxer_router.dart';
-import 'package:fluxeron/core/talker.dart';
-import 'package:fluxeron/features/auth/domain/auth_failure.dart';
-import 'package:fluxeron/features/auth/domain/stored_account.dart';
-import 'package:fluxeron/features/auth/providers/auth_providers.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' hide AuthSession;
+import 'package:fluxer_app/core/providers/app_startup_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
+import 'package:fluxer_app/features/auth/domain/stored_account.dart';
+import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'account_manager_provider.g.dart';

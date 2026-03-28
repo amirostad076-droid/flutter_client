@@ -1,7 +1,7 @@
-import 'package:fluxeron/core/api/fluxer_client_provider.dart';
-import 'package:fluxeron/core/providers/database_provider.dart';
-import 'package:fluxeron/features/channels/data/channel_repository.dart';
-import 'package:fluxeron/features/channels/domain/channel.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/features/channels/data/channel_repository.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'channel_providers.g.dart';

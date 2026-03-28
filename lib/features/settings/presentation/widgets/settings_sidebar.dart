@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/ui/ui.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class SettingsSidebar extends StatelessWidget {
@@ -121,7 +121,7 @@ class SettingsSidebar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(12),
           child: Text(
-            'Fluxeron',
+            'fluxer_app',
             style: TextStyle(
               color: context.colors.textTertiarySecondary,
               fontSize: 11,

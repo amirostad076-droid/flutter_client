@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluxeron/core/theme/fluxer_layout_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_text_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_theme.dart';
-import 'package:fluxeron/core/theme/themes/dark.dart';
-import 'package:fluxeron/features/ui/character_counter/fluxer_character_counter.dart';
-import 'package:fluxeron/features/ui/keybind_hint/fluxer_keybind_hint.dart';
-import 'package:fluxeron/features/ui/scroller/fluxer_scroller.dart';
-import 'package:fluxeron/features/ui/warning_alert/fluxer_warning_alert.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme.dart';
+import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/features/ui/character_counter/fluxer_character_counter.dart';
+import 'package:fluxer_app/features/ui/keybind_hint/fluxer_keybind_hint.dart';
+import 'package:fluxer_app/features/ui/scroller/fluxer_scroller.dart';
+import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
 
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();

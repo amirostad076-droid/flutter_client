@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:fluxeron/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
 
 class ChannelPersistenceObserver extends NavigatorObserver {
   final FluxerDatabase db;

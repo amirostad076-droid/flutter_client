@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/ui/toast/fluxer_toast.dart';
-import 'package:fluxeron/features/ui/toast/toast_provider.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
+import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 
 class FluxerToastOverlay extends ConsumerWidget {
   const FluxerToastOverlay({required this.child, super.key});

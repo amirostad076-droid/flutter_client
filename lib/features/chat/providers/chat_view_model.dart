@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:fluxeron/features/chat/domain/message.dart';
-import 'package:fluxeron/core/providers/database_provider.dart';
-import 'package:fluxeron/features/chat/providers/chat_providers.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_view_model.g.dart';

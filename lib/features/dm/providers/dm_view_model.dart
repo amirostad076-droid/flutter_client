@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:fluxeron/core/talker.dart';
-import 'package:fluxeron/features/dm/domain/dm_conversation.dart';
-import 'package:fluxeron/features/dm/providers/dm_providers.dart';
-import 'package:fluxeron/features/friends/domain/friend.dart';
-import 'package:fluxeron/features/friends/providers/friend_providers.dart';
+import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
+import 'package:fluxer_app/features/friends/domain/friend.dart';
+import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'dm_view_model.g.dart';

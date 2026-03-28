@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:fluxeron/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'guild_mute_provider.g.dart';

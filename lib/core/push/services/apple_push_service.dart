@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:fluxeron/core/push/push_message.dart';
-import 'package:fluxeron/core/push/push_service.dart';
+import 'package:fluxer_app/core/push/push_message.dart';
+import 'package:fluxer_app/core/push/push_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class ApplePushService implements PushService {
   const ApplePushService();
-  static const MethodChannel _channel = MethodChannel('fluxeron/apple_push');
+  static const MethodChannel _channel = MethodChannel('fluxer_app/apple_push');
   static const EventChannel _messageChannel = EventChannel(
-    'fluxeron/apple_push/messages',
+    'fluxer_app/apple_push/messages',
   );
   static bool _shouldUseNativeChannel() {
     if (kIsWeb) {

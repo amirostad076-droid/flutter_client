@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_dart/export.dart';
 
-import 'package:fluxeron/core/theme/fluxer_color_theme.dart';
-import 'package:fluxeron/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxeron/features/settings/presentation/user_settings_modal.dart';
-import 'package:fluxeron/features/ui/avatar/fluxer_avatar.dart';
-import 'package:fluxeron/features/ui/button/fluxer_button.dart';
-import 'package:fluxeron/features/ui/button/fluxer_button_size.dart';
-import 'package:fluxeron/shared/providers/user_profile.dart';
-import 'package:fluxeron/shared/utils/snowflake_time.dart';
+import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
+import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
+import 'package:fluxer_app/shared/providers/user_profile.dart';
+import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 

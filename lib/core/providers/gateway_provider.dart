@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fluxer_dart/gateway.dart';
-import 'package:fluxeron/core/api/fluxer_client_provider.dart';
-import 'package:fluxeron/core/gateway/gateway_event_handler.dart';
-import 'package:fluxeron/core/providers/database_provider.dart';
-import 'package:fluxeron/core/router/fluxer_router.dart';
-import 'package:fluxeron/core/router/route_state_providers.dart';
-import 'package:fluxeron/core/talker.dart';
-import 'package:fluxeron/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gateway_provider.g.dart';
@@ -33,7 +33,7 @@ GatewayConnection gatewayConnection(Ref ref) {
     initialGuildId: activeGuildId,
     properties: GatewayIdentifyProperties(
       os: Platform.operatingSystem,
-      browser: 'fluxeron',
+      browser: 'fluxer_app',
       device: Platform.operatingSystem,
       osVersion: Platform.operatingSystemVersion,
       locale: Platform.localeName,
