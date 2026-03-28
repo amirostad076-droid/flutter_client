@@ -84,12 +84,12 @@ jobs:
 
       - name: Configure Google services for beta
         env:
-          GOOGLE_SERVICES_JSON_ANDROID_BETA: ${{ secrets.GOOGLE_SERVICES_JSON_ANDROID_BETA }}
+          GOOGLE_SERVICES_JSON_ANDROID: ${{ secrets.GOOGLE_SERVICES_JSON_ANDROID }}
         run: |
-          if [ -n "$GOOGLE_SERVICES_JSON_ANDROID_BETA" ]; then
-            echo "$GOOGLE_SERVICES_JSON_ANDROID_BETA" > android/app/google-services.json
+          if [ -n "$GOOGLE_SERVICES_JSON_ANDROID" ]; then
+            echo "$GOOGLE_SERVICES_JSON_ANDROID" > android/app/google-services.json
           else
-            echo "::warning::GOOGLE_SERVICES_JSON_ANDROID_BETA secret is not set. Existing android/app/google-services.json will be used."
+            echo "::warning::GOOGLE_SERVICES_JSON_ANDROID secret is not set. Existing android/app/google-services.json will be used."
           fi
 
       - name: Build beta APK
