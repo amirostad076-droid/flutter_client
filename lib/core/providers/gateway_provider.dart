@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gateway_provider.g.dart';
@@ -102,6 +103,17 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     },
     onInviteDelete: (code) {
       ref.read(inviteCacheProvider.notifier).removeInvite(code);
+    },
+    onGuildPermissionsChanged: (guildId) {
+      unawaited(
+        ref.read(guildPermissionsProvider.notifier).refreshPermissions(guildId),
+      );
+    },
+    onGuildPermissionsEvict: (guildId) {
+      ref.read(guildPermissionsProvider.notifier).evict(guildId);
+    },
+    onPermissionsClearAll: () {
+      ref.read(guildPermissionsProvider.notifier).clearAll();
     },
   );
 

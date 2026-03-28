@@ -126,6 +126,7 @@ class MemberRepository {
               'color': sdk.color,
               'position': sdk.position,
               'hoist': sdk.hoist,
+              'permissions': sdk.permissions,
             },
           )
           .toList();
@@ -151,6 +152,9 @@ class MemberRepository {
             : const Value.absent(),
         isHoisted: map['hoist'] != null
             ? Value(map['hoist'] as bool)
+            : const Value.absent(),
+        permissions: map['permissions'] != null
+            ? Value(map['permissions'] as String)
             : const Value.absent(),
       );
     }).toList();

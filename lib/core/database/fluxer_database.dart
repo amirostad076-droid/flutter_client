@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/database/daos/auth_session_dao.dart';
 import 'package:fluxer_app/core/database/daos/channel_dao.dart';
 import 'package:fluxer_app/core/database/daos/dm_channel_dao.dart';
+import 'package:fluxer_app/core/database/daos/dm_folder_settings_dao.dart';
 import 'package:fluxer_app/core/database/daos/emoji_usage_dao.dart';
 import 'package:fluxer_app/core/database/daos/favorite_memes_dao.dart';
 import 'package:fluxer_app/core/database/daos/guild_dao.dart';
@@ -19,8 +20,8 @@ import 'package:fluxer_app/core/database/daos/pinned_dms_dao.dart';
 import 'package:fluxer_app/core/database/daos/read_state_dao.dart';
 import 'package:fluxer_app/core/database/daos/relationship_dao.dart';
 import 'package:fluxer_app/core/database/daos/role_dao.dart';
-import 'package:fluxer_app/core/database/daos/saved_message_dao.dart';
 import 'package:fluxer_app/core/database/daos/rtc_regions_dao.dart';
+import 'package:fluxer_app/core/database/daos/saved_message_dao.dart';
 import 'package:fluxer_app/core/database/daos/user_dao.dart';
 import 'package:fluxer_app/core/database/daos/user_guild_settings_dao.dart';
 import 'package:fluxer_app/core/database/daos/user_notes_dao.dart';
@@ -29,6 +30,7 @@ import 'package:fluxer_app/core/database/daos/user_settings_dao.dart';
 import 'package:fluxer_app/core/database/tables/auth_sessions.dart';
 import 'package:fluxer_app/core/database/tables/channels.dart';
 import 'package:fluxer_app/core/database/tables/dm_channels.dart';
+import 'package:fluxer_app/core/database/tables/dm_folder_settings.dart';
 import 'package:fluxer_app/core/database/tables/emoji_usage.dart';
 import 'package:fluxer_app/core/database/tables/favorite_memes.dart';
 import 'package:fluxer_app/core/database/tables/guild_emojis.dart';
@@ -40,8 +42,8 @@ import 'package:fluxer_app/core/database/tables/pinned_dms.dart';
 import 'package:fluxer_app/core/database/tables/read_states.dart';
 import 'package:fluxer_app/core/database/tables/relationships.dart';
 import 'package:fluxer_app/core/database/tables/roles.dart';
-import 'package:fluxer_app/core/database/tables/saved_messages.dart';
 import 'package:fluxer_app/core/database/tables/rtc_regions.dart';
+import 'package:fluxer_app/core/database/tables/saved_messages.dart';
 import 'package:fluxer_app/core/database/tables/servers.dart';
 import 'package:fluxer_app/core/database/tables/user_guild_settings.dart';
 import 'package:fluxer_app/core/database/tables/user_notes.dart';
@@ -77,6 +79,7 @@ part 'fluxer_database.g.dart';
     GuildEmojis,
     GuildStickers,
     SavedMessages,
+    DmFolderSettingsTable,
   ],
   daos: [
     AuthSessionDao,
@@ -101,6 +104,7 @@ part 'fluxer_database.g.dart';
     GuildEmojiDao,
     GuildStickerDao,
     SavedMessageDao,
+    DmFolderSettingsDao,
   ],
 )
 class FluxerDatabase extends _$FluxerDatabase {
@@ -109,7 +113,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -202,6 +206,12 @@ class FluxerDatabase extends _$FluxerDatabase {
         await m.addColumn(authSessions, authSessions.avatar);
         await m.addColumn(authSessions, authSessions.isValid);
         await m.addColumn(authSessions, authSessions.lastActive);
+      }
+      if (from < 15) {
+        await m.addColumn(roles, roles.permissions);
+      }
+      if (from < 16) {
+        await m.createTable(dmFolderSettingsTable);
       }
     },
   );

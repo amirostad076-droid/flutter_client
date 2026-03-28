@@ -2,8 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/ui/action_menu/context_menu_widgets.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum GuildAction {
@@ -43,7 +46,6 @@ enum GuildAction {
   unmute,
 }
 
-const _kMenuWidth = 220.0;
 const _kSubmenuGap = 4.0;
 
 Future<GuildAction?> showGuildContextMenu(
@@ -52,7 +54,7 @@ Future<GuildAction?> showGuildContextMenu(
   required Guild guild,
   bool hasUnread = false,
   bool isMuted = false,
-  bool isOwner = false,
+  int permissions = 0,
 }) async {
   final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
   if (overlay == null) {
@@ -68,7 +70,7 @@ Future<GuildAction?> showGuildContextMenu(
       guild: guild,
       hasUnread: hasUnread,
       isMuted: isMuted,
-      isOwner: isOwner,
+      permissions: permissions,
     ),
   );
 
@@ -85,7 +87,7 @@ class _GuildContextMenuRoute extends PopupRoute<GuildAction> {
   final Guild guild;
   final bool hasUnread;
   final bool isMuted;
-  final bool isOwner;
+  final int permissions;
 
   _GuildContextMenuRoute({
     required this.position,
@@ -93,7 +95,7 @@ class _GuildContextMenuRoute extends PopupRoute<GuildAction> {
     required this.guild,
     required this.hasUnread,
     required this.isMuted,
-    required this.isOwner,
+    required this.permissions,
   });
 
   @override
@@ -120,7 +122,7 @@ class _GuildContextMenuRoute extends PopupRoute<GuildAction> {
     guild: guild,
     hasUnread: hasUnread,
     isMuted: isMuted,
-    isOwner: isOwner,
+    permissions: permissions,
   );
 }
 
@@ -131,7 +133,7 @@ class _ContextMenuPage extends StatefulWidget {
   final Guild guild;
   final bool hasUnread;
   final bool isMuted;
-  final bool isOwner;
+  final int permissions;
 
   const _ContextMenuPage({
     required this.position,
@@ -140,7 +142,7 @@ class _ContextMenuPage extends StatefulWidget {
     required this.guild,
     required this.hasUnread,
     required this.isMuted,
-    required this.isOwner,
+    required this.permissions,
   });
 
   @override
@@ -194,20 +196,20 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
   @override
   Widget build(BuildContext context) {
     final items = _buildItems(context);
-    final mainHeight = _estimateHeight(items);
+    final mainHeight = estimateContextMenuHeight(items);
 
     final opensLeft =
-        widget.position.dx + _kMenuWidth > widget.overlaySize.width - 8;
+        widget.position.dx + kContextMenuWidth > widget.overlaySize.width - 8;
     final opensUp =
         widget.position.dy + mainHeight > widget.overlaySize.height - 8;
 
     var mainLeft = opensLeft
-        ? widget.position.dx - _kMenuWidth
+        ? widget.position.dx - kContextMenuWidth
         : widget.position.dx;
     var mainTop = opensUp
         ? widget.position.dy - mainHeight
         : widget.position.dy;
-    mainLeft = mainLeft.clamp(8.0, widget.overlaySize.width - _kMenuWidth - 8);
+    mainLeft = mainLeft.clamp(8.0, widget.overlaySize.width - kContextMenuWidth - 8);
     mainTop = mainTop.clamp(8.0, widget.overlaySize.height - mainHeight - 8);
 
     final alignment = Alignment(opensLeft ? 1.0 : -1.0, opensUp ? 1.0 : -1.0);
@@ -220,11 +222,11 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
         if (subItems.isNotEmpty) {
           final box = subKey!.currentContext!.findRenderObject()! as RenderBox;
           final itemPos = box.localToGlobal(Offset.zero);
-          final subHeight = _estimateHeight(subItems);
+          final subHeight = estimateContextMenuHeight(subItems);
 
-          final rightX = mainLeft + _kMenuWidth + _kSubmenuGap;
-          final leftX = mainLeft - _kMenuWidth - _kSubmenuGap;
-          final fitsRight = rightX + _kMenuWidth < widget.overlaySize.width - 8;
+          final rightX = mainLeft + kContextMenuWidth + _kSubmenuGap;
+          final leftX = mainLeft - kContextMenuWidth - _kSubmenuGap;
+          final fitsRight = rightX + kContextMenuWidth < widget.overlaySize.width - 8;
 
           final subLeft = fitsRight ? rightX : leftX;
           final subTop = itemPos.dy.clamp(
@@ -238,7 +240,7 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
             child: MouseRegion(
               onEnter: (_) => _onSubmenuPanelEnter(),
               onExit: (_) => _onSubmenuPanelExit(),
-              child: _MenuPanel(items: subItems),
+              child: ContextMenuPanel(items: subItems),
             ),
           );
         }
@@ -263,7 +265,7 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
                 ),
               ),
               alignment: alignment,
-              child: _MenuPanel(items: items),
+              child: ContextMenuPanel(items: items),
             ),
           ),
         ),
@@ -272,104 +274,92 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
     );
   }
 
-  double _estimateHeight(List<Widget> items) {
-    var height = 16.0;
-    for (final item in items) {
-      if (item is _MenuDivider) {
-        height += 13;
-      } else {
-        height += 38;
-      }
-    }
-    return height;
-  }
-
   List<Widget> _buildSubmenuItems(BuildContext context, String key) {
     void pop(GuildAction action) => Navigator.of(context).pop(action);
 
     return switch (key) {
       'communitySettings' => [
-        _MenuItem(
+        ContextMenuItem(
           label: 'General',
           onTap: () => pop(GuildAction.settingsOverview),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Roles & Permissions',
           onTap: () => pop(GuildAction.settingsRoles),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Custom Emoji',
           onTap: () => pop(GuildAction.settingsEmoji),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Custom Stickers',
           onTap: () => pop(GuildAction.settingsStickers),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Safety & Moderation',
           onTap: () => pop(GuildAction.settingsSafetyModeration),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Activity Log',
           onTap: () => pop(GuildAction.settingsActivityLog),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Webhooks',
           onTap: () => pop(GuildAction.settingsWebhooks),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Custom Invite URL',
           onTap: () => pop(GuildAction.settingsCustomInviteUrl),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Discovery',
           onTap: () => pop(GuildAction.settingsDiscovery),
         ),
-        const _MenuDivider(),
-        _MenuItem(
+        const ContextMenuDivider(),
+        ContextMenuItem(
           label: 'Members',
           onTap: () => pop(GuildAction.settingsMembers),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Invite Links',
           onTap: () => pop(GuildAction.settingsInviteLinks),
         ),
-        _MenuItem(label: 'Bans', onTap: () => pop(GuildAction.settingsBans)),
+        ContextMenuItem(label: 'Bans', onTap: () => pop(GuildAction.settingsBans)),
       ],
       'mute' when widget.isMuted => [
-        _MenuItem(
+        ContextMenuItem(
           label: 'Unmute Community',
           onTap: () => pop(GuildAction.unmute),
         ),
       ],
       'mute' => [
-        _MenuItem(
+        ContextMenuItem(
           label: 'For 15 minutes',
           onTap: () => pop(GuildAction.mute15Min),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'For 30 minutes',
           onTap: () => pop(GuildAction.mute30Min),
         ),
-        _MenuItem(label: 'For 1 hour', onTap: () => pop(GuildAction.mute1Hour)),
-        _MenuItem(
+        ContextMenuItem(label: 'For 1 hour', onTap: () => pop(GuildAction.mute1Hour)),
+        ContextMenuItem(
           label: 'For 3 hours',
           onTap: () => pop(GuildAction.mute3Hours),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'For 4 hours',
           onTap: () => pop(GuildAction.mute4Hours),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'For 8 hours',
           onTap: () => pop(GuildAction.mute8Hours),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'For 24 hours',
           onTap: () => pop(GuildAction.mute24Hours),
         ),
-        _MenuItem(label: 'For 3 days', onTap: () => pop(GuildAction.mute3Days)),
-        _MenuItem(
+        ContextMenuItem(label: 'For 3 days', onTap: () => pop(GuildAction.mute3Days)),
+        ContextMenuItem(
           label: 'Until I turn it back on',
           onTap: () => pop(GuildAction.muteForever),
         ),
@@ -380,22 +370,22 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
 
   List<Widget> _buildItems(BuildContext context) {
     void pop(GuildAction action) => Navigator.of(context).pop(action);
-    final isOwner = widget.isOwner;
+    final canManage = hasPermission(widget.permissions, Permission.manageGuild);
 
     return [
       // Group 1: Quick Actions
       if (widget.hasUnread)
-        _MenuItem(
+        ContextMenuItem(
           label: 'Mark as Read',
           icon: PhosphorIconsFill.eye,
           onTap: () => pop(GuildAction.markAsRead),
         ),
-      _MenuItem(
+      ContextMenuItem(
         label: 'Invite Members',
         icon: PhosphorIconsFill.userPlus,
         onTap: () => pop(GuildAction.inviteMembers),
       ),
-      if (isOwner) ...[
+      if (canManage) ...[
         _SubMenuItem(
           key: _keyFor('communitySettings'),
           label: 'Community Settings',
@@ -403,36 +393,36 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
           onActivate: () => _activateSubmenu('communitySettings'),
           onDeactivate: () => _requestDeactivate('communitySettings'),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Create Channel',
           icon: PhosphorIconsFill.plusCircle,
           onTap: () => pop(GuildAction.createChannel),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Create Category',
           icon: PhosphorIconsFill.folderPlus,
           onTap: () => pop(GuildAction.createCategory),
         ),
       ],
-      const _MenuDivider(),
+      const ContextMenuDivider(),
 
       // Group 2: Preferences
-      _MenuItem(
+      ContextMenuItem(
         label: 'Notification Settings',
         icon: PhosphorIconsFill.bell,
         onTap: () => pop(GuildAction.notificationSettings),
       ),
-      _MenuItem(
+      ContextMenuItem(
         label: 'Privacy Settings',
         icon: PhosphorIconsFill.shield,
         onTap: () => pop(GuildAction.privacySettings),
       ),
-      _MenuItem(
+      ContextMenuItem(
         label: 'Edit Community Profile',
         icon: PhosphorIconsFill.userCircle,
         onTap: () => pop(GuildAction.editCommunityProfile),
       ),
-      const _MenuDivider(),
+      const ContextMenuDivider(),
 
       // Group 3: Mute & Hide
       _SubMenuItem(
@@ -447,154 +437,40 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
         isChecked: false,
         onTap: () => pop(GuildAction.hideMutedChannels),
       ),
-      const _MenuDivider(),
+      const ContextMenuDivider(),
 
-      // Group 4: Danger (non-owners only)
-      if (!isOwner) ...[
-        _MenuItem(
+      // Group 4: Danger (non-managers only)
+      if (!canManage) ...[
+        ContextMenuItem(
           label: 'Leave Community',
           icon: PhosphorIconsFill.signOut,
           isDanger: true,
           onTap: () => pop(GuildAction.leaveGuild),
         ),
-        _MenuItem(
+        ContextMenuItem(
           label: 'Report Community',
           icon: PhosphorIconsFill.flag,
           isDanger: true,
           onTap: () => pop(GuildAction.reportCommunity),
         ),
-        const _MenuDivider(),
+        const ContextMenuDivider(),
       ],
 
       // Group 5: Debug
-      _MenuItem(
+      ContextMenuItem(
         label: 'Debug Community',
         icon: PhosphorIconsFill.bug,
         onTap: () => pop(GuildAction.debugCommunity),
       ),
-      const _MenuDivider(),
+      const ContextMenuDivider(),
 
       // Group 6: Utility
-      _MenuItem(
+      ContextMenuItem(
         label: 'Copy Community ID',
         icon: PhosphorIconsRegular.snowflake,
         onTap: () => pop(GuildAction.copyGuildId),
       ),
     ];
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Shared widgets
-// ---------------------------------------------------------------------------
-
-class _MenuPanel extends StatelessWidget {
-  final List<Widget> items;
-
-  const _MenuPanel({required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    final layout = context.layout;
-    return Material(
-      color: context.colors.backgroundPrimary,
-      borderRadius: layout.radiusSm,
-      elevation: 8,
-      shadowColor: Colors.black45,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: layout.radiusSm,
-          border: Border.all(color: context.colors.backgroundModifierAccent),
-        ),
-        child: SizedBox(
-          width: _kMenuWidth,
-          child: Padding(
-            padding: EdgeInsets.all(layout.s2),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: items,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MenuItem extends StatefulWidget {
-  final String label;
-  final IconData? icon;
-  final bool isDanger;
-  final VoidCallback onTap;
-
-  const _MenuItem({
-    required this.label,
-    required this.onTap,
-    this.icon,
-    this.isDanger = false,
-  });
-
-  @override
-  State<_MenuItem> createState() => _MenuItemState();
-}
-
-class _MenuItemState extends State<_MenuItem> {
-  var _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final layout = context.layout;
-    final Color textColor;
-    final Color hoverBg;
-    final Color hoverText;
-
-    if (widget.isDanger) {
-      textColor = colors.textDanger;
-      hoverBg = colors.buttonDangerFill;
-      hoverText = colors.buttonDangerText;
-    } else {
-      textColor = colors.textSecondary;
-      hoverBg = colors.backgroundModifierHover;
-      hoverText = colors.textPrimary;
-    }
-
-    final activeColor = _isHovered ? hoverText : textColor;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 36),
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: layout.s2),
-          margin: const EdgeInsets.symmetric(vertical: 1),
-          decoration: BoxDecoration(
-            color: _isHovered ? hoverBg : Colors.transparent,
-            borderRadius: layout.radiusSm,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  widget.label,
-                  style: context.textStyles.label.copyWith(color: activeColor),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (widget.icon != null) ...[
-                SizedBox(width: layout.s3),
-                PhosphorIcon(widget.icon!, size: layout.s5, color: activeColor),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 
@@ -759,15 +635,3 @@ class _CheckboxMenuItemState extends State<_CheckboxMenuItem> {
   }
 }
 
-class _MenuDivider extends StatelessWidget {
-  const _MenuDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 1,
-      margin: EdgeInsets.symmetric(vertical: context.layout.s1_5),
-      color: context.colors.backgroundModifierAccent.withValues(alpha: 0.3),
-    );
-  }
-}

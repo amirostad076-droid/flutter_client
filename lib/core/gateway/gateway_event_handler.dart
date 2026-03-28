@@ -20,6 +20,7 @@ typedef ChannelCallback = void Function(String channelId);
 typedef InviteCreateCallback = void Function(Map<String, dynamic> data);
 typedef InviteDeleteCallback = void Function(String code);
 typedef ReadyCallback = void Function();
+typedef GuildCallback = void Function(String guildId);
 
 class GatewayEventHandler {
   GatewayEventHandler({
@@ -34,6 +35,9 @@ class GatewayEventHandler {
     this.onCallDelete,
     this.onInviteCreate,
     this.onInviteDelete,
+    this.onGuildPermissionsChanged,
+    this.onGuildPermissionsEvict,
+    this.onPermissionsClearAll,
   });
 
   final db.FluxerDatabase database;
@@ -47,6 +51,9 @@ class GatewayEventHandler {
   final ChannelCallback? onCallDelete;
   final InviteCreateCallback? onInviteCreate;
   final InviteDeleteCallback? onInviteDelete;
+  final GuildCallback? onGuildPermissionsChanged;
+  final GuildCallback? onGuildPermissionsEvict;
+  final void Function()? onPermissionsClearAll;
 
   /// The current user's ID, set during READY processing.
   String? _currentUserId;
@@ -82,6 +89,7 @@ class GatewayEventHandler {
           ' → ${event.guildId}',
         );
         _handleMemberUpsert(event.guildId, event.member);
+        onGuildPermissionsChanged?.call(event.guildId);
       case GuildMemberRemoveEvent():
         talker.debug(
           '[Gateway] GUILD_MEMBER_REMOVE: ${event.userId}'
@@ -182,6 +190,7 @@ class GatewayEventHandler {
       case GuildRoleDeleteEvent():
         talker.debug('[Gateway] GUILD_ROLE_DELETE: ${event.roleId}');
         unawaited(database.roleDao.deleteRole(event.roleId));
+        onGuildPermissionsChanged?.call(event.guildId);
       case GuildRoleUpdateBulkEvent():
         talker.debug(
           '[Gateway] GUILD_ROLE_UPDATE_BULK: ${event.roles.length} roles',
@@ -298,6 +307,7 @@ class GatewayEventHandler {
     );
 
     _currentUserId = event.user.id;
+    onPermissionsClearAll?.call();
 
     await database.transaction(() async {
       // Clear all entity tables (full replace).
@@ -794,6 +804,7 @@ class GatewayEventHandler {
 
   void _handleRoleUpsert(String guildId, GuildRoleResponse role) {
     unawaited(database.roleDao.upsertRoles([roleFromSdk(role, guildId)]));
+    onGuildPermissionsChanged?.call(guildId);
   }
 
   void _handleRoleUpdateBulk(GuildRoleUpdateBulkEvent event) {
@@ -802,6 +813,7 @@ class GatewayEventHandler {
         event.roles.map((r) => roleFromSdk(r, event.guildId)).toList(),
       ),
     );
+    onGuildPermissionsChanged?.call(event.guildId);
   }
 
   void _handleMembersChunk(GuildMembersChunkEvent event) {
@@ -910,6 +922,7 @@ class GatewayEventHandler {
     unawaited(database.memberDao.deleteMembersForServer(event.guildId));
     unawaited(database.roleDao.deleteRolesForServer(event.guildId));
     unawaited(database.guildDao.deleteServer(event.guildId));
+    onGuildPermissionsEvict?.call(event.guildId);
   }
 
   void _handleRelationshipUpsert(RelationshipResponse relationship) {

@@ -9,6 +9,7 @@ class MemberRole {
   final int color;
   final int position;
   final bool isHoisted;
+  final int permissions;
 
   const MemberRole({
     required this.id,
@@ -16,6 +17,7 @@ class MemberRole {
     required this.color,
     this.position = 0,
     this.isHoisted = false,
+    this.permissions = 0,
   });
 
   factory MemberRole.fromRow(db.Role row) {
@@ -25,6 +27,7 @@ class MemberRole {
       color: row.color,
       position: row.position,
       isHoisted: row.isHoisted,
+      permissions: int.tryParse(row.permissions) ?? 0,
     );
   }
 }

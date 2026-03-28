@@ -1,0 +1,142 @@
+import 'package:flutter/material.dart';
+
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+const kContextMenuWidth = 220.0;
+
+class ContextMenuPanel extends StatelessWidget {
+  final List<Widget> items;
+
+  const ContextMenuPanel({required this.items, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.layout;
+    return Material(
+      color: context.colors.backgroundPrimary,
+      borderRadius: layout.radiusSm,
+      elevation: 8,
+      shadowColor: Colors.black45,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: layout.radiusSm,
+          border: Border.all(color: context.colors.backgroundModifierAccent),
+        ),
+        child: SizedBox(
+          width: kContextMenuWidth,
+          child: Padding(
+            padding: EdgeInsets.all(layout.s2),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: items,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ContextMenuItem extends StatefulWidget {
+  final String label;
+  final IconData? icon;
+  final bool isDanger;
+  final VoidCallback onTap;
+
+  const ContextMenuItem({
+    required this.label,
+    required this.onTap,
+    this.icon,
+    this.isDanger = false,
+    super.key,
+  });
+
+  @override
+  State<ContextMenuItem> createState() => _ContextMenuItemState();
+}
+
+class _ContextMenuItemState extends State<ContextMenuItem> {
+  var _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final layout = context.layout;
+    final Color textColor;
+    final Color hoverBg;
+    final Color hoverText;
+
+    if (widget.isDanger) {
+      textColor = colors.textDanger;
+      hoverBg = colors.buttonDangerFill;
+      hoverText = colors.buttonDangerText;
+    } else {
+      textColor = colors.textSecondary;
+      hoverBg = colors.backgroundModifierHover;
+      hoverText = colors.textPrimary;
+    }
+
+    final activeColor = _isHovered ? hoverText : textColor;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 36),
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: layout.s2),
+          margin: const EdgeInsets.symmetric(vertical: 1),
+          decoration: BoxDecoration(
+            color: _isHovered ? hoverBg : Colors.transparent,
+            borderRadius: layout.radiusSm,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: context.textStyles.label.copyWith(color: activeColor),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (widget.icon != null) ...[
+                SizedBox(width: layout.s3),
+                PhosphorIcon(widget.icon!, size: layout.s5, color: activeColor),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ContextMenuDivider extends StatelessWidget {
+  const ContextMenuDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 1,
+      margin: EdgeInsets.symmetric(vertical: context.layout.s1_5),
+      color: context.colors.backgroundModifierAccent.withValues(alpha: 0.3),
+    );
+  }
+}
+
+double estimateContextMenuHeight(List<Widget> items) {
+  var height = 16.0;
+  for (final item in items) {
+    if (item is ContextMenuDivider) {
+      height += 13;
+    } else {
+      height += 38;
+    }
+  }
+  return height;
+}

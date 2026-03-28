@@ -47,6 +47,7 @@ db.RolesCompanion roleFromSdk(GuildRoleResponse sdk, String serverId) {
     color: Value(sdk.color),
     position: Value(sdk.position),
     isHoisted: Value(sdk.hoist),
+    permissions: Value(sdk.permissions),
   );
 }
 

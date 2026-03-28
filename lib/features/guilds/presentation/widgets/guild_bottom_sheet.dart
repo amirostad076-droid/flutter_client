@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
@@ -15,7 +16,7 @@ Future<GuildAction?> showGuildBottomSheet(
   required Guild guild,
   bool hasUnread = false,
   bool isMuted = false,
-  bool isOwner = false,
+  int permissions = 0,
 }) async {
   final result = await FluxerBottomSheet.show<GuildAction>(
     context,
@@ -23,7 +24,7 @@ Future<GuildAction?> showGuildBottomSheet(
       guild: guild,
       hasUnread: hasUnread,
       isMuted: isMuted,
-      isOwner: isOwner,
+      permissions: permissions,
     ),
   );
 
@@ -38,13 +39,13 @@ class _GuildBottomSheet extends StatelessWidget {
   final Guild guild;
   final bool hasUnread;
   final bool isMuted;
-  final bool isOwner;
+  final int permissions;
 
   const _GuildBottomSheet({
     required this.guild,
     required this.hasUnread,
     required this.isMuted,
-    required this.isOwner,
+    required this.permissions,
   });
 
   @override
@@ -52,6 +53,7 @@ class _GuildBottomSheet extends StatelessWidget {
     final layout = context.layout;
     void pop(GuildAction action) => Navigator.of(context).pop(action);
 
+    final canManage = hasPermission(permissions, Permission.manageGuild);
     final groups = <Widget>[
       // Group 1: Quick Actions
       FluxerMenuGroup(
@@ -67,7 +69,7 @@ class _GuildBottomSheet extends StatelessWidget {
             icon: PhosphorIconsFill.userPlus,
             onTap: () => pop(GuildAction.inviteMembers),
           ),
-          if (isOwner) ...[
+          if (canManage) ...[
             FluxerBottomSheetSubmenuItem(
               label: 'Community Settings',
               onTap: () => _openSettingsSheet(context),
@@ -122,8 +124,8 @@ class _GuildBottomSheet extends StatelessWidget {
         ],
       ),
 
-      // Group 4: Danger (non-owners only)
-      if (!isOwner)
+      // Group 4: Danger (non-managers only)
+      if (!canManage)
         FluxerMenuGroup(
           children: [
             FluxerBottomSheetMenuItem(
