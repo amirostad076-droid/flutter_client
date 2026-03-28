@@ -13,19 +13,23 @@ PODS:
   - flutter_inappwebview_ios/Core (0.0.1):
     - Flutter
     - swift-collections (~> 1.1.1)
-  - flutter_webrtc (1.2.0):
+  - flutter_webrtc (1.4.0):
     - Flutter
-    - WebRTC-SDK (= 137.7151.04)
+    - WebRTC-SDK (= 144.7559.01)
   - InternalCollectionsUtilities (1.1.1)
-  - livekit_client (2.6.5):
+  - livekit_client (2.7.0):
     - Flutter
     - flutter_webrtc
-    - WebRTC-SDK (= 137.7151.04)
+    - WebRTC-SDK (= 144.7559.01)
   - media_kit_libs_ios_video (1.0.4):
     - Flutter
   - media_kit_video (0.0.1):
     - Flutter
   - package_info_plus (0.4.5):
+    - Flutter
+  - passkeys_ios (0.0.1):
+    - Flutter
+  - permission_handler_apple (9.3.0):
     - Flutter
   - pointer_interceptor_ios (0.0.1):
     - Flutter
@@ -70,11 +74,13 @@ PODS:
     - InternalCollectionsUtilities (= 1.1.1)
   - swift-collections/OrderedCollections (1.1.1):
     - InternalCollectionsUtilities (= 1.1.1)
+  - ua_client_hints (1.4.1):
+    - Flutter
   - url_launcher_ios (0.0.1):
     - Flutter
   - wakelock_plus (0.0.1):
     - Flutter
-  - WebRTC-SDK (137.7151.04)
+  - WebRTC-SDK (144.7559.01)
 
 DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
@@ -87,8 +93,11 @@ DEPENDENCIES:
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
+  - passkeys_ios (from `.symlinks/plugins/passkeys_ios/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - pointer_interceptor_ios (from `.symlinks/plugins/pointer_interceptor_ios/ios`)
   - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
+  - ua_client_hints (from `.symlinks/plugins/ua_client_hints/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
 
@@ -120,10 +129,16 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/media_kit_video/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
+  passkeys_ios:
+    :path: ".symlinks/plugins/passkeys_ios/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
   pointer_interceptor_ios:
     :path: ".symlinks/plugins/pointer_interceptor_ios/ios"
   sqlite3_flutter_libs:
     :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
+  ua_client_hints:
+    :path: ".symlinks/plugins/ua_client_hints/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   wakelock_plus:
@@ -135,20 +150,23 @@ SPEC CHECKSUMS:
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_inappwebview_ios: 9cde7869829d54b4110df350f3eedd192c5a4aea
-  flutter_webrtc: c3e21fc0dcd9d8eb246ae4d5256fcbeb2f5ecd22
+  flutter_webrtc: ec91d94b484ad49cf191ef93413f64a40ffd3b4c
   InternalCollectionsUtilities: af3f471602c4a67cbcb0bee0a80f6f55a33ae453
-  livekit_client: 39aec804d7ee9735d38c09cc656b78978c4854e4
+  livekit_client: 9b9a08c5c78f694ac6a9e70c1c269704ba574b73
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
+  passkeys_ios: 939d7d44f825048c8dffd4644f52444164c80ecd
+  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   pointer_interceptor_ios: da06a662d5bfd329602b45b2ab41bc0fb5fdb0f0
   sqlite3: a51c07cf16e023d6c48abd5e5791a61a47354921
   sqlite3_flutter_libs: b3e120efe9a82017e5552a620f696589ed4f62ab
   swift-collections: ba248ecaf44ef500b27d5cf94d304218c89892ff
+  ua_client_hints: 92fe0d139619b73ec9fcb46cc7e079a26178f586
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
-  WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
+  WebRTC-SDK: ab9b5319e458c2bfebdc92b3600740da35d5630d
 
-PODFILE CHECKSUM: b2af4d158ef9f4de09891263b8a3229f5ed60f56
+PODFILE CHECKSUM: 1b1d0cb5ee42a37c8110fff25d3ab3c4970b0934
 
 COCOAPODS: 1.16.2
