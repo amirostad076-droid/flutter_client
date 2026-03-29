@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/ui/popout/fluxer_popout.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -13,10 +13,8 @@ class FluxerSelectItem<T> {
   final IconData? icon;
 }
 
-/// A dropdown select using [FluxerPopout] with an input-styled trigger.
-///
-/// Displays a trigger that visually matches the input field style, and opens a
-/// popout dropdown with selectable items.
+/// A dropdown select that uses a filled input-style trigger and opens
+/// options in a [FluxerBottomSheet].
 class FluxerSelect<T> extends StatelessWidget {
   const FluxerSelect({
     required this.items,
@@ -60,65 +58,70 @@ class FluxerSelect<T> extends StatelessWidget {
               style: textStyles.label.copyWith(color: colors.textSecondary),
             ),
           ),
-        FluxerPopout(
-          anchorBuilder: (context, toggle) => FluxerTappable(
-            enabled: enabled,
-            onTap: toggle,
-            semanticLabel: label ?? hint ?? 'Select',
-            builder: (context, states) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                borderRadius: layout.radiusLg,
-                border: Border.all(color: colors.backgroundModifierAccent),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      selectedItem?.label ?? hint ?? '',
-                      style: selectedItem != null
-                          ? textStyles.bodySmall.copyWith(
-                              color: colors.textPrimary,
-                            )
-                          : textStyles.bodySmall.copyWith(
-                              color: colors.textTertiary,
-                            ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+        FluxerTappable(
+          enabled: enabled,
+          onTap: () => _showOptions(context),
+          semanticLabel: label ?? hint ?? 'Select',
+          builder: (context, states) => Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: colors.backgroundTertiary,
+              borderRadius: layout.radiusLg,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    selectedItem?.label ?? hint ?? '',
+                    style: selectedItem != null
+                        ? textStyles.bodySmall.copyWith(
+                            color: colors.textPrimary,
+                          )
+                        : textStyles.bodySmall.copyWith(
+                            color: colors.textTertiary,
+                          ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(width: layout.s2),
-                  Icon(
-                    PhosphorIconsBold.caretDown,
-                    size: 16,
-                    color: colors.textSecondary,
-                  ),
-                ],
-              ),
+                ),
+                SizedBox(width: layout.s2),
+                Icon(
+                  PhosphorIconsBold.caretDown,
+                  size: 16,
+                  color: colors.textSecondary,
+                ),
+              ],
             ),
           ),
-          contentBuilder: (context, close) => ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 240),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(vertical: layout.s1),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: items.map((item) {
-                  final isSelected = item.value == value;
-                  return FluxerTappable(
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showOptions(BuildContext context) async {
+    final result = await FluxerBottomSheet.show<T>(
+      context,
+      builder: (sheetContext, close) {
+        final colors = sheetContext.colors;
+        final textStyles = sheetContext.textStyles;
+        final layout = sheetContext.layout;
+
+        return SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: layout.s4),
+            child: FluxerMenuGroup(
+              children: [
+                for (final item in items)
+                  FluxerTappable(
                     onTap: () {
-                      onChanged(item.value);
-                      close();
+                      Navigator.of(sheetContext).pop(item.value);
                     },
                     semanticLabel: item.label,
                     builder: (context, states) {
-                      final isHovered = states.contains(WidgetState.hovered);
+                      final isSelected = item.value == value;
                       return Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: layout.s3,
-                          vertical: layout.s2,
-                        ),
-                        color: isHovered
-                            ? colors.backgroundModifierHover
+                        padding: const EdgeInsets.all(16),
+                        color: isSelected
+                            ? colors.brandPrimary.withValues(alpha: 0.1)
                             : Colors.transparent,
                         child: Row(
                           children: [
@@ -136,29 +139,31 @@ class FluxerSelect<T> extends StatelessWidget {
                               child: Text(
                                 item.label,
                                 style: textStyles.bodySmall.copyWith(
-                                  color: isSelected
-                                      ? colors.brandPrimary
-                                      : colors.textPrimary,
+                                  fontWeight: FontWeight.w500,
+                                  color: colors.textPrimary,
                                 ),
                               ),
                             ),
                             if (isSelected)
                               Icon(
                                 PhosphorIconsBold.check,
-                                size: 16,
+                                size: 20,
                                 color: colors.brandPrimary,
                               ),
                           ],
                         ),
                       );
                     },
-                  );
-                }).toList(),
-              ),
+                  ),
+              ],
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
+
+    if (result != null) {
+      onChanged(result);
+    }
   }
 }
