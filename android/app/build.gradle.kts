@@ -17,7 +17,7 @@ if (hasKeystoreProperties) {
 }
 
 android {
-    namespace = "app.fluxer"
+    namespace = "com.fluxer"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
     flavorDimensions += listOf("environment", "push")
@@ -41,7 +41,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "app.fluxer"
+        applicationId = "com.fluxer"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
