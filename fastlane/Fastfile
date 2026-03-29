@@ -11,7 +11,7 @@ platform :ios do
       key_content: ENV.fetch("APPSTORE_PRIVATE_KEY")
     )
 
-    app_identifier = "app.fluxer"
+    app_identifier = "com.fluxer"
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
       app_identifier: app_identifier,
