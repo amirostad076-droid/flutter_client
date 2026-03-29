@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_dart/export.dart';
@@ -19,11 +20,13 @@ import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
+import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_context_menu.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_item.dart';
 import 'package:fluxer_app/features/dm/providers/dm_folder_view_model.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/unread_dm_provider.dart';
+import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
@@ -595,6 +598,63 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
               ),
             );
           },
+          onCreateInvite: ({
+            int maxAge = 604800,
+            int maxUses = 0,
+            bool temporary = false,
+          }) async {
+            final db = ref.read(fluxerDatabaseProvider);
+            final client = ref.read(fluxerClientProvider);
+            final channels = await db.channelDao.getChannels(guild.id);
+            final invitable = channels
+                .where((c) => c.type == 0 || c.type == 2)
+                .firstOrNull;
+            if (invitable == null) {
+              return null;
+            }
+            final wellKnown =
+                await client.instance.getWellKnownFluxer();
+            final invite = await client.invites.createChannelInvite(
+              channelId: invitable.id,
+              body: ChannelInviteCreateRequest(
+                maxAge: maxAge,
+                maxUses: maxUses,
+                temporary: temporary,
+              ),
+            );
+            final code =
+                invite.toGuildInviteMetadataResponse().code;
+            return (
+              url: '${wellKnown.endpoints.invite}/$code',
+              channelName: invitable.name,
+            );
+          },
+          onGetRecipients: () async {
+            final friendRepo = ref.read(friendRepositoryProvider);
+            final dmRepo = ref.read(dmRepositoryProvider);
+            final friends = await friendRepo.getRelationships();
+            final dms = await dmRepo.getDmChannels();
+            return _buildRecipientList(friends, dms);
+          },
+          onSendInviteTo: (channelId, recipientId, url) async {
+            final client = ref.read(fluxerClientProvider);
+            final dio = ref.read(fluxerDioProvider);
+            var targetId = channelId;
+            if (targetId == null && recipientId != null) {
+              final ch = await client.users.createPrivateChannel(
+                body: CreatePrivateChannelRequest(
+                  recipientId: recipientId,
+                ),
+              );
+              targetId = ch.id;
+            }
+            if (targetId != null) {
+              await dio.post<Map<String, dynamic>>(
+                '/channels/$targetId/messages',
+                data: <String, dynamic>{'content': url},
+              );
+            }
+          },
         );
       },
     );
@@ -963,6 +1023,64 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                 ),
               );
             },
+            onCreateInvite: ({
+              int maxAge = 604800,
+              int maxUses = 0,
+              bool temporary = false,
+            }) async {
+              final db = ref.read(fluxerDatabaseProvider);
+              final client = ref.read(fluxerClientProvider);
+              final channels = await db.channelDao.getChannels(guild.id);
+              final invitable = channels
+                  .where((c) => c.type == 0 || c.type == 2)
+                  .firstOrNull;
+              if (invitable == null) {
+                return null;
+              }
+              final wellKnown =
+                  await client.instance.getWellKnownFluxer();
+              final invite = await client.invites.createChannelInvite(
+                channelId: invitable.id,
+                body: ChannelInviteCreateRequest(
+                  maxAge: maxAge,
+                  maxUses: maxUses,
+                  temporary: temporary,
+                ),
+              );
+              final code =
+                  invite.toGuildInviteMetadataResponse().code;
+              return (
+                url: '${wellKnown.endpoints.invite}/$code',
+                channelName: invitable.name,
+              );
+            },
+            onGetRecipients: () async {
+              final friendRepo = ref.read(friendRepositoryProvider);
+              final dmRepo = ref.read(dmRepositoryProvider);
+              final friends = await friendRepo.getRelationships();
+              final dms = await dmRepo.getDmChannels();
+              return _buildRecipientList(friends, dms);
+            },
+            onSendInviteTo: (channelId, recipientId, url) async {
+              final client = ref.read(fluxerClientProvider);
+              final dio = ref.read(fluxerDioProvider);
+              var targetId = channelId;
+              if (targetId == null && recipientId != null) {
+                final ch =
+                    await client.users.createPrivateChannel(
+                  body: CreatePrivateChannelRequest(
+                    recipientId: recipientId,
+                  ),
+                );
+                targetId = ch.id;
+              }
+              if (targetId != null) {
+                await dio.post<Map<String, dynamic>>(
+                  '/channels/$targetId/messages',
+                  data: <String, dynamic>{'content': url},
+                );
+              }
+            },
           ),
         );
       },
@@ -985,6 +1103,50 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
       _ => PhosphorIconsFill.folder,
     };
   }
+}
+
+List<_InviteRecipient> _buildRecipientList(
+  List<Friend> friends,
+  List<DmConversation> dms,
+) {
+  final accepted =
+      friends.where((f) => f.friendStatus == FriendStatus.accepted);
+  final dmByRecipient = <String, DmConversation>{};
+  final recipients = <_InviteRecipient>[];
+
+  for (final dm in dms) {
+    if (dm.isGroup) {
+      recipients.add(
+        _InviteRecipient(
+          id: dm.id,
+          displayName: dm.displayName,
+          secondaryText: 'Group DM',
+          channelId: dm.id,
+        ),
+      );
+    } else {
+      dmByRecipient[dm.recipientId] = dm;
+    }
+  }
+
+  for (final friend in accepted) {
+    final dm = dmByRecipient[friend.id];
+    final avatarUrl = friend.avatar != null
+        ? '$fluxerMediaCdn/avatars/${friend.id}/${friend.avatar}.png'
+        : null;
+    recipients.add(
+      _InviteRecipient(
+        id: friend.id,
+        displayName: friend.displayName,
+        secondaryText: friend.username,
+        avatarUrl: avatarUrl,
+        status: friend.status,
+        channelId: dm?.id,
+      ),
+    );
+  }
+
+  return recipients;
 }
 
 Future<void> markGuildAsRead(
@@ -1148,6 +1310,24 @@ Future<void> updateGuildUserSettings(
   );
 }
 
+class _InviteRecipient {
+  const _InviteRecipient({
+    required this.id,
+    required this.displayName,
+    this.secondaryText,
+    this.avatarUrl,
+    this.status,
+    this.channelId,
+  });
+
+  final String id;
+  final String displayName;
+  final String? secondaryText;
+  final String? avatarUrl;
+  final String? status;
+  final String? channelId;
+}
+
 class _GuildListItem extends StatefulWidget {
   final String label;
   final Guild? guild;
@@ -1175,6 +1355,17 @@ class _GuildListItem extends StatefulWidget {
   final void Function(GuildAction)? onGuildSettingsAction;
   final void Function(String name)? onCreateCategory;
   final void Function(ChannelCreateRequest request)? onCreateChannel;
+  final Future<({String url, String channelName})?> Function({
+    int maxAge,
+    int maxUses,
+    bool temporary,
+  })? onCreateInvite;
+  final Future<List<_InviteRecipient>> Function()? onGetRecipients;
+  final Future<void> Function(
+    String? channelId,
+    String? recipientId,
+    String inviteUrl,
+  )? onSendInviteTo;
 
   const _GuildListItem({
     required this.label,
@@ -1204,6 +1395,9 @@ class _GuildListItem extends StatefulWidget {
     this.onGuildSettingsAction,
     this.onCreateCategory,
     this.onCreateChannel,
+    this.onCreateInvite,
+    this.onGetRecipients,
+    this.onSendInviteTo,
   });
 
   @override
@@ -1655,6 +1849,531 @@ class _GuildListItemState extends State<_GuildListItem> {
     }
   }
 
+  static String _expirationLabel(int maxAge) => switch (maxAge) {
+    0 => 'never',
+    1800 => '30 minutes',
+    3600 => '1 hour',
+    21600 => '6 hours',
+    43200 => '12 hours',
+    86400 => '1 day',
+    604800 => '7 days',
+    _ => '$maxAge seconds',
+  };
+
+  Future<void> _showInviteMembersModal(BuildContext context) async {
+    final inviteFuture = widget.onCreateInvite?.call();
+    if (inviteFuture == null) {
+      return;
+    }
+
+    final recipientsFuture = widget.onGetRecipients?.call();
+    final inviteState =
+        ValueNotifier<({String url, String channelName, int maxAge})?>(
+      null,
+    );
+    final copied = ValueNotifier(false);
+    final sentTo = ValueNotifier<Set<String>>({});
+    final sendingTo = ValueNotifier<Set<String>>({});
+
+    unawaited(
+      inviteFuture.then((r) {
+        if (r != null) {
+          inviteState.value = (
+            url: r.url,
+            channelName: r.channelName,
+            maxAge: 604800,
+          );
+        }
+      }).catchError((_) {}),
+    );
+
+    await FluxerModal.show<void>(
+      context,
+      title: 'Invite friends to ${widget.label}',
+      builder: (dialogContext, close) {
+        final colors = dialogContext.colors;
+        final textStyles = dialogContext.textStyles;
+        final layout = dialogContext.layout;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ValueListenableBuilder<
+                ({String url, String channelName, int maxAge})?>(
+              valueListenable: inviteState,
+              builder: (_, result, __) {
+                if (result == null) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: EdgeInsets.only(bottom: layout.s3),
+                  child: Text(
+                    'Recipients will be taken to '
+                    '#${result.channelName}',
+                    style: textStyles.timestamp.copyWith(
+                      color: colors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            FutureBuilder<List<_InviteRecipient>?>(
+              future: recipientsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: layout.s8,
+                    ),
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colors.brandPrimary,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                final recipients = snapshot.data ?? [];
+                var searchQuery = '';
+
+                return StatefulBuilder(
+                  builder: (context, setLocalState) {
+                    final filtered = recipients.where((r) {
+                      if (searchQuery.isEmpty) {
+                        return true;
+                      }
+                      final q = searchQuery.toLowerCase();
+                      return r.displayName
+                              .toLowerCase()
+                              .contains(q) ||
+                          (r.secondaryText
+                                  ?.toLowerCase()
+                                  .contains(q) ??
+                              false);
+                    }).toList();
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FluxerInput(
+                          hint: 'Search friends',
+                          prefixIcon: Padding(
+                            padding:
+                                EdgeInsets.only(left: layout.s3),
+                            child: PhosphorIcon(
+                              PhosphorIconsBold.magnifyingGlass,
+                              size: 20,
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                          onChanged: (v) => setLocalState(
+                            () => searchQuery = v,
+                          ),
+                        ),
+                        SizedBox(height: layout.s2),
+                        SizedBox(
+                          height: 280,
+                          child: filtered.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    recipients.isEmpty
+                                        ? 'No friends yet'
+                                        : 'No results',
+                                    style:
+                                        textStyles.bodySmall.copyWith(
+                                      color: colors.textSecondary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: layout.s2,
+                                  ),
+                                  itemCount: filtered.length,
+                                  itemBuilder: (context, index) =>
+                                      _buildRecipientItem(
+                                    context,
+                                    recipient: filtered[index],
+                                    inviteState: inviteState,
+                                    sentTo: sentTo,
+                                    sendingTo: sendingTo,
+                                  ),
+                                ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        );
+      },
+      actions: [
+        Builder(
+          builder: (actionContext) {
+            final colors = actionContext.colors;
+            final textStyles = actionContext.textStyles;
+            final layout = actionContext.layout;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              spacing: layout.s2,
+              children: [
+                Text(
+                  'Or, send an invite link to a friend:',
+                  style: textStyles.bodySmall.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: colors.textPrimary,
+                  ),
+                ),
+                ValueListenableBuilder<
+                    ({String url, String channelName, int maxAge})?>(
+                  valueListenable: inviteState,
+                  builder: (_, state, __) => TextFormField(
+                    key: ValueKey(state?.url),
+                    initialValue: state?.url ?? '',
+                    readOnly: true,
+                    style: textStyles.bodySmall.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Invite link',
+                      suffixIcon: Padding(
+                        padding:
+                            EdgeInsets.only(right: layout.s1),
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: copied,
+                          builder: (_, isCopied, __) =>
+                              FluxerButton.primary(
+                            fitContent: true,
+                            size: FluxerButtonSize.compact,
+                            onPressed: state != null
+                                ? () async {
+                                    await Clipboard.setData(
+                                      ClipboardData(
+                                        text: state.url,
+                                      ),
+                                    );
+                                    copied.value = true;
+                                    unawaited(
+                                      Future<void>.delayed(
+                                        const Duration(seconds: 3),
+                                        () {
+                                          if (copied.value) {
+                                            copied.value = false;
+                                          }
+                                        },
+                                      ),
+                                    );
+                                  }
+                                : null,
+                            label: isCopied ? 'Copied!' : 'Copy',
+                          ),
+                        ),
+                      ),
+                      suffixIconConstraints:
+                          const BoxConstraints(),
+                    ),
+                  ),
+                ),
+                ValueListenableBuilder<
+                    ({String url, String channelName, int maxAge})?>(
+                  valueListenable: inviteState,
+                  builder: (_, state, __) {
+                    final expiryText = state == null ||
+                            state.maxAge == 604800
+                        ? 'Your invite link expires in 7 days.'
+                        : state.maxAge == 0
+                            ? 'This invite link never expires.'
+                            : 'Your invite link expires in '
+                                '${_expirationLabel(state.maxAge)}.';
+                    return GestureDetector(
+                      onTap: () => unawaited(
+                        _editInviteLink(
+                          actionContext,
+                          inviteState,
+                          copied,
+                        ),
+                      ),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(text: '$expiryText '),
+                            TextSpan(
+                              text: 'Edit invite link',
+                              style: textStyles.timestamp.copyWith(
+                                color: colors.textLink,
+                              ),
+                            ),
+                          ],
+                        ),
+                        style: textStyles.timestamp.copyWith(
+                          color: colors.textTertiary,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _editInviteLink(
+    BuildContext context,
+    ValueNotifier<({String url, String channelName, int maxAge})?> inviteState,
+    ValueNotifier<bool> copied,
+  ) async {
+    final settings = await _showEditInviteSettings(context);
+    if (settings == null || !context.mounted) {
+      return;
+    }
+
+    final prev = inviteState.value;
+    inviteState.value = null;
+    copied.value = false;
+
+    try {
+      final result = await widget.onCreateInvite?.call(
+        maxAge: settings.maxAge,
+        maxUses: settings.maxUses,
+        temporary: settings.temporary,
+      );
+      if (result != null) {
+        inviteState.value = (
+          url: result.url,
+          channelName: result.channelName,
+          maxAge: settings.maxAge,
+        );
+      } else {
+        inviteState.value = prev;
+      }
+    } on Exception catch (_) {
+      inviteState.value = prev;
+    }
+  }
+
+  Future<({int maxAge, int maxUses, bool temporary})?> _showEditInviteSettings(
+    BuildContext context,
+  ) {
+    var maxAge = 604800;
+    var maxUses = 0;
+    var temporary = false;
+
+    return FluxerModal.show<({int maxAge, int maxUses, bool temporary})>(
+      context,
+      title: 'Invite link settings',
+      builder: (dialogContext, close) {
+        final colors = dialogContext.colors;
+        final textStyles = dialogContext.textStyles;
+        final layout = dialogContext.layout;
+
+        return StatefulBuilder(
+          builder: (context, setState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: layout.s4,
+            children: [
+              FluxerSelect<int>(
+                label: 'Expire After',
+                value: maxAge,
+                items: const [
+                  FluxerSelectItem(value: 0, label: 'Never'),
+                  FluxerSelectItem(value: 1800, label: '30 minutes'),
+                  FluxerSelectItem(value: 3600, label: '1 hour'),
+                  FluxerSelectItem(value: 21600, label: '6 hours'),
+                  FluxerSelectItem(value: 43200, label: '12 hours'),
+                  FluxerSelectItem(value: 86400, label: '1 day'),
+                  FluxerSelectItem(value: 604800, label: '7 days'),
+                ],
+                onChanged: (v) => setState(() => maxAge = v),
+              ),
+              FluxerSelect<int>(
+                label: 'Max Number of Uses',
+                value: maxUses,
+                items: const [
+                  FluxerSelectItem(value: 0, label: 'No limit'),
+                  FluxerSelectItem(value: 1, label: '1 use'),
+                  FluxerSelectItem(value: 5, label: '5 uses'),
+                  FluxerSelectItem(value: 10, label: '10 uses'),
+                  FluxerSelectItem(value: 25, label: '25 uses'),
+                  FluxerSelectItem(value: 50, label: '50 uses'),
+                  FluxerSelectItem(value: 100, label: '100 uses'),
+                ],
+                onChanged: (v) => setState(() => maxUses = v),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FluxerToggleSwitch(
+                    value: temporary,
+                    onChanged: (v) => setState(() => temporary = v),
+                    label: 'Grant Temporary Membership',
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: layout.s1),
+                    child: Text(
+                      'Members will be removed when they go '
+                      'offline unless a role is assigned',
+                      style: textStyles.timestamp.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+      actions: [
+        FluxerButton.primary(
+          onPressed: () => Navigator.of(context).pop(
+            (maxAge: maxAge, maxUses: maxUses, temporary: temporary),
+          ),
+          label: 'Create New Link',
+        ),
+        const SizedBox(height: 8),
+        FluxerButton.secondary(
+          onPressed: () => Navigator.of(context).pop(),
+          label: 'Cancel',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecipientItem(
+    BuildContext context, {
+    required _InviteRecipient recipient,
+    required ValueNotifier<({String url, String channelName, int maxAge})?>
+        inviteState,
+    required ValueNotifier<Set<String>> sentTo,
+    required ValueNotifier<Set<String>> sendingTo,
+  }) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+    final layout = context.layout;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: layout.s4,
+        vertical: layout.s2,
+      ),
+      child: Row(
+        children: [
+          FluxerAvatar.user(
+            imageUrl: recipient.avatarUrl,
+            fallbackText: recipient.displayName,
+            status: recipient.status,
+            size: 32,
+          ),
+          SizedBox(width: layout.s3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  recipient.displayName,
+                  style: textStyles.bodySmall.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: colors.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                if (recipient.secondaryText != null)
+                  Text(
+                    recipient.secondaryText!,
+                    style: textStyles.timestamp.copyWith(
+                      color: colors.textTertiary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+              ],
+            ),
+          ),
+          SizedBox(width: layout.s3),
+          ValueListenableBuilder<Set<String>>(
+            valueListenable: sentTo,
+            builder: (_, sent, __) {
+              if (sent.contains(recipient.id)) {
+                return FluxerButton.secondary(
+                  fitContent: true,
+                  size: FluxerButtonSize.compact,
+                  onPressed: null,
+                  label: 'Sent',
+                );
+              }
+              return ValueListenableBuilder<Set<String>>(
+                valueListenable: sendingTo,
+                builder: (_, sending, __) {
+                  final isSending =
+                      sending.contains(recipient.id);
+                  return ValueListenableBuilder<
+                      ({String url, String channelName, int maxAge})?>(
+                    valueListenable: inviteState,
+                    builder: (_, result, __) =>
+                        FluxerButton.secondary(
+                      fitContent: true,
+                      size: FluxerButtonSize.compact,
+                      isLoading: isSending,
+                      onPressed:
+                          result != null && !isSending
+                              ? () => _sendInviteTo(
+                                    recipient,
+                                    result.url,
+                                    sentTo,
+                                    sendingTo,
+                                  )
+                              : null,
+                      label: 'Invite',
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendInviteTo(
+    _InviteRecipient recipient,
+    String inviteUrl,
+    ValueNotifier<Set<String>> sentTo,
+    ValueNotifier<Set<String>> sendingTo,
+  ) async {
+    sendingTo.value = {...sendingTo.value, recipient.id};
+    try {
+      await widget.onSendInviteTo?.call(
+        recipient.channelId,
+        recipient.channelId != null ? null : recipient.id,
+        inviteUrl,
+      );
+      sentTo.value = {...sentTo.value, recipient.id};
+    } finally {
+      sendingTo.value = {...sendingTo.value}..remove(recipient.id);
+    }
+  }
+
   Future<void> _confirmLeaveGuild(BuildContext context) async {
     final confirmed = await FluxerConfirmModal.show(
       context,
@@ -1731,6 +2450,7 @@ class _GuildListItemState extends State<_GuildListItem> {
       case GuildAction.createChannel:
         unawaited(_showCreateChannelModal(context));
       case GuildAction.inviteMembers:
+        unawaited(_showInviteMembersModal(context));
       case GuildAction.notificationSettings:
       case GuildAction.privacySettings:
       case GuildAction.editCommunityProfile:
