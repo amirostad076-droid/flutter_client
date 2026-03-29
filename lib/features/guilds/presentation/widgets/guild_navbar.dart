@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
@@ -551,6 +552,23 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
               ),
             );
           },
+          onLeaveGuild: () {
+            unawaited(
+              ref.read(fluxerClientProvider).guilds.leaveGuild(
+                guildId: guild.id,
+              ),
+            );
+          },
+          onGuildSettingsAction: (action) {
+            unawaited(
+              updateGuildUserSettings(
+                action,
+                guild.id,
+                ref.read(fluxerDatabaseProvider),
+                ref.read(fluxerClientProvider),
+              ),
+            );
+          },
         );
       },
     );
@@ -876,6 +894,23 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                 ),
               );
             },
+            onLeaveGuild: () {
+              unawaited(
+                ref.read(fluxerClientProvider).guilds.leaveGuild(
+                  guildId: guild.id,
+                ),
+              );
+            },
+            onGuildSettingsAction: (action) {
+              unawaited(
+                updateGuildUserSettings(
+                  action,
+                  guild.id,
+                  ref.read(fluxerDatabaseProvider),
+                  ref.read(fluxerClientProvider),
+                ),
+              );
+            },
           ),
         );
       },
@@ -951,6 +986,116 @@ Future<void> markGuildAsRead(
   );
 }
 
+const Map<GuildAction, int> _muteDurations = {
+  GuildAction.mute15Min: 15 * 60 * 1000,
+  GuildAction.mute30Min: 30 * 60 * 1000,
+  GuildAction.mute1Hour: 60 * 60 * 1000,
+  GuildAction.mute3Hours: 3 * 60 * 60 * 1000,
+  GuildAction.mute4Hours: 4 * 60 * 60 * 1000,
+  GuildAction.mute8Hours: 8 * 60 * 60 * 1000,
+  GuildAction.mute24Hours: 24 * 60 * 60 * 1000,
+  GuildAction.mute3Days: 3 * 24 * 60 * 60 * 1000,
+};
+
+Future<void> updateGuildUserSettings(
+  GuildAction action,
+  String guildId,
+  FluxerDatabase db,
+  FluxerClient client,
+) async {
+  final existing = await db.userGuildSettingsDao.getByGuildId(guildId);
+  final currentData = existing != null
+      ? jsonDecode(existing.data) as Map<String, dynamic>
+      : <String, dynamic>{};
+
+  UserGuildSettingsUpdateRequest request;
+
+  switch (action) {
+    case GuildAction.hideMutedChannels:
+      final current = currentData['hide_muted_channels'] as bool? ?? false;
+      currentData['hide_muted_channels'] = !current;
+      request = UserGuildSettingsUpdateRequest(hideMutedChannels: !current);
+
+    case GuildAction.unmute:
+      currentData['muted'] = false;
+      currentData.remove('mute_config');
+      request = const UserGuildSettingsUpdateRequest(
+        muted: false,
+      );
+
+    case GuildAction.muteForever:
+      currentData['muted'] = true;
+      currentData.remove('mute_config');
+      request = const UserGuildSettingsUpdateRequest(muted: true);
+
+    case GuildAction.mute15Min:
+    case GuildAction.mute30Min:
+    case GuildAction.mute1Hour:
+    case GuildAction.mute3Hours:
+    case GuildAction.mute4Hours:
+    case GuildAction.mute8Hours:
+    case GuildAction.mute24Hours:
+    case GuildAction.mute3Days:
+      final durationMs = _muteDurations[action]!;
+      final endTime = DateTime.now().add(
+        Duration(milliseconds: durationMs),
+      );
+      final endTimeIso = endTime.toUtc().toIso8601String();
+      currentData['muted'] = true;
+      currentData['mute_config'] = {
+        'end_time': endTimeIso,
+        'selected_time_window': durationMs,
+      };
+      request = UserGuildSettingsUpdateRequest(
+        muted: true,
+        muteConfig: UserGuildSettingsUpdateRequestMuteConfig(
+          selectedTimeWindow: durationMs,
+          endTime: endTimeIso,
+        ),
+      );
+
+    case GuildAction.markAsRead:
+    case GuildAction.inviteMembers:
+    case GuildAction.createChannel:
+    case GuildAction.createCategory:
+    case GuildAction.settingsOverview:
+    case GuildAction.settingsRoles:
+    case GuildAction.settingsEmoji:
+    case GuildAction.settingsStickers:
+    case GuildAction.settingsSafetyModeration:
+    case GuildAction.settingsActivityLog:
+    case GuildAction.settingsWebhooks:
+    case GuildAction.settingsCustomInviteUrl:
+    case GuildAction.settingsDiscovery:
+    case GuildAction.settingsMembers:
+    case GuildAction.settingsInviteLinks:
+    case GuildAction.settingsBans:
+    case GuildAction.notificationSettings:
+    case GuildAction.privacySettings:
+    case GuildAction.editCommunityProfile:
+    case GuildAction.leaveGuild:
+    case GuildAction.reportCommunity:
+    case GuildAction.reportRaid:
+    case GuildAction.debugCommunity:
+    case GuildAction.copyGuildId:
+      return;
+  }
+
+  await db.userGuildSettingsDao.upsert(
+    UserGuildSettingsTableCompanion(
+      guildId: Value(guildId),
+      data: Value(jsonEncode(currentData)),
+    ),
+  );
+
+  unawaited(
+    client.users.updateGuildSettingsForUser(
+      guildId: guildId,
+      body: request,
+    ),
+  );
+}
+
 class _GuildListItem extends StatefulWidget {
   final String label;
   final Guild? guild;
@@ -974,6 +1119,8 @@ class _GuildListItem extends StatefulWidget {
   final bool invitesPaused;
   final bool developerMode;
   final VoidCallback? onMarkAsRead;
+  final VoidCallback? onLeaveGuild;
+  final void Function(GuildAction)? onGuildSettingsAction;
 
   const _GuildListItem({
     required this.label,
@@ -999,6 +1146,8 @@ class _GuildListItem extends StatefulWidget {
     this.invitesPaused = false,
     this.developerMode = false,
     this.onMarkAsRead,
+    this.onLeaveGuild,
+    this.onGuildSettingsAction,
   });
 
   @override
@@ -1239,6 +1388,25 @@ class _GuildListItemState extends State<_GuildListItem> {
     }
   }
 
+  Future<void> _confirmLeaveGuild(BuildContext context) async {
+    final confirmed = await FluxerConfirmModal.show(
+      context,
+      title: 'Leave Community',
+      description: 'Are you sure you want to leave this community? '
+          'You will no longer be able to see any messages.',
+      confirmLabel: 'Leave Community',
+      isDanger: true,
+      onConfirm: () {},
+    );
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+    widget.onLeaveGuild?.call();
+    if (context.mounted) {
+      context.go(RoutePaths.me);
+    }
+  }
+
   void _handleAction(BuildContext context, GuildAction action) {
     final guildId = widget.guild!.id;
     switch (action) {
@@ -1277,17 +1445,7 @@ class _GuildListItemState extends State<_GuildListItem> {
         break;
       case GuildAction.markAsRead:
         widget.onMarkAsRead?.call();
-      case GuildAction.inviteMembers:
-      case GuildAction.createChannel:
-      case GuildAction.createCategory:
-      case GuildAction.notificationSettings:
-      case GuildAction.privacySettings:
-      case GuildAction.editCommunityProfile:
       case GuildAction.hideMutedChannels:
-      case GuildAction.leaveGuild:
-      case GuildAction.reportCommunity:
-      case GuildAction.reportRaid:
-      case GuildAction.debugCommunity:
       case GuildAction.mute15Min:
       case GuildAction.mute30Min:
       case GuildAction.mute1Hour:
@@ -1298,6 +1456,18 @@ class _GuildListItemState extends State<_GuildListItem> {
       case GuildAction.mute3Days:
       case GuildAction.muteForever:
       case GuildAction.unmute:
+        widget.onGuildSettingsAction?.call(action);
+      case GuildAction.leaveGuild:
+        unawaited(_confirmLeaveGuild(context));
+      case GuildAction.inviteMembers:
+      case GuildAction.createChannel:
+      case GuildAction.createCategory:
+      case GuildAction.notificationSettings:
+      case GuildAction.privacySettings:
+      case GuildAction.editCommunityProfile:
+      case GuildAction.reportCommunity:
+      case GuildAction.reportRaid:
+      case GuildAction.debugCommunity:
         break;
     }
   }

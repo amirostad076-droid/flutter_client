@@ -1,7 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // ---------------------------------------------------------------------------
 // FluxerModal
@@ -13,9 +17,10 @@ typedef FluxerModalBuilder =
 
 /// A styled dialog modal.
 ///
-/// Uses [showDialog] and the app's [DialogTheme] for surface styling.
-/// The [builder] receives a `close` callback so children can dismiss the
-/// dialog without their own `Navigator.pop` call.
+/// Uses [showDialog] with a blurred backdrop matching the web app's
+/// centered-modal styling. Inherits background color and shadow from
+/// the app's [DialogTheme], overriding only the border radius for
+/// mobile layout.
 class FluxerModal {
   FluxerModal._();
 
@@ -27,77 +32,109 @@ class FluxerModal {
   }) {
     return showDialog<T>(
       context: context,
+      barrierColor: Colors.transparent,
       builder: (dialogContext) {
         void close() => Navigator.of(dialogContext).pop();
 
         final colors = dialogContext.colors;
         final textStyles = dialogContext.textStyles;
         final layout = dialogContext.layout;
+        final dialogTheme = DialogTheme.of(dialogContext);
 
-        return Dialog(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Header
-                Padding(
-                  padding: EdgeInsets.all(layout.s4),
-                  child: Row(
+        // Use the theme's shape but swap the radius for mobile (16px).
+        final themeShape = dialogTheme.shape as RoundedRectangleBorder?;
+
+        return Stack(
+          children: [
+            // Backdrop with blur
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: close,
+                child: ColoredBox(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+              ),
+            ),
+
+            // Dialog
+            Center(
+              child: Dialog(
+                insetPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 24,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: layout.radiusXxl,
+                  side: themeShape?.side ?? BorderSide.none,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: textStyles.heading.copyWith(
-                            color: colors.textPrimary,
+                      // Header
+                      Padding(
+                        padding: EdgeInsets.all(layout.s4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                title,
+                                style: textStyles.heading.copyWith(
+                                  fontSize: 18,
+                                  color: colors.textPrimary,
+                                  height: 20 / 18,
+                                ),
+                              ),
+                            ),
+                            Opacity(
+                              opacity: 0.5,
+                              child: FluxerButton.ghost(
+                                onPressed: close,
+                                icon: PhosphorIconsBold.x,
+                                isSquare: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Body
+                      Flexible(
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            layout.s4,
+                            0,
+                            layout.s4,
+                            layout.s4,
+                          ),
+                          child: SingleChildScrollView(
+                            child: builder(dialogContext, close),
                           ),
                         ),
                       ),
-                      FluxerButton.ghost(
-                        onPressed: close,
-                        icon: PhosphorIconsBold.x,
-                        isSquare: true,
-                      ),
+
+                      // Actions
+                      if (actions != null && actions.isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.all(layout.s4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: actions,
+                          ),
+                        ),
                     ],
                   ),
                 ),
-
-                // Header divider
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: colors.backgroundModifierAccent,
-                ),
-
-                // Body
-                Flexible(
-                  child: Padding(
-                    padding: EdgeInsets.all(layout.s4),
-                    child: SingleChildScrollView(
-                      child: builder(dialogContext, close),
-                    ),
-                  ),
-                ),
-
-                // Actions
-                if (actions != null && actions.isNotEmpty) ...[
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: colors.backgroundModifierAccent,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(layout.s4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: actions,
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
-          ),
+          ],
         );
       },
     );
@@ -124,21 +161,14 @@ class FluxerConfirmModal {
       context,
       title: title,
       builder: (dialogContext, close) {
-        final colors = dialogContext.colors;
         final textStyles = dialogContext.textStyles;
 
         return Text(
           description,
-          style: textStyles.username.copyWith(color: colors.textPrimary),
+          style: textStyles.bodySmall.copyWith(height: 1.4),
         );
       },
       actions: [
-        FluxerButton.secondary(
-          onPressed: () => Navigator.of(context).pop(false),
-          label: 'Cancel',
-          fitContent: true,
-        ),
-        const SizedBox(width: 8),
         if (isDanger)
           FluxerButton.dangerPrimary(
             onPressed: () {
@@ -146,7 +176,6 @@ class FluxerConfirmModal {
               Navigator.of(context).pop(true);
             },
             label: confirmLabel,
-            fitContent: true,
           )
         else
           FluxerButton.primary(
@@ -155,8 +184,12 @@ class FluxerConfirmModal {
               Navigator.of(context).pop(true);
             },
             label: confirmLabel,
-            fitContent: true,
           ),
+        const SizedBox(height: 8),
+        FluxerButton.secondary(
+          onPressed: () => Navigator.of(context).pop(false),
+          label: 'Cancel',
+        ),
       ],
     );
   }
