@@ -569,6 +569,32 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
               ),
             );
           },
+          onCreateCategory: (name) {
+            unawaited(
+              ref.read(fluxerClientProvider).guilds.createGuildChannel(
+                guildId: guild.id,
+                body: ChannelCreateRequest4(
+                  name: name,
+                  type: ChannelCreateCategoryRequestTypeType.guildCategory,
+                  topic: null,
+                  url: null,
+                  parentId: null,
+                  bitrate: null,
+                  userLimit: null,
+                  permissionOverwrites: [],
+                  nsfw: false,
+                ),
+              ),
+            );
+          },
+          onCreateChannel: (request) {
+            unawaited(
+              ref.read(fluxerClientProvider).guilds.createGuildChannel(
+                guildId: guild.id,
+                body: request,
+              ),
+            );
+          },
         );
       },
     );
@@ -911,6 +937,32 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                 ),
               );
             },
+            onCreateCategory: (name) {
+              unawaited(
+                ref.read(fluxerClientProvider).guilds.createGuildChannel(
+                  guildId: guild.id,
+                  body: ChannelCreateRequest4(
+                    name: name,
+                    type: ChannelCreateCategoryRequestTypeType.guildCategory,
+                    topic: null,
+                    url: null,
+                    parentId: null,
+                    bitrate: null,
+                    userLimit: null,
+                    permissionOverwrites: [],
+                    nsfw: false,
+                  ),
+                ),
+              );
+            },
+            onCreateChannel: (request) {
+              unawaited(
+                ref.read(fluxerClientProvider).guilds.createGuildChannel(
+                  guildId: guild.id,
+                  body: request,
+                ),
+              );
+            },
           ),
         );
       },
@@ -1121,6 +1173,8 @@ class _GuildListItem extends StatefulWidget {
   final VoidCallback? onMarkAsRead;
   final VoidCallback? onLeaveGuild;
   final void Function(GuildAction)? onGuildSettingsAction;
+  final void Function(String name)? onCreateCategory;
+  final void Function(ChannelCreateRequest request)? onCreateChannel;
 
   const _GuildListItem({
     required this.label,
@@ -1148,6 +1202,8 @@ class _GuildListItem extends StatefulWidget {
     this.onMarkAsRead,
     this.onLeaveGuild,
     this.onGuildSettingsAction,
+    this.onCreateCategory,
+    this.onCreateChannel,
   });
 
   @override
@@ -1388,6 +1444,217 @@ class _GuildListItemState extends State<_GuildListItem> {
     }
   }
 
+  static bool _isValidUrl(String value) {
+    final url = value.trim();
+    if (url.isEmpty) return false;
+    final uri = Uri.tryParse(url);
+    return uri != null && uri.hasScheme && uri.hasAuthority;
+  }
+
+  Future<void> _showCreateChannelModal(BuildContext context) async {
+    var currentName = '';
+    var currentUrl = '';
+    var selectedType = 0; // GUILD_TEXT
+    final formValid = ValueNotifier(false);
+
+    void updateValidity() {
+      final nameOk = currentName.trim().isNotEmpty;
+      final urlOk = selectedType != 998 || _isValidUrl(currentUrl);
+      formValid.value = nameOk && urlOk;
+    }
+
+    final request = await FluxerModal.show<ChannelCreateRequest>(
+      context,
+      title: 'Create Channel',
+      builder: (dialogContext, close) {
+        final layout = dialogContext.layout;
+        return StatefulBuilder(
+          builder: (stfContext, setModalState) {
+            final colors = stfContext.colors;
+            final textStyles = stfContext.textStyles;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(bottom: layout.s2),
+                  child: Text(
+                    'Channel Type',
+                    style: textStyles.label.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                FluxerRadioGroup<int>(
+                  value: selectedType,
+                  onChanged: (value) {
+                    setModalState(() => selectedType = value);
+                    updateValidity();
+                  },
+                  items: const [
+                    FluxerRadioItem(
+                      value: 0,
+                      label: 'Text Channel',
+                      description:
+                          'Send messages, images, GIFs, and emoji',
+                    ),
+                    FluxerRadioItem(
+                      value: 2,
+                      label: 'Voice Channel',
+                      description:
+                          'Hang out together with voice, video, '
+                          'and screen share',
+                    ),
+                    FluxerRadioItem(
+                      value: 998,
+                      label: 'Link Channel',
+                      description:
+                          'Quick access to an external website '
+                          'or resource',
+                    ),
+                  ],
+                ),
+                SizedBox(height: layout.s4),
+                FluxerInput(
+                  label: 'Name',
+                  hint: 'new-channel',
+                  maxLength: 100,
+                  autofocus: true,
+                  onChanged: (value) {
+                    currentName = value;
+                    updateValidity();
+                  },
+                ),
+                if (selectedType == 998) ...[
+                  SizedBox(height: layout.s4),
+                  FluxerInput(
+                    label: 'URL',
+                    hint: 'https://example.com',
+                    maxLength: 1024,
+                    keyboardType: TextInputType.url,
+                    onChanged: (value) {
+                      currentUrl = value;
+                      updateValidity();
+                    },
+                  ),
+                ],
+              ],
+            );
+          },
+        );
+      },
+      actions: [
+        ValueListenableBuilder<bool>(
+          valueListenable: formValid,
+          builder: (_, isValid, __) => FluxerButton.primary(
+            onPressed: isValid
+                ? () {
+                    final name = currentName.trim();
+                    final ChannelCreateRequest body =
+                        switch (selectedType) {
+                      2 => ChannelCreateRequest2(
+                        name: name,
+                        type: ChannelCreateVoiceRequestTypeType
+                            .guildVoice,
+                        topic: null,
+                        url: null,
+                        parentId: null,
+                        bitrate: 64000,
+                        userLimit: 0,
+                        permissionOverwrites: [],
+                        nsfw: false,
+                      ),
+                      998 => ChannelCreateRequest998(
+                        name: name,
+                        type: ChannelCreateLinkRequestTypeType
+                            .guildLink,
+                        topic: null,
+                        url: currentUrl.trim(),
+                        parentId: null,
+                        bitrate: null,
+                        userLimit: null,
+                        permissionOverwrites: [],
+                        nsfw: false,
+                      ),
+                      _ => ChannelCreateRequest0(
+                        name: name,
+                        type: ChannelCreateTextRequestTypeType
+                            .guildText,
+                        topic: null,
+                        url: null,
+                        parentId: null,
+                        bitrate: null,
+                        userLimit: null,
+                        permissionOverwrites: [],
+                        nsfw: false,
+                      ),
+                    };
+                    Navigator.of(context).pop(body);
+                  }
+                : null,
+            label: 'Create Channel',
+          ),
+        ),
+        const SizedBox(height: 8),
+        FluxerButton.secondary(
+          onPressed: () => Navigator.of(context).pop(),
+          label: 'Cancel',
+        ),
+      ],
+    );
+    if (request != null && context.mounted) {
+      widget.onCreateChannel?.call(request);
+    }
+  }
+
+  Future<void> _showCreateCategoryModal(BuildContext context) async {
+    var currentName = '';
+    final nameValid = ValueNotifier(false);
+    final name = await FluxerModal.show<String>(
+      context,
+      title: 'Create Category',
+      builder: (dialogContext, close) {
+        return FluxerInput(
+          label: 'Name',
+          hint: 'New Category',
+          maxLength: 100,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          onChanged: (value) {
+            currentName = value;
+            nameValid.value = value.trim().isNotEmpty;
+          },
+          onSubmitted: (_) {
+            final value = currentName.trim();
+            if (value.isNotEmpty) {
+              Navigator.of(context).pop(value);
+            }
+          },
+        );
+      },
+      actions: [
+        ValueListenableBuilder<bool>(
+          valueListenable: nameValid,
+          builder: (_, isValid, __) => FluxerButton.primary(
+            onPressed: isValid
+                ? () => Navigator.of(context).pop(currentName.trim())
+                : null,
+            label: 'Create Category',
+          ),
+        ),
+        const SizedBox(height: 8),
+        FluxerButton.secondary(
+          onPressed: () => Navigator.of(context).pop(),
+          label: 'Cancel',
+        ),
+      ],
+    );
+    if (name != null && name.isNotEmpty && context.mounted) {
+      widget.onCreateCategory?.call(name);
+    }
+  }
+
   Future<void> _confirmLeaveGuild(BuildContext context) async {
     final confirmed = await FluxerConfirmModal.show(
       context,
@@ -1459,9 +1726,11 @@ class _GuildListItemState extends State<_GuildListItem> {
         widget.onGuildSettingsAction?.call(action);
       case GuildAction.leaveGuild:
         unawaited(_confirmLeaveGuild(context));
-      case GuildAction.inviteMembers:
-      case GuildAction.createChannel:
       case GuildAction.createCategory:
+        unawaited(_showCreateCategoryModal(context));
+      case GuildAction.createChannel:
+        unawaited(_showCreateChannelModal(context));
+      case GuildAction.inviteMembers:
       case GuildAction.notificationSettings:
       case GuildAction.privacySettings:
       case GuildAction.editCommunityProfile:

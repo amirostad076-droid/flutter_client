@@ -93,7 +93,7 @@ void main() {
       expect(find.text('Alpha'), findsOneWidget);
       expect(find.text('Beta'), findsOneWidget);
       expect(find.text('Gamma'), findsOneWidget);
-      expect(find.byType(Radio<String>), findsNWidgets(3));
+      expect(find.byType(AnimatedContainer), findsNWidgets(3));
 
       // Tap label to select.
       await tester.tap(find.text('Beta'));

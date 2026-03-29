@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 
-/// A single item within a [FluxerRadioGroup].
 class FluxerRadioItem<T> {
-  const FluxerRadioItem({required this.value, required this.label});
+  const FluxerRadioItem({
+    required this.value,
+    required this.label,
+    this.description,
+  });
 
   final T value;
   final String label;
+  final String? description;
 }
 
-/// A themed radio group that renders [Radio] widgets with tappable labels.
-///
-/// Uses [RadioGroup] as an ancestor to manage selection state, and [Flex]
-/// to support both vertical and horizontal layouts via the [direction]
-/// parameter. Visual styling is handled by the existing [RadioTheme]
-/// in `buildFluxerTheme()`.
 class FluxerRadioGroup<T> extends StatelessWidget {
   const FluxerRadioGroup({
     required this.value,
@@ -31,39 +29,122 @@ class FluxerRadioGroup<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-    final textStyles = context.textStyles;
+    final layout = context.layout;
 
-    return RadioGroup<T>(
-      groupValue: value,
-      onChanged: (v) {
-        if (v != null) {
-          onChanged(v);
-        }
-      },
-      child: Flex(
-        direction: direction,
-        mainAxisSize: MainAxisSize.min,
+    return Flex(
+      direction: direction,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: layout.s1_5,
+      children: [
+        for (final item in items)
+          _buildOption(context, item),
+      ],
+    );
+  }
+
+  Widget _buildOption(BuildContext context, FluxerRadioItem<T> item) {
+    final isSelected = value == item.value;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onChanged(item.value),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          for (final item in items)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Radio<T>(value: item.value),
-                GestureDetector(
-                  onTap: () => onChanged(item.value),
-                  child: Text(
-                    item.label,
-                    style: textStyles.bodyMedium.copyWith(
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: _RadioIndicator(isSelected: isSelected),
+          ),
+          const SizedBox(width: 8),
+          if (direction == Axis.vertical)
+            Expanded(child: _buildLabel(context, item, isSelected))
+          else
+            _buildLabel(context, item, isSelected),
         ],
       ),
+    );
+  }
+
+  Widget _buildLabel(
+    BuildContext context,
+    FluxerRadioItem<T> item,
+    bool isSelected,
+  ) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+    final layout = context.layout;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      spacing: layout.s1,
+      children: [
+        Text(
+          item.label,
+          style: textStyles.bodyMedium.copyWith(
+            fontWeight: FontWeight.w500,
+            color: isSelected
+                ? colors.textPrimary
+                : colors.textSecondary,
+          ),
+        ),
+        if (item.description != null)
+          Text(
+            item.description!,
+            style: textStyles.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _RadioIndicator extends StatelessWidget {
+  const _RadioIndicator({required this.isSelected});
+
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final borderDerived = Color.lerp(
+      colors.borderColor,
+      Colors.white,
+      0.3,
+    )!;
+    final unselectedFill = Color.lerp(
+      colors.backgroundPrimary,
+      borderDerived,
+      0.45,
+    )!;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isSelected ? colors.brandPrimary : unselectedFill,
+        border: Border.all(
+          color: isSelected ? colors.brandPrimary : borderDerived,
+          width: 1.5,
+        ),
+      ),
+      child: isSelected
+          ? Center(
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          : null,
     );
   }
 }

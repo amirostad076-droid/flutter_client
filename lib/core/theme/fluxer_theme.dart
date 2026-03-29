@@ -295,13 +295,18 @@ ThemeData buildFluxerTheme({
       trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
     ),
 
-    // Radio buttons — web: 18px, brand-primary when selected
+    // Radio buttons — web: 18px, brand-primary when selected,
+    // unselected border is color-mix(border-color 70%, #fff 30%).
     radioTheme: RadioThemeData(
       fillColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return colorTheme.brandPrimary;
         }
-        return colorTheme.backgroundHeaderSecondary;
+        return Color.lerp(
+          colorTheme.borderColor,
+          Colors.white,
+          0.3,
+        );
       }),
     ),
 
