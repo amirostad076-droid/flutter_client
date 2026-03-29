@@ -50,7 +50,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 **Environments** are `canary`, `beta`, and `production`. Set `APP_ENVIRONMENT` to match.
 
-**Application ID / bundle ID:** `beta` and `production` use `app.fluxer`. `canary` uses `app.fluxer.canary`
+**Application ID / bundle ID:** `beta` and `production` use `com.fluxer`. `canary` uses `com.fluxer.canary`
 
 **Android** uses two Gradle flavor dimensions: environment plus push (`fcm` or `unifiedpush`). The variant name combines both in camelCase (for example `productionFcm`, `betaUnifiedpush`). `PUSH_PROVIDER` must match the push dimension: `fcm` for Firebase Cloud Messaging (adds deps via `pubspec.firebase.deps.yaml`) or `unifiedpush` for UnifiedPush.
 
