@@ -89,4 +89,101 @@ platform :ios do
       retry
     end
   end
+
+  desc "Build production IPA and upload to App Store Connect as a processing build only (no App Review submission, no automatic release)"
+  lane :production_release do
+    profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision")
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APPSTORE_KEY_ID"),
+      issuer_id: ENV.fetch("APPSTORE_ISSUER_ID"),
+      key_content: ENV.fetch("APPSTORE_PRIVATE_KEY")
+    )
+
+    app_identifier = "com.fluxer"
+    latest_build_number = latest_testflight_build_number(
+      api_key: api_key,
+      app_identifier: app_identifier,
+      initial_build_number: 1
+    )
+    flutter_build_number = latest_build_number + 1
+
+    update_project_provisioning(
+      xcodeproj: "ios/Runner.xcodeproj",
+      profile: profile_path,
+      target_filter: "^Runner$",
+      build_configuration: "Release-production",
+      code_signing_identity: "Apple Distribution"
+    )
+    cocoapods(
+      podfile: "ios/Podfile",
+      clean_install: true
+    )
+
+    sh(
+      "flutter",
+      "build",
+      "ios",
+      "--release",
+      "--flavor",
+      "production",
+      "--no-codesign",
+      "--build-number",
+      flutter_build_number.to_s,
+      "--dart-define=APP_ENVIRONMENT=production",
+      "--dart-define=PUSH_PROVIDER=apns"
+    )
+    build_app(
+      workspace: "ios/Runner.xcworkspace",
+      scheme: "production",
+      configuration: "Release-production",
+      clean: true,
+      output_directory: "build/ios/ipa",
+      export_method: "app-store",
+      codesigning_identity: "Apple Distribution",
+      export_options: {
+        signingStyle: "manual",
+        teamID: ENV.fetch("APPLE_TEAM_ID"),
+        signingCertificate: "Apple Distribution",
+        provisioningProfiles: {
+          "app.fluxer" => ENV.fetch("PROFILE_UUID")
+        }
+      },
+      xcargs: [
+        "DEVELOPMENT_TEAM=#{ENV.fetch("APPLE_TEAM_ID")}",
+        "FLUTTER_BUILD_NUMBER=#{flutter_build_number}",
+        "CODE_SIGN_STYLE=Manual",
+      ].join(" ")
+    )
+    maximum_attempts = 3
+    attempt_index = 1
+    begin
+      upload_to_app_store(
+        api_key: api_key,
+        ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+        app_identifier: app_identifier,
+        skip_metadata: true,
+        skip_screenshots: true,
+        skip_app_version_update: true,
+        force: true,
+        submit_for_review: false,
+        automatic_release: false,
+        run_precheck_before_submit: false,
+        precheck_include_in_app_purchases: false
+      )
+    rescue => err
+      if err.message.include?("The bundle version must be higher") || err.message.include?("-19232")
+        raise err
+      end
+      if attempt_index >= maximum_attempts
+        raise err
+      end
+      retry_delay_seconds = attempt_index * 30
+      UI.important("App Store upload failed on attempt #{attempt_index}/#{maximum_attempts}: #{err.message}")
+      UI.important("Retrying upload in #{retry_delay_seconds} seconds...")
+      sleep(retry_delay_seconds)
+      attempt_index += 1
+      retry
+    end
+  end
 end
