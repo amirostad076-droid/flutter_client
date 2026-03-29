@@ -48,4 +48,7 @@ class DmChannelDao extends DatabaseAccessor<FluxerDatabase>
       (delete(dmChannels)..where((d) => d.id.equals(channelId))).go();
 
   Future<void> clearAll() => delete(dmChannels).go();
+
+  Future<DmChannel?> getDmChannelById(String id) =>
+      (select(dmChannels)..where((d) => d.id.equals(id))).getSingleOrNull();
 }

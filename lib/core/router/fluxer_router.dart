@@ -268,6 +268,19 @@ GoRouter fluxerRouter(Ref ref) {
                         channelId: state.pathParameters['channelId'],
                       ),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: ':messageId',
+                        name: RouteNames.dmMessage,
+                        pageBuilder: (context, state) => _slideTransitionPage(
+                          key: state.pageKey,
+                          child: DMLayout(
+                            channelId: state.pathParameters['channelId'],
+                            targetMessageId: state.pathParameters['messageId'],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -98,6 +98,11 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   Future<void> switchChannel(String channelId, {String? targetMessageId}) async {
+    if (state.channelId == channelId &&
+        state.isLoading &&
+        targetMessageId == null) {
+      return;
+    }
     state = ChatViewState(
       channelId: channelId,
       messages: const [],
@@ -125,15 +130,10 @@ class ChatViewModel extends _$ChatViewModel {
         channelId: channelId,
         around: targetMessageId,
       );
-      final signal = targetMessageId != null &&
-              messages.any((m) => m.id == targetMessageId)
-          ? (targetMessageId, (state.scrollToMessageSignal?.$2 ?? 0) + 1)
-          : null;
       state = state.copyWith(
         messages: messages,
         isLoading: false,
         hasMoreMessages: messages.length >= _kPageSize,
-        scrollToMessageSignal: signal,
       );
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load messages: $e');

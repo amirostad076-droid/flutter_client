@@ -7,8 +7,9 @@ import 'package:fluxer_app/features/friends/presentation/widgets/friends_list.da
 
 class DMLayout extends ConsumerWidget {
   final String? channelId;
+  final String? targetMessageId;
 
-  const DMLayout({this.channelId, super.key});
+  const DMLayout({this.channelId, this.targetMessageId, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,6 +20,9 @@ class DMLayout extends ConsumerWidget {
       );
     }
 
-    return ChannelChatContent(channelId: channelId!);
+    return ChannelChatContent(
+      channelId: channelId!,
+      targetMessageId: targetMessageId,
+    );
   }
 }

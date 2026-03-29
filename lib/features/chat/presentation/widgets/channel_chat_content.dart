@@ -58,7 +58,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
         child: Column(
           children: [
             if (widget.showTopBar) const ChannelHeader(),
-            const Expanded(child: MessageList()),
+            Expanded(child: MessageList(targetMessageId: widget.targetMessageId)),
             const ChannelTextarea(),
           ],
         ),

@@ -7,10 +7,11 @@ import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:highlight/highlight.dart' show highlight, Mode;
 import 'package:highlight/languages/bash.dart';
 import 'package:highlight/languages/cpp.dart';
@@ -329,10 +330,22 @@ class MessageMarkdown extends StatelessWidget {
     if (href == null) return;
     final jump = parseChannelJumpLink(href);
     if (jump != null) {
-      final path = jump.isDm
-          ? RoutePaths.dmChannel(jump.channelId)
-          : RoutePaths.guildChannel(jump.scope, jump.channelId);
-      context.go(path);
+      final router = ProviderScope.containerOf(context).read(
+        fluxerRouterProvider,
+      );
+      if (jump.isDm) {
+        router.go(RoutePaths.dmChannel(jump.channelId));
+      } else if (jump is MessageJumpLink) {
+        router.go(
+          RoutePaths.guildChannelMessage(
+            jump.scope,
+            jump.channelId,
+            jump.messageId,
+          ),
+        );
+      } else {
+        router.go(RoutePaths.guildChannel(jump.scope, jump.channelId));
+      }
       return;
     }
     final uri = Uri.tryParse(href);

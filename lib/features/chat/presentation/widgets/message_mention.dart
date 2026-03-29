@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -191,6 +192,17 @@ final _guildByIdProvider = FutureProvider.autoDispose.family<Guild?, String>((
   return row == null ? null : Guild.fromRow(row);
 });
 
+// temporary solution :)
+final _dmNameByChannelIdProvider = FutureProvider.autoDispose
+    .family<String?, String>((ref, channelId) async {
+  final db = ref.watch(fluxerDatabaseProvider);
+  final row = await db.dmChannelDao.getDmChannelById(channelId);
+  if (row == null) return null;
+  final user = await db.userDao.getUserById(row.recipientId);
+  if (row.type == 3) return row.name ?? 'Group DM';
+  return user?.globalName ?? user?.username;
+});
+
 class ChannelJumpLinkMention extends ConsumerWidget {
   const ChannelJumpLinkMention({required this.link, this.baseStyle, super.key});
 
@@ -201,13 +213,19 @@ class ChannelJumpLinkMention extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isMessage = link is MessageJumpLink;
 
-    final channelAsync = ref.watch(channelByIdProvider(link.channelId));
+    final channelAsync = link.isDm
+        ? null
+        : ref.watch(channelByIdProvider(link.channelId));
     final guildAsync = link.isDm
         ? null
         : ref.watch(_guildByIdProvider(link.scope));
+    final dmNameAsync = link.isDm
+        ? ref.watch(_dmNameByChannelIdProvider(link.channelId))
+        : null;
 
-    final channel = channelAsync.value;
+    final channel = channelAsync?.value;
     final guild = guildAsync?.value;
+    final dmName = dmNameAsync?.value ?? link.channelId;
 
     final colors = context.colors;
     final style = (baseStyle ?? const TextStyle()).copyWith(
@@ -217,52 +235,83 @@ class ChannelJumpLinkMention extends ConsumerWidget {
     final iconSize = (style.fontSize ?? 14) * 0.9;
 
     void onTap() {
-      if (channel == null) return;
+      final router = ProviderScope.containerOf(context).read(
+        fluxerRouterProvider,
+      );
       final messageId = isMessage ? (link as MessageJumpLink).messageId : null;
-      final path = link.isDm
-          ? RoutePaths.dmChannel(link.channelId)
-          : messageId != null
-              ? RoutePaths.guildChannelMessage(
-                  link.scope,
-                  link.channelId,
-                  messageId,
-                )
-              : RoutePaths.guildChannel(link.scope, link.channelId);
-      context.go(path);
+      if (link.isDm) {
+        if (messageId != null) {
+          router.go(RoutePaths.dmChannelMessage(link.channelId, messageId));
+        } else {
+          router.go(RoutePaths.dmChannel(link.channelId));
+        }
+      } else if (messageId != null) {
+        router.go(
+          RoutePaths.guildChannelMessage(
+            link.scope,
+            link.channelId,
+            messageId,
+          ),
+        );
+      } else {
+        router.go(RoutePaths.guildChannel(link.scope, link.channelId));
+      }
     }
 
     return _JumpLinkPill(
-      onTap: channel == null ? null : onTap,
+      onTap: onTap,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (guild != null) ...[
-            _GuildIcon(guild: guild, size: iconSize),
-            SizedBox(width: iconSize * 0.2),
-            Text(guild.name, style: style),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: iconSize * 0.1),
-              child: PhosphorIcon(
-                PhosphorIconsBold.caretRight,
-                size: iconSize * 0.6,
+          if (link.isDm) ...[
+            if (isMessage)
+              Text(dmName, style: style)
+            else
+              Text('# $dmName', style: style),
+            if (isMessage) ...[
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: iconSize * 0.1),
+                child: PhosphorIcon(
+                  PhosphorIconsBold.caretRight,
+                  size: iconSize * 0.6,
+                  color: colors.markupMentionText,
+                ),
+              ),
+              PhosphorIcon(
+                PhosphorIconsFill.chatCircle,
+                size: iconSize,
                 color: colors.markupMentionText,
               ),
-            ),
-          ],
-          if (isMessage)
-            PhosphorIcon(
-              PhosphorIconsFill.chatCircle,
-              size: iconSize,
-              color: colors.markupMentionText,
-            )
-          else ...[
-            ChannelIcon(
-              type: channel?.type ?? ChannelType.text,
-              size: iconSize,
-              color: colors.markupMentionText,
-            ),
-            SizedBox(width: iconSize * 0.2),
-            Text(channel?.name ?? link.channelId, style: style),
+            ],
+          ] else ...[
+            if (guild != null) ...[
+              _GuildIcon(guild: guild, size: iconSize),
+              SizedBox(width: iconSize * 0.2),
+              Text(guild.name, style: style),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: iconSize * 0.1),
+                child: PhosphorIcon(
+                  PhosphorIconsBold.caretRight,
+                  size: iconSize * 0.6,
+                  color: colors.markupMentionText,
+                ),
+              ),
+            ],
+            if (isMessage)
+              PhosphorIcon(
+                PhosphorIconsFill.chatCircle,
+                size: iconSize,
+                color: colors.markupMentionText,
+              )
+            else ...[
+              ChannelIcon(
+                type: channel?.type ?? ChannelType.text,
+                size: iconSize,
+                color: colors.markupMentionText,
+              ),
+              SizedBox(width: iconSize * 0.2),
+              Text(channel?.name ?? link.channelId, style: style),
+            ],
           ],
         ],
       ),

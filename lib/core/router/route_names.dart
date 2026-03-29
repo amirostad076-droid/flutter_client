@@ -13,6 +13,7 @@ abstract final class RouteNames {
   // Home branch routes
   static const dms = 'dms';
   static const dmChannel = 'dm-channel';
+  static const dmMessage = 'dm-message';
   static const favorites = 'favorites';
   static const favoritesChannel = 'favorites-channel';
   static const guild = 'guild';
@@ -35,6 +36,8 @@ abstract final class RouteNames {
 abstract final class RoutePaths {
   static const me = '/channels/@me';
   static String dmChannel(String channelId) => '/channels/@me/$channelId';
+  static String dmChannelMessage(String channelId, String messageId) =>
+      '/channels/@me/$channelId/$messageId';
   static const favoritesBase = '/channels/@favorites';
   static String favoritesChannel(String channelId) =>
       '/channels/@favorites/$channelId';

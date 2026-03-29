@@ -34,7 +34,9 @@ const _kMonthNames = [
 /// Uses a reversed [ListView] so newest messages appear
 /// at the bottom and scrolling up loads older messages.
 class MessageList extends ConsumerStatefulWidget {
-  const MessageList({super.key});
+  const MessageList({this.targetMessageId, super.key});
+
+  final String? targetMessageId;
 
   @override
   ConsumerState<MessageList> createState() => _MessageListState();
@@ -43,11 +45,22 @@ class MessageList extends ConsumerStatefulWidget {
 class _MessageListState extends ConsumerState<MessageList> {
   final _scrollController = ScrollController();
   final _itemKeys = <String, GlobalKey>{};
+  String? _pendingScrollTarget;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _pendingScrollTarget = widget.targetMessageId;
+  }
+
+  @override
+  void didUpdateWidget(MessageList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.targetMessageId != oldWidget.targetMessageId &&
+        widget.targetMessageId != null) {
+      _pendingScrollTarget = widget.targetMessageId;
+    }
   }
 
   @override
@@ -77,6 +90,49 @@ class _MessageListState extends ConsumerState<MessageList> {
           ),
         );
       }
+    });
+  }
+
+  /// Scrolls to [messageId] 
+  void _scrollToTarget(String messageId) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+
+      final ctx = _itemKeys[messageId]?.currentContext;
+      if (ctx != null) {
+        unawaited(
+          Scrollable.ensureVisible(
+            ctx,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            alignment: 0.5,
+          ),
+        );
+        return;
+      }
+
+      final messages = ref.read(chatViewModelProvider).messages;
+      final idx = messages.indexWhere((m) => m.id == messageId);
+      if (idx == -1) return;
+      final reversedIdx = messages.length - 1 - idx;
+      final extent = _scrollController.position.maxScrollExtent;
+      final approx = (reversedIdx / messages.length * extent).clamp(0.0, extent);
+      _scrollController.jumpTo(approx);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final c = _itemKeys[messageId]?.currentContext;
+          if (c == null) return;
+          unawaited(
+            Scrollable.ensureVisible(
+              c,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              alignment: 0.5,
+            ),
+          );
+        });
+      });
     });
   }
 
@@ -146,6 +202,15 @@ class _MessageListState extends ConsumerState<MessageList> {
     final messages = state.messages;
 
     if (messages.isEmpty) _itemKeys.clear();
+
+    // Scroll to target after load if it exists/
+    if (!state.isLoading && _pendingScrollTarget != null) {
+      final target = _pendingScrollTarget!;
+      if (messages.any((m) => m.id == target)) {
+        _pendingScrollTarget = null;
+        _scrollToTarget(target);
+      }
+    }
 
     if (state.isLoading) {
       return Center(
