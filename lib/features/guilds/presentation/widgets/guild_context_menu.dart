@@ -272,7 +272,9 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
 
     for (var i = 0; i < widget.groups.length; i++) {
       final group = widget.groups[i];
-      if (group.isEmpty) continue;
+      if (group.isEmpty) {
+        continue;
+      }
 
       if (items.isNotEmpty) {
         items.add(const ContextMenuDivider());

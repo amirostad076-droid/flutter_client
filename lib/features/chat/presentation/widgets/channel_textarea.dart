@@ -50,7 +50,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   /// Enter sends, Shift+Enter inserts newline.
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (!_isDesktop) return KeyEventResult.ignored;
+    if (!_isDesktop) {
+      return KeyEventResult.ignored;
+    }
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
     }

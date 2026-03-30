@@ -21,7 +21,8 @@ class FluxerBottomSheet {
 
   static Future<T?> show<T>(
     BuildContext context, {
-    required FluxerBottomSheetBuilder builder, String? title,
+    required FluxerBottomSheetBuilder builder,
+    String? title,
     Widget? subtitle,
     Widget? leading,
   }) {

@@ -31,7 +31,9 @@ Future<InviteEmbedState> inviteEmbed(Ref ref, String code) async {
     }
     return InviteEmbedNotFound();
   } on DioException catch (e) {
-    if (e.response?.statusCode == 404) return InviteEmbedNotFound();
+    if (e.response?.statusCode == 404) {
+      return InviteEmbedNotFound();
+    }
     rethrow;
   }
 }

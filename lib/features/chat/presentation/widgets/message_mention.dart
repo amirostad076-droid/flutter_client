@@ -202,9 +202,13 @@ final FutureProviderFamily<String?, String> _dmNameByChannelIdProvider =
     FutureProvider.autoDispose.family<String?, String>((ref, channelId) async {
       final db = ref.watch(fluxerDatabaseProvider);
       final row = await db.dmChannelDao.getDmChannelById(channelId);
-      if (row == null) return null;
+      if (row == null) {
+        return null;
+      }
       final user = await db.userDao.getUserById(row.recipientId);
-      if (row.type == 3) return row.name ?? 'Group DM';
+      if (row.type == 3) {
+        return row.name ?? 'Group DM';
+      }
       return user?.globalName ?? user?.username;
     });
 

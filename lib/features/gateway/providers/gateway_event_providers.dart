@@ -144,7 +144,9 @@ class ActiveCalls extends _$ActiveCalls {
     List<VoiceState>? voiceStates,
   }) {
     final existing = state[channelId];
-    if (existing == null) return;
+    if (existing == null) {
+      return;
+    }
     state = {
       ...state,
       channelId: CallState(

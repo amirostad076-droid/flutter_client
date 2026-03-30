@@ -18,7 +18,9 @@ enum AlertType {
   static AlertType? tryParse(String raw) {
     final key = raw.trim().toLowerCase();
     for (final t in values) {
-      if (t.name == key) return t;
+      if (t.name == key) {
+        return t;
+      }
     }
     return null;
   }

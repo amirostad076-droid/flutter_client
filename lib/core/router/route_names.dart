@@ -55,7 +55,9 @@ abstract final class RoutePaths {
   static String themeLink(String themeId) => '/theme/$themeId';
   static String guildSettingsPath(String guildId, {String? tab}) {
     final base = '/settings/guild/$guildId';
-    if (tab == null) return base;
+    if (tab == null) {
+      return base;
+    }
     return '$base?tab=$tab';
   }
 

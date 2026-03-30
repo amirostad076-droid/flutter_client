@@ -72,7 +72,9 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onScroll() {
-    if (!_scrollController.hasClients) return;
+    if (!_scrollController.hasClients) {
+      return;
+    }
     final pos = _scrollController.position;
     if (pos.pixels >= pos.maxScrollExtent - _kLoadMoreThreshold) {
       unawaited(ref.read(chatViewModelProvider.notifier).loadMore());
@@ -96,7 +98,9 @@ class _MessageListState extends ConsumerState<MessageList> {
   /// Scrolls to [messageId]
   void _scrollToTarget(String messageId) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) return;
+      if (!mounted || !_scrollController.hasClients) {
+        return;
+      }
 
       final ctx = _itemKeys[messageId]?.currentContext;
       if (ctx != null) {
@@ -113,7 +117,9 @@ class _MessageListState extends ConsumerState<MessageList> {
 
       final messages = ref.read(chatViewModelProvider).messages;
       final idx = messages.indexWhere((m) => m.id == messageId);
-      if (idx == -1) return;
+      if (idx == -1) {
+        return;
+      }
       final reversedIdx = messages.length - 1 - idx;
       final extent = _scrollController.position.maxScrollExtent;
       final approx = (reversedIdx / messages.length * extent).clamp(
@@ -125,7 +131,9 @@ class _MessageListState extends ConsumerState<MessageList> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           final c = _itemKeys[messageId]?.currentContext;
-          if (c == null) return;
+          if (c == null) {
+            return;
+          }
           unawaited(
             Scrollable.ensureVisible(
               c,
@@ -141,10 +149,14 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   void _onScrollToMessage(String messageId) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) return;
+      if (!_scrollController.hasClients) {
+        return;
+      }
       final messages = ref.read(chatViewModelProvider).messages;
       final idx = messages.indexWhere((m) => m.id == messageId);
-      if (idx == -1) return;
+      if (idx == -1) {
+        return;
+      }
 
       final existingCtx = _itemKeys[messageId]?.currentContext;
       if (existingCtx != null) {
@@ -169,7 +181,9 @@ class _MessageListState extends ConsumerState<MessageList> {
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = _itemKeys[messageId]?.currentContext;
-        if (ctx == null) return;
+        if (ctx == null) {
+          return;
+        }
         unawaited(
           Scrollable.ensureVisible(
             ctx,
@@ -206,7 +220,9 @@ class _MessageListState extends ConsumerState<MessageList> {
     final state = ref.watch(chatViewModelProvider);
     final messages = state.messages;
 
-    if (messages.isEmpty) _itemKeys.clear();
+    if (messages.isEmpty) {
+      _itemKeys.clear();
+    }
 
     // Scroll to target after load if it exists/
     if (!state.isLoading && _pendingScrollTarget != null) {

@@ -96,7 +96,9 @@ class _VideoPlayerState extends State<_VideoPlayer> {
     final thumb = widget.embed.thumbnail;
     final w = video?.width?.toDouble() ?? thumb?.width?.toDouble();
     final h = video?.height?.toDouble() ?? thumb?.height?.toDouble();
-    if (w != null && h != null && w > 0 && h > 0) return w / h;
+    if (w != null && h != null && w > 0 && h > 0) {
+      return w / h;
+    }
     return 16 / 9;
   }
 

@@ -11,10 +11,14 @@ class GuildSync extends _$GuildSync {
   Set<String> build() => {};
 
   void syncIfNeeded(String guildId, {bool force = false}) {
-    if (!force && state.contains(guildId)) return;
+    if (!force && state.contains(guildId)) {
+      return;
+    }
 
     final connection = ref.read(gatewayConnectionProvider);
-    if (connection.state != GatewayState.connected) return;
+    if (connection.state != GatewayState.connected) {
+      return;
+    }
 
     try {
       connection.sendLazyRequest(
@@ -29,7 +33,9 @@ class GuildSync extends _$GuildSync {
   }
 
   void clearAll() {
-    if (state.isEmpty) return;
+    if (state.isEmpty) {
+      return;
+    }
     state = {};
   }
 }

@@ -20,24 +20,36 @@ class MessageJumpLink extends ChannelJumpLink {
 const _kFluxerHosts = {'fluxer.app'};
 
 bool _isSnowflake(String? s) {
-  if (s == null || s.isEmpty) return false;
+  if (s == null || s.isEmpty) {
+    return false;
+  }
   return RegExp(r'^\d{15,21}$').hasMatch(s);
 }
 
 ChannelJumpLink? parseChannelJumpLink(String url) {
   final uri = Uri.tryParse(url);
-  if (uri == null) return null;
-  if (!_kFluxerHosts.contains(uri.host)) return null;
+  if (uri == null) {
+    return null;
+  }
+  if (!_kFluxerHosts.contains(uri.host)) {
+    return null;
+  }
 
   final parts = uri.pathSegments;
-  if (parts.length < 3 || parts[0] != 'channels') return null;
+  if (parts.length < 3 || parts[0] != 'channels') {
+    return null;
+  }
 
   final scope = parts[1];
   final channelId = parts[2];
 
   final isDm = scope == '@me';
-  if (!isDm && !_isSnowflake(scope)) return null;
-  if (!_isSnowflake(channelId)) return null;
+  if (!isDm && !_isSnowflake(scope)) {
+    return null;
+  }
+  if (!_isSnowflake(channelId)) {
+    return null;
+  }
 
   if (parts.length >= 4 && _isSnowflake(parts[3])) {
     return MessageJumpLink(

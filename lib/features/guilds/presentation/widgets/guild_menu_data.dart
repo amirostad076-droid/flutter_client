@@ -91,9 +91,13 @@ class GuildMenuCheckbox extends GuildMenuEntry {
 typedef GuildMenuGroup = List<GuildMenuEntry>;
 
 String? _formatMuteHint(DateTime? muteEndTime) {
-  if (muteEndTime == null) return 'Muted';
+  if (muteEndTime == null) {
+    return 'Muted';
+  }
   final now = DateTime.now();
-  if (muteEndTime.isBefore(now)) return null;
+  if (muteEndTime.isBefore(now)) {
+    return null;
+  }
   return 'Until ${DateFormat.jm().format(muteEndTime)}';
 }
 

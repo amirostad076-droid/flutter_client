@@ -151,7 +151,8 @@ class FluxerConfirmModal {
     BuildContext context, {
     required String title,
     required String description,
-    required VoidCallback onConfirm, String confirmLabel = 'Confirm',
+    required VoidCallback onConfirm,
+    String confirmLabel = 'Confirm',
     bool isDanger = false,
   }) {
     return FluxerModal.show<bool>(

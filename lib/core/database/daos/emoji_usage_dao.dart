@@ -54,7 +54,9 @@ class EmojiUsageDao extends DatabaseAccessor<FluxerDatabase>
         .toList();
 
     for (final d in defaults) {
-      if (result.length >= limit) break;
+      if (result.length >= limit) {
+        break;
+      }
       if (!result.contains(d)) {
         result.add(d);
       }

@@ -477,11 +477,15 @@ class Message {
   bool get hasAttachments => attachments.isNotEmpty;
   bool get isReply => replyToId != null;
   bool get shouldHideContent {
-    if (embeds.isEmpty) return false;
+    if (embeds.isEmpty) {
+      return false;
+    }
     final allMedia = embeds.every(
       (e) => e.type == EmbedType.image || e.type == EmbedType.gifv,
     );
-    if (!allMedia) return false;
+    if (!allMedia) {
+      return false;
+    }
     final trimmed = content.trim();
     return Uri.tryParse(trimmed)?.hasAbsolutePath ?? false;
   }
@@ -496,7 +500,9 @@ class Message {
       final code = m.group(1);
       if (code != null && seen.add(code)) {
         result.add(code);
-        if (result.length == 10) break;
+        if (result.length == 10) {
+          break;
+        }
       }
     }
     return result;
@@ -512,7 +518,9 @@ class Message {
       final id = m.group(1);
       if (id != null && seen.add(id)) {
         result.add(id);
-        if (result.length == 10) break;
+        if (result.length == 10) {
+          break;
+        }
       }
     }
     return result;

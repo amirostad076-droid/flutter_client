@@ -134,7 +134,9 @@ class _EmbedFields extends StatelessWidget {
         }
       }
     }
-    if (current.isNotEmpty) rows.add(current);
+    if (current.isNotEmpty) {
+      rows.add(current);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

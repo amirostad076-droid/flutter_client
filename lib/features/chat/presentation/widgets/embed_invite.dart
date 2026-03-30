@@ -77,20 +77,26 @@ class _GuildInviteCard extends StatelessWidget {
 
   String? get _iconUrl {
     final icon = invite.guild.icon;
-    if (icon == null) return null;
+    if (icon == null) {
+      return null;
+    }
     return 'https://fluxerusercontent.com/icons/${invite.guild.id}/$icon.png';
   }
 
   String? get _splashUrl {
     final splash = invite.guild.embedSplash;
-    if (splash == null) return null;
+    if (splash == null) {
+      return null;
+    }
     return 'https://fluxerusercontent.com/embed-splashes/${invite.guild.id}/$splash.webp?size=1024';
   }
 
   double? get _splashAspectRatio {
     final w = invite.guild.embedSplashWidth?.toDouble();
     final h = invite.guild.embedSplashHeight?.toDouble();
-    if (w != null && h != null && w > 0 && h > 0) return w / h;
+    if (w != null && h != null && w > 0 && h > 0) {
+      return w / h;
+    }
     return null;
   }
 
@@ -181,8 +187,12 @@ class _GuildInviteCard extends StatelessWidget {
   }
 
   static String _formatCount(int n) {
-    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
-    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+    if (n >= 1000000) {
+      return '${(n / 1000000).toStringAsFixed(1)}M';
+    }
+    if (n >= 1000) {
+      return '${(n / 1000).toStringAsFixed(1)}K';
+    }
     return '$n';
   }
 }
@@ -250,7 +260,9 @@ class _InviteCard extends StatelessWidget {
 
   Widget _buildSplash() {
     final url = splashUrl;
-    if (url == null) return const SizedBox.shrink();
+    if (url == null) {
+      return const SizedBox.shrink();
+    }
     final ratio = splashAspectRatio;
     final image = CachedNetworkImage(
       imageUrl: url,

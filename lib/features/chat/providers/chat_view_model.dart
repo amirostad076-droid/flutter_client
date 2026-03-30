@@ -32,7 +32,11 @@ class ChatViewState {
     required this.forwardingFrom,
     required this.messageText,
     required this.scrollToBottomSignal,
-    required this.isLoading, required this.isLoadingMore, required this.hasMoreMessages, required this.errorMessage, this.scrollToMessageSignal,
+    required this.isLoading,
+    required this.isLoadingMore,
+    required this.hasMoreMessages,
+    required this.errorMessage,
+    this.scrollToMessageSignal,
   });
 
   bool get canSend => messageText.trim().isNotEmpty;

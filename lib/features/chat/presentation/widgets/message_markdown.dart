@@ -112,20 +112,26 @@ bool _languagesRegistered = false;
 
 bool isJumboEmoji(String text) {
   final trimmed = text.trim();
-  if (trimmed.isEmpty) return false;
+  if (trimmed.isEmpty) {
+    return false;
+  }
 
   final tokenRe = RegExp(r':[a-zA-Z0-9_+\-]+:|<a?:[a-zA-Z0-9_]+:\d+>|\s');
   final emojiRe = RegExp(r':[a-zA-Z0-9_+\-]+:|<a?:[a-zA-Z0-9_]+:\d+>');
 
   final withoutTokens = trimmed.replaceAll(tokenRe, '');
-  if (withoutTokens.isNotEmpty) return false;
+  if (withoutTokens.isNotEmpty) {
+    return false;
+  }
 
   final count = emojiRe.allMatches(trimmed).length;
   return count >= 1 && count <= _kJumboMaxCount;
 }
 
 void _ensureLanguagesRegistered() {
-  if (_languagesRegistered) return;
+  if (_languagesRegistered) {
+    return;
+  }
   _languagesRegistered = true;
   _kLanguages.forEach(highlight.registerLanguage);
 }
@@ -176,10 +182,14 @@ List<_Segment> _parseSegments(String text) {
     i++;
 
     final bodyLines = <String>[];
-    if (inlineText.isNotEmpty) bodyLines.add(inlineText);
+    if (inlineText.isNotEmpty) {
+      bodyLines.add(inlineText);
+    }
     while (i < lines.length) {
       final bodyMatch = lineRe.firstMatch(lines[i]);
-      if (bodyMatch == null) break;
+      if (bodyMatch == null) {
+        break;
+      }
       bodyLines.add(bodyMatch.group(1) ?? '');
       i++;
     }
@@ -327,7 +337,9 @@ class MessageMarkdown extends StatelessWidget {
   }
 
   void _onTapLink(String? href, BuildContext context) {
-    if (href == null) return;
+    if (href == null) {
+      return;
+    }
     final jump = parseChannelJumpLink(href);
     if (jump != null) {
       final router = ProviderScope.containerOf(
@@ -349,7 +361,9 @@ class MessageMarkdown extends StatelessWidget {
       return;
     }
     final uri = Uri.tryParse(href);
-    if (uri == null) return;
+    if (uri == null) {
+      return;
+    }
     unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
   }
 }
@@ -363,7 +377,9 @@ class _UserMentionSyntax extends md.InlineSyntax {
   @override
   bool onMatch(md.InlineParser parser, Match match) {
     final id = match[1];
-    if (id == null) return false;
+    if (id == null) {
+      return false;
+    }
     parser.addNode(md.Element.text(tag, id));
     return true;
   }
@@ -397,7 +413,9 @@ class _ChannelMentionSyntax extends md.InlineSyntax {
   @override
   bool onMatch(md.InlineParser parser, Match match) {
     final id = match[1];
-    if (id == null) return false;
+    if (id == null) {
+      return false;
+    }
     parser.addNode(md.Element.text(tag, id));
     return true;
   }
@@ -454,7 +472,9 @@ class _RoleMentionSyntax extends md.InlineSyntax {
   @override
   bool onMatch(md.InlineParser parser, Match match) {
     final id = match[1];
-    if (id == null) return false;
+    if (id == null) {
+      return false;
+    }
     parser.addNode(md.Element.text(tag, id));
     return true;
   }
@@ -483,7 +503,9 @@ class _TimestampSyntax extends md.InlineSyntax {
   @override
   bool onMatch(md.InlineParser parser, Match match) {
     final unix = match[1];
-    if (unix == null) return false;
+    if (unix == null) {
+      return false;
+    }
     final el = md.Element.text(tag, unix)..attributes['flag'] = match[2] ?? 'f';
     parser.addNode(el);
     return true;
@@ -503,7 +525,9 @@ class _TimestampBuilder extends MarkdownElementBuilder {
     TextStyle? parentStyle,
   ) {
     final unix = int.tryParse(element.textContent);
-    if (unix == null) return null;
+    if (unix == null) {
+      return null;
+    }
     final dt = DateTime.fromMillisecondsSinceEpoch(unix * 1000);
     final flag = element.attributes['flag'] ?? 'f';
     final text = _format(dt, flag);
@@ -761,7 +785,9 @@ class _UnicodeEmojiSyntax extends md.InlineSyntax {
   @override
   bool onMatch(md.InlineParser parser, Match match) {
     final name = match[1];
-    if (name == null || name.isEmpty) return false;
+    if (name == null || name.isEmpty) {
+      return false;
+    }
     final surrogate = EmojiRegistry.resolveSync(name);
     if (surrogate == null) {
       parser.addNode(md.Text(match[0]!));
@@ -783,7 +809,9 @@ class _CustomEmojiSyntax extends md.InlineSyntax {
     final animated = match[1] == 'a';
     final name = match[2] ?? '';
     final id = match[3];
-    if (id == null) return false;
+    if (id == null) {
+      return false;
+    }
     final el = md.Element.text(tag, name)
       ..attributes['id'] = id
       ..attributes['animated'] = animated.toString();
@@ -871,7 +899,9 @@ class _JumpLinkBuilder extends MarkdownElementBuilder {
   ) {
     final url = element.attributes['href'] ?? element.textContent;
     final link = parseChannelJumpLink(url);
-    if (link == null) return null;
+    if (link == null) {
+      return null;
+    }
     return ChannelJumpLinkMention(link: link, url: url, baseStyle: baseStyle);
   }
 }

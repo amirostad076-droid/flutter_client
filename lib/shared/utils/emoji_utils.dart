@@ -13,7 +13,9 @@ String emojiToCodePoints(String emoji) {
 
 String? getTwemojiUrl(String unicode) {
   final codePoints = emojiToCodePoints(unicode);
-  if (codePoints.isEmpty) return null;
+  if (codePoints.isEmpty) {
+    return null;
+  }
   return '$_kTwemojiCdn/$codePoints.svg';
 }
 
