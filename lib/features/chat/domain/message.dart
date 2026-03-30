@@ -487,6 +487,22 @@ class Message {
     return Uri.tryParse(trimmed)?.hasAbsolutePath ?? false;
   }
 
+  List<String> get themes {
+    final re = RegExp(
+      r'https?://web\.fluxer\.app/theme/([a-zA-Z0-9\-]{2,32})(?![a-zA-Z0-9\-])',
+    );
+    final seen = <String>{};
+    final result = <String>[];
+    for (final m in re.allMatches(content)) {
+      final id = m.group(1);
+      if (id != null && seen.add(id)) {
+        result.add(id);
+        if (result.length == 10) break;
+      }
+    }
+    return result;
+  }
+
   bool get isForwarded => forwardedFrom != null;
   bool get isEdited => editedTimestamp != null;
   bool get isSystemMessage => type != 0 && type != 1 && type != 19;

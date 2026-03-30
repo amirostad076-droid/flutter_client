@@ -17,7 +17,7 @@ class MessageJumpLink extends ChannelJumpLink {
   final String messageId;
 }
 
-const _kFluxerHosts = {'fluxer.app', 'canary.fluxer.app'};
+const _kFluxerHosts = {'fluxer.app'};
 
 bool _isSnowflake(String? s) {
   if (s == null || s.isEmpty) return false;

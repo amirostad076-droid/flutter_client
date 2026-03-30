@@ -9,6 +9,7 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_link.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_rich.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embed_theme.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_video.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/forward_indicator.dart';
@@ -238,6 +239,10 @@ class _MessageItemState extends State<MessageItem> {
         selectable: true,
         channelId: msg.channelId,
       ),
+    ...msg.themes.map((_) => const Padding(
+      padding: EdgeInsets.only(top: 4),
+      child: EmbedTheme(),
+    )),
     ...msg.embeds.map(_buildEmbed),
     ...msg.attachments.map(_buildAttachment),
     if (msg.reactions.isNotEmpty)

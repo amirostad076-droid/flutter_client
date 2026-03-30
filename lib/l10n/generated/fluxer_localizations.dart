@@ -771,6 +771,24 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Unable to reset password. Please try again.'**
   String get errorUnableToResetPassword;
+
+  /// Title on the theme embed card in chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared theme'**
+  String get embedThemeTitle;
+
+  /// Subtitle on the theme embed card.
+  ///
+  /// In en, this message translates to:
+  /// **'This client doesn\'t support custom themes.'**
+  String get embedThemeSubtitle;
+
+  /// Button on the theme embed card - themes aren't supported in the client.
+  ///
+  /// In en, this message translates to:
+  /// **'Themes unavailable'**
+  String get embedThemeUnavailableButton;
 }
 
 class _FluxerLocalizationsDelegate

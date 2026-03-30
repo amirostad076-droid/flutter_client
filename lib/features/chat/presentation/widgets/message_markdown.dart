@@ -843,7 +843,7 @@ class _EmojiBuilder extends MarkdownElementBuilder {
 class _JumpLinkSyntax extends md.InlineSyntax {
   _JumpLinkSyntax()
     : super(
-        r'https?://(?:canary\.)?fluxer\.app/channels/'
+        r'https?://fluxer\.app/channels/'
         r'(?:@me|\d{15,21})/\d{15,21}(?:/\d{15,21})?',
       );
 

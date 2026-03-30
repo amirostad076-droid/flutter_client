@@ -386,4 +386,14 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   @override
   String get errorUnableToResetPassword =>
       'Unable to reset password. Please try again.';
+
+  @override
+  String get embedThemeTitle => 'Shared theme';
+
+  @override
+  String get embedThemeSubtitle =>
+      'This client doesn\'t support custom themes.';
+
+  @override
+  String get embedThemeUnavailableButton => 'Themes unavailable';
 }

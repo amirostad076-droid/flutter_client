@@ -483,5 +483,18 @@
   "errorUnableToResetPassword": "Unable to reset password. Please try again.",
   "@errorUnableToResetPassword": {
     "description": "Generic fallback error when password reset fails unexpectedly."
+  },
+
+  "embedThemeTitle": "Shared theme",
+  "@embedThemeTitle": {
+    "description": "Title on the theme embed card in chat."
+  },
+  "embedThemeSubtitle": "This client doesn't support custom themes.",
+  "@embedThemeSubtitle": {
+    "description": "Subtitle on the theme embed card."
+  },
+  "embedThemeUnavailableButton": "Themes unavailable",
+  "@embedThemeUnavailableButton": {
+    "description": "Button on the theme embed card - themes aren't supported in the client."
   }
 }
