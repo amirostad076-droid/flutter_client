@@ -4,6 +4,7 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart'
     show isMobileLayout;
 import 'package:fluxer_app/features/ui/action_menu/context_menu_widgets.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum DmNavbarAction {
@@ -15,6 +16,8 @@ enum DmNavbarAction {
   alwaysShow,
   removeAlwaysShow,
   closeDm,
+  copyChannelId,
+  copyUserId,
 }
 
 Future<DmNavbarAction?> showDmNavbarContextMenu(
@@ -26,6 +29,7 @@ Future<DmNavbarAction?> showDmNavbarContextMenu(
   required bool isPinned,
   required bool isCollapsed,
   required bool isAllowlisted,
+  required bool isGroupDm,
 }) async {
   if (isMobileLayout(context)) {
     return _showBottomSheet(
@@ -35,6 +39,7 @@ Future<DmNavbarAction?> showDmNavbarContextMenu(
       isPinned: isPinned,
       isCollapsed: isCollapsed,
       isAllowlisted: isAllowlisted,
+      isGroupDm: isGroupDm,
     );
   }
 
@@ -54,6 +59,7 @@ Future<DmNavbarAction?> showDmNavbarContextMenu(
       isPinned: isPinned,
       isCollapsed: isCollapsed,
       isAllowlisted: isAllowlisted,
+      isGroupDm: isGroupDm,
     ),
   );
 }
@@ -65,6 +71,7 @@ Future<DmNavbarAction?> _showBottomSheet(
   required bool isPinned,
   required bool isCollapsed,
   required bool isAllowlisted,
+  required bool isGroupDm,
 }) {
   return FluxerBottomSheet.show<DmNavbarAction>(
     context,
@@ -78,6 +85,7 @@ Future<DmNavbarAction?> _showBottomSheet(
           isPinned: isPinned,
           isCollapsed: isCollapsed,
           isAllowlisted: isAllowlisted,
+          isGroupDm: isGroupDm,
         ),
       ),
     ),
@@ -91,26 +99,28 @@ List<FluxerBottomSheetMenuItem> _buildBottomSheetItems({
   required bool isPinned,
   required bool isCollapsed,
   required bool isAllowlisted,
+  required bool isGroupDm,
 }) {
   void pop(DmNavbarAction action) => Navigator.of(context).pop(action);
+  final l10n = FluxerLocalizations.of(context);
 
   return [
     if (hasUnread)
       FluxerBottomSheetMenuItem(
         icon: PhosphorIconsRegular.checkCircle,
-        label: 'Mark as Read',
+        label: l10n.dmMarkAsRead,
         onTap: () => pop(DmNavbarAction.markAsRead),
       ),
     FluxerBottomSheetMenuItem(
       icon: isMuted
           ? PhosphorIconsRegular.bell
           : PhosphorIconsRegular.bellSlash,
-      label: isMuted ? 'Unmute Conversation' : 'Mute Conversation',
+      label: isMuted ? l10n.dmUnmuteConversation : l10n.dmMuteConversation,
       onTap: () => pop(isMuted ? DmNavbarAction.unmute : DmNavbarAction.mute),
     ),
     FluxerBottomSheetMenuItem(
       icon: PhosphorIconsRegular.pushPin,
-      label: isPinned ? 'Unpin DM' : 'Pin DM',
+      label: isPinned ? l10n.dmUnpinDm : l10n.dmPinDm,
       onTap: () =>
           pop(isPinned ? DmNavbarAction.unpinDm : DmNavbarAction.pinDm),
     ),
@@ -120,17 +130,28 @@ List<FluxerBottomSheetMenuItem> _buildBottomSheetItems({
             ? PhosphorIconsRegular.eyeSlash
             : PhosphorIconsRegular.eye,
         label: isAllowlisted
-            ? 'Remove from Always Shown'
-            : 'Always Show in Sidebar',
+            ? l10n.dmRemoveFromAlwaysShown
+            : l10n.dmAlwaysShowInSidebar,
         onTap: () => pop(
           isAllowlisted
               ? DmNavbarAction.removeAlwaysShow
               : DmNavbarAction.alwaysShow,
         ),
       ),
+    if (!isGroupDm)
+      FluxerBottomSheetMenuItem(
+        icon: PhosphorIconsRegular.userCircle,
+        label: l10n.dmCopyUserId,
+        onTap: () => pop(DmNavbarAction.copyUserId),
+      ),
+    FluxerBottomSheetMenuItem(
+      icon: PhosphorIconsRegular.hash,
+      label: l10n.dmCopyChannelId,
+      onTap: () => pop(DmNavbarAction.copyChannelId),
+    ),
     FluxerBottomSheetMenuItem(
       icon: PhosphorIconsRegular.x,
-      label: 'Close DM',
+      label: l10n.dmCloseDm,
       isDanger: true,
       onTap: () => pop(DmNavbarAction.closeDm),
     ),
@@ -145,6 +166,7 @@ class _DmNavbarContextMenuRoute extends PopupRoute<DmNavbarAction> {
   final bool isPinned;
   final bool isCollapsed;
   final bool isAllowlisted;
+  final bool isGroupDm;
 
   _DmNavbarContextMenuRoute({
     required this.position,
@@ -154,6 +176,7 @@ class _DmNavbarContextMenuRoute extends PopupRoute<DmNavbarAction> {
     required this.isPinned,
     required this.isCollapsed,
     required this.isAllowlisted,
+    required this.isGroupDm,
   });
 
   @override
@@ -182,6 +205,7 @@ class _DmNavbarContextMenuRoute extends PopupRoute<DmNavbarAction> {
     isPinned: isPinned,
     isCollapsed: isCollapsed,
     isAllowlisted: isAllowlisted,
+    isGroupDm: isGroupDm,
   );
 }
 
@@ -194,6 +218,7 @@ class _ContextMenuPage extends StatelessWidget {
   final bool isPinned;
   final bool isCollapsed;
   final bool isAllowlisted;
+  final bool isGroupDm;
 
   const _ContextMenuPage({
     required this.position,
@@ -204,6 +229,7 @@ class _ContextMenuPage extends StatelessWidget {
     required this.isPinned,
     required this.isCollapsed,
     required this.isAllowlisted,
+    required this.isGroupDm,
   });
 
   @override
@@ -211,12 +237,14 @@ class _ContextMenuPage extends StatelessWidget {
     void pop(DmNavbarAction action) => Navigator.of(context).pop(action);
 
     final items = _buildMenuItems(
+      context: context,
       pop: pop,
       hasUnread: hasUnread,
       isMuted: isMuted,
       isPinned: isPinned,
       isCollapsed: isCollapsed,
       isAllowlisted: isAllowlisted,
+      isGroupDm: isGroupDm,
     );
 
     final menuHeight = estimateContextMenuHeight(items);
@@ -252,30 +280,34 @@ class _ContextMenuPage extends StatelessWidget {
 }
 
 List<Widget> _buildMenuItems({
+  required BuildContext context,
   required void Function(DmNavbarAction) pop,
   required bool hasUnread,
   required bool isMuted,
   required bool isPinned,
   required bool isCollapsed,
   required bool isAllowlisted,
+  required bool isGroupDm,
 }) {
+  final l10n = FluxerLocalizations.of(context);
+
   return [
     if (hasUnread)
       ContextMenuItem(
         icon: PhosphorIconsRegular.checkCircle,
-        label: 'Mark as Read',
+        label: l10n.dmMarkAsRead,
         onTap: () => pop(DmNavbarAction.markAsRead),
       ),
     ContextMenuItem(
       icon: isMuted
           ? PhosphorIconsRegular.bell
           : PhosphorIconsRegular.bellSlash,
-      label: isMuted ? 'Unmute Conversation' : 'Mute Conversation',
+      label: isMuted ? l10n.dmUnmuteConversation : l10n.dmMuteConversation,
       onTap: () => pop(isMuted ? DmNavbarAction.unmute : DmNavbarAction.mute),
     ),
     ContextMenuItem(
       icon: PhosphorIconsRegular.pushPin,
-      label: isPinned ? 'Unpin DM' : 'Pin DM',
+      label: isPinned ? l10n.dmUnpinDm : l10n.dmPinDm,
       onTap: () =>
           pop(isPinned ? DmNavbarAction.unpinDm : DmNavbarAction.pinDm),
     ),
@@ -285,8 +317,8 @@ List<Widget> _buildMenuItems({
             ? PhosphorIconsRegular.eyeSlash
             : PhosphorIconsRegular.eye,
         label: isAllowlisted
-            ? 'Remove from Always Shown'
-            : 'Always Show in Sidebar',
+            ? l10n.dmRemoveFromAlwaysShown
+            : l10n.dmAlwaysShowInSidebar,
         onTap: () => pop(
           isAllowlisted
               ? DmNavbarAction.removeAlwaysShow
@@ -294,9 +326,21 @@ List<Widget> _buildMenuItems({
         ),
       ),
     const ContextMenuDivider(),
+    if (!isGroupDm)
+      ContextMenuItem(
+        icon: PhosphorIconsRegular.userCircle,
+        label: l10n.dmCopyUserId,
+        onTap: () => pop(DmNavbarAction.copyUserId),
+      ),
+    ContextMenuItem(
+      icon: PhosphorIconsRegular.hash,
+      label: l10n.dmCopyChannelId,
+      onTap: () => pop(DmNavbarAction.copyChannelId),
+    ),
+    const ContextMenuDivider(),
     ContextMenuItem(
       icon: PhosphorIconsRegular.x,
-      label: 'Close DM',
+      label: l10n.dmCloseDm,
       isDanger: true,
       onTap: () => pop(DmNavbarAction.closeDm),
     ),

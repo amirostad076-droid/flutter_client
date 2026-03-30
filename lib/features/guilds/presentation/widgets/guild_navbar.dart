@@ -470,6 +470,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     required bool isCollapsed,
     required bool isAllowlisted,
   }) async {
+    final isGroupDm = dm.type == 3;
     final action = await showDmNavbarContextMenu(
       context,
       position: position,
@@ -479,12 +480,14 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       isPinned: false,
       isCollapsed: isCollapsed,
       isAllowlisted: isAllowlisted,
+      isGroupDm: isGroupDm,
     );
 
     if (action == null || !context.mounted) {
       return;
     }
 
+    final l10n = FluxerLocalizations.of(context);
     final dmFolderNotifier = ref.read(dmFolderProvider.notifier);
 
     switch (action) {
@@ -495,13 +498,58 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       case DmNavbarAction.removeAlwaysShow:
         dmFolderNotifier.removeFromAllowlist(dm.id);
       case DmNavbarAction.closeDm:
-        unawaited(ref.read(dmRepositoryProvider).closeDmChannel(dm.id));
+        await _confirmCloseDm(context, dm: dm);
+      case DmNavbarAction.copyChannelId:
+        unawaited(Clipboard.setData(ClipboardData(text: dm.id)));
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: l10n.copiedToClipboard,
+                variant: FluxerToastVariant.success,
+              ),
+            );
+      case DmNavbarAction.copyUserId:
+        unawaited(Clipboard.setData(ClipboardData(text: dm.recipientId)));
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: l10n.copiedToClipboard,
+                variant: FluxerToastVariant.success,
+              ),
+            );
       case DmNavbarAction.mute:
       case DmNavbarAction.unmute:
       case DmNavbarAction.pinDm:
       case DmNavbarAction.unpinDm:
         break;
     }
+  }
+
+  Future<void> _confirmCloseDm(
+    BuildContext context, {
+    required DmChannel dm,
+  }) async {
+    final l10n = FluxerLocalizations.of(context);
+    final db = ref.read(fluxerDatabaseProvider);
+    final user = await db.userDao.getUserById(dm.recipientId);
+    final username = user?.globalName ?? user?.username ?? dm.recipientId;
+
+    if (!context.mounted) {
+      return;
+    }
+
+    await FluxerConfirmModal.show(
+      context,
+      title: l10n.dmCloseDmConfirmTitle,
+      description: l10n.dmCloseDmConfirmDescription(username),
+      confirmLabel: l10n.dmCloseDm,
+      isDanger: true,
+      onConfirm: () {
+        unawaited(ref.read(dmRepositoryProvider).closeDmChannel(dm.id));
+      },
+    );
   }
 
   Widget _buildGuildItem(

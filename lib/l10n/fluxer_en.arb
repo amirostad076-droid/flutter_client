@@ -642,5 +642,58 @@
   "notificationNoCategory": "No Category",
   "@notificationNoCategory": {
     "description": "Fallback category name for channels without a parent category."
+  },
+  "dmMarkAsRead": "Mark as Read",
+  "@dmMarkAsRead": {
+    "description": "DM context menu action to mark conversation as read."
+  },
+  "dmMuteConversation": "Mute Conversation",
+  "@dmMuteConversation": {
+    "description": "DM context menu action to mute conversation."
+  },
+  "dmUnmuteConversation": "Unmute Conversation",
+  "@dmUnmuteConversation": {
+    "description": "DM context menu action to unmute conversation."
+  },
+  "dmPinDm": "Pin DM",
+  "@dmPinDm": {
+    "description": "DM context menu action to pin a DM."
+  },
+  "dmUnpinDm": "Unpin DM",
+  "@dmUnpinDm": {
+    "description": "DM context menu action to unpin a DM."
+  },
+  "dmAlwaysShowInSidebar": "Always Show in Sidebar",
+  "@dmAlwaysShowInSidebar": {
+    "description": "DM context menu action to always show in sidebar."
+  },
+  "dmRemoveFromAlwaysShown": "Remove from Always Shown",
+  "@dmRemoveFromAlwaysShown": {
+    "description": "DM context menu action to remove from always shown."
+  },
+  "dmCloseDm": "Close DM",
+  "@dmCloseDm": {
+    "description": "DM context menu action to close a DM conversation."
+  },
+  "dmCloseDmConfirmTitle": "Close DM",
+  "@dmCloseDmConfirmTitle": {
+    "description": "Title for close DM confirmation modal."
+  },
+  "dmCloseDmConfirmDescription": "Are you sure you want to close your DM with {username}? You can always reopen it later.",
+  "@dmCloseDmConfirmDescription": {
+    "description": "Description for close DM confirmation modal.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "dmCopyChannelId": "Copy Channel ID",
+  "@dmCopyChannelId": {
+    "description": "DM context menu action to copy the channel ID."
+  },
+  "dmCopyUserId": "Copy User ID",
+  "@dmCopyUserId": {
+    "description": "DM context menu action to copy the recipient user ID."
   }
 }

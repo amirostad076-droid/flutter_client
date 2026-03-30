@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart'
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -732,13 +733,24 @@ class _DMListState extends ConsumerState<DMList> {
         // TODO(fluxer_app): implement block/unblock user
         break;
       case _DmAction.closeDm:
-        final success = await ref
-            .read(dmViewModelProvider.notifier)
-            .closeDmChannel(convo.id);
-        if (!success && mounted) {
-          messenger.showSnackBar(
-            const SnackBar(content: Text('Failed to close conversation')),
-          );
+        if (!mounted) {
+          break;
+        }
+        final l10n = FluxerLocalizations.of(context);
+        final confirmed = await FluxerConfirmModal.show(
+          context,
+          title: l10n.dmCloseDmConfirmTitle,
+          description: l10n.dmCloseDmConfirmDescription(convo.displayName),
+          confirmLabel: l10n.dmCloseDm,
+          isDanger: true,
+          onConfirm: () {
+            unawaited(
+              ref.read(dmViewModelProvider.notifier).closeDmChannel(convo.id),
+            );
+          },
+        );
+        if (confirmed != true && mounted) {
+          break;
         }
       case _DmAction.copyUserId:
         await Clipboard.setData(ClipboardData(text: convo.recipientId));

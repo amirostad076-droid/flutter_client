@@ -509,4 +509,42 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get notificationNoCategory => 'No Category';
+
+  @override
+  String get dmMarkAsRead => 'Mark as Read';
+
+  @override
+  String get dmMuteConversation => 'Mute Conversation';
+
+  @override
+  String get dmUnmuteConversation => 'Unmute Conversation';
+
+  @override
+  String get dmPinDm => 'Pin DM';
+
+  @override
+  String get dmUnpinDm => 'Unpin DM';
+
+  @override
+  String get dmAlwaysShowInSidebar => 'Always Show in Sidebar';
+
+  @override
+  String get dmRemoveFromAlwaysShown => 'Remove from Always Shown';
+
+  @override
+  String get dmCloseDm => 'Close DM';
+
+  @override
+  String get dmCloseDmConfirmTitle => 'Close DM';
+
+  @override
+  String dmCloseDmConfirmDescription(String username) {
+    return 'Are you sure you want to close your DM with $username? You can always reopen it later.';
+  }
+
+  @override
+  String get dmCopyChannelId => 'Copy Channel ID';
+
+  @override
+  String get dmCopyUserId => 'Copy User ID';
 }

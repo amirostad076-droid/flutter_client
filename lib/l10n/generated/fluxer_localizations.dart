@@ -993,6 +993,78 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'No Category'**
   String get notificationNoCategory;
+
+  /// DM context menu action to mark conversation as read.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Read'**
+  String get dmMarkAsRead;
+
+  /// DM context menu action to mute conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute Conversation'**
+  String get dmMuteConversation;
+
+  /// DM context menu action to unmute conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute Conversation'**
+  String get dmUnmuteConversation;
+
+  /// DM context menu action to pin a DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin DM'**
+  String get dmPinDm;
+
+  /// DM context menu action to unpin a DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin DM'**
+  String get dmUnpinDm;
+
+  /// DM context menu action to always show in sidebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Always Show in Sidebar'**
+  String get dmAlwaysShowInSidebar;
+
+  /// DM context menu action to remove from always shown.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from Always Shown'**
+  String get dmRemoveFromAlwaysShown;
+
+  /// DM context menu action to close a DM conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Close DM'**
+  String get dmCloseDm;
+
+  /// Title for close DM confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Close DM'**
+  String get dmCloseDmConfirmTitle;
+
+  /// Description for close DM confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to close your DM with {username}? You can always reopen it later.'**
+  String dmCloseDmConfirmDescription(String username);
+
+  /// DM context menu action to copy the channel ID.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Channel ID'**
+  String get dmCopyChannelId;
+
+  /// DM context menu action to copy the recipient user ID.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy User ID'**
+  String get dmCopyUserId;
 }
 
 class _FluxerLocalizationsDelegate
