@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -59,7 +60,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (HardwareKeyboard.instance.isShiftPressed) {
       return KeyEventResult.ignored;
     }
-    ref.read(chatViewModelProvider.notifier).sendMessage();
+    unawaited(ref.read(chatViewModelProvider.notifier).sendMessage());
     return KeyEventResult.handled;
   }
 

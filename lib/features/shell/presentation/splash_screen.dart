@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -26,7 +28,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _pulseController = AnimationController(
       vsync: this,
       duration: _pulseDuration,
-    )..repeat();
+    );
+    unawaited(_pulseController.repeat());
   }
 
   @override

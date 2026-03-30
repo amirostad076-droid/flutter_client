@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
@@ -27,12 +29,14 @@ void main() {
             builder: (context) {
               return ElevatedButton(
                 onPressed: () {
-                  FluxerModal.show(
-                    context,
-                    title: 'Modal Title',
-                    builder: (context, close) {
-                      return const Text('Modal Body');
-                    },
+                  unawaited(
+                    FluxerModal.show(
+                      context,
+                      title: 'Modal Title',
+                      builder: (context, close) {
+                        return const Text('Modal Body');
+                      },
+                    ),
                   );
                 },
                 child: const Text('Open'),
@@ -56,15 +60,17 @@ void main() {
             builder: (context) {
               return ElevatedButton(
                 onPressed: () {
-                  FluxerModal.show(
-                    context,
-                    title: 'Closeable',
-                    builder: (context, close) {
-                      return ElevatedButton(
-                        onPressed: close,
-                        child: const Text('Close Me'),
-                      );
-                    },
+                  unawaited(
+                    FluxerModal.show(
+                      context,
+                      title: 'Closeable',
+                      builder: (context, close) {
+                        return ElevatedButton(
+                          onPressed: close,
+                          child: const Text('Close Me'),
+                        );
+                      },
+                    ),
                   );
                 },
                 child: const Text('Open'),
@@ -94,13 +100,15 @@ void main() {
             builder: (context) {
               return ElevatedButton(
                 onPressed: () {
-                  FluxerConfirmModal.show(
-                    context,
-                    title: 'Delete Item?',
-                    description: 'This action cannot be undone.',
-                    confirmLabel: 'Delete',
-                    isDanger: true,
-                    onConfirm: () {},
+                  unawaited(
+                    FluxerConfirmModal.show(
+                      context,
+                      title: 'Delete Item?',
+                      description: 'This action cannot be undone.',
+                      confirmLabel: 'Delete',
+                      isDanger: true,
+                      onConfirm: () {},
+                    ),
                   );
                 },
                 child: const Text('Open'),
@@ -130,11 +138,13 @@ void main() {
             builder: (context) {
               return ElevatedButton(
                 onPressed: () {
-                  FluxerConfirmModal.show(
-                    context,
-                    title: 'Confirm Action',
-                    description: 'Are you sure?',
-                    onConfirm: () => confirmed = true,
+                  unawaited(
+                    FluxerConfirmModal.show(
+                      context,
+                      title: 'Confirm Action',
+                      description: 'Are you sure?',
+                      onConfirm: () => confirmed = true,
+                    ),
                   );
                 },
                 child: const Text('Open'),

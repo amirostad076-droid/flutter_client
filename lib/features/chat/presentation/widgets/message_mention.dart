@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -144,16 +146,15 @@ class UserMention extends ConsumerWidget {
   }
 }
 
-final FutureProviderFamily<User?, String> _userByIdProvider = FutureProvider.autoDispose.family<User?, String>((
-  ref,
-  id,
-) {
-  final db = ref.watch(fluxerDatabaseProvider);
-  return db.userDao.getUserById(id);
-});
+final FutureProviderFamily<User?, String> _userByIdProvider = FutureProvider
+    .autoDispose
+    .family<User?, String>((ref, id) {
+      final db = ref.watch(fluxerDatabaseProvider);
+      return db.userDao.getUserById(id);
+    });
 
-final FutureProviderFamily<Member?, (String, String)> _memberByUserIdProvider = FutureProvider.autoDispose
-    .family<Member?, (String, String)>((ref, args) {
+final FutureProviderFamily<Member?, (String, String)> _memberByUserIdProvider =
+    FutureProvider.autoDispose.family<Member?, (String, String)>((ref, args) {
       final (userId, serverId) = args;
       final db = ref.watch(fluxerDatabaseProvider);
       return db.memberDao.getMemberByUserId(userId, serverId);
@@ -188,18 +189,17 @@ class RoleMention extends ConsumerWidget {
   }
 }
 
-final FutureProviderFamily<Guild?, String> _guildByIdProvider = FutureProvider.autoDispose.family<Guild?, String>((
-  ref,
-  id,
-) async {
-  final db = ref.watch(fluxerDatabaseProvider);
-  final row = await db.guildDao.getServerById(id);
-  return row == null ? null : Guild.fromRow(row);
-});
+final FutureProviderFamily<Guild?, String> _guildByIdProvider = FutureProvider
+    .autoDispose
+    .family<Guild?, String>((ref, id) async {
+      final db = ref.watch(fluxerDatabaseProvider);
+      final row = await db.guildDao.getServerById(id);
+      return row == null ? null : Guild.fromRow(row);
+    });
 
 // temporary solution :)
-final FutureProviderFamily<String?, String> _dmNameByChannelIdProvider = FutureProvider.autoDispose
-    .family<String?, String>((ref, channelId) async {
+final FutureProviderFamily<String?, String> _dmNameByChannelIdProvider =
+    FutureProvider.autoDispose.family<String?, String>((ref, channelId) async {
       final db = ref.watch(fluxerDatabaseProvider);
       final row = await db.dmChannelDao.getDmChannelById(channelId);
       if (row == null) return null;
@@ -249,20 +249,22 @@ class ChannelJumpLinkMention extends ConsumerWidget {
       // Channel not found
       if (!link.isDm && channel == null) {
         final l10n = FluxerLocalizations.of(context);
-        FluxerModal.show<void>(
-          context,
-          title: l10n.channelAccessDeniedTitle,
-          builder: (ctx, close) => Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.channelAccessDeniedDescription,
-                style: ctx.textStyles.bodySmall.copyWith(height: 1.4),
-              ),
-              const SizedBox(height: 16),
-              FluxerButton.primary(onPressed: close, label: l10n.okay),
-            ],
+        unawaited(
+          FluxerModal.show<void>(
+            context,
+            title: l10n.channelAccessDeniedTitle,
+            builder: (ctx, close) => Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.channelAccessDeniedDescription,
+                  style: ctx.textStyles.bodySmall.copyWith(height: 1.4),
+                ),
+                const SizedBox(height: 16),
+                FluxerButton.primary(onPressed: close, label: l10n.okay),
+              ],
+            ),
           ),
         );
         return;
@@ -414,8 +416,7 @@ class _GuildIcon extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.cover,
-          errorBuilder: (_, _, _) =>
-              _GuildInitials(guild: guild, size: size),
+          errorBuilder: (_, _, _) => _GuildInitials(guild: guild, size: size),
         ),
       );
     }

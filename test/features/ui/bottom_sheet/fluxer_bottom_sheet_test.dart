@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
@@ -27,15 +29,17 @@ void main() {
             builder: (context) {
               return ElevatedButton(
                 onPressed: () {
-                  FluxerBottomSheet.show(
-                    context,
-                    title: 'Test Title',
-                    builder: (context, close) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('Sheet Content'),
-                      );
-                    },
+                  unawaited(
+                    FluxerBottomSheet.show(
+                      context,
+                      title: 'Test Title',
+                      builder: (context, close) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('Sheet Content'),
+                        );
+                      },
+                    ),
                   );
                 },
                 child: const Text('Open'),
@@ -59,15 +63,17 @@ void main() {
             builder: (context) {
               return ElevatedButton(
                 onPressed: () {
-                  FluxerBottomSheet.show(
-                    context,
-                    title: 'Closeable Sheet',
-                    builder: (context, close) {
-                      return ElevatedButton(
-                        onPressed: close,
-                        child: const Text('Close Me'),
-                      );
-                    },
+                  unawaited(
+                    FluxerBottomSheet.show(
+                      context,
+                      title: 'Closeable Sheet',
+                      builder: (context, close) {
+                        return ElevatedButton(
+                          onPressed: close,
+                          child: const Text('Close Me'),
+                        );
+                      },
+                    ),
                   );
                 },
                 child: const Text('Open'),
@@ -95,11 +101,13 @@ void main() {
             builder: (context) {
               return ElevatedButton(
                 onPressed: () {
-                  FluxerBottomSheet.show(
-                    context,
-                    builder: (context, close) {
-                      return const SizedBox(height: 100);
-                    },
+                  unawaited(
+                    FluxerBottomSheet.show(
+                      context,
+                      builder: (context, close) {
+                        return const SizedBox(height: 100);
+                      },
+                    ),
                   );
                 },
                 child: const Text('Open'),
