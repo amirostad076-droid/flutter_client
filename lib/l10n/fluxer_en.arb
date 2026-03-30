@@ -485,6 +485,41 @@
     "description": "Generic fallback error when password reset fails unexpectedly."
   },
 
+  "embedInviteJoin": "Join Community",
+  "@embedInviteJoin": {
+    "description": "Button to join a guild from an invite embed card."
+  },
+  "embedInviteGoTo": "Go to Community",
+  "@embedInviteGoTo": {
+    "description": "Button when user is already a member of the guild."
+  },
+  "embedInviteOnline": "{count} Online",
+  "@embedInviteOnline": {
+    "description": "Online member count on the invite embed card.",
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "embedInviteMembers": "{count} Members",
+  "@embedInviteMembers": {
+    "description": "Total member count on the invite embed card.",
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "embedInviteUnknownTitle": "Unknown Invite",
+  "@embedInviteUnknownTitle": {
+    "description": "Title when an invite is expired or invalid."
+  },
+  "embedInviteUnknownSubtitle": "Try asking for a new invite.",
+  "@embedInviteUnknownSubtitle": {
+    "description": "Subtitle when an invite is expired or invalid."
+  },
+  "embedInviteUnavailable": "Invite Unavailable",
+  "@embedInviteUnavailable": {
+    "description": "Disabled button label when an invite is unavailable."
+  },
+
   "embedThemeTitle": "Shared theme",
   "@embedThemeTitle": {
     "description": "Title on the theme embed card in chat."

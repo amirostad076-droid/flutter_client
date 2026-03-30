@@ -487,6 +487,22 @@ class Message {
     return Uri.tryParse(trimmed)?.hasAbsolutePath ?? false;
   }
 
+  List<String> get invites {
+    final re = RegExp(
+      r'https?://fluxer\.gg/([a-zA-Z0-9]{2,32})(?![a-zA-Z0-9])',
+    );
+    final seen = <String>{};
+    final result = <String>[];
+    for (final m in re.allMatches(content)) {
+      final code = m.group(1);
+      if (code != null && seen.add(code)) {
+        result.add(code);
+        if (result.length == 10) break;
+      }
+    }
+    return result;
+  }
+
   List<String> get themes {
     final re = RegExp(
       r'https?://web\.fluxer\.app/theme/([a-zA-Z0-9\-]{2,32})(?![a-zA-Z0-9\-])',

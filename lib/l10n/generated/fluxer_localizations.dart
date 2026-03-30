@@ -772,6 +772,48 @@ abstract class FluxerLocalizations {
   /// **'Unable to reset password. Please try again.'**
   String get errorUnableToResetPassword;
 
+  /// Button to join a guild from an invite embed card.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Community'**
+  String get embedInviteJoin;
+
+  /// Button when user is already a member of the guild.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Community'**
+  String get embedInviteGoTo;
+
+  /// Online member count on the invite embed card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Online'**
+  String embedInviteOnline(String count);
+
+  /// Total member count on the invite embed card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Members'**
+  String embedInviteMembers(String count);
+
+  /// Title when an invite is expired or invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Invite'**
+  String get embedInviteUnknownTitle;
+
+  /// Subtitle when an invite is expired or invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Try asking for a new invite.'**
+  String get embedInviteUnknownSubtitle;
+
+  /// Disabled button label when an invite is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite Unavailable'**
+  String get embedInviteUnavailable;
+
   /// Title on the theme embed card in chat.
   ///
   /// In en, this message translates to:

@@ -388,6 +388,31 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Unable to reset password. Please try again.';
 
   @override
+  String get embedInviteJoin => 'Join Community';
+
+  @override
+  String get embedInviteGoTo => 'Go to Community';
+
+  @override
+  String embedInviteOnline(String count) {
+    return '$count Online';
+  }
+
+  @override
+  String embedInviteMembers(String count) {
+    return '$count Members';
+  }
+
+  @override
+  String get embedInviteUnknownTitle => 'Unknown Invite';
+
+  @override
+  String get embedInviteUnknownSubtitle => 'Try asking for a new invite.';
+
+  @override
+  String get embedInviteUnavailable => 'Invite Unavailable';
+
+  @override
   String get embedThemeTitle => 'Shared theme';
 
   @override
