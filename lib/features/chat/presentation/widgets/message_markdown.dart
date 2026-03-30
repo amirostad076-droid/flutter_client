@@ -817,8 +817,7 @@ class _EmojiBuilder extends MarkdownElementBuilder {
       url,
       width: size,
       height: size,
-      placeholderBuilder: (_) =>
-          Text(surrogate, style: TextStyle(fontSize: size)),
+      placeholderBuilder: (_) => SizedBox(width: size, height: size),
     );
   }
 
