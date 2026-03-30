@@ -547,5 +547,37 @@
   "embedThemeUnavailableButton": "Themes unavailable",
   "@embedThemeUnavailableButton": {
     "description": "Button on the theme embed card - themes aren't supported in the client."
+  },
+  "privacySettings": "Privacy Settings",
+  "@privacySettings": {
+    "description": "Title for guild privacy settings bottom sheet."
+  },
+  "privacyDirectMessages": "Direct Messages",
+  "@privacyDirectMessages": {
+    "description": "Label for the DM toggle in guild privacy settings."
+  },
+  "privacyDirectMessagesDescription": "Allow direct messages from other members in this community",
+  "@privacyDirectMessagesDescription": {
+    "description": "Description for the DM toggle in guild privacy settings."
+  },
+  "privacyBotDirectMessages": "Bot Direct Messages",
+  "@privacyBotDirectMessages": {
+    "description": "Label for the bot DM toggle in guild privacy settings."
+  },
+  "privacyBotDirectMessagesDescription": "Allow bots from this community to send you direct messages",
+  "@privacyBotDirectMessagesDescription": {
+    "description": "Description for the bot DM toggle in guild privacy settings."
+  },
+  "privacyMutualDmsDisabled": "The community admins have disabled receiving direct messages solely from mutual members in this community.",
+  "@privacyMutualDmsDisabled": {
+    "description": "Warning shown when guild has DISABLE_MUTUAL_DMS feature."
+  },
+  "communityDebug": "Community Debug",
+  "@communityDebug": {
+    "description": "Title for the debug community bottom sheet."
+  },
+  "copiedToClipboard": "Copied to clipboard",
+  "@copiedToClipboard": {
+    "description": "Toast message after copying text to clipboard."
   }
 }

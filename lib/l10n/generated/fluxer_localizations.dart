@@ -855,6 +855,54 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Themes unavailable'**
   String get embedThemeUnavailableButton;
+
+  /// Title for guild privacy settings bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Settings'**
+  String get privacySettings;
+
+  /// Label for the DM toggle in guild privacy settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct Messages'**
+  String get privacyDirectMessages;
+
+  /// Description for the DM toggle in guild privacy settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow direct messages from other members in this community'**
+  String get privacyDirectMessagesDescription;
+
+  /// Label for the bot DM toggle in guild privacy settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Bot Direct Messages'**
+  String get privacyBotDirectMessages;
+
+  /// Description for the bot DM toggle in guild privacy settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow bots from this community to send you direct messages'**
+  String get privacyBotDirectMessagesDescription;
+
+  /// Warning shown when guild has DISABLE_MUTUAL_DMS feature.
+  ///
+  /// In en, this message translates to:
+  /// **'The community admins have disabled receiving direct messages solely from mutual members in this community.'**
+  String get privacyMutualDmsDisabled;
+
+  /// Title for the debug community bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Debug'**
+  String get communityDebug;
+
+  /// Toast message after copying text to clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
 }
 
 class _FluxerLocalizationsDelegate

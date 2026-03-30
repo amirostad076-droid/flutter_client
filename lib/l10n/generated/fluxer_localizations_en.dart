@@ -434,4 +434,31 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get embedThemeUnavailableButton => 'Themes unavailable';
+
+  @override
+  String get privacySettings => 'Privacy Settings';
+
+  @override
+  String get privacyDirectMessages => 'Direct Messages';
+
+  @override
+  String get privacyDirectMessagesDescription =>
+      'Allow direct messages from other members in this community';
+
+  @override
+  String get privacyBotDirectMessages => 'Bot Direct Messages';
+
+  @override
+  String get privacyBotDirectMessagesDescription =>
+      'Allow bots from this community to send you direct messages';
+
+  @override
+  String get privacyMutualDmsDisabled =>
+      'The community admins have disabled receiving direct messages solely from mutual members in this community.';
+
+  @override
+  String get communityDebug => 'Community Debug';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
 }

@@ -6,11 +6,15 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:flutter_highlight/themes/github.dart';
+import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_dart/export.dart';
 
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/constants/assets.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
@@ -48,6 +52,8 @@ import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provid
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -655,6 +661,38 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
               );
             }
           },
+          onGetPrivacyState: () => _getPrivacyState(
+            db: ref.read(fluxerDatabaseProvider),
+            userId: ref.read(currentUserIdProvider)!,
+            guildId: guild.id,
+          ),
+          onToggleDms: (allowed) {
+            unawaited(_updatePrivacySetting(
+              client: ref.read(fluxerClientProvider),
+              db: ref.read(fluxerDatabaseProvider),
+              userId: ref.read(currentUserIdProvider)!,
+              guildId: guild.id,
+              dmsAllowed: allowed,
+            ));
+          },
+          onToggleBotDms: (allowed) {
+            unawaited(_updatePrivacySetting(
+              client: ref.read(fluxerClientProvider),
+              db: ref.read(fluxerDatabaseProvider),
+              userId: ref.read(currentUserIdProvider)!,
+              guildId: guild.id,
+              botDmsAllowed: allowed,
+            ));
+          },
+          onGetGuildDebugJson: () => _buildGuildDebugJson(
+            client: ref.read(fluxerClientProvider),
+            db: ref.read(fluxerDatabaseProvider),
+            userId: ref.read(currentUserIdProvider)!,
+            guildId: guild.id,
+          ),
+          onShowToast: (toast) {
+            ref.read(toastProvider.notifier).show(toast);
+          },
         );
       },
     );
@@ -1081,6 +1119,38 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                 );
               }
             },
+            onGetPrivacyState: () => _getPrivacyState(
+              db: ref.read(fluxerDatabaseProvider),
+              userId: ref.read(currentUserIdProvider)!,
+              guildId: guild.id,
+            ),
+            onToggleDms: (allowed) {
+              unawaited(_updatePrivacySetting(
+                client: ref.read(fluxerClientProvider),
+                db: ref.read(fluxerDatabaseProvider),
+                userId: ref.read(currentUserIdProvider)!,
+                guildId: guild.id,
+                dmsAllowed: allowed,
+              ));
+            },
+            onToggleBotDms: (allowed) {
+              unawaited(_updatePrivacySetting(
+                client: ref.read(fluxerClientProvider),
+                db: ref.read(fluxerDatabaseProvider),
+                userId: ref.read(currentUserIdProvider)!,
+                guildId: guild.id,
+                botDmsAllowed: allowed,
+              ));
+            },
+            onGetGuildDebugJson: () => _buildGuildDebugJson(
+              client: ref.read(fluxerClientProvider),
+              db: ref.read(fluxerDatabaseProvider),
+              userId: ref.read(currentUserIdProvider)!,
+              guildId: guild.id,
+            ),
+            onShowToast: (toast) {
+              ref.read(toastProvider.notifier).show(toast);
+            },
           ),
         );
       },
@@ -1198,6 +1268,111 @@ Future<void> markGuildAsRead(
       body: ReadStateAckBulkRequest(readStates: ackEntries),
     ),
   );
+}
+
+Future<({bool isDmsAllowed, bool isBotDmsAllowed})> _getPrivacyState({
+  required FluxerDatabase db,
+  required String userId,
+  required String guildId,
+}) async {
+  final row = await db.userSettingsDao.getSettings(userId);
+  if (row == null) {
+    return (isDmsAllowed: true, isBotDmsAllowed: true);
+  }
+  final data = jsonDecode(row.data) as Map<String, dynamic>;
+  final s = UserSettingsResponse.fromJson(data);
+  return (
+    isDmsAllowed: !s.restrictedGuilds.contains(guildId),
+    isBotDmsAllowed: !s.botRestrictedGuilds.contains(guildId),
+  );
+}
+
+Future<void> _updatePrivacySetting({
+  required FluxerClient client,
+  required FluxerDatabase db,
+  required String userId,
+  required String guildId,
+  bool? dmsAllowed,
+  bool? botDmsAllowed,
+}) async {
+  try {
+    final row = await db.userSettingsDao.getSettings(userId);
+    if (row == null) {
+      return;
+    }
+
+    final data = jsonDecode(row.data) as Map<String, dynamic>;
+    final settings = UserSettingsResponse.fromJson(data);
+
+    List<String>? newRestricted;
+    if (dmsAllowed != null) {
+      newRestricted = List<String>.from(settings.restrictedGuilds);
+      if (dmsAllowed) {
+        newRestricted.remove(guildId);
+      } else if (!newRestricted.contains(guildId)) {
+        newRestricted.add(guildId);
+      }
+    }
+
+    List<String>? newBotRestricted;
+    if (botDmsAllowed != null) {
+      newBotRestricted = List<String>.from(settings.botRestrictedGuilds);
+      if (botDmsAllowed) {
+        newBotRestricted.remove(guildId);
+      } else if (!newBotRestricted.contains(guildId)) {
+        newBotRestricted.add(guildId);
+      }
+    }
+
+    await client.users.updateCurrentUserSettings(
+      body: UserSettingsUpdateRequest(
+        restrictedGuilds: newRestricted,
+        botRestrictedGuilds: newBotRestricted,
+      ),
+    );
+  } on Exception catch (e) {
+    talker.error('[GuildNavbar] Failed to update privacy setting: $e');
+  }
+}
+
+Future<Map<String, Object?>> _buildGuildDebugJson({
+  required FluxerClient client,
+  required FluxerDatabase db,
+  required String userId,
+  required String guildId,
+}) async {
+  final response = await client.guilds.getGuild(guildId: guildId);
+  final json = response.toJson()
+    ..remove('permissions');
+
+  final member = await db.memberDao.getMemberByUserId(
+    userId,
+    guildId,
+  );
+  if (member?.joinedAt != null) {
+    json['joined_at'] = member!.joinedAt!.toUtc().toIso8601String();
+  }
+
+  final server = await db.guildDao.getServerById(guildId);
+  json['unavailable'] = server?.unavailable ?? false;
+  json['member_count'] = server?.memberCount ?? 0;
+
+  final roles = await db.roleDao.getRoles(guildId);
+  final rolesMap = <String, Object>{};
+  for (final role in roles) {
+    rolesMap[role.id] = {
+      'id': role.id,
+      'name': role.name,
+      'color': role.color,
+      'position': role.position,
+      'hoist_position': role.isHoisted ? role.position : null,
+      'permissions': role.permissions,
+      'hoist': role.isHoisted,
+    };
+  }
+  json['roles'] = rolesMap;
+
+  return json;
 }
 
 const Map<GuildAction, int> _muteDurations = {
@@ -1366,6 +1541,12 @@ class _GuildListItem extends StatefulWidget {
     String? recipientId,
     String inviteUrl,
   )? onSendInviteTo;
+  final Future<({bool isDmsAllowed, bool isBotDmsAllowed})> Function()?
+      onGetPrivacyState;
+  final void Function(bool allowed)? onToggleDms;
+  final void Function(bool allowed)? onToggleBotDms;
+  final Future<Map<String, Object?>> Function()? onGetGuildDebugJson;
+  final void Function(FluxerToast toast)? onShowToast;
 
   const _GuildListItem({
     required this.label,
@@ -1398,6 +1579,11 @@ class _GuildListItem extends StatefulWidget {
     this.onCreateInvite,
     this.onGetRecipients,
     this.onSendInviteTo,
+    this.onGetPrivacyState,
+    this.onToggleDms,
+    this.onToggleBotDms,
+    this.onGetGuildDebugJson,
+    this.onShowToast,
   });
 
   @override
@@ -2393,6 +2579,170 @@ class _GuildListItemState extends State<_GuildListItem> {
     }
   }
 
+  Future<void> _showPrivacySettingsSheet(BuildContext context) async {
+    final guild = widget.guild!;
+    if (widget.onGetPrivacyState == null) {
+      return;
+    }
+
+    final privacyState = await widget.onGetPrivacyState!();
+    if (!context.mounted) {
+      return;
+    }
+
+    final l10n = FluxerLocalizations.of(context);
+    final isDmsAllowed = ValueNotifier<bool>(privacyState.isDmsAllowed);
+    final isBotDmsAllowed = ValueNotifier<bool>(
+      privacyState.isBotDmsAllowed,
+    );
+
+    await FluxerBottomSheet.show<void>(
+      context,
+      title: l10n.privacySettings,
+      builder: (sheetContext, close) {
+        final layout = sheetContext.layout;
+
+        final isMutualDmsDisabled =
+            guild.features.contains('DISABLE_MUTUAL_DMS');
+
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: layout.s4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isMutualDmsDisabled) ...[
+                FluxerWarningAlert(
+                  message: l10n.privacyMutualDmsDisabled,
+                ),
+                SizedBox(height: layout.s4),
+              ],
+              ValueListenableBuilder<bool>(
+                valueListenable: isDmsAllowed,
+                builder: (_, allowed, __) => _PrivacySwitchRow(
+                  label: l10n.privacyDirectMessages,
+                  description: l10n.privacyDirectMessagesDescription,
+                  value: allowed,
+                  onChanged: (allowed) {
+                    isDmsAllowed.value = allowed;
+                    widget.onToggleDms?.call(allowed);
+                  },
+                ),
+              ),
+              SizedBox(height: layout.s4),
+              ValueListenableBuilder<bool>(
+                valueListenable: isBotDmsAllowed,
+                builder: (_, allowed, __) => _PrivacySwitchRow(
+                  label: l10n.privacyBotDirectMessages,
+                  description:
+                      l10n.privacyBotDirectMessagesDescription,
+                  value: allowed,
+                  onChanged: (allowed) {
+                    isBotDmsAllowed.value = allowed;
+                    widget.onToggleBotDms?.call(allowed);
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showDebugCommunitySheet(BuildContext context) async {
+    if (widget.onGetGuildDebugJson == null) {
+      return;
+    }
+
+    final Map<String, Object?> guildJson;
+    try {
+      guildJson = await widget.onGetGuildDebugJson!();
+    } on Exception catch (e) {
+      talker.error('[GuildNavbar] Failed to load guild debug data: $e');
+      return;
+    }
+    if (!context.mounted) {
+      return;
+    }
+
+    final l10n = FluxerLocalizations.of(context);
+    final json = const JsonEncoder.withIndent('  ').convert(guildJson);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final copied = ValueNotifier<bool>(false);
+
+    await FluxerBottomSheet.show<void>(
+      context,
+      title: l10n.communityDebug,
+      builder: (sheetContext, close) {
+        final layout = sheetContext.layout;
+
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: layout.s4),
+          child: SingleChildScrollView(
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.all(Radius.circular(4)),
+                  child: HighlightView(
+                    json,
+                    language: 'json',
+                    theme: isDark ? vs2015Theme : githubTheme,
+                    padding: const EdgeInsets.all(12),
+                    textStyle: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: ValueListenableBuilder<bool>(
+                    valueListenable: copied,
+                    builder: (_, isCopied, __) => IconButton(
+                      icon: PhosphorIcon(
+                        isCopied
+                            ? PhosphorIconsBold.check
+                            : PhosphorIconsBold.copy,
+                        color: isCopied
+                            ? Colors.green
+                            : isDark
+                                ? Colors.white70
+                                : Colors.black54,
+                        size: 18,
+                      ),
+                      onPressed: isCopied
+                          ? null
+                          : () {
+                              unawaited(Clipboard.setData(
+                                ClipboardData(text: json),
+                              ));
+                              copied.value = true;
+                              Future<void>.delayed(
+                                const Duration(seconds: 2),
+                                () {
+                                  copied.value = false;
+                                },
+                              );
+                              widget.onShowToast?.call(
+                                FluxerToast(
+                                  message: l10n.copiedToClipboard,
+                                  variant: FluxerToastVariant.success,
+                                ),
+                              );
+                            },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _handleAction(BuildContext context, GuildAction action) {
     final guildId = widget.guild!.id;
     switch (action) {
@@ -2452,13 +2802,65 @@ class _GuildListItemState extends State<_GuildListItem> {
       case GuildAction.inviteMembers:
         unawaited(_showInviteMembersModal(context));
       case GuildAction.notificationSettings:
-      case GuildAction.privacySettings:
       case GuildAction.editCommunityProfile:
       case GuildAction.reportCommunity:
       case GuildAction.reportRaid:
-      case GuildAction.debugCommunity:
         break;
+      case GuildAction.privacySettings:
+        unawaited(_showPrivacySettingsSheet(context));
+      case GuildAction.debugCommunity:
+        unawaited(_showDebugCommunitySheet(context));
     }
+  }
+}
+
+class _PrivacySwitchRow extends StatelessWidget {
+  const _PrivacySwitchRow({
+    required this.label,
+    required this.description,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String description;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () => onChanged(!value),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: textStyles.username.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: textStyles.bodySmall.copyWith(
+                    color: colors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Switch(value: value, onChanged: onChanged),
+      ],
+    );
   }
 }
 
