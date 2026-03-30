@@ -519,6 +519,22 @@
   "@embedInviteUnavailable": {
     "description": "Disabled button label when an invite is unavailable."
   },
+  "mentionUnknownChannel": "unknown-channel",
+  "@mentionUnknownChannel": {
+    "description": "Fallback name shown in a channel mention pill when the channel is not found."
+  },
+  "channelAccessDeniedTitle": "Channel Access Denied",
+  "@channelAccessDeniedTitle": {
+    "description": "Title of the modal shown when clicking a jump link to an inaccessible channel."
+  },
+  "channelAccessDeniedDescription": "You do not have access to the channel where this message was sent.",
+  "@channelAccessDeniedDescription": {
+    "description": "Body of the channel access denied modal."
+  },
+  "okay": "Okay",
+  "@okay": {
+    "description": "Generic confirmation button label."
+  },
 
   "embedThemeTitle": "Shared theme",
   "@embedThemeTitle": {

@@ -13,6 +13,9 @@ import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.d
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/role_providers.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -32,7 +35,7 @@ class ChannelMention extends ConsumerWidget {
     );
 
     final channel = async.value;
-    final name = channel?.name ?? channelId;
+    final name = channel?.name ?? FluxerLocalizations.of(context).mentionUnknownChannel;
     final type = channel?.type ?? ChannelType.text;
 
     return GestureDetector(
@@ -204,9 +207,15 @@ final _dmNameByChannelIdProvider = FutureProvider.autoDispose
 });
 
 class ChannelJumpLinkMention extends ConsumerWidget {
-  const ChannelJumpLinkMention({required this.link, this.baseStyle, super.key});
+  const ChannelJumpLinkMention({
+    required this.link,
+    required this.url,
+    this.baseStyle,
+    super.key,
+  });
 
   final ChannelJumpLink link;
+  final String url;
   final TextStyle? baseStyle;
 
   @override
@@ -235,6 +244,30 @@ class ChannelJumpLinkMention extends ConsumerWidget {
     final iconSize = (style.fontSize ?? 14) * 0.9;
 
     void onTap() {
+      // Channel not found
+      if (!link.isDm && channel == null) {
+        final l10n = FluxerLocalizations.of(context);
+        FluxerModal.show<void>(
+          context,
+          title: l10n.channelAccessDeniedTitle,
+          builder: (ctx, close) => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.channelAccessDeniedDescription,
+                style: ctx.textStyles.bodySmall.copyWith(height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              FluxerButton.primary(
+                onPressed: close,
+                label: l10n.okay,
+              ),
+            ],
+          ),
+        );
+        return;
+      }
       final router = ProviderScope.containerOf(context).read(
         fluxerRouterProvider,
       );
@@ -256,6 +289,19 @@ class ChannelJumpLinkMention extends ConsumerWidget {
       } else {
         router.go(RoutePaths.guildChannel(link.scope, link.channelId));
       }
+    }
+
+    if (!link.isDm && channel == null && channelAsync?.isLoading == false) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Text(
+          url,
+          style: style.copyWith(
+            color: colors.textLink,
+            decoration: TextDecoration.none,
+          ),
+        ),
+      );
     }
 
     return _JumpLinkPill(

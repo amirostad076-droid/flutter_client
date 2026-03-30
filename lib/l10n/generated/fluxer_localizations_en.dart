@@ -413,6 +413,19 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get embedInviteUnavailable => 'Invite Unavailable';
 
   @override
+  String get mentionUnknownChannel => 'unknown-channel';
+
+  @override
+  String get channelAccessDeniedTitle => 'Channel Access Denied';
+
+  @override
+  String get channelAccessDeniedDescription =>
+      'You do not have access to the channel where this message was sent.';
+
+  @override
+  String get okay => 'Okay';
+
+  @override
   String get embedThemeTitle => 'Shared theme';
 
   @override

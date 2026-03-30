@@ -873,6 +873,6 @@ class _JumpLinkBuilder extends MarkdownElementBuilder {
     final url = element.attributes['href'] ?? element.textContent;
     final link = parseChannelJumpLink(url);
     if (link == null) return null;
-    return ChannelJumpLinkMention(link: link, baseStyle: baseStyle);
+    return ChannelJumpLinkMention(link: link, url: url, baseStyle: baseStyle);
   }
 }

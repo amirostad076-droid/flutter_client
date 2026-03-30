@@ -814,6 +814,30 @@ abstract class FluxerLocalizations {
   /// **'Invite Unavailable'**
   String get embedInviteUnavailable;
 
+  /// Fallback name shown in a channel mention pill when the channel is not found.
+  ///
+  /// In en, this message translates to:
+  /// **'unknown-channel'**
+  String get mentionUnknownChannel;
+
+  /// Title of the modal shown when clicking a jump link to an inaccessible channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel Access Denied'**
+  String get channelAccessDeniedTitle;
+
+  /// Body of the channel access denied modal.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have access to the channel where this message was sent.'**
+  String get channelAccessDeniedDescription;
+
+  /// Generic confirmation button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Okay'**
+  String get okay;
+
   /// Title on the theme embed card in chat.
   ///
   /// In en, this message translates to:
