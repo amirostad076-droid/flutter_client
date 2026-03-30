@@ -67,7 +67,7 @@ class EmojiUsageDao extends DatabaseAccessor<FluxerDatabase>
 
   double _score(EmojiUsageData usage) {
     final hours = DateTime.now().difference(usage.lastUsed).inHours;
-    final decay = max(0.0, 1.0 - hours / _kDecayHours);
+    final decay = max<double>(0, 1.0 - hours / _kDecayHours);
     return usage.useCount * (1 + decay);
   }
 
