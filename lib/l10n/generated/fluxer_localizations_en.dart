@@ -461,4 +461,52 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get notificationSettings => 'Notification Settings';
+
+  @override
+  String notificationMuteGuild(String guildName) {
+    return 'Mute $guildName';
+  }
+
+  @override
+  String get notificationMuteDescription =>
+      'Muting a community prevents unread indicators and notifications from appearing unless you are mentioned';
+
+  @override
+  String get notificationCommunitySettings => 'Community Notification Settings';
+
+  @override
+  String get notificationAllMessages => 'All Messages';
+
+  @override
+  String get notificationOnlyMentions => 'Only Mentions';
+
+  @override
+  String get notificationNothing => 'Nothing';
+
+  @override
+  String get notificationSuppressEveryone => 'Suppress @everyone and @here';
+
+  @override
+  String get notificationSuppressRoles => 'Suppress All Role @mentions';
+
+  @override
+  String get notificationMobilePush => 'Mobile Push Notifications';
+
+  @override
+  String get notificationOverrides => 'Notification Overrides';
+
+  @override
+  String get notificationSelectChannel => 'Select a channel or category';
+
+  @override
+  String get notificationOnlyAtMentions => 'Only @mentions';
+
+  @override
+  String get notificationMuteChannel => 'Mute Channel';
+
+  @override
+  String get notificationNoCategory => 'No Category';
 }

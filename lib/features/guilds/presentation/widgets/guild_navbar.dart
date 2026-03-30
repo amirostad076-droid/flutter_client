@@ -12,17 +12,21 @@ import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_dart/export.dart';
+import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
-import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/constants/assets.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
-import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_context_menu.dart';
@@ -32,6 +36,7 @@ import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/unread_dm_provider.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
+import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_bottom_sheet.dart';
@@ -43,7 +48,6 @@ import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_menu_data.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_scroll_indicator.dart';
-import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
@@ -54,8 +58,6 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class GuildNavbar extends ConsumerStatefulWidget {
   const GuildNavbar({super.key});
@@ -354,13 +356,14 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                                   mentionCount: dm.unreadCount,
                                   type: dm.type,
                                   isSelected: currentLocation.contains(dm.id),
-                                  onContextMenu: (position) => _handleDmContextMenu(
-                                    context,
-                                    position: position,
-                                    dm: dm,
-                                    isCollapsed: dmFolderState.collapseDMs,
-                                    isAllowlisted: false,
-                                  ),
+                                  onContextMenu: (position) =>
+                                      _handleDmContextMenu(
+                                        context,
+                                        position: position,
+                                        dm: dm,
+                                        isCollapsed: dmFolderState.collapseDMs,
+                                        isAllowlisted: false,
+                                      ),
                                 ),
                             ],
                           ),
@@ -563,9 +566,10 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           },
           onLeaveGuild: () {
             unawaited(
-              ref.read(fluxerClientProvider).guilds.leaveGuild(
-                guildId: guild.id,
-              ),
+              ref
+                  .read(fluxerClientProvider)
+                  .guilds
+                  .leaveGuild(guildId: guild.id),
             );
           },
           onGuildSettingsAction: (action) {
@@ -580,61 +584,63 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           },
           onCreateCategory: (name) {
             unawaited(
-              ref.read(fluxerClientProvider).guilds.createGuildChannel(
-                guildId: guild.id,
-                body: ChannelCreateRequest4(
-                  name: name,
-                  type: ChannelCreateCategoryRequestTypeType.guildCategory,
-                  topic: null,
-                  url: null,
-                  parentId: null,
-                  bitrate: null,
-                  userLimit: null,
-                  permissionOverwrites: [],
-                  nsfw: false,
-                ),
-              ),
+              ref
+                  .read(fluxerClientProvider)
+                  .guilds
+                  .createGuildChannel(
+                    guildId: guild.id,
+                    body: ChannelCreateRequest4(
+                      name: name,
+                      type: ChannelCreateCategoryRequestTypeType.guildCategory,
+                      topic: null,
+                      url: null,
+                      parentId: null,
+                      bitrate: null,
+                      userLimit: null,
+                      permissionOverwrites: [],
+                      nsfw: false,
+                    ),
+                  ),
             );
           },
           onCreateChannel: (request) {
             unawaited(
-              ref.read(fluxerClientProvider).guilds.createGuildChannel(
-                guildId: guild.id,
-                body: request,
-              ),
+              ref
+                  .read(fluxerClientProvider)
+                  .guilds
+                  .createGuildChannel(guildId: guild.id, body: request),
             );
           },
-          onCreateInvite: ({
-            int maxAge = 604800,
-            int maxUses = 0,
-            bool temporary = false,
-          }) async {
-            final db = ref.read(fluxerDatabaseProvider);
-            final client = ref.read(fluxerClientProvider);
-            final channels = await db.channelDao.getChannels(guild.id);
-            final invitable = channels
-                .where((c) => c.type == 0 || c.type == 2)
-                .firstOrNull;
-            if (invitable == null) {
-              return null;
-            }
-            final wellKnown =
-                await client.instance.getWellKnownFluxer();
-            final invite = await client.invites.createChannelInvite(
-              channelId: invitable.id,
-              body: ChannelInviteCreateRequest(
-                maxAge: maxAge,
-                maxUses: maxUses,
-                temporary: temporary,
-              ),
-            );
-            final code =
-                invite.toGuildInviteMetadataResponse().code;
-            return (
-              url: '${wellKnown.endpoints.invite}/$code',
-              channelName: invitable.name,
-            );
-          },
+          onCreateInvite:
+              ({
+                int maxAge = 604800,
+                int maxUses = 0,
+                bool temporary = false,
+              }) async {
+                final db = ref.read(fluxerDatabaseProvider);
+                final client = ref.read(fluxerClientProvider);
+                final channels = await db.channelDao.getChannels(guild.id);
+                final invitable = channels
+                    .where((c) => c.type == 0 || c.type == 2)
+                    .firstOrNull;
+                if (invitable == null) {
+                  return null;
+                }
+                final wellKnown = await client.instance.getWellKnownFluxer();
+                final invite = await client.invites.createChannelInvite(
+                  channelId: invitable.id,
+                  body: ChannelInviteCreateRequest(
+                    maxAge: maxAge,
+                    maxUses: maxUses,
+                    temporary: temporary,
+                  ),
+                );
+                final code = invite.toGuildInviteMetadataResponse().code;
+                return (
+                  url: '${wellKnown.endpoints.invite}/$code',
+                  channelName: invitable.name,
+                );
+              },
           onGetRecipients: () async {
             final friendRepo = ref.read(friendRepositoryProvider);
             final dmRepo = ref.read(dmRepositoryProvider);
@@ -648,9 +654,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
             var targetId = channelId;
             if (targetId == null && recipientId != null) {
               final ch = await client.users.createPrivateChannel(
-                body: CreatePrivateChannelRequest(
-                  recipientId: recipientId,
-                ),
+                body: CreatePrivateChannelRequest(recipientId: recipientId),
               );
               targetId = ch.id;
             }
@@ -666,23 +670,27 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
             userId: ref.read(currentUserIdProvider)!,
             guildId: guild.id,
           ),
-          onToggleDms: (allowed) {
-            unawaited(_updatePrivacySetting(
-              client: ref.read(fluxerClientProvider),
-              db: ref.read(fluxerDatabaseProvider),
-              userId: ref.read(currentUserIdProvider)!,
-              guildId: guild.id,
-              dmsAllowed: allowed,
-            ));
+          onToggleDms: ({required bool allowed}) {
+            unawaited(
+              _updatePrivacySetting(
+                client: ref.read(fluxerClientProvider),
+                db: ref.read(fluxerDatabaseProvider),
+                userId: ref.read(currentUserIdProvider)!,
+                guildId: guild.id,
+                dmsAllowed: allowed,
+              ),
+            );
           },
-          onToggleBotDms: (allowed) {
-            unawaited(_updatePrivacySetting(
-              client: ref.read(fluxerClientProvider),
-              db: ref.read(fluxerDatabaseProvider),
-              userId: ref.read(currentUserIdProvider)!,
-              guildId: guild.id,
-              botDmsAllowed: allowed,
-            ));
+          onToggleBotDms: ({required bool allowed}) {
+            unawaited(
+              _updatePrivacySetting(
+                client: ref.read(fluxerClientProvider),
+                db: ref.read(fluxerDatabaseProvider),
+                userId: ref.read(currentUserIdProvider)!,
+                guildId: guild.id,
+                botDmsAllowed: allowed,
+              ),
+            );
           },
           onGetGuildDebugJson: () => _buildGuildDebugJson(
             client: ref.read(fluxerClientProvider),
@@ -692,6 +700,58 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           ),
           onShowToast: (toast) {
             ref.read(toastProvider.notifier).show(toast);
+          },
+          onGetNotificationSettings: () => _getNotificationSettings(
+            db: ref.read(fluxerDatabaseProvider),
+            guildId: guild.id,
+          ),
+          onUpdateNotificationSetting:
+              ({
+                bool? muted,
+                UserNotificationSettings? messageNotifications,
+                bool? suppressEveryone,
+                bool? suppressRoles,
+                bool? mobilePush,
+              }) {
+                unawaited(
+                  _updateNotificationSetting(
+                    db: ref.read(fluxerDatabaseProvider),
+                    client: ref.read(fluxerClientProvider),
+                    guildId: guild.id,
+                    muted: muted,
+                    messageNotifications: messageNotifications,
+                    suppressEveryone: suppressEveryone,
+                    suppressRoles: suppressRoles,
+                    mobilePush: mobilePush,
+                  ),
+                );
+              },
+          onGetGuildChannels: () => _getGuildChannels(
+            db: ref.read(fluxerDatabaseProvider),
+            guildId: guild.id,
+          ),
+          onUpdateChannelOverride:
+              (channelId, messageNotifications, {required muted}) {
+                unawaited(
+                  _updateChannelOverride(
+                    db: ref.read(fluxerDatabaseProvider),
+                    client: ref.read(fluxerClientProvider),
+                    guildId: guild.id,
+                    channelId: channelId,
+                    messageNotifications: messageNotifications,
+                    muted: muted,
+                  ),
+                );
+              },
+          onRemoveChannelOverride: (channelId) {
+            unawaited(
+              _removeChannelOverride(
+                db: ref.read(fluxerDatabaseProvider),
+                client: ref.read(fluxerClientProvider),
+                guildId: guild.id,
+                channelId: channelId,
+              ),
+            );
           },
         );
       },
@@ -942,7 +1002,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                         imageUrl: guild.iconUrl!,
                         fit: BoxFit.cover,
                       )
-                    : Container(
+                    : ColoredBox(
                         color: context.colors.serverIconBackground,
                         child: Center(
                           child: Text(
@@ -1020,9 +1080,10 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             },
             onLeaveGuild: () {
               unawaited(
-                ref.read(fluxerClientProvider).guilds.leaveGuild(
-                  guildId: guild.id,
-                ),
+                ref
+                    .read(fluxerClientProvider)
+                    .guilds
+                    .leaveGuild(guildId: guild.id),
               );
             },
             onGuildSettingsAction: (action) {
@@ -1037,61 +1098,64 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             },
             onCreateCategory: (name) {
               unawaited(
-                ref.read(fluxerClientProvider).guilds.createGuildChannel(
-                  guildId: guild.id,
-                  body: ChannelCreateRequest4(
-                    name: name,
-                    type: ChannelCreateCategoryRequestTypeType.guildCategory,
-                    topic: null,
-                    url: null,
-                    parentId: null,
-                    bitrate: null,
-                    userLimit: null,
-                    permissionOverwrites: [],
-                    nsfw: false,
-                  ),
-                ),
+                ref
+                    .read(fluxerClientProvider)
+                    .guilds
+                    .createGuildChannel(
+                      guildId: guild.id,
+                      body: ChannelCreateRequest4(
+                        name: name,
+                        type:
+                            ChannelCreateCategoryRequestTypeType.guildCategory,
+                        topic: null,
+                        url: null,
+                        parentId: null,
+                        bitrate: null,
+                        userLimit: null,
+                        permissionOverwrites: [],
+                        nsfw: false,
+                      ),
+                    ),
               );
             },
             onCreateChannel: (request) {
               unawaited(
-                ref.read(fluxerClientProvider).guilds.createGuildChannel(
-                  guildId: guild.id,
-                  body: request,
-                ),
+                ref
+                    .read(fluxerClientProvider)
+                    .guilds
+                    .createGuildChannel(guildId: guild.id, body: request),
               );
             },
-            onCreateInvite: ({
-              int maxAge = 604800,
-              int maxUses = 0,
-              bool temporary = false,
-            }) async {
-              final db = ref.read(fluxerDatabaseProvider);
-              final client = ref.read(fluxerClientProvider);
-              final channels = await db.channelDao.getChannels(guild.id);
-              final invitable = channels
-                  .where((c) => c.type == 0 || c.type == 2)
-                  .firstOrNull;
-              if (invitable == null) {
-                return null;
-              }
-              final wellKnown =
-                  await client.instance.getWellKnownFluxer();
-              final invite = await client.invites.createChannelInvite(
-                channelId: invitable.id,
-                body: ChannelInviteCreateRequest(
-                  maxAge: maxAge,
-                  maxUses: maxUses,
-                  temporary: temporary,
-                ),
-              );
-              final code =
-                  invite.toGuildInviteMetadataResponse().code;
-              return (
-                url: '${wellKnown.endpoints.invite}/$code',
-                channelName: invitable.name,
-              );
-            },
+            onCreateInvite:
+                ({
+                  int maxAge = 604800,
+                  int maxUses = 0,
+                  bool temporary = false,
+                }) async {
+                  final db = ref.read(fluxerDatabaseProvider);
+                  final client = ref.read(fluxerClientProvider);
+                  final channels = await db.channelDao.getChannels(guild.id);
+                  final invitable = channels
+                      .where((c) => c.type == 0 || c.type == 2)
+                      .firstOrNull;
+                  if (invitable == null) {
+                    return null;
+                  }
+                  final wellKnown = await client.instance.getWellKnownFluxer();
+                  final invite = await client.invites.createChannelInvite(
+                    channelId: invitable.id,
+                    body: ChannelInviteCreateRequest(
+                      maxAge: maxAge,
+                      maxUses: maxUses,
+                      temporary: temporary,
+                    ),
+                  );
+                  final code = invite.toGuildInviteMetadataResponse().code;
+                  return (
+                    url: '${wellKnown.endpoints.invite}/$code',
+                    channelName: invitable.name,
+                  );
+                },
             onGetRecipients: () async {
               final friendRepo = ref.read(friendRepositoryProvider);
               final dmRepo = ref.read(dmRepositoryProvider);
@@ -1104,11 +1168,8 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
               final dio = ref.read(fluxerDioProvider);
               var targetId = channelId;
               if (targetId == null && recipientId != null) {
-                final ch =
-                    await client.users.createPrivateChannel(
-                  body: CreatePrivateChannelRequest(
-                    recipientId: recipientId,
-                  ),
+                final ch = await client.users.createPrivateChannel(
+                  body: CreatePrivateChannelRequest(recipientId: recipientId),
                 );
                 targetId = ch.id;
               }
@@ -1124,23 +1185,27 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
               userId: ref.read(currentUserIdProvider)!,
               guildId: guild.id,
             ),
-            onToggleDms: (allowed) {
-              unawaited(_updatePrivacySetting(
-                client: ref.read(fluxerClientProvider),
-                db: ref.read(fluxerDatabaseProvider),
-                userId: ref.read(currentUserIdProvider)!,
-                guildId: guild.id,
-                dmsAllowed: allowed,
-              ));
+            onToggleDms: ({required bool allowed}) {
+              unawaited(
+                _updatePrivacySetting(
+                  client: ref.read(fluxerClientProvider),
+                  db: ref.read(fluxerDatabaseProvider),
+                  userId: ref.read(currentUserIdProvider)!,
+                  guildId: guild.id,
+                  dmsAllowed: allowed,
+                ),
+              );
             },
-            onToggleBotDms: (allowed) {
-              unawaited(_updatePrivacySetting(
-                client: ref.read(fluxerClientProvider),
-                db: ref.read(fluxerDatabaseProvider),
-                userId: ref.read(currentUserIdProvider)!,
-                guildId: guild.id,
-                botDmsAllowed: allowed,
-              ));
+            onToggleBotDms: ({required bool allowed}) {
+              unawaited(
+                _updatePrivacySetting(
+                  client: ref.read(fluxerClientProvider),
+                  db: ref.read(fluxerDatabaseProvider),
+                  userId: ref.read(currentUserIdProvider)!,
+                  guildId: guild.id,
+                  botDmsAllowed: allowed,
+                ),
+              );
             },
             onGetGuildDebugJson: () => _buildGuildDebugJson(
               client: ref.read(fluxerClientProvider),
@@ -1150,6 +1215,58 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             ),
             onShowToast: (toast) {
               ref.read(toastProvider.notifier).show(toast);
+            },
+            onGetNotificationSettings: () => _getNotificationSettings(
+              db: ref.read(fluxerDatabaseProvider),
+              guildId: guild.id,
+            ),
+            onUpdateNotificationSetting:
+                ({
+                  bool? muted,
+                  UserNotificationSettings? messageNotifications,
+                  bool? suppressEveryone,
+                  bool? suppressRoles,
+                  bool? mobilePush,
+                }) {
+                  unawaited(
+                    _updateNotificationSetting(
+                      db: ref.read(fluxerDatabaseProvider),
+                      client: ref.read(fluxerClientProvider),
+                      guildId: guild.id,
+                      muted: muted,
+                      messageNotifications: messageNotifications,
+                      suppressEveryone: suppressEveryone,
+                      suppressRoles: suppressRoles,
+                      mobilePush: mobilePush,
+                    ),
+                  );
+                },
+            onGetGuildChannels: () => _getGuildChannels(
+              db: ref.read(fluxerDatabaseProvider),
+              guildId: guild.id,
+            ),
+            onUpdateChannelOverride:
+                (channelId, messageNotifications, {required muted}) {
+                  unawaited(
+                    _updateChannelOverride(
+                      db: ref.read(fluxerDatabaseProvider),
+                      client: ref.read(fluxerClientProvider),
+                      guildId: guild.id,
+                      channelId: channelId,
+                      messageNotifications: messageNotifications,
+                      muted: muted,
+                    ),
+                  );
+                },
+            onRemoveChannelOverride: (channelId) {
+              unawaited(
+                _removeChannelOverride(
+                  db: ref.read(fluxerDatabaseProvider),
+                  client: ref.read(fluxerClientProvider),
+                  guildId: guild.id,
+                  channelId: channelId,
+                ),
+              );
             },
           ),
         );
@@ -1179,8 +1296,9 @@ List<_InviteRecipient> _buildRecipientList(
   List<Friend> friends,
   List<DmConversation> dms,
 ) {
-  final accepted =
-      friends.where((f) => f.friendStatus == FriendStatus.accepted);
+  final accepted = friends.where(
+    (f) => f.friendStatus == FriendStatus.accepted,
+  );
   final dmByRecipient = <String, DmConversation>{};
   final recipients = <_InviteRecipient>[];
 
@@ -1226,8 +1344,9 @@ Future<void> markGuildAsRead(
 ) async {
   final channels = await db.channelDao.getChannels(guildId);
   final channelIds = channels.map((c) => c.id).toList();
-  final readStates =
-      await db.readStateDao.watchReadStatesForChannels(channelIds).first;
+  final readStates = await db.readStateDao
+      .watchReadStatesForChannels(channelIds)
+      .first;
   final readStateMap = {for (final rs in readStates) rs.channelId: rs};
 
   final ackEntries = <ReadStateAckBulkRequestReadStates>[];
@@ -1335,6 +1454,257 @@ Future<void> _updatePrivacySetting({
   }
 }
 
+Future<
+  ({
+    bool muted,
+    int messageNotifications,
+    bool suppressEveryone,
+    bool suppressRoles,
+    bool mobilePush,
+    Map<String, ({int messageNotifications, bool muted})> channelOverrides,
+  })
+>
+_getNotificationSettings({
+  required FluxerDatabase db,
+  required String guildId,
+}) async {
+  final existing = await db.userGuildSettingsDao.getByGuildId(guildId);
+  if (existing == null) {
+    return (
+      muted: false,
+      messageNotifications: 0,
+      suppressEveryone: false,
+      suppressRoles: false,
+      mobilePush: true,
+      channelOverrides: <String, ({int messageNotifications, bool muted})>{},
+    );
+  }
+
+  final json = jsonDecode(existing.data) as Map<String, dynamic>;
+  final settings = UserGuildSettingsResponse.fromJson(json);
+
+  final overrides = <String, ({int messageNotifications, bool muted})>{};
+  if (settings.channelOverrides != null) {
+    for (final entry in settings.channelOverrides!.entries) {
+      overrides[entry.key] = (
+        messageNotifications:
+            entry.value.messageNotifications.json ??
+            UserNotificationSettings.inherit.json!,
+        muted: entry.value.muted,
+      );
+    }
+  }
+
+  return (
+    muted: settings.muted,
+    messageNotifications:
+        settings.messageNotifications.json ??
+        UserNotificationSettings.allMessages.json!,
+    suppressEveryone: settings.suppressEveryone,
+    suppressRoles: settings.suppressRoles,
+    mobilePush: settings.mobilePush,
+    channelOverrides: overrides,
+  );
+}
+
+Future<
+  List<({String id, String name, int type, String? parentId, int position})>
+>
+_getGuildChannels({required FluxerDatabase db, required String guildId}) async {
+  final channels = await db.channelDao.getChannels(guildId);
+  return channels
+      .map(
+        (c) => (
+          id: c.id,
+          name: c.name,
+          type: c.type,
+          parentId: c.parentId,
+          position: c.position,
+        ),
+      )
+      .toList();
+}
+
+Future<void> _updateChannelOverride({
+  required FluxerDatabase db,
+  required FluxerClient client,
+  required String guildId,
+  required String channelId,
+  required int messageNotifications,
+  required bool muted,
+}) async {
+  try {
+    final existing = await db.userGuildSettingsDao.getByGuildId(guildId);
+    final data = existing != null
+        ? jsonDecode(existing.data) as Map<String, dynamic>
+        : <String, dynamic>{};
+
+    final settings = UserGuildSettingsResponse.fromJson(data);
+    final existingOverride = settings.channelOverrides?[channelId];
+
+    final newOverride = ChannelOverrides(
+      collapsed: existingOverride?.collapsed ?? false,
+      messageNotifications: UserNotificationSettings.fromJson(
+        messageNotifications,
+      ),
+      muted: muted,
+      muteConfig: null,
+    );
+
+    final overridesMap =
+        (data['channel_overrides'] as Map<String, dynamic>?) ??
+        <String, dynamic>{};
+    overridesMap[channelId] = newOverride.toJson();
+    data['channel_overrides'] = overridesMap;
+
+    await db.userGuildSettingsDao.upsert(
+      UserGuildSettingsTableCompanion(
+        guildId: Value(guildId),
+        data: Value(jsonEncode(data)),
+      ),
+    );
+
+    unawaited(
+      client.users.updateGuildSettingsForUser(
+        guildId: guildId,
+        body: UserGuildSettingsUpdateRequest(
+          channelOverrides: {channelId: newOverride},
+        ),
+      ),
+    );
+  } on Exception catch (e) {
+    talker.error('[GuildNavbar] Failed to update channel override: $e');
+  }
+}
+
+Future<void> _removeChannelOverride({
+  required FluxerDatabase db,
+  required FluxerClient client,
+  required String guildId,
+  required String channelId,
+}) async {
+  try {
+    final existing = await db.userGuildSettingsDao.getByGuildId(guildId);
+    final data = existing != null
+        ? jsonDecode(existing.data) as Map<String, dynamic>
+        : <String, dynamic>{};
+
+    final overridesRaw =
+        data['channel_overrides'] as Map<String, dynamic>? ??
+              <String, dynamic>{}
+          ..remove(channelId);
+    data['channel_overrides'] = overridesRaw;
+
+    await db.userGuildSettingsDao.upsert(
+      UserGuildSettingsTableCompanion(
+        guildId: Value(guildId),
+        data: Value(jsonEncode(data)),
+      ),
+    );
+
+    final settings = UserGuildSettingsResponse.fromJson(data);
+    unawaited(
+      client.users.updateGuildSettingsForUser(
+        guildId: guildId,
+        body: UserGuildSettingsUpdateRequest(
+          channelOverrides: settings.channelOverrides ?? {},
+        ),
+      ),
+    );
+  } on Exception catch (e) {
+    talker.error('[GuildNavbar] Failed to remove channel override: $e');
+  }
+}
+
+final _notifSettingTimers = <String, Timer>{};
+final _notifSettingPending =
+    <
+      String,
+      ({
+        bool? muted,
+        UserNotificationSettings? messageNotifications,
+        bool? suppressEveryone,
+        bool? suppressRoles,
+        bool? mobilePush,
+      })
+    >{};
+
+Future<void> _updateNotificationSetting({
+  required FluxerDatabase db,
+  required FluxerClient client,
+  required String guildId,
+  bool? muted,
+  UserNotificationSettings? messageNotifications,
+  bool? suppressEveryone,
+  bool? suppressRoles,
+  bool? mobilePush,
+}) async {
+  try {
+    final existing = await db.userGuildSettingsDao.getByGuildId(guildId);
+    final data = existing != null
+        ? jsonDecode(existing.data) as Map<String, dynamic>
+        : <String, dynamic>{};
+
+    if (muted != null) {
+      data['muted'] = muted;
+      if (!muted) {
+        data.remove('mute_config');
+      }
+    }
+    if (messageNotifications != null) {
+      data['message_notifications'] = messageNotifications.json;
+    }
+    if (suppressEveryone != null) {
+      data['suppress_everyone'] = suppressEveryone;
+    }
+    if (suppressRoles != null) {
+      data['suppress_roles'] = suppressRoles;
+    }
+    if (mobilePush != null) {
+      data['mobile_push'] = mobilePush;
+    }
+
+    await db.userGuildSettingsDao.upsert(
+      UserGuildSettingsTableCompanion(
+        guildId: Value(guildId),
+        data: Value(jsonEncode(data)),
+      ),
+    );
+
+    final prev = _notifSettingPending[guildId];
+    _notifSettingPending[guildId] = (
+      muted: muted ?? prev?.muted,
+      messageNotifications: messageNotifications ?? prev?.messageNotifications,
+      suppressEveryone: suppressEveryone ?? prev?.suppressEveryone,
+      suppressRoles: suppressRoles ?? prev?.suppressRoles,
+      mobilePush: mobilePush ?? prev?.mobilePush,
+    );
+
+    _notifSettingTimers[guildId]?.cancel();
+    _notifSettingTimers[guildId] = Timer(const Duration(seconds: 3), () {
+      final pending = _notifSettingPending.remove(guildId);
+      _notifSettingTimers.remove(guildId);
+      if (pending == null) {
+        return;
+      }
+      unawaited(
+        client.users.updateGuildSettingsForUser(
+          guildId: guildId,
+          body: UserGuildSettingsUpdateRequest(
+            muted: pending.muted,
+            messageNotifications: pending.messageNotifications,
+            suppressEveryone: pending.suppressEveryone,
+            suppressRoles: pending.suppressRoles,
+            mobilePush: pending.mobilePush,
+          ),
+        ),
+      );
+    });
+  } on Exception catch (e) {
+    talker.error('[GuildNavbar] Failed to update notification setting: $e');
+  }
+}
+
 Future<Map<String, Object?>> _buildGuildDebugJson({
   required FluxerClient client,
   required FluxerDatabase db,
@@ -1342,13 +1712,9 @@ Future<Map<String, Object?>> _buildGuildDebugJson({
   required String guildId,
 }) async {
   final response = await client.guilds.getGuild(guildId: guildId);
-  final json = response.toJson()
-    ..remove('permissions');
+  final json = response.toJson()..remove('permissions');
 
-  final member = await db.memberDao.getMemberByUserId(
-    userId,
-    guildId,
-  );
+  final member = await db.memberDao.getMemberByUserId(userId, guildId);
   if (member?.joinedAt != null) {
     json['joined_at'] = member!.joinedAt!.toUtc().toIso8601String();
   }
@@ -1408,9 +1774,7 @@ Future<void> updateGuildUserSettings(
     case GuildAction.unmute:
       currentData['muted'] = false;
       currentData.remove('mute_config');
-      request = const UserGuildSettingsUpdateRequest(
-        muted: false,
-      );
+      request = const UserGuildSettingsUpdateRequest(muted: false);
 
     case GuildAction.muteForever:
       currentData['muted'] = true;
@@ -1426,9 +1790,7 @@ Future<void> updateGuildUserSettings(
     case GuildAction.mute24Hours:
     case GuildAction.mute3Days:
       final durationMs = _muteDurations[action]!;
-      final endTime = DateTime.now().add(
-        Duration(milliseconds: durationMs),
-      );
+      final endTime = DateTime.now().add(Duration(milliseconds: durationMs));
       final endTimeIso = endTime.toUtc().toIso8601String();
       currentData['muted'] = true;
       currentData['mute_config'] = {
@@ -1478,10 +1840,7 @@ Future<void> updateGuildUserSettings(
   );
 
   unawaited(
-    client.users.updateGuildSettingsForUser(
-      guildId: guildId,
-      body: request,
-    ),
+    client.users.updateGuildSettingsForUser(guildId: guildId, body: request),
   );
 }
 
@@ -1534,19 +1893,53 @@ class _GuildListItem extends StatefulWidget {
     int maxAge,
     int maxUses,
     bool temporary,
-  })? onCreateInvite;
+  })?
+  onCreateInvite;
   final Future<List<_InviteRecipient>> Function()? onGetRecipients;
   final Future<void> Function(
     String? channelId,
     String? recipientId,
     String inviteUrl,
-  )? onSendInviteTo;
+  )?
+  onSendInviteTo;
   final Future<({bool isDmsAllowed, bool isBotDmsAllowed})> Function()?
-      onGetPrivacyState;
-  final void Function(bool allowed)? onToggleDms;
-  final void Function(bool allowed)? onToggleBotDms;
+  onGetPrivacyState;
+  final void Function({required bool allowed})? onToggleDms;
+  final void Function({required bool allowed})? onToggleBotDms;
   final Future<Map<String, Object?>> Function()? onGetGuildDebugJson;
   final void Function(FluxerToast toast)? onShowToast;
+  final Future<
+    ({
+      bool muted,
+      int messageNotifications,
+      bool suppressEveryone,
+      bool suppressRoles,
+      bool mobilePush,
+      Map<String, ({int messageNotifications, bool muted})> channelOverrides,
+    })
+  >
+  Function()?
+  onGetNotificationSettings;
+  final void Function({
+    bool? muted,
+    UserNotificationSettings? messageNotifications,
+    bool? suppressEveryone,
+    bool? suppressRoles,
+    bool? mobilePush,
+  })?
+  onUpdateNotificationSetting;
+  final Future<
+    List<({String id, String name, int type, String? parentId, int position})>
+  >
+  Function()?
+  onGetGuildChannels;
+  final void Function(
+    String channelId,
+    int messageNotifications, {
+    required bool muted,
+  })?
+  onUpdateChannelOverride;
+  final void Function(String channelId)? onRemoveChannelOverride;
 
   const _GuildListItem({
     required this.label,
@@ -1584,6 +1977,11 @@ class _GuildListItem extends StatefulWidget {
     this.onToggleBotDms,
     this.onGetGuildDebugJson,
     this.onShowToast,
+    this.onGetNotificationSettings,
+    this.onUpdateNotificationSetting,
+    this.onGetGuildChannels,
+    this.onUpdateChannelOverride,
+    this.onRemoveChannelOverride,
   });
 
   @override
@@ -1721,7 +2119,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                                                 null
                                         ? widget.guild!.animatedIconUrl!
                                         : widget.iconUrl!,
-                                    errorWidget: (context, url, error) =>
+                                    errorBuilder: (context, url, error) =>
                                         _buildBackupIcon(
                                           context,
                                           isActive: isActive,
@@ -1826,7 +2224,9 @@ class _GuildListItemState extends State<_GuildListItem> {
 
   static bool _isValidUrl(String value) {
     final url = value.trim();
-    if (url.isEmpty) return false;
+    if (url.isEmpty) {
+      return false;
+    }
     final uri = Uri.tryParse(url);
     return uri != null && uri.hasScheme && uri.hasAuthority;
   }
@@ -1876,8 +2276,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                     FluxerRadioItem(
                       value: 0,
                       label: 'Text Channel',
-                      description:
-                          'Send messages, images, GIFs, and emoji',
+                      description: 'Send messages, images, GIFs, and emoji',
                     ),
                     FluxerRadioItem(
                       value: 2,
@@ -1927,16 +2326,14 @@ class _GuildListItemState extends State<_GuildListItem> {
       actions: [
         ValueListenableBuilder<bool>(
           valueListenable: formValid,
-          builder: (_, isValid, __) => FluxerButton.primary(
+          builder: (_, isValid, _) => FluxerButton.primary(
             onPressed: isValid
                 ? () {
                     final name = currentName.trim();
-                    final ChannelCreateRequest body =
-                        switch (selectedType) {
+                    final ChannelCreateRequest body = switch (selectedType) {
                       2 => ChannelCreateRequest2(
                         name: name,
-                        type: ChannelCreateVoiceRequestTypeType
-                            .guildVoice,
+                        type: ChannelCreateVoiceRequestTypeType.guildVoice,
                         topic: null,
                         url: null,
                         parentId: null,
@@ -1947,8 +2344,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                       ),
                       998 => ChannelCreateRequest998(
                         name: name,
-                        type: ChannelCreateLinkRequestTypeType
-                            .guildLink,
+                        type: ChannelCreateLinkRequestTypeType.guildLink,
                         topic: null,
                         url: currentUrl.trim(),
                         parentId: null,
@@ -1959,8 +2355,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                       ),
                       _ => ChannelCreateRequest0(
                         name: name,
-                        type: ChannelCreateTextRequestTypeType
-                            .guildText,
+                        type: ChannelCreateTextRequestTypeType.guildText,
                         topic: null,
                         url: null,
                         parentId: null,
@@ -2016,7 +2411,7 @@ class _GuildListItemState extends State<_GuildListItem> {
       actions: [
         ValueListenableBuilder<bool>(
           valueListenable: nameValid,
-          builder: (_, isValid, __) => FluxerButton.primary(
+          builder: (_, isValid, _) => FluxerButton.primary(
             onPressed: isValid
                 ? () => Navigator.of(context).pop(currentName.trim())
                 : null,
@@ -2054,23 +2449,23 @@ class _GuildListItemState extends State<_GuildListItem> {
 
     final recipientsFuture = widget.onGetRecipients?.call();
     final inviteState =
-        ValueNotifier<({String url, String channelName, int maxAge})?>(
-      null,
-    );
+        ValueNotifier<({String url, String channelName, int maxAge})?>(null);
     final copied = ValueNotifier(false);
     final sentTo = ValueNotifier<Set<String>>({});
     final sendingTo = ValueNotifier<Set<String>>({});
 
     unawaited(
-      inviteFuture.then((r) {
-        if (r != null) {
-          inviteState.value = (
-            url: r.url,
-            channelName: r.channelName,
-            maxAge: 604800,
-          );
-        }
-      }).catchError((_) {}),
+      inviteFuture
+          .then((r) {
+            if (r != null) {
+              inviteState.value = (
+                url: r.url,
+                channelName: r.channelName,
+                maxAge: 604800,
+              );
+            }
+          })
+          .catchError((_) {}),
     );
 
     await FluxerModal.show<void>(
@@ -2086,9 +2481,10 @@ class _GuildListItemState extends State<_GuildListItem> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ValueListenableBuilder<
-                ({String url, String channelName, int maxAge})?>(
+              ({String url, String channelName, int maxAge})?
+            >(
               valueListenable: inviteState,
-              builder: (_, result, __) {
+              builder: (_, result, _) {
                 if (result == null) {
                   return const SizedBox.shrink();
                 }
@@ -2109,12 +2505,9 @@ class _GuildListItemState extends State<_GuildListItem> {
             FutureBuilder<List<_InviteRecipient>?>(
               future: recipientsFuture,
               builder: (context, snapshot) {
-                if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: layout.s8,
-                    ),
+                    padding: EdgeInsets.symmetric(vertical: layout.s8),
                     child: Center(
                       child: SizedBox(
                         width: 24,
@@ -2138,13 +2531,8 @@ class _GuildListItemState extends State<_GuildListItem> {
                         return true;
                       }
                       final q = searchQuery.toLowerCase();
-                      return r.displayName
-                              .toLowerCase()
-                              .contains(q) ||
-                          (r.secondaryText
-                                  ?.toLowerCase()
-                                  .contains(q) ??
-                              false);
+                      return r.displayName.toLowerCase().contains(q) ||
+                          (r.secondaryText?.toLowerCase().contains(q) ?? false);
                     }).toList();
 
                     return Column(
@@ -2153,17 +2541,15 @@ class _GuildListItemState extends State<_GuildListItem> {
                         FluxerInput(
                           hint: 'Search friends',
                           prefixIcon: Padding(
-                            padding:
-                                EdgeInsets.only(left: layout.s3),
+                            padding: EdgeInsets.only(left: layout.s3),
                             child: PhosphorIcon(
                               PhosphorIconsBold.magnifyingGlass,
                               size: 20,
                               color: colors.textSecondary,
                             ),
                           ),
-                          onChanged: (v) => setLocalState(
-                            () => searchQuery = v,
-                          ),
+                          onChanged: (v) =>
+                              setLocalState(() => searchQuery = v),
                         ),
                         SizedBox(height: layout.s2),
                         SizedBox(
@@ -2174,8 +2560,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                                     recipients.isEmpty
                                         ? 'No friends yet'
                                         : 'No results',
-                                    style:
-                                        textStyles.bodySmall.copyWith(
+                                    style: textStyles.bodySmall.copyWith(
                                       color: colors.textSecondary,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -2188,12 +2573,12 @@ class _GuildListItemState extends State<_GuildListItem> {
                                   itemCount: filtered.length,
                                   itemBuilder: (context, index) =>
                                       _buildRecipientItem(
-                                    context,
-                                    recipient: filtered[index],
-                                    inviteState: inviteState,
-                                    sentTo: sentTo,
-                                    sendingTo: sendingTo,
-                                  ),
+                                        context,
+                                        recipient: filtered[index],
+                                        inviteState: inviteState,
+                                        sentTo: sentTo,
+                                        sendingTo: sendingTo,
+                                      ),
                                 ),
                         ),
                       ],
@@ -2225,9 +2610,10 @@ class _GuildListItemState extends State<_GuildListItem> {
                   ),
                 ),
                 ValueListenableBuilder<
-                    ({String url, String channelName, int maxAge})?>(
+                  ({String url, String channelName, int maxAge})?
+                >(
                   valueListenable: inviteState,
-                  builder: (_, state, __) => TextFormField(
+                  builder: (_, state, _) => TextFormField(
                     key: ValueKey(state?.url),
                     initialValue: state?.url ?? '',
                     readOnly: true,
@@ -2237,20 +2623,16 @@ class _GuildListItemState extends State<_GuildListItem> {
                     decoration: InputDecoration(
                       hintText: 'Invite link',
                       suffixIcon: Padding(
-                        padding:
-                            EdgeInsets.only(right: layout.s1),
+                        padding: EdgeInsets.only(right: layout.s1),
                         child: ValueListenableBuilder<bool>(
                           valueListenable: copied,
-                          builder: (_, isCopied, __) =>
-                              FluxerButton.primary(
+                          builder: (_, isCopied, _) => FluxerButton.primary(
                             fitContent: true,
                             size: FluxerButtonSize.compact,
                             onPressed: state != null
                                 ? () async {
                                     await Clipboard.setData(
-                                      ClipboardData(
-                                        text: state.url,
-                                      ),
+                                      ClipboardData(text: state.url),
                                     );
                                     copied.value = true;
                                     unawaited(
@@ -2269,29 +2651,24 @@ class _GuildListItemState extends State<_GuildListItem> {
                           ),
                         ),
                       ),
-                      suffixIconConstraints:
-                          const BoxConstraints(),
+                      suffixIconConstraints: const BoxConstraints(),
                     ),
                   ),
                 ),
                 ValueListenableBuilder<
-                    ({String url, String channelName, int maxAge})?>(
+                  ({String url, String channelName, int maxAge})?
+                >(
                   valueListenable: inviteState,
-                  builder: (_, state, __) {
-                    final expiryText = state == null ||
-                            state.maxAge == 604800
+                  builder: (_, state, _) {
+                    final expiryText = state == null || state.maxAge == 604800
                         ? 'Your invite link expires in 7 days.'
                         : state.maxAge == 0
-                            ? 'This invite link never expires.'
-                            : 'Your invite link expires in '
-                                '${_expirationLabel(state.maxAge)}.';
+                        ? 'This invite link never expires.'
+                        : 'Your invite link expires in '
+                              '${_expirationLabel(state.maxAge)}.';
                     return GestureDetector(
                       onTap: () => unawaited(
-                        _editInviteLink(
-                          actionContext,
-                          inviteState,
-                          copied,
-                        ),
+                        _editInviteLink(actionContext, inviteState, copied),
                       ),
                       child: Text.rich(
                         TextSpan(
@@ -2429,9 +2806,9 @@ class _GuildListItemState extends State<_GuildListItem> {
       },
       actions: [
         FluxerButton.primary(
-          onPressed: () => Navigator.of(context).pop(
-            (maxAge: maxAge, maxUses: maxUses, temporary: temporary),
-          ),
+          onPressed: () => Navigator.of(
+            context,
+          ).pop((maxAge: maxAge, maxUses: maxUses, temporary: temporary)),
           label: 'Create New Link',
         ),
         const SizedBox(height: 8),
@@ -2447,7 +2824,7 @@ class _GuildListItemState extends State<_GuildListItem> {
     BuildContext context, {
     required _InviteRecipient recipient,
     required ValueNotifier<({String url, String channelName, int maxAge})?>
-        inviteState,
+    inviteState,
     required ValueNotifier<Set<String>> sentTo,
     required ValueNotifier<Set<String>> sendingTo,
   }) {
@@ -2456,10 +2833,7 @@ class _GuildListItemState extends State<_GuildListItem> {
     final layout = context.layout;
 
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: layout.s4,
-        vertical: layout.s2,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: layout.s4, vertical: layout.s2),
       child: Row(
         children: [
           FluxerAvatar.user(
@@ -2498,9 +2872,9 @@ class _GuildListItemState extends State<_GuildListItem> {
           SizedBox(width: layout.s3),
           ValueListenableBuilder<Set<String>>(
             valueListenable: sentTo,
-            builder: (_, sent, __) {
+            builder: (_, sent, _) {
               if (sent.contains(recipient.id)) {
-                return FluxerButton.secondary(
+                return const FluxerButton.secondary(
                   fitContent: true,
                   size: FluxerButtonSize.compact,
                   onPressed: null,
@@ -2509,26 +2883,24 @@ class _GuildListItemState extends State<_GuildListItem> {
               }
               return ValueListenableBuilder<Set<String>>(
                 valueListenable: sendingTo,
-                builder: (_, sending, __) {
-                  final isSending =
-                      sending.contains(recipient.id);
+                builder: (_, sending, _) {
+                  final isSending = sending.contains(recipient.id);
                   return ValueListenableBuilder<
-                      ({String url, String channelName, int maxAge})?>(
+                    ({String url, String channelName, int maxAge})?
+                  >(
                     valueListenable: inviteState,
-                    builder: (_, result, __) =>
-                        FluxerButton.secondary(
+                    builder: (_, result, _) => FluxerButton.secondary(
                       fitContent: true,
                       size: FluxerButtonSize.compact,
                       isLoading: isSending,
-                      onPressed:
-                          result != null && !isSending
-                              ? () => _sendInviteTo(
-                                    recipient,
-                                    result.url,
-                                    sentTo,
-                                    sendingTo,
-                                  )
-                              : null,
+                      onPressed: result != null && !isSending
+                          ? () => _sendInviteTo(
+                              recipient,
+                              result.url,
+                              sentTo,
+                              sendingTo,
+                            )
+                          : null,
                       label: 'Invite',
                     ),
                   );
@@ -2564,7 +2936,8 @@ class _GuildListItemState extends State<_GuildListItem> {
     final confirmed = await FluxerConfirmModal.show(
       context,
       title: 'Leave Community',
-      description: 'Are you sure you want to leave this community? '
+      description:
+          'Are you sure you want to leave this community? '
           'You will no longer be able to see any messages.',
       confirmLabel: 'Leave Community',
       isDanger: true,
@@ -2577,6 +2950,439 @@ class _GuildListItemState extends State<_GuildListItem> {
     if (context.mounted) {
       context.go(RoutePaths.me);
     }
+  }
+
+  Future<void> _showNotificationSettingsSheet(BuildContext context) async {
+    if (widget.onGetNotificationSettings == null) {
+      return;
+    }
+
+    final settings = await widget.onGetNotificationSettings!();
+    if (!context.mounted) {
+      return;
+    }
+
+    final channels = await widget.onGetGuildChannels?.call() ?? [];
+    if (!context.mounted) {
+      return;
+    }
+
+    final channelMap = {for (final c in channels) c.id: c};
+
+    final l10n = FluxerLocalizations.of(context);
+    final muted = ValueNotifier<bool>(settings.muted);
+    final notifLevel = ValueNotifier<int>(settings.messageNotifications);
+    final suppressEveryone = ValueNotifier<bool>(settings.suppressEveryone);
+    final suppressRoles = ValueNotifier<bool>(settings.suppressRoles);
+    final mobilePush = ValueNotifier<bool>(settings.mobilePush);
+    final overrides =
+        ValueNotifier<Map<String, ({int messageNotifications, bool muted})>>(
+          Map.of(settings.channelOverrides),
+        );
+
+    await FluxerBottomSheet.show<void>(
+      context,
+      title: l10n.notificationSettings,
+      builder: (sheetContext, close) {
+        final layout = sheetContext.layout;
+        final colors = sheetContext.colors;
+        final textStyles = sheetContext.textStyles;
+
+        return SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: layout.s4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ValueListenableBuilder<bool>(
+                  valueListenable: muted,
+                  builder: (_, isMuted, _) => _PrivacySwitchRow(
+                    label: l10n.notificationMuteGuild(widget.guild!.name),
+                    description: l10n.notificationMuteDescription,
+                    value: isMuted,
+                    onChanged: (value) {
+                      muted.value = value;
+                      widget.onUpdateNotificationSetting?.call(muted: value);
+                    },
+                  ),
+                ),
+
+                SizedBox(height: layout.s6),
+                Text(
+                  l10n.notificationCommunitySettings,
+                  style: textStyles.bodySmall.copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: layout.s3),
+                ValueListenableBuilder<int>(
+                  valueListenable: notifLevel,
+                  builder: (_, level, _) => FluxerRadioGroup<int>(
+                    value: level,
+                    items: [
+                      FluxerRadioItem(
+                        value: 0,
+                        label: l10n.notificationAllMessages,
+                      ),
+                      FluxerRadioItem(
+                        value: 1,
+                        label: l10n.notificationOnlyMentions,
+                      ),
+                      FluxerRadioItem(
+                        value: 2,
+                        label: l10n.notificationNothing,
+                      ),
+                    ],
+                    onChanged: (value) {
+                      notifLevel.value = value;
+                      widget.onUpdateNotificationSetting?.call(
+                        messageNotifications: UserNotificationSettings.fromJson(
+                          value,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                SizedBox(height: layout.s6),
+                ValueListenableBuilder<bool>(
+                  valueListenable: suppressEveryone,
+                  builder: (_, suppress, _) => FluxerToggleSwitch(
+                    label: l10n.notificationSuppressEveryone,
+                    value: suppress,
+                    onChanged: (value) {
+                      suppressEveryone.value = value;
+                      widget.onUpdateNotificationSetting?.call(
+                        suppressEveryone: value,
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: layout.s4),
+                ValueListenableBuilder<bool>(
+                  valueListenable: suppressRoles,
+                  builder: (_, suppress, _) => FluxerToggleSwitch(
+                    label: l10n.notificationSuppressRoles,
+                    value: suppress,
+                    onChanged: (value) {
+                      suppressRoles.value = value;
+                      widget.onUpdateNotificationSetting?.call(
+                        suppressRoles: value,
+                      );
+                    },
+                  ),
+                ),
+
+                SizedBox(height: layout.s6),
+                ValueListenableBuilder<bool>(
+                  valueListenable: mobilePush,
+                  builder: (_, push, _) => FluxerToggleSwitch(
+                    label: l10n.notificationMobilePush,
+                    value: push,
+                    onChanged: (value) {
+                      mobilePush.value = value;
+                      widget.onUpdateNotificationSetting?.call(
+                        mobilePush: value,
+                      );
+                    },
+                  ),
+                ),
+
+                SizedBox(height: layout.s6),
+                Text(
+                  l10n.notificationOverrides,
+                  style: textStyles.bodySmall.copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: layout.s3),
+                ValueListenableBuilder<
+                  Map<String, ({int messageNotifications, bool muted})>
+                >(
+                  valueListenable: overrides,
+                  builder: (_, currentOverrides, _) {
+                    final available = channels
+                        .where((c) => !currentOverrides.containsKey(c.id))
+                        .toList();
+                    return FluxerSelect<String>(
+                      hint: l10n.notificationSelectChannel,
+                      items: [
+                        for (final ch in available)
+                          FluxerSelectItem(
+                            value: ch.id,
+                            label: ch.name,
+                            icon: ChannelIcon.iconDataFor(
+                              channelTypeFromInt(ch.type),
+                            ),
+                          ),
+                      ],
+                      onChanged: (channelId) {
+                        overrides.value = {
+                          ...overrides.value,
+                          channelId: (messageNotifications: 3, muted: false),
+                        };
+                        widget.onUpdateChannelOverride?.call(
+                          channelId,
+                          3,
+                          muted: false,
+                        );
+                      },
+                    );
+                  },
+                ),
+                ValueListenableBuilder<
+                  Map<String, ({int messageNotifications, bool muted})>
+                >(
+                  valueListenable: overrides,
+                  builder: (_, currentOverrides, _) {
+                    if (currentOverrides.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final sorted = currentOverrides.entries.toList()
+                      ..sort((a, b) {
+                        final ca = channelMap[a.key];
+                        final cb = channelMap[b.key];
+                        if (ca == null && cb == null) {
+                          return 0;
+                        }
+                        if (ca == null) {
+                          return 1;
+                        }
+                        if (cb == null) {
+                          return -1;
+                        }
+                        final cmp = ca.position.compareTo(cb.position);
+                        return cmp != 0 ? cmp : a.key.compareTo(b.key);
+                      });
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(height: layout.s3),
+                        for (final entry in sorted)
+                          _buildOverrideCard(
+                            sheetContext,
+                            channelId: entry.key,
+                            channelOverride: entry.value,
+                            channel: channelMap[entry.key],
+                            channelMap: channelMap,
+                            overrides: overrides,
+                            guildNotifLevel: notifLevel.value,
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOverrideCard(
+    BuildContext context, {
+    required String channelId,
+    required ({int messageNotifications, bool muted}) channelOverride,
+    required ({
+      String id,
+      String name,
+      int type,
+      String? parentId,
+      int position,
+    })?
+    channel,
+    required Map<
+      String,
+      ({String id, String name, int type, String? parentId, int position})
+    >
+    channelMap,
+    required ValueNotifier<
+      Map<String, ({int messageNotifications, bool muted})>
+    >
+    overrides,
+    required int guildNotifLevel,
+  }) {
+    if (channel == null) {
+      return const SizedBox.shrink();
+    }
+
+    final l10n = FluxerLocalizations.of(context);
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+    final layout = context.layout;
+
+    final isCategory = channel.type == 4;
+    final category = channel.parentId != null
+        ? channelMap[channel.parentId]
+        : null;
+
+    final notifLevel = channelOverride.messageNotifications;
+    final isInherit = notifLevel == 3;
+    final resolved = isInherit ? guildNotifLevel : notifLevel;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: layout.s3),
+      child: Material(
+        color: colors.backgroundSecondaryAlt,
+        borderRadius: layout.radiusLg,
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: EdgeInsets.all(layout.s3),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  ChannelIcon(
+                    type: channelTypeFromInt(channel.type),
+                    color: colors.textTertiary,
+                  ),
+                  SizedBox(width: layout.s2),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          channel.name,
+                          style: textStyles.bodySmall.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: colors.textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (!isCategory)
+                          Text(
+                            category?.name ?? l10n.notificationNoCategory,
+                            style: textStyles.smallText.copyWith(
+                              color: colors.textTertiary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: layout.s2),
+                  FluxerTappable(
+                    onTap: () {
+                      final updated = Map.of(overrides.value)
+                        ..remove(channelId);
+                      overrides.value = updated;
+                      widget.onRemoveChannelOverride?.call(channelId);
+                    },
+                    semanticLabel: 'Remove override',
+                    builder: (_, _) => Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: colors.backgroundTertiary,
+                      ),
+                      child: Center(
+                        child: PhosphorIcon(
+                          PhosphorIconsBold.x,
+                          size: 14,
+                          color: colors.textTertiary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: layout.s3),
+                child: Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: colors.backgroundHeaderSecondary.withValues(
+                    alpha: 0.3,
+                  ),
+                ),
+              ),
+
+              FluxerToggleSwitch(
+                label: l10n.notificationAllMessages,
+                value: resolved == 0,
+                onChanged: (_) {
+                  final updated = Map.of(overrides.value);
+                  updated[channelId] = (
+                    messageNotifications: 0,
+                    muted: channelOverride.muted,
+                  );
+                  overrides.value = updated;
+                  widget.onUpdateChannelOverride?.call(
+                    channelId,
+                    0,
+                    muted: channelOverride.muted,
+                  );
+                },
+              ),
+              SizedBox(height: layout.s3),
+              FluxerToggleSwitch(
+                label: l10n.notificationOnlyAtMentions,
+                value: resolved == 1,
+                onChanged: (_) {
+                  final updated = Map.of(overrides.value);
+                  updated[channelId] = (
+                    messageNotifications: 1,
+                    muted: channelOverride.muted,
+                  );
+                  overrides.value = updated;
+                  widget.onUpdateChannelOverride?.call(
+                    channelId,
+                    1,
+                    muted: channelOverride.muted,
+                  );
+                },
+              ),
+              SizedBox(height: layout.s3),
+              FluxerToggleSwitch(
+                label: l10n.notificationNothing,
+                value: resolved == 2,
+                onChanged: (_) {
+                  final updated = Map.of(overrides.value);
+                  updated[channelId] = (
+                    messageNotifications: 2,
+                    muted: channelOverride.muted,
+                  );
+                  overrides.value = updated;
+                  widget.onUpdateChannelOverride?.call(
+                    channelId,
+                    2,
+                    muted: channelOverride.muted,
+                  );
+                },
+              ),
+              SizedBox(height: layout.s3),
+              FluxerToggleSwitch(
+                label: l10n.notificationMuteChannel,
+                value: channelOverride.muted,
+                onChanged: (value) {
+                  final updated = Map.of(overrides.value);
+                  updated[channelId] = (
+                    messageNotifications: channelOverride.messageNotifications,
+                    muted: value,
+                  );
+                  overrides.value = updated;
+                  widget.onUpdateChannelOverride?.call(
+                    channelId,
+                    channelOverride.messageNotifications,
+                    muted: value,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _showPrivacySettingsSheet(BuildContext context) async {
@@ -2592,9 +3398,7 @@ class _GuildListItemState extends State<_GuildListItem> {
 
     final l10n = FluxerLocalizations.of(context);
     final isDmsAllowed = ValueNotifier<bool>(privacyState.isDmsAllowed);
-    final isBotDmsAllowed = ValueNotifier<bool>(
-      privacyState.isBotDmsAllowed,
-    );
+    final isBotDmsAllowed = ValueNotifier<bool>(privacyState.isBotDmsAllowed);
 
     await FluxerBottomSheet.show<void>(
       context,
@@ -2602,8 +3406,9 @@ class _GuildListItemState extends State<_GuildListItem> {
       builder: (sheetContext, close) {
         final layout = sheetContext.layout;
 
-        final isMutualDmsDisabled =
-            guild.features.contains('DISABLE_MUTUAL_DMS');
+        final isMutualDmsDisabled = guild.features.contains(
+          'DISABLE_MUTUAL_DMS',
+        );
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: layout.s4),
@@ -2611,34 +3416,31 @@ class _GuildListItemState extends State<_GuildListItem> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (isMutualDmsDisabled) ...[
-                FluxerWarningAlert(
-                  message: l10n.privacyMutualDmsDisabled,
-                ),
+                FluxerWarningAlert(message: l10n.privacyMutualDmsDisabled),
                 SizedBox(height: layout.s4),
               ],
               ValueListenableBuilder<bool>(
                 valueListenable: isDmsAllowed,
-                builder: (_, allowed, __) => _PrivacySwitchRow(
+                builder: (_, allowed, _) => _PrivacySwitchRow(
                   label: l10n.privacyDirectMessages,
                   description: l10n.privacyDirectMessagesDescription,
                   value: allowed,
                   onChanged: (allowed) {
                     isDmsAllowed.value = allowed;
-                    widget.onToggleDms?.call(allowed);
+                    widget.onToggleDms?.call(allowed: allowed);
                   },
                 ),
               ),
               SizedBox(height: layout.s4),
               ValueListenableBuilder<bool>(
                 valueListenable: isBotDmsAllowed,
-                builder: (_, allowed, __) => _PrivacySwitchRow(
+                builder: (_, allowed, _) => _PrivacySwitchRow(
                   label: l10n.privacyBotDirectMessages,
-                  description:
-                      l10n.privacyBotDirectMessagesDescription,
+                  description: l10n.privacyBotDirectMessagesDescription,
                   value: allowed,
                   onChanged: (allowed) {
                     isBotDmsAllowed.value = allowed;
-                    widget.onToggleBotDms?.call(allowed);
+                    widget.onToggleBotDms?.call(allowed: allowed);
                   },
                 ),
               ),
@@ -2682,8 +3484,7 @@ class _GuildListItemState extends State<_GuildListItem> {
             child: Stack(
               children: [
                 ClipRRect(
-                  borderRadius:
-                      const BorderRadius.all(Radius.circular(4)),
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
                   child: HighlightView(
                     json,
                     language: 'json',
@@ -2700,7 +3501,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                   right: 4,
                   child: ValueListenableBuilder<bool>(
                     valueListenable: copied,
-                    builder: (_, isCopied, __) => IconButton(
+                    builder: (_, isCopied, _) => IconButton(
                       icon: PhosphorIcon(
                         isCopied
                             ? PhosphorIconsBold.check
@@ -2708,16 +3509,16 @@ class _GuildListItemState extends State<_GuildListItem> {
                         color: isCopied
                             ? Colors.green
                             : isDark
-                                ? Colors.white70
-                                : Colors.black54,
+                            ? Colors.white70
+                            : Colors.black54,
                         size: 18,
                       ),
                       onPressed: isCopied
                           ? null
                           : () {
-                              unawaited(Clipboard.setData(
-                                ClipboardData(text: json),
-                              ));
+                              unawaited(
+                                Clipboard.setData(ClipboardData(text: json)),
+                              );
                               copied.value = true;
                               Future<void>.delayed(
                                 const Duration(seconds: 2),
@@ -2778,7 +3579,13 @@ class _GuildListItemState extends State<_GuildListItem> {
           context.push(RoutePaths.guildSettingsPath(guildId, tab: 'bans')),
         );
       case GuildAction.copyGuildId:
-        break;
+        unawaited(Clipboard.setData(ClipboardData(text: guildId)));
+        widget.onShowToast?.call(
+          FluxerToast(
+            message: FluxerLocalizations.of(context).copiedToClipboard,
+            variant: FluxerToastVariant.success,
+          ),
+        );
       case GuildAction.markAsRead:
         widget.onMarkAsRead?.call();
       case GuildAction.hideMutedChannels:
@@ -2802,6 +3609,7 @@ class _GuildListItemState extends State<_GuildListItem> {
       case GuildAction.inviteMembers:
         unawaited(_showInviteMembersModal(context));
       case GuildAction.notificationSettings:
+        unawaited(_showNotificationSettingsSheet(context));
       case GuildAction.editCommunityProfile:
       case GuildAction.reportCommunity:
       case GuildAction.reportRaid:

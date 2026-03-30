@@ -579,5 +579,68 @@
   "copiedToClipboard": "Copied to clipboard",
   "@copiedToClipboard": {
     "description": "Toast message after copying text to clipboard."
+  },
+  "notificationSettings": "Notification Settings",
+  "@notificationSettings": {
+    "description": "Title for guild notification settings bottom sheet."
+  },
+  "notificationMuteGuild": "Mute {guildName}",
+  "@notificationMuteGuild": {
+    "description": "Label for the mute toggle in guild notification settings.",
+    "placeholders": {
+      "guildName": { "type": "String" }
+    }
+  },
+  "notificationMuteDescription": "Muting a community prevents unread indicators and notifications from appearing unless you are mentioned",
+  "@notificationMuteDescription": {
+    "description": "Description for the mute toggle in guild notification settings."
+  },
+  "notificationCommunitySettings": "Community Notification Settings",
+  "@notificationCommunitySettings": {
+    "description": "Section title for notification frequency options."
+  },
+  "notificationAllMessages": "All Messages",
+  "@notificationAllMessages": {
+    "description": "Radio option for receiving all message notifications."
+  },
+  "notificationOnlyMentions": "Only Mentions",
+  "@notificationOnlyMentions": {
+    "description": "Radio option for receiving only mention notifications."
+  },
+  "notificationNothing": "Nothing",
+  "@notificationNothing": {
+    "description": "Radio option for receiving no notifications."
+  },
+  "notificationSuppressEveryone": "Suppress @everyone and @here",
+  "@notificationSuppressEveryone": {
+    "description": "Toggle label to suppress everyone and here mentions."
+  },
+  "notificationSuppressRoles": "Suppress All Role @mentions",
+  "@notificationSuppressRoles": {
+    "description": "Toggle label to suppress all role mentions."
+  },
+  "notificationMobilePush": "Mobile Push Notifications",
+  "@notificationMobilePush": {
+    "description": "Toggle label for mobile push notifications."
+  },
+  "notificationOverrides": "Notification Overrides",
+  "@notificationOverrides": {
+    "description": "Section title for per-channel notification overrides."
+  },
+  "notificationSelectChannel": "Select a channel or category",
+  "@notificationSelectChannel": {
+    "description": "Placeholder for the channel/category override selector."
+  },
+  "notificationOnlyAtMentions": "Only @mentions",
+  "@notificationOnlyAtMentions": {
+    "description": "Switch label for only mentions override option."
+  },
+  "notificationMuteChannel": "Mute Channel",
+  "@notificationMuteChannel": {
+    "description": "Switch label for muting a channel override."
+  },
+  "notificationNoCategory": "No Category",
+  "@notificationNoCategory": {
+    "description": "Fallback category name for channels without a parent category."
   }
 }

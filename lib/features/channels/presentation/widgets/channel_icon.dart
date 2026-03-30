@@ -18,12 +18,12 @@ class ChannelIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => PhosphorIcon(
-    _icon,
+    iconDataFor(type),
     size: size,
     color: color ?? context.colors.textTertiary,
   );
 
-  PhosphorIconData get _icon {
+  static PhosphorIconData iconDataFor(ChannelType type) {
     switch (type) {
       case ChannelType.text:
         return PhosphorIconsRegular.hash;

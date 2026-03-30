@@ -903,6 +903,96 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Copied to clipboard'**
   String get copiedToClipboard;
+
+  /// Title for guild notification settings bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Settings'**
+  String get notificationSettings;
+
+  /// Label for the mute toggle in guild notification settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute {guildName}'**
+  String notificationMuteGuild(String guildName);
+
+  /// Description for the mute toggle in guild notification settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Muting a community prevents unread indicators and notifications from appearing unless you are mentioned'**
+  String get notificationMuteDescription;
+
+  /// Section title for notification frequency options.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Notification Settings'**
+  String get notificationCommunitySettings;
+
+  /// Radio option for receiving all message notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'All Messages'**
+  String get notificationAllMessages;
+
+  /// Radio option for receiving only mention notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Only Mentions'**
+  String get notificationOnlyMentions;
+
+  /// Radio option for receiving no notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing'**
+  String get notificationNothing;
+
+  /// Toggle label to suppress everyone and here mentions.
+  ///
+  /// In en, this message translates to:
+  /// **'Suppress @everyone and @here'**
+  String get notificationSuppressEveryone;
+
+  /// Toggle label to suppress all role mentions.
+  ///
+  /// In en, this message translates to:
+  /// **'Suppress All Role @mentions'**
+  String get notificationSuppressRoles;
+
+  /// Toggle label for mobile push notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Push Notifications'**
+  String get notificationMobilePush;
+
+  /// Section title for per-channel notification overrides.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Overrides'**
+  String get notificationOverrides;
+
+  /// Placeholder for the channel/category override selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a channel or category'**
+  String get notificationSelectChannel;
+
+  /// Switch label for only mentions override option.
+  ///
+  /// In en, this message translates to:
+  /// **'Only @mentions'**
+  String get notificationOnlyAtMentions;
+
+  /// Switch label for muting a channel override.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute Channel'**
+  String get notificationMuteChannel;
+
+  /// Fallback category name for channels without a parent category.
+  ///
+  /// In en, this message translates to:
+  /// **'No Category'**
+  String get notificationNoCategory;
 }
 
 class _FluxerLocalizationsDelegate
