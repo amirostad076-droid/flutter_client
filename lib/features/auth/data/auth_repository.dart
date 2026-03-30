@@ -1,7 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
-import 'package:fluxer_dart/export.dart';
-
 import 'package:fluxer_app/core/database/fluxer_database.dart' hide AuthSession;
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
 import 'package:fluxer_app/features/auth/domain/auth_session.dart';
@@ -10,6 +8,7 @@ import 'package:fluxer_app/features/auth/domain/ip_authorization_challenge.dart'
 import 'package:fluxer_app/features/auth/domain/login_result.dart';
 import 'package:fluxer_app/features/auth/domain/mfa_challenge.dart';
 import 'package:fluxer_app/features/auth/domain/stored_account.dart';
+import 'package:fluxer_dart/export.dart';
 
 class AuthRepository {
   final FluxerClient _client;

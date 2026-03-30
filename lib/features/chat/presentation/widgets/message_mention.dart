@@ -18,6 +18,7 @@ import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:riverpod/src/providers/future_provider.dart';
 
 class ChannelMention extends ConsumerWidget {
   const ChannelMention({required this.channelId, this.baseStyle, super.key});
@@ -93,7 +94,7 @@ class _MentionPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: fillColor ?? colors.markupMentionFill,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: colors.markupMentionBorder, width: 1),
+        border: Border.all(color: colors.markupMentionBorder),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 3.2),
       child: child,
@@ -143,7 +144,7 @@ class UserMention extends ConsumerWidget {
   }
 }
 
-final _userByIdProvider = FutureProvider.autoDispose.family<User?, String>((
+final FutureProviderFamily<User?, String> _userByIdProvider = FutureProvider.autoDispose.family<User?, String>((
   ref,
   id,
 ) {
@@ -151,7 +152,7 @@ final _userByIdProvider = FutureProvider.autoDispose.family<User?, String>((
   return db.userDao.getUserById(id);
 });
 
-final _memberByUserIdProvider = FutureProvider.autoDispose
+final FutureProviderFamily<Member?, (String, String)> _memberByUserIdProvider = FutureProvider.autoDispose
     .family<Member?, (String, String)>((ref, args) {
       final (userId, serverId) = args;
       final db = ref.watch(fluxerDatabaseProvider);
@@ -187,7 +188,7 @@ class RoleMention extends ConsumerWidget {
   }
 }
 
-final _guildByIdProvider = FutureProvider.autoDispose.family<Guild?, String>((
+final FutureProviderFamily<Guild?, String> _guildByIdProvider = FutureProvider.autoDispose.family<Guild?, String>((
   ref,
   id,
 ) async {
@@ -197,7 +198,7 @@ final _guildByIdProvider = FutureProvider.autoDispose.family<Guild?, String>((
 });
 
 // temporary solution :)
-final _dmNameByChannelIdProvider = FutureProvider.autoDispose
+final FutureProviderFamily<String?, String> _dmNameByChannelIdProvider = FutureProvider.autoDispose
     .family<String?, String>((ref, channelId) async {
       final db = ref.watch(fluxerDatabaseProvider);
       final row = await db.dmChannelDao.getDmChannelById(channelId);
@@ -387,7 +388,7 @@ class _JumpLinkPillState extends State<_JumpLinkPill> {
                 ? colors.markupJumpLinkHoverFill
                 : colors.markupJumpLinkFill,
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: colors.markupMentionBorder, width: 1),
+            border: Border.all(color: colors.markupMentionBorder),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 3.2),
           child: widget.child,
@@ -413,7 +414,7 @@ class _GuildIcon extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) =>
+          errorBuilder: (_, _, _) =>
               _GuildInitials(guild: guild, size: size),
         ),
       );

@@ -1,11 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // ---------------------------------------------------------------------------
 // FluxerModal
@@ -153,9 +151,8 @@ class FluxerConfirmModal {
     BuildContext context, {
     required String title,
     required String description,
-    String confirmLabel = 'Confirm',
+    required VoidCallback onConfirm, String confirmLabel = 'Confirm',
     bool isDanger = false,
-    required VoidCallback onConfirm,
   }) {
     return FluxerModal.show<bool>(
       context,

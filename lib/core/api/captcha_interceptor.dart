@@ -3,8 +3,8 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:fluxer_captcha/fluxer_captcha.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_captcha/fluxer_captcha.dart';
 
 /// Error codes the Fluxer API returns when captcha verification is needed.
 const _kCaptchaCodes = {'CAPTCHA_REQUIRED', 'INVALID_CAPTCHA'};

@@ -1,18 +1,22 @@
 import 'dart:async';
 
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:highlight/highlight.dart' show highlight, Mode;
+import 'package:fluxer_app/features/chat/presentation/widgets/message_alert.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/message_mention.dart';
+import 'package:fluxer_app/shared/utils/emoji_registry.dart';
+import 'package:fluxer_app/shared/utils/emoji_utils.dart';
+import 'package:highlight/highlight.dart' show Mode, highlight;
 import 'package:highlight/languages/bash.dart';
 import 'package:highlight/languages/cpp.dart';
 import 'package:highlight/languages/cs.dart';
@@ -44,13 +48,9 @@ import 'package:highlight/languages/swift.dart';
 import 'package:highlight/languages/typescript.dart';
 import 'package:highlight/languages/xml.dart';
 import 'package:highlight/languages/yaml.dart';
-import 'package:cached_network_image_ce/cached_network_image.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fluxer_app/shared/utils/emoji_registry.dart';
-import 'package:fluxer_app/shared/utils/emoji_utils.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/message_alert.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/message_mention.dart';
+import 'package:intl/intl.dart';
 import 'package:markdown/markdown.dart' as md;
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // sup lang list (test)
@@ -419,7 +419,7 @@ class _ChannelMentionBuilder extends MarkdownElementBuilder {
 
 /// Parses plain-text `@everyone` and `@here` mentions.
 class _EveryoneMentionSyntax extends md.InlineSyntax {
-  _EveryoneMentionSyntax() : super(r'@(everyone|here)');
+  _EveryoneMentionSyntax() : super('@(everyone|here)');
 
   static const tag = 'mention-everyone';
 
@@ -554,7 +554,7 @@ class _TimestampBuilder extends MarkdownElementBuilder {
   static String _relative(DateTime dt) {
     final diff = dt.difference(DateTime.now());
     final abs = diff.abs();
-    final future = diff.isNegative == false;
+    final future = !diff.isNegative;
     final String label;
     if (abs.inSeconds < 60) {
       label = '${abs.inSeconds} seconds';
@@ -833,7 +833,7 @@ class _EmojiBuilder extends MarkdownElementBuilder {
         imageUrl: url,
         width: size,
         height: size,
-        errorBuilder: (_, __, ___) => Text(':$name:'),
+        errorBuilder: (_, _, _) => Text(':$name:'),
       ),
     );
   }

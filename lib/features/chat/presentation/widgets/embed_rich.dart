@@ -97,7 +97,7 @@ class EmbedRich extends StatelessWidget {
                   width: 72,
                   height: 72,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, e, _s) => const SizedBox.shrink(),
+                  errorBuilder: (_, e, s) => const SizedBox.shrink(),
                 ),
               ),
             ],
@@ -206,7 +206,7 @@ class _EmbedMediaImage extends StatelessWidget {
         width: displayW,
         height: displayH,
         fit: BoxFit.cover,
-        errorBuilder: (_, e, _s) => const SizedBox.shrink(),
+        errorBuilder: (_, e, s) => const SizedBox.shrink(),
       ),
     );
   }

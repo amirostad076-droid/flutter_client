@@ -74,7 +74,7 @@ class SettingsSidebar extends StatelessWidget {
             child: Row(
               children: [
                 FluxerAvatar.user(
-                  fallbackText: username!,
+                  fallbackText: username,
                   userId: userId ?? '',
                   imageUrl: avatarUrl,
                   avatarColor: avatarColor,

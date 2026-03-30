@@ -6,7 +6,7 @@ import 'package:fluxer_app/core/database/tables/emoji_usage.dart';
 
 part 'emoji_usage_dao.g.dart';
 
-const _kDecayHours = 24 * 7; // 168 hours
+const int _kDecayHours = 24 * 7; // 168 hours
 
 @DriftAccessor(tables: [EmojiUsage])
 class EmojiUsageDao extends DatabaseAccessor<FluxerDatabase>
@@ -65,7 +65,7 @@ class EmojiUsageDao extends DatabaseAccessor<FluxerDatabase>
 
   double _score(EmojiUsageData usage) {
     final hours = DateTime.now().difference(usage.lastUsed).inHours;
-    final decay = max(0.0, 1.0 - hours / _kDecayHours);
+    final decay = max(0, 1.0 - hours / _kDecayHours);
     return usage.useCount * (1 + decay);
   }
 

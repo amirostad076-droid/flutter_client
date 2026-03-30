@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart'
     show isMobileLayout;
 import 'package:fluxer_app/features/ui/action_menu/context_menu_widgets.dart';

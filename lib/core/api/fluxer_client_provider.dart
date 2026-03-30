@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_app/core/api/captcha_dialog.dart';
 import 'package:fluxer_app/core/api/captcha_interceptor.dart';
 import 'package:fluxer_app/core/api/retry_interceptor.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 

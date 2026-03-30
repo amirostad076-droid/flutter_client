@@ -21,10 +21,9 @@ class FluxerBottomSheet {
 
   static Future<T?> show<T>(
     BuildContext context, {
-    String? title,
+    required FluxerBottomSheetBuilder builder, String? title,
     Widget? subtitle,
     Widget? leading,
-    required FluxerBottomSheetBuilder builder,
   }) {
     final colors = context.colors;
     final layout = context.layout;

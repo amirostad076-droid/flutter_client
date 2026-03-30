@@ -1,11 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
-import 'package:fluxer_dart/export.dart';
-
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
+import 'package:fluxer_dart/export.dart';
 
 class DmRepository {
   final FluxerClient _client;

@@ -28,8 +28,8 @@ class EmbedInvite extends ConsumerWidget {
     return async.when(
       loading: () => _InviteCard(
         icon: _SkeletonCircle(),
-        title: _SkeletonBar(width: 120),
-        stats: _SkeletonBar(width: 160),
+        title: const _SkeletonBar(width: 120),
+        stats: const _SkeletonBar(width: 160),
         footer: FluxerButton.primary(
           onPressed: null,
           label: l10n.embedInviteJoin,
@@ -39,8 +39,8 @@ class EmbedInvite extends ConsumerWidget {
       data: (state) => switch (state) {
         InviteEmbedLoading() => _InviteCard(
           icon: _SkeletonCircle(),
-          title: _SkeletonBar(width: 120),
-          stats: _SkeletonBar(width: 160),
+          title: const _SkeletonBar(width: 120),
+          stats: const _SkeletonBar(width: 160),
           footer: FluxerButton.primary(
             onPressed: null,
             label: l10n.embedInviteJoin,
@@ -152,7 +152,7 @@ class _GuildInviteCard extends StatelessWidget {
       ),
       stats: Row(
         children: [
-          _StatDot(online: true),
+          const _StatDot(online: true),
           const SizedBox(width: 4),
           Text(
             l10n.embedInviteOnline(onlineStr),
@@ -162,7 +162,7 @@ class _GuildInviteCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          _StatDot(online: false),
+          const _StatDot(online: false),
           const SizedBox(width: 4),
           Text(
             l10n.embedInviteMembers(memberStr),
@@ -255,7 +255,6 @@ class _InviteCard extends StatelessWidget {
     final image = CachedNetworkImage(
       imageUrl: url,
       fit: BoxFit.cover,
-      alignment: Alignment.center,
       width: double.infinity,
       errorBuilder: (_, _, _) => const SizedBox.shrink(),
     );

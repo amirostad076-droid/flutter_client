@@ -5,7 +5,6 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachment_image.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_invite.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_link.dart';
@@ -18,8 +17,9 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_bottom_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_context_menu.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';

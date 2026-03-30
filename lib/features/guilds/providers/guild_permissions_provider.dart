@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/permissions/permission_resolver.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
@@ -9,6 +7,7 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'guild_permissions_provider.g.dart';
 

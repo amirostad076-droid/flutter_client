@@ -1,12 +1,11 @@
 import 'dart:convert';
 
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart'
     show fluxerMediaCdn;
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_settings_view_model.g.dart';
 

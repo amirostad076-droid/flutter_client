@@ -1,12 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
-import 'package:fluxer_dart/export.dart';
-
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
+import 'package:fluxer_dart/export.dart';
 
 class MessageRepository {
   final FluxerClient _client;
@@ -76,8 +75,8 @@ class MessageRepository {
   }) async {
     final queryParams = <String, dynamic>{
       'limit': limit,
-      if (before != null) 'before': before,
-      if (around != null) 'around': around,
+      'before': ?before,
+      'around': ?around,
     };
     final response = await _dio.get<List<dynamic>>(
       '/channels/$channelId/messages',

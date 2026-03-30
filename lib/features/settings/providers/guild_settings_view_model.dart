@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:fluxer_app/features/members/domain/member.dart';
-import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
+import 'package:fluxer_app/features/members/domain/member.dart';
+import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'guild_settings_view_model.g.dart';

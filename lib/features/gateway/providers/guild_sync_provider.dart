@@ -1,7 +1,6 @@
-import 'package:fluxer_dart/gateway.dart';
-
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'guild_sync_provider.g.dart';

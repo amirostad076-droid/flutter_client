@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'unread_dm_provider.g.dart';
 

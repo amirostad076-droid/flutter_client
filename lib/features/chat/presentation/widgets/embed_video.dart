@@ -130,7 +130,7 @@ class _VideoPlayerState extends State<_VideoPlayer> {
       } else {
         await _playDirect();
       }
-    } on Exception catch (e) {
+    } on Exception {
       await _openInBrowser();
     } finally {
       if (mounted) {
@@ -200,7 +200,7 @@ class _VideoPlayerState extends State<_VideoPlayer> {
           alignment: Alignment.center,
           children: [
             if (thumbUrl != null)
-              Container(
+              ColoredBox(
                 color: Colors.black,
                 child: CachedNetworkImage(
                   imageUrl: thumbUrl,

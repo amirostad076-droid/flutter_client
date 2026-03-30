@@ -5,7 +5,6 @@ import 'package:fluxer_app/core/router/channel_persistence_observer.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/login_screen.dart';
-
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/presentation/channel_layout.dart';
 import 'package:fluxer_app/features/dm/presentation/dm_layout.dart';
@@ -13,8 +12,8 @@ import 'package:fluxer_app/features/notifications/presentation/notifications_pag
 import 'package:fluxer_app/features/profile/presentation/profile_page.dart';
 import 'package:fluxer_app/features/settings/presentation/guild_settings_modal.dart';
 import 'package:fluxer_app/features/shell/presentation/app_layout.dart';
-import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/reconnecting_screen.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/splash_screen.dart';
 import 'package:fluxer_app/features/shell/presentation/stub_screen.dart';
 import 'package:go_router/go_router.dart';

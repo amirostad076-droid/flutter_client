@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:fluxer_dart/export.dart';
-
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
+import 'package:fluxer_dart/export.dart';
 
 class GuildRepository {
   final FluxerClient _client;

@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -32,11 +32,7 @@ class ChatViewState {
     required this.forwardingFrom,
     required this.messageText,
     required this.scrollToBottomSignal,
-    this.scrollToMessageSignal,
-    required this.isLoading,
-    required this.isLoadingMore,
-    required this.hasMoreMessages,
-    required this.errorMessage,
+    required this.isLoading, required this.isLoadingMore, required this.hasMoreMessages, required this.errorMessage, this.scrollToMessageSignal,
   });
 
   bool get canSend => messageText.trim().isNotEmpty;
@@ -89,7 +85,6 @@ class ChatViewModel extends _$ChatViewModel {
       forwardingFrom: null,
       messageText: '',
       scrollToBottomSignal: 0,
-      scrollToMessageSignal: null,
       isLoading: false,
       isLoadingMore: false,
       hasMoreMessages: true,
@@ -113,7 +108,6 @@ class ChatViewModel extends _$ChatViewModel {
       forwardingFrom: null,
       messageText: '',
       scrollToBottomSignal: state.scrollToBottomSignal,
-      scrollToMessageSignal: null,
       isLoading: true,
       isLoadingMore: false,
       hasMoreMessages: true,

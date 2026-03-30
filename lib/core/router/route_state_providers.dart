@@ -27,7 +27,7 @@ class ActiveGuildId extends _$ActiveGuildId {
 
   static String? _extractGuildId(String location) {
     // Matches /channels/:guildId where guildId is NOT @me or @favorites
-    final match = RegExp(r'^/channels/([^@/][^/]*)').firstMatch(location);
+    final match = RegExp('^/channels/([^@/][^/]*)').firstMatch(location);
     return match?.group(1);
   }
 }

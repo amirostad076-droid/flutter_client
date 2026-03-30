@@ -65,7 +65,7 @@ class EmbedLink extends StatelessWidget {
                     imageUrl: embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, e, _s) => const SizedBox.shrink(),
+                    errorBuilder: (_, e, s) => const SizedBox.shrink(),
                   ),
                 ),
               ),

@@ -37,7 +37,7 @@ class EmbedImage extends StatelessWidget {
           width: displayW,
           height: displayH,
           fit: BoxFit.cover,
-          errorBuilder: (_, e, _s) => Container(
+          errorBuilder: (_, e, s) => Container(
             width: displayW ?? maxW,
             height: displayH ?? 200,
             color: context.colors.backgroundSecondaryAlt,

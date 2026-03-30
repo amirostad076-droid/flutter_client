@@ -153,13 +153,12 @@ class GuildDragWrapper extends ConsumerWidget {
     if (isMobile) {
       return LongPressDraggable<GuildDragData>(
         data: data,
-        delay: const Duration(milliseconds: 500),
         onDragStarted: () {
           unawaited(HapticFeedback.mediumImpact());
           ref.read(guildDragProvider.notifier).startDrag(itemId);
         },
         onDragEnd: (_) => ref.read(guildDragProvider.notifier).endDrag(),
-        onDraggableCanceled: (_, __) =>
+        onDraggableCanceled: (_, _) =>
             ref.read(guildDragProvider.notifier).endDrag(),
         feedback: feedback,
         childWhenDragging: childWhenDragging,
@@ -172,7 +171,7 @@ class GuildDragWrapper extends ConsumerWidget {
       onDragStarted: () =>
           ref.read(guildDragProvider.notifier).startDrag(itemId),
       onDragEnd: (_) => ref.read(guildDragProvider.notifier).endDrag(),
-      onDraggableCanceled: (_, __) =>
+      onDraggableCanceled: (_, _) =>
           ref.read(guildDragProvider.notifier).endDrag(),
       feedback: feedback,
       childWhenDragging: childWhenDragging,

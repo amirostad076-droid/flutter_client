@@ -13,7 +13,6 @@ import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 class GuildSidebar extends ConsumerWidget {
   const GuildSidebar({super.key});

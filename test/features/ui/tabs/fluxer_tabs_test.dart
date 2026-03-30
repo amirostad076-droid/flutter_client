@@ -20,7 +20,7 @@ Widget buildTestApp(Widget child) {
 }
 
 void main() {
-  final testTabs = const [
+  const testTabs = [
     FluxerTab(label: 'General'),
     FluxerTab(label: 'Advanced'),
     FluxerTab(label: 'About'),

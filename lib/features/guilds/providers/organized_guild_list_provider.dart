@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:fluxer_dart/models/user_settings_response_guild_folders.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/guilds/data/guild_order_repository.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_dart/models/user_settings_response_guild_folders.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'organized_guild_list_provider.g.dart';
