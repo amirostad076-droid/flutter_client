@@ -221,8 +221,7 @@ class _ContextMenuPage extends StatelessWidget {
     );
 
     final menuHeight = estimateContextMenuHeight(items);
-    final opensLeft =
-        position.dx + kContextMenuWidth > overlaySize.width - 8;
+    final opensLeft = position.dx + kContextMenuWidth > overlaySize.width - 8;
     final opensUp = position.dy + menuHeight > overlaySize.height - 8;
 
     var left = opensLeft ? position.dx - kContextMenuWidth : position.dx;
@@ -230,8 +229,7 @@ class _ContextMenuPage extends StatelessWidget {
     left = left.clamp(8.0, overlaySize.width - kContextMenuWidth - 8);
     top = top.clamp(8.0, overlaySize.height - menuHeight - 8);
 
-    final alignment =
-        Alignment(opensLeft ? 1.0 : -1.0, opensUp ? 1.0 : -1.0);
+    final alignment = Alignment(opensLeft ? 1.0 : -1.0, opensUp ? 1.0 : -1.0);
 
     return Stack(
       children: [
@@ -239,16 +237,10 @@ class _ContextMenuPage extends StatelessWidget {
           left: left,
           top: top,
           child: FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOut,
-            ),
+            opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
             child: ScaleTransition(
               scale: Tween<double>(begin: 0.92, end: 1).animate(
-                CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeOutCubic,
-                ),
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
               ),
               alignment: alignment,
               child: ContextMenuPanel(items: items),

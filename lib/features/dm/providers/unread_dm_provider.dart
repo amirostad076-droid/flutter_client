@@ -37,8 +37,7 @@ class UnreadDmChannels extends _$UnreadDmChannels {
   }
 
   void _reconcile(List<DmChannel> allChannels) {
-    final unreadChannels =
-        allChannels.where((c) => c.unreadCount > 0).toList();
+    final unreadChannels = allChannels.where((c) => c.unreadCount > 0).toList();
     final unreadIds = unreadChannels.map((c) => c.id).toSet();
     final currentIds = state.channels.map((c) => c.id).toSet();
 

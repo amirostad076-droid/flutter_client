@@ -33,10 +33,7 @@ Future<GuildAction?> showGuildBottomSheet(
 
   final result = await FluxerBottomSheet.show<GuildAction>(
     context,
-    builder: (context, _) => _GuildBottomSheet(
-      guild: guild,
-      groups: groups,
-    ),
+    builder: (context, _) => _GuildBottomSheet(guild: guild, groups: groups),
   );
 
   if (result == GuildAction.copyGuildId) {
@@ -50,10 +47,7 @@ class _GuildBottomSheet extends StatelessWidget {
   final Guild guild;
   final List<GuildMenuGroup> groups;
 
-  const _GuildBottomSheet({
-    required this.guild,
-    required this.groups,
-  });
+  const _GuildBottomSheet({required this.guild, required this.groups});
 
   @override
   Widget build(BuildContext context) {
@@ -65,8 +59,7 @@ class _GuildBottomSheet extends StatelessWidget {
         if (group.isNotEmpty)
           FluxerMenuGroup(
             children: [
-              for (final entry in group)
-                _buildEntry(context, entry, pop),
+              for (final entry in group) _buildEntry(context, entry, pop),
             ],
           ),
     ];
@@ -95,9 +88,7 @@ class _GuildBottomSheet extends StatelessWidget {
                     layout.s4,
                   ),
                   children: [
-                    FluxerBottomSheetGroupColumn(
-                      children: menuGroups,
-                    ),
+                    FluxerBottomSheetGroupColumn(children: menuGroups),
                   ],
                 ),
               ),
@@ -134,10 +125,7 @@ class _GuildBottomSheet extends StatelessWidget {
     };
   }
 
-  void _openSubmenuSheet(
-    BuildContext context,
-    GuildMenuSubmenu submenu,
-  ) {
+  void _openSubmenuSheet(BuildContext context, GuildMenuSubmenu submenu) {
     final nav = Navigator.of(context);
     unawaited(
       FluxerBottomSheet.show<GuildAction>(

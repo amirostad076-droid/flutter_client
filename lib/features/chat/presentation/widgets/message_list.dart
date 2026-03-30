@@ -93,7 +93,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     });
   }
 
-  /// Scrolls to [messageId] 
+  /// Scrolls to [messageId]
   void _scrollToTarget(String messageId) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) return;
@@ -116,7 +116,10 @@ class _MessageListState extends ConsumerState<MessageList> {
       if (idx == -1) return;
       final reversedIdx = messages.length - 1 - idx;
       final extent = _scrollController.position.maxScrollExtent;
-      final approx = (reversedIdx / messages.length * extent).clamp(0.0, extent);
+      final approx = (reversedIdx / messages.length * extent).clamp(
+        0.0,
+        extent,
+      );
       _scrollController.jumpTo(approx);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -158,8 +161,10 @@ class _MessageListState extends ConsumerState<MessageList> {
 
       final reversedIdx = messages.length - 1 - idx;
       final extent = _scrollController.position.maxScrollExtent;
-      final approx = (reversedIdx / messages.length * extent)
-          .clamp(0.0, extent);
+      final approx = (reversedIdx / messages.length * extent).clamp(
+        0.0,
+        extent,
+      );
       _scrollController.jumpTo(approx);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {

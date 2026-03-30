@@ -110,7 +110,8 @@ List<GuildMenuGroup> buildGuildMenuGroups({
   final canInvite = hasPermission(p, Permission.createInstantInvite);
   final canManageChannels = hasPermission(p, Permission.manageChannels);
   final canManageGuild = hasPermission(p, Permission.manageGuild);
-  final canAccessSettings = canManageGuild ||
+  final canAccessSettings =
+      canManageGuild ||
       hasPermission(p, Permission.manageRoles) ||
       hasPermission(p, Permission.viewAuditLog) ||
       hasPermission(p, Permission.manageWebhooks) ||
@@ -328,4 +329,3 @@ const _muteSubmenuItems = <GuildMenuEntry>[
     action: GuildAction.muteForever,
   ),
 ];
-

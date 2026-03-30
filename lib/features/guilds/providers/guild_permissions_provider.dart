@@ -75,22 +75,18 @@ class GuildPermissions extends _$GuildPermissions {
       return 0;
     }
 
-    final memberRoleIds =
-        memberRow.roleIdsJson.isNotEmpty
-            ? List<String>.from(
-                jsonDecode(memberRow.roleIdsJson) as List<dynamic>,
-              )
-            : <String>[];
+    final memberRoleIds = memberRow.roleIdsJson.isNotEmpty
+        ? List<String>.from(jsonDecode(memberRow.roleIdsJson) as List<dynamic>)
+        : <String>[];
 
     final everyoneRole = allRoles.where((r) => r.id == guildId).firstOrNull;
     final everyonePermissions =
         int.tryParse(everyoneRole?.permissions ?? '0') ?? 0;
 
-    final memberRoles =
-        allRoles
-            .where((r) => memberRoleIds.contains(r.id))
-            .map(MemberRole.fromRow)
-            .toList();
+    final memberRoles = allRoles
+        .where((r) => memberRoleIds.contains(r.id))
+        .map(MemberRole.fromRow)
+        .toList();
 
     return resolveGuildPermissions(
       guildOwnerId: guild.ownerId ?? '',

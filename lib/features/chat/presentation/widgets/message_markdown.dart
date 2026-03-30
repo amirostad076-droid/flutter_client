@@ -330,9 +330,9 @@ class MessageMarkdown extends StatelessWidget {
     if (href == null) return;
     final jump = parseChannelJumpLink(href);
     if (jump != null) {
-      final router = ProviderScope.containerOf(context).read(
-        fluxerRouterProvider,
-      );
+      final router = ProviderScope.containerOf(
+        context,
+      ).read(fluxerRouterProvider);
       if (jump.isDm) {
         router.go(RoutePaths.dmChannel(jump.channelId));
       } else if (jump is MessageJumpLink) {

@@ -24,8 +24,7 @@ Future<GuildAction?> showGuildContextMenu(
   bool hideMutedChannels = false,
   bool developerMode = false,
 }) async {
-  final overlay =
-      Overlay.of(context).context.findRenderObject() as RenderBox?;
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
   if (overlay == null) {
     return null;
   }
@@ -159,11 +158,9 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
     final mainHeight = estimateContextMenuHeight(items);
 
     final opensLeft =
-        widget.position.dx + kContextMenuWidth >
-        widget.overlaySize.width - 8;
+        widget.position.dx + kContextMenuWidth > widget.overlaySize.width - 8;
     final opensUp =
-        widget.position.dy + mainHeight >
-        widget.overlaySize.height - 8;
+        widget.position.dy + mainHeight > widget.overlaySize.height - 8;
 
     var mainLeft = opensLeft
         ? widget.position.dx - kContextMenuWidth
@@ -175,35 +172,24 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
       8.0,
       widget.overlaySize.width - kContextMenuWidth - 8,
     );
-    mainTop = mainTop.clamp(
-      8.0,
-      widget.overlaySize.height - mainHeight - 8,
-    );
+    mainTop = mainTop.clamp(8.0, widget.overlaySize.height - mainHeight - 8);
 
-    final alignment = Alignment(
-      opensLeft ? 1.0 : -1.0,
-      opensUp ? 1.0 : -1.0,
-    );
+    final alignment = Alignment(opensLeft ? 1.0 : -1.0, opensUp ? 1.0 : -1.0);
 
     Widget? submenuPanel;
     if (_activeSubmenuKey != null) {
       final subKey = _submenuKeys[_activeSubmenuKey];
       if (subKey?.currentContext != null) {
-        final subItems =
-            _buildSubmenuItems(context, _activeSubmenuKey!);
+        final subItems = _buildSubmenuItems(context, _activeSubmenuKey!);
         if (subItems.isNotEmpty) {
-          final box =
-              subKey!.currentContext!.findRenderObject()! as RenderBox;
+          final box = subKey!.currentContext!.findRenderObject()! as RenderBox;
           final itemPos = box.localToGlobal(Offset.zero);
           final subHeight = estimateContextMenuHeight(subItems);
 
-          final rightX =
-              mainLeft + kContextMenuWidth + _kSubmenuGap;
-          final leftX =
-              mainLeft - kContextMenuWidth - _kSubmenuGap;
+          final rightX = mainLeft + kContextMenuWidth + _kSubmenuGap;
+          final leftX = mainLeft - kContextMenuWidth - _kSubmenuGap;
           final fitsRight =
-              rightX + kContextMenuWidth <
-              widget.overlaySize.width - 8;
+              rightX + kContextMenuWidth < widget.overlaySize.width - 8;
 
           final subLeft = fitsRight ? rightX : leftX;
           final subTop = itemPos.dy.clamp(
@@ -312,8 +298,7 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
                 hint: entry.hint,
                 isActive: _activeSubmenuKey == entry.key,
                 onActivate: () => _activateSubmenu(entry.key),
-                onDeactivate: () =>
-                    _requestDeactivate(entry.key),
+                onDeactivate: () => _requestDeactivate(entry.key),
               ),
             );
           case GuildMenuCheckbox():
@@ -361,8 +346,7 @@ class _SubMenuItemState extends State<_SubMenuItem> {
     final layout = context.layout;
     final isHighlighted = _isHovered || widget.isActive;
 
-    final textColor =
-        isHighlighted ? colors.textPrimary : colors.textSecondary;
+    final textColor = isHighlighted ? colors.textPrimary : colors.textSecondary;
     final bgColor = isHighlighted
         ? colors.backgroundModifierHover
         : Colors.transparent;
@@ -382,10 +366,7 @@ class _SubMenuItemState extends State<_SubMenuItem> {
         onTap: widget.onActivate,
         child: Container(
           constraints: const BoxConstraints(minHeight: 36),
-          padding: EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: layout.s2,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: layout.s2),
           margin: const EdgeInsets.symmetric(vertical: 1),
           decoration: BoxDecoration(
             color: bgColor,
@@ -400,17 +381,17 @@ class _SubMenuItemState extends State<_SubMenuItem> {
                   children: [
                     Text(
                       widget.label,
-                      style: context.textStyles.label
-                          .copyWith(color: textColor),
+                      style: context.textStyles.label.copyWith(
+                        color: textColor,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (widget.hint != null)
                       Text(
                         widget.hint!,
-                        style: context.textStyles.timestamp
-                            .copyWith(
-                              color: colors.textTertiary,
-                            ),
+                        style: context.textStyles.timestamp.copyWith(
+                          color: colors.textTertiary,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                   ],
@@ -452,8 +433,7 @@ class _CheckboxMenuItemState extends State<_CheckboxMenuItem> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final layout = context.layout;
-    final textColor =
-        _isHovered ? colors.textPrimary : colors.textSecondary;
+    final textColor = _isHovered ? colors.textPrimary : colors.textSecondary;
     final bgColor = _isHovered
         ? colors.backgroundModifierHover
         : Colors.transparent;
@@ -467,10 +447,7 @@ class _CheckboxMenuItemState extends State<_CheckboxMenuItem> {
         onTap: widget.onTap,
         child: Container(
           constraints: const BoxConstraints(minHeight: 36),
-          padding: EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: layout.s2,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: layout.s2),
           margin: const EdgeInsets.symmetric(vertical: 1),
           decoration: BoxDecoration(
             color: bgColor,
@@ -481,8 +458,7 @@ class _CheckboxMenuItemState extends State<_CheckboxMenuItem> {
               Expanded(
                 child: Text(
                   widget.label,
-                  style: context.textStyles.label
-                      .copyWith(color: textColor),
+                  style: context.textStyles.label.copyWith(color: textColor),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

@@ -30,7 +30,10 @@ class EmbedInvite extends ConsumerWidget {
         icon: _SkeletonCircle(),
         title: _SkeletonBar(width: 120),
         stats: _SkeletonBar(width: 160),
-        footer: FluxerButton.primary(onPressed: null, label: l10n.embedInviteJoin),
+        footer: FluxerButton.primary(
+          onPressed: null,
+          label: l10n.embedInviteJoin,
+        ),
       ),
       error: (_, _) => _InviteNotFound(l10n: l10n),
       data: (state) => switch (state) {
@@ -38,7 +41,10 @@ class EmbedInvite extends ConsumerWidget {
           icon: _SkeletonCircle(),
           title: _SkeletonBar(width: 120),
           stats: _SkeletonBar(width: 160),
-          footer: FluxerButton.primary(onPressed: null, label: l10n.embedInviteJoin),
+          footer: FluxerButton.primary(
+            onPressed: null,
+            label: l10n.embedInviteJoin,
+          ),
         ),
         InviteEmbedNotFound() => _InviteNotFound(l10n: l10n),
         InviteEmbedGuild(:final invite) => _GuildInviteCard(
@@ -46,9 +52,8 @@ class EmbedInvite extends ConsumerWidget {
           code: code,
           l10n: l10n,
           ref: ref,
-          isAlreadyMember: ref.watch(
-            guildByIdProvider(invite.guild.id),
-          ).value != null,
+          isAlreadyMember:
+              ref.watch(guildByIdProvider(invite.guild.id)).value != null,
         ),
       },
     );
@@ -89,24 +94,28 @@ class _GuildInviteCard extends StatelessWidget {
     return null;
   }
 
-  bool get _isVerified =>
-      invite.guild.features.any((f) => f == 'VERIFIED');
-  bool get _isPartnered =>
-      invite.guild.features.any((f) => f == 'PARTNERED');
+  bool get _isVerified => invite.guild.features.any((f) => f == 'VERIFIED');
+  bool get _isPartnered => invite.guild.features.any((f) => f == 'PARTNERED');
 
   void _onJoin(BuildContext context) {
     if (isAlreadyMember) {
-      ref.read(fluxerRouterProvider).go(
-        RoutePaths.guildChannel(invite.guild.id, invite.channel.id),
-      );
+      ref
+          .read(fluxerRouterProvider)
+          .go(RoutePaths.guildChannel(invite.guild.id, invite.channel.id));
       return;
     }
     unawaited(
-      ref.read(fluxerClientProvider).invites.acceptInvite(inviteCode: code).then((_) {
-        ref.read(fluxerRouterProvider).go(
-          RoutePaths.guildChannel(invite.guild.id, invite.channel.id),
-        );
-      }),
+      ref
+          .read(fluxerClientProvider)
+          .invites
+          .acceptInvite(inviteCode: code)
+          .then((_) {
+            ref
+                .read(fluxerRouterProvider)
+                .go(
+                  RoutePaths.guildChannel(invite.guild.id, invite.channel.id),
+                );
+          }),
     );
   }
 
@@ -166,9 +175,7 @@ class _GuildInviteCard extends StatelessWidget {
       ),
       footer: FluxerButton.primary(
         onPressed: () => _onJoin(context),
-        label: isAlreadyMember
-            ? l10n.embedInviteGoTo
-            : l10n.embedInviteJoin,
+        label: isAlreadyMember ? l10n.embedInviteGoTo : l10n.embedInviteJoin,
       ),
     );
   }
@@ -179,7 +186,6 @@ class _GuildInviteCard extends StatelessWidget {
     return '$n';
   }
 }
-
 
 class _InviteNotFound extends StatelessWidget {
   const _InviteNotFound({required this.l10n});
@@ -283,21 +289,14 @@ class _InviteCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
-                  children: [
-                    title,
-                    const SizedBox(height: 4),
-                    stats,
-                  ],
+                  children: [title, const SizedBox(height: 4), stats],
                 ),
               ),
             ],
           ),
         ),
         Divider(height: 1, thickness: 1, color: context.colors.borderColor),
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: footer,
-        ),
+        Padding(padding: const EdgeInsets.all(12), child: footer),
       ],
     ),
   );
@@ -369,9 +368,8 @@ class _StatDot extends StatelessWidget {
 
   final bool online;
 
-  Color _color(BuildContext context) => online
-      ? context.colors.statusOnline
-      : context.colors.textTertiaryMuted;
+  Color _color(BuildContext context) =>
+      online ? context.colors.statusOnline : context.colors.textTertiaryMuted;
 
   @override
   Widget build(BuildContext context) => Container(

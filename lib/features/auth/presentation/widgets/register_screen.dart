@@ -162,19 +162,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (_isRestoringDraft) {
       return;
     }
-    ref.read(registrationDraftProvider.notifier).update(
-      RegistrationDraft(
-        email: _emailController.text,
-        displayName: _displayNameController.text,
-        username: _usernameController.text,
-        password: _passwordController.text,
-        confirmPassword: _confirmController.text,
-        birthMonth: _birthMonth,
-        birthDay: _birthDay,
-        birthYear: _birthYear,
-        consent: _consent,
-      ),
-    );
+    ref
+        .read(registrationDraftProvider.notifier)
+        .update(
+          RegistrationDraft(
+            email: _emailController.text,
+            displayName: _displayNameController.text,
+            username: _usernameController.text,
+            password: _passwordController.text,
+            confirmPassword: _confirmController.text,
+            birthMonth: _birthMonth,
+            birthDay: _birthDay,
+            birthYear: _birthYear,
+            consent: _consent,
+          ),
+        );
   }
 
   @override
@@ -317,10 +319,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   runSpacing: layout.s1,
                   children: vm.usernameSuggestions.map((username) {
                     return ActionChip(
-                      label: Text(
-                        username,
-                        style: textStyles.bodySmall,
-                      ),
+                      label: Text(username, style: textStyles.bodySmall),
                       backgroundColor: colors.backgroundTertiary,
                       side: BorderSide.none,
                       shape: RoundedRectangleBorder(

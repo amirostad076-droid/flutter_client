@@ -123,8 +123,7 @@ class LoginViewState {
           ? this.resetToken
           : resetToken as String?,
       showRegister: showRegister ?? this.showRegister,
-      usernameSuggestions:
-          usernameSuggestions ?? this.usernameSuggestions,
+      usernameSuggestions: usernameSuggestions ?? this.usernameSuggestions,
     );
   }
 }
@@ -250,9 +249,10 @@ class LoginViewModel extends _$LoginViewModel {
     );
 
     try {
-      final inviteCode =
-          ref.read(pendingInviteCodeProvider.notifier).consume();
-      await ref.read(authRepositoryProvider).register(
+      final inviteCode = ref.read(pendingInviteCodeProvider.notifier).consume();
+      await ref
+          .read(authRepositoryProvider)
+          .register(
             email: email,
             password: password,
             dateOfBirth: dateOfBirth,
@@ -450,9 +450,10 @@ class LoginViewModel extends _$LoginViewModel {
     );
 
     try {
-      final inviteCode =
-          ref.read(pendingInviteCodeProvider.notifier).consume();
-      final result = await ref.read(authRepositoryProvider).login(
+      final inviteCode = ref.read(pendingInviteCodeProvider.notifier).consume();
+      final result = await ref
+          .read(authRepositoryProvider)
+          .login(
             email: state.email,
             password: state.password,
             inviteCode: inviteCode,

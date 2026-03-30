@@ -97,7 +97,10 @@ class ChatViewModel extends _$ChatViewModel {
     );
   }
 
-  Future<void> switchChannel(String channelId, {String? targetMessageId}) async {
+  Future<void> switchChannel(
+    String channelId, {
+    String? targetMessageId,
+  }) async {
     if (state.channelId == channelId &&
         state.isLoading &&
         targetMessageId == null) {

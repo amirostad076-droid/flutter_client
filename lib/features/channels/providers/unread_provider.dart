@@ -150,8 +150,7 @@ Stream<UnreadState> serverUnread(Ref ref, String serverId) {
       if (lastMsgTs > 0 &&
           lastMsgTs < nowMs - _oldMessageThreshold.inMilliseconds) {
         final recentlyVisited =
-            ackTs > 0 &&
-            ackTs > nowMs - _recentVisitThreshold.inMilliseconds;
+            ackTs > 0 && ackTs > nowMs - _recentVisitThreshold.inMilliseconds;
         if (!recentlyVisited && mentions == 0) {
           continue;
         }

@@ -97,10 +97,7 @@ class _EmbedCard extends StatelessWidget {
           ),
         ),
         Divider(height: 1, thickness: 1, color: context.colors.borderColor),
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: footer,
-        ),
+        Padding(padding: const EdgeInsets.all(12), child: footer),
       ],
     ),
   );

@@ -106,7 +106,9 @@ class _ContextMenuItemState extends State<ContextMenuItem> {
                   children: [
                     Text(
                       widget.label,
-                      style: context.textStyles.label.copyWith(color: activeColor),
+                      style: context.textStyles.label.copyWith(
+                        color: activeColor,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (widget.hint != null)

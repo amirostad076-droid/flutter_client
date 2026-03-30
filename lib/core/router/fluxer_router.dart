@@ -232,9 +232,7 @@ GoRouter fluxerRouter(Ref ref) {
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => GuildSettingsModal(
           serverId: state.pathParameters['guildId'] ?? '',
-          initialTab: _guildSettingsTabIndex(
-            state.uri.queryParameters['tab'],
-          ),
+          initialTab: _guildSettingsTabIndex(state.uri.queryParameters['tab']),
         ),
       ),
 

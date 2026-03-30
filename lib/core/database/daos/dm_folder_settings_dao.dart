@@ -10,15 +10,13 @@ class DmFolderSettingsDao extends DatabaseAccessor<FluxerDatabase>
     with _$DmFolderSettingsDaoMixin {
   DmFolderSettingsDao(super.attachedDatabase);
 
-  Future<DmFolderSettingsTableData?> getSettings() =>
-      (select(dmFolderSettingsTable)
-            ..where((t) => t.id.equals(0)))
-          .getSingleOrNull();
+  Future<DmFolderSettingsTableData?> getSettings() => (select(
+    dmFolderSettingsTable,
+  )..where((t) => t.id.equals(0))).getSingleOrNull();
 
-  Stream<DmFolderSettingsTableData?> watchSettings() =>
-      (select(dmFolderSettingsTable)
-            ..where((t) => t.id.equals(0)))
-          .watchSingleOrNull();
+  Stream<DmFolderSettingsTableData?> watchSettings() => (select(
+    dmFolderSettingsTable,
+  )..where((t) => t.id.equals(0))).watchSingleOrNull();
 
   Future<void> upsertSettings(DmFolderSettingsTableCompanion companion) =>
       into(dmFolderSettingsTable).insertOnConflictUpdate(companion);

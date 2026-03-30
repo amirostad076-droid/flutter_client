@@ -278,8 +278,7 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: context.textStyles.username
-                          .copyWith(color: color),
+                      style: context.textStyles.username.copyWith(color: color),
                     ),
                     if (hint != null)
                       Text(

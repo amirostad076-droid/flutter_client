@@ -8,8 +8,7 @@ class Roles extends Table {
   IntColumn get color => integer().withDefault(const Constant(0))();
   IntColumn get position => integer().withDefault(const Constant(0))();
   BoolColumn get isHoisted => boolean().withDefault(const Constant(false))();
-  TextColumn get permissions =>
-      text().withDefault(const Constant('0'))();
+  TextColumn get permissions => text().withDefault(const Constant('0'))();
 
   @override
   Set<Column> get primaryKey => {id};

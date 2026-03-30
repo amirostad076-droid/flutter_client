@@ -35,8 +35,7 @@ enum Permission {
   pinMessages(1 << 51),
   bypassSlowmode(1 << 52),
   updateRtcRegion(1 << 53),
-  useTextInVoice(1 << 54),
-  ;
+  useTextInVoice(1 << 54);
 
   final int value;
   const Permission(this.value);

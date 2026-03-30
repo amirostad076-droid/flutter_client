@@ -302,11 +302,7 @@ ThemeData buildFluxerTheme({
         if (states.contains(WidgetState.selected)) {
           return colorTheme.brandPrimary;
         }
-        return Color.lerp(
-          colorTheme.borderColor,
-          Colors.white,
-          0.3,
-        );
+        return Color.lerp(colorTheme.borderColor, Colors.white, 0.3);
       }),
     ),
 

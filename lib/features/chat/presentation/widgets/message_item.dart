@@ -240,14 +240,16 @@ class _MessageItemState extends State<MessageItem> {
         selectable: true,
         channelId: msg.channelId,
       ),
-    ...msg.invites.map((code) => Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: EmbedInvite(code: code),
-    )),
-    ...msg.themes.map((_) => const Padding(
-      padding: EdgeInsets.only(top: 4),
-      child: EmbedTheme(),
-    )),
+    ...msg.invites.map(
+      (code) => Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: EmbedInvite(code: code),
+      ),
+    ),
+    ...msg.themes.map(
+      (_) =>
+          const Padding(padding: EdgeInsets.only(top: 4), child: EmbedTheme()),
+    ),
     ...msg.embeds.map(_buildEmbed),
     ...msg.attachments.map(_buildAttachment),
     if (msg.reactions.isNotEmpty)

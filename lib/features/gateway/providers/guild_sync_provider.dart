@@ -20,10 +20,7 @@ class GuildSync extends _$GuildSync {
     try {
       connection.sendLazyRequest(
         subscriptions: {
-          guildId: const LazyRequestSubscription(
-            active: true,
-            sync: true,
-          ),
+          guildId: const LazyRequestSubscription(active: true, sync: true),
         },
       );
       state = {...state, guildId};

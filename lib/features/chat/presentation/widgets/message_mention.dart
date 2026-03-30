@@ -35,7 +35,8 @@ class ChannelMention extends ConsumerWidget {
     );
 
     final channel = async.value;
-    final name = channel?.name ?? FluxerLocalizations.of(context).mentionUnknownChannel;
+    final name =
+        channel?.name ?? FluxerLocalizations.of(context).mentionUnknownChannel;
     final type = channel?.type ?? ChannelType.text;
 
     return GestureDetector(
@@ -198,13 +199,13 @@ final _guildByIdProvider = FutureProvider.autoDispose.family<Guild?, String>((
 // temporary solution :)
 final _dmNameByChannelIdProvider = FutureProvider.autoDispose
     .family<String?, String>((ref, channelId) async {
-  final db = ref.watch(fluxerDatabaseProvider);
-  final row = await db.dmChannelDao.getDmChannelById(channelId);
-  if (row == null) return null;
-  final user = await db.userDao.getUserById(row.recipientId);
-  if (row.type == 3) return row.name ?? 'Group DM';
-  return user?.globalName ?? user?.username;
-});
+      final db = ref.watch(fluxerDatabaseProvider);
+      final row = await db.dmChannelDao.getDmChannelById(channelId);
+      if (row == null) return null;
+      final user = await db.userDao.getUserById(row.recipientId);
+      if (row.type == 3) return row.name ?? 'Group DM';
+      return user?.globalName ?? user?.username;
+    });
 
 class ChannelJumpLinkMention extends ConsumerWidget {
   const ChannelJumpLinkMention({
@@ -259,18 +260,15 @@ class ChannelJumpLinkMention extends ConsumerWidget {
                 style: ctx.textStyles.bodySmall.copyWith(height: 1.4),
               ),
               const SizedBox(height: 16),
-              FluxerButton.primary(
-                onPressed: close,
-                label: l10n.okay,
-              ),
+              FluxerButton.primary(onPressed: close, label: l10n.okay),
             ],
           ),
         );
         return;
       }
-      final router = ProviderScope.containerOf(context).read(
-        fluxerRouterProvider,
-      );
+      final router = ProviderScope.containerOf(
+        context,
+      ).read(fluxerRouterProvider);
       final messageId = isMessage ? (link as MessageJumpLink).messageId : null;
       if (link.isDm) {
         if (messageId != null) {
@@ -280,11 +278,7 @@ class ChannelJumpLinkMention extends ConsumerWidget {
         }
       } else if (messageId != null) {
         router.go(
-          RoutePaths.guildChannelMessage(
-            link.scope,
-            link.channelId,
-            messageId,
-          ),
+          RoutePaths.guildChannelMessage(link.scope, link.channelId, messageId),
         );
       } else {
         router.go(RoutePaths.guildChannel(link.scope, link.channelId));

@@ -19,8 +19,9 @@ class GuildScrollIndicator extends StatelessWidget {
     final colors = context.colors;
     final bgColor = switch (severity) {
       ScrollIndicatorSeverity.mention => colors.statusDanger,
-      ScrollIndicatorSeverity.unread =>
-        colors.textSecondary.withValues(alpha: 0.6),
+      ScrollIndicatorSeverity.unread => colors.textSecondary.withValues(
+        alpha: 0.6,
+      ),
     };
 
     return GestureDetector(

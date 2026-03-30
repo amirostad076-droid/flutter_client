@@ -36,10 +36,7 @@ class FluxerRadioGroup<T> extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: layout.s1_5,
-      children: [
-        for (final item in items)
-          _buildOption(context, item),
-      ],
+      children: [for (final item in items) _buildOption(context, item)],
     );
   }
 
@@ -85,17 +82,13 @@ class FluxerRadioGroup<T> extends StatelessWidget {
           item.label,
           style: textStyles.bodyMedium.copyWith(
             fontWeight: FontWeight.w500,
-            color: isSelected
-                ? colors.textPrimary
-                : colors.textSecondary,
+            color: isSelected ? colors.textPrimary : colors.textSecondary,
           ),
         ),
         if (item.description != null)
           Text(
             item.description!,
-            style: textStyles.bodySmall.copyWith(
-              color: colors.textSecondary,
-            ),
+            style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
           ),
       ],
     );
@@ -110,11 +103,7 @@ class _RadioIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final borderDerived = Color.lerp(
-      colors.borderColor,
-      Colors.white,
-      0.3,
-    )!;
+    final borderDerived = Color.lerp(colors.borderColor, Colors.white, 0.3)!;
     final unselectedFill = Color.lerp(
       colors.backgroundPrimary,
       borderDerived,

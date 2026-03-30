@@ -35,8 +35,10 @@ Future<String?> userProfileSelfNote(Ref ref, {required String userId}) async {
   if (userId.isEmpty) {
     return null;
   }
-  final UserNotesTableData? row =
-      await ref.read(fluxerDatabaseProvider).userNotesDao.getNote(userId);
+  final UserNotesTableData? row = await ref
+      .read(fluxerDatabaseProvider)
+      .userNotesDao
+      .getNote(userId);
   final String? content = row?.content;
   if (content == null || content.trim().isEmpty) {
     return null;

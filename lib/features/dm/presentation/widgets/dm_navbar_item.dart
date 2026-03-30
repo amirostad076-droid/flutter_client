@@ -41,8 +41,13 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    final indicatorHeight =
-        widget.isSelected ? 40.0 : _isHovered ? 20.0 : _hasUnread ? 8.0 : 0.0;
+    final indicatorHeight = widget.isSelected
+        ? 40.0
+        : _isHovered
+        ? 20.0
+        : _hasUnread
+        ? 8.0
+        : 0.0;
 
     final borderRadius = (widget.isSelected || _isHovered) ? 13.0 : 22.0;
 
@@ -74,8 +79,7 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem> {
                 onTap: () => context.go('/channels/@me/${widget.channelId}'),
                 onSecondaryTapDown: (details) =>
                     widget.onContextMenu?.call(details.globalPosition),
-                onLongPress: () =>
-                    widget.onContextMenu?.call(Offset.zero),
+                onLongPress: () => widget.onContextMenu?.call(Offset.zero),
                 child: SizedBox(
                   width: 48,
                   height: 48,
@@ -105,9 +109,7 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem> {
                         Positioned(
                           bottom: -4,
                           right: -4,
-                          child: FluxerBadge.count(
-                            count: widget.mentionCount,
-                          ),
+                          child: FluxerBadge.count(count: widget.mentionCount),
                         ),
                     ],
                   ),

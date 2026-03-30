@@ -45,10 +45,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
 
   Future<void> _switchChannel() => ref
       .read(chatViewModelProvider.notifier)
-      .switchChannel(
-        widget.channelId,
-        targetMessageId: widget.targetMessageId,
-      );
+      .switchChannel(widget.channelId, targetMessageId: widget.targetMessageId);
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +55,9 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
         child: Column(
           children: [
             if (widget.showTopBar) const ChannelHeader(),
-            Expanded(child: MessageList(targetMessageId: widget.targetMessageId)),
+            Expanded(
+              child: MessageList(targetMessageId: widget.targetMessageId),
+            ),
             const ChannelTextarea(),
           ],
         ),

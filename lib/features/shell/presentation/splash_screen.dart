@@ -39,8 +39,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     final FluxerLocalizations strings = FluxerLocalizations.of(context);
     final startup = ref.watch(appStartupProvider);
-    final AsyncError<dynamic>? startupError =
-        startup is AsyncError<dynamic> ? startup : null;
+    final AsyncError<dynamic>? startupError = startup is AsyncError<dynamic>
+        ? startup
+        : null;
     final String statusText = startupError == null
         ? strings.connectingCaps
         : strings.splashStartupFailed(startupError.error.toString());
