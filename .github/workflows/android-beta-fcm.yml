@@ -98,23 +98,14 @@ jobs:
           BUILD_SERVICE_TOKEN: ${{ secrets.BUILD_SERVICE_TOKEN }}
           BUILD_SERVICE_URL: ${{ secrets.BUILD_SERVICE_URL }}
         run: |
+          set -euo pipefail
           RESPONSE=$(curl -sS "https://$BUILD_SERVICE_URL/v1/build-number?platform=android" \
             -H "Authorization: Bearer $BUILD_SERVICE_TOKEN")
-          if [ -z "$RESPONSE" ]; then
-            echo "::error::Empty response from build number service."
+          BUILD_NUMBER=$(printf '%s\n' "$RESPONSE" | sed -n 's/.*"buildNumber"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p')
+          if ! [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid or missing buildNumber in response: $RESPONSE"
             exit 1
           fi
-          BUILD_NUMBER=$(python - << 'PY' "$RESPONSE"
-import json
-import sys
-
-data = json.loads(sys.argv[1])
-value = data.get("buildNumber")
-if not isinstance(value, int):
-    raise SystemExit("Invalid or missing buildNumber in response")
-print(value)
-PY
-)
           echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Build beta APK
