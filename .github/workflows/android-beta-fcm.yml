@@ -93,7 +93,7 @@ jobs:
           fi
 
       - name: Build beta APK
-        run: flutter build apk --release --flavor betaFcm --dart-define=APP_ENVIRONMENT=beta --dart-define=PUSH_PROVIDER=fcm
+        run: flutter build apk --release --flavor betaFcm --build-number ${{ github.run_number }} --dart-define=APP_ENVIRONMENT=beta --dart-define=PUSH_PROVIDER=fcm
 
       - name: Upload beta APK artifact
         uses: actions/upload-artifact@v6
