@@ -53,7 +53,7 @@ jobs:
           set -euo pipefail
           URL="https://$BUILD_SERVICE_URL/v1/build-number?platform=android"
           echo "Calling build service at $URL"
-          RESPONSE=$(curl -sS "$URL" \
+          RESPONSE=$(curl -sS -X POST "$URL" \
             -H "Authorization: Bearer $BUILD_SERVICE_TOKEN")
           RESPONSE_ONE_LINE=$(printf '%s' "$RESPONSE" | tr -d '\n')
           BUILD_NUMBER=$(printf '%s\n' "$RESPONSE_ONE_LINE" | sed -n 's/.*"buildNumber"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p')
