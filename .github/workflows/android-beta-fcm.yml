@@ -99,7 +99,9 @@ jobs:
           BUILD_SERVICE_URL: ${{ secrets.BUILD_SERVICE_URL }}
         run: |
           set -euo pipefail
-          RESPONSE=$(curl -sS "https://$BUILD_SERVICE_URL/v1/build-number?platform=android" \
+          URL="https://$BUILD_SERVICE_URL/v1/build-number?platform=android"
+          echo "Calling build service at $URL"
+          RESPONSE=$(curl -sS "$URL" \
             -H "Authorization: Bearer $BUILD_SERVICE_TOKEN")
           BUILD_NUMBER=$(printf '%s\n' "$RESPONSE" | sed -n 's/.*"buildNumber"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p')
           if ! [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
