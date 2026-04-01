@@ -41,18 +41,18 @@ class MemberListViewModel extends _$MemberListViewModel {
     return const MemberListViewState(roleGroups: [], selectedGuildId: null);
   }
 
-  void loadMembers(String serverId) {
-    if (serverId == state.selectedGuildId) {
+  void loadMembers(String guildId) {
+    if (guildId == state.selectedGuildId) {
       return;
     }
 
-    state = state.copyWith(selectedGuildId: serverId);
+    state = state.copyWith(selectedGuildId: guildId);
 
     final repo = ref.read(memberRepositoryProvider);
 
     unawaited(_subscription?.cancel());
     _subscription = repo
-        .watchMembers(serverId)
+        .watchMembers(guildId)
         .listen(
           (members) {
             final grouped = groupMembersIntoRoles(members);

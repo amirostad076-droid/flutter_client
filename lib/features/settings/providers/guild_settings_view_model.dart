@@ -44,13 +44,13 @@ class GuildSettingsViewModel extends _$GuildSettingsViewModel {
     );
   }
 
-  Future<void> loadServer(String serverId) async {
+  Future<void> loadServer(String guildId) async {
     state = state.copyWith(isLoading: true);
     try {
       final guildRepo = ref.read(guildRepositoryProvider);
-      final guild = await guildRepo.getServer(serverId);
+      final guild = await guildRepo.getServer(guildId);
       state = state.copyWith(guild: guild);
-      await _loadRoles(serverId);
+      await _loadRoles(guildId);
     } on Exception catch (e) {
       debugPrint(
         '[GuildSettingsViewModel] '
@@ -60,10 +60,10 @@ class GuildSettingsViewModel extends _$GuildSettingsViewModel {
     }
   }
 
-  Future<void> _loadRoles(String serverId) async {
+  Future<void> _loadRoles(String guildId) async {
     try {
       final memberRepo = ref.read(memberRepositoryProvider);
-      final roles = await memberRepo.getRoles(serverId);
+      final roles = await memberRepo.getRoles(guildId);
       state = state.copyWith(roles: roles, isLoading: false);
     } on Exception catch (e) {
       debugPrint(

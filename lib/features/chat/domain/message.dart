@@ -439,7 +439,7 @@ class Message {
       reactions: _decodeList(row.reactionsJson, Reaction.fromJson),
       replyToId: row.replyToId,
       forwardedFrom: row.forwardedFrom,
-      isPinned: row.isPinned,
+      isPinned: row.pinned,
       isMentioned: row.isMentioned,
       type: row.type,
     );

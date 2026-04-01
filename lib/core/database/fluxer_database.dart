@@ -113,7 +113,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -212,6 +212,44 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 16) {
         await m.createTable(dmFolderSettingsTable);
+      }
+      if (from < 17) {
+        // v17: Rename columns to match SDK naming conventions.
+        // serverId → guildId on channels, members, roles.
+        await m.renameColumn(channels, 'server_id', channels.guildId);
+        await m.renameColumn(members, 'server_id', members.guildId);
+        await m.renameColumn(roles, 'server_id', roles.guildId);
+        // nickname → nick on members.
+        await m.renameColumn(members, 'nickname', members.nick);
+        // isHoisted → hoist on roles.
+        await m.renameColumn(roles, 'is_hoisted', roles.hoist);
+        // isBot → bot on users.
+        await m.renameColumn(users, 'is_bot', users.bot);
+        // isPinned → pinned on messages.
+        await m.renameColumn(messages, 'is_pinned', messages.pinned);
+
+        // Recreate indexes with updated names.
+        await customStatement('DROP INDEX IF EXISTS idx_channels_server');
+        await customStatement('DROP INDEX IF EXISTS idx_members_server');
+        await customStatement('DROP INDEX IF EXISTS idx_roles_server');
+        await m.createIndex(
+          Index(
+            'idx_channels_guild',
+            'CREATE INDEX idx_channels_guild ON channels (guild_id)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'idx_members_guild',
+            'CREATE INDEX idx_members_guild ON members (guild_id)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'idx_roles_guild',
+            'CREATE INDEX idx_roles_guild ON roles (guild_id)',
+          ),
+        );
       }
     },
   );

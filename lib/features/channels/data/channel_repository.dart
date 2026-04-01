@@ -10,24 +10,22 @@ class ChannelRepository {
 
   const ChannelRepository(this._client, this._db);
 
-  Stream<List<Channel>> watchChannels(String serverId) {
+  Stream<List<Channel>> watchChannels(String guildId) {
     return _db.channelDao
-        .watchChannels(serverId)
+        .watchChannels(guildId)
         .map((rows) => rows.map(Channel.fromRow).toList());
   }
 
-  Future<List<ChannelCategory>> getChannels(String serverId) async {
+  Future<List<ChannelCategory>> getChannels(String guildId) async {
     try {
-      final channels = await _client.guilds.listGuildChannels(
-        guildId: serverId,
-      );
+      final channels = await _client.guilds.listGuildChannels(guildId: guildId);
 
       final companions = channels
-          .map((ch) => channelFromSdk(ch, serverId))
+          .map((ch) => channelFromSdk(ch, guildId))
           .toList();
       await _db.channelDao.upsertChannels(companions);
 
-      final rows = await _db.channelDao.getChannels(serverId);
+      final rows = await _db.channelDao.getChannels(guildId);
       final channelList = rows.map(Channel.fromRow).toList();
       return groupChannelsIntoCategories(channelList);
     } on DioException catch (e) {

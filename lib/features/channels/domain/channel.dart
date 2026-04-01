@@ -42,7 +42,7 @@ int channelTypeToInt(ChannelType type) {
 
 class Channel {
   final String id;
-  final String serverId;
+  final String guildId;
   final String name;
   final ChannelType type;
   final String? topic;
@@ -51,7 +51,7 @@ class Channel {
 
   const Channel({
     required this.id,
-    required this.serverId,
+    required this.guildId,
     required this.name,
     this.type = ChannelType.text,
     this.topic,
@@ -62,7 +62,7 @@ class Channel {
   factory Channel.fromRow(db.Channel row) {
     return Channel(
       id: row.id,
-      serverId: row.serverId,
+      guildId: row.guildId,
       name: row.name,
       type: channelTypeFromInt(row.type),
       topic: row.topic,
@@ -74,7 +74,7 @@ class Channel {
   db.ChannelsCompanion toCompanion() {
     return db.ChannelsCompanion.insert(
       id: id,
-      serverId: serverId,
+      guildId: guildId,
       name: name,
       type: Value(channelTypeToInt(type)),
       topic: Value(topic),

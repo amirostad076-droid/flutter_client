@@ -336,7 +336,7 @@ class GatewayEventHandler {
           globalName: Value(event.user.globalName),
           avatar: Value(event.user.avatar),
           avatarColor: Value(event.user.avatarColor),
-          isBot: Value(event.user.bot ?? false),
+          bot: Value(event.user.bot ?? false),
           memberSince: Value(dateTimeFromUserSnowflakeOrNull(event.user.id)),
         ),
       );
@@ -415,8 +415,8 @@ class GatewayEventHandler {
             await database.memberDao.upsertMember(
               db.MembersCompanion.insert(
                 userId: member.user.id,
-                serverId: guildId,
-                nickname: Value(member.nick),
+                guildId: guildId,
+                nick: Value(member.nick),
                 serverAvatar: Value(member.avatar),
                 roleIdsJson: Value(jsonEncode(member.roles)),
                 joinedAt: Value(member.joinedAt),
@@ -729,8 +729,8 @@ class GatewayEventHandler {
       database.memberDao.upsertMember(
         db.MembersCompanion.insert(
           userId: member.user.id,
-          serverId: guildId,
-          nickname: Value(member.nick),
+          guildId: guildId,
+          nick: Value(member.nick),
           serverAvatar: Value(member.avatar),
           roleIdsJson: Value(jsonEncode(member.roles)),
           joinedAt: Value(member.joinedAt),
@@ -788,7 +788,7 @@ class GatewayEventHandler {
           globalName: Value(event.user.globalName),
           avatar: Value(event.user.avatar),
           avatarColor: Value(event.user.avatarColor),
-          isBot: Value(event.user.bot ?? false),
+          bot: Value(event.user.bot ?? false),
           memberSince: Value(dateTimeFromUserSnowflakeOrNull(event.user.id)),
         ),
       ),
@@ -917,9 +917,9 @@ class GatewayEventHandler {
       return;
     }
     // Actually removed from guild — delete all associated data.
-    unawaited(database.channelDao.deleteChannelsForServer(event.guildId));
-    unawaited(database.memberDao.deleteMembersForServer(event.guildId));
-    unawaited(database.roleDao.deleteRolesForServer(event.guildId));
+    unawaited(database.channelDao.deleteChannelsForGuild(event.guildId));
+    unawaited(database.memberDao.deleteMembersForGuild(event.guildId));
+    unawaited(database.roleDao.deleteRolesForGuild(event.guildId));
     unawaited(database.guildDao.deleteServer(event.guildId));
     onGuildPermissionsEvict?.call(event.guildId);
   }

@@ -8,7 +8,7 @@ class MemberRole {
   final String name;
   final int color;
   final int position;
-  final bool isHoisted;
+  final bool hoist;
   final int permissions;
 
   const MemberRole({
@@ -16,7 +16,7 @@ class MemberRole {
     required this.name,
     required this.color,
     this.position = 0,
-    this.isHoisted = false,
+    this.hoist = false,
     this.permissions = 0,
   });
 
@@ -26,7 +26,7 @@ class MemberRole {
       name: row.name,
       color: row.color,
       position: row.position,
-      isHoisted: row.isHoisted,
+      hoist: row.hoist,
       permissions: int.tryParse(row.permissions) ?? 0,
     );
   }
@@ -82,13 +82,13 @@ class Member {
     return Member(
       id: row.userId,
       username: user?.username ?? '',
-      globalName: row.nickname ?? user?.globalName,
+      globalName: row.nick ?? user?.globalName,
       avatar: row.serverAvatar ?? user?.avatar,
       avatarColor: user?.avatarColor,
-      nickname: row.nickname,
+      nickname: row.nick,
       roles: memberRoles,
       status: user?.status ?? 'offline',
-      isBot: user?.isBot ?? false,
+      isBot: user?.bot ?? false,
       customStatus: user?.customStatus,
     );
   }
@@ -130,7 +130,7 @@ List<RoleGroup> groupMembersIntoRoles(List<Member> members) {
   final roleForGroup = <String, MemberRole>{};
 
   for (final member in members) {
-    final hoisted = member.roles.where((r) => r.isHoisted).toList()
+    final hoisted = member.roles.where((r) => r.hoist).toList()
       ..sort((a, b) => b.position.compareTo(a.position));
 
     final groupKey = hoisted.isNotEmpty ? hoisted.first.name : 'Online';

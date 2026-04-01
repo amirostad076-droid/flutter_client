@@ -10,15 +10,15 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
     with _$ChannelDaoMixin {
   ChannelDao(super.attachedDatabase);
 
-  Stream<List<Channel>> watchChannels(String serverId) =>
+  Stream<List<Channel>> watchChannels(String guildId) =>
       (select(channels)
-            ..where((c) => c.serverId.equals(serverId))
+            ..where((c) => c.guildId.equals(guildId))
             ..orderBy([(c) => OrderingTerm.asc(c.position)]))
           .watch();
 
-  Future<List<Channel>> getChannels(String serverId) =>
+  Future<List<Channel>> getChannels(String guildId) =>
       (select(channels)
-            ..where((c) => c.serverId.equals(serverId))
+            ..where((c) => c.guildId.equals(guildId))
             ..orderBy([(c) => OrderingTerm.asc(c.position)]))
           .get();
 
@@ -44,8 +44,8 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
   Future<void> deleteChannel(String id) =>
       (delete(channels)..where((c) => c.id.equals(id))).go();
 
-  Future<void> deleteChannelsForServer(String serverId) =>
-      (delete(channels)..where((c) => c.serverId.equals(serverId))).go();
+  Future<void> deleteChannelsForGuild(String guildId) =>
+      (delete(channels)..where((c) => c.guildId.equals(guildId))).go();
 
   Future<void> clearAll() => delete(channels).go();
 }

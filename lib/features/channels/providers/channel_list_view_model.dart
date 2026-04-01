@@ -41,7 +41,7 @@ class ChannelListState {
 
 @Riverpod(keepAlive: true)
 class ChannelListViewModel extends _$ChannelListViewModel {
-  String? _currentServerId;
+  String? _currentGuildId;
   StreamSubscription<List<Channel>>? _subscription;
 
   @override
@@ -55,14 +55,14 @@ class ChannelListViewModel extends _$ChannelListViewModel {
     );
   }
 
-  void loadChannels(String serverId, {String? serverName}) {
-    if (_currentServerId == serverId) {
+  void loadChannels(String guildId, {String? serverName}) {
+    if (_currentGuildId == guildId) {
       if (serverName != null) {
         state = state.copyWith(serverName: serverName);
       }
       return;
     }
-    _currentServerId = serverId;
+    _currentGuildId = guildId;
     state = state.copyWith(
       serverName: serverName ?? state.serverName,
       collapsedCategories: {},
@@ -71,7 +71,7 @@ class ChannelListViewModel extends _$ChannelListViewModel {
     final repo = ref.read(channelRepositoryProvider);
     unawaited(_subscription?.cancel());
     _subscription = repo
-        .watchChannels(serverId)
+        .watchChannels(guildId)
         .listen(
           (channels) {
             final categories = groupChannelsIntoCategories(channels);

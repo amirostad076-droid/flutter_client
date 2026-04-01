@@ -24,10 +24,10 @@ db.ServersCompanion guildFromSdk(
 }
 
 /// Converts SDK [ChannelResponse] to a Drift companion for upserting.
-db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String serverId) {
+db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String guildId) {
   return db.ChannelsCompanion.insert(
     id: sdk.id,
-    serverId: serverId,
+    guildId: guildId,
     name: sdk.name ?? '',
     type: Value(sdk.type),
     topic: Value(sdk.topic),
@@ -38,14 +38,14 @@ db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String serverId) {
 }
 
 /// Converts SDK [GuildRoleResponse] to a Drift companion.
-db.RolesCompanion roleFromSdk(GuildRoleResponse sdk, String serverId) {
+db.RolesCompanion roleFromSdk(GuildRoleResponse sdk, String guildId) {
   return db.RolesCompanion.insert(
     id: sdk.id,
-    serverId: serverId,
+    guildId: guildId,
     name: sdk.name,
     color: Value(sdk.color),
     position: Value(sdk.position),
-    isHoisted: Value(sdk.hoist),
+    hoist: Value(sdk.hoist),
     permissions: Value(sdk.permissions),
   );
 }
@@ -59,7 +59,7 @@ db.UsersCompanion userFromPartialSdk(UserPartialResponse sdk) {
     globalName: Value(sdk.globalName),
     avatar: Value(sdk.avatar),
     avatarColor: Value(sdk.avatarColor),
-    isBot: Value(sdk.bot ?? false),
+    bot: Value(sdk.bot ?? false),
     memberSince: Value(dateTimeFromUserSnowflakeOrNull(sdk.id)),
   );
 }

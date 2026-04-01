@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 
-@TableIndex(name: 'idx_channels_server', columns: {#serverId})
+@TableIndex(name: 'idx_channels_guild', columns: {#guildId})
 class Channels extends Table {
   TextColumn get id => text()();
-  TextColumn get serverId => text()();
+  TextColumn get guildId => text()();
   TextColumn get name => text()();
   IntColumn get type => integer().withDefault(const Constant(0))();
   TextColumn get topic => text().nullable()();

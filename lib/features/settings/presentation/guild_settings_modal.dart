@@ -9,11 +9,11 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class GuildSettingsModal extends ConsumerStatefulWidget {
-  final String serverId;
+  final String guildId;
   final int initialTab;
 
   const GuildSettingsModal({
-    required this.serverId,
+    required this.guildId,
     this.initialTab = 0,
     super.key,
   });
@@ -43,7 +43,7 @@ class _GuildSettingsModalState extends ConsumerState<GuildSettingsModal> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
           .read(guildSettingsViewModelProvider.notifier)
-          .loadServer(widget.serverId)
+          .loadServer(widget.guildId)
           .ignore();
     });
   }

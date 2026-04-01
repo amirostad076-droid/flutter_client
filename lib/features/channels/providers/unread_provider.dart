@@ -70,7 +70,7 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) async* {
 }
 
 @riverpod
-Stream<UnreadState> serverUnread(Ref ref, String serverId) {
+Stream<UnreadState> serverUnread(Ref ref, String guildId) {
   final db = ref.watch(fluxerDatabaseProvider);
   final controller = StreamController<UnreadState>();
   var disposed = false;
@@ -80,7 +80,7 @@ Stream<UnreadState> serverUnread(Ref ref, String serverId) {
       return;
     }
 
-    final channels = await db.channelDao.getChannels(serverId);
+    final channels = await db.channelDao.getChannels(guildId);
     if (channels.isEmpty) {
       if (!disposed) {
         controller.add(const UnreadState());
@@ -88,7 +88,7 @@ Stream<UnreadState> serverUnread(Ref ref, String serverId) {
       return;
     }
 
-    final guildSettings = await db.userGuildSettingsDao.getByGuildId(serverId);
+    final guildSettings = await db.userGuildSettingsDao.getByGuildId(guildId);
     final mutedChannelIds = <String>{};
     var guildMuted = false;
     if (guildSettings != null) {
@@ -173,7 +173,7 @@ Stream<UnreadState> serverUnread(Ref ref, String serverId) {
   }
 
   final channelSub = db.channelDao
-      .watchChannels(serverId)
+      .watchChannels(guildId)
       .listen((_) => unawaited(recompute()));
 
   final readStateSub = db.readStateDao.watchReadStates().listen(

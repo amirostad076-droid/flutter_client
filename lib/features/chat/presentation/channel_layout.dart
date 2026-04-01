@@ -7,14 +7,14 @@ import 'package:fluxer_app/features/chat/presentation/widgets/channel_header.dar
 import 'package:fluxer_app/features/members/presentation/widgets/channel_members.dart';
 
 /// Wrapper screen for the chat area content.
-/// Takes serverId and channelId from go_router params.
+/// Takes guildId and channelId from go_router params.
 class ChannelLayout extends ConsumerWidget {
-  final String serverId;
+  final String guildId;
   final String channelId;
   final String? messageId;
 
   const ChannelLayout({
-    required this.serverId,
+    required this.guildId,
     required this.channelId,
     this.messageId,
     super.key,

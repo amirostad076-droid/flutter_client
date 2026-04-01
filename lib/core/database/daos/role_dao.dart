@@ -9,15 +9,15 @@ part 'role_dao.g.dart';
 class RoleDao extends DatabaseAccessor<FluxerDatabase> with _$RoleDaoMixin {
   RoleDao(super.attachedDatabase);
 
-  Future<List<Role>> getRoles(String serverId) =>
+  Future<List<Role>> getRoles(String guildId) =>
       (select(roles)
-            ..where((r) => r.serverId.equals(serverId))
+            ..where((r) => r.guildId.equals(guildId))
             ..orderBy([(r) => OrderingTerm.desc(r.position)]))
           .get();
 
-  Stream<List<Role>> watchRoles(String serverId) =>
+  Stream<List<Role>> watchRoles(String guildId) =>
       (select(roles)
-            ..where((r) => r.serverId.equals(serverId))
+            ..where((r) => r.guildId.equals(guildId))
             ..orderBy([(r) => OrderingTerm.desc(r.position)]))
           .watch();
 
@@ -35,8 +35,8 @@ class RoleDao extends DatabaseAccessor<FluxerDatabase> with _$RoleDaoMixin {
   Future<void> deleteRole(String id) =>
       (delete(roles)..where((r) => r.id.equals(id))).go();
 
-  Future<void> deleteRolesForServer(String serverId) =>
-      (delete(roles)..where((r) => r.serverId.equals(serverId))).go();
+  Future<void> deleteRolesForGuild(String guildId) =>
+      (delete(roles)..where((r) => r.guildId.equals(guildId))).go();
 
   Future<void> clearAll() => delete(roles).go();
 }

@@ -1815,9 +1815,9 @@ Future<Map<String, Object?>> _buildGuildDebugJson({
       'name': role.name,
       'color': role.color,
       'position': role.position,
-      'hoist_position': role.isHoisted ? role.position : null,
+      'hoist_position': role.hoist ? role.position : null,
       'permissions': role.permissions,
-      'hoist': role.isHoisted,
+      'hoist': role.hoist,
     };
   }
   json['roles'] = rolesMap;

@@ -46,7 +46,7 @@ class ChannelMention extends ConsumerWidget {
       onTap: channel == null
           ? null
           : () => context.go(
-              RoutePaths.guildChannel(channel.serverId, channel.id),
+              RoutePaths.guildChannel(channel.guildId, channel.id),
             ),
       child: _MentionPill(
         child: Row(
@@ -129,7 +129,7 @@ class UserMention extends ConsumerWidget {
     final member = memberAsync?.value;
 
     final name =
-        member?.nickname ?? user?.globalName ?? user?.username ?? userId;
+        member?.nick ?? user?.globalName ?? user?.username ?? userId;
 
     final colors = context.colors;
     final style = (baseStyle ?? const TextStyle()).copyWith(
@@ -155,9 +155,9 @@ final FutureProviderFamily<User?, String> _userByIdProvider = FutureProvider
 
 final FutureProviderFamily<Member?, (String, String)> _memberByUserIdProvider =
     FutureProvider.autoDispose.family<Member?, (String, String)>((ref, args) {
-      final (userId, serverId) = args;
+      final (userId, guildId) = args;
       final db = ref.watch(fluxerDatabaseProvider);
-      return db.memberDao.getMemberByUserId(userId, serverId);
+      return db.memberDao.getMemberByUserId(userId, guildId);
     });
 
 class RoleMention extends ConsumerWidget {

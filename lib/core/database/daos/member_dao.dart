@@ -9,17 +9,16 @@ part 'member_dao.g.dart';
 class MemberDao extends DatabaseAccessor<FluxerDatabase> with _$MemberDaoMixin {
   MemberDao(super.attachedDatabase);
 
-  Future<Member?> getMemberByUserId(String userId, String serverId) =>
-      (select(members)..where(
-            (m) => m.userId.equals(userId) & m.serverId.equals(serverId),
-          ))
+  Future<Member?> getMemberByUserId(String userId, String guildId) =>
+      (select(members)
+            ..where((m) => m.userId.equals(userId) & m.guildId.equals(guildId)))
           .getSingleOrNull();
 
-  Future<List<Member>> getMembers(String serverId) =>
-      (select(members)..where((m) => m.serverId.equals(serverId))).get();
+  Future<List<Member>> getMembers(String guildId) =>
+      (select(members)..where((m) => m.guildId.equals(guildId))).get();
 
-  Stream<List<Member>> watchMembers(String serverId) =>
-      (select(members)..where((m) => m.serverId.equals(serverId))).watch();
+  Stream<List<Member>> watchMembers(String guildId) =>
+      (select(members)..where((m) => m.guildId.equals(guildId))).watch();
 
   Future<void> upsertMember(MembersCompanion member) =>
       into(members).insertOnConflictUpdate(member);
@@ -32,12 +31,12 @@ class MemberDao extends DatabaseAccessor<FluxerDatabase> with _$MemberDaoMixin {
     });
   }
 
-  Future<void> deleteMember(String userId, String serverId) => (delete(
+  Future<void> deleteMember(String userId, String guildId) => (delete(
     members,
-  )..where((m) => m.userId.equals(userId) & m.serverId.equals(serverId))).go();
+  )..where((m) => m.userId.equals(userId) & m.guildId.equals(guildId))).go();
 
-  Future<void> deleteMembersForServer(String serverId) =>
-      (delete(members)..where((m) => m.serverId.equals(serverId))).go();
+  Future<void> deleteMembersForGuild(String guildId) =>
+      (delete(members)..where((m) => m.guildId.equals(guildId))).go();
 
   Future<void> clearAll() => delete(members).go();
 }

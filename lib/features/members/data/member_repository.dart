@@ -13,9 +13,9 @@ class MemberRepository {
 
   const MemberRepository(this._client, this._db);
 
-  Stream<List<Member>> watchMembers(String serverId) {
-    return _db.memberDao.watchMembers(serverId).asyncMap((members) async {
-      final roles = await _db.roleDao.getRoles(serverId);
+  Stream<List<Member>> watchMembers(String guildId) {
+    return _db.memberDao.watchMembers(guildId).asyncMap((members) async {
+      final roles = await _db.roleDao.getRoles(guildId);
       final userIds = members.map((m) => m.userId).toList();
       final userList = await _db.userDao.getUsersByIds(userIds);
       final users = {for (final u in userList) u.id: u};
@@ -26,11 +26,11 @@ class MemberRepository {
     });
   }
 
-  Future<List<Member>> getMembers(String serverId, {int limit = 100}) async {
+  Future<List<Member>> getMembers(String guildId, {int limit = 100}) async {
     List<dynamic> rawList;
     try {
       final members = await _client.guilds.listGuildMembers2(
-        guildId: serverId,
+        guildId: guildId,
         limit: limit,
       );
 
@@ -77,7 +77,7 @@ class MemberRepository {
           globalName: Value(user['global_name'] as String?),
           avatar: Value(user['avatar'] as String?),
           avatarColor: Value(user['avatar_color'] as int?),
-          isBot: Value(user['bot'] as bool? ?? false),
+          bot: Value(user['bot'] as bool? ?? false),
           memberSince: Value(dateTimeFromUserSnowflakeOrNull(userId)),
         ),
       );
@@ -89,8 +89,8 @@ class MemberRepository {
       memberCompanions.add(
         db.MembersCompanion.insert(
           userId: user['id'] as String,
-          serverId: serverId,
-          nickname: Value(map['nick'] as String?),
+          guildId: guildId,
+          nick: Value(map['nick'] as String?),
           serverAvatar: Value(map['avatar'] as String?),
           roleIdsJson: Value(jsonEncode(roles)),
           joinedAt: Value(map['joined_at'] as DateTime?),
@@ -101,8 +101,8 @@ class MemberRepository {
     await _db.userDao.upsertUsers(userCompanions);
     await _db.memberDao.upsertMembers(memberCompanions);
 
-    final rows = await _db.memberDao.getMembers(serverId);
-    final dbRoles = await _db.roleDao.getRoles(serverId);
+    final rows = await _db.memberDao.getMembers(guildId);
+    final dbRoles = await _db.roleDao.getRoles(guildId);
     final userIds = rows.map((m) => m.userId).toList();
     final userList = await _db.userDao.getUsersByIds(userIds);
     final users = {for (final u in userList) u.id: u};
@@ -112,10 +112,10 @@ class MemberRepository {
         .toList();
   }
 
-  Future<List<MemberRole>> getRoles(String serverId) async {
+  Future<List<MemberRole>> getRoles(String guildId) async {
     List<dynamic> rawList;
     try {
-      final roles = await _client.guilds.listGuildRoles(guildId: serverId);
+      final roles = await _client.guilds.listGuildRoles(guildId: guildId);
 
       rawList = roles
           .map(
@@ -141,7 +141,7 @@ class MemberRepository {
       final map = item as Map<String, dynamic>;
       return db.RolesCompanion.insert(
         id: map['id'] as String,
-        serverId: serverId,
+        guildId: guildId,
         name: map['name'] as String,
         color: map['color'] != null
             ? Value(map['color'] as int)
@@ -149,7 +149,7 @@ class MemberRepository {
         position: map['position'] != null
             ? Value(map['position'] as int)
             : const Value.absent(),
-        isHoisted: map['hoist'] != null
+        hoist: map['hoist'] != null
             ? Value(map['hoist'] as bool)
             : const Value.absent(),
         permissions: map['permissions'] != null
@@ -160,7 +160,7 @@ class MemberRepository {
 
     await _db.roleDao.upsertRoles(companions);
 
-    final rows = await _db.roleDao.getRoles(serverId);
+    final rows = await _db.roleDao.getRoles(guildId);
     return rows.map(MemberRole.fromRow).toList();
   }
 }

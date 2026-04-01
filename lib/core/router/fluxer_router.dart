@@ -230,7 +230,7 @@ GoRouter fluxerRouter(Ref ref) {
         name: RouteNames.guildSettings,
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => GuildSettingsModal(
-          serverId: state.pathParameters['guildId'] ?? '',
+          guildId: state.pathParameters['guildId'] ?? '',
           initialTab: _guildSettingsTabIndex(state.uri.queryParameters['tab']),
         ),
       ),
@@ -368,7 +368,7 @@ GoRouter fluxerRouter(Ref ref) {
                       return _slideTransitionPage(
                         key: state.pageKey,
                         child: ChannelLayout(
-                          serverId: guildId,
+                          guildId: guildId,
                           channelId: channelId,
                         ),
                       );
@@ -384,7 +384,7 @@ GoRouter fluxerRouter(Ref ref) {
                           return _slideTransitionPage(
                             key: state.pageKey,
                             child: ChannelLayout(
-                              serverId: guildId,
+                              guildId: guildId,
                               channelId: channelId,
                               messageId: messageId,
                             ),

@@ -7,7 +7,7 @@ class Users extends Table {
   TextColumn get globalName => text().nullable()();
   TextColumn get avatar => text().nullable()();
   IntColumn get avatarColor => integer().nullable()();
-  BoolColumn get isBot => boolean().withDefault(const Constant(false))();
+  BoolColumn get bot => boolean().withDefault(const Constant(false))();
   TextColumn get status => text().withDefault(const Constant('offline'))();
   TextColumn get customStatus => text().nullable()();
   DateTimeColumn get memberSince => dateTime().nullable()();

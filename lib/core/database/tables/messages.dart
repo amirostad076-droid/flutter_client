@@ -17,7 +17,7 @@ class Messages extends Table {
   TextColumn get reactionsJson => text().withDefault(const Constant('[]'))();
   TextColumn get replyToId => text().nullable()();
   TextColumn get forwardedFrom => text().nullable()();
-  BoolColumn get isPinned => boolean().withDefault(const Constant(false))();
+  BoolColumn get pinned => boolean().withDefault(const Constant(false))();
   BoolColumn get isMentioned => boolean().withDefault(const Constant(false))();
   IntColumn get type => integer().withDefault(const Constant(0))();
 
