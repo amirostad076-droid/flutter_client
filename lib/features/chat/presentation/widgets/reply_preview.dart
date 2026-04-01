@@ -71,20 +71,20 @@ class ReplyConnectorPainter extends CustomPainter {
   final double lineTop;
   final double lineBottom;
   final double horizontalEnd;
-  final Color? color;
+  final Color color;
 
   ReplyConnectorPainter({
     required this.avatarCenterX,
     required this.lineTop,
     required this.lineBottom,
     required this.horizontalEnd,
-    this.color,
+    required this.color,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color ?? const Color(0xFF4E5058)
+      ..color = color
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

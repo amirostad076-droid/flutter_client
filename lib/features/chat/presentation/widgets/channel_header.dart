@@ -43,7 +43,9 @@ class ChannelHeader extends ConsumerWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: context.colors.borderColor)),
+        border: Border(
+          bottom: BorderSide(color: context.colors.userAreaDividerColor),
+        ),
       ),
       child: ResponsiveLayout(
         builder: (context, mode) => switch (mode) {
@@ -52,7 +54,6 @@ class ChannelHeader extends ConsumerWidget {
             ref,
             channel: channel,
             dm: dm,
-            isMemberListVisible: isMemberListVisible,
           ),
           _ => _buildDesktopBar(
             context,
@@ -71,62 +72,77 @@ class ChannelHeader extends ConsumerWidget {
     WidgetRef ref, {
     required Channel? channel,
     required DmConversation? dm,
-    required bool isMemberListVisible,
-  }) => SizedBox(
-    height: 48,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
-        children: [
-          _topBarIcon(
-            context,
-            Icons.arrow_back,
-            'Back',
-            onTap: () => context.pop(),
+  }) => Container(
+    height: 64,
+    color: context.colors.chatInputBackground,
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: Row(
+      children: [
+        IconButton(
+          icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, size: 24),
+          color: context.colors.textPrimaryMuted,
+          onPressed: () => context.pop(),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          style: IconButton.styleFrom(
+            shape: const CircleBorder(),
           ),
-          _buildLeadingIcon(context, channel: channel, dm: dm),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              _resolveTitle(channel: channel, dm: dm),
-              style: context.textStyles.channelName,
-              overflow: TextOverflow.ellipsis,
-            ),
+        ),
+        _buildLeadingIcon(context, channel: channel, dm: dm),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  _resolveTitle(channel: channel, dm: dm),
+                  style: context.textStyles.channelName,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              PhosphorIcon(
+                PhosphorIconsBold.caretRight,
+                size: 16,
+                color: context.colors.textPrimaryMuted,
+              ),
+            ],
           ),
-          if (dm != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: FluxerButton.secondary(
-                icon: PhosphorIconsFill.phoneCall,
-                isSquare: true,
-                size: FluxerButtonSize.compact,
-                onPressed: () {},
-              ),
-            ),
-          if (dm != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: FluxerButton.secondary(
-                icon: PhosphorIconsFill.videoCamera,
-                isSquare: true,
-                size: FluxerButtonSize.compact,
-                onPressed: () {},
-              ),
-            ),
-          if (dm == null)
-            _topBarIcon(context, PhosphorIconsFill.magnifyingGlass, 'Search'),
-          if (dm == null)
-            _topBarIcon(
-              context,
-              PhosphorIconsFill.users,
-              'Member List',
-              isActive: isMemberListVisible,
-              onTap: () => ref
-                  .read(channelListViewModelProvider.notifier)
-                  .toggleMemberList(),
-            ),
+        ),
+        FluxerButton.circle(
+          icon: PhosphorIconsBold.star,
+          variant: FluxerButtonVariant.secondary,
+          size: FluxerButtonSize.small,
+          iconSize: 20,
+          onPressed: () {},
+        ),
+        const SizedBox(width: 8),
+        if (dm != null) ...[
+          FluxerButton.circle(
+            icon: PhosphorIconsFill.phone,
+            variant: FluxerButtonVariant.secondary,
+            size: FluxerButtonSize.small,
+            iconSize: 20,
+            onPressed: () {},
+          ),
+          const SizedBox(width: 8),
+          FluxerButton.circle(
+            icon: PhosphorIconsFill.videoCamera,
+            variant: FluxerButtonVariant.secondary,
+            size: FluxerButtonSize.small,
+            iconSize: 20,
+            onPressed: () {},
+          ),
         ],
-      ),
+        if (dm == null)
+          FluxerButton.circle(
+            icon: PhosphorIconsBold.magnifyingGlass,
+            variant: FluxerButtonVariant.secondary,
+            size: FluxerButtonSize.small,
+            iconSize: 20,
+            onPressed: () {},
+          ),
+      ],
     ),
   );
 
@@ -211,7 +227,7 @@ class ChannelHeader extends ConsumerWidget {
         userId: dm.recipientId,
         imageUrl: _dmAvatarUrl(dm),
         status: dm.recipientStatus,
-        size: 28,
+        size: 32,
       );
     }
     return PhosphorIcon(
