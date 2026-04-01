@@ -3,106 +3,180 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class FluxerToastOverlay extends ConsumerWidget {
   const FluxerToastOverlay({required this.child, super.key});
 
   final Widget child;
 
-  Color _variantColor(BuildContext context, FluxerToastVariant variant) {
+  IconData? _variantIcon(FluxerToastVariant variant) => switch (variant) {
+    FluxerToastVariant.success => PhosphorIconsBold.check,
+    FluxerToastVariant.danger => PhosphorIconsBold.x,
+    FluxerToastVariant.warning => PhosphorIconsBold.warning,
+    FluxerToastVariant.info => null,
+  };
+
+  Color _variantIconColor(BuildContext context, FluxerToastVariant variant) {
     final colors = context.colors;
     return switch (variant) {
-      FluxerToastVariant.info => colors.accentInfo,
       FluxerToastVariant.success => colors.accentSuccess,
-      FluxerToastVariant.warning => colors.accentWarning,
       FluxerToastVariant.danger => colors.accentDanger,
+      FluxerToastVariant.warning => colors.accentWarning,
+      FluxerToastVariant.info => colors.textPrimary,
     };
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = ref.watch(toastProvider);
-    final colors = context.colors;
     final layout = context.layout;
-    final textStyles = context.textStyles;
-    final motion = context.motion;
+    final mediaQuery = MediaQuery.of(context);
 
     return Stack(
       fit: StackFit.expand,
       children: [
         child,
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: layout.s4,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
+        if (entries.isNotEmpty)
+          Positioned(
+            left: layout.s4,
+            right: layout.s4,
+            top: mediaQuery.padding.top + layout.s4,
+            child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   for (final entry in entries)
                     Padding(
-                      padding: EdgeInsets.only(top: layout.s2),
-                      child: Dismissible(
-                        key: ValueKey(entry.id),
-                        onDismissed: (_) =>
-                            ref.read(toastProvider.notifier).dismiss(entry.id),
-                        child: AnimatedSize(
-                          duration: motion.normal,
-                          curve: motion.curve,
-                          child: Material(
-                            color: colors.backgroundFloating,
-                            borderRadius: layout.radiusLg,
-                            child: Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                borderRadius: layout.radiusLg,
-                                border: Border.all(
-                                  color: _variantColor(
-                                    context,
-                                    entry.toast.variant,
-                                  ),
-                                ),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: layout.s4,
-                                vertical: layout.s3,
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      entry.toast.message,
-                                      style: textStyles.bodyMedium,
-                                    ),
-                                  ),
-                                  if (entry.toast.action case final action?)
-                                    Padding(
-                                      padding: EdgeInsets.only(left: layout.s2),
-                                      child: GestureDetector(
-                                        onTap: action.onPressed,
-                                        child: Text(
-                                          action.label,
-                                          style: textStyles.bodyMedium.copyWith(
-                                            color: colors.textLink,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
+                      padding: EdgeInsets.only(bottom: layout.s2),
+                      child: _ToastItem(
+                        entry: entry,
+                        icon: _variantIcon(entry.toast.variant),
+                        iconColor: _variantIconColor(
+                          context,
+                          entry.toast.variant,
                         ),
+                        onDismiss: () =>
+                            ref.read(toastProvider.notifier).dismiss(entry.id),
                       ),
                     ),
                 ],
               ),
             ),
           ),
-        ),
       ],
+    );
+  }
+}
+
+class _ToastItem extends StatefulWidget {
+  const _ToastItem({
+    required this.entry,
+    required this.icon,
+    required this.iconColor,
+    required this.onDismiss,
+  });
+
+  final ToastEntry entry;
+  final IconData? icon;
+  final Color iconColor;
+  final VoidCallback onDismiss;
+
+  @override
+  State<_ToastItem> createState() => _ToastItemState();
+}
+
+class _ToastItemState extends State<_ToastItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<Offset> _slideAnimation;
+  late final Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final layout = context.layout;
+    final textStyles = context.textStyles;
+
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: GestureDetector(
+          onTap: widget.onDismiss,
+          child: Material(
+            type: MaterialType.transparency,
+            child: Container(
+            constraints: const BoxConstraints(maxWidth: 400),
+            padding: EdgeInsets.symmetric(
+              horizontal: layout.s4,
+              vertical: layout.s3,
+            ),
+            decoration: BoxDecoration(
+              color: colors.backgroundPrimary,
+              borderRadius: layout.radiusFull,
+              border: Border.all(color: colors.backgroundModifierAccent),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 15,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 6,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.icon != null) ...[
+                  PhosphorIcon(
+                    widget.icon!,
+                    size: 20,
+                    color: widget.iconColor,
+                  ),
+                  SizedBox(width: layout.s3),
+                ],
+                Flexible(
+                  child: Text(
+                    widget.entry.toast.message,
+                    style: textStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ),
+        ),
+      ),
     );
   }
 }

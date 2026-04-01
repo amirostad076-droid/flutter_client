@@ -49,5 +49,51 @@ class FriendRepository {
     }
   }
 
+  Future<void> sendFriendRequest(String userId) async {
+    try {
+      await _client.users.sendFriendRequest(userId: userId);
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.statusMessage ?? 'Failed to send friend request',
+      );
+    }
+  }
+
+  Future<void> acceptFriendRequest(String userId) async {
+    try {
+      await _client.users.acceptOrUpdateFriendRequest(
+        userId: userId,
+        body: const RelationshipTypePutRequest(),
+      );
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.statusMessage ?? 'Failed to accept friend request',
+      );
+    }
+  }
+
+  Future<void> removeRelationship(String userId) async {
+    try {
+      await _client.users.removeRelationship(userId: userId);
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.statusMessage ?? 'Failed to remove relationship',
+      );
+    }
+  }
+
+  Future<void> blockUser(String userId) async {
+    try {
+      await _client.users.acceptOrUpdateFriendRequest(
+        userId: userId,
+        body: const RelationshipTypePutRequest(type: RelationshipTypes.blocked),
+      );
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.statusMessage ?? 'Failed to block user',
+      );
+    }
+  }
+
   static int _typeToInt(RelationshipTypes type) => type.json ?? 1;
 }

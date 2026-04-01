@@ -1000,16 +1000,16 @@ abstract class FluxerLocalizations {
   /// **'Mark as Read'**
   String get dmMarkAsRead;
 
-  /// DM context menu action to mute conversation.
+  /// DM context menu action to mute a DM.
   ///
   /// In en, this message translates to:
-  /// **'Mute Conversation'**
+  /// **'Mute DM'**
   String get dmMuteConversation;
 
-  /// DM context menu action to unmute conversation.
+  /// DM context menu action to unmute a DM.
   ///
   /// In en, this message translates to:
-  /// **'Unmute Conversation'**
+  /// **'Unmute DM'**
   String get dmUnmuteConversation;
 
   /// DM context menu action to pin a DM.
@@ -1060,11 +1060,311 @@ abstract class FluxerLocalizations {
   /// **'Copy Channel ID'**
   String get dmCopyChannelId;
 
+  /// Toast message after copying a channel ID.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel ID copied'**
+  String get dmChannelIdCopied;
+
   /// DM context menu action to copy the recipient user ID.
   ///
   /// In en, this message translates to:
   /// **'Copy User ID'**
   String get dmCopyUserId;
+
+  /// Toast message after copying a user ID.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID copied'**
+  String get dmUserIdCopied;
+
+  /// DM context menu action to view recipient profile.
+  ///
+  /// In en, this message translates to:
+  /// **'View Profile'**
+  String get dmViewProfile;
+
+  /// DM context menu action to start a voice call.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Voice Call'**
+  String get dmVoiceCall;
+
+  /// DM context menu action to add a note about the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Note'**
+  String get dmAddNote;
+
+  /// DM context menu action to edit a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Group'**
+  String get dmEditGroup;
+
+  /// DM context menu action to invite user to a community.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite to Community'**
+  String get dmInviteToCommunity;
+
+  /// DM context menu action to block a user.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get dmBlock;
+
+  /// DM context menu action to leave a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Group'**
+  String get dmLeaveGroup;
+
+  /// Shown when no communities are available to invite to.
+  ///
+  /// In en, this message translates to:
+  /// **'No communities available'**
+  String get dmNoCommunitiesAvailable;
+
+  /// Member count label for group DMs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Members'**
+  String dmGroupMemberCount(int count);
+
+  /// Mute duration option: 15 minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'For 15 minutes'**
+  String get dmMuteFor15Min;
+
+  /// Mute duration option: 30 minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'For 30 minutes'**
+  String get dmMuteFor30Min;
+
+  /// Mute duration option: 1 hour.
+  ///
+  /// In en, this message translates to:
+  /// **'For 1 hour'**
+  String get dmMuteFor1Hour;
+
+  /// Mute duration option: 3 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'For 3 hours'**
+  String get dmMuteFor3Hours;
+
+  /// Mute duration option: 4 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'For 4 hours'**
+  String get dmMuteFor4Hours;
+
+  /// Mute duration option: 8 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'For 8 hours'**
+  String get dmMuteFor8Hours;
+
+  /// Mute duration option: 24 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'For 24 hours'**
+  String get dmMuteFor24Hours;
+
+  /// Mute duration option: 3 days.
+  ///
+  /// In en, this message translates to:
+  /// **'For 3 days'**
+  String get dmMuteFor3Days;
+
+  /// Mute duration option: indefinite.
+  ///
+  /// In en, this message translates to:
+  /// **'Until I turn it back on'**
+  String get dmMuteForever;
+
+  /// DM context menu action to pin a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin Group DM'**
+  String get dmPinGroupDm;
+
+  /// DM context menu action to unpin a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin Group DM'**
+  String get dmUnpinGroupDm;
+
+  /// DM context menu action to favorite a DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite DM'**
+  String get dmFavoriteDm;
+
+  /// DM context menu action to unfavorite a DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfavorite DM'**
+  String get dmUnfavoriteDm;
+
+  /// DM context menu action to favorite a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite Group DM'**
+  String get dmFavoriteGroupDm;
+
+  /// DM context menu action to unfavorite a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfavorite Group DM'**
+  String get dmUnfavoriteGroupDm;
+
+  /// DM context menu action to change friend nickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Friend Nickname'**
+  String get dmChangeFriendNickname;
+
+  /// DM context menu action to remove a friend.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Friend'**
+  String get dmRemoveFriend;
+
+  /// DM context menu action to send a friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Friend'**
+  String get dmAddFriend;
+
+  /// DM context menu action to accept a friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept Friend Request'**
+  String get dmAcceptFriendRequest;
+
+  /// DM context menu action to ignore a friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore Friend Request'**
+  String get dmIgnoreFriendRequest;
+
+  /// DM context menu label when a friend request is pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend Request Sent'**
+  String get dmFriendRequestSent;
+
+  /// DM context menu action to unblock a user.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get dmUnblock;
+
+  /// DM context menu action to debug user data.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug User'**
+  String get dmDebugUser;
+
+  /// DM context menu action to debug channel data.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Channel'**
+  String get dmDebugChannel;
+
+  /// Toast message when a DM is pinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned DM'**
+  String get dmPinned;
+
+  /// Toast message when a DM is unpinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpinned DM'**
+  String get dmUnpinned;
+
+  /// Toast message when a DM conversation is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted DM'**
+  String get dmMuted;
+
+  /// Toast message when a DM conversation is unmuted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmuted DM'**
+  String get dmUnmuted;
+
+  /// Title for the remove friend confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Friend'**
+  String get dmRemoveFriendConfirmTitle;
+
+  /// Description for the remove friend confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove {username} as a friend?'**
+  String dmRemoveFriendConfirmDescription(String username);
+
+  /// Title for the block user confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Block User'**
+  String get dmBlockConfirmTitle;
+
+  /// Description for the block user confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to block {username}? They won\'t be able to message you or send you friend requests.'**
+  String dmBlockConfirmDescription(String username);
+
+  /// Toast message when a friend request is sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request sent'**
+  String get dmFriendRequestSentToast;
+
+  /// Toast message when sending a friend request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send friend request'**
+  String get dmFriendRequestFailed;
+
+  /// Toast message when accepting a friend request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to accept friend request'**
+  String get dmAcceptFriendRequestFailed;
+
+  /// Toast message when removing a friend fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove friend'**
+  String get dmRemoveFriendFailed;
+
+  /// Toast message when blocking a user fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to block user'**
+  String get dmBlockFailed;
+
+  /// Toast message when unblocking a user fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to unblock user'**
+  String get dmUnblockFailed;
+
+  /// Toast message when ignoring a friend request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to ignore friend request'**
+  String get dmIgnoreFriendRequestFailed;
 }
 
 class _FluxerLocalizationsDelegate

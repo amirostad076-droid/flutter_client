@@ -647,13 +647,13 @@
   "@dmMarkAsRead": {
     "description": "DM context menu action to mark conversation as read."
   },
-  "dmMuteConversation": "Mute Conversation",
+  "dmMuteConversation": "Mute DM",
   "@dmMuteConversation": {
-    "description": "DM context menu action to mute conversation."
+    "description": "DM context menu action to mute a DM."
   },
-  "dmUnmuteConversation": "Unmute Conversation",
+  "dmUnmuteConversation": "Unmute DM",
   "@dmUnmuteConversation": {
-    "description": "DM context menu action to unmute conversation."
+    "description": "DM context menu action to unmute a DM."
   },
   "dmPinDm": "Pin DM",
   "@dmPinDm": {
@@ -692,8 +692,223 @@
   "@dmCopyChannelId": {
     "description": "DM context menu action to copy the channel ID."
   },
+  "dmChannelIdCopied": "Channel ID copied",
+  "@dmChannelIdCopied": {
+    "description": "Toast message after copying a channel ID."
+  },
   "dmCopyUserId": "Copy User ID",
   "@dmCopyUserId": {
     "description": "DM context menu action to copy the recipient user ID."
+  },
+  "dmUserIdCopied": "User ID copied",
+  "@dmUserIdCopied": {
+    "description": "Toast message after copying a user ID."
+  },
+  "dmViewProfile": "View Profile",
+  "@dmViewProfile": {
+    "description": "DM context menu action to view recipient profile."
+  },
+  "dmVoiceCall": "Start Voice Call",
+  "@dmVoiceCall": {
+    "description": "DM context menu action to start a voice call."
+  },
+  "dmAddNote": "Add Note",
+  "@dmAddNote": {
+    "description": "DM context menu action to add a note about the user."
+  },
+  "dmEditGroup": "Edit Group",
+  "@dmEditGroup": {
+    "description": "DM context menu action to edit a group DM."
+  },
+  "dmInviteToCommunity": "Invite to Community",
+  "@dmInviteToCommunity": {
+    "description": "DM context menu action to invite user to a community."
+  },
+  "dmBlock": "Block",
+  "@dmBlock": {
+    "description": "DM context menu action to block a user."
+  },
+  "dmLeaveGroup": "Leave Group",
+  "@dmLeaveGroup": {
+    "description": "DM context menu action to leave a group DM."
+  },
+  "dmNoCommunitiesAvailable": "No communities available",
+  "@dmNoCommunitiesAvailable": {
+    "description": "Shown when no communities are available to invite to."
+  },
+  "dmGroupMemberCount": "{count} Members",
+  "@dmGroupMemberCount": {
+    "description": "Member count label for group DMs.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dmMuteFor15Min": "For 15 minutes",
+  "@dmMuteFor15Min": {
+    "description": "Mute duration option: 15 minutes."
+  },
+  "dmMuteFor30Min": "For 30 minutes",
+  "@dmMuteFor30Min": {
+    "description": "Mute duration option: 30 minutes."
+  },
+  "dmMuteFor1Hour": "For 1 hour",
+  "@dmMuteFor1Hour": {
+    "description": "Mute duration option: 1 hour."
+  },
+  "dmMuteFor3Hours": "For 3 hours",
+  "@dmMuteFor3Hours": {
+    "description": "Mute duration option: 3 hours."
+  },
+  "dmMuteFor4Hours": "For 4 hours",
+  "@dmMuteFor4Hours": {
+    "description": "Mute duration option: 4 hours."
+  },
+  "dmMuteFor8Hours": "For 8 hours",
+  "@dmMuteFor8Hours": {
+    "description": "Mute duration option: 8 hours."
+  },
+  "dmMuteFor24Hours": "For 24 hours",
+  "@dmMuteFor24Hours": {
+    "description": "Mute duration option: 24 hours."
+  },
+  "dmMuteFor3Days": "For 3 days",
+  "@dmMuteFor3Days": {
+    "description": "Mute duration option: 3 days."
+  },
+  "dmMuteForever": "Until I turn it back on",
+  "@dmMuteForever": {
+    "description": "Mute duration option: indefinite."
+  },
+  "dmPinGroupDm": "Pin Group DM",
+  "@dmPinGroupDm": {
+    "description": "DM context menu action to pin a group DM."
+  },
+  "dmUnpinGroupDm": "Unpin Group DM",
+  "@dmUnpinGroupDm": {
+    "description": "DM context menu action to unpin a group DM."
+  },
+  "dmFavoriteDm": "Favorite DM",
+  "@dmFavoriteDm": {
+    "description": "DM context menu action to favorite a DM."
+  },
+  "dmUnfavoriteDm": "Unfavorite DM",
+  "@dmUnfavoriteDm": {
+    "description": "DM context menu action to unfavorite a DM."
+  },
+  "dmFavoriteGroupDm": "Favorite Group DM",
+  "@dmFavoriteGroupDm": {
+    "description": "DM context menu action to favorite a group DM."
+  },
+  "dmUnfavoriteGroupDm": "Unfavorite Group DM",
+  "@dmUnfavoriteGroupDm": {
+    "description": "DM context menu action to unfavorite a group DM."
+  },
+  "dmChangeFriendNickname": "Change Friend Nickname",
+  "@dmChangeFriendNickname": {
+    "description": "DM context menu action to change friend nickname."
+  },
+  "dmRemoveFriend": "Remove Friend",
+  "@dmRemoveFriend": {
+    "description": "DM context menu action to remove a friend."
+  },
+  "dmAddFriend": "Add Friend",
+  "@dmAddFriend": {
+    "description": "DM context menu action to send a friend request."
+  },
+  "dmAcceptFriendRequest": "Accept Friend Request",
+  "@dmAcceptFriendRequest": {
+    "description": "DM context menu action to accept a friend request."
+  },
+  "dmIgnoreFriendRequest": "Ignore Friend Request",
+  "@dmIgnoreFriendRequest": {
+    "description": "DM context menu action to ignore a friend request."
+  },
+  "dmFriendRequestSent": "Friend Request Sent",
+  "@dmFriendRequestSent": {
+    "description": "DM context menu label when a friend request is pending."
+  },
+  "dmUnblock": "Unblock",
+  "@dmUnblock": {
+    "description": "DM context menu action to unblock a user."
+  },
+  "dmDebugUser": "Debug User",
+  "@dmDebugUser": {
+    "description": "DM context menu action to debug user data."
+  },
+  "dmDebugChannel": "Debug Channel",
+  "@dmDebugChannel": {
+    "description": "DM context menu action to debug channel data."
+  },
+  "dmPinned": "Pinned DM",
+  "@dmPinned": {
+    "description": "Toast message when a DM is pinned."
+  },
+  "dmUnpinned": "Unpinned DM",
+  "@dmUnpinned": {
+    "description": "Toast message when a DM is unpinned."
+  },
+  "dmMuted": "Muted DM",
+  "@dmMuted": {
+    "description": "Toast message when a DM conversation is muted."
+  },
+  "dmUnmuted": "Unmuted DM",
+  "@dmUnmuted": {
+    "description": "Toast message when a DM conversation is unmuted."
+  },
+  "dmRemoveFriendConfirmTitle": "Remove Friend",
+  "@dmRemoveFriendConfirmTitle": {
+    "description": "Title for the remove friend confirmation modal."
+  },
+  "dmRemoveFriendConfirmDescription": "Are you sure you want to remove {username} as a friend?",
+  "@dmRemoveFriendConfirmDescription": {
+    "description": "Description for the remove friend confirmation modal.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "dmBlockConfirmTitle": "Block User",
+  "@dmBlockConfirmTitle": {
+    "description": "Title for the block user confirmation modal."
+  },
+  "dmBlockConfirmDescription": "Are you sure you want to block {username}? They won't be able to message you or send you friend requests.",
+  "@dmBlockConfirmDescription": {
+    "description": "Description for the block user confirmation modal.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "dmFriendRequestSentToast": "Friend request sent",
+  "@dmFriendRequestSentToast": {
+    "description": "Toast message when a friend request is sent."
+  },
+  "dmFriendRequestFailed": "Failed to send friend request",
+  "@dmFriendRequestFailed": {
+    "description": "Toast message when sending a friend request fails."
+  },
+  "dmAcceptFriendRequestFailed": "Failed to accept friend request",
+  "@dmAcceptFriendRequestFailed": {
+    "description": "Toast message when accepting a friend request fails."
+  },
+  "dmRemoveFriendFailed": "Failed to remove friend",
+  "@dmRemoveFriendFailed": {
+    "description": "Toast message when removing a friend fails."
+  },
+  "dmBlockFailed": "Failed to block user",
+  "@dmBlockFailed": {
+    "description": "Toast message when blocking a user fails."
+  },
+  "dmUnblockFailed": "Failed to unblock user",
+  "@dmUnblockFailed": {
+    "description": "Toast message when unblocking a user fails."
+  },
+  "dmIgnoreFriendRequestFailed": "Failed to ignore friend request",
+  "@dmIgnoreFriendRequestFailed": {
+    "description": "Toast message when ignoring a friend request fails."
   }
 }

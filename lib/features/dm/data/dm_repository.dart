@@ -120,4 +120,54 @@ class DmRepository {
     await _client.channels.deleteChannel(channelId: channelId);
     await _db.dmChannelDao.deleteDmChannel(channelId);
   }
+
+  Future<void> pinDm(String channelId) async {
+    await _client.users.pinDirectMessageChannel(channelId: channelId);
+  }
+
+  Future<void> unpinDm(String channelId) async {
+    await _client.users.unpinDirectMessageChannel(channelId: channelId);
+  }
+
+  Future<void> muteDm(String channelId, {int? durationSeconds}) async {
+    String? endTime;
+    final selectedTimeWindow = durationSeconds ?? -1;
+    if (durationSeconds != null) {
+      endTime = DateTime.now()
+          .add(Duration(seconds: durationSeconds))
+          .toUtc()
+          .toIso8601String();
+    }
+
+    await _client.users.updateDmNotificationSettings(
+      body: UserGuildSettingsUpdateRequest(
+        channelOverrides: {
+          channelId: ChannelOverrides(
+            collapsed: false,
+            messageNotifications: UserNotificationSettings.inherit,
+            muted: true,
+            muteConfig: ChannelOverridesMuteConfig(
+              endTime: endTime,
+              selectedTimeWindow: selectedTimeWindow,
+            ),
+          ),
+        },
+      ),
+    );
+  }
+
+  Future<void> unmuteDm(String channelId) async {
+    await _client.users.updateDmNotificationSettings(
+      body: UserGuildSettingsUpdateRequest(
+        channelOverrides: {
+          channelId: const ChannelOverrides(
+            collapsed: false,
+            messageNotifications: UserNotificationSettings.inherit,
+            muted: false,
+            muteConfig: null,
+          ),
+        },
+      ),
+    );
+  }
 }

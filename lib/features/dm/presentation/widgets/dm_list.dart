@@ -3,19 +3,28 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
+import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
+import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart'
     show fluxerMediaCdn;
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
+import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -65,6 +74,8 @@ class _DMListState extends ConsumerState<DMList> {
         : null;
 
     final isMobile = isMobileLayout(context);
+    final pinnedIds = ref.watch(pinnedDmChannelIdsProvider).value ?? {};
+    final mutedIds = ref.watch(mutedDmChannelIdsProvider).value ?? {};
 
     final filteredConvos = _searchQuery.isEmpty
         ? convos
@@ -144,6 +155,8 @@ class _DMListState extends ConsumerState<DMList> {
                   filteredConvos,
                   selectedId,
                   isMobile: isMobile,
+                  pinnedIds: pinnedIds,
+                  mutedIds: mutedIds,
                 ),
               ),
             ],
@@ -429,6 +442,8 @@ class _DMListState extends ConsumerState<DMList> {
     List<DmConversation> convos,
     String? selectedId, {
     required bool isMobile,
+    required Set<String> pinnedIds,
+    required Set<String> mutedIds,
   }) {
     final userId = ref.watch(currentUserIdProvider);
 
@@ -453,6 +468,8 @@ class _DMListState extends ConsumerState<DMList> {
           convo: convo,
           isSelected: isSelected,
           isMobile: isMobile,
+          isPinned: pinnedIds.contains(convo.id),
+          isMuted: mutedIds.contains(convo.id),
         );
       },
     );
@@ -547,6 +564,8 @@ class _DMListState extends ConsumerState<DMList> {
     BuildContext context, {
     required bool isSelected,
     bool isMobile = false,
+    bool isPinned = false,
+    bool isMuted = false,
     DmConversation? convo,
     IconData? leadingIcon,
     String? leadingLabel,
@@ -584,95 +603,114 @@ class _DMListState extends ConsumerState<DMList> {
       lastMessagePreview = '$prefix: ${c.lastMessage}';
     }
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: layout.radiusMd,
-        hoverColor: context.colors.surfaceInteractiveHoverBg,
-        onTap: () {
-          navigateToContent(context, RoutePaths.dmChannel(c.id));
-        },
-        onLongPress: isMobile ? () => _showDmContextMenu(context, c) : null,
-        child: Container(
-          height: tileHeight,
-          margin: EdgeInsets.symmetric(horizontal: layout.s2, vertical: 1),
-          padding: EdgeInsets.symmetric(horizontal: layout.s2),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? context.colors.surfaceInteractiveSelectedBg.withValues(
-                    alpha: 0.15,
+    return Opacity(
+      opacity: isMuted && !isSelected ? 0.5 : 1.0,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: layout.radiusMd,
+          hoverColor: context.colors.surfaceInteractiveHoverBg,
+          onTap: () {
+            navigateToContent(context, RoutePaths.dmChannel(c.id));
+          },
+          onLongPress: isMobile ? () => _showDmContextMenu(context, c) : null,
+          child: Container(
+            height: tileHeight,
+            margin: EdgeInsets.symmetric(horizontal: layout.s2, vertical: 1),
+            padding: EdgeInsets.symmetric(horizontal: layout.s2),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? context.colors.surfaceInteractiveSelectedBg.withValues(
+                      alpha: 0.15,
+                    )
+                  : Colors.transparent,
+              borderRadius: layout.radiusMd,
+            ),
+            child: Row(
+              children: [
+                if (hasUnread && !isSelected)
+                  Container(
+                    width: 4,
+                    height: tileHeight * 0.5,
+                    margin: const EdgeInsets.only(right: 4),
+                    decoration: BoxDecoration(
+                      color: context.colors.textChat,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                if (c.isGroup)
+                  _buildGroupAvatar(
+                    context,
+                    size: avatarSize,
+                    isSelected: isSelected,
                   )
-                : Colors.transparent,
-            borderRadius: layout.radiusMd,
-          ),
-          child: Row(
-            children: [
-              if (hasUnread && !isSelected)
-                Container(
-                  width: 4,
-                  height: tileHeight * 0.5,
-                  margin: const EdgeInsets.only(right: 4),
-                  decoration: BoxDecoration(
-                    color: context.colors.textChat,
-                    borderRadius: BorderRadius.circular(2),
+                else
+                  FluxerAvatar.user(
+                    fallbackText: c.recipientName,
+                    userId: c.recipientId,
+                    imageUrl: _dmAvatarUrl(c),
+                    status: c.recipientStatus,
+                    size: avatarSize,
+                  ),
+                SizedBox(width: layout.s3),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              c.displayName,
+                              style: context.textStyles.username.copyWith(
+                                color: isSelected
+                                    ? context
+                                          .colors.surfaceInteractiveSelectedColor
+                                    : hasUnread
+                                    ? context.colors.textChat
+                                    : context.colors.textPrimaryMuted,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isPinned)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: PhosphorIcon(
+                                PhosphorIconsFill.pushPin,
+                                size: 12,
+                                color: context.colors.textTertiary,
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (lastMessagePreview.isNotEmpty)
+                        Text(
+                          lastMessagePreview,
+                          style: TextStyle(
+                            color: context.colors.textPrimaryMuted.withValues(
+                              alpha: 0.85,
+                            ),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                    ],
                   ),
                 ),
-              if (c.isGroup)
-                _buildGroupAvatar(
-                  context,
-                  size: avatarSize,
-                  isSelected: isSelected,
-                )
-              else
-                FluxerAvatar.user(
-                  fallbackText: c.recipientName,
-                  userId: c.recipientId,
-                  imageUrl: _dmAvatarUrl(c),
-                  status: c.recipientStatus,
-                  size: avatarSize,
+                const SizedBox(width: 8),
+                Text(
+                  _formatRelativeTime(c.lastMessageTime),
+                  style: TextStyle(
+                    color: context.colors.textTertiary,
+                    fontSize: 11,
+                  ),
                 ),
-              SizedBox(width: layout.s3),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      c.displayName,
-                      style: context.textStyles.username.copyWith(
-                        color: isSelected
-                            ? context.colors.surfaceInteractiveSelectedColor
-                            : hasUnread
-                            ? context.colors.textChat
-                            : context.colors.textPrimaryMuted,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (lastMessagePreview.isNotEmpty)
-                      Text(
-                        lastMessagePreview,
-                        style: TextStyle(
-                          color: context.colors.textPrimaryMuted.withValues(
-                            alpha: 0.85,
-                          ),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _formatRelativeTime(c.lastMessageTime),
-                style: TextStyle(
-                  color: context.colors.textTertiary,
-                  fontSize: 11,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -683,10 +721,24 @@ class _DMListState extends ConsumerState<DMList> {
     BuildContext context,
     DmConversation convo,
   ) async {
-    final messenger = ScaffoldMessenger.of(context);
+    final pinnedIds = ref.read(pinnedDmChannelIdsProvider).value ?? {};
+    final mutedIds = ref.read(mutedDmChannelIdsProvider).value ?? {};
+    final isPinned = pinnedIds.contains(convo.id);
+    final isMuted = mutedIds.contains(convo.id);
+    final db = ref.read(fluxerDatabaseProvider);
+    final rels = await db.relationshipDao.getRelationships();
+    final rel = rels.where((r) => r.userId == convo.recipientId).firstOrNull;
+    final devMode =
+        ref.read(userSettingsViewModelProvider).developerMode;
     final result = await FluxerBottomSheet.show<Object>(
       context,
-      builder: (context, _) => _DmBottomSheet(convo: convo, isMuted: false),
+      builder: (context, _) => _DmBottomSheet(
+        convo: convo,
+        isMuted: isMuted,
+        isPinned: isPinned,
+        relationshipType: rel?.type,
+        developerMode: devMode,
+      ),
     );
 
     if (result == null || !mounted) {
@@ -711,27 +763,196 @@ class _DMListState extends ConsumerState<DMList> {
       case _DmAction.addNote:
         // TODO(fluxer_app): open add note sheet
         break;
+      case _DmAction.changeFriendNickname:
+        // TODO(fluxer_app): open change friend nickname sheet
+        break;
+      case _DmAction.favoriteDm:
+        // TODO(fluxer_app): implement favorite DM
+        break;
       case _DmAction.mute15Min:
+        unawaited(
+          ref
+              .read(dmRepositoryProvider)
+              .muteDm(convo.id, durationSeconds: 900),
+        );
       case _DmAction.mute30Min:
+        unawaited(
+          ref
+              .read(dmRepositoryProvider)
+              .muteDm(convo.id, durationSeconds: 1800),
+        );
       case _DmAction.mute1Hour:
+        unawaited(
+          ref
+              .read(dmRepositoryProvider)
+              .muteDm(convo.id, durationSeconds: 3600),
+        );
       case _DmAction.mute3Hours:
+        unawaited(
+          ref
+              .read(dmRepositoryProvider)
+              .muteDm(convo.id, durationSeconds: 10800),
+        );
       case _DmAction.mute4Hours:
+        unawaited(
+          ref
+              .read(dmRepositoryProvider)
+              .muteDm(convo.id, durationSeconds: 14400),
+        );
       case _DmAction.mute8Hours:
+        unawaited(
+          ref
+              .read(dmRepositoryProvider)
+              .muteDm(convo.id, durationSeconds: 28800),
+        );
       case _DmAction.mute24Hours:
+        unawaited(
+          ref
+              .read(dmRepositoryProvider)
+              .muteDm(convo.id, durationSeconds: 86400),
+        );
       case _DmAction.mute3Days:
+        unawaited(
+          ref
+              .read(dmRepositoryProvider)
+              .muteDm(convo.id, durationSeconds: 259200),
+        );
       case _DmAction.muteForever:
+        unawaited(ref.read(dmRepositoryProvider).muteDm(convo.id));
       case _DmAction.unmute:
-        // TODO(fluxer_app): implement mute/unmute with selected duration
-        break;
+        unawaited(ref.read(dmRepositoryProvider).unmuteDm(convo.id));
       case _DmAction.pinToggle:
-        // TODO(fluxer_app): implement pin/unpin DM
-        break;
+        if (pinnedIds.contains(convo.id)) {
+          unawaited(ref.read(dmRepositoryProvider).unpinDm(convo.id));
+        } else {
+          unawaited(ref.read(dmRepositoryProvider).pinDm(convo.id));
+        }
       case _DmAction.editGroup:
         // TODO(fluxer_app): open edit group sheet
         break;
+      case _DmAction.removeFriend:
+        if (!mounted) break;
+        final l10n = FluxerLocalizations.of(context);
+        await FluxerConfirmModal.show(
+          context,
+          title: l10n.dmRemoveFriendConfirmTitle,
+          description: l10n.dmRemoveFriendConfirmDescription(
+            convo.displayName,
+          ),
+          confirmLabel: l10n.dmRemoveFriend,
+          isDanger: true,
+          onConfirm: () {
+            unawaited(
+              ref
+                  .read(friendRepositoryProvider)
+                  .removeRelationship(convo.recipientId)
+                  .catchError((_) {
+                    if (mounted) {
+                      ref.read(toastProvider.notifier).show(
+                        FluxerToast(
+                          message: l10n.dmRemoveFriendFailed,
+                          variant: FluxerToastVariant.danger,
+                        ),
+                      );
+                    }
+                  }),
+            );
+          },
+        );
+      case _DmAction.addFriend:
+        final l10n = FluxerLocalizations.of(context);
+        try {
+          await ref
+              .read(friendRepositoryProvider)
+              .sendFriendRequest(convo.recipientId);
+          if (!mounted) break;
+          ref.read(toastProvider.notifier).show(
+            FluxerToast(
+              message: l10n.dmFriendRequestSentToast,
+              variant: FluxerToastVariant.success,
+            ),
+          );
+        } catch (_) {
+          if (!mounted) break;
+          ref.read(toastProvider.notifier).show(
+            FluxerToast(
+              message: l10n.dmFriendRequestFailed,
+              variant: FluxerToastVariant.danger,
+            ),
+          );
+        }
+      case _DmAction.acceptFriendRequest:
+        final l10n = FluxerLocalizations.of(context);
+        try {
+          await ref
+              .read(friendRepositoryProvider)
+              .acceptFriendRequest(convo.recipientId);
+        } catch (_) {
+          if (!mounted) break;
+          ref.read(toastProvider.notifier).show(
+            FluxerToast(
+              message: l10n.dmAcceptFriendRequestFailed,
+              variant: FluxerToastVariant.danger,
+            ),
+          );
+        }
+      case _DmAction.ignoreFriendRequest:
+        final l10n = FluxerLocalizations.of(context);
+        try {
+          await ref
+              .read(friendRepositoryProvider)
+              .removeRelationship(convo.recipientId);
+        } catch (_) {
+          if (!mounted) break;
+          ref.read(toastProvider.notifier).show(
+            FluxerToast(
+              message: l10n.dmIgnoreFriendRequestFailed,
+              variant: FluxerToastVariant.danger,
+            ),
+          );
+        }
       case _DmAction.block:
-        // TODO(fluxer_app): implement block/unblock user
-        break;
+        if (!mounted) break;
+        final l10n = FluxerLocalizations.of(context);
+        await FluxerConfirmModal.show(
+          context,
+          title: l10n.dmBlockConfirmTitle,
+          description: l10n.dmBlockConfirmDescription(convo.displayName),
+          confirmLabel: l10n.dmBlock,
+          isDanger: true,
+          onConfirm: () {
+            unawaited(
+              ref
+                  .read(friendRepositoryProvider)
+                  .blockUser(convo.recipientId)
+                  .catchError((_) {
+                    if (mounted) {
+                      ref.read(toastProvider.notifier).show(
+                        FluxerToast(
+                          message: l10n.dmBlockFailed,
+                          variant: FluxerToastVariant.danger,
+                        ),
+                      );
+                    }
+                  }),
+            );
+          },
+        );
+      case _DmAction.unblock:
+        final l10n = FluxerLocalizations.of(context);
+        try {
+          await ref
+              .read(friendRepositoryProvider)
+              .removeRelationship(convo.recipientId);
+        } catch (_) {
+          if (!mounted) break;
+          ref.read(toastProvider.notifier).show(
+            FluxerToast(
+              message: l10n.dmUnblockFailed,
+              variant: FluxerToastVariant.danger,
+            ),
+          );
+        }
       case _DmAction.closeDm:
         if (!mounted) {
           break;
@@ -752,10 +973,66 @@ class _DMListState extends ConsumerState<DMList> {
         if (confirmed != true && mounted) {
           break;
         }
+      case _DmAction.debugUser:
+        try {
+          final client = ref.read(fluxerClientProvider);
+          final user = await client.users.getUserById(
+            userId: convo.recipientId,
+          );
+          if (!mounted) break;
+          await showDebugBottomSheet(
+            context,
+            title: FluxerLocalizations.of(context).dmDebugUser,
+            data: user.toJson(),
+            onCopied: (message) => ref.read(toastProvider.notifier).show(
+              FluxerToast(
+                message: message,
+                variant: FluxerToastVariant.success,
+              ),
+            ),
+          );
+        } on Exception catch (_) {
+          // API fetch failed — ignore silently.
+        }
+      case _DmAction.debugChannel:
+        try {
+          final client = ref.read(fluxerClientProvider);
+          final channel = await client.channels.getChannel(
+            channelId: convo.id,
+          );
+          if (!mounted) break;
+          await showDebugBottomSheet(
+            context,
+            title: FluxerLocalizations.of(context).dmDebugChannel,
+            data: channel.toJson(),
+            onCopied: (message) => ref.read(toastProvider.notifier).show(
+              FluxerToast(
+                message: message,
+                variant: FluxerToastVariant.success,
+              ),
+            ),
+          );
+        } on Exception catch (_) {
+          // API fetch failed — ignore silently.
+        }
       case _DmAction.copyUserId:
         await Clipboard.setData(ClipboardData(text: convo.recipientId));
+        if (!mounted) break;
+        ref.read(toastProvider.notifier).show(
+          FluxerToast(
+            message: FluxerLocalizations.of(context).dmUserIdCopied,
+            variant: FluxerToastVariant.success,
+          ),
+        );
       case _DmAction.copyChannelId:
         await Clipboard.setData(ClipboardData(text: convo.id));
+        if (!mounted) break;
+        ref.read(toastProvider.notifier).show(
+          FluxerToast(
+            message: FluxerLocalizations.of(context).dmChannelIdCopied,
+            variant: FluxerToastVariant.success,
+          ),
+        );
     }
   }
 
@@ -894,6 +1171,8 @@ enum _DmAction {
   viewProfile,
   voiceCall,
   addNote,
+  changeFriendNickname,
+  favoriteDm,
   mute15Min,
   mute30Min,
   mute1Hour,
@@ -906,8 +1185,15 @@ enum _DmAction {
   unmute,
   pinToggle,
   editGroup,
+  removeFriend,
+  addFriend,
+  acceptFriendRequest,
+  ignoreFriendRequest,
   block,
+  unblock,
   closeDm,
+  debugUser,
+  debugChannel,
   copyUserId,
   copyChannelId,
 }
@@ -920,132 +1206,229 @@ class _InviteToGuildAction {
 class _DmBottomSheet extends StatelessWidget {
   final DmConversation convo;
   final bool isMuted;
+  final bool isPinned;
+  final int? relationshipType;
+  final bool developerMode;
 
-  const _DmBottomSheet({required this.convo, required this.isMuted});
+  const _DmBottomSheet({
+    required this.convo,
+    required this.isMuted,
+    required this.isPinned,
+    required this.relationshipType,
+    required this.developerMode,
+  });
 
   @override
   Widget build(BuildContext context) {
     final layout = context.layout;
+    final l10n = FluxerLocalizations.of(context);
     final hasUnread = convo.unreadCount > 0;
 
     void pop(Object action) => Navigator.of(context).pop(action);
 
     final groups = <Widget>[];
 
-    // Group 1: Mark as Read
-    if (hasUnread) {
-      groups.add(
-        FluxerMenuGroup(
-          children: [
-            FluxerBottomSheetMenuItem(
-              icon: PhosphorIconsFill.eye,
-              label: 'Mark as Read',
-              onTap: () => pop(_DmAction.markAsRead),
-            ),
-          ],
-        ),
-      );
-    }
+    // Relationship constants (match SDK RelationshipTypes values).
+    const relFriend = 1;
+    const relBlocked = 2;
+    const relIncoming = 3;
+    const relOutgoing = 4;
 
-    // Group 2: Profile actions (1-on-1 DMs only)
-    if (!convo.isGroup) {
-      groups.add(
-        FluxerMenuGroup(
-          children: [
-            FluxerBottomSheetMenuItem(
-              icon: PhosphorIconsFill.user,
-              label: 'View Profile',
-              onTap: () => pop(_DmAction.viewProfile),
-            ),
-            FluxerBottomSheetMenuItem(
-              icon: PhosphorIconsFill.phone,
-              label: 'Voice Call',
-              onTap: () => pop(_DmAction.voiceCall),
-            ),
-            FluxerBottomSheetMenuItem(
-              icon: PhosphorIconsFill.notePencil,
-              label: 'Add Note',
-              onTap: () => pop(_DmAction.addNote),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Group 3: Mute & Pin (+ Edit Group for group DMs)
+    // Group 1: Mark as Read + Pin/Unpin
     groups.add(
       FluxerMenuGroup(
         children: [
-          if (convo.isGroup)
+          if (hasUnread)
             FluxerBottomSheetMenuItem(
-              icon: PhosphorIconsFill.pencilSimple,
-              label: 'Edit Group',
-              onTap: () => pop(_DmAction.editGroup),
+              icon: PhosphorIconsFill.eye,
+              label: l10n.dmMarkAsRead,
+              onTap: () => pop(_DmAction.markAsRead),
             ),
-          FluxerBottomSheetSubmenuItem(
-            label: isMuted ? 'Unmute Conversation' : 'Mute Conversation',
-            onTap: () => _openMuteSheet(context),
-          ),
           FluxerBottomSheetMenuItem(
             icon: PhosphorIconsFill.pushPin,
-            label: 'Pin DM',
+            label: convo.isGroup
+                ? (isPinned ? l10n.dmUnpinGroupDm : l10n.dmPinGroupDm)
+                : (isPinned ? l10n.dmUnpinDm : l10n.dmPinDm),
             onTap: () => pop(_DmAction.pinToggle),
           ),
         ],
       ),
     );
 
-    // Group 4: Relationship actions (1-on-1 DMs only)
+    // Group 2: Profile actions + Close/Leave
+    {
+      final children = <Widget>[];
+      if (convo.isGroup) {
+        children.add(
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsFill.pencilSimple,
+            label: l10n.dmEditGroup,
+            onTap: () => pop(_DmAction.editGroup),
+          ),
+        );
+      } else {
+        children.addAll([
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsFill.user,
+            label: l10n.dmViewProfile,
+            onTap: () => pop(_DmAction.viewProfile),
+          ),
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsFill.phone,
+            label: l10n.dmVoiceCall,
+            onTap: () => pop(_DmAction.voiceCall),
+          ),
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsFill.notePencil,
+            label: l10n.dmAddNote,
+            onTap: () => pop(_DmAction.addNote),
+          ),
+          if (relationshipType == relFriend)
+            FluxerBottomSheetMenuItem(
+              icon: PhosphorIconsFill.pencilSimple,
+              label: l10n.dmChangeFriendNickname,
+              onTap: () => pop(_DmAction.changeFriendNickname),
+            ),
+        ]);
+      }
+      children.add(
+        FluxerBottomSheetMenuItem(
+          icon: PhosphorIconsFill.xCircle,
+          label: convo.isGroup ? l10n.dmLeaveGroup : l10n.dmCloseDm,
+          isDanger: true,
+          onTap: () => pop(_DmAction.closeDm),
+        ),
+      );
+      groups.add(FluxerMenuGroup(children: children));
+    }
+
+    // Group 3: Relationship actions (1-on-1 DMs only)
     if (!convo.isGroup) {
+      final relChildren = <Widget>[
+        FluxerBottomSheetSubmenuItem(
+          label: l10n.dmInviteToCommunity,
+          onTap: () => _openInviteSheet(context),
+        ),
+      ];
+
+      // Friend actions based on relationship state.
+      switch (relationshipType) {
+        case relFriend:
+          relChildren.add(
+            FluxerBottomSheetMenuItem(
+              icon: PhosphorIconsFill.userMinus,
+              label: l10n.dmRemoveFriend,
+              isDanger: true,
+              onTap: () => pop(_DmAction.removeFriend),
+            ),
+          );
+        case relIncoming:
+          relChildren.addAll([
+            FluxerBottomSheetMenuItem(
+              icon: PhosphorIconsFill.userPlus,
+              label: l10n.dmAcceptFriendRequest,
+              onTap: () => pop(_DmAction.acceptFriendRequest),
+            ),
+            FluxerBottomSheetMenuItem(
+              icon: PhosphorIconsFill.userMinus,
+              label: l10n.dmIgnoreFriendRequest,
+              onTap: () => pop(_DmAction.ignoreFriendRequest),
+            ),
+          ]);
+        case relOutgoing:
+          relChildren.add(
+            FluxerBottomSheetMenuItem(
+              icon: PhosphorIconsFill.userPlus,
+              label: l10n.dmFriendRequestSent,
+              onTap: () {},
+            ),
+          );
+        default:
+          relChildren.add(
+            FluxerBottomSheetMenuItem(
+              icon: PhosphorIconsFill.userPlus,
+              label: l10n.dmAddFriend,
+              onTap: () => pop(_DmAction.addFriend),
+            ),
+          );
+      }
+
+      // Block / Unblock.
+      if (relationshipType == relBlocked) {
+        relChildren.add(
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsFill.prohibit,
+            label: l10n.dmUnblock,
+            onTap: () => pop(_DmAction.unblock),
+          ),
+        );
+      } else {
+        relChildren.add(
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsFill.prohibit,
+            label: l10n.dmBlock,
+            isDanger: true,
+            onTap: () => pop(_DmAction.block),
+          ),
+        );
+      }
+
+      groups.add(FluxerMenuGroup(children: relChildren));
+    }
+
+    // Group 4: Mute/Unmute
+    groups.add(
+      FluxerMenuGroup(
+        children: [
+          FluxerBottomSheetSubmenuItem(
+            label: isMuted
+                ? l10n.dmUnmuteConversation
+                : l10n.dmMuteConversation,
+            onTap: () => _openMuteSheet(context),
+          ),
+        ],
+      ),
+    );
+
+    // Group 5: Debug (developer mode only)
+    if (developerMode) {
       groups.add(
         FluxerMenuGroup(
           children: [
-            FluxerBottomSheetSubmenuItem(
-              label: 'Invite to Community',
-              onTap: () => _openInviteSheet(context),
-            ),
+            if (!convo.isGroup)
+              FluxerBottomSheetMenuItem(
+                icon: PhosphorIconsFill.bug,
+                label: l10n.dmDebugUser,
+                onTap: () => pop(_DmAction.debugUser),
+              ),
             FluxerBottomSheetMenuItem(
-              icon: PhosphorIconsFill.prohibit,
-              label: 'Block',
-              isDanger: true,
-              onTap: () => pop(_DmAction.block),
+              icon: PhosphorIconsFill.bug,
+              label: l10n.dmDebugChannel,
+              onTap: () => pop(_DmAction.debugChannel),
             ),
           ],
         ),
       );
     }
 
-    // Group 5: Close / Leave (danger) + Group 6: Copy IDs
-    groups
-      ..add(
-        FluxerMenuGroup(
-          children: [
-            FluxerBottomSheetMenuItem(
-              icon: PhosphorIconsFill.xCircle,
-              label: convo.isGroup ? 'Leave Group' : 'Close DM',
-              isDanger: true,
-              onTap: () => pop(_DmAction.closeDm),
-            ),
-          ],
-        ),
-      )
-      ..add(
-        FluxerMenuGroup(
-          children: [
-            if (!convo.isGroup)
-              FluxerBottomSheetMenuItem(
-                icon: PhosphorIconsRegular.snowflake,
-                label: 'Copy User ID',
-                onTap: () => pop(_DmAction.copyUserId),
-              ),
+    // Group 6: Copy IDs
+    groups.add(
+      FluxerMenuGroup(
+        children: [
+          if (!convo.isGroup)
             FluxerBottomSheetMenuItem(
               icon: PhosphorIconsRegular.snowflake,
-              label: 'Copy Channel ID',
-              onTap: () => pop(_DmAction.copyChannelId),
+              label: l10n.dmCopyUserId,
+              onTap: () => pop(_DmAction.copyUserId),
             ),
-          ],
-        ),
-      );
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsRegular.snowflake,
+            label: l10n.dmCopyChannelId,
+            onTap: () => pop(_DmAction.copyChannelId),
+          ),
+        ],
+      ),
+    );
 
     return DraggableScrollableSheet(
       expand: false,
@@ -1081,7 +1464,7 @@ class _DmBottomSheet extends StatelessWidget {
                 title: convo.displayName,
                 subtitle: convo.isGroup
                     ? Text(
-                        '${convo.memberCount} Members',
+                        l10n.dmGroupMemberCount(convo.memberCount),
                         style: context.textStyles.timestamp.copyWith(
                           color: context.colors.textTertiary,
                         ),
@@ -1145,6 +1528,7 @@ class _DmMuteSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final layout = context.layout;
+    final l10n = FluxerLocalizations.of(context);
     void pop(_DmAction action) => Navigator.of(context).pop(action);
 
     return DraggableScrollableSheet(
@@ -1155,7 +1539,9 @@ class _DmMuteSheet extends StatelessWidget {
           child: Column(
             children: [
               FluxerBottomSheetSubmenuHeader(
-                title: isMuted ? 'Unmute Conversation' : 'Mute Conversation',
+                title: isMuted
+                    ? l10n.dmUnmuteConversation
+                    : l10n.dmMuteConversation,
                 onBack: () => Navigator.of(context).pop(),
               ),
               SizedBox(height: layout.s3),
@@ -1175,45 +1561,45 @@ class _DmMuteSheet extends StatelessWidget {
                           children: isMuted
                               ? [
                                   FluxerBottomSheetMenuItem(
-                                    label: 'Unmute Conversation',
+                                    label: l10n.dmUnmuteConversation,
                                     onTap: () => pop(_DmAction.unmute),
                                   ),
                                 ]
                               : [
                                   FluxerBottomSheetMenuItem(
-                                    label: 'For 15 minutes',
+                                    label: l10n.dmMuteFor15Min,
                                     onTap: () => pop(_DmAction.mute15Min),
                                   ),
                                   FluxerBottomSheetMenuItem(
-                                    label: 'For 30 minutes',
+                                    label: l10n.dmMuteFor30Min,
                                     onTap: () => pop(_DmAction.mute30Min),
                                   ),
                                   FluxerBottomSheetMenuItem(
-                                    label: 'For 1 hour',
+                                    label: l10n.dmMuteFor1Hour,
                                     onTap: () => pop(_DmAction.mute1Hour),
                                   ),
                                   FluxerBottomSheetMenuItem(
-                                    label: 'For 3 hours',
+                                    label: l10n.dmMuteFor3Hours,
                                     onTap: () => pop(_DmAction.mute3Hours),
                                   ),
                                   FluxerBottomSheetMenuItem(
-                                    label: 'For 4 hours',
+                                    label: l10n.dmMuteFor4Hours,
                                     onTap: () => pop(_DmAction.mute4Hours),
                                   ),
                                   FluxerBottomSheetMenuItem(
-                                    label: 'For 8 hours',
+                                    label: l10n.dmMuteFor8Hours,
                                     onTap: () => pop(_DmAction.mute8Hours),
                                   ),
                                   FluxerBottomSheetMenuItem(
-                                    label: 'For 24 hours',
+                                    label: l10n.dmMuteFor24Hours,
                                     onTap: () => pop(_DmAction.mute24Hours),
                                   ),
                                   FluxerBottomSheetMenuItem(
-                                    label: 'For 3 days',
+                                    label: l10n.dmMuteFor3Days,
                                     onTap: () => pop(_DmAction.mute3Days),
                                   ),
                                   FluxerBottomSheetMenuItem(
-                                    label: 'Until I turn it back on',
+                                    label: l10n.dmMuteForever,
                                     onTap: () => pop(_DmAction.muteForever),
                                   ),
                                 ],
@@ -1238,6 +1624,7 @@ class _DmInviteSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final layout = context.layout;
     final colors = context.colors;
+    final l10n = FluxerLocalizations.of(context);
     final guilds = ref.watch(guildListViewModelProvider).guilds;
 
     return DraggableScrollableSheet(
@@ -1248,7 +1635,7 @@ class _DmInviteSheet extends ConsumerWidget {
           child: Column(
             children: [
               FluxerBottomSheetSubmenuHeader(
-                title: 'Invite to Community',
+                title: l10n.dmInviteToCommunity,
                 onBack: () => Navigator.of(context).pop(),
               ),
               SizedBox(height: layout.s3),
@@ -1270,7 +1657,7 @@ class _DmInviteSheet extends ConsumerWidget {
                                   Padding(
                                     padding: const EdgeInsets.all(16),
                                     child: Text(
-                                      'No communities available',
+                                      l10n.dmNoCommunitiesAvailable,
                                       style: context.textStyles.username
                                           .copyWith(color: colors.textTertiary),
                                     ),

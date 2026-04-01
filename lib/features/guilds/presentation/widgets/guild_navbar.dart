@@ -6,9 +6,6 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_highlight/flutter_highlight.dart';
-import 'package:flutter_highlight/themes/github.dart';
-import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
@@ -28,6 +25,8 @@ import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_context_menu.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_item.dart';
 import 'package:fluxer_app/features/dm/providers/dm_folder_view_model.dart';
+import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
+import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/unread_dm_provider.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
@@ -54,6 +53,7 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -471,13 +471,15 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     required bool isAllowlisted,
   }) async {
     final isGroupDm = dm.type == 3;
+    final pinnedIds = ref.read(pinnedDmChannelIdsProvider).value ?? {};
+    final mutedIds = ref.read(mutedDmChannelIdsProvider).value ?? {};
     final action = await showDmNavbarContextMenu(
       context,
       position: position,
       channelId: dm.id,
       hasUnread: dm.unreadCount > 0,
-      isMuted: false,
-      isPinned: false,
+      isMuted: mutedIds.contains(dm.id),
+      isPinned: pinnedIds.contains(dm.id),
       isCollapsed: isCollapsed,
       isAllowlisted: isAllowlisted,
       isGroupDm: isGroupDm,
@@ -519,11 +521,46 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                 variant: FluxerToastVariant.success,
               ),
             );
-      case DmNavbarAction.mute:
-      case DmNavbarAction.unmute:
       case DmNavbarAction.pinDm:
+        unawaited(ref.read(dmRepositoryProvider).pinDm(dm.id));
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: l10n.dmPinned,
+                variant: FluxerToastVariant.success,
+              ),
+            );
       case DmNavbarAction.unpinDm:
-        break;
+        unawaited(ref.read(dmRepositoryProvider).unpinDm(dm.id));
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: l10n.dmUnpinned,
+                variant: FluxerToastVariant.success,
+              ),
+            );
+      case DmNavbarAction.mute:
+        unawaited(ref.read(dmRepositoryProvider).muteDm(dm.id));
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: l10n.dmMuted,
+                variant: FluxerToastVariant.success,
+              ),
+            );
+      case DmNavbarAction.unmute:
+        unawaited(ref.read(dmRepositoryProvider).unmuteDm(dm.id));
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: l10n.dmUnmuted,
+                variant: FluxerToastVariant.success,
+              ),
+            );
     }
   }
 
@@ -3515,79 +3552,16 @@ class _GuildListItemState extends State<_GuildListItem> {
     }
 
     final l10n = FluxerLocalizations.of(context);
-    final json = const JsonEncoder.withIndent('  ').convert(guildJson);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final copied = ValueNotifier<bool>(false);
-
-    await FluxerBottomSheet.show<void>(
+    await showDebugBottomSheet(
       context,
       title: l10n.communityDebug,
-      builder: (sheetContext, close) {
-        final layout = sheetContext.layout;
-
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: layout.s4),
-          child: SingleChildScrollView(
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                  child: HighlightView(
-                    json,
-                    language: 'json',
-                    theme: isDark ? vs2015Theme : githubTheme,
-                    padding: const EdgeInsets.all(12),
-                    textStyle: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: ValueListenableBuilder<bool>(
-                    valueListenable: copied,
-                    builder: (_, isCopied, _) => IconButton(
-                      icon: PhosphorIcon(
-                        isCopied
-                            ? PhosphorIconsBold.check
-                            : PhosphorIconsBold.copy,
-                        color: isCopied
-                            ? Colors.green
-                            : isDark
-                            ? Colors.white70
-                            : Colors.black54,
-                        size: 18,
-                      ),
-                      onPressed: isCopied
-                          ? null
-                          : () {
-                              unawaited(
-                                Clipboard.setData(ClipboardData(text: json)),
-                              );
-                              copied.value = true;
-                              Future<void>.delayed(
-                                const Duration(seconds: 2),
-                                () {
-                                  copied.value = false;
-                                },
-                              );
-                              widget.onShowToast?.call(
-                                FluxerToast(
-                                  message: l10n.copiedToClipboard,
-                                  variant: FluxerToastVariant.success,
-                                ),
-                              );
-                            },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      data: guildJson,
+      onCopied: (_) => widget.onShowToast?.call(
+        FluxerToast(
+          message: l10n.copiedToClipboard,
+          variant: FluxerToastVariant.success,
+        ),
+      ),
     );
   }
 

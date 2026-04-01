@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/native_titlebar.dart';
+import 'package:fluxer_app/features/ui/toast/fluxer_toast_overlay.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -38,14 +39,16 @@ class FluxerApp extends ConsumerWidget {
       routerConfig: router,
       builder: (context, child) {
         if (!_isDesktopPlatform) {
-          return child!;
+          return FluxerToastOverlay(child: child!);
         }
-        return DragToResizeArea(
-          child: Column(
-            children: [
-              const NativeTitlebar(),
-              Expanded(child: child!),
-            ],
+        return FluxerToastOverlay(
+          child: DragToResizeArea(
+            child: Column(
+              children: [
+                const NativeTitlebar(),
+                Expanded(child: child!),
+              ],
+            ),
           ),
         );
       },

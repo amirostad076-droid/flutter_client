@@ -514,10 +514,10 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get dmMarkAsRead => 'Mark as Read';
 
   @override
-  String get dmMuteConversation => 'Mute Conversation';
+  String get dmMuteConversation => 'Mute DM';
 
   @override
-  String get dmUnmuteConversation => 'Unmute Conversation';
+  String get dmUnmuteConversation => 'Unmute DM';
 
   @override
   String get dmPinDm => 'Pin DM';
@@ -546,5 +546,161 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get dmCopyChannelId => 'Copy Channel ID';
 
   @override
+  String get dmChannelIdCopied => 'Channel ID copied';
+
+  @override
   String get dmCopyUserId => 'Copy User ID';
+
+  @override
+  String get dmUserIdCopied => 'User ID copied';
+
+  @override
+  String get dmViewProfile => 'View Profile';
+
+  @override
+  String get dmVoiceCall => 'Start Voice Call';
+
+  @override
+  String get dmAddNote => 'Add Note';
+
+  @override
+  String get dmEditGroup => 'Edit Group';
+
+  @override
+  String get dmInviteToCommunity => 'Invite to Community';
+
+  @override
+  String get dmBlock => 'Block';
+
+  @override
+  String get dmLeaveGroup => 'Leave Group';
+
+  @override
+  String get dmNoCommunitiesAvailable => 'No communities available';
+
+  @override
+  String dmGroupMemberCount(int count) {
+    return '$count Members';
+  }
+
+  @override
+  String get dmMuteFor15Min => 'For 15 minutes';
+
+  @override
+  String get dmMuteFor30Min => 'For 30 minutes';
+
+  @override
+  String get dmMuteFor1Hour => 'For 1 hour';
+
+  @override
+  String get dmMuteFor3Hours => 'For 3 hours';
+
+  @override
+  String get dmMuteFor4Hours => 'For 4 hours';
+
+  @override
+  String get dmMuteFor8Hours => 'For 8 hours';
+
+  @override
+  String get dmMuteFor24Hours => 'For 24 hours';
+
+  @override
+  String get dmMuteFor3Days => 'For 3 days';
+
+  @override
+  String get dmMuteForever => 'Until I turn it back on';
+
+  @override
+  String get dmPinGroupDm => 'Pin Group DM';
+
+  @override
+  String get dmUnpinGroupDm => 'Unpin Group DM';
+
+  @override
+  String get dmFavoriteDm => 'Favorite DM';
+
+  @override
+  String get dmUnfavoriteDm => 'Unfavorite DM';
+
+  @override
+  String get dmFavoriteGroupDm => 'Favorite Group DM';
+
+  @override
+  String get dmUnfavoriteGroupDm => 'Unfavorite Group DM';
+
+  @override
+  String get dmChangeFriendNickname => 'Change Friend Nickname';
+
+  @override
+  String get dmRemoveFriend => 'Remove Friend';
+
+  @override
+  String get dmAddFriend => 'Add Friend';
+
+  @override
+  String get dmAcceptFriendRequest => 'Accept Friend Request';
+
+  @override
+  String get dmIgnoreFriendRequest => 'Ignore Friend Request';
+
+  @override
+  String get dmFriendRequestSent => 'Friend Request Sent';
+
+  @override
+  String get dmUnblock => 'Unblock';
+
+  @override
+  String get dmDebugUser => 'Debug User';
+
+  @override
+  String get dmDebugChannel => 'Debug Channel';
+
+  @override
+  String get dmPinned => 'Pinned DM';
+
+  @override
+  String get dmUnpinned => 'Unpinned DM';
+
+  @override
+  String get dmMuted => 'Muted DM';
+
+  @override
+  String get dmUnmuted => 'Unmuted DM';
+
+  @override
+  String get dmRemoveFriendConfirmTitle => 'Remove Friend';
+
+  @override
+  String dmRemoveFriendConfirmDescription(String username) {
+    return 'Are you sure you want to remove $username as a friend?';
+  }
+
+  @override
+  String get dmBlockConfirmTitle => 'Block User';
+
+  @override
+  String dmBlockConfirmDescription(String username) {
+    return 'Are you sure you want to block $username? They won\'t be able to message you or send you friend requests.';
+  }
+
+  @override
+  String get dmFriendRequestSentToast => 'Friend request sent';
+
+  @override
+  String get dmFriendRequestFailed => 'Failed to send friend request';
+
+  @override
+  String get dmAcceptFriendRequestFailed => 'Failed to accept friend request';
+
+  @override
+  String get dmRemoveFriendFailed => 'Failed to remove friend';
+
+  @override
+  String get dmBlockFailed => 'Failed to block user';
+
+  @override
+  String get dmUnblockFailed => 'Failed to unblock user';
+
+  @override
+  String get dmIgnoreFriendRequestFailed => 'Failed to ignore friend request';
 }
