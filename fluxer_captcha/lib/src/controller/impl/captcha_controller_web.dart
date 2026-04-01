@@ -111,11 +111,6 @@ class CaptchaController extends ChangeNotifier
     return expired.toDart;
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   void Function(CaptchaException error)? _onError;
   void Function(String token)? _onTokenReceived;
 

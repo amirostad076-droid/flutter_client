@@ -89,9 +89,7 @@ class FriendRepository {
         body: const RelationshipTypePutRequest(type: RelationshipTypes.blocked),
       );
     } on DioException catch (e) {
-      throw Exception(
-        e.response?.statusMessage ?? 'Failed to block user',
-      );
+      throw Exception(e.response?.statusMessage ?? 'Failed to block user');
     }
   }
 

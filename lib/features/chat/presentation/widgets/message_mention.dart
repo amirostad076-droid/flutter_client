@@ -128,8 +128,7 @@ class UserMention extends ConsumerWidget {
     final user = userAsync.value;
     final member = memberAsync?.value;
 
-    final name =
-        member?.nick ?? user?.globalName ?? user?.username ?? userId;
+    final name = member?.nick ?? user?.globalName ?? user?.username ?? userId;
 
     final colors = context.colors;
     final style = (baseStyle ?? const TextStyle()).copyWith(

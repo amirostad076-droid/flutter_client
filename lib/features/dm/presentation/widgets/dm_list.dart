@@ -20,8 +20,6 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart'
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
-import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
@@ -666,7 +664,8 @@ class _DMListState extends ConsumerState<DMList> {
                               style: context.textStyles.username.copyWith(
                                 color: isSelected
                                     ? context
-                                          .colors.surfaceInteractiveSelectedColor
+                                          .colors
+                                          .surfaceInteractiveSelectedColor
                                     : hasUnread
                                     ? context.colors.textChat
                                     : context.colors.textPrimaryMuted,
@@ -728,8 +727,7 @@ class _DMListState extends ConsumerState<DMList> {
     final db = ref.read(fluxerDatabaseProvider);
     final rels = await db.relationshipDao.getRelationships();
     final rel = rels.where((r) => r.userId == convo.recipientId).firstOrNull;
-    final devMode =
-        ref.read(userSettingsViewModelProvider).developerMode;
+    final devMode = ref.read(userSettingsViewModelProvider).developerMode;
     final result = await FluxerBottomSheet.show<Object>(
       context,
       builder: (context, _) => _DmBottomSheet(
@@ -771,9 +769,7 @@ class _DMListState extends ConsumerState<DMList> {
         break;
       case _DmAction.mute15Min:
         unawaited(
-          ref
-              .read(dmRepositoryProvider)
-              .muteDm(convo.id, durationSeconds: 900),
+          ref.read(dmRepositoryProvider).muteDm(convo.id, durationSeconds: 900),
         );
       case _DmAction.mute30Min:
         unawaited(
@@ -836,9 +832,7 @@ class _DMListState extends ConsumerState<DMList> {
         await FluxerConfirmModal.show(
           context,
           title: l10n.dmRemoveFriendConfirmTitle,
-          description: l10n.dmRemoveFriendConfirmDescription(
-            convo.displayName,
-          ),
+          description: l10n.dmRemoveFriendConfirmDescription(convo.displayName),
           confirmLabel: l10n.dmRemoveFriend,
           isDanger: true,
           onConfirm: () {
@@ -848,12 +842,14 @@ class _DMListState extends ConsumerState<DMList> {
                   .removeRelationship(convo.recipientId)
                   .catchError((_) {
                     if (mounted) {
-                      ref.read(toastProvider.notifier).show(
-                        FluxerToast(
-                          message: l10n.dmRemoveFriendFailed,
-                          variant: FluxerToastVariant.danger,
-                        ),
-                      );
+                      ref
+                          .read(toastProvider.notifier)
+                          .show(
+                            FluxerToast(
+                              message: l10n.dmRemoveFriendFailed,
+                              variant: FluxerToastVariant.danger,
+                            ),
+                          );
                     }
                   }),
             );
@@ -866,20 +862,24 @@ class _DMListState extends ConsumerState<DMList> {
               .read(friendRepositoryProvider)
               .sendFriendRequest(convo.recipientId);
           if (!mounted) break;
-          ref.read(toastProvider.notifier).show(
-            FluxerToast(
-              message: l10n.dmFriendRequestSentToast,
-              variant: FluxerToastVariant.success,
-            ),
-          );
+          ref
+              .read(toastProvider.notifier)
+              .show(
+                FluxerToast(
+                  message: l10n.dmFriendRequestSentToast,
+                  variant: FluxerToastVariant.success,
+                ),
+              );
         } catch (_) {
           if (!mounted) break;
-          ref.read(toastProvider.notifier).show(
-            FluxerToast(
-              message: l10n.dmFriendRequestFailed,
-              variant: FluxerToastVariant.danger,
-            ),
-          );
+          ref
+              .read(toastProvider.notifier)
+              .show(
+                FluxerToast(
+                  message: l10n.dmFriendRequestFailed,
+                  variant: FluxerToastVariant.danger,
+                ),
+              );
         }
       case _DmAction.acceptFriendRequest:
         final l10n = FluxerLocalizations.of(context);
@@ -889,12 +889,14 @@ class _DMListState extends ConsumerState<DMList> {
               .acceptFriendRequest(convo.recipientId);
         } catch (_) {
           if (!mounted) break;
-          ref.read(toastProvider.notifier).show(
-            FluxerToast(
-              message: l10n.dmAcceptFriendRequestFailed,
-              variant: FluxerToastVariant.danger,
-            ),
-          );
+          ref
+              .read(toastProvider.notifier)
+              .show(
+                FluxerToast(
+                  message: l10n.dmAcceptFriendRequestFailed,
+                  variant: FluxerToastVariant.danger,
+                ),
+              );
         }
       case _DmAction.ignoreFriendRequest:
         final l10n = FluxerLocalizations.of(context);
@@ -904,12 +906,14 @@ class _DMListState extends ConsumerState<DMList> {
               .removeRelationship(convo.recipientId);
         } catch (_) {
           if (!mounted) break;
-          ref.read(toastProvider.notifier).show(
-            FluxerToast(
-              message: l10n.dmIgnoreFriendRequestFailed,
-              variant: FluxerToastVariant.danger,
-            ),
-          );
+          ref
+              .read(toastProvider.notifier)
+              .show(
+                FluxerToast(
+                  message: l10n.dmIgnoreFriendRequestFailed,
+                  variant: FluxerToastVariant.danger,
+                ),
+              );
         }
       case _DmAction.block:
         if (!mounted) break;
@@ -927,12 +931,14 @@ class _DMListState extends ConsumerState<DMList> {
                   .blockUser(convo.recipientId)
                   .catchError((_) {
                     if (mounted) {
-                      ref.read(toastProvider.notifier).show(
-                        FluxerToast(
-                          message: l10n.dmBlockFailed,
-                          variant: FluxerToastVariant.danger,
-                        ),
-                      );
+                      ref
+                          .read(toastProvider.notifier)
+                          .show(
+                            FluxerToast(
+                              message: l10n.dmBlockFailed,
+                              variant: FluxerToastVariant.danger,
+                            ),
+                          );
                     }
                   }),
             );
@@ -946,12 +952,14 @@ class _DMListState extends ConsumerState<DMList> {
               .removeRelationship(convo.recipientId);
         } catch (_) {
           if (!mounted) break;
-          ref.read(toastProvider.notifier).show(
-            FluxerToast(
-              message: l10n.dmUnblockFailed,
-              variant: FluxerToastVariant.danger,
-            ),
-          );
+          ref
+              .read(toastProvider.notifier)
+              .show(
+                FluxerToast(
+                  message: l10n.dmUnblockFailed,
+                  variant: FluxerToastVariant.danger,
+                ),
+              );
         }
       case _DmAction.closeDm:
         if (!mounted) {
@@ -984,12 +992,14 @@ class _DMListState extends ConsumerState<DMList> {
             context,
             title: FluxerLocalizations.of(context).dmDebugUser,
             data: user.toJson(),
-            onCopied: (message) => ref.read(toastProvider.notifier).show(
-              FluxerToast(
-                message: message,
-                variant: FluxerToastVariant.success,
-              ),
-            ),
+            onCopied: (message) => ref
+                .read(toastProvider.notifier)
+                .show(
+                  FluxerToast(
+                    message: message,
+                    variant: FluxerToastVariant.success,
+                  ),
+                ),
           );
         } on Exception catch (_) {
           // API fetch failed — ignore silently.
@@ -997,20 +1007,20 @@ class _DMListState extends ConsumerState<DMList> {
       case _DmAction.debugChannel:
         try {
           final client = ref.read(fluxerClientProvider);
-          final channel = await client.channels.getChannel(
-            channelId: convo.id,
-          );
+          final channel = await client.channels.getChannel(channelId: convo.id);
           if (!mounted) break;
           await showDebugBottomSheet(
             context,
             title: FluxerLocalizations.of(context).dmDebugChannel,
             data: channel.toJson(),
-            onCopied: (message) => ref.read(toastProvider.notifier).show(
-              FluxerToast(
-                message: message,
-                variant: FluxerToastVariant.success,
-              ),
-            ),
+            onCopied: (message) => ref
+                .read(toastProvider.notifier)
+                .show(
+                  FluxerToast(
+                    message: message,
+                    variant: FluxerToastVariant.success,
+                  ),
+                ),
           );
         } on Exception catch (_) {
           // API fetch failed — ignore silently.
@@ -1018,21 +1028,25 @@ class _DMListState extends ConsumerState<DMList> {
       case _DmAction.copyUserId:
         await Clipboard.setData(ClipboardData(text: convo.recipientId));
         if (!mounted) break;
-        ref.read(toastProvider.notifier).show(
-          FluxerToast(
-            message: FluxerLocalizations.of(context).dmUserIdCopied,
-            variant: FluxerToastVariant.success,
-          ),
-        );
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: FluxerLocalizations.of(context).dmUserIdCopied,
+                variant: FluxerToastVariant.success,
+              ),
+            );
       case _DmAction.copyChannelId:
         await Clipboard.setData(ClipboardData(text: convo.id));
         if (!mounted) break;
-        ref.read(toastProvider.notifier).show(
-          FluxerToast(
-            message: FluxerLocalizations.of(context).dmChannelIdCopied,
-            variant: FluxerToastVariant.success,
-          ),
-        );
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: FluxerLocalizations.of(context).dmChannelIdCopied,
+                variant: FluxerToastVariant.success,
+              ),
+            );
     }
   }
 

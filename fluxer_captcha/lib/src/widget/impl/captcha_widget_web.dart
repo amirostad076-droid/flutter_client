@@ -6,13 +6,13 @@ import 'dart:ui_web' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:fluxer_captcha/src/captcha_exception.dart';
-import 'package:fluxer_captcha/src/widget/captcha_styling.dart';
-import 'package:fluxer_captcha/src/captcha_validation.dart';
 import 'package:fluxer_captcha/src/captcha_provider.dart';
+import 'package:fluxer_captcha/src/captcha_validation.dart';
 import 'package:fluxer_captcha/src/controller/captcha_controller.dart';
 import 'package:fluxer_captcha/src/controller/impl/captcha_controller_web.dart'
     as web_ctrl;
 import 'package:fluxer_captcha/src/widget/captcha_options.dart';
+import 'package:fluxer_captcha/src/widget/captcha_styling.dart';
 import 'package:fluxer_captcha/src/widget/interface.dart' as i;
 import 'package:web/web.dart' as web;
 

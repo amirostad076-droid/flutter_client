@@ -6,13 +6,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:fluxer_captcha/src/captcha_exception.dart';
-import 'package:fluxer_captcha/src/widget/captcha_styling.dart';
-import 'package:fluxer_captcha/src/captcha_validation.dart';
 import 'package:fluxer_captcha/src/captcha_provider.dart';
+import 'package:fluxer_captcha/src/captcha_validation.dart';
 import 'package:fluxer_captcha/src/controller/captcha_controller.dart';
 import 'package:fluxer_captcha/src/controller/impl/captcha_controller_native.dart'
     as native_ctrl;
 import 'package:fluxer_captcha/src/widget/captcha_options.dart';
+import 'package:fluxer_captcha/src/widget/captcha_styling.dart';
 import 'package:fluxer_captcha/src/widget/interface.dart' as i;
 
 const String _tokenReceivedJSHandler =
@@ -608,14 +608,14 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
       });
     },
     onConsoleMessage: (controller, consoleMessage) {},
-    onReceivedError: (controller, __, error) {
+    onReceivedError: (controller, _, error) {
       if (error.type == WebResourceErrorType.CANNOT_CONNECT_TO_HOST) {
         return;
       }
       _ready(false);
       _addError(CaptchaException(error.description));
     },
-    onPermissionRequest: (_, __) async => PermissionResponse(),
+    onPermissionRequest: (_, _) async => PermissionResponse(),
   );
 
   @override
@@ -723,15 +723,15 @@ class _CaptchaInvisible extends FluxerCaptcha {
         controller?.setConnector(wController);
         _createChannels(wController);
       },
-      onLoadStart: (_, __) {
+      onLoadStart: (_, _) {
         controller?.isWidgetReady = false;
         controller?.error = null;
       },
-      onLoadStop: (_, __) {
+      onLoadStop: (_, _) {
         controller?.isWidgetReady = true;
       },
-      onConsoleMessage: (_, __) {},
-      onReceivedError: (_, __, error) {
+      onConsoleMessage: (_, _) {},
+      onReceivedError: (_, _, error) {
         if (error.type == WebResourceErrorType.CANNOT_CONNECT_TO_HOST) {
           return;
         }
@@ -740,7 +740,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
           _completer?.completeError(error);
         }
       },
-      onPermissionRequest: (_, __) async => PermissionResponse(),
+      onPermissionRequest: (_, _) async => PermissionResponse(),
     );
   }
 

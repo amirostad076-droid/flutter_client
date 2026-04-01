@@ -103,9 +103,10 @@ class _ToastItemState extends State<_ToastItem>
       begin: const Offset(0, -1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _controller.forward();
   }
 
@@ -130,50 +131,50 @@ class _ToastItemState extends State<_ToastItem>
           child: Material(
             type: MaterialType.transparency,
             child: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            padding: EdgeInsets.symmetric(
-              horizontal: layout.s4,
-              vertical: layout.s3,
-            ),
-            decoration: BoxDecoration(
-              color: colors.backgroundPrimary,
-              borderRadius: layout.radiusFull,
-              border: Border.all(color: colors.backgroundModifierAccent),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 15,
-                  offset: const Offset(0, 10),
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 6,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.icon != null) ...[
-                  PhosphorIcon(
-                    widget.icon!,
-                    size: 20,
-                    color: widget.iconColor,
+              constraints: const BoxConstraints(maxWidth: 400),
+              padding: EdgeInsets.symmetric(
+                horizontal: layout.s4,
+                vertical: layout.s3,
+              ),
+              decoration: BoxDecoration(
+                color: colors.backgroundPrimary,
+                borderRadius: layout.radiusFull,
+                border: Border.all(color: colors.backgroundModifierAccent),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 15,
+                    offset: const Offset(0, 10),
                   ),
-                  SizedBox(width: layout.s3),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 6,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
-                Flexible(
-                  child: Text(
-                    widget.entry.toast.message,
-                    style: textStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w600,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.icon != null) ...[
+                    PhosphorIcon(
+                      widget.icon!,
+                      size: 20,
+                      color: widget.iconColor,
+                    ),
+                    SizedBox(width: layout.s3),
+                  ],
+                  Flexible(
+                    child: Text(
+                      widget.entry.toast.message,
+                      style: textStyles.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           ),
         ),
       ),
