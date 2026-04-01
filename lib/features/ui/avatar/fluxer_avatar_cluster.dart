@@ -1,0 +1,343 @@
+import 'dart:math' as math;
+
+import 'package:cached_network_image_ce/cached_network_image.dart';
+import 'package:flutter/material.dart';
+
+import 'package:fluxer_app/features/ui/status_indicator/fluxer_status_indicator.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+const _kAccentColors = [
+  Color(0xFF5865F2),
+  Color(0xFF57F287),
+  Color(0xFFFEE75C),
+  Color(0xFFEB459E),
+  Color(0xFFED4245),
+  Color(0xFF9B59B6),
+];
+
+const _kDefaultAvatarCount = 6;
+const _kStaticCdnUrl = 'https://fluxerstatic.com';
+const _kAvatarBorderSize = 2.0;
+
+class AvatarClusterMember {
+  final String userId;
+  final String? imageUrl;
+  final String fallbackText;
+
+  const AvatarClusterMember({
+    required this.userId,
+    required this.fallbackText,
+    this.imageUrl,
+  });
+
+  String get resolvedImageUrl {
+    if (imageUrl != null) {
+      return imageUrl!;
+    }
+    final index = BigInt.parse(userId) % BigInt.from(_kDefaultAvatarCount);
+    return '$_kStaticCdnUrl/avatars/$index.png';
+  }
+}
+
+class FluxerAvatarCluster extends StatelessWidget {
+  const FluxerAvatarCluster({
+    required this.channelId,
+    this.iconUrl,
+    this.status,
+    this.members = const [],
+    this.size = 32,
+    super.key,
+  });
+
+  final String channelId;
+  final String? iconUrl;
+  final String? status;
+  final List<AvatarClusterMember> members;
+  final double size;
+
+  Color get _accentColor {
+    if (channelId.isEmpty) {
+      return _kAccentColors[0];
+    }
+    var hash = 0;
+    for (var i = 0; i < channelId.length; i++) {
+      hash = ((hash << 5) - hash + channelId.codeUnitAt(i)).toSigned(32);
+    }
+    return _kAccentColors[hash.abs() % _kAccentColors.length];
+  }
+
+  double get _statusDotSize {
+    if (size <= 36) {
+      return 10;
+    }
+    if (size <= 40) {
+      return 12;
+    }
+    return 14;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget avatar;
+    if (iconUrl != null) {
+      avatar = _buildCustomIcon();
+    } else if (members.length >= 2) {
+      avatar = _buildCluster(context);
+    } else {
+      avatar = _buildFallback();
+    }
+
+    if (status == null) {
+      return avatar;
+    }
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        children: [
+          avatar,
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: FluxerStatusIndicator(
+              status: status!,
+              size: _statusDotSize,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomIcon() {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(shape: BoxShape.circle),
+      clipBehavior: Clip.antiAlias,
+      child: CachedNetworkImage(
+        imageUrl: iconUrl!,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _buildFallback(),
+      ),
+    );
+  }
+
+  Widget _buildFallback() {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: _accentColor,
+      ),
+      alignment: Alignment.center,
+      child: PhosphorIcon(
+        PhosphorIconsFill.usersThree,
+        size: size * 0.55,
+        color: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildCluster(BuildContext context) {
+    final count = math.min(members.length, 3);
+    final displayMembers = members.take(count).toList();
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        children: [
+          for (var i = 0; i < count; i++)
+            _buildClusterAvatar(displayMembers[i], i, count, bgColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClusterAvatar(
+    AvatarClusterMember member,
+    int index,
+    int count,
+    Color bgColor,
+  ) {
+    final pos = _getPosition(count, index);
+
+    final Widget avatar = Positioned(
+      top: pos.top,
+      left: pos.left,
+      child: _buildMemberCircle(member, pos.avatarSize, bgColor),
+    );
+
+    final cutouts = <_CircleCutout>[];
+    for (var j = index + 1; j < count; j++) {
+      final other = _getPosition(count, j);
+      cutouts.add(
+        _CircleCutout(
+          cx: other.left + other.avatarSize / 2,
+          cy: other.top + other.avatarSize / 2,
+          radius: other.avatarSize / 2 + _kAvatarBorderSize,
+        ),
+      );
+    }
+
+    if (cutouts.isEmpty) {
+      return avatar;
+    }
+
+    return ClipPath(
+      clipper: _ClusterOverlapClipper(
+        ownCenter: Offset(
+          pos.left + pos.avatarSize / 2,
+          pos.top + pos.avatarSize / 2,
+        ),
+        ownRadius: pos.avatarSize / 2,
+        cutouts: cutouts,
+      ),
+      child: avatar,
+    );
+  }
+
+  Widget _buildMemberCircle(
+    AvatarClusterMember member,
+    double avatarSize,
+    Color bgColor,
+  ) {
+    final text = member.fallbackText;
+    final initial =
+        (text.isNotEmpty) ? text[0].toUpperCase() : '?';
+    final fallbackColor =
+        _kAccentColors[text.hashCode.abs() % _kAccentColors.length];
+
+    return Container(
+      width: avatarSize,
+      height: avatarSize,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: fallbackColor,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: CachedNetworkImage(
+        imageUrl: member.resolvedImageUrl,
+        width: avatarSize,
+        height: avatarSize,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => Center(
+          child: Text(
+            initial,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: avatarSize * 0.4,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  _AvatarPosition _getPosition(int count, int index) {
+    if (count == 2) {
+      final avatarSize = size * 0.7;
+      final inset = math.min(size * 0.06, avatarSize * 0.18);
+      if (index == 0) {
+        return _AvatarPosition(
+          top: inset,
+          left: 0,
+          avatarSize: avatarSize,
+        );
+      }
+      return _AvatarPosition(
+        top: size - avatarSize - inset,
+        left: size - avatarSize,
+        avatarSize: avatarSize,
+      );
+    }
+
+    final avatarSize = size * 0.68;
+    final inset = math.min(size * 0.04, avatarSize * 0.12);
+    final topRow = inset;
+    final bottomRow = size - avatarSize - inset;
+
+    if (index == 0) {
+      return _AvatarPosition(
+        top: topRow,
+        left: 0,
+        avatarSize: avatarSize,
+      );
+    }
+    if (index == 1) {
+      return _AvatarPosition(
+        top: topRow,
+        left: size - avatarSize,
+        avatarSize: avatarSize,
+      );
+    }
+    return _AvatarPosition(
+      top: bottomRow,
+      left: (size - avatarSize) / 2,
+      avatarSize: avatarSize,
+    );
+  }
+}
+
+class _AvatarPosition {
+  final double top;
+  final double left;
+  final double avatarSize;
+
+  const _AvatarPosition({
+    required this.top,
+    required this.left,
+    required this.avatarSize,
+  });
+}
+
+class _CircleCutout {
+  final double cx;
+  final double cy;
+  final double radius;
+
+  const _CircleCutout({
+    required this.cx,
+    required this.cy,
+    required this.radius,
+  });
+}
+
+class _ClusterOverlapClipper extends CustomClipper<Path> {
+  const _ClusterOverlapClipper({
+    required this.ownCenter,
+    required this.ownRadius,
+    required this.cutouts,
+  });
+
+  final Offset ownCenter;
+  final double ownRadius;
+  final List<_CircleCutout> cutouts;
+
+  @override
+  Path getClip(Size size) {
+    final path = Path()
+      ..addOval(
+        Rect.fromCircle(center: ownCenter, radius: ownRadius),
+      );
+    for (final c in cutouts) {
+      path.addOval(
+        Rect.fromCircle(center: Offset(c.cx, c.cy), radius: c.radius),
+      );
+    }
+    path.fillType = PathFillType.evenOdd;
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant _ClusterOverlapClipper oldClipper) =>
+      ownCenter != oldClipper.ownCenter ||
+      ownRadius != oldClipper.ownRadius;
+}

@@ -17,7 +17,9 @@ class FluxerButton extends StatelessWidget {
     this.fitContent = false,
     this.child,
     super.key,
-  }) : _variant = FluxerButtonVariant.primary;
+  })  : _variant = FluxerButtonVariant.primary,
+        _isCircle = false,
+        _iconSizeOverride = null;
 
   const FluxerButton.secondary({
     required this.onPressed,
@@ -30,7 +32,9 @@ class FluxerButton extends StatelessWidget {
     this.fitContent = false,
     this.child,
     super.key,
-  }) : _variant = FluxerButtonVariant.secondary;
+  })  : _variant = FluxerButtonVariant.secondary,
+        _isCircle = false,
+        _iconSizeOverride = null;
 
   const FluxerButton.dangerPrimary({
     required this.onPressed,
@@ -43,7 +47,9 @@ class FluxerButton extends StatelessWidget {
     this.fitContent = false,
     this.child,
     super.key,
-  }) : _variant = FluxerButtonVariant.dangerPrimary;
+  })  : _variant = FluxerButtonVariant.dangerPrimary,
+        _isCircle = false,
+        _iconSizeOverride = null;
 
   const FluxerButton.dangerSecondary({
     required this.onPressed,
@@ -56,7 +62,9 @@ class FluxerButton extends StatelessWidget {
     this.fitContent = false,
     this.child,
     super.key,
-  }) : _variant = FluxerButtonVariant.dangerSecondary;
+  })  : _variant = FluxerButtonVariant.dangerSecondary,
+        _isCircle = false,
+        _iconSizeOverride = null;
 
   const FluxerButton.inverted({
     required this.onPressed,
@@ -69,7 +77,9 @@ class FluxerButton extends StatelessWidget {
     this.fitContent = false,
     this.child,
     super.key,
-  }) : _variant = FluxerButtonVariant.inverted;
+  })  : _variant = FluxerButtonVariant.inverted,
+        _isCircle = false,
+        _iconSizeOverride = null;
 
   const FluxerButton.invertedOutline({
     required this.onPressed,
@@ -82,7 +92,9 @@ class FluxerButton extends StatelessWidget {
     this.fitContent = false,
     this.child,
     super.key,
-  }) : _variant = FluxerButtonVariant.invertedOutline;
+  })  : _variant = FluxerButtonVariant.invertedOutline,
+        _isCircle = false,
+        _iconSizeOverride = null;
 
   const FluxerButton.ghost({
     required this.onPressed,
@@ -95,9 +107,30 @@ class FluxerButton extends StatelessWidget {
     this.fitContent = false,
     this.child,
     super.key,
-  }) : _variant = FluxerButtonVariant.ghost;
+  })  : _variant = FluxerButtonVariant.ghost,
+        _isCircle = false,
+        _iconSizeOverride = null;
+
+  const FluxerButton.circle({
+    required this.onPressed,
+    required IconData this.icon,
+    FluxerButtonVariant variant = FluxerButtonVariant.primary,
+    this.size = FluxerButtonSize.regular,
+    double? iconSize,
+    this.isLoading = false,
+    super.key,
+  })  : _variant = variant,
+        _isCircle = true,
+        _iconSizeOverride = iconSize,
+        isSquare = true,
+        label = null,
+        trailingIcon = null,
+        fitContent = false,
+        child = null;
 
   final FluxerButtonVariant _variant;
+  final bool _isCircle;
+  final double? _iconSizeOverride;
   final VoidCallback? onPressed;
   final String? label;
   final IconData? icon;
@@ -110,10 +143,15 @@ class FluxerButton extends StatelessWidget {
 
   bool get _enabled => onPressed != null && !isLoading;
 
-  BorderRadius get _borderRadius => BorderRadius.circular(switch (size) {
-    FluxerButtonSize.regular || FluxerButtonSize.small => 8.0,
-    FluxerButtonSize.compact || FluxerButtonSize.superCompact => 6.0,
-  });
+  BorderRadius get _borderRadius => BorderRadius.circular(
+    _isCircle
+        ? size.height / 2
+        : switch (size) {
+            FluxerButtonSize.regular || FluxerButtonSize.small => 8.0,
+            FluxerButtonSize.compact ||
+            FluxerButtonSize.superCompact => 6.0,
+          },
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -154,11 +192,13 @@ class FluxerButton extends StatelessWidget {
   }
 
   Widget _buildContent(Color foreground) {
+    final effectiveIconSize = _iconSizeOverride ?? size.iconSize;
+
     if (isLoading) {
       return Center(
         child: SizedBox(
-          width: size.iconSize,
-          height: size.iconSize,
+          width: effectiveIconSize,
+          height: effectiveIconSize,
           child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
         ),
       );
@@ -168,7 +208,7 @@ class FluxerButton extends StatelessWidget {
 
     if (icon != null) {
       contentWidgets.add(
-        PhosphorIcon(icon!, size: size.iconSize, color: foreground),
+        PhosphorIcon(icon!, size: effectiveIconSize, color: foreground),
       );
     }
 

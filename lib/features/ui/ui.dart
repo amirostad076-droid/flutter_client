@@ -4,11 +4,13 @@ export 'package:fluxer_app/features/ui/accordion/fluxer_accordion.dart';
 // Overlays
 export 'package:fluxer_app/features/ui/action_menu/fluxer_action_menu.dart';
 export 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
+export 'package:fluxer_app/features/ui/avatar/fluxer_avatar_cluster.dart';
 export 'package:fluxer_app/features/ui/badge/fluxer_badge.dart';
 export 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 // Buttons
 export 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 export 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
+export 'package:fluxer_app/features/ui/button/fluxer_button_variant.dart';
 // Inputs
 export 'package:fluxer_app/features/ui/checkbox/fluxer_checkbox.dart';
 export 'package:fluxer_app/features/ui/focus_ring/fluxer_focus_ring.dart';

@@ -130,7 +130,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         Container(
           decoration: BoxDecoration(
             color: context.colors.chatInputBackground,
-            border: Border(top: BorderSide(color: context.colors.borderColor)),
+            border: Border(
+              top: BorderSide(color: context.colors.userAreaDividerColor),
+            ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: ResponsiveLayout(
@@ -278,10 +280,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
     return Row(
       children: [
-        FluxerButton.secondary(
-          icon: Icons.add_rounded,
-          isSquare: true,
-          size: FluxerButtonSize.compact,
+        FluxerButton.circle(
+          icon: PhosphorIconsBold.plus,
+          variant: FluxerButtonVariant.secondary,
+          size: FluxerButtonSize.small,
+          iconSize: 20,
           onPressed: () {},
         ),
         const SizedBox(width: 8),
@@ -318,11 +321,15 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               ),
               isDense: true,
               suffixIcon: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 7),
-                child: FluxerButton.ghost(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 4,
+                  horizontal: 7,
+                ),
+                child: FluxerButton.circle(
                   icon: PhosphorIconsFill.smiley,
-                  isSquare: true,
+                  variant: FluxerButtonVariant.ghost,
                   size: FluxerButtonSize.compact,
+                  iconSize: 22,
                   onPressed: () {},
                 ),
               ),
@@ -333,7 +340,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         const SizedBox(width: 8),
         Padding(
           padding: const EdgeInsetsGeometry.only(bottom: 1),
-          child: _sendAndVoiceButton(context, chatNotifier, hasText: hasText),
+          child: _sendAndVoiceButton(
+            context,
+            chatNotifier,
+            hasText: hasText,
+            size: FluxerButtonSize.small,
+          ),
         ),
       ],
     );
@@ -343,24 +355,26 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     BuildContext context,
     ChatViewModel chatNotifier, {
     required bool hasText,
+    FluxerButtonSize size = FluxerButtonSize.compact,
   }) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) =>
           FadeTransition(opacity: animation, child: child),
       child: hasText
-          ? FluxerButton.primary(
+          ? FluxerButton.circle(
               key: const ValueKey('send'),
-              icon: Icons.arrow_upward_rounded,
-              isSquare: true,
-              size: FluxerButtonSize.compact,
+              icon: PhosphorIconsBold.arrowUp,
+              iconSize: 20,
+              size: size,
               onPressed: chatNotifier.sendMessage,
             )
-          : FluxerButton.secondary(
+          : FluxerButton.circle(
               key: const ValueKey('voice'),
               icon: PhosphorIconsFill.microphone,
-              isSquare: true,
-              size: FluxerButtonSize.compact,
+              variant: FluxerButtonVariant.secondary,
+              iconSize: 20,
+              size: size,
               onPressed: () {},
             ),
     );

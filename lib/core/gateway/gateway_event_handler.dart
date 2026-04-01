@@ -448,7 +448,11 @@ class GatewayEventHandler {
               recipientId: recipients.first.id,
               type: Value(ch.type),
               name: Value(ch.name),
+              icon: Value(ch.icon),
               recipientCount: Value(recipients.length + 1),
+              recipientIds: Value(
+                jsonEncode(recipients.map((r) => r.id).toList()),
+              ),
               lastMessageTime: Value(
                 ch.lastMessageId != null
                     ? dateTimeFromSnowflakeAsLocalOrNow(ch.lastMessageId!)
@@ -770,7 +774,11 @@ class GatewayEventHandler {
             recipientId: recipients.first.id,
             type: Value(channel.type),
             name: Value(channel.name),
+            icon: Value(channel.icon),
             recipientCount: Value(recipients.length + 1),
+            recipientIds: Value(
+              jsonEncode(recipients.map((r) => r.id).toList()),
+            ),
           ),
         ]),
       );

@@ -420,7 +420,7 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
 
     // UI-specific (derives from coal scale)
     chatBackground: backgroundSecondary,
-    chatInputBackground: backgroundSecondary,
+    chatInputBackground: coalSurface['backgroundSecondaryLighter']!,
     serverSidebarBackground: backgroundSecondary,
     serverIconBackground: backgroundTertiary,
     serverIconActive: brandPrimary,

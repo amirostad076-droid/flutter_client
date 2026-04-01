@@ -641,10 +641,12 @@ class _DMListState extends ConsumerState<DMList> {
                     ),
                   ),
                 if (c.isGroup)
-                  _buildGroupAvatar(
-                    context,
+                  FluxerAvatarCluster(
+                    channelId: c.id,
+                    iconUrl: _groupIconUrl(c),
+                    status: c.groupStatus,
+                    members: _clusterMembers(c),
                     size: avatarSize,
-                    isSelected: isSelected,
                   )
                 else
                   FluxerAvatar.user(
@@ -1130,29 +1132,6 @@ class _DMListState extends ConsumerState<DMList> {
     return '${diff.inDays ~/ 365}y';
   }
 
-  Widget _buildGroupAvatar(
-    BuildContext context, {
-    double size = 32,
-    bool isSelected = false,
-  }) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isSelected
-            ? context.colors.brandPrimary
-            : context.colors.backgroundModifierAccent,
-      ),
-      alignment: Alignment.center,
-      child: PhosphorIcon(
-        PhosphorIconsFill.usersThree,
-        size: size * 0.55,
-        color: context.colors.interactiveNormal,
-      ),
-    );
-  }
-
   Widget _buildCircleIcon(
     BuildContext context,
     IconData icon,
@@ -1235,6 +1214,28 @@ String? _dmAvatarUrl(DmConversation convo) {
   }
   return '$fluxerMediaCdn'
       '/avatars/${convo.recipientId}/$avatar.png';
+}
+
+String? _groupIconUrl(DmConversation convo) {
+  final icon = convo.icon;
+  if (icon == null) {
+    return null;
+  }
+  return '$fluxerMediaCdn/icons/${convo.id}/$icon.png';
+}
+
+List<AvatarClusterMember> _clusterMembers(DmConversation convo) {
+  return convo.groupMembers
+      .map(
+        (m) => AvatarClusterMember(
+          userId: m.id,
+          imageUrl: m.avatar != null
+              ? '$fluxerMediaCdn/avatars/${m.id}/${m.avatar}.png'
+              : null,
+          fallbackText: m.name,
+        ),
+      )
+      .toList();
 }
 
 enum _DmAction {

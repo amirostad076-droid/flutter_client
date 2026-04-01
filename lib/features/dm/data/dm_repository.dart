@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
@@ -18,28 +20,77 @@ class DmRepository {
       final lastMessages =
           await _db.messageDao.getLastMessageForChannels(channelIds);
 
-      final userIds = <String>{
-        ...rows.map((r) => r.recipientId),
-        ...lastMessages.values.map((m) => m.authorId),
-      };
-      final users = await _db.userDao.getUsersByIds(userIds.toList());
+      final allRecipientIds = <String>{};
+      for (final row in rows) {
+        allRecipientIds.add(row.recipientId);
+        final ids = _parseRecipientIds(row.recipientIds);
+        allRecipientIds.addAll(ids);
+      }
+      allRecipientIds.addAll(
+        lastMessages.values.map((m) => m.authorId),
+      );
+
+      final users =
+          await _db.userDao.getUsersByIds(allRecipientIds.toList());
       final userMap = {for (final u in users) u.id: u};
 
       return rows
           .map(
             (row) {
               final lastMsg = lastMessages[row.id];
+              final recipientIds = _parseRecipientIds(row.recipientIds);
+              final isGroup = row.type == 3;
               return DmConversation.fromRow(
                 row,
                 userMap[row.recipientId],
                 cachedLastMessage: lastMsg,
                 lastMessageAuthor:
                     lastMsg != null ? userMap[lastMsg.authorId] : null,
+                groupStatus: isGroup
+                    ? _computeGroupStatus(recipientIds, userMap)
+                    : null,
+                groupMembers: isGroup
+                    ? _buildGroupMembers(recipientIds, userMap)
+                    : const [],
               );
             },
           )
           .toList();
     });
+  }
+
+  static List<String> _parseRecipientIds(String json) {
+    try {
+      return (jsonDecode(json) as List<dynamic>).cast<String>();
+    } on Object {
+      return [];
+    }
+  }
+
+  static String? _computeGroupStatus(
+    List<String> recipientIds,
+    Map<String, db.User> userMap,
+  ) {
+    for (final id in recipientIds) {
+      if (userMap[id]?.status == 'online') {
+        return 'online';
+      }
+    }
+    return null;
+  }
+
+  static List<GroupMemberInfo> _buildGroupMembers(
+    List<String> recipientIds,
+    Map<String, db.User> userMap,
+  ) {
+    return recipientIds.take(3).map((id) {
+      final user = userMap[id];
+      return GroupMemberInfo(
+        id: id,
+        avatar: user?.avatar,
+        name: user?.globalName ?? user?.username ?? '',
+      );
+    }).toList();
   }
 
   Future<List<DmConversation>> getDmChannels() async {
@@ -66,7 +117,11 @@ class DmRepository {
             recipientId: recipients.first.id,
             type: Value(ch.type),
             name: Value(ch.name),
+            icon: Value(ch.icon),
             recipientCount: Value(recipients.length + 1),
+            recipientIds: Value(
+              jsonEncode(recipients.map((r) => r.id).toList()),
+            ),
             lastMessageTime: Value(
               ch.lastMessageId != null
                   ? dateTimeFromSnowflakeAsLocalOrNow(ch.lastMessageId!)
@@ -83,23 +138,35 @@ class DmRepository {
       final lastMessages =
           await _db.messageDao.getLastMessageForChannels(channelIds);
 
-      final userIds = <String>{
+      final allRecipientIds = <String>{
         ...rows.map((r) => r.recipientId),
         ...lastMessages.values.map((m) => m.authorId),
       };
-      final users = await _db.userDao.getUsersByIds(userIds.toList());
+      for (final row in rows) {
+        allRecipientIds.addAll(_parseRecipientIds(row.recipientIds));
+      }
+      final users =
+          await _db.userDao.getUsersByIds(allRecipientIds.toList());
       final userMap = {for (final u in users) u.id: u};
 
       return rows
           .map(
             (row) {
               final lastMsg = lastMessages[row.id];
+              final recipientIds = _parseRecipientIds(row.recipientIds);
+              final isGroup = row.type == 3;
               return DmConversation.fromRow(
                 row,
                 userMap[row.recipientId],
                 cachedLastMessage: lastMsg,
                 lastMessageAuthor:
                     lastMsg != null ? userMap[lastMsg.authorId] : null,
+                groupStatus: isGroup
+                    ? _computeGroupStatus(recipientIds, userMap)
+                    : null,
+                groupMembers: isGroup
+                    ? _buildGroupMembers(recipientIds, userMap)
+                    : const [],
               );
             },
           )

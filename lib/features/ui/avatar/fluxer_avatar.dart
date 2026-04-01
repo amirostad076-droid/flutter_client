@@ -111,6 +111,47 @@ class FluxerAvatar extends StatelessWidget {
     return _kFallbackColors[text.hashCode.abs() % _kFallbackColors.length];
   }
 
+  double get _statusDotSize {
+    if (size <= 36) {
+      return 10;
+    }
+    if (size <= 40) {
+      return 12;
+    }
+    if (size <= 48) {
+      return 14;
+    }
+    if (size <= 80) {
+      return 16;
+    }
+    return 24;
+  }
+
+  double get _cutoutRadius {
+    if (size <= 20) {
+      return 5;
+    }
+    if (size <= 24) {
+      return 7;
+    }
+    if (size <= 36) {
+      return 8;
+    }
+    if (size <= 40) {
+      return 9;
+    }
+    if (size <= 48) {
+      return 10;
+    }
+    if (size <= 56) {
+      return 11;
+    }
+    if (size <= 80) {
+      return 14;
+    }
+    return 20;
+  }
+
   BorderRadius get _borderRadius => _shape == _AvatarShape.rounded
       ? BorderRadius.circular(size * 0.27)
       : BorderRadius.circular(size / 2);
@@ -120,36 +161,52 @@ class FluxerAvatar extends StatelessWidget {
     final resolvedUrl = _resolvedImageUrl;
     final hasStatus = showStatus && status != null;
 
+    Widget avatarContent = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: _backgroundColor,
+        borderRadius: _borderRadius,
+      ),
+      child: ClipRRect(
+        borderRadius: _borderRadius,
+        child: resolvedUrl != null
+            ? CachedNetworkImage(
+                imageUrl: resolvedUrl,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _buildFallback(context),
+              )
+            : _buildFallback(context),
+      ),
+    );
+
+    if (hasStatus) {
+      avatarContent = ClipPath(
+        clipper: _StatusCutoutClipper(
+          avatarSize: size,
+          cutoutRadius: _cutoutRadius,
+          statusDotSize: _statusDotSize,
+        ),
+        child: avatarContent,
+      );
+    }
+
     return SizedBox(
       width: size,
       height: size,
       child: Stack(
         children: [
-          Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              color: _backgroundColor,
-              borderRadius: _borderRadius,
-            ),
-            child: ClipRRect(
-              borderRadius: _borderRadius,
-              child: resolvedUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: resolvedUrl,
-                      width: size,
-                      height: size,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _buildFallback(context),
-                    )
-                  : _buildFallback(context),
-            ),
-          ),
+          avatarContent,
           if (hasStatus)
             Positioned(
               right: 0,
               bottom: 0,
-              child: FluxerStatusIndicator(status: status!, size: size * 0.3),
+              child: FluxerStatusIndicator(
+                status: status!,
+                size: _statusDotSize,
+              ),
             ),
         ],
       ),
@@ -172,4 +229,37 @@ class FluxerAvatar extends StatelessWidget {
       ),
     );
   }
+}
+
+class _StatusCutoutClipper extends CustomClipper<Path> {
+  const _StatusCutoutClipper({
+    required this.avatarSize,
+    required this.cutoutRadius,
+    required this.statusDotSize,
+  });
+
+  final double avatarSize;
+  final double cutoutRadius;
+  final double statusDotSize;
+
+  @override
+  Path getClip(Size size) {
+    final center = Offset(
+      avatarSize - statusDotSize / 2,
+      avatarSize - statusDotSize / 2,
+    );
+
+    return Path()
+      ..addOval(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addOval(
+        Rect.fromCircle(center: center, radius: cutoutRadius),
+      )
+      ..fillType = PathFillType.evenOdd;
+  }
+
+  @override
+  bool shouldReclip(covariant _StatusCutoutClipper oldClipper) =>
+      avatarSize != oldClipper.avatarSize ||
+      cutoutRadius != oldClipper.cutoutRadius ||
+      statusDotSize != oldClipper.statusDotSize;
 }

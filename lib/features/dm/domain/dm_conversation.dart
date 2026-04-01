@@ -1,5 +1,17 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 
+class GroupMemberInfo {
+  final String id;
+  final String? avatar;
+  final String name;
+
+  const GroupMemberInfo({
+    required this.id,
+    this.avatar,
+    required this.name,
+  });
+}
+
 class DmConversation {
   final String id;
   final int type;
@@ -8,6 +20,7 @@ class DmConversation {
   final String? recipientAvatar;
   final String recipientStatus;
   final String? name;
+  final String? icon;
   final int recipientCount;
   final String lastMessage;
   final String? lastMessageAuthorId;
@@ -16,6 +29,8 @@ class DmConversation {
   final int unreadCount;
   final bool isBot;
   final bool isSystem;
+  final String? groupStatus;
+  final List<GroupMemberInfo> groupMembers;
 
   const DmConversation({
     required this.id,
@@ -27,12 +42,15 @@ class DmConversation {
     this.lastMessageAuthorId,
     this.lastMessageAuthorName,
     this.name,
+    this.icon,
     this.recipientAvatar,
     this.recipientStatus = 'offline',
     this.recipientCount = 2,
     this.unreadCount = 0,
     this.isBot = false,
     this.isSystem = false,
+    this.groupStatus,
+    this.groupMembers = const [],
   });
 
   bool get isGroup => type == 3;
@@ -46,6 +64,8 @@ class DmConversation {
     db.User? recipient, {
     db.Message? cachedLastMessage,
     db.User? lastMessageAuthor,
+    String? groupStatus,
+    List<GroupMemberInfo> groupMembers = const [],
   }) {
     return DmConversation(
       id: row.id,
@@ -55,6 +75,7 @@ class DmConversation {
       recipientAvatar: recipient?.avatar,
       recipientStatus: recipient?.status ?? 'offline',
       name: row.name,
+      icon: row.icon,
       recipientCount: row.recipientCount,
       isBot: recipient?.bot ?? false,
       isSystem: recipient?.system ?? false,
@@ -64,6 +85,8 @@ class DmConversation {
           lastMessageAuthor?.globalName ?? lastMessageAuthor?.username,
       lastMessageTime: row.lastMessageTime,
       unreadCount: row.unreadCount,
+      groupStatus: groupStatus,
+      groupMembers: groupMembers,
     );
   }
 }

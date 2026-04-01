@@ -422,7 +422,7 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
 
     // UI-specific
     chatBackground: backgroundSecondary,
-    chatInputBackground: backgroundSecondary,
+    chatInputBackground: lightSurface['backgroundSecondaryLighter']!,
     serverSidebarBackground: backgroundSecondary,
     serverIconBackground: backgroundTertiary,
     serverIconActive: brandPrimary,

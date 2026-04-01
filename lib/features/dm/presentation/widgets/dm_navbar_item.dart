@@ -96,13 +96,18 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(borderRadius),
                           ),
-                          child: FluxerAvatar.user(
-                            fallbackText: widget.displayName,
-                            userId: widget.recipientId,
-                            imageUrl: widget.avatarUrl,
-                            avatarColor: widget.avatarColor,
-                            size: 44,
-                          ),
+                          child: widget.type == 3
+                              ? FluxerAvatarCluster(
+                                  channelId: widget.channelId,
+                                  size: 44,
+                                )
+                              : FluxerAvatar.user(
+                                  fallbackText: widget.displayName,
+                                  userId: widget.recipientId,
+                                  imageUrl: widget.avatarUrl,
+                                  avatarColor: widget.avatarColor,
+                                  size: 44,
+                                ),
                         ),
                       ),
                       if (widget.mentionCount > 0 && !widget.isSelected)

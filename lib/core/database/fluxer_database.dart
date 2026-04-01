@@ -113,7 +113,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -254,6 +254,11 @@ class FluxerDatabase extends _$FluxerDatabase {
       if (from < 18) {
         // v18: Add system column to users.
         await m.addColumn(users, users.system);
+      }
+      if (from < 19) {
+        // v19: Add icon and recipientIds columns to dmChannels.
+        await m.addColumn(dmChannels, dmChannels.icon);
+        await m.addColumn(dmChannels, dmChannels.recipientIds);
       }
     },
   );

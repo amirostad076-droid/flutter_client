@@ -35,14 +35,17 @@ class FluxerStatusIndicator extends StatelessWidget {
   }
 
   Widget? _buildInner(BuildContext context) {
+    final cutoutColor = borderColor ?? context.colors.backgroundPrimary;
+
     if (status == 'dnd') {
+      final barHeight = size * 0.2;
       return Center(
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: borderColor ?? context.colors.backgroundPrimary,
-            borderRadius: BorderRadius.circular(1),
+            color: cutoutColor,
+            borderRadius: BorderRadius.circular(barHeight / 2),
           ),
-          child: SizedBox(width: size * 0.4, height: size * 0.12),
+          child: SizedBox(width: size * 0.55, height: barHeight),
         ),
       );
     }
@@ -53,11 +56,23 @@ class FluxerStatusIndicator extends StatelessWidget {
           alignment: const Alignment(0.4, -0.4),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: borderColor ?? context.colors.backgroundPrimary,
+              color: cutoutColor,
               shape: BoxShape.circle,
             ),
             child: SizedBox(width: size * 0.45, height: size * 0.45),
           ),
+        ),
+      );
+    }
+
+    if (status == 'offline' || status == 'invisible') {
+      return Center(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: cutoutColor,
+            shape: BoxShape.circle,
+          ),
+          child: SizedBox(width: size * 0.4, height: size * 0.4),
         ),
       );
     }
