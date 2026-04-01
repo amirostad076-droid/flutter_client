@@ -43,6 +43,16 @@ class MessageRepository {
         messages.map((m) => m.toCompanion()).toList(),
       );
 
+      if (messages.isNotEmpty) {
+        final last = messages.last;
+        await _db.dmChannelDao.updateLastMessage(
+          channelId,
+          last.content,
+          last.authorId,
+          last.timestamp,
+        );
+      }
+
       return messages;
     } on DioException catch (e) {
       // SDK deserialization can fail on a 200 response
@@ -139,6 +149,14 @@ class MessageRepository {
     if (messages.isNotEmpty) {
       await _db.messageDao.upsertMessages(
         messages.map((m) => m.toCompanion()).toList(),
+      );
+
+      final last = messages.last;
+      await _db.dmChannelDao.updateLastMessage(
+        channelId,
+        last.content,
+        last.authorId,
+        last.timestamp,
       );
     }
 

@@ -31,7 +31,13 @@ class DmChannelDao extends DatabaseAccessor<FluxerDatabase>
     String message,
     String authorId,
     DateTime timestamp,
-  ) => (update(dmChannels)..where((d) => d.id.equals(channelId))).write(
+  ) => (update(dmChannels)
+        ..where(
+          (d) =>
+              d.id.equals(channelId) &
+              d.lastMessageTime.isSmallerOrEqualValue(timestamp),
+        ))
+      .write(
     DmChannelsCompanion(
       lastMessage: Value(message),
       lastMessageAuthorId: Value(authorId),

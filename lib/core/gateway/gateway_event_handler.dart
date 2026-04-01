@@ -449,6 +449,11 @@ class GatewayEventHandler {
               type: Value(ch.type),
               name: Value(ch.name),
               recipientCount: Value(recipients.length + 1),
+              lastMessageTime: Value(
+                ch.lastMessageId != null
+                    ? dateTimeFromSnowflakeAsLocalOrNow(ch.lastMessageId!)
+                    : dateTimeFromSnowflakeAsLocalOrNow(ch.id),
+              ),
             ),
           );
         }

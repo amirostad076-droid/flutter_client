@@ -14,22 +14,29 @@ class DmRepository {
 
   Stream<List<DmConversation>> watchDmChannels() {
     return _db.dmChannelDao.watchDmChannels().asyncMap((rows) async {
+      final channelIds = rows.map((r) => r.id).toList();
+      final lastMessages =
+          await _db.messageDao.getLastMessageForChannels(channelIds);
+
       final userIds = <String>{
         ...rows.map((r) => r.recipientId),
-        ...rows.map((r) => r.lastMessageAuthorId).whereType<String>(),
+        ...lastMessages.values.map((m) => m.authorId),
       };
       final users = await _db.userDao.getUsersByIds(userIds.toList());
       final userMap = {for (final u in users) u.id: u};
 
       return rows
           .map(
-            (row) => DmConversation.fromRow(
-              row,
-              userMap[row.recipientId],
-              lastMessageAuthor: row.lastMessageAuthorId != null
-                  ? userMap[row.lastMessageAuthorId]
-                  : null,
-            ),
+            (row) {
+              final lastMsg = lastMessages[row.id];
+              return DmConversation.fromRow(
+                row,
+                userMap[row.recipientId],
+                cachedLastMessage: lastMsg,
+                lastMessageAuthor:
+                    lastMsg != null ? userMap[lastMsg.authorId] : null,
+              );
+            },
           )
           .toList();
     });
@@ -60,7 +67,6 @@ class DmRepository {
             type: Value(ch.type),
             name: Value(ch.name),
             recipientCount: Value(recipients.length + 1),
-            lastMessage: const Value(''),
             lastMessageTime: Value(
               ch.lastMessageId != null
                   ? dateTimeFromSnowflakeAsLocalOrNow(ch.lastMessageId!)
@@ -73,22 +79,29 @@ class DmRepository {
       await _db.dmChannelDao.upsertDmChannels(companions);
 
       final rows = await _db.dmChannelDao.getDmChannels();
+      final channelIds = rows.map((r) => r.id).toList();
+      final lastMessages =
+          await _db.messageDao.getLastMessageForChannels(channelIds);
+
       final userIds = <String>{
         ...rows.map((r) => r.recipientId),
-        ...rows.map((r) => r.lastMessageAuthorId).whereType<String>(),
+        ...lastMessages.values.map((m) => m.authorId),
       };
       final users = await _db.userDao.getUsersByIds(userIds.toList());
       final userMap = {for (final u in users) u.id: u};
 
       return rows
           .map(
-            (row) => DmConversation.fromRow(
-              row,
-              userMap[row.recipientId],
-              lastMessageAuthor: row.lastMessageAuthorId != null
-                  ? userMap[row.lastMessageAuthorId]
-                  : null,
-            ),
+            (row) {
+              final lastMsg = lastMessages[row.id];
+              return DmConversation.fromRow(
+                row,
+                userMap[row.recipientId],
+                cachedLastMessage: lastMsg,
+                lastMessageAuthor:
+                    lastMsg != null ? userMap[lastMsg.authorId] : null,
+              );
+            },
           )
           .toList();
     } on DioException catch (e) {

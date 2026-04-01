@@ -10,3 +10,11 @@ Stream<Set<String>> pinnedDmChannelIds(Ref ref) {
     (rows) => rows.map((r) => r.channelId).toSet(),
   );
 }
+
+@Riverpod(keepAlive: true)
+Stream<List<String>> pinnedDmChannelOrder(Ref ref) {
+  final db = ref.watch(fluxerDatabaseProvider);
+  return db.pinnedDmsDao.watchPinnedDms().map(
+    (rows) => rows.map((r) => r.channelId).toList(),
+  );
+}

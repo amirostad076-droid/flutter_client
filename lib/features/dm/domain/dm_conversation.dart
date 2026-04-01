@@ -44,6 +44,7 @@ class DmConversation {
   factory DmConversation.fromRow(
     db.DmChannel row,
     db.User? recipient, {
+    db.Message? cachedLastMessage,
     db.User? lastMessageAuthor,
   }) {
     return DmConversation(
@@ -57,8 +58,8 @@ class DmConversation {
       recipientCount: row.recipientCount,
       isBot: recipient?.bot ?? false,
       isSystem: recipient?.system ?? false,
-      lastMessage: row.lastMessage,
-      lastMessageAuthorId: row.lastMessageAuthorId,
+      lastMessage: cachedLastMessage?.content ?? '',
+      lastMessageAuthorId: cachedLastMessage?.authorId,
       lastMessageAuthorName:
           lastMessageAuthor?.globalName ?? lastMessageAuthor?.username,
       lastMessageTime: row.lastMessageTime,

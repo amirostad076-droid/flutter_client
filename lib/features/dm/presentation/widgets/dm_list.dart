@@ -73,11 +73,15 @@ class _DMListState extends ConsumerState<DMList> {
 
     final isMobile = isMobileLayout(context);
     final pinnedIds = ref.watch(pinnedDmChannelIdsProvider).value ?? {};
+    final pinnedOrder = ref.watch(pinnedDmChannelOrderProvider).value ?? [];
     final mutedIds = ref.watch(mutedDmChannelIdsProvider).value ?? {};
 
+    // Sort pinned DMs first (by pin position), then unpinned by recency.
+    final sortedConvos = _sortDmChannels(convos, pinnedIds, pinnedOrder);
+
     final filteredConvos = _searchQuery.isEmpty
-        ? convos
-        : convos
+        ? sortedConvos
+        : sortedConvos
               .where(
                 (c) => c.displayName.toLowerCase().contains(
                   _searchQuery.toLowerCase(),
@@ -1077,6 +1081,30 @@ class _DMListState extends ConsumerState<DMList> {
               ),
             );
     }
+  }
+
+  static List<DmConversation> _sortDmChannels(
+    List<DmConversation> convos,
+    Set<String> pinnedIds,
+    List<String> pinnedOrder,
+  ) {
+    final pinIndex = {
+      for (var i = 0; i < pinnedOrder.length; i++) pinnedOrder[i]: i,
+    };
+    return [...convos]..sort((a, b) {
+      final aPin = pinIndex[a.id];
+      final bPin = pinIndex[b.id];
+      final aIsPinned = aPin != null;
+      final bIsPinned = bPin != null;
+
+      if (aIsPinned && bIsPinned) {
+        return aPin.compareTo(bPin);
+      }
+      if (aIsPinned != bIsPinned) {
+        return aIsPinned ? -1 : 1;
+      }
+      return b.lastMessageTime.compareTo(a.lastMessageTime);
+    });
   }
 
   static String _formatRelativeTime(DateTime time) {
