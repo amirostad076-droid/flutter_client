@@ -14,6 +14,8 @@ class DmConversation {
   final String? lastMessageAuthorName;
   final DateTime lastMessageTime;
   final int unreadCount;
+  final bool isBot;
+  final bool isSystem;
 
   const DmConversation({
     required this.id,
@@ -29,6 +31,8 @@ class DmConversation {
     this.recipientStatus = 'offline',
     this.recipientCount = 2,
     this.unreadCount = 0,
+    this.isBot = false,
+    this.isSystem = false,
   });
 
   bool get isGroup => type == 3;
@@ -51,6 +55,8 @@ class DmConversation {
       recipientStatus: recipient?.status ?? 'offline',
       name: row.name,
       recipientCount: row.recipientCount,
+      isBot: recipient?.bot ?? false,
+      isSystem: recipient?.system ?? false,
       lastMessage: row.lastMessage,
       lastMessageAuthorId: row.lastMessageAuthorId,
       lastMessageAuthorName:

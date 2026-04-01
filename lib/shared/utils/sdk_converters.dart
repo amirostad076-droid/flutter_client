@@ -60,6 +60,7 @@ db.UsersCompanion userFromPartialSdk(UserPartialResponse sdk) {
     avatar: Value(sdk.avatar),
     avatarColor: Value(sdk.avatarColor),
     bot: Value(sdk.bot ?? false),
+    system: Value(sdk.system ?? false),
     memberSince: Value(dateTimeFromUserSnowflakeOrNull(sdk.id)),
   );
 }

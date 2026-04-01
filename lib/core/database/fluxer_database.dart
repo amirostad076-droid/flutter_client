@@ -113,7 +113,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -250,6 +250,10 @@ class FluxerDatabase extends _$FluxerDatabase {
             'CREATE INDEX idx_roles_guild ON roles (guild_id)',
           ),
         );
+      }
+      if (from < 18) {
+        // v18: Add system column to users.
+        await m.addColumn(users, users.system);
       }
     },
   );

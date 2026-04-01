@@ -682,9 +682,38 @@ class _DMListState extends ConsumerState<DMList> {
                                 color: context.colors.textTertiary,
                               ),
                             ),
+                          if (!c.isGroup && (c.isBot || c.isSystem))
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: _UserTag(
+                                label: c.isSystem
+                                    ? FluxerLocalizations.of(
+                                        context,
+                                      ).userTagSystem
+                                    : FluxerLocalizations.of(
+                                        context,
+                                      ).userTagBot,
+                              ),
+                            ),
                         ],
                       ),
-                      if (lastMessagePreview.isNotEmpty)
+                      if (c.isGroup)
+                        Text(
+                          FluxerLocalizations.of(
+                            context,
+                          ).dmGroupMemberCount(c.memberCount),
+                          style: TextStyle(
+                            color: context.colors.textPrimaryMuted.withValues(
+                              alpha: 0.85,
+                            ),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            height: 14 / 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        )
+                      else if (lastMessagePreview.isNotEmpty)
                         Text(
                           lastMessagePreview,
                           style: TextStyle(
@@ -1696,6 +1725,35 @@ class _DmInviteSheet extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _UserTag extends StatelessWidget {
+  final String label;
+
+  const _UserTag({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Container(
+      constraints: const BoxConstraints(minHeight: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 5.5, vertical: 2),
+      decoration: BoxDecoration(
+        color: colors.brandPrimary,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          color: colors.brandPrimaryFill,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          height: 1,
+        ),
+      ),
     );
   }
 }

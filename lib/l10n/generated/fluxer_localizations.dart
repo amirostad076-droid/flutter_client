@@ -1365,6 +1365,18 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Failed to ignore friend request'**
   String get dmIgnoreFriendRequestFailed;
+
+  /// Tag label shown next to bot user names.
+  ///
+  /// In en, this message translates to:
+  /// **'Bot'**
+  String get userTagBot;
+
+  /// Tag label shown next to system user names.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get userTagSystem;
 }
 
 class _FluxerLocalizationsDelegate
