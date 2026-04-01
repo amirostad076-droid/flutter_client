@@ -252,7 +252,7 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final color = isDanger ? colors.statusDanger : colors.textPrimary;
+    final color = isDanger ? colors.menuDangerText : colors.textPrimary;
 
     return FluxerTappable(
       onTap: onTap,

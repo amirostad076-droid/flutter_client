@@ -385,6 +385,9 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
       lightness: 20,
     ),
 
+    // Menu
+    menuDangerText: toneDirect(hue: 350, saturation: 90, lightness: 65),
+
     // Content Background
     bgCode: tone(FluxerColorFamilies.neutralDark, 15, alpha: 0.8),
     bgCodeBlock: backgroundSecondaryAlt,

@@ -112,6 +112,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     required this.controlButtonActiveText,
     required this.controlButtonDangerText,
     required this.controlButtonDangerHoverBg,
+    // Menu
+    required this.menuDangerText,
     // Content Background
     required this.bgCode,
     required this.bgCodeBlock,
@@ -272,6 +274,9 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   final Color controlButtonDangerText;
   final Color controlButtonDangerHoverBg;
 
+  // Menu
+  final Color menuDangerText;
+
   // Content Background
   final Color bgCode;
   final Color bgCodeBlock;
@@ -426,6 +431,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     Color? controlButtonActiveText,
     Color? controlButtonDangerText,
     Color? controlButtonDangerHoverBg,
+    // Menu
+    Color? menuDangerText,
     // Content Background
     Color? bgCode,
     Color? bgCodeBlock,
@@ -605,6 +612,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
           controlButtonDangerText ?? this.controlButtonDangerText,
       controlButtonDangerHoverBg:
           controlButtonDangerHoverBg ?? this.controlButtonDangerHoverBg,
+      // Menu
+      menuDangerText: menuDangerText ?? this.menuDangerText,
       // Content Background
       bgCode: bgCode ?? this.bgCode,
       bgCodeBlock: bgCodeBlock ?? this.bgCodeBlock,
@@ -1029,6 +1038,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
         other.controlButtonDangerHoverBg,
         t,
       )!,
+      // Menu
+      menuDangerText: Color.lerp(menuDangerText, other.menuDangerText, t)!,
       // Content Background
       bgCode: Color.lerp(bgCode, other.bgCode, t)!,
       bgCodeBlock: Color.lerp(bgCodeBlock, other.bgCodeBlock, t)!,

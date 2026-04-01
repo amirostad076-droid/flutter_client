@@ -389,6 +389,9 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
       lightness: 20,
     ),
 
+    // Menu
+    menuDangerText: toneDirect(hue: 350, saturation: 90, lightness: 65),
+
     // Content Background (coal overrides)
     bgCode: toneDirect(hue: 220, saturation: 13, lightness: 8),
     bgCodeBlock: backgroundSecondaryAlt,
