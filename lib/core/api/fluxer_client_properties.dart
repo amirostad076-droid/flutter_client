@@ -89,7 +89,7 @@ class FluxerClientProperties {
 
 String mapAppBuildEnvironmentToReleaseChannel(AppBuildEnvironment environment) {
   return switch (environment) {
-    AppBuildEnvironment.production => 'stable',
+    AppBuildEnvironment.stable => 'stable',
     AppBuildEnvironment.beta => 'beta',
     AppBuildEnvironment.canary => 'canary',
   };

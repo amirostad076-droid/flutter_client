@@ -47,7 +47,7 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         manifestPlaceholders["appLabel"] = "Fluxer"
-        manifestPlaceholders["buildEnvironment"] = "production"
+        manifestPlaceholders["buildEnvironment"] = "stable"
         manifestPlaceholders["pushProvider"] = "fcm"
     }
 
@@ -59,10 +59,10 @@ android {
             manifestPlaceholders["appLabel"] = "Fluxer Canary"
             manifestPlaceholders["buildEnvironment"] = "canary"
         }
-        create("production") {
+        create("stable") {
             dimension = "environment"
             manifestPlaceholders["appLabel"] = "Fluxer"
-            manifestPlaceholders["buildEnvironment"] = "production"
+            manifestPlaceholders["buildEnvironment"] = "stable"
         }
         create("beta") {
             dimension = "environment"

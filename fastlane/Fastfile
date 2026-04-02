@@ -90,8 +90,8 @@ platform :ios do
     end
   end
 
-  desc "Build production IPA and upload to App Store Connect as a processing build only (no App Review submission, no automatic release)"
-  lane :production_release do
+  desc "Build stable IPA and upload to App Store Connect as a processing build only (no App Review submission, no automatic release)"
+  lane :stable_release do
     profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision")
 
     api_key = app_store_connect_api_key(
@@ -112,7 +112,7 @@ platform :ios do
       xcodeproj: "ios/Runner.xcodeproj",
       profile: profile_path,
       target_filter: "^Runner$",
-      build_configuration: "Release-production",
+      build_configuration: "Release-stable",
       code_signing_identity: "Apple Distribution"
     )
     cocoapods(
@@ -126,17 +126,17 @@ platform :ios do
       "ios",
       "--release",
       "--flavor",
-      "production",
+      "stable",
       "--no-codesign",
       "--build-number",
       flutter_build_number.to_s,
-      "--dart-define-from-file=tool/dart_defines/production.json",
+      "--dart-define-from-file=tool/dart_defines/stable.json",
       "--dart-define=PUSH_PROVIDER=apns"
     )
     build_app(
       workspace: "ios/Runner.xcworkspace",
-      scheme: "production",
-      configuration: "Release-production",
+      scheme: "stable",
+      configuration: "Release-stable",
       clean: true,
       output_directory: "build/ios/ipa",
       export_method: "app-store",

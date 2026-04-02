@@ -38,14 +38,14 @@
             ]
         },
         {
-            "name": "Android Production FCM",
+            "name": "Android Stable FCM",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",
             "args": [
                 "--flavor",
-                "productionFcm",
-                "--dart-define-from-file=tool/dart_defines/production.json",
+                "stableFcm",
+                "--dart-define-from-file=tool/dart_defines/stable.json",
                 "--dart-define=PUSH_PROVIDER=fcm"
             ]
         },
@@ -74,14 +74,14 @@
             ]
         },
         {
-            "name": "Android Production UnifiedPush",
+            "name": "Android Stable UnifiedPush",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",
             "args": [
                 "--flavor",
-                "productionUnifiedpush",
-                "--dart-define-from-file=tool/dart_defines/production.json",
+                "stableUnifiedpush",
+                "--dart-define-from-file=tool/dart_defines/stable.json",
                 "--dart-define=PUSH_PROVIDER=unifiedpush"
             ]
         },
@@ -110,14 +110,14 @@
             ]
         },
         {
-            "name": "iOS Production APNs",
+            "name": "iOS Stable APNs",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",
             "args": [
                 "--flavor",
-                "production",
-                "--dart-define-from-file=tool/dart_defines/production.json",
+                "stable",
+                "--dart-define-from-file=tool/dart_defines/stable.json",
                 "--dart-define=PUSH_PROVIDER=apns"
             ]
         }

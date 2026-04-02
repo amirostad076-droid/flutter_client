@@ -29,11 +29,11 @@ For updates, support, and discussion, [join the Fluxer Mobile server on Fluxer](
 
 **Google Play Store**: Coming soon!
 
-**Android APK**: You can find both production/beta in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](https://obtainium.imranr.dev) for auto updates.
+**Android APK**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](https://obtainium.imranr.dev) for auto updates.
 
 **Android APK OSS**: Coming soon! (this build will come without Firebase Messenger for push notification and will use [UnifiedPush](https://unifiedpush.org) for push notifications)
 
-Production and beta Android release builds are signed with this SHA-256 certificate fingerprint:
+Stable and beta Android release builds are signed with this SHA-256 certificate fingerprint:
 `91:E4:98:E1:B8:A6:C8:BA:99:41:5E:DB:29:78:29:6B:6C:58:BA:A5:E2:D2:A6:49:CE:C6:2D:A7:A8:29:C7:BC`
 
 ## Contributing
@@ -52,21 +52,21 @@ dart run build_runner build --delete-conflicting-outputs
 
 ### Mobile builds
 
-**Environments** are `canary`, `beta`, and `production`. Pass compile-time defines with `--dart-define-from-file=tool/dart_defines/<environment>.json` (each file sets `APP_ENVIRONMENT`) plus `--dart-define=PUSH_PROVIDER=...` as needed.
+**Environments** are `canary`, `beta`, and `stable`. Pass compile-time defines with `--dart-define-from-file=tool/dart_defines/<environment>.json` (each file sets `APP_ENVIRONMENT`) plus `--dart-define=PUSH_PROVIDER=...` as needed.
 
-**Application ID / bundle ID:** `beta` and `production` use `com.fluxer`. `canary` uses `com.fluxer.canary`
+**Application ID / bundle ID:** `beta` and `stable` use `com.fluxer`. `canary` uses `com.fluxer.canary`
 
-**Android** uses two Gradle flavor dimensions: environment plus push (`fcm` or `unifiedpush`). The variant name combines both in camelCase (for example `productionFcm`, `betaUnifiedpush`). `PUSH_PROVIDER` must match the push dimension: `fcm` for Firebase Cloud Messaging (adds deps via `pubspec.firebase.deps.yaml`) or `unifiedpush` for UnifiedPush.
+**Android** uses two Gradle flavor dimensions: environment plus push (`fcm` or `unifiedpush`). The variant name combines both in camelCase (for example `stableFcm`, `betaUnifiedpush`). `PUSH_PROVIDER` must match the push dimension: `fcm` for Firebase Cloud Messaging (adds deps via `pubspec.firebase.deps.yaml`) or `unifiedpush` for UnifiedPush.
 
-**iOS** uses schemes with the same environment names (`canary`, `beta`, `production`). There is no push flavor dimension; push is always Apple Push Notification service, so use `PUSH_PROVIDER=apns`.
+**iOS** uses schemes with the same environment names (`canary`, `beta`, `stable`). There is no push flavor dimension; push is always Apple Push Notification service, so use `PUSH_PROVIDER=apns`.
 
-Example (Android, production with FCM):
+Example (Android, stable with FCM):
 
 ```text
-flutter run --flavor productionFcm --dart-define-from-file=tool/dart_defines/production.json --dart-define=PUSH_PROVIDER=fcm
+flutter run --flavor stableFcm --dart-define-from-file=tool/dart_defines/stable.json --dart-define=PUSH_PROVIDER=fcm
 ```
 
-For the same environment on iOS, swap the flavor for the scheme and set `PUSH_PROVIDER=apns`, for example `--flavor production`, `--dart-define-from-file=tool/dart_defines/production.json`, and `--dart-define=PUSH_PROVIDER=apns`.
+For the same environment on iOS, swap the flavor for the scheme and set `PUSH_PROVIDER=apns`, for example `--flavor stable`, `--dart-define-from-file=tool/dart_defines/stable.json`, and `--dart-define=PUSH_PROVIDER=apns`.
 
 ### Desktop builds
 

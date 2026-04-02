@@ -6,7 +6,7 @@ class AppBuildConfig {
   // ignore: do_not_use_environment -- compile-time build flavor config
   static const String _environmentValue = String.fromEnvironment(
     'APP_ENVIRONMENT',
-    defaultValue: 'production',
+    defaultValue: 'stable',
   );
   // ignore: do_not_use_environment -- compile-time build flavor config
   static const String _pushProviderValue = String.fromEnvironment(
@@ -19,10 +19,11 @@ class AppBuildConfig {
         return AppBuildEnvironment.canary;
       case 'beta':
         return AppBuildEnvironment.beta;
+      case 'stable':
       case 'production':
-        return AppBuildEnvironment.production;
+        return AppBuildEnvironment.stable;
       default:
-        return AppBuildEnvironment.production;
+        return AppBuildEnvironment.stable;
     }
   }
 
@@ -43,7 +44,7 @@ class AppBuildConfig {
 
   static bool get isCanary => environment == AppBuildEnvironment.canary;
   static bool get isBeta => environment == AppBuildEnvironment.beta;
-  static bool get isProduction => environment == AppBuildEnvironment.production;
+  static bool get isStable => environment == AppBuildEnvironment.stable;
   static bool get isFirebaseMessagingEnabled =>
       pushProvider == PushProviderKind.firebaseMessaging;
 }
