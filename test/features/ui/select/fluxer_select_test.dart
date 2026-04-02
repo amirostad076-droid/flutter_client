@@ -125,5 +125,73 @@ void main() {
       // Check icon visible for selected item
       expect(find.byIcon(PhosphorIconsBold.check), findsOneWidget);
     });
+
+    testWidgets('renders description and error text below the trigger', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          FluxerSelect<String>(
+            items: items,
+            description: 'Choose the channel sort order.',
+            errorText: 'Selection is required.',
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      expect(find.text('Choose the channel sort order.'), findsOneWidget);
+      expect(find.text('Selection is required.'), findsOneWidget);
+    });
+
+    testWidgets('searches rich options and shows an empty state', (
+      tester,
+    ) async {
+      final richItems = [
+        const FluxerSelectItem(
+          value: 'a',
+          label: 'Alpha',
+          description: 'First option',
+        ),
+        const FluxerSelectItem(
+          value: 'b',
+          label: 'Beta',
+          description: 'Second option',
+        ),
+        const FluxerSelectItem(
+          value: 'c',
+          label: 'Gamma',
+          description: 'Third option',
+        ),
+      ];
+
+      await tester.pumpWidget(
+        buildTestApp(
+          FluxerSelect<String>(
+            items: richItems,
+            searchHint: 'Search options',
+            emptyLabel: 'No matches found',
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(PhosphorIconsBold.caretDown));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Search options'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextFormField), 'Gam');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Gamma'), findsOneWidget);
+      expect(find.text('Third option'), findsOneWidget);
+      expect(find.text('Alpha'), findsNothing);
+
+      await tester.enterText(find.byType(TextFormField), 'zzz');
+      await tester.pumpAndSettle();
+
+      expect(find.text('No matches found'), findsOneWidget);
+    });
   });
 }

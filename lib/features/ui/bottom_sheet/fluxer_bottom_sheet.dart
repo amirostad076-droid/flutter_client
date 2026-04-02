@@ -12,10 +12,12 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 typedef FluxerBottomSheetBuilder =
     Widget Function(BuildContext context, VoidCallback close);
 
+enum FluxerBottomSheetVariant { content, menu }
+
 /// Shows a styled modal bottom sheet with the app's standard appearance.
 ///
-/// The [builder] receives a `close` callback so children can dismiss the sheet
-/// without needing their own `Navigator.pop` call.
+/// The sheet builder receives a `close` callback so children can dismiss the
+/// sheet without needing their own `Navigator.pop` call.
 class FluxerBottomSheet {
   FluxerBottomSheet._();
 
@@ -25,12 +27,18 @@ class FluxerBottomSheet {
     String? title,
     Widget? subtitle,
     Widget? leading,
+    Widget? trailing,
+    VoidCallback? onBack,
+    bool showDragHandle = true,
+    bool useRootNavigator = false,
+    FluxerBottomSheetVariant variant = FluxerBottomSheetVariant.content,
   }) {
     final colors = context.colors;
     final layout = context.layout;
 
     return showModalBottomSheet<T>(
       context: context,
+      useRootNavigator: useRootNavigator,
       isScrollControlled: true,
       backgroundColor: colors.backgroundSecondary,
       elevation: 0,
@@ -38,27 +46,55 @@ class FluxerBottomSheet {
         borderRadius: BorderRadius.vertical(top: layout.radiusXxl.topLeft),
       ),
       builder: (sheetContext) {
-        void close() => Navigator.of(sheetContext).pop();
+        void close() =>
+            Navigator.of(sheetContext, rootNavigator: useRootNavigator).pop();
 
-        final bottomPadding = MediaQuery.paddingOf(sheetContext).bottom;
+        final mediaQuery = MediaQuery.of(sheetContext);
+        final bottomPadding = mediaQuery.viewPadding.bottom;
+        final topPadding = mediaQuery.viewPadding.top;
+        final bottomInset = mediaQuery.viewInsets.bottom;
+        final hasHeader =
+            title != null ||
+            subtitle != null ||
+            leading != null ||
+            trailing != null ||
+            onBack != null;
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(height: layout.s2),
-            const FluxerBottomSheetDragHandle(),
-            if (title != null) ...[
-              SizedBox(height: layout.s2),
-              FluxerBottomSheetHeader(
-                title: title,
-                subtitle: subtitle,
-                leading: leading,
-              ),
-            ],
-            SizedBox(height: layout.s2),
-            Flexible(child: builder(sheetContext, close)),
-            SizedBox(height: bottomPadding > 0 ? bottomPadding : layout.s4),
-          ],
+        return AnimatedPadding(
+          duration: sheetContext.motion.normal,
+          curve: sheetContext.motion.curve,
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: mediaQuery.size.height - topPadding - layout.s4,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: layout.s2),
+                if (showDragHandle) ...[
+                  const FluxerBottomSheetDragHandle(),
+                  SizedBox(height: layout.s2),
+                ],
+                if (hasHeader) ...[
+                  FluxerBottomSheetHeader(
+                    title: title ?? '',
+                    subtitle: subtitle,
+                    leading: leading,
+                    trailing: trailing,
+                    onBack: onBack,
+                  ),
+                  SizedBox(
+                    height: variant == FluxerBottomSheetVariant.menu
+                        ? layout.s3
+                        : layout.s2,
+                  ),
+                ],
+                Flexible(child: builder(sheetContext, close)),
+                SizedBox(height: bottomPadding > 0 ? bottomPadding : layout.s4),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -91,43 +127,81 @@ class FluxerBottomSheetHeader extends StatelessWidget {
   final String title;
   final Widget? leading;
   final Widget? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onBack;
+  final Widget? after;
 
   const FluxerBottomSheetHeader({
     required this.title,
     super.key,
     this.leading,
     this.subtitle,
+    this.trailing,
+    this.onBack,
+    this.after,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final layout = context.layout;
+    final effectiveLeading = onBack != null
+        ? IconButton(
+            onPressed: onBack,
+            icon: PhosphorIcon(
+              PhosphorIconsBold.caretLeft,
+              size: 20,
+              color: colors.textPrimary,
+            ),
+          )
+        : leading;
+    final alignStart = effectiveLeading != null;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: layout.s4),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (leading != null) ...[leading!, SizedBox(width: layout.s3)],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: leading != null
-                  ? CrossAxisAlignment.start
-                  : CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: context.textStyles.channelName.copyWith(
-                    color: colors.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (subtitle != null) ...[const SizedBox(height: 2), subtitle!],
+          Row(
+            children: [
+              if (effectiveLeading != null) ...[
+                effectiveLeading,
+                SizedBox(width: layout.s3),
               ],
-            ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: alignStart
+                      ? CrossAxisAlignment.start
+                      : CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: context.textStyles.channelName.copyWith(
+                        color: colors.textPrimary,
+                      ),
+                      textAlign: alignStart
+                          ? TextAlign.start
+                          : TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      DefaultTextStyle.merge(
+                        textAlign: alignStart
+                            ? TextAlign.start
+                            : TextAlign.center,
+                        child: subtitle!,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[SizedBox(width: layout.s3), trailing!],
+            ],
           ),
+          if (after != null) ...[SizedBox(height: layout.s3), after!],
         ],
       ),
     );
@@ -146,33 +220,109 @@ class FluxerBottomSheetSubmenuHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return FluxerBottomSheetHeader(title: title, onBack: onBack);
+  }
+}
+
+class FluxerBottomSheetContent extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final bool scrollable;
+
+  const FluxerBottomSheetContent({
+    required this.child,
+    super.key,
+    this.padding,
+    this.scrollable = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.layout;
+    final content = Padding(
+      padding: padding ?? EdgeInsets.symmetric(horizontal: layout.s4),
+      child: child,
+    );
+
+    if (!scrollable) {
+      return content;
+    }
+
+    return SingleChildScrollView(child: content);
+  }
+}
+
+class FluxerBottomSheetSection extends StatelessWidget {
+  final String? title;
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+
+  const FluxerBottomSheetSection({
+    required this.child,
+    super.key,
+    this.title,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.colors;
+    final layout = context.layout;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
+      padding: padding ?? EdgeInsets.symmetric(horizontal: layout.s4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: PhosphorIcon(
-              PhosphorIconsBold.caretLeft,
-              size: 20,
-              color: colors.textPrimary,
-            ),
-            onPressed: onBack,
-          ),
-          Expanded(
-            child: Text(
-              title,
-              style: context.textStyles.channelName.copyWith(
-                color: colors.textPrimary,
+          if (title != null) ...[
+            Padding(
+              padding: EdgeInsets.only(bottom: layout.s2),
+              child: Text(
+                title!,
+                style: context.textStyles.label.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-          const SizedBox(width: 48),
+          ],
+          child,
         ],
+      ),
+    );
+  }
+}
+
+class FluxerBottomSheetFooter extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final bool showTopBorder;
+
+  const FluxerBottomSheetFooter({
+    required this.child,
+    super.key,
+    this.padding,
+    this.showTopBorder = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final layout = context.layout;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: showTopBorder
+            ? Border(
+                top: BorderSide(
+                  color: colors.backgroundModifierAccent.withValues(alpha: 0.5),
+                ),
+              )
+            : null,
+      ),
+      child: Padding(
+        padding: padding ?? EdgeInsets.all(layout.s4),
+        child: child,
       ),
     );
   }
@@ -239,6 +389,9 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
   final VoidCallback onTap;
   final IconData? icon;
   final bool isDanger;
+  final bool isSelected;
+  final bool enabled;
+  final Widget? trailing;
 
   const FluxerBottomSheetMenuItem({
     required this.label,
@@ -247,50 +400,85 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
     this.hint,
     this.icon,
     this.isDanger = false,
+    this.isSelected = false,
+    this.enabled = true,
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final color = isDanger ? colors.menuDangerText : colors.textPrimary;
+    final baseColor = isDanger
+        ? colors.menuDangerText
+        : isSelected
+        ? colors.brandPrimary
+        : colors.textPrimary;
 
     return FluxerTappable(
+      enabled: enabled,
       onTap: onTap,
       builder: (context, states) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              if (icon != null) ...[
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: Center(
-                    child: PhosphorIcon(icon!, color: color, size: 20),
-                  ),
-                ),
-                const SizedBox(width: 12),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: context.textStyles.username.copyWith(color: color),
-                    ),
-                    if (hint != null)
-                      Text(
-                        hint!,
-                        style: context.textStyles.timestamp.copyWith(
-                          color: colors.textTertiary,
-                        ),
+        final isPressed = states.contains(WidgetState.pressed);
+
+        return AnimatedContainer(
+          duration: context.motion.fast,
+          curve: context.motion.curve,
+          color: isSelected
+              ? colors.brandPrimary.withValues(alpha: 0.12)
+              : isPressed
+              ? colors.backgroundModifierHover.withValues(alpha: 0.6)
+              : Colors.transparent,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  if (icon != null) ...[
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Center(
+                        child: PhosphorIcon(icon!, color: baseColor, size: 20),
                       ),
+                    ),
+                    const SizedBox(width: 12),
                   ],
-                ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label,
+                          style: context.textStyles.username.copyWith(
+                            color: enabled ? baseColor : colors.textTertiary,
+                          ),
+                        ),
+                        if (hint != null)
+                          Text(
+                            hint!,
+                            style: context.textStyles.timestamp.copyWith(
+                              color: colors.textTertiary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (trailing != null) ...[
+                    const SizedBox(width: 12),
+                    trailing!,
+                  ] else if (isSelected) ...[
+                    const SizedBox(width: 12),
+                    PhosphorIcon(
+                      PhosphorIconsBold.check,
+                      size: 18,
+                      color: colors.brandPrimary,
+                    ),
+                  ],
+                ],
               ),
-            ],
+            ),
           ),
         );
       },
@@ -312,45 +500,15 @@ class FluxerBottomSheetSubmenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return FluxerTappable(
+    return FluxerBottomSheetMenuItem(
+      label: label,
+      hint: hint,
       onTap: onTap,
-      builder: (context, states) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: context.textStyles.username.copyWith(
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    if (hint != null)
-                      Text(
-                        hint!,
-                        style: context.textStyles.timestamp.copyWith(
-                          color: colors.textTertiary,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              PhosphorIcon(
-                PhosphorIconsBold.caretRight,
-                size: 20,
-                color: colors.textPrimaryMuted,
-              ),
-            ],
-          ),
-        );
-      },
+      trailing: PhosphorIcon(
+        PhosphorIconsBold.caretRight,
+        size: 20,
+        color: context.colors.textPrimaryMuted,
+      ),
     );
   }
 }
@@ -393,42 +551,45 @@ class FluxerBottomSheetCheckboxItem extends StatelessWidget {
     return FluxerTappable(
       onTap: onTap,
       builder: (context, states) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: context.textStyles.username.copyWith(
-                    color: colors.textPrimary,
+        return ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 56),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: context.textStyles.username.copyWith(
+                      color: colors.textPrimary,
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: isChecked
-                        ? colors.brandPrimary
-                        : colors.backgroundHeaderSecondary,
-                    width: 2,
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isChecked
+                          ? colors.brandPrimary
+                          : colors.backgroundHeaderSecondary,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(3),
+                    color: isChecked ? colors.brandPrimary : Colors.transparent,
                   ),
-                  borderRadius: BorderRadius.circular(3),
-                  color: isChecked ? colors.brandPrimary : Colors.transparent,
+                  child: isChecked
+                      ? Center(
+                          child: PhosphorIcon(
+                            PhosphorIconsBold.check,
+                            size: 12,
+                            color: colors.textOnBrandPrimary,
+                          ),
+                        )
+                      : null,
                 ),
-                child: isChecked
-                    ? Center(
-                        child: PhosphorIcon(
-                          PhosphorIconsBold.check,
-                          size: 12,
-                          color: colors.textOnBrandPrimary,
-                        ),
-                      )
-                    : null,
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

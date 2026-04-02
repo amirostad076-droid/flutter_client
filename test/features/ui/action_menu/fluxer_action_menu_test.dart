@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/action_menu/fluxer_action_menu.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 Widget buildTestApp(Widget child) {
@@ -19,6 +20,15 @@ Widget buildTestApp(Widget child) {
     ),
     home: Scaffold(body: child),
   );
+}
+
+void useMobileSurface(WidgetTester tester) {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
 }
 
 void main() {
@@ -130,6 +140,53 @@ void main() {
       await tester.tapAt(const Offset(500, 500));
       await tester.pumpAndSettle();
       expect(find.text('Edit'), findsNothing);
+    });
+
+    testWidgets('mobile presentation groups items into titled sections', (
+      tester,
+    ) async {
+      useMobileSurface(tester);
+
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () {
+                unawaited(
+                  FluxerActionMenu.show(
+                    context,
+                    position: const Offset(100, 100),
+                    builder: (context, close) => [
+                      const FluxerMenuSectionHeader(label: 'Primary actions'),
+                      FluxerMenuItem(
+                        label: 'Edit',
+                        hint: 'Quick action',
+                        onPressed: () {},
+                      ),
+                      const FluxerMenuDivider(),
+                      const FluxerMenuSectionHeader(label: 'Danger zone'),
+                      FluxerMenuItem(
+                        label: 'Delete',
+                        onPressed: () {},
+                        isDanger: true,
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Text('Open Menu'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Menu'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Primary actions'), findsOneWidget);
+      expect(find.text('Danger zone'), findsOneWidget);
+      expect(find.text('Quick action'), findsOneWidget);
+      expect(find.byType(FluxerMenuGroup), findsNWidgets(2));
     });
   });
 }

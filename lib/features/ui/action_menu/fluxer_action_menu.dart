@@ -8,8 +8,11 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart'
     show isMobileLayout;
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart'
     show
-        FluxerBottomSheetDragHandle,
+        FluxerBottomSheet,
+        FluxerBottomSheetGroupColumn,
         FluxerBottomSheetMenuItem,
+        FluxerBottomSheetSection,
+        FluxerBottomSheetVariant,
         FluxerMenuGroup;
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -44,46 +47,37 @@ class FluxerActionMenu {
     BuildContext context, {
     required FluxerActionMenuBuilder builder,
   }) async {
-    final colors = context.colors;
-    final outerLayout = context.layout;
-
-    await showModalBottomSheet<void>(
-      context: context,
+    await FluxerBottomSheet.show<void>(
+      context,
+      variant: FluxerBottomSheetVariant.menu,
       useRootNavigator: true,
-      isScrollControlled: true,
-      backgroundColor: colors.backgroundSecondary,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: outerLayout.radiusXxl.topLeft),
-      ),
-      builder: (sheetContext) {
-        void close() => Navigator.of(sheetContext, rootNavigator: true).pop();
-        final layout = sheetContext.layout;
-        final bottomPadding = MediaQuery.paddingOf(sheetContext).bottom;
+      builder: (sheetContext, close) {
+        final sections = _buildMobileSections(builder(sheetContext, close));
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
+        return ListView(
+          padding: EdgeInsets.only(bottom: sheetContext.layout.s2),
           children: [
-            SizedBox(height: layout.s2),
-            const FluxerBottomSheetDragHandle(),
-            SizedBox(height: layout.s2),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: layout.s4),
-              child: FluxerMenuGroup(
-                children: builder(sheetContext, close)
-                    .whereType<FluxerMenuItem>()
-                    .map(
-                      (item) => FluxerBottomSheetMenuItem(
-                        label: item.label,
-                        icon: item.icon,
-                        isDanger: item.isDanger,
-                        onTap: item.onPressed,
-                      ),
-                    )
-                    .toList(),
-              ),
+            FluxerBottomSheetGroupColumn(
+              children: [
+                for (final section in sections)
+                  FluxerBottomSheetSection(
+                    title: section.title,
+                    child: FluxerMenuGroup(
+                      children: [
+                        for (final item in section.items)
+                          FluxerBottomSheetMenuItem(
+                            label: item.label,
+                            hint: item.hint,
+                            icon: item.icon,
+                            isDanger: item.isDanger,
+                            enabled: item.enabled,
+                            onTap: item.onPressed,
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
-            SizedBox(height: bottomPadding > 0 ? bottomPadding : layout.s4),
           ],
         );
       },
@@ -240,6 +234,79 @@ class _MenuPositionDelegate extends SingleChildLayoutDelegate {
   }
 }
 
+class _FluxerMenuSectionData {
+  final String? title;
+  final List<FluxerMenuItem> items;
+
+  const _FluxerMenuSectionData({required this.title, required this.items});
+}
+
+List<_FluxerMenuSectionData> _buildMobileSections(List<Widget> widgets) {
+  final sections = <_FluxerMenuSectionData>[];
+  final currentItems = <FluxerMenuItem>[];
+  String? currentTitle;
+
+  void flush() {
+    if (currentItems.isEmpty) {
+      return;
+    }
+
+    sections.add(
+      _FluxerMenuSectionData(
+        title: currentTitle,
+        items: List<FluxerMenuItem>.from(currentItems),
+      ),
+    );
+    currentItems.clear();
+    currentTitle = null;
+  }
+
+  for (final widget in widgets) {
+    if (widget is FluxerMenuSectionHeader) {
+      flush();
+      currentTitle = widget.label;
+      continue;
+    }
+
+    if (widget is FluxerMenuDivider) {
+      flush();
+      continue;
+    }
+
+    if (widget is FluxerMenuItem) {
+      currentItems.add(widget);
+    }
+  }
+
+  flush();
+
+  return sections;
+}
+
+class FluxerMenuSectionHeader extends StatelessWidget {
+  final String label;
+
+  const FluxerMenuSectionHeader({required this.label, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        context.layout.s3,
+        context.layout.s1,
+        context.layout.s3,
+        context.layout.s1_5,
+      ),
+      child: Text(
+        label,
+        style: context.textStyles.label.copyWith(
+          color: context.colors.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+
 /// A single item in a [FluxerActionMenu].
 ///
 /// Uses [FluxerTappable] for consistent hover behaviour.
@@ -248,6 +315,8 @@ class FluxerMenuItem extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.icon,
+    this.hint,
+    this.enabled = true,
     this.isDanger = false,
     super.key,
   });
@@ -255,6 +324,8 @@ class FluxerMenuItem extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
   final PhosphorIconData? icon;
+  final String? hint;
+  final bool enabled;
   final bool isDanger;
 
   @override
@@ -268,6 +339,7 @@ class FluxerMenuItem extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: layout.s1),
       child: FluxerTappable(
+        enabled: enabled,
         onTap: onPressed,
         builder: (context, states) {
           final isHovered = states.contains(WidgetState.hovered);
@@ -286,15 +358,31 @@ class FluxerMenuItem extends StatelessWidget {
               vertical: layout.s2,
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (icon != null) ...[
                   PhosphorIcon(icon!, size: 20, color: foreground),
                   SizedBox(width: layout.s3),
                 ],
                 Expanded(
-                  child: Text(
-                    label,
-                    style: textStyles.bodyMedium.copyWith(color: foreground),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        style: textStyles.bodyMedium.copyWith(
+                          color: enabled ? foreground : colors.textTertiary,
+                        ),
+                      ),
+                      if (hint != null)
+                        Text(
+                          hint!,
+                          style: textStyles.timestamp.copyWith(
+                            color: colors.textTertiary,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],

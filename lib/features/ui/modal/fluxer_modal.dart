@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -27,6 +29,10 @@ class FluxerModal {
     required String title,
     required FluxerModalBuilder builder,
     List<Widget>? actions,
+    String? description,
+    Widget? trailing,
+    VoidCallback? onBack,
+    bool centered = false,
   }) {
     return showDialog<T>(
       context: context,
@@ -38,9 +44,71 @@ class FluxerModal {
         final textStyles = dialogContext.textStyles;
         final layout = dialogContext.layout;
         final dialogTheme = DialogTheme.of(dialogContext);
+        final mediaQuery = MediaQuery.of(dialogContext);
+        final isMobile = isMobileLayout(dialogContext);
+        final useMobileFullscreen = isMobile && !centered;
 
         // Use the theme's shape but swap the radius for mobile (16px).
         final themeShape = dialogTheme.shape as RoundedRectangleBorder?;
+        final headerSubtitle = description == null
+            ? null
+            : Text(
+                description,
+                style: textStyles.bodySmall.copyWith(
+                  color: colors.textSecondary,
+                  height: 1.4,
+                ),
+              );
+        final closeButton = Opacity(
+          opacity: 0.7,
+          child: FluxerButton.ghost(
+            onPressed: close,
+            icon: PhosphorIconsBold.x,
+            isSquare: true,
+          ),
+        );
+
+        Widget buildModalContent({required bool mobileFullscreen}) {
+          final body = Padding(
+            padding: EdgeInsets.fromLTRB(layout.s4, 0, layout.s4, layout.s4),
+            child: SingleChildScrollView(child: builder(dialogContext, close)),
+          );
+
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 400,
+              maxHeight:
+                  mediaQuery.size.height -
+                  mediaQuery.viewPadding.top -
+                  layout.s2,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(layout.s4),
+                  child: FluxerBottomSheetHeader(
+                    title: title,
+                    subtitle: headerSubtitle,
+                    onBack: onBack,
+                    trailing: trailing ?? closeButton,
+                  ),
+                ),
+                Flexible(child: body),
+                if (actions != null && actions.isNotEmpty)
+                  FluxerBottomSheetFooter(
+                    showTopBorder: mobileFullscreen,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: actions,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }
 
         return Stack(
           children: [
@@ -58,79 +126,44 @@ class FluxerModal {
               ),
             ),
 
-            // Dialog
-            Center(
-              child: Dialog(
-                insetPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 24,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: layout.radiusXxl,
-                  side: themeShape?.side ?? BorderSide.none,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Header
-                      Padding(
-                        padding: EdgeInsets.all(layout.s4),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                title,
-                                style: textStyles.heading.copyWith(
-                                  fontSize: 18,
-                                  color: colors.textPrimary,
-                                  height: 20 / 18,
-                                ),
-                              ),
-                            ),
-                            Opacity(
-                              opacity: 0.5,
-                              child: FluxerButton.ghost(
-                                onPressed: close,
-                                icon: PhosphorIconsBold.x,
-                                isSquare: true,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Body
-                      Flexible(
+            AnimatedPadding(
+              duration: dialogContext.motion.normal,
+              curve: dialogContext.motion.curve,
+              padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
+              child: useMobileFullscreen
+                  ? SafeArea(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
                         child: Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            layout.s4,
-                            0,
-                            layout.s4,
-                            layout.s4,
-                          ),
-                          child: SingleChildScrollView(
-                            child: builder(dialogContext, close),
+                          padding: EdgeInsets.symmetric(horizontal: layout.s2),
+                          child: Material(
+                            color: dialogTheme.backgroundColor,
+                            surfaceTintColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: layout.radiusXxl.topLeft,
+                              ),
+                              side: themeShape?.side ?? BorderSide.none,
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: buildModalContent(mobileFullscreen: true),
                           ),
                         ),
                       ),
-
-                      // Actions
-                      if (actions != null && actions.isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.all(layout.s4),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisSize: MainAxisSize.min,
-                            children: actions,
-                          ),
+                    )
+                  : Center(
+                      child: Dialog(
+                        insetPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 24,
                         ),
-                    ],
-                  ),
-                ),
-              ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: layout.radiusXxl,
+                          side: themeShape?.side ?? BorderSide.none,
+                        ),
+                        child: buildModalContent(mobileFullscreen: false),
+                      ),
+                    ),
             ),
           ],
         );
@@ -158,6 +191,7 @@ class FluxerConfirmModal {
     return FluxerModal.show<bool>(
       context,
       title: title,
+      centered: true,
       builder: (dialogContext, close) {
         final textStyles = dialogContext.textStyles;
 

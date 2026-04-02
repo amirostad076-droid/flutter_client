@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();
@@ -18,6 +19,15 @@ Widget buildTestApp(Widget child) {
     ),
     home: Scaffold(body: child),
   );
+}
+
+void useMobileSurface(WidgetTester tester) {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
 }
 
 void main() {
@@ -89,6 +99,86 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Closeable'), findsNothing);
+    });
+
+    testWidgets(
+      'uses mobile fullscreen treatment by default on narrow screens',
+      (tester) async {
+        useMobileSurface(tester);
+
+        await tester.pumpWidget(
+          buildTestApp(
+            Builder(
+              builder: (context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    unawaited(
+                      FluxerModal.show(
+                        context,
+                        title: 'Mobile Modal',
+                        builder: (context, close) {
+                          return const Text('Body');
+                        },
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
+                );
+              },
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Dialog), findsNothing);
+        expect(find.text('Mobile Modal'), findsOneWidget);
+      },
+    );
+
+    testWidgets('supports centered mobile dialogs with description and back', (
+      tester,
+    ) async {
+      useMobileSurface(tester);
+      var backPressed = false;
+
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    FluxerModal.show(
+                      context,
+                      title: 'Centered Modal',
+                      description: 'Helpful details',
+                      centered: true,
+                      onBack: () => backPressed = true,
+                      builder: (context, close) {
+                        return const Text('Body');
+                      },
+                    ),
+                  );
+                },
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Dialog), findsOneWidget);
+      expect(find.text('Helpful details'), findsOneWidget);
+
+      await tester.tap(find.byIcon(PhosphorIconsBold.caretLeft));
+      await tester.pump();
+
+      expect(backPressed, isTrue);
     });
   });
 

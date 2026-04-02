@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();
@@ -121,6 +122,63 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(FluxerBottomSheetDragHandle), findsOneWidget);
+    });
+
+    testWidgets('header supports back and trailing actions', (tester) async {
+      var backPressed = 0;
+      var trailingPressed = 0;
+
+      await tester.pumpWidget(
+        buildTestApp(
+          Material(
+            child: FluxerBottomSheetHeader(
+              title: 'Sheet Title',
+              subtitle: const Text('Sheet subtitle'),
+              onBack: () => backPressed++,
+              trailing: IconButton(
+                onPressed: () => trailingPressed++,
+                icon: const Icon(Icons.add),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Sheet Title'), findsOneWidget);
+      expect(find.text('Sheet subtitle'), findsOneWidget);
+
+      await tester.tap(find.byIcon(PhosphorIconsBold.caretLeft));
+      await tester.pump();
+      expect(backPressed, 1);
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pump();
+      expect(trailingPressed, 1);
+    });
+
+    testWidgets('section and footer provide reusable sheet structure', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          const Material(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FluxerBottomSheetSection(
+                  title: 'Section title',
+                  child: Text('Section content'),
+                ),
+                FluxerBottomSheetFooter(child: Text('Footer action')),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Section title'), findsOneWidget);
+      expect(find.text('Section content'), findsOneWidget);
+      expect(find.text('Footer action'), findsOneWidget);
     });
   });
 }
