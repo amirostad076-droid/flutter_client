@@ -41,7 +41,7 @@ platform :ios do
       "--no-codesign",
       "--build-number",
       flutter_build_number.to_s,
-      "--dart-define=APP_ENVIRONMENT=beta",
+      "--dart-define-from-file=tool/dart_defines/beta.json",
       "--dart-define=PUSH_PROVIDER=apns"
     )
     build_app(
@@ -130,7 +130,7 @@ platform :ios do
       "--no-codesign",
       "--build-number",
       flutter_build_number.to_s,
-      "--dart-define=APP_ENVIRONMENT=production",
+      "--dart-define-from-file=tool/dart_defines/production.json",
       "--dart-define=PUSH_PROVIDER=apns"
     )
     build_app(

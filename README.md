@@ -52,7 +52,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 ### Mobile builds
 
-**Environments** are `canary`, `beta`, and `production`. Set `APP_ENVIRONMENT` to match.
+**Environments** are `canary`, `beta`, and `production`. Pass compile-time defines with `--dart-define-from-file=tool/dart_defines/<environment>.json` (each file sets `APP_ENVIRONMENT`) plus `--dart-define=PUSH_PROVIDER=...` as needed.
 
 **Application ID / bundle ID:** `beta` and `production` use `com.fluxer`. `canary` uses `com.fluxer.canary`
 
@@ -63,10 +63,10 @@ dart run build_runner build --delete-conflicting-outputs
 Example (Android, production with FCM):
 
 ```text
-flutter run --flavor productionFcm --dart-define=APP_ENVIRONMENT=production --dart-define=PUSH_PROVIDER=fcm
+flutter run --flavor productionFcm --dart-define-from-file=tool/dart_defines/production.json --dart-define=PUSH_PROVIDER=fcm
 ```
 
-For the same environment on iOS, swap the flavor for the scheme and set `PUSH_PROVIDER=apns`, for example `--flavor production` and `--dart-define=PUSH_PROVIDER=apns`.
+For the same environment on iOS, swap the flavor for the scheme and set `PUSH_PROVIDER=apns`, for example `--flavor production`, `--dart-define-from-file=tool/dart_defines/production.json`, and `--dart-define=PUSH_PROVIDER=apns`.
 
 ### Desktop builds
 

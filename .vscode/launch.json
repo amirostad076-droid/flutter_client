@@ -9,7 +9,7 @@
             "args": [
                 "--flavor",
                 "canaryFcm",
-                "--dart-define=APP_ENVIRONMENT=canary",
+                "--dart-define-from-file=tool/dart_defines/canary.json",
                 "--dart-define=PUSH_PROVIDER=fcm"
             ]
         },
@@ -21,7 +21,7 @@
             "args": [
                 "--flavor",
                 "canaryFcm",
-                "--dart-define=APP_ENVIRONMENT=canary",
+                "--dart-define-from-file=tool/dart_defines/canary.json",
                 "--dart-define=PUSH_PROVIDER=fcm"
             ]
         },
@@ -33,7 +33,7 @@
             "args": [
                 "--flavor",
                 "betaFcm",
-                "--dart-define=APP_ENVIRONMENT=beta",
+                "--dart-define-from-file=tool/dart_defines/beta.json",
                 "--dart-define=PUSH_PROVIDER=fcm"
             ]
         },
@@ -45,7 +45,7 @@
             "args": [
                 "--flavor",
                 "productionFcm",
-                "--dart-define=APP_ENVIRONMENT=production",
+                "--dart-define-from-file=tool/dart_defines/production.json",
                 "--dart-define=PUSH_PROVIDER=fcm"
             ]
         },
@@ -57,7 +57,7 @@
             "args": [
                 "--flavor",
                 "canaryUnifiedpush",
-                "--dart-define=APP_ENVIRONMENT=canary",
+                "--dart-define-from-file=tool/dart_defines/canary.json",
                 "--dart-define=PUSH_PROVIDER=unifiedpush"
             ]
         },
@@ -69,7 +69,7 @@
             "args": [
                 "--flavor",
                 "betaUnifiedpush",
-                "--dart-define=APP_ENVIRONMENT=beta",
+                "--dart-define-from-file=tool/dart_defines/beta.json",
                 "--dart-define=PUSH_PROVIDER=unifiedpush"
             ]
         },
@@ -81,7 +81,7 @@
             "args": [
                 "--flavor",
                 "productionUnifiedpush",
-                "--dart-define=APP_ENVIRONMENT=production",
+                "--dart-define-from-file=tool/dart_defines/production.json",
                 "--dart-define=PUSH_PROVIDER=unifiedpush"
             ]
         },
@@ -93,7 +93,7 @@
             "args": [
                 "--flavor",
                 "canary",
-                "--dart-define=APP_ENVIRONMENT=canary",
+                "--dart-define-from-file=tool/dart_defines/canary.json",
                 "--dart-define=PUSH_PROVIDER=apns"
             ]
         },
@@ -105,7 +105,7 @@
             "args": [
                 "--flavor",
                 "beta",
-                "--dart-define=APP_ENVIRONMENT=beta",
+                "--dart-define-from-file=tool/dart_defines/beta.json",
                 "--dart-define=PUSH_PROVIDER=apns"
             ]
         },
@@ -117,7 +117,7 @@
             "args": [
                 "--flavor",
                 "production",
-                "--dart-define=APP_ENVIRONMENT=production",
+                "--dart-define-from-file=tool/dart_defines/production.json",
                 "--dart-define=PUSH_PROVIDER=apns"
             ]
         }
