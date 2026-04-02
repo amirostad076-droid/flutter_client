@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_handler.dart';
+import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -33,7 +34,10 @@ class AppStartup extends _$AppStartup {
   }
 
   Future<void> _validateAndRestore() async {
-    await EmojiRegistry.preload();
+    await Future.wait<void>([
+      EmojiRegistry.preload(),
+      ref.read(appRuntimeInfoProvider.future),
+    ]);
     unawaited(EmojiSpriteSheet.preload());
     final database = ref.read(fluxerDatabaseProvider);
     debugPrint('[AppStartup] Database obtained, querying session…');

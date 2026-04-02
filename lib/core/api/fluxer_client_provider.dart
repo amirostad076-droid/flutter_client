@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/api/captcha_dialog.dart';
 import 'package:fluxer_app/core/api/captcha_interceptor.dart';
 import 'package:fluxer_app/core/api/retry_interceptor.dart';
+import 'package:fluxer_app/core/build/app_build_config.dart';
+import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -25,16 +27,33 @@ String fluxerBaseUrl(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
+String fluxerUserAgent(Ref ref) {
+  final AsyncValue<AppRuntimeInfo> runtime = ref.watch(appRuntimeInfoProvider);
+  return runtime.when(
+    data: (AppRuntimeInfo info) =>
+        'fluxer/${info.version}(${info.buildNumber})/${info.environment.name}',
+    loading: () =>
+        'fluxer/unknown(0)/${AppBuildConfig.environment.name}',
+    error: (Object err, StackTrace stack) =>
+        'fluxer/unknown(0)/${AppBuildConfig.environment.name}',
+  );
+}
+
+@Riverpod(keepAlive: true)
 Dio fluxerDio(Ref ref) {
   final baseUrl = ref.watch(fluxerBaseUrlProvider);
   final token = ref.watch(fluxerAuthTokenProvider);
-
+  final userAgent = ref.watch(fluxerUserAgentProvider);
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
       contentType: 'application/json',
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 10),
+      headers: {
+        'User-Agent': userAgent,
+        'x-fluxer-platform': 'mobile'
+      }
     ),
   );
 
