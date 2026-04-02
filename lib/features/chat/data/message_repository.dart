@@ -11,8 +11,14 @@ class MessageRepository {
   final FluxerClient _client;
   final Dio _dio;
   final db.FluxerDatabase _db;
+  final String? _currentUserId;
 
-  const MessageRepository(this._client, this._dio, this._db);
+  const MessageRepository(
+    this._client,
+    this._dio,
+    this._db,
+    this._currentUserId,
+  );
 
   Stream<List<Message>> watchMessages(String channelId) {
     return _db.messageDao
@@ -34,7 +40,11 @@ class MessageRepository {
         around: around,
       );
 
-      final messages = data.map(Message.fromSdk).toList().reversed.toList();
+      final messages = data
+          .map((sdk) => Message.fromSdk(sdk, currentUserId: _currentUserId))
+          .toList()
+          .reversed
+          .toList();
 
       for (final sdk in data) {
         await _db.userDao.upsertUser(userFromPartialSdk(sdk.author));
@@ -128,7 +138,7 @@ class MessageRepository {
                         as Map<String, dynamic>?)?['message_id']
                     as String?,
             isPinned: (map['pinned'] as bool?) ?? false,
-            isMentioned: (map['mention_everyone'] as bool?) ?? false,
+            isMentioned: _isMentionedFromJson(map),
             type: (map['type'] as int?) ?? 0,
           ),
         );
@@ -161,6 +171,24 @@ class MessageRepository {
     }
 
     return messages;
+  }
+
+  bool _isMentionedFromJson(Map<String, dynamic> map) {
+    if ((map['mention_everyone'] as bool?) ?? false) {
+      return true;
+    }
+    if (_currentUserId == null) {
+      return false;
+    }
+    final mentions = map['mentions'] as List<dynamic>?;
+    if (mentions != null) {
+      for (final m in mentions) {
+        if (m is Map<String, dynamic> && m['id'] == _currentUserId) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   Future<void> addReaction({
@@ -209,7 +237,10 @@ class MessageRepository {
 
       final schema = MessageResponseSchema.fromJson(data);
 
-      final message = Message.fromSdk(schema);
+      final message = Message.fromSdk(
+        schema,
+        currentUserId: _currentUserId,
+      );
       await _db.messageDao.upsertMessage(message.toCompanion());
       return message;
     } on DioException catch (e) {

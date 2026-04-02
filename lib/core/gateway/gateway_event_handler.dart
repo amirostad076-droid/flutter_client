@@ -24,6 +24,7 @@ typedef GuildCallback = void Function(String guildId);
 class GatewayEventHandler {
   GatewayEventHandler({
     required this.database,
+    this.currentUserId,
     this.onReady,
     this.onTypingStart,
     this.onTypingClear,
@@ -40,6 +41,7 @@ class GatewayEventHandler {
   });
 
   final db.FluxerDatabase database;
+  final String? currentUserId;
   final ReadyCallback? onReady;
   final TypingCallback? onTypingStart;
   final TypingCallback? onTypingClear;
@@ -688,7 +690,10 @@ class GatewayEventHandler {
   }
 
   void _handleMessageCreate(MessageCreateEvent event) {
-    final msg = Message.fromSdk(event.message);
+    final msg = Message.fromSdk(
+      event.message,
+      currentUserId: currentUserId,
+    );
 
     // Clear typing indicator for the message author.
     onTypingClear?.call(msg.channelId, msg.authorId);
@@ -715,7 +720,10 @@ class GatewayEventHandler {
   }
 
   void _handleMessageUpdate(MessageUpdateEvent event) {
-    final msg = Message.fromSdk(event.message);
+    final msg = Message.fromSdk(
+      event.message,
+      currentUserId: currentUserId,
+    );
     unawaited(database.messageDao.upsertMessage(msg.toCompanion()));
   }
 

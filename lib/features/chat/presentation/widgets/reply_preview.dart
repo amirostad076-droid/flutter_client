@@ -1,50 +1,117 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_item.dart'
     show MessageItem;
+import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/shared/providers/member_role_color.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The inline reply indicator shown above a message that
-/// is a reply. Displays a compact row with a truncated
-/// reference to the replied-to message.
+/// is a reply. Displays the replied-to message's avatar,
+/// author name, and a single-line content preview.
 ///
-/// Since the full replied-to message is not available
-/// inline (only the ID), this shows a generic indicator.
 /// The curved connector line is handled by
 /// [ReplyConnectorPainter] in [MessageItem].
-class InlineReplyPreview extends StatelessWidget {
+class InlineReplyPreview extends ConsumerWidget {
   final String replyToId;
-  final VoidCallback? onTap;
 
-  const InlineReplyPreview({required this.replyToId, this.onTap, super.key});
+  const InlineReplyPreview({required this.replyToId, super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final messages = ref.watch(
+      chatViewModelProvider.select((s) => s.messages),
+    );
+    final replyMsg = _findMessage(messages, replyToId);
+    final guildId = ref.watch(activeGuildIdProvider);
+    Color? roleColor;
+    if (replyMsg != null && guildId != null) {
+      roleColor = ref.watch(
+        memberRoleColorProvider((replyMsg.authorId, guildId)),
+      ).value;
+    }
+    final nameColor = (roleColor ?? context.colors.textChat).withValues(
+      alpha: 0.64,
+    );
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => ref
+          .read(chatViewModelProvider.notifier)
+          .scrollToMessage(replyToId),
       child: Row(
         children: [
-          PhosphorIcon(
-            PhosphorIconsFill.arrowBendUpLeft,
-            size: 12,
-            color: context.colors.textPrimaryMuted,
-          ),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              'Reply to message',
-              style: TextStyle(
-                color: context.colors.textPrimaryMuted,
-                fontSize: 12,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
+          if (replyMsg != null) ...[
+            FluxerAvatar.user(
+              fallbackText: replyMsg.authorName,
+              userId: replyMsg.authorId,
+              imageUrl: replyMsg.authorAvatarUrl,
+              avatarColor: replyMsg.authorAvatarColor,
+              size: 16,
+              showStatus: false,
             ),
-          ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                replyMsg.authorName,
+                style: TextStyle(
+                  color: nameColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                replyMsg.content.isNotEmpty
+                    ? replyMsg.content.replaceAll('\n', ' ')
+                    : 'Click to see attachment',
+                style: TextStyle(
+                  color: context.colors.textPrimaryMuted,
+                  fontSize: 14,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ] else ...[
+            PhosphorIcon(
+              PhosphorIconsFill.arrowBendUpLeft,
+              size: 12,
+              color: context.colors.textPrimaryMuted,
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                'Original message was deleted',
+                style: TextStyle(
+                  color: context.colors.textPrimaryMuted,
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Message? _findMessage(List<Message> messages, String id) {
+    for (final msg in messages) {
+      if (msg.id == id) {
+        return msg;
+      }
+    }
+    return null;
   }
 }
 
@@ -127,7 +194,12 @@ class ReplyInputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    color: context.colors.chatInputBackground,
+    decoration: BoxDecoration(
+      color: context.colors.chatInputBackground,
+      border: Border(
+        top: BorderSide(color: context.colors.userAreaDividerColor),
+      ),
+    ),
     child: Row(
       children: [
         PhosphorIcon(

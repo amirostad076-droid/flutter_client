@@ -54,8 +54,10 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
   final db = ref.watch(fluxerDatabaseProvider);
   final connection = ref.watch(gatewayConnectionProvider);
 
+  final currentUserId = ref.read(currentUserIdProvider);
   final handler = GatewayEventHandler(
     database: db,
+    currentUserId: currentUserId,
     onReady: () {
       talker.info('[Gateway] Setting gatewayReady = true');
       ref.read(gatewayReadyProvider.notifier).setReady();

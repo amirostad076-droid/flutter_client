@@ -401,7 +401,14 @@ class Message {
     this.type = 0,
   });
 
-  factory Message.fromSdk(MessageResponseSchema sdk) {
+  factory Message.fromSdk(
+    MessageResponseSchema sdk, {
+    String? currentUserId,
+  }) {
+    final isMentioned = sdk.mentionEveryone ||
+        (currentUserId != null &&
+            (sdk.mentions?.any((u) => u.id == currentUserId) ?? false));
+
     return Message(
       id: sdk.id,
       channelId: sdk.channelId,
@@ -418,7 +425,7 @@ class Message {
       reactions: sdk.reactions?.map(Reaction.fromSdk).toList() ?? const [],
       replyToId: sdk.referencedMessage?.id,
       isPinned: sdk.pinned,
-      isMentioned: sdk.mentionEveryone,
+      isMentioned: isMentioned,
       type: sdk.type.json ?? 0,
     );
   }
@@ -462,6 +469,7 @@ class Message {
       reactionsJson: Value(
         jsonEncode(reactions.map((r) => r.toJson()).toList()),
       ),
+      isMentioned: Value(isMentioned),
       type: Value(type),
     );
   }

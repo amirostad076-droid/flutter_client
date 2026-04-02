@@ -2,6 +2,7 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachment_image.dart';
@@ -22,7 +23,17 @@ import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/shared/providers/member_role_color.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+/// Mention highlight color matching web app's
+/// `--message-mention-color: rgb(234 197 50)`.
+const _kMentionColor = Color.from(
+  alpha: 1,
+  red: 234 / 255,
+  green: 197 / 255,
+  blue: 50 / 255,
+);
 
 /// Avatar column width: 40px avatar + 16px gap to the
 /// right.
@@ -46,7 +57,7 @@ const _kReplyLineEndGap = 6.0;
 /// replied-to message is rendered above, with a curved
 /// connector line from the replier's avatar to the reply
 /// preview (matching Discord's layout).
-class MessageItem extends StatefulWidget {
+class MessageItem extends ConsumerStatefulWidget {
   final Message message;
   final bool isGrouped;
   final String? currentUserId;
@@ -70,10 +81,10 @@ class MessageItem extends StatefulWidget {
   });
 
   @override
-  State<MessageItem> createState() => _MessageItemState();
+  ConsumerState<MessageItem> createState() => _MessageItemState();
 }
 
-class _MessageItemState extends State<MessageItem> {
+class _MessageItemState extends ConsumerState<MessageItem> {
   var _isHovered = false;
 
   void _handleAction(MessageAction? action) {
@@ -149,6 +160,13 @@ class _MessageItemState extends State<MessageItem> {
     final msg = widget.message;
     final isGrouped = widget.isGrouped;
     final isMobile = isMobileLayout(context);
+    final guildId = ref.watch(activeGuildIdProvider);
+    Color? authorRoleColor;
+    if (guildId != null) {
+      authorRoleColor = ref.watch(
+        memberRoleColorProvider((msg.authorId, guildId)),
+      ).value;
+    }
 
     return GestureDetector(
       onLongPress: isMobile ? () => _showActions(context) : null,
@@ -159,14 +177,26 @@ class _MessageItemState extends State<MessageItem> {
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
         child: Container(
-          color: msg.isMentioned
-              ? context.colors.mentionBackground
-              : _isHovered
-              ? context.colors.backgroundModifierHover
-              : Colors.transparent,
-          padding: EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: isGrouped ? 2 : 8,
+          decoration: BoxDecoration(
+            color: msg.isMentioned
+                ? _kMentionColor.withValues(alpha: _isHovered ? 0.14 : 0.1)
+                : _isHovered
+                ? context.colors.backgroundModifierHover
+                : Colors.transparent,
+            border: msg.isMentioned
+                ? const Border(
+                    left: BorderSide(
+                      color: _kMentionColor,
+                      width: 2,
+                    ),
+                  )
+                : null,
+          ),
+          padding: EdgeInsets.only(
+            left: msg.isMentioned ? 14 : 16,
+            right: 16,
+            top: isGrouped ? 2 : 8,
+            bottom: isGrouped ? 2 : 8,
           ),
           child: Stack(
             children: [
@@ -182,7 +212,7 @@ class _MessageItemState extends State<MessageItem> {
                   if (isGrouped)
                     _buildGroupedRow(context, msg)
                   else
-                    _buildMainRow(context, msg),
+                    _buildMainRow(context, msg, authorRoleColor),
                 ],
               ),
               if (_isHovered && !isMobile)
@@ -304,7 +334,11 @@ class _MessageItemState extends State<MessageItem> {
 
   /// Main message row: avatar on the left, content on
   /// the right.
-  Widget _buildMainRow(BuildContext context, Message msg) => Row(
+  Widget _buildMainRow(
+    BuildContext context,
+    Message msg,
+    Color? roleColor,
+  ) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Padding(
@@ -327,7 +361,7 @@ class _MessageItemState extends State<MessageItem> {
                   child: Text(
                     msg.authorName,
                     style: TextStyle(
-                      color: context.colors.textChat,
+                      color: roleColor ?? context.colors.textChat,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
