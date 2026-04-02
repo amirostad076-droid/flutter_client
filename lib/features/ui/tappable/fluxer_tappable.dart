@@ -11,6 +11,8 @@ class FluxerTappable extends StatefulWidget {
     this.onTap,
     this.onLongPress,
     this.enabled = true,
+    this.selected = false,
+    this.minSize,
     this.semanticLabel,
     this.hitTestBehavior = HitTestBehavior.opaque,
     super.key,
@@ -20,6 +22,8 @@ class FluxerTappable extends StatefulWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final bool enabled;
+  final bool selected;
+  final Size? minSize;
   final String? semanticLabel;
   final HitTestBehavior hitTestBehavior;
 
@@ -34,6 +38,7 @@ class _FluxerTappableState extends State<FluxerTappable> {
 
   Set<WidgetState> get _states => {
     if (!widget.enabled) WidgetState.disabled,
+    if (widget.selected) WidgetState.selected,
     if (_isHovered && widget.enabled) WidgetState.hovered,
     if (_isPressed && widget.enabled) WidgetState.pressed,
     if (_isFocused && widget.enabled) WidgetState.focused,
@@ -57,11 +62,23 @@ class _FluxerTappableState extends State<FluxerTappable> {
   @override
   Widget build(BuildContext context) {
     final motion = context.motion;
+    final content = widget.builder(context, _states);
+    final constrainedContent = widget.minSize == null
+        ? content
+        : ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: widget.minSize!.width,
+              minHeight: widget.minSize!.height,
+            ),
+            child: content,
+          );
 
     return Semantics(
       label: widget.semanticLabel,
-      button: widget.onTap != null,
+      button: widget.onTap != null || widget.onLongPress != null,
       enabled: widget.enabled,
+      focusable: widget.enabled,
+      selected: widget.selected,
       child: MouseRegion(
         cursor: widget.enabled
             ? SystemMouseCursors.click
@@ -88,7 +105,7 @@ class _FluxerTappableState extends State<FluxerTappable> {
                   ? Duration(milliseconds: motion.fast.inMilliseconds ~/ 2)
                   : motion.fast,
               curve: motion.curve,
-              child: widget.builder(context, _states),
+              child: constrainedContent,
             ),
           ),
         ),

@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
+import 'package:fluxer_app/features/ui/avatar/fluxer_avatar_cluster.dart';
 import 'package:fluxer_app/features/ui/status_indicator/fluxer_status_indicator.dart';
 
 Widget buildTestApp(Widget child) {
@@ -20,6 +21,22 @@ Widget buildTestApp(Widget child) {
 }
 
 void main() {
+  group('avatarClusterGeometryChanged', () {
+    test('returns true when cutouts change', () {
+      expect(
+        avatarClusterGeometryChanged(
+          ownCenter: const Offset(12, 12),
+          ownRadius: 10,
+          cutouts: const [Rect.fromLTWH(4, 6, 8, 8)],
+          oldOwnCenter: const Offset(12, 12),
+          oldOwnRadius: 10,
+          oldCutouts: const [Rect.fromLTWH(8, 6, 8, 8)],
+        ),
+        isTrue,
+      );
+    });
+  });
+
   group('FluxerAvatar', () {
     testWidgets('user variant renders with fallback text', (tester) async {
       await tester.pumpWidget(
@@ -59,6 +76,44 @@ void main() {
 
       expect(find.text('T'), findsOneWidget);
       expect(find.byType(FluxerStatusIndicator), findsNothing);
+    });
+
+    testWidgets(
+      'avatar cluster renders overlapping members without layout errors',
+      (tester) async {
+        await tester.pumpWidget(
+          buildTestApp(
+            const FluxerAvatarCluster(
+              channelId: '123',
+              members: [
+                AvatarClusterMember(userId: '1', fallbackText: 'Alice'),
+                AvatarClusterMember(userId: '2', fallbackText: 'Bob'),
+                AvatarClusterMember(userId: '3', fallbackText: 'Cara'),
+              ],
+            ),
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets('avatar cluster tolerates non-numeric member ids', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          const FluxerAvatarCluster(
+            channelId: '123',
+            members: [
+              AvatarClusterMember(userId: 'oops', fallbackText: 'Alice'),
+              AvatarClusterMember(userId: '2', fallbackText: 'Bob'),
+            ],
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
     });
   });
 

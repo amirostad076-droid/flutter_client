@@ -44,10 +44,9 @@ void main() {
         find.byType(AnimatedContainer),
       );
       final decoration = container.decoration! as BoxDecoration;
-      final border = decoration.border! as Border;
 
-      expect(border.top.color, isNot(Colors.transparent));
-      expect(border.top.width, 2);
+      expect(decoration.border, isNull);
+      expect(decoration.boxShadow, isNotEmpty);
     });
 
     testWidgets('hides border when not focused', (tester) async {
@@ -64,10 +63,9 @@ void main() {
         find.byType(AnimatedContainer),
       );
       final decoration = container.decoration! as BoxDecoration;
-      final border = decoration.border! as Border;
 
-      expect(border.top.color, Colors.transparent);
-      expect(border.top.width, 2);
+      expect(decoration.border, isNull);
+      expect(decoration.boxShadow, isEmpty);
     });
   });
 }

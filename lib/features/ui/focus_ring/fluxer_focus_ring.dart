@@ -26,9 +26,14 @@ class FluxerFocusRing extends StatelessWidget {
       curve: motion.curve,
       decoration: BoxDecoration(
         borderRadius: resolvedRadius,
-        border: focused
-            ? Border.all(color: colors.focusPrimary, width: 2)
-            : Border.all(color: Colors.transparent, width: 2),
+        boxShadow: focused
+            ? [
+                BoxShadow(
+                  color: colors.focusPrimary.withValues(alpha: 0.45),
+                  spreadRadius: 2,
+                ),
+              ]
+            : const [],
       ),
       child: child,
     );

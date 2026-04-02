@@ -76,6 +76,28 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Settings'), findsOneWidget);
     });
+
+    testWidgets('supports vertical mobile layouts', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          FluxerTabs(
+            tabs: const [
+              FluxerTab(label: 'Home', icon: Icons.home),
+              FluxerTab(label: 'Search', icon: Icons.search),
+            ],
+            selectedIndex: 0,
+            direction: Axis.vertical,
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      final flex = tester.widget<Flex>(find.byType(Flex).first);
+      expect(flex.direction, Axis.vertical);
+      expect(flex.crossAxisAlignment, CrossAxisAlignment.stretch);
+      expect(find.byIcon(Icons.home), findsOneWidget);
+      expect(find.byIcon(Icons.search), findsOneWidget);
+    });
   });
 
   group('FluxerSegmentedTabs', () {

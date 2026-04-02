@@ -14,22 +14,29 @@ class FluxerTabs extends StatelessWidget {
     required this.tabs,
     required this.selectedIndex,
     required this.onChanged,
+    this.direction = Axis.horizontal,
     super.key,
   });
 
   final List<FluxerTab> tabs;
   final int selectedIndex;
   final ValueChanged<int> onChanged;
+  final Axis direction;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Flex(
+      direction: direction,
+      crossAxisAlignment: direction == Axis.vertical
+          ? CrossAxisAlignment.stretch
+          : CrossAxisAlignment.center,
       children: [
         for (var i = 0; i < tabs.length; i++)
           _FluxerTabItem(
             tab: tabs[i],
             isSelected: i == selectedIndex,
             onTap: () => onChanged(i),
+            direction: direction,
           ),
       ],
     );
@@ -41,11 +48,13 @@ class _FluxerTabItem extends StatelessWidget {
     required this.tab,
     required this.isSelected,
     required this.onTap,
+    required this.direction,
   });
 
   final FluxerTab tab;
   final bool isSelected;
   final VoidCallback onTap;
+  final Axis direction;
 
   @override
   Widget build(BuildContext context) {
@@ -56,26 +65,39 @@ class _FluxerTabItem extends StatelessWidget {
 
     return FluxerTappable(
       onTap: onTap,
+      selected: isSelected,
+      semanticLabel: tab.label,
+      minSize: const Size(44, 44),
       builder: (context, states) {
+        final isVertical = direction == Axis.vertical;
         return AnimatedContainer(
           duration: motion.normal,
           curve: motion.curve,
           decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isSelected
-                    ? colors.brandPrimaryLight
-                    : Colors.transparent,
-                width: 2,
-              ),
-            ),
+            border: isVertical
+                ? Border(
+                    left: BorderSide(
+                      color: isSelected
+                          ? colors.brandPrimaryLight
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                  )
+                : Border(
+                    bottom: BorderSide(
+                      color: isSelected
+                          ? colors.brandPrimaryLight
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
           ),
           padding: EdgeInsets.symmetric(
-            horizontal: layout.s2,
-            vertical: layout.s1,
+            horizontal: isVertical ? layout.s3 : layout.s2,
+            vertical: isVertical ? layout.s2 : layout.s1,
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: isVertical ? MainAxisSize.max : MainAxisSize.min,
             children: [
               if (tab.icon != null) ...[
                 Icon(

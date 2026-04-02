@@ -145,5 +145,36 @@ void main() {
       );
       expect(animatedOpacity.opacity, 0.5);
     });
+
+    testWidgets('exposes selected state and minimum hit target when provided', (
+      tester,
+    ) async {
+      Set<WidgetState>? capturedStates;
+
+      await tester.pumpWidget(
+        buildTestApp(
+          FluxerTappable(
+            onTap: () {},
+            selected: true,
+            minSize: const Size(48, 52),
+            builder: (context, states) {
+              capturedStates = states;
+              return const SizedBox(width: 8, height: 8);
+            },
+          ),
+        ),
+      );
+
+      expect(capturedStates, contains(WidgetState.selected));
+
+      final constrainedBox = tester.widget<ConstrainedBox>(
+        find.descendant(
+          of: find.byType(FluxerTappable),
+          matching: find.byType(ConstrainedBox),
+        ),
+      );
+      expect(constrainedBox.constraints.minWidth, 48);
+      expect(constrainedBox.constraints.minHeight, 52);
+    });
   });
 }
