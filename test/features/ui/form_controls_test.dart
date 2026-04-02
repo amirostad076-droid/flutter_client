@@ -165,5 +165,41 @@ void main() {
       await tester.pump();
       expect(toggled, isFalse);
     });
+
+    testWidgets(
+      'renders description and icon for stacked mobile settings rows',
+      (tester) async {
+        var toggled = false;
+
+        await tester.pumpWidget(
+          buildTestApp(
+            StatefulBuilder(
+              builder: (context, setState) {
+                return FluxerToggleSwitch(
+                  value: toggled,
+                  onChanged: (value) => setState(() => toggled = value),
+                  label: 'Enable notifications',
+                  description: 'Alerts for mentions, replies, and invites.',
+                  icon: Icons.notifications_outlined,
+                );
+              },
+            ),
+          ),
+        );
+
+        expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
+        expect(
+          find.text('Alerts for mentions, replies, and invites.'),
+          findsOneWidget,
+        );
+
+        await tester.tap(
+          find.text('Alerts for mentions, replies, and invites.'),
+        );
+        await tester.pump();
+
+        expect(toggled, isTrue);
+      },
+    );
   });
 }

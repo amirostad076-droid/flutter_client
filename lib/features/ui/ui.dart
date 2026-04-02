@@ -19,6 +19,7 @@ export 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
 export 'package:fluxer_app/features/ui/popout/fluxer_popout.dart';
 export 'package:fluxer_app/features/ui/radio_group/fluxer_radio_group.dart';
 export 'package:fluxer_app/features/ui/select/fluxer_select.dart';
+export 'package:fluxer_app/features/ui/settings/fluxer_settings.dart';
 export 'package:fluxer_app/features/ui/status_indicator/fluxer_status_indicator.dart';
 export 'package:fluxer_app/features/ui/tabs/fluxer_segmented_tabs.dart';
 // Navigation
