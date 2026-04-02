@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/api/captcha_dialog.dart';
 import 'package:fluxer_app/core/api/captcha_interceptor.dart';
+import 'package:fluxer_app/core/api/fluxer_client_properties.dart';
 import 'package:fluxer_app/core/api/retry_interceptor.dart';
-import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_dart/export.dart';
@@ -27,15 +27,22 @@ String fluxerBaseUrl(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-String fluxerUserAgent(Ref ref) {
+FluxerClientProperties fluxerClientProperties(Ref ref) {
   final AsyncValue<AppRuntimeInfo> runtime = ref.watch(appRuntimeInfoProvider);
   return runtime.when(
     data: (AppRuntimeInfo info) =>
-        'fluxer/${info.version}(${info.buildNumber})/${info.environment.name}',
-    loading: () =>
-        'fluxer/unknown(0)/${AppBuildConfig.environment.name}',
-    error: (Object err, StackTrace stack) =>
-        'fluxer/unknown(0)/${AppBuildConfig.environment.name}',
+        buildFluxerClientProperties(runtimeInfo: info),
+    loading: buildFluxerClientProperties,
+    error: (Object err, StackTrace stack) => buildFluxerClientProperties(),
+  );
+}
+
+@Riverpod(keepAlive: true)
+String fluxerClientPropertiesHeader(Ref ref) {
+  final FluxerClientProperties properties =
+      ref.watch(fluxerClientPropertiesProvider);
+  return encodeFluxerClientPropertiesHeader(
+    toClientPropertiesWireMap(properties),
   );
 }
 
@@ -43,17 +50,19 @@ String fluxerUserAgent(Ref ref) {
 Dio fluxerDio(Ref ref) {
   final baseUrl = ref.watch(fluxerBaseUrlProvider);
   final token = ref.watch(fluxerAuthTokenProvider);
-  final userAgent = ref.watch(fluxerUserAgentProvider);
+  final userAgent = ref.watch(fluxerClientPropertiesProvider).userAgent;
+  final clientPropertiesHeader =
+      ref.watch(fluxerClientPropertiesHeaderProvider);
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
       contentType: 'application/json',
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 10),
-      headers: {
+      headers: <String, dynamic>{
         'User-Agent': userAgent,
-        'x-fluxer-platform': 'mobile'
-      }
+        'X-Fluxer-Client-Properties': clientPropertiesHeader,
+      },
     ),
   );
 
