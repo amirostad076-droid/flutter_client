@@ -19,6 +19,10 @@ This is the repo for the offical Fluxer mobile app powered by Flutter (desktop i
 
 You can follow more about the V1 development in [this issue.](https://github.com/fluxerapp/flutter_client/issues/1)
 
+# Community
+
+For updates, support, and discussion, [join the Fluxer Mobile server on Fluxer](https://fluxer.gg/fluxer-mobile).
+
 ## Download
 
 **Apple App Store**: Coming soon!
