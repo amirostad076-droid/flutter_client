@@ -278,19 +278,15 @@ ThemeData buildFluxerTheme({
       ),
     ),
 
-    // Switches — web: brand-primary when on, muted track when off
+    // Switches — web: brand-primary when on, rgb(107,114,128) when off,
+    // white thumb in both states.
     switchTheme: SwitchThemeData(
-      thumbColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.selected)) {
-          return Colors.white;
-        }
-        return colorTheme.textPrimaryMuted;
-      }),
+      thumbColor: WidgetStateProperty.all(Colors.white),
       trackColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return colorTheme.brandPrimary;
         }
-        return colorTheme.backgroundModifierAccent;
+        return const Color(0xFF6B7280);
       }),
       trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
     ),
