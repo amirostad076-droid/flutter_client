@@ -70,7 +70,7 @@ class FluxerSwitchGroupItem extends StatelessWidget {
               : Colors.transparent,
           constraints: const BoxConstraints(minHeight: 68),
           padding: EdgeInsets.symmetric(
-            horizontal: layout.s4,
+            horizontal: 0,
             vertical: layout.s3,
           ),
           child: Row(
@@ -89,7 +89,7 @@ class FluxerSwitchGroupItem extends StatelessWidget {
                               color: enabled
                                   ? colors.textPrimary
                                   : colors.textTertiary,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -104,7 +104,7 @@ class FluxerSwitchGroupItem extends StatelessWidget {
                       Text(
                         description!,
                         style: textStyles.bodySmall.copyWith(
-                          color: colors.textSecondary,
+                          color: colors.textPrimaryMuted,
                         ),
                       ),
                     ],

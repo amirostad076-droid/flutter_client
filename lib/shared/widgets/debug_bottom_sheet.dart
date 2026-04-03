@@ -37,7 +37,9 @@ Future<void> showDebugBottomSheet(
           controller: scrollController,
           child: Stack(
             children: [
-              ClipRRect(
+              SizedBox(
+                width: double.infinity,
+                child: ClipRRect(
                 borderRadius: const BorderRadius.all(Radius.circular(4)),
                 child: HighlightView(
                   json,
@@ -49,6 +51,7 @@ Future<void> showDebugBottomSheet(
                     fontSize: 13,
                   ),
                 ),
+              ),
               ),
               Positioned(
                 top: 4,
