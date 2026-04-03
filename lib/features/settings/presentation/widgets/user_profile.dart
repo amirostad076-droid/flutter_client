@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const int _kMaxDisplayNameLength = 32;
@@ -153,6 +154,10 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             ),
           ],
         ),
+        if (state.isPremium) ...[
+          SizedBox(height: layout.s8),
+          _buildPremiumBadgeSection(state, vm, colors, textStyles, layout),
+        ],
         SizedBox(height: layout.s8),
         ],
       ),
@@ -285,6 +290,89 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           'Recommended: 1500×500 or larger, PNG or '
           'JPG under 10 MB',
           style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPremiumBadgeSection(
+    UserSettingsViewState state,
+    UserSettingsViewModel vm,
+    FluxerColorTheme colors,
+    FluxerTextTheme textStyles,
+    FluxerLayoutTheme layout,
+  ) {
+    final badgeHidden = state.effectivePremiumBadgeHidden;
+    final badgeMasked = state.effectivePremiumBadgeMasked;
+
+    String timestampLabel = 'Hide Plutonium purchase date';
+    if (state.premiumSince != null) {
+      final date = DateTime.tryParse(state.premiumSince!);
+      if (date != null) {
+        final formatted = DateFormat.yMMMd().format(date);
+        timestampLabel = 'Hide Plutonium purchase date ($formatted)';
+      }
+    }
+
+    String sequenceLabel = 'Hide Visionary ID badge';
+    if (state.premiumLifetimeSequence != null) {
+      sequenceLabel =
+          'Hide Visionary ID badge (#${state.premiumLifetimeSequence})';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Plutonium Badge Privacy',
+          style: textStyles.heading.copyWith(color: colors.textPrimary),
+        ),
+        SizedBox(height: layout.s1),
+        Text(
+          'Control how your Plutonium badge is displayed to others',
+          style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
+        ),
+        SizedBox(height: layout.s4),
+        FluxerSwitchGroup(
+          children: [
+            FluxerSwitchGroupItem(
+              label: 'Hide Plutonium badge entirely',
+              value: badgeHidden,
+              onChanged: (value) => vm.togglePremiumBadge(
+                'premium_badge_hidden',
+                value: value,
+              ),
+            ),
+            FluxerSwitchGroupItem(
+              label: timestampLabel,
+              value: state.effectivePremiumBadgeTimestampHidden,
+              enabled: !badgeHidden,
+              onChanged: (value) => vm.togglePremiumBadge(
+                'premium_badge_timestamp_hidden',
+                value: value,
+              ),
+            ),
+            if (state.hasLifetimePremium) ...[
+              FluxerSwitchGroupItem(
+                label: 'Mask Visionary as subscription',
+                value: badgeMasked,
+                enabled: !badgeHidden,
+                onChanged: (value) => vm.togglePremiumBadge(
+                  'premium_badge_masked',
+                  value: value,
+                ),
+              ),
+              FluxerSwitchGroupItem(
+                label: sequenceLabel,
+                value: state.effectivePremiumBadgeSequenceHidden,
+                enabled: !badgeHidden && !badgeMasked,
+                onChanged: (value) => vm.togglePremiumBadge(
+                  'premium_badge_sequence_hidden',
+                  value: value,
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );

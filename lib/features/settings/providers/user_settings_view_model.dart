@@ -40,6 +40,19 @@ class UserSettingsViewState {
   final bool verified;
   final bool isProfileLoaded;
 
+  final int? premiumType;
+  final String? premiumSince;
+  final int? premiumLifetimeSequence;
+  final bool premiumBadgeHidden;
+  final bool premiumBadgeMasked;
+  final bool premiumBadgeTimestampHidden;
+  final bool premiumBadgeSequenceHidden;
+
+  final Object? _editedPremiumBadgeHidden;
+  final Object? _editedPremiumBadgeMasked;
+  final Object? _editedPremiumBadgeTimestampHidden;
+  final Object? _editedPremiumBadgeSequenceHidden;
+
   final Object? _editedDisplayName;
   final Object? _editedBio;
   final Object? _editedPronouns;
@@ -70,6 +83,17 @@ class UserSettingsViewState {
     this.email,
     this.verified = false,
     this.isProfileLoaded = false,
+    this.premiumType,
+    this.premiumSince,
+    this.premiumLifetimeSequence,
+    this.premiumBadgeHidden = false,
+    this.premiumBadgeMasked = false,
+    this.premiumBadgeTimestampHidden = false,
+    this.premiumBadgeSequenceHidden = false,
+    Object? editedPremiumBadgeHidden = _unset,
+    Object? editedPremiumBadgeMasked = _unset,
+    Object? editedPremiumBadgeTimestampHidden = _unset,
+    Object? editedPremiumBadgeSequenceHidden = _unset,
     Object? editedDisplayName = _unset,
     Object? editedBio = _unset,
     Object? editedPronouns = _unset,
@@ -80,7 +104,11 @@ class UserSettingsViewState {
     this.bannerCleared = false,
     this.isSaving = false,
     this.error,
-  }) : _editedDisplayName = editedDisplayName,
+  }) : _editedPremiumBadgeHidden = editedPremiumBadgeHidden,
+       _editedPremiumBadgeMasked = editedPremiumBadgeMasked,
+       _editedPremiumBadgeTimestampHidden = editedPremiumBadgeTimestampHidden,
+       _editedPremiumBadgeSequenceHidden = editedPremiumBadgeSequenceHidden,
+       _editedDisplayName = editedDisplayName,
        _editedBio = editedBio,
        _editedPronouns = editedPronouns,
        _editedAccentColor = editedAccentColor;
@@ -99,6 +127,51 @@ class UserSettingsViewState {
   int? get editedAccentColor =>
       _editedAccentColor == _unset ? null : _editedAccentColor as int?;
   bool get isEditedAccentColorSet => _editedAccentColor != _unset;
+
+  bool? get editedPremiumBadgeHidden => _editedPremiumBadgeHidden == _unset
+      ? null
+      : _editedPremiumBadgeHidden as bool?;
+  bool get isEditedPremiumBadgeHiddenSet =>
+      _editedPremiumBadgeHidden != _unset;
+
+  bool? get editedPremiumBadgeMasked => _editedPremiumBadgeMasked == _unset
+      ? null
+      : _editedPremiumBadgeMasked as bool?;
+  bool get isEditedPremiumBadgeMaskedSet =>
+      _editedPremiumBadgeMasked != _unset;
+
+  bool? get editedPremiumBadgeTimestampHidden =>
+      _editedPremiumBadgeTimestampHidden == _unset
+          ? null
+          : _editedPremiumBadgeTimestampHidden as bool?;
+  bool get isEditedPremiumBadgeTimestampHiddenSet =>
+      _editedPremiumBadgeTimestampHidden != _unset;
+
+  bool? get editedPremiumBadgeSequenceHidden =>
+      _editedPremiumBadgeSequenceHidden == _unset
+          ? null
+          : _editedPremiumBadgeSequenceHidden as bool?;
+  bool get isEditedPremiumBadgeSequenceHiddenSet =>
+      _editedPremiumBadgeSequenceHidden != _unset;
+
+  bool get isPremium =>
+      premiumType != null &&
+      premiumType != UserPremiumTypes.none.json;
+
+  bool get hasLifetimePremium =>
+      premiumType == UserPremiumTypes.lifetime.json;
+
+  bool get effectivePremiumBadgeHidden =>
+      editedPremiumBadgeHidden ?? premiumBadgeHidden;
+
+  bool get effectivePremiumBadgeMasked =>
+      editedPremiumBadgeMasked ?? premiumBadgeMasked;
+
+  bool get effectivePremiumBadgeTimestampHidden =>
+      editedPremiumBadgeTimestampHidden ?? premiumBadgeTimestampHidden;
+
+  bool get effectivePremiumBadgeSequenceHidden =>
+      editedPremiumBadgeSequenceHidden ?? premiumBadgeSequenceHidden;
 
   String? get avatarUrl {
     if (avatar == null) {
@@ -144,6 +217,22 @@ class UserSettingsViewState {
     if (editedBannerBase64 != null || bannerCleared) {
       return true;
     }
+    if (isEditedPremiumBadgeHiddenSet &&
+        editedPremiumBadgeHidden != premiumBadgeHidden) {
+      return true;
+    }
+    if (isEditedPremiumBadgeMaskedSet &&
+        editedPremiumBadgeMasked != premiumBadgeMasked) {
+      return true;
+    }
+    if (isEditedPremiumBadgeTimestampHiddenSet &&
+        editedPremiumBadgeTimestampHidden != premiumBadgeTimestampHidden) {
+      return true;
+    }
+    if (isEditedPremiumBadgeSequenceHiddenSet &&
+        editedPremiumBadgeSequenceHidden != premiumBadgeSequenceHidden) {
+      return true;
+    }
     return false;
   }
 
@@ -165,6 +254,17 @@ class UserSettingsViewState {
     Object? email = _unset,
     bool? verified,
     bool? isProfileLoaded,
+    Object? premiumType = _unset,
+    Object? premiumSince = _unset,
+    Object? premiumLifetimeSequence = _unset,
+    bool? premiumBadgeHidden,
+    bool? premiumBadgeMasked,
+    bool? premiumBadgeTimestampHidden,
+    bool? premiumBadgeSequenceHidden,
+    Object? editedPremiumBadgeHidden = _unset,
+    Object? editedPremiumBadgeMasked = _unset,
+    Object? editedPremiumBadgeTimestampHidden = _unset,
+    Object? editedPremiumBadgeSequenceHidden = _unset,
     Object? editedDisplayName = _unset,
     Object? editedBio = _unset,
     Object? editedPronouns = _unset,
@@ -201,6 +301,43 @@ class UserSettingsViewState {
       email: email == _unset ? this.email : email as String?,
       verified: verified ?? this.verified,
       isProfileLoaded: isProfileLoaded ?? this.isProfileLoaded,
+      premiumType: premiumType == _unset
+          ? this.premiumType
+          : premiumType as int?,
+      premiumSince: premiumSince == _unset
+          ? this.premiumSince
+          : premiumSince as String?,
+      premiumLifetimeSequence: premiumLifetimeSequence == _unset
+          ? this.premiumLifetimeSequence
+          : premiumLifetimeSequence as int?,
+      premiumBadgeHidden: premiumBadgeHidden ?? this.premiumBadgeHidden,
+      premiumBadgeMasked: premiumBadgeMasked ?? this.premiumBadgeMasked,
+      premiumBadgeTimestampHidden:
+          premiumBadgeTimestampHidden ?? this.premiumBadgeTimestampHidden,
+      premiumBadgeSequenceHidden:
+          premiumBadgeSequenceHidden ?? this.premiumBadgeSequenceHidden,
+      editedPremiumBadgeHidden: editedPremiumBadgeHidden == _unset
+          ? _editedPremiumBadgeHidden
+          : editedPremiumBadgeHidden == _resetEdited
+          ? _unset
+          : editedPremiumBadgeHidden,
+      editedPremiumBadgeMasked: editedPremiumBadgeMasked == _unset
+          ? _editedPremiumBadgeMasked
+          : editedPremiumBadgeMasked == _resetEdited
+          ? _unset
+          : editedPremiumBadgeMasked,
+      editedPremiumBadgeTimestampHidden:
+          editedPremiumBadgeTimestampHidden == _unset
+          ? _editedPremiumBadgeTimestampHidden
+          : editedPremiumBadgeTimestampHidden == _resetEdited
+          ? _unset
+          : editedPremiumBadgeTimestampHidden,
+      editedPremiumBadgeSequenceHidden:
+          editedPremiumBadgeSequenceHidden == _unset
+          ? _editedPremiumBadgeSequenceHidden
+          : editedPremiumBadgeSequenceHidden == _resetEdited
+          ? _unset
+          : editedPremiumBadgeSequenceHidden,
       editedDisplayName: editedDisplayName == _unset
           ? _editedDisplayName
           : editedDisplayName == _resetEdited
@@ -301,6 +438,13 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         banner: profile.banner,
         email: profile.email,
         verified: profile.verified,
+        premiumType: profile.premiumType?.json,
+        premiumSince: profile.premiumSince,
+        premiumLifetimeSequence: profile.premiumLifetimeSequence,
+        premiumBadgeHidden: profile.premiumBadgeHidden,
+        premiumBadgeMasked: profile.premiumBadgeMasked,
+        premiumBadgeTimestampHidden: profile.premiumBadgeTimestampHidden,
+        premiumBadgeSequenceHidden: profile.premiumBadgeSequenceHidden,
         isProfileLoaded: true,
       );
     } on Exception catch (e) {
@@ -323,6 +467,22 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
 
   void updateAccentColor(int value) {
     state = state.copyWith(editedAccentColor: value);
+  }
+
+  void togglePremiumBadge(String field, {required bool value}) {
+    switch (field) {
+      case 'premium_badge_hidden':
+        state = state.copyWith(editedPremiumBadgeHidden: value);
+      case 'premium_badge_timestamp_hidden':
+        state = state.copyWith(editedPremiumBadgeTimestampHidden: value);
+      case 'premium_badge_masked':
+        state = state.copyWith(editedPremiumBadgeMasked: value);
+        if (value) {
+          state = state.copyWith(editedPremiumBadgeSequenceHidden: true);
+        }
+      case 'premium_badge_sequence_hidden':
+        state = state.copyWith(editedPremiumBadgeSequenceHidden: value);
+    }
   }
 
   void setAvatar(String base64) {
@@ -381,6 +541,32 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         bannerValue = s.editedBannerBase64;
       }
 
+      bool? premiumBadgeHidden;
+      if (s.isEditedPremiumBadgeHiddenSet &&
+          s.editedPremiumBadgeHidden != s.premiumBadgeHidden) {
+        premiumBadgeHidden = s.editedPremiumBadgeHidden;
+      }
+
+      bool? premiumBadgeMasked;
+      if (s.isEditedPremiumBadgeMaskedSet &&
+          s.editedPremiumBadgeMasked != s.premiumBadgeMasked) {
+        premiumBadgeMasked = s.editedPremiumBadgeMasked;
+      }
+
+      bool? premiumBadgeTimestampHidden;
+      if (s.isEditedPremiumBadgeTimestampHiddenSet &&
+          s.editedPremiumBadgeTimestampHidden !=
+              s.premiumBadgeTimestampHidden) {
+        premiumBadgeTimestampHidden = s.editedPremiumBadgeTimestampHidden;
+      }
+
+      bool? premiumBadgeSequenceHidden;
+      if (s.isEditedPremiumBadgeSequenceHiddenSet &&
+          s.editedPremiumBadgeSequenceHidden !=
+              s.premiumBadgeSequenceHidden) {
+        premiumBadgeSequenceHidden = s.editedPremiumBadgeSequenceHidden;
+      }
+
       final client = ref.read(fluxerClientProvider);
       await client.users.updateCurrentUser(
         body: UserUpdateWithVerificationRequest(
@@ -390,6 +576,10 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
           accentColor: accentColor,
           avatar: s.avatarCleared ? null : avatarValue,
           banner: s.bannerCleared ? null : bannerValue,
+          premiumBadgeHidden: premiumBadgeHidden,
+          premiumBadgeMasked: premiumBadgeMasked,
+          premiumBadgeTimestampHidden: premiumBadgeTimestampHidden,
+          premiumBadgeSequenceHidden: premiumBadgeSequenceHidden,
         ),
       );
 
@@ -407,6 +597,10 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       editedBio: UserSettingsViewState._resetEdited,
       editedPronouns: UserSettingsViewState._resetEdited,
       editedAccentColor: UserSettingsViewState._resetEdited,
+      editedPremiumBadgeHidden: UserSettingsViewState._resetEdited,
+      editedPremiumBadgeMasked: UserSettingsViewState._resetEdited,
+      editedPremiumBadgeTimestampHidden: UserSettingsViewState._resetEdited,
+      editedPremiumBadgeSequenceHidden: UserSettingsViewState._resetEdited,
       editedAvatarBase64: null,
       editedBannerBase64: null,
       avatarCleared: false,
