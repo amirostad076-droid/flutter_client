@@ -554,9 +554,11 @@ class _MobileSettingsContentBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(userSettingsViewModelProvider);
 
-    if (canDismissNotifier != null) {
-      canDismissNotifier!.value = !state.isDirty;
-    }
+    ref.listen(userSettingsViewModelProvider, (_, next) {
+      if (canDismissNotifier != null) {
+        canDismissNotifier!.value = !next.isDirty;
+      }
+    });
 
     switch (label) {
       case 'Profile':

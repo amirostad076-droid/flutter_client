@@ -321,7 +321,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     }
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           'Plutonium Badge Privacy',
