@@ -6,8 +6,8 @@ import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
-import 'package:fluxer_app/features/ui/character_counter/fluxer_character_counter.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const int _kMaxDisplayNameLength = 32;
 const int _kMaxPronounsLength = 40;
@@ -125,21 +125,30 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             maxLength: _kMaxBioLength,
             maxLines: 6,
             onChanged: vm.updateBio,
+            suffixIcon: PhosphorIcon(
+              PhosphorIconsFill.smiley,
+              size: 20,
+              color: colors.textTertiary,
+            ),
+            onSuffixTap: () {},
           ),
           SizedBox(height: layout.s1),
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  'You can use links, emoji, and Markdown.',
-                  style: textStyles.bodySmall.copyWith(
-                    color: colors.textSecondary,
-                  ),
+              Text(
+                '${_kMaxBioLength - _bioController.text.length}',
+                style: textStyles.smallText.copyWith(
+                  color: _bioController.text.length > _kMaxBioLength
+                      ? colors.statusDanger
+                      : colors.textSecondary,
                 ),
               ),
-              FluxerCharacterCounter(
-                current: _bioController.text.length,
-                max: _kMaxBioLength,
+              const Spacer(),
+              Text(
+                'You can use links, emoji, and Markdown.',
+                style: textStyles.bodySmall.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -170,7 +179,6 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           onPressed: null,
           label: 'Change FluxerTag',
           size: FluxerButtonSize.small,
-          fitContent: true,
         ),
         SizedBox(height: layout.s3),
         Text(
@@ -213,7 +221,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             ),
             if (hasAvatar) ...[
               SizedBox(height: layout.s2),
-              FluxerButton.dangerSecondary(
+              FluxerButton.secondary(
                 onPressed: vm.clearAvatar,
                 label: 'Remove Avatar',
                 size: FluxerButtonSize.small,
@@ -263,7 +271,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             ),
             if (hasBanner) ...[
               SizedBox(height: layout.s2),
-              FluxerButton.dangerSecondary(
+              FluxerButton.secondary(
                 onPressed: vm.clearBanner,
                 label: 'Remove Banner',
                 size: FluxerButtonSize.small,
