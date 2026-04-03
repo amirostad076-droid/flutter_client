@@ -333,20 +333,17 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
         ),
         SizedBox(height: layout.s4),
-        _buildBadgeSwitch(
+        FluxerSwitchGroupItem(
           label: 'Hide Plutonium badge entirely',
-          description: 'Completely hide your Plutonium badge from other users',
+          description:
+              'Completely hide your Plutonium badge from other users',
           value: badgeHidden,
           onChanged: (value) => vm.togglePremiumBadge(
             'premium_badge_hidden',
             value: value,
           ),
-          colors: colors,
-          textStyles: textStyles,
-          layout: layout,
         ),
-        SizedBox(height: layout.s4),
-        _buildBadgeSwitch(
+        FluxerSwitchGroupItem(
           label: timestampLabel,
           description:
               'Remove when you first bought Plutonium from your badge',
@@ -356,13 +353,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             'premium_badge_timestamp_hidden',
             value: value,
           ),
-          colors: colors,
-          textStyles: textStyles,
-          layout: layout,
         ),
         if (state.hasLifetimePremium) ...[
-          SizedBox(height: layout.s4),
-          _buildBadgeSwitch(
+          FluxerSwitchGroupItem(
             label: 'Mask Visionary as subscription',
             description:
                 'Show your Visionary as a regular subscription instead',
@@ -372,12 +365,8 @@ class _UserProfileState extends ConsumerState<UserProfile> {
               'premium_badge_masked',
               value: value,
             ),
-            colors: colors,
-            textStyles: textStyles,
-            layout: layout,
           ),
-          SizedBox(height: layout.s4),
-          _buildBadgeSwitch(
+          FluxerSwitchGroupItem(
             label: sequenceLabel,
             description: 'Remove your Visionary ID badge',
             value: state.effectivePremiumBadgeSequenceHidden,
@@ -386,61 +375,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
               'premium_badge_sequence_hidden',
               value: value,
             ),
-            colors: colors,
-            textStyles: textStyles,
-            layout: layout,
           ),
         ],
       ],
-    );
-  }
-
-  Widget _buildBadgeSwitch({
-    required String label,
-    required String description,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    required FluxerColorTheme colors,
-    required FluxerTextTheme textStyles,
-    required FluxerLayoutTheme layout,
-    bool enabled = true,
-  }) {
-    return Opacity(
-      opacity: enabled ? 1.0 : 0.5,
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: enabled ? () => onChanged(!value) : null,
-              behavior: HitTestBehavior.opaque,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: textStyles.bodyMedium.copyWith(
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: layout.s1),
-                  Text(
-                    description,
-                    style: textStyles.bodySmall.copyWith(
-                      color: colors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(width: layout.s4),
-          Switch(
-            value: value,
-            onChanged: enabled ? onChanged : null,
-          ),
-        ],
-      ),
     );
   }
 }

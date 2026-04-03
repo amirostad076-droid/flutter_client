@@ -36,12 +36,14 @@ class FluxerSwitchGroupItem extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onChanged,
+    this.description,
     this.shortcut,
     this.enabled = true,
     super.key,
   });
 
   final String label;
+  final String? description;
   final bool value;
   final ValueChanged<bool> onChanged;
   final Widget? shortcut;
@@ -74,21 +76,37 @@ class FluxerSwitchGroupItem extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Flexible(
-                      child: Text(
-                        label,
-                        style: textStyles.bodyMedium.copyWith(
-                          color: enabled
-                              ? colors.textPrimary
-                              : colors.textTertiary,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            label,
+                            style: textStyles.bodyMedium.copyWith(
+                              color: enabled
+                                  ? colors.textPrimary
+                                  : colors.textTertiary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        if (shortcut != null) ...[
+                          SizedBox(width: layout.s2),
+                          shortcut!,
+                        ],
+                      ],
+                    ),
+                    if (description != null) ...[
+                      SizedBox(height: layout.s1),
+                      Text(
+                        description!,
+                        style: textStyles.bodySmall.copyWith(
+                          color: colors.textSecondary,
                         ),
                       ),
-                    ),
-                    if (shortcut != null) ...[
-                      SizedBox(width: layout.s2),
-                      shortcut!,
                     ],
                   ],
                 ),
