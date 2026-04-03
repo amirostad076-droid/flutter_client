@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_variant.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -15,6 +19,7 @@ class FluxerButton extends StatelessWidget {
     this.isSquare = false,
     this.isLoading = false,
     this.fitContent = false,
+    this.recording = false,
     this.child,
     super.key,
   })  : _variant = FluxerButtonVariant.primary,
@@ -30,6 +35,7 @@ class FluxerButton extends StatelessWidget {
     this.isSquare = false,
     this.isLoading = false,
     this.fitContent = false,
+    this.recording = false,
     this.child,
     super.key,
   })  : _variant = FluxerButtonVariant.secondary,
@@ -45,6 +51,7 @@ class FluxerButton extends StatelessWidget {
     this.isSquare = false,
     this.isLoading = false,
     this.fitContent = false,
+    this.recording = false,
     this.child,
     super.key,
   })  : _variant = FluxerButtonVariant.dangerPrimary,
@@ -60,6 +67,7 @@ class FluxerButton extends StatelessWidget {
     this.isSquare = false,
     this.isLoading = false,
     this.fitContent = false,
+    this.recording = false,
     this.child,
     super.key,
   })  : _variant = FluxerButtonVariant.dangerSecondary,
@@ -75,6 +83,7 @@ class FluxerButton extends StatelessWidget {
     this.isSquare = false,
     this.isLoading = false,
     this.fitContent = false,
+    this.recording = false,
     this.child,
     super.key,
   })  : _variant = FluxerButtonVariant.inverted,
@@ -90,6 +99,7 @@ class FluxerButton extends StatelessWidget {
     this.isSquare = false,
     this.isLoading = false,
     this.fitContent = false,
+    this.recording = false,
     this.child,
     super.key,
   })  : _variant = FluxerButtonVariant.invertedOutline,
@@ -105,6 +115,7 @@ class FluxerButton extends StatelessWidget {
     this.isSquare = false,
     this.isLoading = false,
     this.fitContent = false,
+    this.recording = false,
     this.child,
     super.key,
   })  : _variant = FluxerButtonVariant.ghost,
@@ -118,6 +129,7 @@ class FluxerButton extends StatelessWidget {
     this.size = FluxerButtonSize.regular,
     double? iconSize,
     this.isLoading = false,
+    this.recording = false,
     super.key,
   })  : _variant = variant,
         _isCircle = true,
@@ -139,6 +151,7 @@ class FluxerButton extends StatelessWidget {
   final bool isSquare;
   final bool isLoading;
   final bool fitContent;
+  final bool recording;
   final Widget? child;
 
   bool get _enabled => onPressed != null && !isLoading;
@@ -157,7 +170,8 @@ class FluxerButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final motion = context.motion;
-    final foreground = _variant.textColor(colors);
+    final foreground =
+        recording ? colors.brandPrimaryFill : _variant.textColor(colors);
 
     return FluxerTappable(
       onTap: _enabled ? onPressed : null,
@@ -165,12 +179,14 @@ class FluxerButton extends StatelessWidget {
       semanticLabel: label,
       builder: (context, states) {
         final isHovered = states.contains(WidgetState.hovered);
-        final fill = isHovered
-            ? _variant.activeFill(colors)
-            : _variant.fill(colors);
-        final border = _variant.borderColor(colors);
+        final fill = recording
+            ? colors.accentSuccess
+            : isHovered
+                ? _variant.activeFill(colors)
+                : _variant.fill(colors);
+        final border = recording ? null : _variant.borderColor(colors);
 
-        return AnimatedContainer(
+        Widget container = AnimatedContainer(
           duration: motion.fast,
           curve: motion.curve,
           constraints: BoxConstraints(
@@ -187,6 +203,16 @@ class FluxerButton extends StatelessWidget {
           ),
           child: _buildContent(foreground),
         );
+
+        if (recording) {
+          container = _RecordingPulse(
+            color: colors.accentSuccess,
+            borderRadius: _borderRadius,
+            child: container,
+          );
+        }
+
+        return container;
       },
     );
   }
@@ -196,10 +222,8 @@ class FluxerButton extends StatelessWidget {
 
     if (isLoading) {
       return Center(
-        child: SizedBox(
-          width: effectiveIconSize,
-          height: effectiveIconSize,
-          child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
+        child: FluxerLoadingSpinner(
+          color: foreground,
         ),
       );
     }
@@ -259,5 +283,73 @@ class FluxerButton extends StatelessWidget {
       }
     }
     return result;
+  }
+}
+
+class _RecordingPulse extends StatefulWidget {
+  const _RecordingPulse({
+    required this.color,
+    required this.borderRadius,
+    required this.child,
+  });
+
+  final Color color;
+  final BorderRadius borderRadius;
+  final Widget child;
+
+  @override
+  State<_RecordingPulse> createState() => _RecordingPulseState();
+}
+
+class _RecordingPulseState extends State<_RecordingPulse>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
+    unawaited(_controller.repeat());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final t = _controller.value;
+        final pulse = t <= 0.5 ? t / 0.5 : (1.0 - t) / 0.5;
+
+        final spread1Opacity = 0.18 + 0.10 * pulse;
+        final spread2Opacity = 0.12 * pulse;
+        final spread2Radius = 6.0 * pulse;
+
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: widget.borderRadius,
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withValues(alpha: spread1Opacity),
+              ),
+              BoxShadow(
+                color: widget.color.withValues(alpha: spread2Opacity),
+                spreadRadius: spread2Radius,
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
   }
 }
