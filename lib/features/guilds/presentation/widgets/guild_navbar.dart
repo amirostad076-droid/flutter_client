@@ -2593,13 +2593,8 @@ class _GuildListItemState extends State<_GuildListItem> {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: layout.s8),
                     child: Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: colors.brandPrimary,
-                        ),
+                      child: FluxerLoadingSpinner(
+                        color: colors.brandPrimary,
                       ),
                     ),
                   );
@@ -3131,47 +3126,60 @@ class _GuildListItemState extends State<_GuildListItem> {
                 ),
 
                 SizedBox(height: layout.s6),
-                ValueListenableBuilder<bool>(
-                  valueListenable: suppressEveryone,
-                  builder: (_, suppress, _) => FluxerToggleSwitch(
-                    label: l10n.notificationSuppressEveryone,
-                    value: suppress,
-                    onChanged: (value) {
-                      suppressEveryone.value = value;
-                      widget.onUpdateNotificationSetting?.call(
-                        suppressEveryone: value,
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(height: layout.s4),
-                ValueListenableBuilder<bool>(
-                  valueListenable: suppressRoles,
-                  builder: (_, suppress, _) => FluxerToggleSwitch(
-                    label: l10n.notificationSuppressRoles,
-                    value: suppress,
-                    onChanged: (value) {
-                      suppressRoles.value = value;
-                      widget.onUpdateNotificationSetting?.call(
-                        suppressRoles: value,
-                      );
-                    },
-                  ),
+                FluxerSwitchGroup(
+                  children: [
+                    ValueListenableBuilder<bool>(
+                      valueListenable: suppressEveryone,
+                      builder: (_, suppress, _) =>
+                          FluxerSwitchGroupItem(
+                        label: l10n.notificationSuppressEveryone,
+                        value: suppress,
+                        onChanged: (value) {
+                          suppressEveryone.value = value;
+                          widget.onUpdateNotificationSetting
+                              ?.call(
+                            suppressEveryone: value,
+                          );
+                        },
+                      ),
+                    ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: suppressRoles,
+                      builder: (_, suppress, _) =>
+                          FluxerSwitchGroupItem(
+                        label: l10n.notificationSuppressRoles,
+                        value: suppress,
+                        onChanged: (value) {
+                          suppressRoles.value = value;
+                          widget.onUpdateNotificationSetting
+                              ?.call(
+                            suppressRoles: value,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
 
                 SizedBox(height: layout.s6),
-                ValueListenableBuilder<bool>(
-                  valueListenable: mobilePush,
-                  builder: (_, push, _) => FluxerToggleSwitch(
-                    label: l10n.notificationMobilePush,
-                    value: push,
-                    onChanged: (value) {
-                      mobilePush.value = value;
-                      widget.onUpdateNotificationSetting?.call(
-                        mobilePush: value,
-                      );
-                    },
-                  ),
+                FluxerSwitchGroup(
+                  children: [
+                    ValueListenableBuilder<bool>(
+                      valueListenable: mobilePush,
+                      builder: (_, push, _) =>
+                          FluxerSwitchGroupItem(
+                        label: l10n.notificationMobilePush,
+                        value: push,
+                        onChanged: (value) {
+                          mobilePush.value = value;
+                          widget.onUpdateNotificationSetting
+                              ?.call(
+                            mobilePush: value,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
 
                 SizedBox(height: layout.s6),

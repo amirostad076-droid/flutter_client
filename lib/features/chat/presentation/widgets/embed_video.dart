@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_shared.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
 import 'package:url_launcher/url_launcher.dart';
@@ -214,7 +215,7 @@ class _VideoPlayerState extends State<_VideoPlayer> {
             else
               Container(color: context.colors.backgroundFloating),
             if (_loading)
-              const Center(child: CircularProgressIndicator(strokeWidth: 2))
+              const Center(child: FluxerLoadingSpinner())
             else
               Center(
                 child: Container(

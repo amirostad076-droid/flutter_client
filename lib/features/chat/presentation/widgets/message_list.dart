@@ -10,6 +10,7 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/system_message.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kLoadMoreThreshold = 200.0;
@@ -235,7 +236,7 @@ class _MessageListState extends ConsumerState<MessageList> {
 
     if (state.isLoading) {
       return Center(
-        child: CircularProgressIndicator(color: context.colors.brandPrimary),
+        child: FluxerLoadingSpinner(color: context.colors.brandPrimary),
       );
     }
 
@@ -286,13 +287,8 @@ class _MessageListState extends ConsumerState<MessageList> {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: context.colors.brandPrimary,
-                ),
+              child: FluxerLoadingSpinner(
+                color: context.colors.brandPrimary,
               ),
             ),
           );

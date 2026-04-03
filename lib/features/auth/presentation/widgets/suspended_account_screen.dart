@@ -7,6 +7,7 @@ import 'package:fluxer_app/features/auth/domain/ban_view.dart';
 import 'package:fluxer_app/features/auth/providers/ban_view_provider.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -71,7 +72,7 @@ class _SuspendedAccountScreenState
         SizedBox(height: layout.s5),
 
         if (banViewState.isLoading && status == null)
-          const Center(child: CircularProgressIndicator())
+          const Center(child: FluxerLoadingSpinner())
         else if (status != null) ...[
           _BanInfoCard(status: status),
           SizedBox(height: layout.s4),
