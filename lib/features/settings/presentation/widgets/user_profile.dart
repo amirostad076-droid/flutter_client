@@ -203,23 +203,22 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           ),
         ),
         SizedBox(height: layout.s2),
-        Wrap(
-          spacing: layout.s2,
-          runSpacing: layout.s2,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FluxerButton.secondary(
+            FluxerButton.primary(
               onPressed: () {},
               label: 'Upload Avatar',
               size: FluxerButtonSize.small,
-              fitContent: true,
             ),
-            if (hasAvatar)
+            if (hasAvatar) ...[
+              SizedBox(height: layout.s2),
               FluxerButton.dangerSecondary(
                 onPressed: vm.clearAvatar,
-                label: 'Remove',
+                label: 'Remove Avatar',
                 size: FluxerButtonSize.small,
-                fitContent: true,
               ),
+            ],
           ],
         ),
         SizedBox(height: layout.s3),
@@ -254,23 +253,22 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           ),
         ),
         SizedBox(height: layout.s2),
-        Wrap(
-          spacing: layout.s2,
-          runSpacing: layout.s2,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FluxerButton.secondary(
+            FluxerButton.primary(
               onPressed: () {},
               label: 'Upload Banner',
               size: FluxerButtonSize.small,
-              fitContent: true,
             ),
-            if (hasBanner)
+            if (hasBanner) ...[
+              SizedBox(height: layout.s2),
               FluxerButton.dangerSecondary(
                 onPressed: vm.clearBanner,
-                label: 'Remove',
+                label: 'Remove Banner',
                 size: FluxerButtonSize.small,
-                fitContent: true,
               ),
+            ],
           ],
         ),
         SizedBox(height: layout.s3),
