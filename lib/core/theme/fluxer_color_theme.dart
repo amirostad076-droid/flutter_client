@@ -112,6 +112,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     required this.controlButtonActiveText,
     required this.controlButtonDangerText,
     required this.controlButtonDangerHoverBg,
+    // Switch
+    required this.switchTrackInactive,
     // Menu
     required this.menuDangerText,
     // Content Background
@@ -274,6 +276,9 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
   final Color controlButtonDangerText;
   final Color controlButtonDangerHoverBg;
 
+  // Switch
+  final Color switchTrackInactive;
+
   // Menu
   final Color menuDangerText;
 
@@ -431,6 +436,8 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     Color? controlButtonActiveText,
     Color? controlButtonDangerText,
     Color? controlButtonDangerHoverBg,
+    // Switch
+    Color? switchTrackInactive,
     // Menu
     Color? menuDangerText,
     // Content Background
@@ -612,6 +619,9 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
           controlButtonDangerText ?? this.controlButtonDangerText,
       controlButtonDangerHoverBg:
           controlButtonDangerHoverBg ?? this.controlButtonDangerHoverBg,
+      // Switch
+      switchTrackInactive:
+          switchTrackInactive ?? this.switchTrackInactive,
       // Menu
       menuDangerText: menuDangerText ?? this.menuDangerText,
       // Content Background
@@ -1036,6 +1046,12 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       controlButtonDangerHoverBg: Color.lerp(
         controlButtonDangerHoverBg,
         other.controlButtonDangerHoverBg,
+        t,
+      )!,
+      // Switch
+      switchTrackInactive: Color.lerp(
+        switchTrackInactive,
+        other.switchTrackInactive,
         t,
       )!,
       // Menu

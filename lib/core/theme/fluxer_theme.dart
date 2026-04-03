@@ -286,7 +286,7 @@ ThemeData buildFluxerTheme({
         if (states.contains(WidgetState.selected)) {
           return colorTheme.brandPrimary;
         }
-        return colorTheme.textPrimaryMuted;
+        return colorTheme.switchTrackInactive;
       }),
       trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
     ),

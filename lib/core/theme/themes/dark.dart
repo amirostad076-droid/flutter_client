@@ -385,6 +385,9 @@ FluxerColorTheme buildDarkColorTheme({double saturationFactor = 1.0}) {
       lightness: 20,
     ),
 
+    // Switch
+    switchTrackInactive: toneDirect(hue: 220, saturation: 9, lightness: 46),
+
     // Menu
     menuDangerText: toneDirect(hue: 350, saturation: 90, lightness: 65),
 
