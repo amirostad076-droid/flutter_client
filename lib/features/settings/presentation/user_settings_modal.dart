@@ -59,14 +59,16 @@ class UserSettingsModal extends ConsumerStatefulWidget {
     BuildContext context, {
     bool openProfileSection = false,
   }) async {
-    await FluxerBottomSheet.show<void>(
+    await FluxerBottomSheet.showScrollable<void>(
       context,
       title: 'Settings',
       useRootNavigator: true,
-      builder: (sheetContext, close) => _MobileSettingsNavBody(
-        onClose: close,
-        openProfileSection: openProfileSection,
-      ),
+      builder: (sheetContext, scrollController, close) =>
+          _MobileSettingsNavBody(
+            onClose: close,
+            scrollController: scrollController,
+            openProfileSection: openProfileSection,
+          ),
     );
   }
 
@@ -319,10 +321,12 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
 class _MobileSettingsNavBody extends ConsumerStatefulWidget {
   const _MobileSettingsNavBody({
     required this.onClose,
+    required this.scrollController,
     this.openProfileSection = false,
   });
 
   final VoidCallback onClose;
+  final ScrollController scrollController;
   final bool openProfileSection;
 
   @override
@@ -332,7 +336,6 @@ class _MobileSettingsNavBody extends ConsumerStatefulWidget {
 
 class _MobileSettingsNavBodyState
     extends ConsumerState<_MobileSettingsNavBody> {
-  final _scrollController = ScrollController();
   var _didOpenProfile = false;
 
   @override
@@ -349,15 +352,9 @@ class _MobileSettingsNavBodyState
   }
 
   @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return FluxerSettingsNavList(
-      controller: _scrollController,
+      controller: widget.scrollController,
       groups: [
         FluxerSettingsNavGroup(
           label: 'YOUR ACCOUNT',
@@ -487,16 +484,18 @@ class _MobileSettingsNavBodyState
   void _openSettingsPage(String label) {
     final canDismiss = ValueNotifier<bool>(true);
     unawaited(
-      FluxerBottomSheet.show<void>(
+      FluxerBottomSheet.showScrollable<void>(
         context,
         title: label,
         useRootNavigator: true,
         canDismissNotifier: canDismiss,
-        builder: (sheetContext, close) => _MobileSettingsContentBody(
-          label: label,
-          onClose: close,
-          canDismissNotifier: canDismiss,
-        ),
+        builder: (sheetContext, scrollController, close) =>
+            _MobileSettingsContentBody(
+              label: label,
+              onClose: close,
+              scrollController: scrollController,
+              canDismissNotifier: canDismiss,
+            ),
       ),
     );
   }
@@ -542,11 +541,13 @@ class _MobileSettingsContentBody extends ConsumerWidget {
   const _MobileSettingsContentBody({
     required this.label,
     required this.onClose,
+    required this.scrollController,
     this.canDismissNotifier,
   });
 
   final String label;
   final VoidCallback onClose;
+  final ScrollController scrollController;
   final ValueNotifier<bool>? canDismissNotifier;
 
   @override
@@ -565,7 +566,7 @@ class _MobileSettingsContentBody extends ConsumerWidget {
           onReset: () =>
               ref.read(userSettingsViewModelProvider.notifier).reset(),
           onSave: () => ref.read(userSettingsViewModelProvider.notifier).save(),
-          child: const UserProfile(),
+          child: UserProfile(scrollController: scrollController),
         );
       case 'Look & Feel':
         return UserAppearance(

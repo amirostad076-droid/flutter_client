@@ -14,7 +14,9 @@ const int _kMaxPronounsLength = 40;
 const int _kMaxBioLength = 320;
 
 class UserProfile extends ConsumerStatefulWidget {
-  const UserProfile({super.key});
+  const UserProfile({super.key, this.scrollController});
+
+  final ScrollController? scrollController;
 
   @override
   ConsumerState<UserProfile> createState() => _UserProfileState();
@@ -71,9 +73,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     final colors = context.colors;
     final textStyles = context.textStyles;
 
-    return ListView(
+    return SingleChildScrollView(
+      controller: widget.scrollController,
       padding: EdgeInsets.all(layout.s4),
-      children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
         Text(
           'Profile Customization',
           style: textStyles.heading.copyWith(color: colors.textPrimary),
@@ -149,7 +154,8 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           ],
         ),
         SizedBox(height: layout.s8),
-      ],
+        ],
+      ),
     );
   }
 

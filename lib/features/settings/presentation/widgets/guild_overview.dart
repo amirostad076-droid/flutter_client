@@ -5,11 +5,13 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart';
 
 class GuildOverview extends StatelessWidget {
   final Guild guild;
+  final ScrollController? scrollController;
 
-  const GuildOverview({required this.guild, super.key});
+  const GuildOverview({required this.guild, this.scrollController, super.key});
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
+    controller: scrollController,
     padding: const EdgeInsets.all(40),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,

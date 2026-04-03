@@ -5,8 +5,9 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class GuildRoles extends StatelessWidget {
   final List<MemberRole> roles;
+  final ScrollController? scrollController;
 
-  const GuildRoles({required this.roles, super.key});
+  const GuildRoles({required this.roles, this.scrollController, super.key});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -53,6 +54,7 @@ class GuildRoles extends StatelessWidget {
         Divider(color: context.colors.borderColor),
         Expanded(
           child: ListView.builder(
+            controller: scrollController,
             itemCount: roles.length,
             itemBuilder: (context, index) {
               final role = roles[index];

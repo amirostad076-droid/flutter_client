@@ -3059,15 +3059,16 @@ class _GuildListItemState extends State<_GuildListItem> {
           Map.of(settings.channelOverrides),
         );
 
-    await FluxerBottomSheet.show<void>(
+    await FluxerBottomSheet.showScrollable<void>(
       context,
       title: l10n.notificationSettings,
-      builder: (sheetContext, close) {
+      builder: (sheetContext, scrollController, close) {
         final layout = sheetContext.layout;
         final colors = sheetContext.colors;
         final textStyles = sheetContext.textStyles;
 
         return SingleChildScrollView(
+          controller: scrollController,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: layout.s4),
             child: Column(

@@ -12,6 +12,15 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 typedef FluxerBottomSheetBuilder =
     Widget Function(BuildContext context, VoidCallback close);
 
+/// Builder for scrollable sheets — also receives a [ScrollController] that
+/// must be attached to the inner scrollable to coordinate scroll-vs-dismiss.
+typedef FluxerScrollableBottomSheetBuilder =
+    Widget Function(
+      BuildContext context,
+      ScrollController scrollController,
+      VoidCallback close,
+    );
+
 enum FluxerBottomSheetVariant { content, menu }
 
 /// Shows a styled modal bottom sheet with the app's standard appearance.
@@ -109,6 +118,107 @@ class FluxerBottomSheet {
           builder: (context, canDismiss, child) =>
               PopScope(canPop: canDismiss, child: child!),
           child: content,
+        );
+      },
+    );
+  }
+
+  /// Shows a bottom sheet whose content is scrollable with coordinated
+  /// drag-to-dismiss (only dismisses when the scrollable is at the top).
+  ///
+  /// The [builder] receives a [ScrollController] that **must** be attached to
+  /// the inner scrollable widget for the coordination to work.
+  static Future<T?> showScrollable<T>(
+    BuildContext context, {
+    required FluxerScrollableBottomSheetBuilder builder,
+    String? title,
+    Widget? subtitle,
+    Widget? leading,
+    Widget? trailing,
+    VoidCallback? onBack,
+    bool showDragHandle = true,
+    bool useRootNavigator = false,
+    double initialChildSize = 0.9,
+    double minChildSize = 0.4,
+    double maxChildSize = 0.95,
+    ValueNotifier<bool>? canDismissNotifier,
+  }) {
+    final colors = context.colors;
+    final layout = context.layout;
+
+    return showModalBottomSheet<T>(
+      context: context,
+      useRootNavigator: useRootNavigator,
+      isScrollControlled: true,
+      enableDrag: false,
+      backgroundColor: colors.backgroundSecondary,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: layout.radiusXxl.topLeft),
+      ),
+      builder: (sheetContext) {
+        void close() =>
+            Navigator.of(sheetContext, rootNavigator: useRootNavigator).pop();
+
+        final mediaQuery = MediaQuery.of(sheetContext);
+        final bottomPadding = mediaQuery.viewPadding.bottom;
+        final bottomInset = mediaQuery.viewInsets.bottom;
+        final hasHeader =
+            title != null ||
+            subtitle != null ||
+            leading != null ||
+            trailing != null ||
+            onBack != null;
+
+        Widget buildContent(ScrollController scrollController) {
+          return AnimatedPadding(
+            duration: sheetContext.motion.normal,
+            curve: sheetContext.motion.curve,
+            padding: EdgeInsets.only(bottom: bottomInset),
+            child: Column(
+              children: [
+                SizedBox(height: layout.s2),
+                if (showDragHandle) ...[
+                  const FluxerBottomSheetDragHandle(),
+                  SizedBox(height: layout.s2),
+                ],
+                if (hasHeader) ...[
+                  FluxerBottomSheetHeader(
+                    title: title ?? '',
+                    subtitle: subtitle,
+                    leading: leading,
+                    trailing: trailing,
+                    onBack: onBack,
+                  ),
+                  SizedBox(height: layout.s2),
+                ],
+                Expanded(child: builder(sheetContext, scrollController, close)),
+                SizedBox(
+                  height: bottomPadding > 0 ? bottomPadding : layout.s4,
+                ),
+              ],
+            ),
+          );
+        }
+
+        final sheet = DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: initialChildSize,
+          minChildSize: minChildSize,
+          maxChildSize: maxChildSize,
+          builder: (_, scrollController) =>
+              buildContent(scrollController),
+        );
+
+        if (canDismissNotifier == null) {
+          return sheet;
+        }
+
+        return ValueListenableBuilder<bool>(
+          valueListenable: canDismissNotifier,
+          builder: (context, canDismiss, child) =>
+              PopScope(canPop: canDismiss, child: child!),
+          child: sheet,
         );
       },
     );

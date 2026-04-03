@@ -44,14 +44,16 @@ class GuildSettingsModal extends ConsumerStatefulWidget {
     BuildContext context, {
     required String guildId,
   }) async {
-    await FluxerBottomSheet.show<void>(
+    await FluxerBottomSheet.showScrollable<void>(
       context,
       title: 'Server Settings',
       useRootNavigator: true,
-      builder: (sheetContext, close) => _MobileGuildSettingsNavBody(
-        guildId: guildId,
-        onClose: close,
-      ),
+      builder: (sheetContext, scrollController, close) =>
+          _MobileGuildSettingsNavBody(
+            guildId: guildId,
+            onClose: close,
+            scrollController: scrollController,
+          ),
     );
   }
 
@@ -174,10 +176,12 @@ class _MobileGuildSettingsNavBody extends ConsumerStatefulWidget {
   const _MobileGuildSettingsNavBody({
     required this.guildId,
     required this.onClose,
+    required this.scrollController,
   });
 
   final String guildId;
   final VoidCallback onClose;
+  final ScrollController scrollController;
 
   @override
   ConsumerState<_MobileGuildSettingsNavBody> createState() =>
@@ -206,6 +210,7 @@ class _MobileGuildSettingsNavBodyState
     }
 
     return FluxerSettingsNavList(
+      controller: widget.scrollController,
       groups: [
         FluxerSettingsNavGroup(
           items: [
@@ -261,22 +266,28 @@ class _MobileGuildSettingsNavBodyState
 
   void _openSettingsPage(String label) {
     unawaited(
-      FluxerBottomSheet.show<void>(
+      FluxerBottomSheet.showScrollable<void>(
         context,
         title: label,
         useRootNavigator: true,
-        builder: (sheetContext, close) => _MobileGuildSettingsContentBody(
-          label: label,
-        ),
+        builder: (sheetContext, scrollController, close) =>
+            _MobileGuildSettingsContentBody(
+              label: label,
+              scrollController: scrollController,
+            ),
       ),
     );
   }
 }
 
 class _MobileGuildSettingsContentBody extends ConsumerWidget {
-  const _MobileGuildSettingsContentBody({required this.label});
+  const _MobileGuildSettingsContentBody({
+    required this.label,
+    required this.scrollController,
+  });
 
   final String label;
+  final ScrollController scrollController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -289,9 +300,12 @@ class _MobileGuildSettingsContentBody extends ConsumerWidget {
 
     switch (label) {
       case 'Overview':
-        return GuildOverview(guild: guild);
+        return GuildOverview(guild: guild, scrollController: scrollController);
       case 'Roles':
-        return GuildRoles(roles: state.roles);
+        return GuildRoles(
+          roles: state.roles,
+          scrollController: scrollController,
+        );
       default:
         return Center(
           child: Text(

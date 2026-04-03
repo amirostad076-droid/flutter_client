@@ -24,16 +24,17 @@ Future<void> showDebugBottomSheet(
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final copied = ValueNotifier<bool>(false);
 
-  await FluxerBottomSheet.show<void>(
+  await FluxerBottomSheet.showScrollable<void>(
     context,
     title: title,
-    builder: (sheetContext, close) {
+    builder: (sheetContext, scrollController, close) {
       final layout = sheetContext.layout;
       final l10n = FluxerLocalizations.of(sheetContext);
 
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: layout.s4),
         child: SingleChildScrollView(
+          controller: scrollController,
           child: Stack(
             children: [
               ClipRRect(
