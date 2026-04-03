@@ -124,10 +124,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         ),
         position: DecorationPosition.foreground,
-        child: SizedBox(
-          height: height,
-          child: _buildDesktopLayout(state),
-        ),
+        child: SizedBox(height: height, child: _buildDesktopLayout(state)),
       ),
     );
   }
@@ -235,7 +232,14 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
     final label = _items[_selectedIndex].label;
     switch (label) {
       case 'Profile':
-        return UserProfile(userState: state);
+        return FluxerSettingsSheet(
+          hasUnsavedChanges: state.isDirty,
+          isSaving: state.isSaving,
+          onReset: () =>
+              ref.read(userSettingsViewModelProvider.notifier).reset(),
+          onSave: () => ref.read(userSettingsViewModelProvider.notifier).save(),
+          child: const UserProfile(),
+        );
       case 'Look & Feel':
         return UserAppearance(
           isCompact: state.messageDisplayCompact,
@@ -549,9 +553,20 @@ class _MobileSettingsContentBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(userSettingsViewModelProvider);
 
+    if (canDismissNotifier != null) {
+      canDismissNotifier!.value = !state.isDirty;
+    }
+
     switch (label) {
       case 'Profile':
-        return UserProfile(userState: state);
+        return FluxerSettingsSheet(
+          hasUnsavedChanges: state.isDirty,
+          isSaving: state.isSaving,
+          onReset: () =>
+              ref.read(userSettingsViewModelProvider.notifier).reset(),
+          onSave: () => ref.read(userSettingsViewModelProvider.notifier).save(),
+          child: const UserProfile(),
+        );
       case 'Look & Feel':
         return UserAppearance(
           isCompact: state.messageDisplayCompact,
