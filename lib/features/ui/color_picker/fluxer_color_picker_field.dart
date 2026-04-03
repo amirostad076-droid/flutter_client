@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
+import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 import 'package:fluxer_app/features/ui/popout/fluxer_popout.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-const double _kInputHeight = 44;
 const double _kSwatchWidth = 48;
 const double _kColorAreaHeight = 160;
 const double _kHueTrackHeight = 16;
@@ -21,11 +25,11 @@ int _colorToInt(Color color) =>
     (color.b * 255).round();
 
 Color _intToColor(int value) => Color.fromARGB(
-      255,
-      (value >> 16) & 0xFF,
-      (value >> 8) & 0xFF,
-      value & 0xFF,
-    );
+  255,
+  (value >> 16) & 0xFF,
+  (value >> 8) & 0xFF,
+  value & 0xFF,
+);
 
 String _intToHex(int value) =>
     '#${value.toRadixString(16).padLeft(6, '0').toUpperCase()}';
@@ -76,8 +80,7 @@ class FluxerColorPickerField extends StatefulWidget {
   final bool hideHelperText;
 
   @override
-  State<FluxerColorPickerField> createState() =>
-      _FluxerColorPickerFieldState();
+  State<FluxerColorPickerField> createState() => _FluxerColorPickerFieldState();
 }
 
 class _FluxerColorPickerFieldState extends State<FluxerColorPickerField> {
@@ -85,10 +88,9 @@ class _FluxerColorPickerFieldState extends State<FluxerColorPickerField> {
   late final FocusNode _focusNode;
   bool _showError = false;
 
-  int get _effectiveValue =>
-      widget.value == 0 && widget.defaultValue != null
-          ? widget.defaultValue!
-          : widget.value;
+  int get _effectiveValue => widget.value == 0 && widget.defaultValue != null
+      ? widget.defaultValue!
+      : widget.value;
 
   @override
   void initState() {
@@ -149,140 +151,123 @@ class _FluxerColorPickerFieldState extends State<FluxerColorPickerField> {
     final layout = context.layout;
 
     final displayColor = _intToColor(_effectiveValue);
-    final iconColor =
-        displayColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+    final iconColor = displayColor.computeLuminance() > 0.5
+        ? Colors.black
+        : Colors.white;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (widget.label != null)
-          Padding(
-            padding: EdgeInsets.only(bottom: layout.s1),
-            child: Text(
-              widget.label!,
-              style: textStyles.label.copyWith(color: colors.textPrimary),
-            ),
+        FluxerInput(
+          controller: _controller,
+          focusNode: _focusNode,
+          label: widget.label,
+          hint: '#000000',
+          enabled: !widget.disabled,
+          style: textStyles.bodySmall.copyWith(
+            fontFamily: 'monospace',
+            color: _showError ? colors.statusDanger : colors.textPrimary,
           ),
-        SizedBox(
-          height: _kInputHeight,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: layout.radiusLg,
-              border: Border.all(color: colors.backgroundModifierAccent),
-            ),
-            child: ClipRRect(
-              borderRadius: layout.radiusLg,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      enabled: !widget.disabled,
-                      style: textStyles.bodySmall.copyWith(
-                        fontFamily: 'monospace',
-                        color: _showError
-                            ? colors.statusDanger
-                            : colors.textPrimary,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: '#000000',
-                        hintStyle: textStyles.bodySmall.copyWith(
-                          fontFamily: 'monospace',
-                          color: colors.textPrimaryMuted,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: layout.s4,
-                          vertical: layout.s2,
-                        ),
-                        isDense: true,
-                      ),
-                      onSubmitted: (_) => _commitFromText(),
-                      onChanged: (_) {
-                        if (_showError) {
-                          setState(() => _showError = false);
-                        }
-                      },
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(7),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 1,
-                    child: ColoredBox(color: colors.backgroundModifierAccent),
-                  ),
-                  FluxerPopout(
-                    anchorBuilder: (context, toggle) => FluxerTappable(
-                      enabled: !widget.disabled,
-                      onTap: toggle,
-                      semanticLabel: 'Open color picker',
-                      builder: (context, states) => SizedBox(
-                        width: _kSwatchWidth,
-                        height: _kInputHeight,
-                        child: ColoredBox(
-                          color: displayColor,
-                          child: Center(
-                            child: Icon(
-                              PhosphorIcons.eyedropper(
-                                PhosphorIconsStyle.fill,
-                              ),
-                              size: 18,
-                              color: iconColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    contentBuilder: (context, close) => _ColorPickerContent(
-                      color: _intToColor(_effectiveValue),
-                      onChanged: (color) {
-                        final intValue = _colorToInt(color);
-                        widget.onChanged(intValue);
-                        _controller.text = _intToHex(intValue);
-                        setState(() => _showError = false);
-                      },
-                      onReset: widget.defaultValue != null
-                          ? () {
-                              widget.onChanged(0);
-                              _controller.text =
-                                  _intToHex(widget.defaultValue!);
-                              setState(() => _showError = false);
-                              close();
-                            }
-                          : null,
-                      hasCustomColor: widget.value != 0,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          onSubmitted: (_) => _commitFromText(),
+          onChanged: (_) {
+            if (_showError) {
+              setState(() => _showError = false);
+            }
+          },
+          inputFormatters: [LengthLimitingTextInputFormatter(7)],
+          helperText:
+              widget.description ??
+              (!widget.hideHelperText && !_showError
+                  ? 'Type a hex color or use the picker.'
+                  : null),
+          trailing: isMobileLayout(context)
+              ? _buildMobileSwatch(displayColor, iconColor)
+              : _buildDesktopSwatch(displayColor, iconColor),
         ),
-        if (widget.description != null ||
-            (!widget.hideHelperText && !_showError))
-          Padding(
-            padding: EdgeInsets.only(top: layout.s1_5),
-            child: Text(
-              widget.description ?? 'Type a hex color or use the picker.',
-              style: textStyles.timestamp.copyWith(
-                color: colors.textPrimaryMuted,
-              ),
-            ),
-          ),
         if (_showError)
           Padding(
             padding: EdgeInsets.only(top: layout.s1_5),
             child: Text(
               'Invalid color. Try a hex value like #FF5733.',
-              style: textStyles.timestamp.copyWith(
-                color: colors.statusDanger,
-              ),
+              style: textStyles.timestamp.copyWith(color: colors.statusDanger),
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildSwatchContent(Color displayColor, Color iconColor) {
+    return SizedBox(
+      width: _kSwatchWidth,
+      child: ColoredBox(
+        color: displayColor,
+        child: Center(
+          child: Icon(
+            PhosphorIcons.eyedropper(PhosphorIconsStyle.fill),
+            size: 18,
+            color: iconColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  _ColorPickerContent _buildPickerContent({VoidCallback? onClose}) {
+    return _ColorPickerContent(
+      color: _intToColor(_effectiveValue),
+      onChanged: (color) {
+        final intValue = _colorToInt(color);
+        widget.onChanged(intValue);
+        _controller.text = _intToHex(intValue);
+        setState(() => _showError = false);
+      },
+      onReset: widget.defaultValue != null
+          ? () {
+              widget.onChanged(0);
+              _controller.text = _intToHex(widget.defaultValue!);
+              setState(() => _showError = false);
+              onClose?.call();
+            }
+          : null,
+      hasCustomColor: widget.value != 0,
+    );
+  }
+
+  Widget _buildDesktopSwatch(Color displayColor, Color iconColor) {
+    return FluxerPopout(
+      anchorBuilder: (context, toggle) => FluxerTappable(
+        enabled: !widget.disabled,
+        onTap: toggle,
+        semanticLabel: 'Open color picker',
+        builder: (context, states) =>
+            _buildSwatchContent(displayColor, iconColor),
+      ),
+      contentBuilder: (context, close) => SizedBox(
+        width: _kPopoverWidth,
+        child: _buildPickerContent(onClose: close),
+      ),
+    );
+  }
+
+  Widget _buildMobileSwatch(Color displayColor, Color iconColor) {
+    return FluxerTappable(
+      enabled: !widget.disabled,
+      onTap: _showMobileColorPicker,
+      semanticLabel: 'Open color picker',
+      builder: (context, states) =>
+          _buildSwatchContent(displayColor, iconColor),
+    );
+  }
+
+  Future<void> _showMobileColorPicker() {
+    return FluxerBottomSheet.show<void>(
+      context,
+      title: widget.label ?? 'Color Picker',
+      builder: (context, close) => Padding(
+        padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
+        child: _buildPickerContent(onClose: close),
+      ),
     );
   }
 }
@@ -328,53 +313,34 @@ class _ColorPickerContentState extends State<_ColorPickerContent> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final layout = context.layout;
-    final textStyles = context.textStyles;
 
-    return SizedBox(
-      width: _kPopoverWidth,
-      child: Padding(
-        padding: EdgeInsets.all(layout.s4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _ColorArea(
-              hue: _hsv.hue,
-              saturation: _hsv.saturation,
-              value: _hsv.value,
-              onChanged: (saturation, value) => _updateColor(
-                _hsv.withSaturation(saturation).withValue(value),
-              ),
-            ),
+    return Padding(
+      padding: EdgeInsets.all(layout.s4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ColorArea(
+            hue: _hsv.hue,
+            saturation: _hsv.saturation,
+            value: _hsv.value,
+            onChanged: (saturation, value) =>
+                _updateColor(_hsv.withSaturation(saturation).withValue(value)),
+          ),
+          SizedBox(height: layout.s3),
+          _HueSlider(
+            hue: _hsv.hue,
+            onChanged: (hue) => _updateColor(_hsv.withHue(hue)),
+          ),
+          if (widget.onReset != null) ...[
             SizedBox(height: layout.s3),
-            _HueSlider(
-              hue: _hsv.hue,
-              onChanged: (hue) => _updateColor(_hsv.withHue(hue)),
+            FluxerButton.secondary(
+              onPressed: widget.hasCustomColor ? widget.onReset : null,
+              label: 'Reset',
+              size: FluxerButtonSize.small,
             ),
-            if (widget.onReset != null) ...[
-              SizedBox(height: layout.s2),
-              FluxerTappable(
-                enabled: widget.hasCustomColor,
-                onTap: widget.onReset,
-                builder: (context, states) => SizedBox(
-                  width: double.infinity,
-                  height: 24,
-                  child: Center(
-                    child: Text(
-                      'Reset',
-                      style: textStyles.bodySmall.copyWith(
-                        color: widget.hasCustomColor
-                            ? colors.textPrimary
-                            : colors.textPrimaryMuted,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }
@@ -428,8 +394,12 @@ class _ColorArea extends StatelessWidget {
                       left: saturation * width - _kThumbSize / 2,
                       top: (1.0 - value) * _kColorAreaHeight - _kThumbSize / 2,
                       child: _Thumb(
-                        color: HSVColor.fromAHSV(1, hue, saturation, value)
-                            .toColor(),
+                        color: HSVColor.fromAHSV(
+                          1,
+                          hue,
+                          saturation,
+                          value,
+                        ).toColor(),
                       ),
                     ),
                   ],
@@ -453,18 +423,16 @@ class _ColorAreaPainter extends CustomPainter {
     final rect = Offset.zero & size;
     final hueColor = HSVColor.fromAHSV(1, hue, 1, 1).toColor();
 
-    final horizontalGradient = ui.Gradient.linear(
-      rect.topLeft,
-      rect.topRight,
-      [Colors.white, hueColor],
-    );
+    final horizontalGradient = ui.Gradient.linear(rect.topLeft, rect.topRight, [
+      Colors.white,
+      hueColor,
+    ]);
     canvas.drawRect(rect, Paint()..shader = horizontalGradient);
 
-    final verticalGradient = ui.Gradient.linear(
-      rect.topLeft,
-      rect.bottomLeft,
-      [const Color(0x00000000), const Color(0xFF000000)],
-    );
+    final verticalGradient = ui.Gradient.linear(rect.topLeft, rect.bottomLeft, [
+      const Color(0x00000000),
+      const Color(0xFF000000),
+    ]);
     canvas.drawRect(rect, Paint()..shader = verticalGradient);
   }
 
@@ -473,10 +441,7 @@ class _ColorAreaPainter extends CustomPainter {
 }
 
 class _HueSlider extends StatelessWidget {
-  const _HueSlider({
-    required this.hue,
-    required this.onChanged,
-  });
+  const _HueSlider({required this.hue, required this.onChanged});
 
   final double hue;
   final ValueChanged<double> onChanged;
@@ -569,10 +534,7 @@ class _Thumb extends StatelessWidget {
             color: color,
             border: Border.all(color: Colors.white, width: 2),
             boxShadow: const [
-              BoxShadow(
-                color: Color.fromRGBO(0, 0, 0, 0.3),
-                blurRadius: 2,
-              ),
+              BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: 2),
             ],
           ),
         ),
