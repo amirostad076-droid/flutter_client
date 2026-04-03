@@ -33,6 +33,7 @@ class FluxerBottomSheet {
     bool useRootNavigator = false,
     FluxerBottomSheetVariant variant = FluxerBottomSheetVariant.content,
     ValueNotifier<bool>? canDismissNotifier,
+    bool enableDrag = true,
   }) {
     final colors = context.colors;
     final layout = context.layout;
@@ -41,6 +42,7 @@ class FluxerBottomSheet {
       context: context,
       useRootNavigator: useRootNavigator,
       isScrollControlled: true,
+      enableDrag: enableDrag,
       backgroundColor: colors.backgroundSecondary,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -104,10 +106,8 @@ class FluxerBottomSheet {
 
         return ValueListenableBuilder<bool>(
           valueListenable: canDismissNotifier,
-          builder: (context, canDismiss, child) => PopScope(
-            canPop: canDismiss,
-            child: child!,
-          ),
+          builder: (context, canDismiss, child) =>
+              PopScope(canPop: canDismiss, child: child!),
           child: content,
         );
       },

@@ -492,6 +492,7 @@ class _MobileSettingsNavBodyState
         title: label,
         useRootNavigator: true,
         canDismissNotifier: canDismiss,
+        enableDrag: false,
         builder: (sheetContext, close) => _MobileSettingsContentBody(
           label: label,
           onClose: close,
