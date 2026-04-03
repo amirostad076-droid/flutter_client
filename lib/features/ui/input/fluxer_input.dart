@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:flutter/services.dart';
 
-/// A styled text input field with an optional label above
-/// and theme integration.
-///
-/// Use [FluxerInput.multiline] for multi-line text areas.
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/ui/character_counter/fluxer_character_counter.dart';
+
 class FluxerInput extends StatelessWidget {
   const FluxerInput({
     this.controller,
@@ -15,16 +14,21 @@ class FluxerInput extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.onSuffixTap,
+    this.trailing,
     this.obscureText = false,
     this.enabled = true,
     this.autofocus = false,
     this.maxLength,
+    this.showCounter = false,
+    this.helperText,
     this.onChanged,
     this.onSubmitted,
     this.validator,
     this.keyboardType,
     this.textInputAction,
     this.autofillHints,
+    this.inputFormatters,
+    this.style,
     this.maxLines = 1,
     this.minLines,
     super.key,
@@ -39,16 +43,21 @@ class FluxerInput extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.onSuffixTap,
+    this.trailing,
     this.obscureText = false,
     this.enabled = true,
     this.autofocus = false,
     this.maxLength,
+    this.showCounter = false,
+    this.helperText,
     this.onChanged,
     this.onSubmitted,
     this.validator,
     this.keyboardType,
     this.textInputAction,
     this.autofillHints,
+    this.inputFormatters,
+    this.style,
     this.maxLines,
     this.minLines = 3,
     super.key,
@@ -62,18 +71,29 @@ class FluxerInput extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final VoidCallback? onSuffixTap;
+
+  /// Widget placed to the right of the text field inside the same border,
+  /// separated by a vertical divider (e.g. a color swatch).
+  final Widget? trailing;
+
   final bool obscureText;
   final bool enabled;
   final bool autofocus;
   final int? maxLength;
+  final bool showCounter;
+  final String? helperText;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final FormFieldValidator<String>? validator;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextStyle? style;
   final int? maxLines;
   final int? minLines;
+
+  bool get _isMultiline => minLines != null && minLines! > 1;
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +105,14 @@ class FluxerInput extends StatelessWidget {
         ? GestureDetector(onTap: onSuffixTap, child: suffixIcon)
         : suffixIcon;
 
+    if (_isMultiline) {
+      return _buildMultiline(context, suffix: effectiveSuffix);
+    }
+
+    if (trailing != null) {
+      return _buildWithTrailing(context, suffix: effectiveSuffix);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -94,13 +122,17 @@ class FluxerInput extends StatelessWidget {
             padding: EdgeInsets.only(bottom: layout.s1_5),
             child: Text(
               label!,
-              style: textStyles.label.copyWith(color: colors.textSecondary),
+              style: textStyles.label.copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         TextFormField(
           controller: controller,
           focusNode: focusNode,
           textInputAction: textInputAction,
+          style: style,
           decoration: InputDecoration(
             hintText: hint,
             errorText: errorText,
@@ -117,9 +149,178 @@ class FluxerInput extends StatelessWidget {
           onFieldSubmitted: onSubmitted,
           validator: validator,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           maxLines: maxLines,
           minLines: minLines,
         ),
+        if (helperText != null)
+          Padding(
+            padding: EdgeInsets.only(top: layout.s1),
+            child: Text(
+              helperText!,
+              style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildWithTrailing(BuildContext context, {required Widget? suffix}) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+    final layout = context.layout;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (label != null)
+          Padding(
+            padding: EdgeInsets.only(bottom: layout.s1_5),
+            child: Text(
+              label!,
+              style: textStyles.label.copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.backgroundTertiary,
+            borderRadius: layout.radiusLg,
+            border: Border.all(color: colors.backgroundModifierAccent),
+          ),
+          child: ClipRRect(
+            borderRadius: layout.radiusLg,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      textInputAction: textInputAction,
+                      style: style,
+                      decoration: InputDecoration(
+                        hintText: hint,
+                        errorText: errorText,
+                        prefixIcon: prefixIcon,
+                        suffixIcon: suffix,
+                        counterText: maxLength != null ? '' : null,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        filled: false,
+                      ),
+                      obscureText: obscureText,
+                      autofillHints: autofillHints,
+                      enabled: enabled,
+                      autofocus: autofocus,
+                      maxLength: maxLength,
+                      onChanged: onChanged,
+                      onFieldSubmitted: onSubmitted,
+                      validator: validator,
+                      keyboardType: keyboardType,
+                      inputFormatters: inputFormatters,
+                      maxLines: maxLines,
+                      minLines: minLines,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 1,
+                    child: ColoredBox(color: colors.backgroundModifierAccent),
+                  ),
+                  trailing!,
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (helperText != null)
+          Padding(
+            padding: EdgeInsets.only(top: layout.s1),
+            child: Text(
+              helperText!,
+              style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMultiline(BuildContext context, {required Widget? suffix}) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+    final layout = context.layout;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (label != null)
+          Padding(
+            padding: EdgeInsets.only(bottom: layout.s1_5),
+            child: Text(
+              label!,
+              style: textStyles.label.copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        Stack(
+          children: [
+            TextFormField(
+              controller: controller,
+              focusNode: focusNode,
+              textInputAction: textInputAction,
+              style: style,
+              decoration: InputDecoration(
+                hintText: hint,
+                errorText: errorText,
+                prefixIcon: prefixIcon,
+                counterText: maxLength != null ? '' : null,
+              ),
+              obscureText: obscureText,
+              autofillHints: autofillHints,
+              enabled: enabled,
+              autofocus: autofocus,
+              maxLength: maxLength,
+              onChanged: onChanged,
+              onFieldSubmitted: onSubmitted,
+              validator: validator,
+              keyboardType: keyboardType,
+              inputFormatters: inputFormatters,
+              maxLines: maxLines,
+              minLines: minLines,
+            ),
+            if (suffix != null)
+              Positioned(top: layout.s2, right: layout.s2, child: suffix),
+            if (showCounter && maxLength != null)
+              Positioned(
+                bottom: layout.s2,
+                right: layout.s2,
+                child: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: controller ?? TextEditingController(),
+                  builder: (context, value, _) => FluxerCharacterCounter(
+                    current: value.text.length,
+                    max: maxLength!,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        if (helperText != null)
+          Padding(
+            padding: EdgeInsets.only(top: layout.s1),
+            child: Text(
+              helperText!,
+              style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
+            ),
+          ),
       ],
     );
   }
