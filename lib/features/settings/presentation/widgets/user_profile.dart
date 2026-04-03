@@ -8,12 +8,10 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/character_counter/fluxer_character_counter.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const int _kMaxDisplayNameLength = 32;
 const int _kMaxPronounsLength = 40;
 const int _kMaxBioLength = 320;
-const double _kBannerHeight = 120;
 
 class UserProfile extends ConsumerStatefulWidget {
   const UserProfile({super.key});
@@ -74,7 +72,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     final textStyles = context.textStyles;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(layout.s6),
+      padding: EdgeInsets.all(layout.s4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -89,7 +87,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           ),
           SizedBox(height: layout.s6),
           _buildUsernameSection(state, colors, textStyles, layout),
-          SizedBox(height: layout.s5),
+          SizedBox(height: layout.s6),
           FluxerInput(
             controller: _displayNameController,
             label: 'Display Name',
@@ -97,41 +95,55 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             maxLength: _kMaxDisplayNameLength,
             onChanged: vm.updateDisplayName,
           ),
-          SizedBox(height: layout.s5),
+          SizedBox(height: layout.s6),
           FluxerInput(
             controller: _pronounsController,
             label: 'Pronouns',
             maxLength: _kMaxPronounsLength,
             onChanged: vm.updatePronouns,
           ),
-          SizedBox(height: layout.s5),
+          SizedBox(height: layout.s6),
           _buildAvatarSection(state, vm, colors, textStyles, layout),
-          SizedBox(height: layout.s5),
+          SizedBox(height: layout.s6),
           _buildBannerSection(state, vm, colors, textStyles, layout),
-          SizedBox(height: layout.s5),
+          SizedBox(height: layout.s6),
           FluxerColorPickerField(
             label: 'Accent Color',
+            description:
+                'Customizes the border and banner color on '
+                'your profile',
             value: state.isEditedAccentColorSet
                 ? (state.editedAccentColor ?? 0)
                 : (state.accentColor ?? 0),
             onChanged: vm.updateAccentColor,
+            defaultValue: 0x4641D9,
           ),
-          SizedBox(height: layout.s5),
+          SizedBox(height: layout.s6),
           FluxerInput.multiline(
             controller: _bioController,
-            label: 'Bio',
+            label: 'About Me',
             maxLength: _kMaxBioLength,
             maxLines: 6,
             onChanged: vm.updateBio,
           ),
           SizedBox(height: layout.s1),
-          Align(
-            alignment: Alignment.centerRight,
-            child: FluxerCharacterCounter(
-              current: _bioController.text.length,
-              max: _kMaxBioLength,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'You can use links, emoji, and Markdown.',
+                  style: textStyles.bodySmall.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ),
+              FluxerCharacterCounter(
+                current: _bioController.text.length,
+                max: _kMaxBioLength,
+              ),
+            ],
           ),
+          SizedBox(height: layout.s8),
         ],
       ),
     );
@@ -148,31 +160,22 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       children: [
         Text(
           'Username',
-          style: textStyles.label.copyWith(color: colors.textSecondary),
+          style: textStyles.bodySmall.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         SizedBox(height: layout.s2),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${state.username}#${state.discriminator}',
-                style: textStyles.bodyMedium.copyWith(
-                  color: colors.textPrimary,
-                ),
-              ),
-            ),
-            const FluxerButton.primary(
-              onPressed: null,
-              label: 'Change FluxerTag',
-              size: FluxerButtonSize.small,
-              fitContent: true,
-            ),
-          ],
+        const FluxerButton.primary(
+          onPressed: null,
+          label: 'Change FluxerTag',
+          size: FluxerButtonSize.small,
+          fitContent: true,
         ),
-        SizedBox(height: layout.s1),
+        SizedBox(height: layout.s3),
         Text(
           'Change your username and 4-digit tag',
-          style: textStyles.smallText.copyWith(color: colors.textSecondary),
+          style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
         ),
       ],
     );
@@ -194,43 +197,36 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       children: [
         Text(
           'Avatar',
-          style: textStyles.label.copyWith(color: colors.textSecondary),
+          style: textStyles.bodySmall.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: layout.s2),
+        Wrap(
+          spacing: layout.s2,
+          runSpacing: layout.s2,
+          children: [
+            FluxerButton.secondary(
+              onPressed: () {},
+              label: 'Upload Avatar',
+              size: FluxerButtonSize.small,
+              fitContent: true,
+            ),
+            if (hasAvatar)
+              FluxerButton.dangerSecondary(
+                onPressed: vm.clearAvatar,
+                label: 'Remove',
+                size: FluxerButtonSize.small,
+                fitContent: true,
+              ),
+          ],
         ),
         SizedBox(height: layout.s3),
-        Row(
-          children: [
-            FluxerAvatar.user(
-              fallbackText: state.displayName,
-              userId: state.userId,
-              imageUrl: state.avatarCleared ? null : state.avatarUrl,
-              avatarColor: state.avatarColor,
-              size: 80,
-              showStatus: false,
-            ),
-            SizedBox(width: layout.s4),
-            Expanded(
-              child: Wrap(
-                spacing: layout.s2,
-                runSpacing: layout.s2,
-                children: [
-                  FluxerButton.secondary(
-                    onPressed: () {},
-                    label: 'Upload Avatar',
-                    icon: PhosphorIconsRegular.uploadSimple,
-                    size: FluxerButtonSize.small,
-                    fitContent: true,
-                  ),
-                  if (hasAvatar)
-                    FluxerButton.dangerSecondary(
-                      onPressed: vm.clearAvatar,
-                      label: 'Remove',
-                      size: FluxerButtonSize.small,
-                      fitContent: true,
-                    ),
-                ],
-              ),
-            ),
-          ],
+        Text(
+          'Recommended: 512×512 or larger, PNG or '
+          'JPG under 10 MB',
+          style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
         ),
       ],
     );
@@ -252,21 +248,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       children: [
         Text(
           'Banner',
-          style: textStyles.label.copyWith(color: colors.textSecondary),
-        ),
-        SizedBox(height: layout.s3),
-        ClipRRect(
-          borderRadius: layout.radiusLg,
-          child: Container(
-            width: double.infinity,
-            height: _kBannerHeight,
-            color: Color(state.accentColor ?? 0xFF5865F2),
-            child: hasBanner && state.bannerUrl != null
-                ? Image.network(state.bannerUrl!, fit: BoxFit.cover)
-                : const SizedBox.shrink(),
+          style: textStyles.bodySmall.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: layout.s3),
+        SizedBox(height: layout.s2),
         Wrap(
           spacing: layout.s2,
           runSpacing: layout.s2,
@@ -274,7 +261,6 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             FluxerButton.secondary(
               onPressed: () {},
               label: 'Upload Banner',
-              icon: PhosphorIconsRegular.uploadSimple,
               size: FluxerButtonSize.small,
               fitContent: true,
             ),
@@ -286,6 +272,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 fitContent: true,
               ),
           ],
+        ),
+        SizedBox(height: layout.s3),
+        Text(
+          'Recommended: 1500×500 or larger, PNG or '
+          'JPG under 10 MB',
+          style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
         ),
       ],
     );
