@@ -9,8 +9,8 @@ environment:
 
 dependencies:
   intl: ^0.20.2
-  cached_network_image_ce: ^4.1.1
   connectivity_plus: ^7.0.0
+  cached_network_image_ce: ^4.1.1
   cupertino_icons: ^1.0.8
   fluxer_captcha:
     path: fluxer_captcha
@@ -29,7 +29,7 @@ dependencies:
   flutter_svg: ^2.2.4
   fluxer_dart:
     path: dart_sdk
-  go_router: ^17.1.0
+  go_router: ^17.2.0
   google_fonts: ^8.0.1
   livekit_client: ^2.6.5
   lucid_validation: ^1.3.1
@@ -55,6 +55,7 @@ dependencies:
   permission_handler: ^12.0.1
 
 dev_dependencies:
+  accessibility_radar: ^0.3.0
   build_runner: ^2.12.2
   drift_dev: ^2.31.0
   flutter_test:
@@ -62,7 +63,6 @@ dev_dependencies:
   lint_hard: ^7.1.2
   riverpod_generator: ^4.0.3
   riverpod_lint: ^3.1.3
-  accessibility_radar: ^0.2.2
 
 flutter:
   generate: true
