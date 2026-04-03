@@ -71,90 +71,85 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     final colors = context.colors;
     final textStyles = context.textStyles;
 
-    return SingleChildScrollView(
+    return ListView(
       padding: EdgeInsets.all(layout.s4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Profile Customization',
-            style: textStyles.heading.copyWith(color: colors.textPrimary),
+      children: [
+        Text(
+          'Profile Customization',
+          style: textStyles.heading.copyWith(color: colors.textPrimary),
+        ),
+        SizedBox(height: layout.s1),
+        Text(
+          'Edit your profile appearance and see a live preview',
+          style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
+        ),
+        SizedBox(height: layout.s6),
+        _buildUsernameSection(state, colors, textStyles, layout),
+        SizedBox(height: layout.s6),
+        FluxerInput(
+          controller: _displayNameController,
+          label: 'Display Name',
+          hint: state.username,
+          maxLength: _kMaxDisplayNameLength,
+          onChanged: vm.updateDisplayName,
+        ),
+        SizedBox(height: layout.s6),
+        FluxerInput(
+          controller: _pronounsController,
+          label: 'Pronouns',
+          maxLength: _kMaxPronounsLength,
+          onChanged: vm.updatePronouns,
+        ),
+        SizedBox(height: layout.s6),
+        _buildAvatarSection(state, vm, colors, textStyles, layout),
+        SizedBox(height: layout.s6),
+        _buildBannerSection(state, vm, colors, textStyles, layout),
+        SizedBox(height: layout.s6),
+        FluxerColorPickerField(
+          label: 'Accent Color',
+          description:
+              'Customizes the border and banner color on '
+              'your profile',
+          value: state.isEditedAccentColorSet
+              ? (state.editedAccentColor ?? 0)
+              : (state.accentColor ?? 0),
+          onChanged: vm.updateAccentColor,
+          defaultValue: 0x4641D9,
+        ),
+        SizedBox(height: layout.s6),
+        FluxerInput.multiline(
+          controller: _bioController,
+          label: 'About Me',
+          maxLength: _kMaxBioLength,
+          maxLines: 6,
+          onChanged: vm.updateBio,
+          suffixIcon: PhosphorIcon(
+            PhosphorIconsFill.smiley,
+            size: 20,
+            color: colors.textTertiary,
           ),
-          SizedBox(height: layout.s1),
-          Text(
-            'Edit your profile appearance and see a live preview',
-            style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
-          ),
-          SizedBox(height: layout.s6),
-          _buildUsernameSection(state, colors, textStyles, layout),
-          SizedBox(height: layout.s6),
-          FluxerInput(
-            controller: _displayNameController,
-            label: 'Display Name',
-            hint: state.username,
-            maxLength: _kMaxDisplayNameLength,
-            onChanged: vm.updateDisplayName,
-          ),
-          SizedBox(height: layout.s6),
-          FluxerInput(
-            controller: _pronounsController,
-            label: 'Pronouns',
-            maxLength: _kMaxPronounsLength,
-            onChanged: vm.updatePronouns,
-          ),
-          SizedBox(height: layout.s6),
-          _buildAvatarSection(state, vm, colors, textStyles, layout),
-          SizedBox(height: layout.s6),
-          _buildBannerSection(state, vm, colors, textStyles, layout),
-          SizedBox(height: layout.s6),
-          FluxerColorPickerField(
-            label: 'Accent Color',
-            description:
-                'Customizes the border and banner color on '
-                'your profile',
-            value: state.isEditedAccentColorSet
-                ? (state.editedAccentColor ?? 0)
-                : (state.accentColor ?? 0),
-            onChanged: vm.updateAccentColor,
-            defaultValue: 0x4641D9,
-          ),
-          SizedBox(height: layout.s6),
-          FluxerInput.multiline(
-            controller: _bioController,
-            label: 'About Me',
-            maxLength: _kMaxBioLength,
-            maxLines: 6,
-            onChanged: vm.updateBio,
-            suffixIcon: PhosphorIcon(
-              PhosphorIconsFill.smiley,
-              size: 20,
-              color: colors.textTertiary,
+          onSuffixTap: () {},
+        ),
+        SizedBox(height: layout.s1),
+        Row(
+          children: [
+            Text(
+              '${_kMaxBioLength - _bioController.text.length}',
+              style: textStyles.smallText.copyWith(
+                color: _bioController.text.length > _kMaxBioLength
+                    ? colors.statusDanger
+                    : colors.textSecondary,
+              ),
             ),
-            onSuffixTap: () {},
-          ),
-          SizedBox(height: layout.s1),
-          Row(
-            children: [
-              Text(
-                '${_kMaxBioLength - _bioController.text.length}',
-                style: textStyles.smallText.copyWith(
-                  color: _bioController.text.length > _kMaxBioLength
-                      ? colors.statusDanger
-                      : colors.textSecondary,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                'You can use links, emoji, and Markdown.',
-                style: textStyles.bodySmall.copyWith(
-                  color: colors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: layout.s8),
-        ],
-      ),
+            const Spacer(),
+            Text(
+              'You can use links, emoji, and Markdown.',
+              style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
+            ),
+          ],
+        ),
+        SizedBox(height: layout.s8),
+      ],
     );
   }
 
