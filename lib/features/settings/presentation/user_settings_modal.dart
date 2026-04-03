@@ -21,6 +21,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_appearanc
 import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class UserSettingsModal extends ConsumerStatefulWidget {
@@ -32,6 +33,13 @@ class UserSettingsModal extends ConsumerStatefulWidget {
     BuildContext context, {
     bool openProfileSection = false,
   }) {
+    if (isMobileLayout(context)) {
+      return _showMobileSettings(
+        context,
+        openProfileSection: openProfileSection,
+      );
+    }
+
     return showModalBottomSheet<void>(
       elevation: 7,
       context: context,
@@ -47,12 +55,26 @@ class UserSettingsModal extends ConsumerStatefulWidget {
     );
   }
 
+  static Future<void> _showMobileSettings(
+    BuildContext context, {
+    bool openProfileSection = false,
+  }) async {
+    await FluxerBottomSheet.show<void>(
+      context,
+      title: 'Settings',
+      useRootNavigator: true,
+      builder: (sheetContext, close) => _MobileSettingsNavBody(
+        onClose: close,
+        openProfileSection: openProfileSection,
+      ),
+    );
+  }
+
   @override
   ConsumerState<UserSettingsModal> createState() => _UserSettingsModalState();
 }
 
-class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
-    with SingleTickerProviderStateMixin {
+class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
   static const _items = [
     SettingsSidebarItem.separator('YOUR ACCOUNT'),
     SettingsSidebarItem('Profile', icon: PhosphorIconsFill.user),
@@ -88,78 +110,10 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
   ];
 
   var _selectedIndex = 1;
-  var _showingContent = false;
-
-  late final AnimationController _animController;
-  late final Animation<Offset> _menuSlide;
-  late final Animation<Offset> _contentSlide;
-
-  @override
-  void initState() {
-    super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 250),
-    );
-    _menuSlide = Tween<Offset>(begin: Offset.zero, end: const Offset(-0.3, 0))
-        .animate(
-          CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
-        );
-    _contentSlide = Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
-        .animate(
-          CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
-        );
-    if (widget.openProfileSection) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !isMobileLayout(context)) {
-          return;
-        }
-        final int profileIndex = _indexOfProfileSidebarItem();
-        if (profileIndex >= 0) {
-          _openMobileContent(profileIndex);
-        }
-      });
-    }
-  }
-
-  int _indexOfProfileSidebarItem() {
-    for (var i = 0; i < _items.length; i++) {
-      final SettingsSidebarItem item = _items[i];
-      if (!item.isSeparator && item.label == 'Profile') {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  @override
-  void dispose() {
-    _animController.dispose();
-    super.dispose();
-  }
-
-  void _openMobileContent(int index) {
-    setState(() {
-      _selectedIndex = index;
-      _showingContent = true;
-    });
-    unawaited(_animController.forward());
-  }
-
-  void _closeMobileContent() {
-    unawaited(
-      _animController.reverse().then((_) {
-        if (mounted) {
-          setState(() => _showingContent = false);
-        }
-      }),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height * 0.92;
-
     final state = ref.watch(userSettingsViewModelProvider);
 
     return ClipRRect(
@@ -172,9 +126,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
         position: DecorationPosition.foreground,
         child: SizedBox(
           height: height,
-          child: isMobileLayout(context)
-              ? _buildMobileLayout(state)
-              : _buildDesktopLayout(state),
+          child: _buildDesktopLayout(state),
         ),
       ),
     );
@@ -234,171 +186,12 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
     );
   }
 
-  Widget _buildMobileLayout(UserSettingsViewState state) {
-    final groups = _buildMobileGroups();
-
-    return ClipRect(
-      child: Stack(
-        children: [
-          SlideTransition(
-            position: _menuSlide,
-            child: IgnorePointer(
-              ignoring: _showingContent,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildDragHandle(),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text('Settings', style: context.textStyles.heading),
-                  ),
-                  Flexible(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
-                      itemCount: groups.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == groups.length) {
-                          return _buildBuildInfoFooter();
-                        }
-                        final group = groups[index];
-                        return _buildMobileGroup(group);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_showingContent)
-            SlideTransition(
-              position: _contentSlide,
-              child: _MobileContentView(
-                title: _items[_selectedIndex].label,
-                onBack: _closeMobileContent,
-                child: _buildContent(state),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  List<_MobileSettingsGroup> _buildMobileGroups() {
-    final groups = <_MobileSettingsGroup>[];
-    String? currentLabel;
-    var currentItems = <(SettingsSidebarItem, int)>[];
-
-    for (var i = 0; i < _items.length; i++) {
-      final item = _items[i];
-      if (item.isSeparator) {
-        if (currentItems.isNotEmpty) {
-          groups.add(
-            _MobileSettingsGroup(label: currentLabel, items: currentItems),
-          );
-        }
-        currentLabel = item.label.isNotEmpty ? item.label : null;
-        currentItems = [];
-      } else {
-        currentItems.add((item, i));
-      }
-    }
-
-    if (currentItems.isNotEmpty) {
-      groups.add(
-        _MobileSettingsGroup(label: currentLabel, items: currentItems),
-      );
-    }
-
-    return groups;
-  }
-
-  Widget _buildMobileGroup(_MobileSettingsGroup group) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (group.label != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8, bottom: 8, left: 4),
-              child: Text(group.label!, style: context.textStyles.categoryName),
-            ),
-          Material(
-            color: context.colors.backgroundSecondaryAlt,
-            borderRadius: BorderRadius.circular(12),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                for (var i = 0; i < group.items.length; i++) ...[
-                  if (i > 0)
-                    Divider(
-                      color: context.colors.borderColor,
-                      height: 1,
-                      endIndent: 15,
-                      indent: 15,
-                    ),
-                  _buildMobileItem(
-                    group.items[i].$1,
-                    () => _onItemSelected(group.items[i].$2, pushMobile: true),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileItem(SettingsSidebarItem item, VoidCallback onTap) =>
-      InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              if (item.icon != null) ...[
-                PhosphorIcon(
-                  item.icon!,
-                  size: 22,
-                  color: item.isDestructive
-                      ? context.colors.textDanger
-                      : context.colors.interactiveNormal,
-                ),
-                const SizedBox(width: 16),
-              ],
-              Expanded(
-                child: Text(
-                  item.label,
-                  style: TextStyle(
-                    color: item.isDestructive
-                        ? context.colors.textDanger
-                        : context.colors.textChat,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              if (!item.isDestructive)
-                PhosphorIcon(
-                  PhosphorIconsRegular.caretRight,
-                  size: 18,
-                  color: context.colors.textPrimaryMuted,
-                ),
-            ],
-          ),
-        ),
-      );
-
-  void _onItemSelected(int index, {bool pushMobile = false}) {
+  void _onItemSelected(int index) {
     if (_items[index].isDestructive) {
       unawaited(_logout());
       return;
     }
-    if (pushMobile) {
-      _openMobileContent(index);
-    } else {
-      setState(() => _selectedIndex = index);
-    }
+    setState(() => _selectedIndex = index);
   }
 
   Future<void> _logout() async {
@@ -462,18 +255,6 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
     }
   }
 
-  Widget _buildDragHandle() => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    child: Container(
-      width: 36,
-      height: 4,
-      decoration: BoxDecoration(
-        color: context.colors.interactiveMuted,
-        borderRadius: BorderRadius.circular(2),
-      ),
-    ),
-  );
-
   Widget _buildCloseButton() => InkWell(
     onTap: () => Navigator.of(context).pop(),
     borderRadius: BorderRadius.circular(20),
@@ -527,56 +308,307 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
   }
 }
 
-class _MobileSettingsGroup {
-  const _MobileSettingsGroup({required this.items, this.label});
+// ---------------------------------------------------------------------------
+// Mobile settings — stacked bottom sheets
+// ---------------------------------------------------------------------------
 
-  final String? label;
-  final List<(SettingsSidebarItem, int)> items;
-}
-
-class _MobileContentView extends StatelessWidget {
-  const _MobileContentView({
-    required this.title,
-    required this.onBack,
-    required this.child,
+class _MobileSettingsNavBody extends ConsumerStatefulWidget {
+  const _MobileSettingsNavBody({
+    required this.onClose,
+    this.openProfileSection = false,
   });
 
-  final String title;
-  final VoidCallback onBack;
-  final Widget child;
+  final VoidCallback onClose;
+  final bool openProfileSection;
+
+  @override
+  ConsumerState<_MobileSettingsNavBody> createState() =>
+      _MobileSettingsNavBodyState();
+}
+
+class _MobileSettingsNavBodyState
+    extends ConsumerState<_MobileSettingsNavBody> {
+  final _scrollController = ScrollController();
+  var _didOpenProfile = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.openProfileSection) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_didOpenProfile) {
+          _didOpenProfile = true;
+          _openSettingsPage('Profile');
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity != null && details.primaryVelocity! > 300) {
-          onBack();
-        }
-      },
-      child: ColoredBox(
-        color: context.colors.backgroundSecondary,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: onBack,
-                    icon: PhosphorIcon(
-                      PhosphorIconsRegular.arrowLeft,
-                      color: context.colors.interactiveNormal,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(title, style: context.textStyles.heading),
-                ],
-              ),
+    return FluxerSettingsNavList(
+      controller: _scrollController,
+      groups: [
+        FluxerSettingsNavGroup(
+          label: 'YOUR ACCOUNT',
+          items: [
+            FluxerSettingsNavItem(
+              label: 'Profile',
+              icon: PhosphorIconsFill.user,
+              onTap: () => _openSettingsPage('Profile'),
             ),
-            Expanded(child: child),
+            FluxerSettingsNavItem(
+              label: 'Security & Login',
+              icon: PhosphorIconsFill.shieldCheck,
+              onTap: () => _openSettingsPage('Security & Login'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Fluxer Plutonium',
+              icon: PhosphorIconsFill.crown,
+              onTap: () => _openSettingsPage('Fluxer Plutonium'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Gifts & Codes',
+              icon: PhosphorIconsFill.gift,
+              onTap: () => _openSettingsPage('Gifts & Codes'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Privacy Dashboard',
+              icon: PhosphorIconsFill.detective,
+              onTap: () => _openSettingsPage('Privacy Dashboard'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Authorized Apps',
+              icon: PhosphorIconsFill.gridFour,
+              onTap: () => _openSettingsPage('Authorized Apps'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Blocked Users',
+              icon: PhosphorIconsFill.prohibit,
+              onTap: () => _openSettingsPage('Blocked Users'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Linked Devices',
+              icon: PhosphorIconsFill.devices,
+              onTap: () => _openSettingsPage('Linked Devices'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Connections',
+              icon: PhosphorIconsFill.usersThree,
+              onTap: () => _openSettingsPage('Connections'),
+            ),
           ],
+        ),
+        FluxerSettingsNavGroup(
+          label: 'APPLICATION',
+          items: [
+            FluxerSettingsNavItem(
+              label: 'Look & Feel',
+              icon: PhosphorIconsFill.paintBrush,
+              onTap: () => _openSettingsPage('Look & Feel'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Accessibility',
+              icon: PhosphorIconsFill.wheelchair,
+              onTap: () => _openSettingsPage('Accessibility'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Messages & Media',
+              icon: PhosphorIconsFill.chatCircle,
+              onTap: () => _openSettingsPage('Messages & Media'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Audio & Video',
+              icon: PhosphorIconsFill.microphone,
+              onTap: () => _openSettingsPage('Audio & Video'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Keybinds',
+              icon: PhosphorIconsFill.keyboard,
+              onTap: () => _openSettingsPage('Keybinds'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Sounds & Alerts',
+              icon: PhosphorIconsFill.bell,
+              onTap: () => _openSettingsPage('Sounds & Alerts'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Language & Time',
+              icon: PhosphorIconsFill.translate,
+              onTap: () => _openSettingsPage('Language & Time'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Advanced',
+              icon: PhosphorIconsFill.faders,
+              onTap: () => _openSettingsPage('Advanced'),
+            ),
+          ],
+        ),
+        FluxerSettingsNavGroup(
+          label: 'DEVELOPER',
+          items: [
+            FluxerSettingsNavItem(
+              label: 'Applications',
+              icon: PhosphorIconsFill.code,
+              onTap: () => _openSettingsPage('Applications'),
+            ),
+          ],
+        ),
+        FluxerSettingsNavGroup(
+          items: [
+            FluxerSettingsNavItem(
+              label: "What's New",
+              icon: PhosphorIconsFill.megaphone,
+              onTap: () => _openSettingsPage("What's New"),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Log Out',
+              icon: PhosphorIconsFill.signOut,
+              isDanger: true,
+              onTap: _logout,
+            ),
+          ],
+        ),
+      ],
+      footer: _MobileBuildInfoFooter(),
+    );
+  }
+
+  void _openSettingsPage(String label) {
+    final canDismiss = ValueNotifier<bool>(true);
+    unawaited(
+      FluxerBottomSheet.show<void>(
+        context,
+        title: label,
+        useRootNavigator: true,
+        canDismissNotifier: canDismiss,
+        builder: (sheetContext, close) => _MobileSettingsContentBody(
+          label: label,
+          onClose: close,
+          canDismissNotifier: canDismiss,
         ),
       ),
     );
+  }
+
+  Future<void> _logout() async {
+    final userId = ref.read(currentUserIdProvider) ?? '';
+
+    await ref.read(gatewayConnectionProvider).disconnect();
+    ref.read(gatewayReadyProvider.notifier).reset();
+
+    ref
+      // Gateway
+      ..invalidate(gatewayConnectionProvider)
+      ..invalidate(gatewayEventListenerProvider)
+      ..invalidate(gatewayStateListenerProvider)
+      ..invalidate(connectivityListenerProvider)
+      // Gateway event state
+      ..invalidate(typingIndicatorsProvider)
+      ..invalidate(voiceStatesMapProvider)
+      ..invalidate(activeCallsProvider)
+      ..invalidate(inviteCacheProvider)
+      // Session
+      ..invalidate(currentUserIdProvider)
+      // View models
+      ..invalidate(dmViewModelProvider)
+      ..invalidate(guildListViewModelProvider)
+      ..invalidate(organizedGuildListProvider)
+      ..invalidate(folderExpandedStateProvider)
+      ..invalidate(channelListViewModelProvider)
+      ..invalidate(memberListViewModelProvider)
+      ..invalidate(chatViewModelProvider)
+      ..invalidate(userSettingsViewModelProvider)
+      ..invalidate(loginViewModelProvider);
+
+    await ref.read(accountManagerProvider.notifier).signOut(userId);
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+}
+
+class _MobileSettingsContentBody extends ConsumerWidget {
+  const _MobileSettingsContentBody({
+    required this.label,
+    required this.onClose,
+    this.canDismissNotifier,
+  });
+
+  final String label;
+  final VoidCallback onClose;
+  final ValueNotifier<bool>? canDismissNotifier;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(userSettingsViewModelProvider);
+
+    switch (label) {
+      case 'Profile':
+        return UserProfile(userState: state);
+      case 'Look & Feel':
+        return UserAppearance(
+          isCompact: state.messageDisplayCompact,
+          onToggleCompact: () =>
+              ref.read(userSettingsViewModelProvider.notifier).toggleCompact(),
+        );
+      default:
+        return Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: context.colors.textPrimaryMuted,
+              fontSize: 24,
+            ),
+          ),
+        );
+    }
+  }
+}
+
+class _MobileBuildInfoFooter extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final runtimeInfoAsync = ref.watch(appRuntimeInfoProvider);
+    final text = runtimeInfoAsync.when(
+      data: (runtimeInfo) =>
+          'v${runtimeInfo.version} (${runtimeInfo.buildNumber})'
+          ' • ${runtimeInfo.environment.name}'
+          ' • ${_formatProviderLabel(runtimeInfo.pushProvider.name)}',
+      loading: () => '',
+      error: (_, _) => '',
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      child: Align(
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 11,
+            color: context.colors.textPrimaryMuted,
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _formatProviderLabel(String providerName) {
+    switch (providerName) {
+      case 'firebaseMessaging':
+        return 'fcm';
+      case 'unifiedPush':
+        return 'unifiedpush';
+      case 'apple':
+        return 'apns';
+      default:
+        return providerName;
+    }
   }
 }

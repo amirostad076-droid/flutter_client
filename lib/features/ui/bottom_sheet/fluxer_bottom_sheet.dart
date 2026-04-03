@@ -32,6 +32,7 @@ class FluxerBottomSheet {
     bool showDragHandle = true,
     bool useRootNavigator = false,
     FluxerBottomSheetVariant variant = FluxerBottomSheetVariant.content,
+    ValueNotifier<bool>? canDismissNotifier,
   }) {
     final colors = context.colors;
     final layout = context.layout;
@@ -60,7 +61,7 @@ class FluxerBottomSheet {
             trailing != null ||
             onBack != null;
 
-        return AnimatedPadding(
+        final content = AnimatedPadding(
           duration: sheetContext.motion.normal,
           curve: sheetContext.motion.curve,
           padding: EdgeInsets.only(bottom: bottomInset),
@@ -95,6 +96,19 @@ class FluxerBottomSheet {
               ],
             ),
           ),
+        );
+
+        if (canDismissNotifier == null) {
+          return content;
+        }
+
+        return ValueListenableBuilder<bool>(
+          valueListenable: canDismissNotifier,
+          builder: (context, canDismiss, child) => PopScope(
+            canPop: canDismiss,
+            child: child!,
+          ),
+          child: content,
         );
       },
     );
@@ -489,12 +503,14 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
 class FluxerBottomSheetSubmenuItem extends StatelessWidget {
   final String label;
   final String? hint;
+  final IconData? icon;
   final VoidCallback onTap;
 
   const FluxerBottomSheetSubmenuItem({
     required this.label,
     required this.onTap,
     this.hint,
+    this.icon,
     super.key,
   });
 
@@ -503,6 +519,7 @@ class FluxerBottomSheetSubmenuItem extends StatelessWidget {
     return FluxerBottomSheetMenuItem(
       label: label,
       hint: hint,
+      icon: icon,
       onTap: onTap,
       trailing: PhosphorIcon(
         PhosphorIconsBold.caretRight,

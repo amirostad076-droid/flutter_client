@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -5,6 +7,11 @@ import 'package:fluxer_app/features/settings/presentation/widgets/guild_overview
 import 'package:fluxer_app/features/settings/presentation/widgets/guild_roles.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
 import 'package:fluxer_app/features/settings/providers/guild_settings_view_model.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart'
+    show isMobileLayout;
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
+import 'package:fluxer_app/features/ui/settings/fluxer_settings_nav_list.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -17,6 +24,36 @@ class GuildSettingsModal extends ConsumerStatefulWidget {
     this.initialTab = 0,
     super.key,
   });
+
+  static Future<void> show(
+    BuildContext context, {
+    required String guildId,
+  }) {
+    if (isMobileLayout(context)) {
+      return _showMobileSettings(context, guildId: guildId);
+    }
+
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => GuildSettingsModal(guildId: guildId),
+      ),
+    );
+  }
+
+  static Future<void> _showMobileSettings(
+    BuildContext context, {
+    required String guildId,
+  }) async {
+    await FluxerBottomSheet.show<void>(
+      context,
+      title: 'Server Settings',
+      useRootNavigator: true,
+      builder: (sheetContext, close) => _MobileGuildSettingsNavBody(
+        guildId: guildId,
+        onClose: close,
+      ),
+    );
+  }
 
   @override
   ConsumerState<GuildSettingsModal> createState() => _GuildSettingsModalState();
@@ -89,7 +126,7 @@ class _GuildSettingsModalState extends ConsumerState<GuildSettingsModal> {
   Widget _buildContent(BuildContext context, GuildSettingsViewState state) {
     final guild = state.guild;
     if (guild == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: FluxerLoadingSpinner());
     }
 
     switch (_selectedIndex) {
@@ -127,4 +164,144 @@ class _GuildSettingsModalState extends ConsumerState<GuildSettingsModal> {
       ),
     ),
   );
+}
+
+// ---------------------------------------------------------------------------
+// Mobile settings — stacked bottom sheets
+// ---------------------------------------------------------------------------
+
+class _MobileGuildSettingsNavBody extends ConsumerStatefulWidget {
+  const _MobileGuildSettingsNavBody({
+    required this.guildId,
+    required this.onClose,
+  });
+
+  final String guildId;
+  final VoidCallback onClose;
+
+  @override
+  ConsumerState<_MobileGuildSettingsNavBody> createState() =>
+      _MobileGuildSettingsNavBodyState();
+}
+
+class _MobileGuildSettingsNavBodyState
+    extends ConsumerState<_MobileGuildSettingsNavBody> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(guildSettingsViewModelProvider.notifier)
+          .loadServer(widget.guildId)
+          .ignore();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(guildSettingsViewModelProvider);
+
+    if (state.isLoading || state.guild == null) {
+      return const Center(child: FluxerLoadingSpinner());
+    }
+
+    return FluxerSettingsNavList(
+      groups: [
+        FluxerSettingsNavGroup(
+          items: [
+            FluxerSettingsNavItem(
+              label: 'Overview',
+              icon: PhosphorIconsFill.gear,
+              onTap: () => _openSettingsPage('Overview'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Roles',
+              icon: PhosphorIconsFill.shieldStar,
+              onTap: () => _openSettingsPage('Roles'),
+            ),
+          ],
+        ),
+        FluxerSettingsNavGroup(
+          items: [
+            FluxerSettingsNavItem(
+              label: 'Emoji',
+              icon: PhosphorIconsFill.smiley,
+              onTap: () => _openSettingsPage('Emoji'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Stickers',
+              icon: PhosphorIconsFill.sticker,
+              onTap: () => _openSettingsPage('Stickers'),
+            ),
+          ],
+        ),
+        FluxerSettingsNavGroup(
+          label: 'MODERATION',
+          items: [
+            FluxerSettingsNavItem(
+              label: 'Members',
+              icon: PhosphorIconsFill.users,
+              onTap: () => _openSettingsPage('Members'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Channels',
+              icon: PhosphorIconsFill.hash,
+              onTap: () => _openSettingsPage('Channels'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Bans',
+              icon: PhosphorIconsFill.hammer,
+              onTap: () => _openSettingsPage('Bans'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _openSettingsPage(String label) {
+    unawaited(
+      FluxerBottomSheet.show<void>(
+        context,
+        title: label,
+        useRootNavigator: true,
+        builder: (sheetContext, close) => _MobileGuildSettingsContentBody(
+          label: label,
+        ),
+      ),
+    );
+  }
+}
+
+class _MobileGuildSettingsContentBody extends ConsumerWidget {
+  const _MobileGuildSettingsContentBody({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(guildSettingsViewModelProvider);
+    final guild = state.guild;
+
+    if (guild == null) {
+      return const Center(child: FluxerLoadingSpinner());
+    }
+
+    switch (label) {
+      case 'Overview':
+        return GuildOverview(guild: guild);
+      case 'Roles':
+        return GuildRoles(roles: state.roles);
+      default:
+        return Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: context.colors.textPrimaryMuted,
+              fontSize: 24,
+            ),
+          ),
+        );
+    }
+  }
 }
