@@ -13,6 +13,7 @@ export 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 export 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 export 'package:fluxer_app/features/ui/button/fluxer_button_variant.dart';
 // Inputs
+export 'package:fluxer_app/features/ui/character_counter/fluxer_character_counter.dart';
 export 'package:fluxer_app/features/ui/checkbox/fluxer_checkbox.dart';
 export 'package:fluxer_app/features/ui/color_picker/fluxer_color_picker_field.dart';
 export 'package:fluxer_app/features/ui/focus_ring/fluxer_focus_ring.dart';
@@ -34,6 +35,10 @@ export 'package:fluxer_app/features/ui/tabs/fluxer_segmented_tabs.dart';
 // Navigation
 export 'package:fluxer_app/features/ui/tabs/fluxer_tabs.dart';
 export 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
+// Text
+export 'package:fluxer_app/features/ui/text/fluxer_field_label.dart';
+export 'package:fluxer_app/features/ui/text/fluxer_hint_text.dart';
+export 'package:fluxer_app/features/ui/text/fluxer_section_heading.dart';
 export 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
 // Feedback
 export 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
