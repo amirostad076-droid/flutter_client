@@ -5,11 +5,7 @@ class GroupMemberInfo {
   final String? avatar;
   final String name;
 
-  const GroupMemberInfo({
-    required this.id,
-    this.avatar,
-    required this.name,
-  });
+  const GroupMemberInfo({required this.id, required this.name, this.avatar});
 }
 
 class DmConversation {
@@ -17,6 +13,7 @@ class DmConversation {
   final int type;
   final String recipientId;
   final String recipientName;
+  final String? recipientUsername;
   final String? recipientAvatar;
   final String recipientStatus;
   final String? name;
@@ -39,6 +36,7 @@ class DmConversation {
     required this.recipientName,
     required this.lastMessage,
     required this.lastMessageTime,
+    this.recipientUsername,
     this.lastMessageAuthorId,
     this.lastMessageAuthorName,
     this.name,
@@ -72,6 +70,7 @@ class DmConversation {
       type: row.type,
       recipientId: row.recipientId,
       recipientName: recipient?.globalName ?? recipient?.username ?? 'Unknown',
+      recipientUsername: recipient?.username,
       recipientAvatar: recipient?.avatar,
       recipientStatus: recipient?.status ?? 'offline',
       name: row.name,

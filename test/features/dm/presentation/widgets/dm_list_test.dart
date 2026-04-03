@@ -1,0 +1,264 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme.dart';
+import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/dm/presentation/widgets/dm_list.dart';
+import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
+import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
+import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/friends/domain/friend.dart';
+import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
+import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:riverpod/src/framework.dart' show Override;
+
+void main() {
+  group('DMList mobile', () {
+    testWidgets('shows a header divider above the mobile list', (tester) async {
+      _setMobileSurface(tester);
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            conversations: [
+              DmConversation(
+                id: '100',
+                type: 1,
+                recipientId: '200',
+                recipientName: 'Monty',
+                lastMessage: 'Hi there',
+                lastMessageTime: _recentTime(),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Messages'), findsOneWidget);
+      expect(find.byType(Divider), findsOneWidget);
+    });
+
+    testWidgets('places the pin icon before the DM title on mobile rows', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            conversations: [
+              DmConversation(
+                id: '100',
+                type: 1,
+                recipientId: '200',
+                recipientName: 'Pinned Chat',
+                lastMessage: 'Latest message',
+                lastMessageTime: _recentTime(),
+              ),
+            ],
+            pinnedIds: {'100'},
+            pinnedOrder: ['100'],
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final titleRow = tester.widget<Row>(
+        find.byWidgetPredicate((widget) {
+          if (widget is! Row) {
+            return false;
+          }
+
+          final hasTitle = widget.children.any(
+            (child) => switch (child) {
+              Flexible(child: final Text text) => text.data == 'Pinned Chat',
+              _ => false,
+            },
+          );
+          final hasPin = widget.children.any(
+            (child) => switch (child) {
+              Padding(child: final PhosphorIcon icon) =>
+                icon.icon == PhosphorIconsFill.pushPin,
+              _ => false,
+            },
+          );
+
+          return hasTitle && hasPin;
+        }),
+      );
+
+      final firstChild = titleRow.children.first;
+      expect(firstChild, isA<Padding>());
+      final leadingPin = (firstChild as Padding).child;
+      expect(leadingPin, isA<PhosphorIcon>());
+      if (leadingPin case final PhosphorIcon icon) {
+        expect(icon.icon, PhosphorIconsFill.pushPin);
+      } else {
+        fail('Expected the leading child to be a PhosphorIcon.');
+      }
+    });
+
+    testWidgets('shows discoverable friend matches while searching on mobile', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            conversations: [
+              DmConversation(
+                id: '100',
+                type: 1,
+                recipientId: '200',
+                recipientName: 'Monty',
+                lastMessage: 'Hi there',
+                lastMessageTime: _recentTime(),
+              ),
+            ],
+            friendsList: const [
+              Friend(
+                id: '300',
+                username: 'bob',
+                globalName: 'Bob Builder',
+                friendStatus: FriendStatus.accepted,
+                status: 'online',
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(_mobileSearchButton());
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), 'bob');
+      await tester.pump();
+
+      expect(find.text('Friends'), findsOneWidget);
+      expect(find.text('Bob Builder'), findsOneWidget);
+    });
+
+    testWidgets('shows a no-results state for unmatched mobile searches', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            conversations: [
+              DmConversation(
+                id: '100',
+                type: 1,
+                recipientId: '200',
+                recipientName: 'Monty',
+                lastMessage: 'Hi there',
+                lastMessageTime: _recentTime(),
+              ),
+            ],
+            friendsList: const [
+              Friend(
+                id: '300',
+                username: 'bob',
+                globalName: 'Bob Builder',
+                friendStatus: FriendStatus.accepted,
+                status: 'online',
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(_mobileSearchButton());
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), 'zzz');
+      await tester.pump();
+
+      expect(find.text('No results found'), findsOneWidget);
+      expect(
+        find.text('Try another name or check your spelling.'),
+        findsOneWidget,
+      );
+    });
+  });
+}
+
+DateTime _recentTime() => DateTime(2026, 4, 2, 12);
+
+Finder _mobileSearchButton() => find.byWidgetPredicate(
+  (widget) =>
+      widget is PhosphorIcon &&
+      widget.icon == PhosphorIconsBold.magnifyingGlass,
+);
+
+void _setMobileSurface(WidgetTester tester) {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
+List<Override> _buildOverrides({
+  required List<DmConversation> conversations,
+  List<Friend> friendsList = const [],
+  Set<String> pinnedIds = const <String>{},
+  List<String> pinnedOrder = const <String>[],
+}) {
+  return [
+    currentUserIdProvider.overrideWithValue('1'),
+    dmViewModelProvider.overrideWithValue(
+      DmViewState(
+        conversations: conversations,
+        friendsList: friendsList,
+        activeTab: FriendsTab.online,
+        searchQuery: '',
+      ),
+    ),
+    pinnedDmChannelIdsProvider.overrideWith((ref) => Stream.value(pinnedIds)),
+    pinnedDmChannelOrderProvider.overrideWith(
+      (ref) => Stream.value(pinnedOrder),
+    ),
+    mutedDmChannelIdsProvider.overrideWith(
+      (ref) => Stream.value(const <String>{}),
+    ),
+    pendingFriendRequestCountProvider.overrideWith((ref) => Stream.value(0)),
+  ];
+}
+
+Widget _buildTestApp({required List<Override> overrides}) {
+  final colorTheme = buildDarkColorTheme();
+
+  return ProviderScope(
+    overrides: overrides,
+    child: MaterialApp.router(
+      theme: buildFluxerTheme(
+        colorTheme: colorTheme,
+        textTheme: FluxerTextTheme.fromColors(colorTheme),
+        layoutTheme: FluxerLayoutTheme.scaled(),
+      ),
+      routerConfig: GoRouter(
+        initialLocation: '/channels/@me',
+        routes: [
+          GoRoute(
+            path: '/channels/@me',
+            builder: (context, state) => const Scaffold(body: DMList()),
+          ),
+          GoRoute(
+            path: '/channels/@me/:channelId',
+            builder: (context, state) => const Scaffold(body: DMList()),
+          ),
+        ],
+      ),
+    ),
+  );
+}

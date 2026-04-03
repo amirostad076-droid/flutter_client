@@ -17,8 +17,9 @@ class DmRepository {
   Stream<List<DmConversation>> watchDmChannels() {
     return _db.dmChannelDao.watchDmChannels().asyncMap((rows) async {
       final channelIds = rows.map((r) => r.id).toList();
-      final lastMessages =
-          await _db.messageDao.getLastMessageForChannels(channelIds);
+      final lastMessages = await _db.messageDao.getLastMessageForChannels(
+        channelIds,
+      );
 
       final allRecipientIds = <String>{};
       for (final row in rows) {
@@ -26,36 +27,28 @@ class DmRepository {
         final ids = _parseRecipientIds(row.recipientIds);
         allRecipientIds.addAll(ids);
       }
-      allRecipientIds.addAll(
-        lastMessages.values.map((m) => m.authorId),
-      );
+      allRecipientIds.addAll(lastMessages.values.map((m) => m.authorId));
 
-      final users =
-          await _db.userDao.getUsersByIds(allRecipientIds.toList());
+      final users = await _db.userDao.getUsersByIds(allRecipientIds.toList());
       final userMap = {for (final u in users) u.id: u};
 
-      return rows
-          .map(
-            (row) {
-              final lastMsg = lastMessages[row.id];
-              final recipientIds = _parseRecipientIds(row.recipientIds);
-              final isGroup = row.type == 3;
-              return DmConversation.fromRow(
-                row,
-                userMap[row.recipientId],
-                cachedLastMessage: lastMsg,
-                lastMessageAuthor:
-                    lastMsg != null ? userMap[lastMsg.authorId] : null,
-                groupStatus: isGroup
-                    ? _computeGroupStatus(recipientIds, userMap)
-                    : null,
-                groupMembers: isGroup
-                    ? _buildGroupMembers(recipientIds, userMap)
-                    : const [],
-              );
-            },
-          )
-          .toList();
+      return rows.map((row) {
+        final lastMsg = lastMessages[row.id];
+        final recipientIds = _parseRecipientIds(row.recipientIds);
+        final isGroup = row.type == 3;
+        return DmConversation.fromRow(
+          row,
+          userMap[row.recipientId],
+          cachedLastMessage: lastMsg,
+          lastMessageAuthor: lastMsg != null ? userMap[lastMsg.authorId] : null,
+          groupStatus: isGroup
+              ? _computeGroupStatus(recipientIds, userMap)
+              : null,
+          groupMembers: isGroup
+              ? _buildGroupMembers(recipientIds, userMap)
+              : const [],
+        );
+      }).toList();
     });
   }
 
@@ -93,50 +86,57 @@ class DmRepository {
     }).toList();
   }
 
+  Future<db.DmChannelsCompanion?> _buildDmChannelCompanion(
+    ChannelResponse channel,
+  ) async {
+    if (channel.type != 1 && channel.type != 3) {
+      return null;
+    }
+
+    final recipients = channel.recipients;
+    if (recipients == null || recipients.isEmpty) {
+      return null;
+    }
+
+    for (final recipient in recipients) {
+      await _db.userDao.upsertUser(userFromPartialSdk(recipient));
+    }
+
+    return db.DmChannelsCompanion.insert(
+      id: channel.id,
+      recipientId: recipients.first.id,
+      type: Value(channel.type),
+      name: Value(channel.name),
+      icon: Value(channel.icon),
+      recipientCount: Value(recipients.length + 1),
+      recipientIds: Value(jsonEncode(recipients.map((r) => r.id).toList())),
+      lastMessageTime: Value(
+        channel.lastMessageId != null
+            ? dateTimeFromSnowflakeAsLocalOrNow(channel.lastMessageId!)
+            : dateTimeFromSnowflakeAsLocalOrNow(channel.id),
+      ),
+    );
+  }
+
   Future<List<DmConversation>> getDmChannels() async {
     try {
       final channels = await _client.users.listPrivateChannels();
 
       final companions = <db.DmChannelsCompanion>[];
       for (final ch in channels) {
-        if (ch.type != 1 && ch.type != 3) {
-          continue;
+        final companion = await _buildDmChannelCompanion(ch);
+        if (companion != null) {
+          companions.add(companion);
         }
-        final recipients = ch.recipients;
-        if (recipients == null || recipients.isEmpty) {
-          continue;
-        }
-
-        for (final r in recipients) {
-          await _db.userDao.upsertUser(userFromPartialSdk(r));
-        }
-
-        companions.add(
-          db.DmChannelsCompanion.insert(
-            id: ch.id,
-            recipientId: recipients.first.id,
-            type: Value(ch.type),
-            name: Value(ch.name),
-            icon: Value(ch.icon),
-            recipientCount: Value(recipients.length + 1),
-            recipientIds: Value(
-              jsonEncode(recipients.map((r) => r.id).toList()),
-            ),
-            lastMessageTime: Value(
-              ch.lastMessageId != null
-                  ? dateTimeFromSnowflakeAsLocalOrNow(ch.lastMessageId!)
-                  : dateTimeFromSnowflakeAsLocalOrNow(ch.id),
-            ),
-          ),
-        );
       }
 
       await _db.dmChannelDao.upsertDmChannels(companions);
 
       final rows = await _db.dmChannelDao.getDmChannels();
       final channelIds = rows.map((r) => r.id).toList();
-      final lastMessages =
-          await _db.messageDao.getLastMessageForChannels(channelIds);
+      final lastMessages = await _db.messageDao.getLastMessageForChannels(
+        channelIds,
+      );
 
       final allRecipientIds = <String>{
         ...rows.map((r) => r.recipientId),
@@ -145,37 +145,52 @@ class DmRepository {
       for (final row in rows) {
         allRecipientIds.addAll(_parseRecipientIds(row.recipientIds));
       }
-      final users =
-          await _db.userDao.getUsersByIds(allRecipientIds.toList());
+      final users = await _db.userDao.getUsersByIds(allRecipientIds.toList());
       final userMap = {for (final u in users) u.id: u};
 
-      return rows
-          .map(
-            (row) {
-              final lastMsg = lastMessages[row.id];
-              final recipientIds = _parseRecipientIds(row.recipientIds);
-              final isGroup = row.type == 3;
-              return DmConversation.fromRow(
-                row,
-                userMap[row.recipientId],
-                cachedLastMessage: lastMsg,
-                lastMessageAuthor:
-                    lastMsg != null ? userMap[lastMsg.authorId] : null,
-                groupStatus: isGroup
-                    ? _computeGroupStatus(recipientIds, userMap)
-                    : null,
-                groupMembers: isGroup
-                    ? _buildGroupMembers(recipientIds, userMap)
-                    : const [],
-              );
-            },
-          )
-          .toList();
+      return rows.map((row) {
+        final lastMsg = lastMessages[row.id];
+        final recipientIds = _parseRecipientIds(row.recipientIds);
+        final isGroup = row.type == 3;
+        return DmConversation.fromRow(
+          row,
+          userMap[row.recipientId],
+          cachedLastMessage: lastMsg,
+          lastMessageAuthor: lastMsg != null ? userMap[lastMsg.authorId] : null,
+          groupStatus: isGroup
+              ? _computeGroupStatus(recipientIds, userMap)
+              : null,
+          groupMembers: isGroup
+              ? _buildGroupMembers(recipientIds, userMap)
+              : const [],
+        );
+      }).toList();
     } on DioException catch (e) {
       throw Exception(
         e.response?.statusMessage ?? 'Failed to fetch DM channels',
       );
     }
+  }
+
+  Future<String> ensureDmChannel(String userId) async {
+    final rows = await _db.dmChannelDao.getDmChannels();
+    for (final row in rows) {
+      if (row.type == 1 &&
+          (row.recipientId == userId ||
+              _parseRecipientIds(row.recipientIds).contains(userId))) {
+        return row.id;
+      }
+    }
+
+    final channel = await _client.users.createPrivateChannel(
+      body: CreatePrivateChannelRequest(recipientId: userId),
+    );
+    final companion = await _buildDmChannelCompanion(channel);
+    if (companion != null) {
+      await _db.dmChannelDao.upsertDmChannels([companion]);
+    }
+
+    return channel.id;
   }
 
   Future<void> markAsRead(String channelId) async {
