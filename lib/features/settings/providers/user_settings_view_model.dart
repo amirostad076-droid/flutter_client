@@ -47,6 +47,9 @@ class UserSettingsViewState {
   final bool premiumBadgeMasked;
   final bool premiumBadgeTimestampHidden;
   final bool premiumBadgeSequenceHidden;
+  final bool premiumDiscriminator;
+  final DateTime? premiumOutOfBandTrialEndsAt;
+  final String? premiumBillingCycle;
 
   final Object? _editedPremiumBadgeHidden;
   final Object? _editedPremiumBadgeMasked;
@@ -90,6 +93,9 @@ class UserSettingsViewState {
     this.premiumBadgeMasked = false,
     this.premiumBadgeTimestampHidden = false,
     this.premiumBadgeSequenceHidden = false,
+    this.premiumDiscriminator = false,
+    this.premiumOutOfBandTrialEndsAt,
+    this.premiumBillingCycle,
     Object? editedPremiumBadgeHidden = _unset,
     Object? editedPremiumBadgeMasked = _unset,
     Object? editedPremiumBadgeTimestampHidden = _unset,
@@ -160,6 +166,12 @@ class UserSettingsViewState {
 
   bool get hasLifetimePremium =>
       premiumType == UserPremiumTypes.lifetime.json;
+
+  bool get hasVerifiedEmail => email != null;
+
+  bool get isOutOfBandTrialActive =>
+      premiumOutOfBandTrialEndsAt != null &&
+      premiumOutOfBandTrialEndsAt!.isAfter(DateTime.now());
 
   bool get effectivePremiumBadgeHidden =>
       editedPremiumBadgeHidden ?? premiumBadgeHidden;
@@ -261,6 +273,9 @@ class UserSettingsViewState {
     bool? premiumBadgeMasked,
     bool? premiumBadgeTimestampHidden,
     bool? premiumBadgeSequenceHidden,
+    bool? premiumDiscriminator,
+    Object? premiumOutOfBandTrialEndsAt = _unset,
+    Object? premiumBillingCycle = _unset,
     Object? editedPremiumBadgeHidden = _unset,
     Object? editedPremiumBadgeMasked = _unset,
     Object? editedPremiumBadgeTimestampHidden = _unset,
@@ -316,6 +331,14 @@ class UserSettingsViewState {
           premiumBadgeTimestampHidden ?? this.premiumBadgeTimestampHidden,
       premiumBadgeSequenceHidden:
           premiumBadgeSequenceHidden ?? this.premiumBadgeSequenceHidden,
+      premiumDiscriminator:
+          premiumDiscriminator ?? this.premiumDiscriminator,
+      premiumOutOfBandTrialEndsAt: premiumOutOfBandTrialEndsAt == _unset
+          ? this.premiumOutOfBandTrialEndsAt
+          : premiumOutOfBandTrialEndsAt as DateTime?,
+      premiumBillingCycle: premiumBillingCycle == _unset
+          ? this.premiumBillingCycle
+          : premiumBillingCycle as String?,
       editedPremiumBadgeHidden: editedPremiumBadgeHidden == _unset
           ? _editedPremiumBadgeHidden
           : editedPremiumBadgeHidden == _resetEdited
@@ -445,6 +468,9 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         premiumBadgeMasked: profile.premiumBadgeMasked,
         premiumBadgeTimestampHidden: profile.premiumBadgeTimestampHidden,
         premiumBadgeSequenceHidden: profile.premiumBadgeSequenceHidden,
+        premiumDiscriminator: profile.premiumDiscriminator ?? false,
+        premiumOutOfBandTrialEndsAt: profile.premiumOutOfBandTrialEndsAt,
+        premiumBillingCycle: profile.premiumBillingCycle,
         isProfileLoaded: true,
       );
     } on Exception catch (e) {

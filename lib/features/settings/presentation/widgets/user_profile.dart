@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -76,8 +77,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             title: 'Profile Customization',
             description: 'Edit your profile appearance and see a live preview',
           ),
+          if (state.isOutOfBandTrialActive) ...[
+            SizedBox(height: layout.s6),
+            _buildPremiumTrialBanner(state, layout),
+          ],
           SizedBox(height: layout.s6),
-          _buildUsernameSection(layout),
+          _buildUsernameSection(state, layout),
           SizedBox(height: layout.s6),
           FluxerInput(
             controller: _displayNameController,
@@ -135,20 +140,152 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     );
   }
 
-  Widget _buildUsernameSection(FluxerLayoutTheme layout) {
+  Widget _buildUsernameSection(
+    UserSettingsViewState state,
+    FluxerLayoutTheme layout,
+  ) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+
+    final isMobile = isMobileLayout(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const FluxerFieldLabel('Username'),
         SizedBox(height: layout.s2),
-        const FluxerButton.primary(
-          onPressed: null,
-          label: 'Change FluxerTag',
-          size: FluxerButtonSize.small,
+        Wrap(
+          spacing: layout.s2,
+          runSpacing: layout.s2,
+          children: [
+            if (!state.hasVerifiedEmail)
+              const FluxerTooltip(
+                message: 'Claim your account to change your FluxerTag',
+                child: FluxerButton.primary(
+                  onPressed: null,
+                  label: 'Change FluxerTag',
+                  size: FluxerButtonSize.small,
+                ),
+              )
+            else
+              const FluxerButton.primary(
+                onPressed: null,
+                label: 'Change FluxerTag',
+                size: FluxerButtonSize.small,
+              ),
+            if (!isMobile && !state.isPremium)
+              FluxerTooltip(
+                message: 'Customize your 4-digit tag '
+                    '(#${state.discriminator}) with Plutonium',
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colors.brandPrimary,
+                    borderRadius: layout.radiusSm,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: layout.s2,
+                      vertical: layout.s1_5,
+                    ),
+                    child: const PhosphorIcon(
+                      PhosphorIconsFill.crown,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         SizedBox(height: layout.s3),
         const FluxerHintText('Change your username and 4-digit tag'),
+        if (state.premiumDiscriminator && !state.hasLifetimePremium) ...[
+          SizedBox(height: layout.s2),
+          Text(
+            'Your custom tag (#${state.discriminator}) is tied to your '
+            'Plutonium subscription and will revert to a random '
+            'tag if it expires.',
+            style: textStyles.bodySmall.copyWith(
+              color: colors.accentWarning,
+            ),
+          ),
+        ],
       ],
+    );
+  }
+
+  Widget _buildPremiumTrialBanner(
+    UserSettingsViewState state,
+    FluxerLayoutTheme layout,
+  ) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+
+    final expiryDate = state.premiumOutOfBandTrialEndsAt;
+    final expiryLabel = expiryDate != null
+        ? DateFormat.yMMMd().format(expiryDate)
+        : null;
+    final hasActiveSubscription = state.premiumBillingCycle != null;
+
+    final String title;
+    final String? description;
+
+    if (hasActiveSubscription && expiryLabel != null) {
+      title = "You're on a Plutonium trial — your subscription "
+          'starts on $expiryLabel';
+      description = 'Your subscription will automatically begin when '
+          'your trial ends. No action needed.';
+    } else {
+      title = expiryLabel != null
+          ? "You're on a Plutonium trial that expires on "
+              '$expiryLabel'
+          : "You're on a Plutonium trial";
+      description = null;
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.brandPrimary,
+        borderRadius: layout.radiusMd,
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(layout.s3),
+        child: Row(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(right: layout.s3),
+              child: const PhosphorIcon(
+                PhosphorIconsFill.crown,
+                size: 32,
+                color: Colors.white,
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: textStyles.bodySmall.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (description != null) ...[
+                    SizedBox(height: layout.s1),
+                    Text(
+                      description,
+                      style: textStyles.bodySmall.copyWith(
+                        color: const Color.fromRGBO(255, 255, 255, 0.9),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
