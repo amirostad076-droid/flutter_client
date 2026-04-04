@@ -38,6 +38,89 @@ class EmojiTextEditingController extends TextEditingController {
 
   int get actualTextLength => actualText.length;
 
+  void insertEmoji(String name, String surrogates) {
+    final String token;
+    if (surrogates.startsWith('<')) {
+      token = surrogates;
+    } else {
+      token = _buildUnicodeShortcode(name, surrogates);
+    }
+
+    final displayName = name;
+    final sentinel = _allocateSentinel(
+      EmojiSegment(displayName: displayName, token: token),
+    );
+
+    final sel = selection;
+    final pos = sel.isValid ? sel.baseOffset : text.length;
+    final newText = text.substring(0, pos) + sentinel + text.substring(pos);
+    value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: pos + sentinel.length),
+    );
+  }
+
+  String _buildUnicodeShortcode(String name, String surrogates) {
+    for (final tone in kSkinToneSurrogates) {
+      if (surrogates.contains(tone)) {
+        final toneName = skinToneToName(tone);
+        if (toneName != null) {
+          return ':$name::$toneName:';
+        }
+        break;
+      }
+    }
+    return ':$name:';
+  }
+
+  void loadWithTokens(String rawText) {
+    _segments.clear();
+    _nextSentinelIndex = 0;
+
+    // Custom emoji: <a:name:id> or <:name:id>
+    final customPattern = RegExp(r'<(a?):([a-zA-Z0-9_]+):(\d+)>');
+    // Unicode with skin tone: :name::skin-tone-N:
+    final skinTonePattern = RegExp(
+      r':([a-zA-Z0-9_+\-]+)::skin-tone-([1-5]):',
+    );
+    // Plain unicode: :name:
+    final plainPattern = RegExp(r':([a-zA-Z0-9_+\-]+):');
+
+    var result = rawText;
+
+    // Process custom first.
+    result = result.replaceAllMapped(customPattern, (match) {
+      final animated = match.group(1)!;
+      final name = match.group(2)!;
+      final id = match.group(3)!;
+      final token = '<$animated:$name:$id>';
+      return _allocateSentinel(
+        EmojiSegment(displayName: name, token: token),
+      );
+    });
+
+    // Then skin-tone unicode.
+    result = result.replaceAllMapped(skinTonePattern, (match) {
+      final name = match.group(1)!;
+      final tone = match.group(2)!;
+      final token = ':$name::skin-tone-$tone:';
+      return _allocateSentinel(
+        EmojiSegment(displayName: name, token: token),
+      );
+    });
+
+    // Then plain unicode.
+    result = result.replaceAllMapped(plainPattern, (match) {
+      final name = match.group(1)!;
+      final token = ':$name:';
+      return _allocateSentinel(
+        EmojiSegment(displayName: name, token: token),
+      );
+    });
+
+    text = result;
+  }
+
   @override
   TextSpan buildTextSpan({
     required BuildContext context,
