@@ -8,6 +8,7 @@ import 'package:fluxer_app/features/settings/presentation/user_settings_modal.da
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/shared/providers/user_profile.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -86,9 +87,9 @@ class ProfileContent extends ConsumerWidget {
                         ),
                       ),
                       const Spacer(),
-                      FluxerButton.secondary(
+                      FluxerButton.circle(
                         icon: PhosphorIconsFill.gear,
-                        isSquare: true,
+                        variant: FluxerButtonVariant.secondary,
                         size: FluxerButtonSize.compact,
                         onPressed: () => _launchSettings(context),
                       ),
