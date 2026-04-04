@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker_popout.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/input/emoji_text_editing_controller.dart';
@@ -27,6 +31,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   late final TextEditingController _displayNameController;
   late final TextEditingController _pronounsController;
   late final EmojiTextEditingController _bioController;
+  final _expressionPickerKey = GlobalKey<ExpressionPickerPopoutState>();
 
   bool _controllersInitialized = false;
 
@@ -52,6 +57,27 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       _pronounsController.text = state.pronouns ?? '';
       _bioController.loadWithTokens(state.bio ?? '');
       _controllersInitialized = true;
+    }
+  }
+
+  void _onSmileyTap() {
+    if (isMobileLayout(context)) {
+      unawaited(
+        FluxerBottomSheet.show<void>(
+          context,
+          title: 'Emoji',
+          builder: (context, close) => ExpressionPicker(
+            visibleTabs: const [ExpressionPickerTab.emojis],
+            onEmojiSelect: (name, surrogates) {
+              _bioController.insertEmoji(name, surrogates);
+              close();
+            },
+            onClose: close,
+          ),
+        ),
+      );
+    } else {
+      _expressionPickerKey.currentState?.toggle();
     }
   }
 
@@ -124,12 +150,18 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             showCounter: true,
             helperText: 'You can use links, emoji, and Markdown.',
             onChanged: (_) => vm.updateBio(_bioController.actualText),
-            suffixIcon: PhosphorIcon(
-              PhosphorIconsFill.smiley,
-              size: 20,
-              color: colors.textTertiary,
+            suffixIcon: ExpressionPickerPopout(
+              key: _expressionPickerKey,
+              visibleTabs: const [ExpressionPickerTab.emojis],
+              onEmojiSelect: (name, surrogates) =>
+                  _bioController.insertEmoji(name, surrogates),
+              child: PhosphorIcon(
+                PhosphorIconsFill.smiley,
+                size: 20,
+                color: colors.textTertiary,
+              ),
             ),
-            onSuffixTap: () {},
+            onSuffixTap: _onSmileyTap,
           ),
           if (state.isPremium) ...[
             SizedBox(height: layout.s8),
