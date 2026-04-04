@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/input/emoji_text_editing_controller.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -25,7 +26,7 @@ class UserProfile extends ConsumerStatefulWidget {
 class _UserProfileState extends ConsumerState<UserProfile> {
   late final TextEditingController _displayNameController;
   late final TextEditingController _pronounsController;
-  late final TextEditingController _bioController;
+  late final EmojiTextEditingController _bioController;
 
   bool _controllersInitialized = false;
 
@@ -34,7 +35,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     super.initState();
     _displayNameController = TextEditingController();
     _pronounsController = TextEditingController();
-    _bioController = TextEditingController();
+    _bioController = EmojiTextEditingController();
   }
 
   @override
@@ -49,7 +50,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     if (!_controllersInitialized && state.isProfileLoaded) {
       _displayNameController.text = state.displayName;
       _pronounsController.text = state.pronouns ?? '';
-      _bioController.text = state.bio ?? '';
+      _bioController.loadWithTokens(state.bio ?? '');
       _controllersInitialized = true;
     }
   }
@@ -122,7 +123,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             maxLines: 6,
             showCounter: true,
             helperText: 'You can use links, emoji, and Markdown.',
-            onChanged: vm.updateBio,
+            onChanged: (_) => vm.updateBio(_bioController.actualText),
             suffixIcon: PhosphorIcon(
               PhosphorIconsFill.smiley,
               size: 20,
