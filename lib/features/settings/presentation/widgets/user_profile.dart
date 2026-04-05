@@ -6,10 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker_popout.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/image_crop_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/input/emoji_text_editing_controller.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/shared/utils/image_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -73,6 +76,125 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       );
     } else {
       _expressionPickerKey.currentState?.toggle();
+    }
+  }
+
+  Future<void> _handleImageUpload({
+    required bool isAvatar,
+  }) async {
+    final picked = await ImageUtils.pickImage();
+    if (picked == null || !mounted) {
+      return;
+    }
+
+    final sizeError = ImageUtils.validateSize(picked.bytes);
+    if (sizeError != null) {
+      if (!mounted) {
+        return;
+      }
+      ref.read(toastProvider.notifier).show(
+        FluxerToast(message: sizeError, variant: FluxerToastVariant.danger),
+      );
+      return;
+    }
+
+    final animCheck = ImageUtils.checkAnimated(picked.bytes);
+    final state = ref.read(userSettingsViewModelProvider);
+
+    if (animCheck.isAnimated) {
+      if (!state.isPremium) {
+        if (!mounted) {
+          return;
+        }
+        ref.read(toastProvider.notifier).show(
+          FluxerToast(
+            message: isAvatar
+                ? 'Animated avatars require Plutonium'
+                : 'Animated banners require Plutonium',
+            variant: FluxerToastVariant.warning,
+          ),
+        );
+        return;
+      }
+
+      if (animCheck.format == 'avif') {
+        if (!mounted) {
+          return;
+        }
+        final confirmed = await FluxerBottomSheet.show<bool>(
+          context,
+          title: 'Animated AVIF Not Supported',
+          builder: (context, close) => Padding(
+            padding: EdgeInsets.all(context.layout.s4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  "Cropping and rotating animated AVIF files isn't "
+                  'supported yet. If you proceed, it will be uploaded '
+                  'in its original form.',
+                  style: context.textStyles.bodyMedium.copyWith(
+                    color: context.colors.textSecondary,
+                  ),
+                ),
+                SizedBox(height: context.layout.s4),
+                FluxerButton.primary(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  label: 'Upload As-Is',
+                ),
+                SizedBox(height: context.layout.s2),
+                FluxerButton.secondary(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  label: 'Cancel',
+                ),
+              ],
+            ),
+          ),
+        );
+        if (confirmed != true || !mounted) {
+          return;
+        }
+      } else {
+        ref.read(toastProvider.notifier).show(
+          const FluxerToast(
+            message: "Cropping animated images isn't supported yet. "
+                'The original upload will be used.',
+          ),
+        );
+      }
+
+      final dataUri = ImageUtils.toDataUri(picked.bytes);
+      final vm = ref.read(userSettingsViewModelProvider.notifier);
+      if (isAvatar) {
+        vm.setAvatar(dataUri);
+      } else {
+        vm.setBanner(dataUri);
+      }
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+    final croppedBytes = await showImageCropSheet(
+      context,
+      imageBytes: picked.bytes,
+      aspectRatio: isAvatar ? 1.0 : 17.0 / 6.0,
+      title: isAvatar ? 'Crop Avatar' : 'Crop Banner',
+      maskShape: isAvatar ? CropMaskShape.circle : CropMaskShape.rectangle,
+    );
+
+    if (croppedBytes == null || !mounted) {
+      return;
+    }
+
+    final dataUri = ImageUtils.toDataUri(croppedBytes);
+    final vm = ref.read(userSettingsViewModelProvider.notifier);
+    if (isAvatar) {
+      vm.setAvatar(dataUri);
+    } else {
+      vm.setBanner(dataUri);
     }
   }
 
@@ -335,7 +457,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FluxerButton.primary(
-              onPressed: () {},
+              onPressed: () => _handleImageUpload(isAvatar: true),
               label: 'Upload Avatar',
               size: FluxerButtonSize.small,
             ),
@@ -376,7 +498,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FluxerButton.primary(
-              onPressed: () {},
+              onPressed: () => _handleImageUpload(isAvatar: false),
               label: 'Upload Banner',
               size: FluxerButtonSize.small,
             ),
