@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -107,4 +108,27 @@ class _FluxerAccordionState extends State<FluxerAccordion>
       ],
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Collapsed', group: 'FluxerAccordion')
+Widget fluxerAccordionCollapsedPreview() {
+  return const FluxerAccordion(
+    title: 'Advanced options',
+    child: Padding(
+      padding: EdgeInsets.only(bottom: 12),
+      child: Text('Hidden until expanded.'),
+    ),
+  );
+}
+
+@FluxerWidgetPreview(name: 'Expanded', group: 'FluxerAccordion')
+Widget fluxerAccordionExpandedPreview() {
+  return const FluxerAccordion(
+    title: 'Advanced options',
+    initiallyExpanded: true,
+    child: Padding(
+      padding: EdgeInsets.only(bottom: 12),
+      child: Text('Additional settings appear here.'),
+    ),
+  );
 }

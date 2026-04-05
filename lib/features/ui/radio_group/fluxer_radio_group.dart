@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerRadioItem<T> {
   const FluxerRadioItem({
@@ -136,4 +137,24 @@ class _RadioIndicator extends StatelessWidget {
           : null,
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Vertical', group: 'FluxerRadioGroup')
+Widget fluxerRadioGroupPreview() {
+  return FluxerRadioGroup<String>(
+    value: 'standard',
+    items: const [
+      FluxerRadioItem(
+        value: 'standard',
+        label: 'Standard',
+        description: 'Balanced quality and performance.',
+      ),
+      FluxerRadioItem(
+        value: 'high',
+        label: 'High fidelity',
+        description: 'Sharper media at the cost of bandwidth.',
+      ),
+    ],
+    onChanged: (_) {},
+  );
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 typedef FluxerTappableBuilder =
     Widget Function(BuildContext context, Set<WidgetState> states);
@@ -112,4 +113,28 @@ class _FluxerTappableState extends State<FluxerTappable> {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerTappable')
+Widget fluxerTappablePreview() {
+  return FluxerTappable(
+    onTap: () {},
+    builder: (context, states) {
+      final colors = context.colors;
+      final hovered = states.contains(WidgetState.hovered);
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: hovered
+              ? colors.backgroundModifierHover
+              : colors.backgroundTertiary,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          'Tappable row',
+          style: TextStyle(color: colors.textPrimary),
+        ),
+      );
+    },
+  );
 }

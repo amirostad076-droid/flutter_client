@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerLoadingSpinner extends StatefulWidget {
   const FluxerLoadingSpinner({
@@ -85,4 +86,20 @@ class _FluxerLoadingSpinnerState extends State<FluxerLoadingSpinner>
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerLoadingSpinner')
+Widget fluxerLoadingSpinnerPreview() {
+  return const FluxerLoadingSpinner();
+}
+
+@FluxerWidgetPreview(name: 'Inverted', group: 'FluxerLoadingSpinner')
+Widget fluxerLoadingSpinnerInvertedPreview() {
+  return const ColoredBox(
+    color: Color(0xFF5865F2),
+    child: Padding(
+      padding: EdgeInsets.all(16),
+      child: FluxerLoadingSpinner(inverted: true),
+    ),
+  );
 }

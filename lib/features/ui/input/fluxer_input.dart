@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/character_counter/fluxer_character_counter.dart';
 
 class FluxerInput extends StatelessWidget {
@@ -324,4 +325,29 @@ class FluxerInput extends StatelessWidget {
       ],
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Single line', group: 'FluxerInput')
+Widget fluxerInputSinglePreview() {
+  return const FluxerInput(
+    label: 'Display name',
+    hint: 'How others see you',
+  );
+}
+
+@FluxerWidgetPreview(name: 'Multiline', group: 'FluxerInput')
+Widget fluxerInputMultilinePreview() {
+  return const FluxerInput.multiline(
+    label: 'Bio',
+    hint: 'Tell everyone about yourself',
+  );
+}
+
+@FluxerWidgetPreview(name: 'With error', group: 'FluxerInput')
+Widget fluxerInputErrorPreview() {
+  return const FluxerInput(
+    label: 'Email',
+    hint: 'you@example.com',
+    errorText: 'Enter a valid email address.',
+  );
 }

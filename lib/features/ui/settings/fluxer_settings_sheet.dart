@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/settings/fluxer_save_bar.dart';
 
 class FluxerSettingsSheet extends StatelessWidget {
@@ -43,4 +44,14 @@ class FluxerSettingsSheet extends StatelessWidget {
       ],
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'With save bar', group: 'FluxerSettingsSheet')
+Widget fluxerSettingsSheetPreview() {
+  return FluxerSettingsSheet(
+    hasUnsavedChanges: true,
+    onReset: () {},
+    onSave: () {},
+    child: const Center(child: Text('Settings content')),
+  );
 }

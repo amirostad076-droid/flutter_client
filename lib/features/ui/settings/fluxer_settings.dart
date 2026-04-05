@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -315,4 +318,56 @@ List<Widget> _intersperseSettingsDividers(
     }
   }
   return result;
+}
+
+@FluxerWidgetPreview(name: 'Header', group: 'FluxerSettings')
+Widget fluxerSettingsHeaderPreview() {
+  return const FluxerSettingsHeader(
+    title: 'Notifications',
+    description: 'Choose what you get notified about.',
+  );
+}
+
+@FluxerWidgetPreview(name: 'Group + rows', group: 'FluxerSettings')
+Widget fluxerSettingsGroupPreview() {
+  return FluxerSettingsGroup(
+    children: [
+      FluxerSettingsRow(
+        title: 'Push notifications',
+        description: 'Alerts on this device.',
+        trailing: Switch(value: true, onChanged: (_) {}),
+      ),
+      FluxerSettingsRow(
+        title: 'Email digest',
+        onTap: () {},
+        trailing: const PhosphorIcon(
+          PhosphorIconsBold.caretRight,
+          size: 18,
+        ),
+      ),
+    ],
+  );
+}
+
+@FluxerWidgetPreview(name: 'Form section', group: 'FluxerSettings')
+Widget fluxerSettingsFormSectionPreview() {
+  return const FluxerSettingsFormSection(
+    title: 'Profile',
+    description: 'This information is visible to others.',
+    children: [
+      FluxerInput(label: 'Display name', hint: 'Your name'),
+    ],
+  );
+}
+
+@FluxerWidgetPreview(name: 'Danger zone', group: 'FluxerSettings')
+Widget fluxerSettingsDangerZonePreview() {
+  return FluxerSettingsDangerZone(
+    title: 'Danger zone',
+    description: 'These actions are permanent.',
+    child: FluxerButton.dangerSecondary(
+      onPressed: () {},
+      label: 'Delete account',
+    ),
+  );
 }

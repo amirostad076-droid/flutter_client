@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 
 class FluxerTab {
@@ -122,4 +123,17 @@ class _FluxerTabItem extends StatelessWidget {
       },
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Horizontal', group: 'FluxerTabs')
+Widget fluxerTabsHorizontalPreview() {
+  return FluxerTabs(
+    tabs: const [
+      FluxerTab(label: 'Account'),
+      FluxerTab(label: 'Privacy'),
+      FluxerTab(label: 'Notifications'),
+    ],
+    selectedIndex: 1,
+    onChanged: (_) {},
+  );
 }

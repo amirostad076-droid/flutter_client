@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tabs/fluxer_tabs.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 
@@ -106,4 +107,17 @@ class _FluxerSegmentedTabItem extends StatelessWidget {
       },
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerSegmentedTabs')
+Widget fluxerSegmentedTabsPreview() {
+  return FluxerSegmentedTabs(
+    tabs: const [
+      FluxerTab(label: 'Day'),
+      FluxerTab(label: 'Week'),
+      FluxerTab(label: 'Month'),
+    ],
+    selectedIndex: 0,
+    onChanged: (_) {},
+  );
 }

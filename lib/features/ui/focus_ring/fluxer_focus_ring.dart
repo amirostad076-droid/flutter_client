@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerFocusRing extends StatelessWidget {
   const FluxerFocusRing({
@@ -38,4 +39,26 @@ class FluxerFocusRing extends StatelessWidget {
       child: child,
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Unfocused', group: 'FluxerFocusRing')
+Widget fluxerFocusRingOffPreview() {
+  return FluxerFocusRing(
+    focused: false,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: const Text('Focus target'),
+    ),
+  );
+}
+
+@FluxerWidgetPreview(name: 'Focused', group: 'FluxerFocusRing')
+Widget fluxerFocusRingOnPreview() {
+  return FluxerFocusRing(
+    focused: true,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: const Text('Focus target'),
+    ),
+  );
 }

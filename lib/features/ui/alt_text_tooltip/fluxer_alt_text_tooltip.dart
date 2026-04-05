@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tooltip/fluxer_tooltip.dart';
 
 class FluxerAltTextTooltip extends StatelessWidget {
@@ -35,4 +36,16 @@ class FluxerAltTextTooltip extends StatelessWidget {
       child: child,
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerAltTextTooltip')
+Widget fluxerAltTextTooltipPreview() {
+  return FluxerAltTextTooltip(
+    altText: 'User avatar showing a mountain landscape at sunset.',
+    child: Container(
+      width: 48,
+      height: 48,
+      color: const Color(0xFF3C45A5),
+    ),
+  );
 }

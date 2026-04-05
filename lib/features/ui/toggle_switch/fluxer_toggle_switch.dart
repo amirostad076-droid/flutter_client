@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 
 /// A themed toggle switch with an optional tappable label on the left.
@@ -101,4 +102,24 @@ class FluxerToggleSwitch extends StatelessWidget {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Off', group: 'FluxerToggleSwitch')
+Widget fluxerToggleSwitchOffPreview() {
+  return FluxerToggleSwitch(
+    value: false,
+    onChanged: (_) {},
+    label: 'Compact mode',
+    description: 'Use a denser layout in the sidebar.',
+  );
+}
+
+@FluxerWidgetPreview(name: 'On', group: 'FluxerToggleSwitch')
+Widget fluxerToggleSwitchOnPreview() {
+  return FluxerToggleSwitch(
+    value: true,
+    onChanged: (_) {},
+    label: 'Compact mode',
+    description: 'Use a denser layout in the sidebar.',
+  );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerScroller extends StatefulWidget {
   const FluxerScroller({required this.child, this.controller, super.key});
@@ -26,4 +27,20 @@ class _FluxerScrollerState extends State<FluxerScroller> {
   Widget build(BuildContext context) {
     return Scrollbar(controller: _effectiveController, child: widget.child);
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerScroller')
+Widget fluxerScrollerPreview() {
+  return SizedBox(
+    height: 160,
+    width: 220,
+    child: FluxerScroller(
+      child: ListView(
+        children: List.generate(
+          12,
+          (int i) => ListTile(title: Text('Row ${i + 1}')),
+        ),
+      ),
+    ),
+  );
 }

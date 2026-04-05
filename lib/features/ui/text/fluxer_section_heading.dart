@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerSectionHeading extends StatelessWidget {
   const FluxerSectionHeading({
@@ -36,4 +37,17 @@ class FluxerSectionHeading extends StatelessWidget {
       ],
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Title only', group: 'FluxerSectionHeading')
+Widget fluxerSectionHeadingTitlePreview() {
+  return const FluxerSectionHeading(title: 'Section title');
+}
+
+@FluxerWidgetPreview(name: 'With description', group: 'FluxerSectionHeading')
+Widget fluxerSectionHeadingDescriptionPreview() {
+  return const FluxerSectionHeading(
+    title: 'Appearance',
+    description: 'Customize how Fluxer looks on your device.',
+  );
 }

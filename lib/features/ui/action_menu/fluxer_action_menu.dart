@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart'
     show isMobileLayout;
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart'
@@ -411,4 +412,34 @@ class FluxerMenuDivider extends StatelessWidget {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Section header', group: 'FluxerActionMenu')
+Widget fluxerMenuSectionHeaderPreview() {
+  return const FluxerMenuSectionHeader(label: 'Message actions');
+}
+
+@FluxerWidgetPreview(name: 'Menu item', group: 'FluxerActionMenu')
+Widget fluxerMenuItemPreview() {
+  return FluxerMenuItem(
+    label: 'Copy text',
+    hint: 'Copy the selected message',
+    icon: PhosphorIconsBold.copy,
+    onPressed: () {},
+  );
+}
+
+@FluxerWidgetPreview(name: 'Danger item', group: 'FluxerActionMenu')
+Widget fluxerMenuItemDangerPreview() {
+  return FluxerMenuItem(
+    label: 'Delete message',
+    icon: PhosphorIconsBold.trash,
+    isDanger: true,
+    onPressed: () {},
+  );
+}
+
+@FluxerWidgetPreview(name: 'Divider', group: 'FluxerActionMenu')
+Widget fluxerMenuDividerPreview() {
+  return const FluxerMenuDivider();
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerKeybindHint extends StatelessWidget {
   const FluxerKeybindHint({required this.keys, super.key});
@@ -42,4 +43,9 @@ class FluxerKeybindHint extends StatelessWidget {
 
     return Row(mainAxisSize: MainAxisSize.min, children: children);
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerKeybindHint')
+Widget fluxerKeybindHintPreview() {
+  return const FluxerKeybindHint(keys: ['⌘', 'K']);
 }

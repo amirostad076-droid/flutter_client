@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 /// A themed checkbox with an optional tappable label.
 ///
@@ -59,4 +60,22 @@ class FluxerCheckbox extends StatelessWidget {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Unchecked', group: 'FluxerCheckbox')
+Widget fluxerCheckboxUncheckedPreview() {
+  return FluxerCheckbox(
+    value: false,
+    onChanged: (_) {},
+    label: 'Enable desktop notifications',
+  );
+}
+
+@FluxerWidgetPreview(name: 'Checked', group: 'FluxerCheckbox')
+Widget fluxerCheckboxCheckedPreview() {
+  return FluxerCheckbox(
+    value: true,
+    onChanged: (_) {},
+    label: 'Enable desktop notifications',
+  );
 }

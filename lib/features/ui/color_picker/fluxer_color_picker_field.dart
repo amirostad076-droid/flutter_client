@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
@@ -541,4 +542,14 @@ class _Thumb extends StatelessWidget {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerColorPickerField')
+Widget fluxerColorPickerFieldPreview() {
+  return FluxerColorPickerField(
+    value: 0x5865F2,
+    label: 'Role color',
+    description: 'Pick a color for this role badge.',
+    onChanged: (_) {},
+  );
 }

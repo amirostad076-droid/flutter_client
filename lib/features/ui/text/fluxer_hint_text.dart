@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerHintText extends StatelessWidget {
   const FluxerHintText(this.text, {super.key});
@@ -16,4 +17,9 @@ class FluxerHintText extends StatelessWidget {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerHintText')
+Widget fluxerHintTextPreview() {
+  return const FluxerHintText('Optional. Shown on your profile and mentions.');
 }

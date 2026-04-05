@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 /// Position of the tooltip relative to its target.
 enum FluxerTooltipPosition { above, below, left, right }
@@ -204,4 +205,12 @@ class _FluxerTooltipState extends State<FluxerTooltip>
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Text', group: 'FluxerTooltip')
+Widget fluxerTooltipTextPreview() {
+  return FluxerTooltip(
+    message: 'This action cannot be undone.',
+    child: const Text('Hover or long-press'),
+  );
 }

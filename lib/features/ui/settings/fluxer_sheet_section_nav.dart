@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerSheetSectionItem {
   const FluxerSheetSectionItem({required this.id, required this.label});
@@ -151,4 +152,17 @@ class _SheetSectionPill extends StatelessWidget {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerSheetSectionNav')
+Widget fluxerSheetSectionNavPreview() {
+  return FluxerSheetSectionNav(
+    sections: const [
+      FluxerSheetSectionItem(id: 'general', label: 'General'),
+      FluxerSheetSectionItem(id: 'privacy', label: 'Privacy'),
+      FluxerSheetSectionItem(id: 'audio', label: 'Audio'),
+    ],
+    activeSection: 'privacy',
+    onSectionTap: (_) {},
+  );
 }

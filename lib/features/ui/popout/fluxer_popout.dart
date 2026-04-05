@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 /// Position of the popout relative to its anchor.
 enum FluxerPopoutPosition { above, below, left, right }
@@ -167,4 +168,26 @@ class _FluxerPopoutState extends State<FluxerPopout>
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerPopout')
+Widget fluxerPopoutPreview() {
+  return FluxerPopout(
+    anchorBuilder: (context, toggle) {
+      return TextButton(onPressed: toggle, child: const Text('Open popout'));
+    },
+    contentBuilder: (context, close) {
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Popout panel'),
+            TextButton(onPressed: close, child: const Text('Close')),
+          ],
+        ),
+      );
+    },
+  );
 }

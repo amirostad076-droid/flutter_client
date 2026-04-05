@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -722,4 +723,113 @@ class FluxerBottomSheetCheckboxItem extends StatelessWidget {
       },
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Drag handle', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetDragHandlePreview() {
+  return const FluxerBottomSheetDragHandle();
+}
+
+@FluxerWidgetPreview(name: 'Header', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetHeaderPreview() {
+  return FluxerBottomSheetHeader(
+    title: 'Invite friends',
+    subtitle: const Text('Share this server with people you trust.'),
+  );
+}
+
+@FluxerWidgetPreview(name: 'Submenu header', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetSubmenuHeaderPreview() {
+  return FluxerBottomSheetSubmenuHeader(
+    title: 'Notification settings',
+    onBack: () {},
+  );
+}
+
+@FluxerWidgetPreview(name: 'Content', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetContentPreview() {
+  return const FluxerBottomSheetContent(
+    scrollable: false,
+    child: Text('Sheet body content goes here.'),
+  );
+}
+
+@FluxerWidgetPreview(name: 'Section', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetSectionPreview() {
+  return const FluxerBottomSheetSection(
+    title: 'Privacy',
+    child: Text('Section children'),
+  );
+}
+
+@FluxerWidgetPreview(name: 'Footer', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetFooterPreview() {
+  return FluxerBottomSheetFooter(
+    showTopBorder: true,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        TextButton(onPressed: () {}, child: const Text('Cancel')),
+        const SizedBox(width: 8),
+        FilledButton(onPressed: () {}, child: const Text('Save')),
+      ],
+    ),
+  );
+}
+
+@FluxerWidgetPreview(name: 'Menu group', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetMenuGroupPreview() {
+  return FluxerMenuGroup(
+    children: [
+      FluxerBottomSheetMenuItem(
+        label: 'Edit channel',
+        icon: PhosphorIconsBold.pencilSimple,
+        onTap: () {},
+      ),
+      FluxerBottomSheetMenuItem(
+        label: 'Delete channel',
+        hint: 'Cannot be undone',
+        icon: PhosphorIconsBold.trash,
+        isDanger: true,
+        onTap: () {},
+      ),
+    ],
+  );
+}
+
+@FluxerWidgetPreview(name: 'Menu item selected', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetMenuItemSelectedPreview() {
+  return FluxerBottomSheetMenuItem(
+    label: 'Dark',
+    isSelected: true,
+    onTap: () {},
+  );
+}
+
+@FluxerWidgetPreview(name: 'Submenu item', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetSubmenuItemPreview() {
+  return FluxerBottomSheetSubmenuItem(
+    label: 'Change nickname',
+    onTap: () {},
+    icon: PhosphorIconsBold.user,
+  );
+}
+
+@FluxerWidgetPreview(name: 'Checkbox item', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetCheckboxItemPreview() {
+  return FluxerBottomSheetCheckboxItem(
+    label: 'Mute @mentions',
+    isChecked: true,
+    onTap: () {},
+  );
+}
+
+@FluxerWidgetPreview(name: 'Group column', group: 'FluxerBottomSheet')
+Widget fluxerBottomSheetGroupColumnPreview() {
+  return FluxerBottomSheetGroupColumn(
+    children: [
+      FluxerBottomSheetMenuItem(label: 'First', onTap: () {}),
+      FluxerBottomSheetMenuItem(label: 'Second', onTap: () {}),
+    ],
+  );
 }

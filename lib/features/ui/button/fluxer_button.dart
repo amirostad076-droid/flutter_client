@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_variant.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
@@ -352,4 +353,44 @@ class _RecordingPulseState extends State<_RecordingPulse>
       child: widget.child,
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Primary', group: 'FluxerButton')
+Widget fluxerButtonPrimaryPreview() {
+  return FluxerButton.primary(
+    onPressed: () {},
+    label: 'Continue',
+  );
+}
+
+@FluxerWidgetPreview(name: 'Secondary', group: 'FluxerButton')
+Widget fluxerButtonSecondaryPreview() {
+  return FluxerButton.secondary(
+    onPressed: () {},
+    label: 'Cancel',
+  );
+}
+
+@FluxerWidgetPreview(name: 'Danger secondary', group: 'FluxerButton')
+Widget fluxerButtonDangerSecondaryPreview() {
+  return FluxerButton.dangerSecondary(
+    onPressed: () {},
+    label: 'Delete channel',
+  );
+}
+
+@FluxerWidgetPreview(name: 'Ghost', group: 'FluxerButton')
+Widget fluxerButtonGhostPreview() {
+  return FluxerButton.ghost(
+    onPressed: () {},
+    label: 'Learn more',
+  );
+}
+
+@FluxerWidgetPreview(name: 'Circle icon', group: 'FluxerButton')
+Widget fluxerButtonCirclePreview() {
+  return FluxerButton.circle(
+    onPressed: () {},
+    icon: PhosphorIconsBold.plus,
+  );
 }

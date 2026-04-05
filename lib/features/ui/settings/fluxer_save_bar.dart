@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 
@@ -82,4 +83,22 @@ class FluxerSaveBar extends StatelessWidget {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Visible', group: 'FluxerSaveBar')
+Widget fluxerSaveBarVisiblePreview() {
+  return FluxerSaveBar(
+    visible: true,
+    onReset: () {},
+    onSave: () {},
+  );
+}
+
+@FluxerWidgetPreview(name: 'Hidden', group: 'FluxerSaveBar')
+Widget fluxerSaveBarHiddenPreview() {
+  return FluxerSaveBar(
+    visible: false,
+    onReset: () {},
+    onSave: () {},
+  );
 }

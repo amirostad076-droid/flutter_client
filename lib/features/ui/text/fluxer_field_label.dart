@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerFieldLabel extends StatelessWidget {
   const FluxerFieldLabel(this.text, {super.key});
@@ -17,4 +18,9 @@ class FluxerFieldLabel extends StatelessWidget {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerFieldLabel')
+Widget fluxerFieldLabelPreview() {
+  return const FluxerFieldLabel('Display name');
 }

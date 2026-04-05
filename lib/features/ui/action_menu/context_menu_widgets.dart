@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const kContextMenuWidth = 220.0;
@@ -145,6 +146,27 @@ class ContextMenuDivider extends StatelessWidget {
       color: context.colors.backgroundModifierAccent.withValues(alpha: 0.3),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Panel', group: 'ContextMenu')
+Widget contextMenuPanelPreview() {
+  return ContextMenuPanel(
+    items: [
+      ContextMenuItem(
+        label: 'Reply',
+        icon: PhosphorIconsBold.arrowBendUpLeft,
+        onTap: () {},
+      ),
+      const ContextMenuDivider(),
+      ContextMenuItem(
+        label: 'Delete',
+        hint: 'Remove for everyone',
+        icon: PhosphorIconsBold.trash,
+        isDanger: true,
+        onTap: () {},
+      ),
+    ],
+  );
 }
 
 double estimateContextMenuHeight(List<Widget> items) {

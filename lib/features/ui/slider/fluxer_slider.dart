@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 enum FluxerSliderMarkerPosition { above, below }
 
@@ -561,4 +562,25 @@ class _FluxerSliderState extends State<FluxerSlider> {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerSlider')
+Widget fluxerSliderPreview() {
+  return const SizedBox(
+    width: 280,
+    child: FluxerSlider(
+      defaultValue: 40,
+    ),
+  );
+}
+
+@FluxerWidgetPreview(name: 'Mini', group: 'FluxerSlider')
+Widget fluxerSliderMiniPreview() {
+  return const SizedBox(
+    width: 200,
+    child: FluxerSlider(
+      defaultValue: 60,
+      mini: true,
+    ),
+  );
 }

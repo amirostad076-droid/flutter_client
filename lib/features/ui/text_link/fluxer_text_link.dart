@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -63,4 +64,12 @@ class FluxerTextLink extends StatelessWidget {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerTextLink')
+Widget fluxerTextLinkPreview() {
+  return FluxerTextLink(
+    text: 'Open documentation',
+    onTap: () {},
+  );
 }

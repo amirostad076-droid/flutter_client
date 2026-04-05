@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerCharacterCounter extends StatelessWidget {
   const FluxerCharacterCounter({
@@ -31,4 +32,19 @@ class FluxerCharacterCounter extends StatelessWidget {
       textAlign: TextAlign.right,
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Normal', group: 'FluxerCharacterCounter')
+Widget fluxerCharacterCounterNormalPreview() {
+  return const FluxerCharacterCounter(current: 24, max: 100);
+}
+
+@FluxerWidgetPreview(name: 'Near limit', group: 'FluxerCharacterCounter')
+Widget fluxerCharacterCounterWarnPreview() {
+  return const FluxerCharacterCounter(current: 85, max: 100);
+}
+
+@FluxerWidgetPreview(name: 'Over limit', group: 'FluxerCharacterCounter')
+Widget fluxerCharacterCounterOverPreview() {
+  return const FluxerCharacterCounter(current: 120, max: 100);
 }

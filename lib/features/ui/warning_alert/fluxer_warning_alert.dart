@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum FluxerAlertVariant { info, warning, danger }
@@ -57,4 +58,28 @@ class FluxerWarningAlert extends StatelessWidget {
       ),
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Info', group: 'FluxerWarningAlert')
+Widget fluxerWarningAlertInfoPreview() {
+  return const FluxerWarningAlert(
+    message: 'Here is some contextual information.',
+    variant: FluxerAlertVariant.info,
+  );
+}
+
+@FluxerWidgetPreview(name: 'Warning', group: 'FluxerWarningAlert')
+Widget fluxerWarningAlertWarningPreview() {
+  return const FluxerWarningAlert(
+    message: 'This action may have unintended consequences.',
+    variant: FluxerAlertVariant.warning,
+  );
+}
+
+@FluxerWidgetPreview(name: 'Danger', group: 'FluxerWarningAlert')
+Widget fluxerWarningAlertDangerPreview() {
+  return const FluxerWarningAlert(
+    message: 'Something went wrong. Please try again or contact support.',
+    variant: FluxerAlertVariant.danger,
+  );
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 
 class FluxerSwitchGroup extends StatelessWidget {
@@ -213,4 +214,37 @@ List<Widget> _intersperseGroupDividers(
     }
   }
   return result;
+}
+
+@FluxerWidgetPreview(name: 'Group', group: 'FluxerSwitchGroup')
+Widget fluxerSwitchGroupPreview() {
+  return FluxerSwitchGroup(
+    children: [
+      FluxerSwitchGroupItem(
+        label: 'Message previews',
+        description: 'Show a short excerpt under muted channels.',
+        value: true,
+        onChanged: (_) {},
+      ),
+      FluxerSwitchGroupItem(
+        label: 'Link embeds',
+        value: false,
+        onChanged: (_) {},
+      ),
+    ],
+  );
+}
+
+@FluxerWidgetPreview(name: 'Custom item', group: 'FluxerSwitchGroup')
+Widget fluxerSwitchGroupCustomPreview() {
+  return FluxerSwitchGroup(
+    children: [
+      FluxerSwitchGroupCustomItem(
+        label: 'Beta features',
+        value: false,
+        onChanged: (_) {},
+        extraContent: const Text('Labs'),
+      ),
+    ],
+  );
 }

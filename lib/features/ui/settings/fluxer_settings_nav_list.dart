@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class FluxerSettingsNavItem {
   const FluxerSettingsNavItem({
@@ -114,4 +116,31 @@ class _FluxerSettingsNavItemWidget extends StatelessWidget {
       icon: item.icon,
     );
   }
+}
+
+@FluxerWidgetPreview(name: 'Default', group: 'FluxerSettingsNavList')
+Widget fluxerSettingsNavListPreview() {
+  return SizedBox(
+    height: 220,
+    child: FluxerSettingsNavList(
+      groups: [
+        FluxerSettingsNavGroup(
+          label: 'User settings',
+          items: [
+            FluxerSettingsNavItem(
+              label: 'My account',
+              icon: PhosphorIconsRegular.user,
+              onTap: () {},
+            ),
+            FluxerSettingsNavItem(
+              label: 'Log out',
+              icon: PhosphorIconsRegular.signOut,
+              onTap: () {},
+              isDanger: true,
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
 }

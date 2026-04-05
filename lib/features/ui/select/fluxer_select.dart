@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
@@ -272,4 +273,34 @@ class _FluxerSelectSheetState<T> extends State<_FluxerSelectSheet<T>> {
 
     return haystacks.any((value) => value.toLowerCase().contains(query));
   }
+}
+
+@FluxerWidgetPreview(name: 'Closed', group: 'FluxerSelect')
+Widget fluxerSelectPreview() {
+  return FluxerSelect<String>(
+    label: 'Theme accent',
+    hint: 'Choose a preset',
+    enableSearch: false,
+    items: const [
+      FluxerSelectItem(value: 'a', label: 'Blurple'),
+      FluxerSelectItem(value: 'b', label: 'Teal'),
+      FluxerSelectItem(value: 'c', label: 'Rose'),
+    ],
+    value: 'b',
+    onChanged: (_) {},
+  );
+}
+
+@FluxerWidgetPreview(name: 'With error', group: 'FluxerSelect')
+Widget fluxerSelectErrorPreview() {
+  return FluxerSelect<String>(
+    hint: 'Select an option',
+    errorText: 'This field is required.',
+    enableSearch: false,
+    items: const [
+      FluxerSelectItem(value: 'x', label: 'One'),
+      FluxerSelectItem(value: 'y', label: 'Two'),
+    ],
+    onChanged: (_) {},
+  );
 }

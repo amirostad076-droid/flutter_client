@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerStatusIndicator extends StatelessWidget {
   const FluxerStatusIndicator({
@@ -90,4 +91,24 @@ class FluxerStatusIndicator extends StatelessWidget {
       _ => colors.statusOffline,
     };
   }
+}
+
+@FluxerWidgetPreview(name: 'Online', group: 'FluxerStatusIndicator')
+Widget fluxerStatusOnlinePreview() {
+  return const FluxerStatusIndicator(status: 'online');
+}
+
+@FluxerWidgetPreview(name: 'Idle', group: 'FluxerStatusIndicator')
+Widget fluxerStatusIdlePreview() {
+  return const FluxerStatusIndicator(status: 'idle');
+}
+
+@FluxerWidgetPreview(name: 'DND', group: 'FluxerStatusIndicator')
+Widget fluxerStatusDndPreview() {
+  return const FluxerStatusIndicator(status: 'dnd');
+}
+
+@FluxerWidgetPreview(name: 'Offline', group: 'FluxerStatusIndicator')
+Widget fluxerStatusOfflinePreview() {
+  return const FluxerStatusIndicator(status: 'offline');
 }
