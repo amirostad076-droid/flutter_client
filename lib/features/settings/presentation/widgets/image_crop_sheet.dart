@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 enum CropMaskShape { circle, rectangle }
 
@@ -80,7 +81,7 @@ class _ImageCropContentState extends State<_ImageCropContent> {
                   onPressed: _isCropping
                       ? null
                       : () => Navigator.of(context).pop(widget.imageBytes),
-                  label: 'Skip',
+                  label: FluxerLocalizations.of(context).skip,
                 ),
               ),
               SizedBox(width: layout.s3),
@@ -92,7 +93,7 @@ class _ImageCropContentState extends State<_ImageCropContent> {
                           setState(() => _isCropping = true);
                           _cropController.crop();
                         },
-                  label: 'Crop',
+                  label: FluxerLocalizations.of(context).crop,
                   isLoading: _isCropping,
                 ),
               ),

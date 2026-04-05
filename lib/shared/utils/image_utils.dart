@@ -9,7 +9,7 @@ const int _kMaxImageSizeBytes = 10 * 1024 * 1024;
 
 abstract final class ImageUtils {
   static Future<({Uint8List bytes, String name})?> pickImage() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'],
       withData: true,
@@ -25,11 +25,8 @@ abstract final class ImageUtils {
     return (bytes: bytes, name: file.name);
   }
 
-  static String? validateSize(Uint8List bytes) {
-    if (bytes.length > _kMaxImageSizeBytes) {
-      return 'Image must be smaller than 10 MB.';
-    }
-    return null;
+  static bool isOverSizeLimit(Uint8List bytes) {
+    return bytes.length > _kMaxImageSizeBytes;
   }
 
   static String detectMimeType(Uint8List bytes) {

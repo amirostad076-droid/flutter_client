@@ -214,7 +214,7 @@ abstract class FluxerLocalizations {
   /// **'Try Turnstile instead'**
   String get captchaSwitchToTurnstile;
 
-  /// Generic cancel action label.
+  /// Generic cancel action button label.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
@@ -1611,6 +1611,198 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'When enabled, no external link warnings will be shown. This is less secure.'**
   String get externalLinkTrustAllDisabledDescription;
+
+  /// Error when a selected image exceeds the maximum file size.
+  ///
+  /// In en, this message translates to:
+  /// **'Image file is too large. Please choose a file smaller than 10 MB.'**
+  String get imageFileTooLarge;
+
+  /// Toast shown when non-premium user tries uploading animated avatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated avatars require Plutonium'**
+  String get animatedAvatarsRequirePlutonium;
+
+  /// Toast shown when non-premium user tries uploading animated banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated banners require Plutonium'**
+  String get animatedBannersRequirePlutonium;
+
+  /// Title for animated AVIF confirmation sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated AVIF Not Supported'**
+  String get animatedAvifNotSupported;
+
+  /// Body text explaining animated AVIF limitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cropping and rotating animated AVIF files isn\'t supported yet. If you proceed, it will be uploaded in its original form.'**
+  String get animatedAvifNotSupportedBody;
+
+  /// Button to upload an animated image without cropping.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload As-Is'**
+  String get uploadAsIs;
+
+  /// Toast when premium user uploads animated image that can't be cropped.
+  ///
+  /// In en, this message translates to:
+  /// **'Cropping animated images isn\'t supported yet. The original upload will be used.'**
+  String get croppingAnimatedNotSupported;
+
+  /// Title for the avatar crop bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop Avatar'**
+  String get cropAvatar;
+
+  /// Title for the banner crop bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop Banner'**
+  String get cropBanner;
+
+  /// Button to skip image cropping and use the original.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// Button to confirm image crop.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop'**
+  String get crop;
+
+  /// Title for the FluxerTag change bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Your FluxerTag'**
+  String get changeYourFluxerTag;
+
+  /// Base description text on the FluxerTag change sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive.'**
+  String get fluxerTagDescriptionBase;
+
+  /// Description for Visionary (lifetime premium) users who can pick any 4-digit tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive. You can pick any available 4-digit tag from #0000 to #9999.'**
+  String get fluxerTagDescriptionVisionary;
+
+  /// Description for premium users who can pick a 4-digit tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive. You can pick any available 4-digit tag from #0001 to #9999.'**
+  String get fluxerTagDescriptionPremium;
+
+  /// Validation rule for username character length.
+  ///
+  /// In en, this message translates to:
+  /// **'Between {min} and {max} characters'**
+  String validationLengthRange(int min, int max);
+
+  /// Validation rule for allowed username characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters (a-z, A-Z), numbers (0-9), and underscores (_) only'**
+  String get validationAllowedChars;
+
+  /// Tooltip on disabled discriminator field for non-premium users.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Plutonium to customize your tag or keep it when changing your username'**
+  String get discriminatorPremiumTooltip;
+
+  /// Title for the tag-taken confirmation sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'FluxerTag Already Taken'**
+  String get fluxerTagAlreadyTaken;
+
+  /// Body text when the requested FluxerTag is taken.
+  ///
+  /// In en, this message translates to:
+  /// **'The FluxerTag {username}#{discriminator} is already taken. Continuing will reroll your discriminator automatically.'**
+  String fluxerTagAlreadyTakenBody(String username, String discriminator);
+
+  /// Title for the temporary tag warning sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Tag Is Temporary'**
+  String get customTagIsTemporary;
+
+  /// Warning body when premium subscription has a known expiry date.
+  ///
+  /// In en, this message translates to:
+  /// **'Your custom 4-digit tag is only available while your Plutonium subscription is active. When your subscription expires on {date}, your tag will revert to a randomly assigned number after a 3-day grace period.'**
+  String customTagTemporaryBodyWithDate(String date);
+
+  /// Warning body when premium subscription expiry date is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Your custom 4-digit tag is only available while your Plutonium subscription is active. When your subscription expires, your tag will revert to a randomly assigned number after a 3-day grace period.'**
+  String get customTagTemporaryBody;
+
+  /// Button to acknowledge a warning and proceed.
+  ///
+  /// In en, this message translates to:
+  /// **'I Understand, Continue'**
+  String get iUnderstandContinue;
+
+  /// Warning shown when premium user is about to change their discriminator.
+  ///
+  /// In en, this message translates to:
+  /// **'If you save this FluxerTag, your custom 4-digit tag will revert to a random number when your Plutonium subscription ends. If your subscription fails to renew, you\'ll have a 3-day grace period before the tag changes.'**
+  String get premiumWarningPendingDiscriminator;
+
+  /// Warning shown when premium user already has a custom discriminator.
+  ///
+  /// In en, this message translates to:
+  /// **'Your custom 4-digit tag (#{discriminator}) is active while your Plutonium subscription is active. If your subscription ends or fails to renew after a 3-day grace period, your tag will revert to a random number.'**
+  String premiumWarningActiveDiscriminator(String discriminator);
+
+  /// Upsell text encouraging non-premium users to get Plutonium for tag customization.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize your 4-digit tag or keep it when changing your username'**
+  String get premiumUpsellCustomizeTag;
+
+  /// Trial upsell with expiry date.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Plutonium trial expires on {date}. Upgrade to keep your custom tag and earn a badge on your profile.'**
+  String premiumTrialExpiresOn(String date);
+
+  /// Trial upsell without specific expiry date.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on a Plutonium trial. Upgrade to keep your custom tag and earn a badge on your profile.'**
+  String get premiumTrialActive;
+
+  /// Success toast after FluxerTag change.
+  ///
+  /// In en, this message translates to:
+  /// **'FluxerTag updated'**
+  String get fluxerTagUpdated;
+
+  /// Error message when FluxerTag update fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update FluxerTag. Please try again.'**
+  String get fluxerTagUpdateFailed;
+
+  /// Generic continue action button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueAction;
 }
 
 class _FluxerLocalizationsDelegate

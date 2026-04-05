@@ -13,6 +13,7 @@ import 'package:fluxer_app/features/settings/providers/user_settings_view_model.
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/input/emoji_text_editing_controller.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/image_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -88,13 +89,16 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       return;
     }
 
-    final sizeError = ImageUtils.validateSize(picked.bytes);
-    if (sizeError != null) {
+    if (ImageUtils.isOverSizeLimit(picked.bytes)) {
       if (!mounted) {
         return;
       }
+      final l10n = FluxerLocalizations.of(context);
       ref.read(toastProvider.notifier).show(
-        FluxerToast(message: sizeError, variant: FluxerToastVariant.danger),
+        FluxerToast(
+          message: l10n.imageFileTooLarge,
+          variant: FluxerToastVariant.danger,
+        ),
       );
       return;
     }
@@ -107,11 +111,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         if (!mounted) {
           return;
         }
+        final l10n = FluxerLocalizations.of(context);
         ref.read(toastProvider.notifier).show(
           FluxerToast(
             message: isAvatar
-                ? 'Animated avatars require Plutonium'
-                : 'Animated banners require Plutonium',
+                ? l10n.animatedAvatarsRequirePlutonium
+                : l10n.animatedBannersRequirePlutonium,
             variant: FluxerToastVariant.warning,
           ),
         );
@@ -122,32 +127,31 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         if (!mounted) {
           return;
         }
+        final l10n = FluxerLocalizations.of(context);
         final confirmed = await FluxerBottomSheet.show<bool>(
           context,
-          title: 'Animated AVIF Not Supported',
-          builder: (context, close) => Padding(
-            padding: EdgeInsets.all(context.layout.s4),
+          title: l10n.animatedAvifNotSupported,
+          builder: (sheetContext, _) => Padding(
+            padding: EdgeInsets.all(sheetContext.layout.s4),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  "Cropping and rotating animated AVIF files isn't "
-                  'supported yet. If you proceed, it will be uploaded '
-                  'in its original form.',
-                  style: context.textStyles.bodyMedium.copyWith(
-                    color: context.colors.textSecondary,
+                  l10n.animatedAvifNotSupportedBody,
+                  style: sheetContext.textStyles.bodyMedium.copyWith(
+                    color: sheetContext.colors.textSecondary,
                   ),
                 ),
-                SizedBox(height: context.layout.s4),
+                SizedBox(height: sheetContext.layout.s4),
                 FluxerButton.primary(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  label: 'Upload As-Is',
+                  onPressed: () => Navigator.of(sheetContext).pop(true),
+                  label: l10n.uploadAsIs,
                 ),
-                SizedBox(height: context.layout.s2),
+                SizedBox(height: sheetContext.layout.s2),
                 FluxerButton.secondary(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  label: 'Cancel',
+                  onPressed: () => Navigator.of(sheetContext).pop(false),
+                  label: l10n.cancel,
                 ),
               ],
             ),
@@ -158,9 +162,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         }
       } else {
         ref.read(toastProvider.notifier).show(
-          const FluxerToast(
-            message: "Cropping animated images isn't supported yet. "
-                'The original upload will be used.',
+          FluxerToast(
+            message: FluxerLocalizations.of(context)
+                .croppingAnimatedNotSupported,
           ),
         );
       }
@@ -182,7 +186,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       context,
       imageBytes: picked.bytes,
       aspectRatio: isAvatar ? 1.0 : 17.0 / 6.0,
-      title: isAvatar ? 'Crop Avatar' : 'Crop Banner',
+      title: isAvatar
+          ? FluxerLocalizations.of(context).cropAvatar
+          : FluxerLocalizations.of(context).cropBanner,
       maskShape: isAvatar ? CropMaskShape.circle : CropMaskShape.rectangle,
     );
 

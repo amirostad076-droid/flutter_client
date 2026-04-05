@@ -51,6 +51,7 @@ class UserSettingsViewState {
   final bool premiumBadgeTimestampHidden;
   final bool premiumBadgeSequenceHidden;
   final bool premiumDiscriminator;
+  final String? premiumUntil;
   final DateTime? premiumOutOfBandTrialEndsAt;
   final String? premiumBillingCycle;
 
@@ -98,6 +99,7 @@ class UserSettingsViewState {
     this.premiumBadgeTimestampHidden = false,
     this.premiumBadgeSequenceHidden = false,
     this.premiumDiscriminator = false,
+    this.premiumUntil,
     this.premiumOutOfBandTrialEndsAt,
     this.premiumBillingCycle,
     Object? editedPremiumBadgeHidden = _unset,
@@ -285,6 +287,7 @@ class UserSettingsViewState {
     bool? premiumBadgeTimestampHidden,
     bool? premiumBadgeSequenceHidden,
     bool? premiumDiscriminator,
+    Object? premiumUntil = _unset,
     Object? premiumOutOfBandTrialEndsAt = _unset,
     Object? premiumBillingCycle = _unset,
     Object? editedPremiumBadgeHidden = _unset,
@@ -345,6 +348,9 @@ class UserSettingsViewState {
           premiumBadgeSequenceHidden ?? this.premiumBadgeSequenceHidden,
       premiumDiscriminator:
           premiumDiscriminator ?? this.premiumDiscriminator,
+      premiumUntil: premiumUntil == _unset
+          ? this.premiumUntil
+          : premiumUntil as String?,
       premiumOutOfBandTrialEndsAt: premiumOutOfBandTrialEndsAt == _unset
           ? this.premiumOutOfBandTrialEndsAt
           : premiumOutOfBandTrialEndsAt as DateTime?,
@@ -488,6 +494,7 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         premiumBadgeTimestampHidden: profile.premiumBadgeTimestampHidden,
         premiumBadgeSequenceHidden: profile.premiumBadgeSequenceHidden,
         premiumDiscriminator: profile.premiumDiscriminator ?? false,
+        premiumUntil: profile.premiumUntil,
         premiumOutOfBandTrialEndsAt: profile.premiumOutOfBandTrialEndsAt,
         premiumBillingCycle: profile.premiumBillingCycle,
         isProfileLoaded: true,

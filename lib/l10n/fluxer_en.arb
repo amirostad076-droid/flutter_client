@@ -1089,5 +1089,156 @@
   "externalLinkTrustAllDisabledDescription": "When enabled, no external link warnings will be shown. This is less secure.",
   "@externalLinkTrustAllDisabledDescription": {
     "description": "Description shown when trust-all external links is disabled and no trusted domains exist."
+  },
+
+  "imageFileTooLarge": "Image file is too large. Please choose a file smaller than 10 MB.",
+  "@imageFileTooLarge": {
+    "description": "Error when a selected image exceeds the maximum file size."
+  },
+  "animatedAvatarsRequirePlutonium": "Animated avatars require Plutonium",
+  "@animatedAvatarsRequirePlutonium": {
+    "description": "Toast shown when non-premium user tries uploading animated avatar."
+  },
+  "animatedBannersRequirePlutonium": "Animated banners require Plutonium",
+  "@animatedBannersRequirePlutonium": {
+    "description": "Toast shown when non-premium user tries uploading animated banner."
+  },
+  "animatedAvifNotSupported": "Animated AVIF Not Supported",
+  "@animatedAvifNotSupported": {
+    "description": "Title for animated AVIF confirmation sheet."
+  },
+  "animatedAvifNotSupportedBody": "Cropping and rotating animated AVIF files isn't supported yet. If you proceed, it will be uploaded in its original form.",
+  "@animatedAvifNotSupportedBody": {
+    "description": "Body text explaining animated AVIF limitation."
+  },
+  "uploadAsIs": "Upload As-Is",
+  "@uploadAsIs": {
+    "description": "Button to upload an animated image without cropping."
+  },
+  "croppingAnimatedNotSupported": "Cropping animated images isn't supported yet. The original upload will be used.",
+  "@croppingAnimatedNotSupported": {
+    "description": "Toast when premium user uploads animated image that can't be cropped."
+  },
+  "cropAvatar": "Crop Avatar",
+  "@cropAvatar": {
+    "description": "Title for the avatar crop bottom sheet."
+  },
+  "cropBanner": "Crop Banner",
+  "@cropBanner": {
+    "description": "Title for the banner crop bottom sheet."
+  },
+  "skip": "Skip",
+  "@skip": {
+    "description": "Button to skip image cropping and use the original."
+  },
+  "crop": "Crop",
+  "@crop": {
+    "description": "Button to confirm image crop."
+  },
+
+  "changeYourFluxerTag": "Change Your FluxerTag",
+  "@changeYourFluxerTag": {
+    "description": "Title for the FluxerTag change bottom sheet."
+  },
+  "fluxerTagDescriptionBase": "Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive.",
+  "@fluxerTagDescriptionBase": {
+    "description": "Base description text on the FluxerTag change sheet."
+  },
+  "fluxerTagDescriptionVisionary": "Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive. You can pick any available 4-digit tag from #0000 to #9999.",
+  "@fluxerTagDescriptionVisionary": {
+    "description": "Description for Visionary (lifetime premium) users who can pick any 4-digit tag."
+  },
+  "fluxerTagDescriptionPremium": "Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive. You can pick any available 4-digit tag from #0001 to #9999.",
+  "@fluxerTagDescriptionPremium": {
+    "description": "Description for premium users who can pick a 4-digit tag."
+  },
+  "validationLengthRange": "Between {min} and {max} characters",
+  "@validationLengthRange": {
+    "description": "Validation rule for username character length.",
+    "placeholders": {
+      "min": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+  "validationAllowedChars": "Letters (a-z, A-Z), numbers (0-9), and underscores (_) only",
+  "@validationAllowedChars": {
+    "description": "Validation rule for allowed username characters."
+  },
+  "discriminatorPremiumTooltip": "Get Plutonium to customize your tag or keep it when changing your username",
+  "@discriminatorPremiumTooltip": {
+    "description": "Tooltip on disabled discriminator field for non-premium users."
+  },
+  "fluxerTagAlreadyTaken": "FluxerTag Already Taken",
+  "@fluxerTagAlreadyTaken": {
+    "description": "Title for the tag-taken confirmation sheet."
+  },
+  "fluxerTagAlreadyTakenBody": "The FluxerTag {username}#{discriminator} is already taken. Continuing will reroll your discriminator automatically.",
+  "@fluxerTagAlreadyTakenBody": {
+    "description": "Body text when the requested FluxerTag is taken.",
+    "placeholders": {
+      "username": { "type": "String" },
+      "discriminator": { "type": "String" }
+    }
+  },
+  "customTagIsTemporary": "Custom Tag Is Temporary",
+  "@customTagIsTemporary": {
+    "description": "Title for the temporary tag warning sheet."
+  },
+  "customTagTemporaryBodyWithDate": "Your custom 4-digit tag is only available while your Plutonium subscription is active. When your subscription expires on {date}, your tag will revert to a randomly assigned number after a 3-day grace period.",
+  "@customTagTemporaryBodyWithDate": {
+    "description": "Warning body when premium subscription has a known expiry date.",
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "customTagTemporaryBody": "Your custom 4-digit tag is only available while your Plutonium subscription is active. When your subscription expires, your tag will revert to a randomly assigned number after a 3-day grace period.",
+  "@customTagTemporaryBody": {
+    "description": "Warning body when premium subscription expiry date is unknown."
+  },
+  "iUnderstandContinue": "I Understand, Continue",
+  "@iUnderstandContinue": {
+    "description": "Button to acknowledge a warning and proceed."
+  },
+  "premiumWarningPendingDiscriminator": "If you save this FluxerTag, your custom 4-digit tag will revert to a random number when your Plutonium subscription ends. If your subscription fails to renew, you'll have a 3-day grace period before the tag changes.",
+  "@premiumWarningPendingDiscriminator": {
+    "description": "Warning shown when premium user is about to change their discriminator."
+  },
+  "premiumWarningActiveDiscriminator": "Your custom 4-digit tag (#{discriminator}) is active while your Plutonium subscription is active. If your subscription ends or fails to renew after a 3-day grace period, your tag will revert to a random number.",
+  "@premiumWarningActiveDiscriminator": {
+    "description": "Warning shown when premium user already has a custom discriminator.",
+    "placeholders": {
+      "discriminator": { "type": "String" }
+    }
+  },
+  "premiumUpsellCustomizeTag": "Customize your 4-digit tag or keep it when changing your username",
+  "@premiumUpsellCustomizeTag": {
+    "description": "Upsell text encouraging non-premium users to get Plutonium for tag customization."
+  },
+  "premiumTrialExpiresOn": "Your Plutonium trial expires on {date}. Upgrade to keep your custom tag and earn a badge on your profile.",
+  "@premiumTrialExpiresOn": {
+    "description": "Trial upsell with expiry date.",
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "premiumTrialActive": "You're on a Plutonium trial. Upgrade to keep your custom tag and earn a badge on your profile.",
+  "@premiumTrialActive": {
+    "description": "Trial upsell without specific expiry date."
+  },
+  "fluxerTagUpdated": "FluxerTag updated",
+  "@fluxerTagUpdated": {
+    "description": "Success toast after FluxerTag change."
+  },
+  "fluxerTagUpdateFailed": "Failed to update FluxerTag. Please try again.",
+  "@fluxerTagUpdateFailed": {
+    "description": "Error message when FluxerTag update fails."
+  },
+  "continueAction": "Continue",
+  "@continueAction": {
+    "description": "Generic continue action button label."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Generic cancel action button label."
   }
 }

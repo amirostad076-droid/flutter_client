@@ -852,4 +852,125 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   @override
   String get externalLinkTrustAllDisabledDescription =>
       'When enabled, no external link warnings will be shown. This is less secure.';
+
+  @override
+  String get imageFileTooLarge =>
+      'Image file is too large. Please choose a file smaller than 10 MB.';
+
+  @override
+  String get animatedAvatarsRequirePlutonium =>
+      'Animated avatars require Plutonium';
+
+  @override
+  String get animatedBannersRequirePlutonium =>
+      'Animated banners require Plutonium';
+
+  @override
+  String get animatedAvifNotSupported => 'Animated AVIF Not Supported';
+
+  @override
+  String get animatedAvifNotSupportedBody =>
+      'Cropping and rotating animated AVIF files isn\'t supported yet. If you proceed, it will be uploaded in its original form.';
+
+  @override
+  String get uploadAsIs => 'Upload As-Is';
+
+  @override
+  String get croppingAnimatedNotSupported =>
+      'Cropping animated images isn\'t supported yet. The original upload will be used.';
+
+  @override
+  String get cropAvatar => 'Crop Avatar';
+
+  @override
+  String get cropBanner => 'Crop Banner';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get crop => 'Crop';
+
+  @override
+  String get changeYourFluxerTag => 'Change Your FluxerTag';
+
+  @override
+  String get fluxerTagDescriptionBase =>
+      'Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive.';
+
+  @override
+  String get fluxerTagDescriptionVisionary =>
+      'Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive. You can pick any available 4-digit tag from #0000 to #9999.';
+
+  @override
+  String get fluxerTagDescriptionPremium =>
+      'Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive. You can pick any available 4-digit tag from #0001 to #9999.';
+
+  @override
+  String validationLengthRange(int min, int max) {
+    return 'Between $min and $max characters';
+  }
+
+  @override
+  String get validationAllowedChars =>
+      'Letters (a-z, A-Z), numbers (0-9), and underscores (_) only';
+
+  @override
+  String get discriminatorPremiumTooltip =>
+      'Get Plutonium to customize your tag or keep it when changing your username';
+
+  @override
+  String get fluxerTagAlreadyTaken => 'FluxerTag Already Taken';
+
+  @override
+  String fluxerTagAlreadyTakenBody(String username, String discriminator) {
+    return 'The FluxerTag $username#$discriminator is already taken. Continuing will reroll your discriminator automatically.';
+  }
+
+  @override
+  String get customTagIsTemporary => 'Custom Tag Is Temporary';
+
+  @override
+  String customTagTemporaryBodyWithDate(String date) {
+    return 'Your custom 4-digit tag is only available while your Plutonium subscription is active. When your subscription expires on $date, your tag will revert to a randomly assigned number after a 3-day grace period.';
+  }
+
+  @override
+  String get customTagTemporaryBody =>
+      'Your custom 4-digit tag is only available while your Plutonium subscription is active. When your subscription expires, your tag will revert to a randomly assigned number after a 3-day grace period.';
+
+  @override
+  String get iUnderstandContinue => 'I Understand, Continue';
+
+  @override
+  String get premiumWarningPendingDiscriminator =>
+      'If you save this FluxerTag, your custom 4-digit tag will revert to a random number when your Plutonium subscription ends. If your subscription fails to renew, you\'ll have a 3-day grace period before the tag changes.';
+
+  @override
+  String premiumWarningActiveDiscriminator(String discriminator) {
+    return 'Your custom 4-digit tag (#$discriminator) is active while your Plutonium subscription is active. If your subscription ends or fails to renew after a 3-day grace period, your tag will revert to a random number.';
+  }
+
+  @override
+  String get premiumUpsellCustomizeTag =>
+      'Customize your 4-digit tag or keep it when changing your username';
+
+  @override
+  String premiumTrialExpiresOn(String date) {
+    return 'Your Plutonium trial expires on $date. Upgrade to keep your custom tag and earn a badge on your profile.';
+  }
+
+  @override
+  String get premiumTrialActive =>
+      'You\'re on a Plutonium trial. Upgrade to keep your custom tag and earn a badge on your profile.';
+
+  @override
+  String get fluxerTagUpdated => 'FluxerTag updated';
+
+  @override
+  String get fluxerTagUpdateFailed =>
+      'Failed to update FluxerTag. Please try again.';
+
+  @override
+  String get continueAction => 'Continue';
 }

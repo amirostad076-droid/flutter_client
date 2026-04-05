@@ -6,10 +6,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart';
+import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const int _kMinUsernameLength = 2;
@@ -20,7 +26,7 @@ Future<void> showFluxerTagChangeSheet(BuildContext context) {
   final canDismissNotifier = ValueNotifier<bool>(true);
   return FluxerBottomSheet.show<void>(
     context,
-    title: 'Change FluxerTag',
+    title: FluxerLocalizations.of(context).changeYourFluxerTag,
     canDismissNotifier: canDismissNotifier,
     builder: (sheetContext, close) => _FluxerTagChangeContent(
       canDismissNotifier: canDismissNotifier,
@@ -127,6 +133,9 @@ class _FluxerTagChangeContentState
         _discriminatorController.text != _originalDiscriminator;
   }
 
+  bool get _hasPendingDiscriminatorChange =>
+      _discriminatorController.text.trim() != _originalDiscriminator;
+
   Future<void> _submit() async {
     if (!_isFormValid || _isSubmitting) {
       return;
@@ -178,11 +187,11 @@ class _FluxerTagChangeContentState
 
       if (state.isPremium &&
           !state.hasLifetimePremium &&
-          _discriminatorController.text.trim() != _originalDiscriminator &&
+          _hasPendingDiscriminatorChange &&
           !_confirmedTemporary) {
         setState(() => _isSubmitting = false);
 
-        final confirmed = await _showTemporaryTagWarning();
+        final confirmed = await _showTemporaryTagWarning(state);
 
         if (!mounted) {
           return;
@@ -207,8 +216,8 @@ class _FluxerTagChangeContentState
       }
 
       ref.read(toastProvider.notifier).show(
-        const FluxerToast(
-          message: 'FluxerTag updated',
+        FluxerToast(
+          message: FluxerLocalizations.of(context).fluxerTagUpdated,
           variant: FluxerToastVariant.success,
         ),
       );
@@ -220,7 +229,7 @@ class _FluxerTagChangeContentState
       }
       setState(() {
         _isSubmitting = false;
-        _error = 'Failed to update FluxerTag. Please try again.';
+        _error = FluxerLocalizations.of(context).fluxerTagUpdateFailed;
       });
     }
   }
@@ -229,9 +238,10 @@ class _FluxerTagChangeContentState
     required String username,
     required String discriminator,
   }) {
+    final l10n = FluxerLocalizations.of(context);
     return FluxerBottomSheet.show<bool>(
       context,
-      title: 'FluxerTag Already Taken',
+      title: l10n.fluxerTagAlreadyTaken,
       builder: (sheetContext, _) => Padding(
         padding: EdgeInsets.all(sheetContext.layout.s4),
         child: Column(
@@ -239,8 +249,7 @@ class _FluxerTagChangeContentState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'The FluxerTag $username#$discriminator is already taken. '
-              'Continuing will reroll your discriminator automatically.',
+              l10n.fluxerTagAlreadyTakenBody(username, discriminator),
               style: sheetContext.textStyles.bodyMedium.copyWith(
                 color: sheetContext.colors.textSecondary,
               ),
@@ -248,12 +257,12 @@ class _FluxerTagChangeContentState
             SizedBox(height: sheetContext.layout.s4),
             FluxerButton.primary(
               onPressed: () => Navigator.of(sheetContext).pop(true),
-              label: 'Continue',
+              label: l10n.continueAction,
             ),
             SizedBox(height: sheetContext.layout.s2),
             FluxerButton.secondary(
               onPressed: () => Navigator.of(sheetContext).pop(false),
-              label: 'Cancel',
+              label: l10n.cancel,
             ),
           ],
         ),
@@ -261,10 +270,23 @@ class _FluxerTagChangeContentState
     );
   }
 
-  Future<bool?> _showTemporaryTagWarning() {
+  Future<bool?> _showTemporaryTagWarning(UserSettingsViewState state) {
+    final l10n = FluxerLocalizations.of(context);
+    final expiryDate = state.premiumUntil != null
+        ? DateTime.tryParse(state.premiumUntil!)
+        : null;
+
+    final String message;
+    if (expiryDate != null) {
+      final formatted = DateFormat.yMMMd().format(expiryDate);
+      message = l10n.customTagTemporaryBodyWithDate(formatted);
+    } else {
+      message = l10n.customTagTemporaryBody;
+    }
+
     return FluxerBottomSheet.show<bool>(
       context,
-      title: 'Custom Tag Is Temporary',
+      title: l10n.customTagIsTemporary,
       builder: (sheetContext, _) => Padding(
         padding: EdgeInsets.all(sheetContext.layout.s4),
         child: Column(
@@ -272,10 +294,7 @@ class _FluxerTagChangeContentState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Your custom 4-digit tag is only available while your '
-              'Plutonium subscription is active. When your subscription '
-              'expires, your tag will revert to a randomly assigned number '
-              'after a 3-day grace period.',
+              message,
               style: sheetContext.textStyles.bodyMedium.copyWith(
                 color: sheetContext.colors.textSecondary,
               ),
@@ -283,12 +302,12 @@ class _FluxerTagChangeContentState
             SizedBox(height: sheetContext.layout.s4),
             FluxerButton.primary(
               onPressed: () => Navigator.of(sheetContext).pop(true),
-              label: 'I Understand, Continue',
+              label: l10n.iUnderstandContinue,
             ),
             SizedBox(height: sheetContext.layout.s2),
             FluxerButton.secondary(
               onPressed: () => Navigator.of(sheetContext).pop(false),
-              label: 'Cancel',
+              label: l10n.cancel,
             ),
           ],
         ),
@@ -296,20 +315,89 @@ class _FluxerTagChangeContentState
     );
   }
 
-  Widget _buildValidationRules() {
+  String _buildDescriptionText(
+    UserSettingsViewState state,
+    FluxerLocalizations l10n,
+  ) {
+    if (state.isPremium) {
+      if (state.hasLifetimePremium) {
+        return l10n.fluxerTagDescriptionVisionary;
+      }
+      return l10n.fluxerTagDescriptionPremium;
+    }
+    return l10n.fluxerTagDescriptionBase;
+  }
+
+  String? _buildPremiumWarningText(
+    UserSettingsViewState state,
+    FluxerLocalizations l10n,
+  ) {
+    if (!state.isPremium || state.hasLifetimePremium) {
+      return null;
+    }
+
+    if (!state.premiumDiscriminator && !_hasPendingDiscriminatorChange) {
+      return null;
+    }
+
+    if (_hasPendingDiscriminatorChange) {
+      return l10n.premiumWarningPendingDiscriminator;
+    }
+
+    return l10n.premiumWarningActiveDiscriminator(state.discriminator);
+  }
+
+  Widget _buildValidationRules(FluxerLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         _ValidationRule(
-          label: 'Between 2 and 32 characters',
+          label: l10n.validationLengthRange(
+            _kMinUsernameLength,
+            _kMaxUsernameLength,
+          ),
           isValid: _isValidLength,
         ),
         _ValidationRule(
-          label: 'Only letters, numbers, and underscores',
+          label: l10n.validationAllowedChars,
           isValid: _isValidChars,
         ),
       ],
+    );
+  }
+
+  Widget _buildPremiumUpsell(
+    UserSettingsViewState state,
+    FluxerLayoutTheme layout,
+    FluxerColorTheme colors,
+    FluxerTextTheme textStyles,
+    FluxerLocalizations l10n,
+  ) {
+    if (state.isOutOfBandTrialActive) {
+      final expiryDate = state.premiumOutOfBandTrialEndsAt;
+      final String trialText;
+      if (expiryDate != null) {
+        final formatted = DateFormat.yMMMd().format(expiryDate);
+        trialText = l10n.premiumTrialExpiresOn(formatted);
+      } else {
+        trialText = l10n.premiumTrialActive;
+      }
+      return Padding(
+        padding: EdgeInsets.only(top: layout.s3),
+        child: FluxerWarningAlert(
+          message: trialText,
+          variant: FluxerAlertVariant.info,
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(top: layout.s3),
+      child: Text(
+        l10n.premiumUpsellCustomizeTag,
+        style: textStyles.bodySmall.copyWith(color: colors.textTertiary),
+      ),
     );
   }
 
@@ -320,12 +408,14 @@ class _FluxerTagChangeContentState
     final layout = context.layout;
     final textStyles = context.textStyles;
 
+    final l10n = FluxerLocalizations.of(context);
     final showValidationRules = _usernameController.text.isNotEmpty;
+    final premiumWarning = _buildPremiumWarningText(state, l10n);
 
     Widget? discriminatorSuffix;
     if (!state.isPremium) {
       discriminatorSuffix = FluxerTooltip(
-        message: 'Customize your 4-digit tag with Plutonium',
+        message: l10n.discriminatorPremiumTooltip,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: layout.s2),
           child: PhosphorIcon(
@@ -344,26 +434,69 @@ class _FluxerTagChangeContentState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FluxerInput(
-              controller: _usernameController,
-              label: 'Username',
-              hint: 'Marty_McFly',
-              maxLength: _kMaxUsernameLength,
-              autofocus: true,
+            Text(
+              _buildDescriptionText(state, l10n),
+              style: textStyles.bodySmall.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+            SizedBox(height: layout.s4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: FluxerInput(
+                    controller: _usernameController,
+                    hint: 'Marty_McFly',
+                    maxLength: _kMaxUsernameLength,
+                    autofocus: true,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: layout.s2,
+                    right: layout.s2,
+                    top: layout.s3,
+                  ),
+                  child: Text(
+                    '#',
+                    style: textStyles.bodyMedium.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: FluxerInput(
+                    controller: _discriminatorController,
+                    hint: '0000',
+                    maxLength: 4,
+                    enabled: state.isPremium,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    suffixIcon: discriminatorSuffix,
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: layout.s2),
-            if (showValidationRules) _buildValidationRules(),
-            SizedBox(height: layout.s4),
-            FluxerInput(
-              controller: _discriminatorController,
-              label: 'Discriminator',
-              hint: '0000',
-              maxLength: 4,
-              enabled: state.isPremium,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              suffixIcon: discriminatorSuffix,
+            if (showValidationRules) ...[
+              _buildValidationRules(l10n),
+              SizedBox(height: layout.s2),
+            ],
+            if (!state.isPremium) _buildPremiumUpsell(
+              state,
+              layout,
+              colors,
+              textStyles,
+              l10n,
             ),
+            if (premiumWarning != null) ...[
+              SizedBox(height: layout.s3),
+              FluxerWarningAlert(message: premiumWarning),
+            ],
             if (_error != null) ...[
               SizedBox(height: layout.s2),
               Text(
@@ -377,7 +510,7 @@ class _FluxerTagChangeContentState
             FluxerButton.primary(
               onPressed:
                   _isFormValid && _isDirty && !_isSubmitting ? _submit : null,
-              label: 'Save',
+              label: l10n.continueAction,
               isLoading: _isSubmitting,
             ),
           ],
@@ -411,9 +544,11 @@ class _ValidationRule extends StatelessWidget {
         children: [
           PhosphorIcon(icon, size: 14, color: color),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: textStyles.bodySmall.copyWith(color: color),
+          Flexible(
+            child: Text(
+              label,
+              style: textStyles.bodySmall.copyWith(color: color),
+            ),
           ),
         ],
       ),
