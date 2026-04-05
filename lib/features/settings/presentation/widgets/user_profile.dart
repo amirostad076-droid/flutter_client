@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker_popout.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/fluxer_tag_change_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/image_crop_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -318,8 +319,8 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 ),
               )
             else
-              const FluxerButton.primary(
-                onPressed: null,
+              FluxerButton.primary(
+                onPressed: () => showFluxerTagChangeSheet(context),
                 label: 'Change FluxerTag',
                 size: FluxerButtonSize.small,
               ),
