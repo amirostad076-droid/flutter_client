@@ -10,5 +10,9 @@
 		<string>webcredentials:web.fluxer.app</string>
 		<string>webcredentials:fluxer.com</string>
 	</array>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.fluxer</string>
+	</array>
 </dict>
 </plist>
