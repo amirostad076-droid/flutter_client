@@ -159,27 +159,33 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     required bool showBottomNav,
   }) {
     final screenWidth = MediaQuery.sizeOf(context).width;
+    final canSwipePop = _canSwipePop(location);
 
     return GestureDetector(
-      onHorizontalDragUpdate: (details) {
-        _swipeController.value =
-            (_swipeController.value + (details.primaryDelta ?? 0) / screenWidth)
-                .clamp(0.0, 1.0);
-      },
-      onHorizontalDragEnd: (details) {
-        final velocity = details.velocity.pixelsPerSecond.dx;
-        if (_swipeController.value > _swipeThreshold || velocity > 800) {
-          unawaited(
-            _swipeController.forward().then((_) {
-              if (mounted) {
-                context.pop();
+      onHorizontalDragUpdate: canSwipePop
+          ? (details) {
+              _swipeController.value =
+                  (_swipeController.value +
+                          (details.primaryDelta ?? 0) / screenWidth)
+                      .clamp(0.0, 1.0);
+            }
+          : null,
+      onHorizontalDragEnd: canSwipePop
+          ? (details) {
+              final velocity = details.velocity.pixelsPerSecond.dx;
+              if (_swipeController.value > _swipeThreshold || velocity > 800) {
+                unawaited(
+                  _swipeController.forward().then((_) {
+                    if (mounted) {
+                      context.pop();
+                    }
+                  }),
+                );
+              } else {
+                unawaited(_swipeController.reverse());
               }
-            }),
-          );
-        } else {
-          unawaited(_swipeController.reverse());
-        }
-      },
+            }
+          : null,
       child: AnimatedBuilder(
         animation: _swipeController,
         builder: (context, child) {
@@ -254,6 +260,13 @@ class _AppLayoutState extends ConsumerState<AppLayout>
 
   /// Matches any /channels/:x/:y path (DM channel, guild channel, message).
   bool _isChatRoute(String location) => _chatRoutePattern.hasMatch(location);
+
+  bool _canSwipePop(String location) {
+    if (location == '/notifications' || location == '/you') {
+      return false;
+    }
+    return true;
+  }
 
   Widget _buildProfileTabIcon({
     required UserSettingsViewState user,
