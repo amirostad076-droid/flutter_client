@@ -2,7 +2,7 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 
 class EmbedTitle extends StatelessWidget {
   final String title;
@@ -10,25 +10,27 @@ class EmbedTitle extends StatelessWidget {
 
   const EmbedTitle({required this.title, this.url, super.key});
 
-  Future<void> _launch() async {
+  Future<void> _launch(BuildContext context) async {
     if (url == null) {
       return;
     }
-    final uri = Uri.tryParse(url!);
-    if (uri == null) {
-      return;
-    }
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    await handleExternalLinkTap(context, url!);
   }
 
   @override
   Widget build(BuildContext context) {
+    final baseStyle = context.textStyles.embedTitle;
+
     if (url == null) {
-      return Text(title, style: context.textStyles.embedTitle);
+      return Text(
+        title,
+        style: baseStyle.copyWith(color: context.colors.textPrimary),
+      );
     }
+
     return GestureDetector(
-      onTap: _launch,
-      child: Text(title, style: context.textStyles.embedTitle),
+      onTap: () => _launch(context),
+      child: Text(title, style: baseStyle),
     );
   }
 }
