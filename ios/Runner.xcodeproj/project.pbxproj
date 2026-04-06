@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -116,7 +116,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		FBA74A162F83B0FA00330527 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		FBA74A162F83B0FA00330527 /* Exceptions for "BroadcastExtension" folder in "BroadcastExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -126,7 +126,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		FBA74A022F83B0FA00330527 /* BroadcastExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (FBA74A162F83B0FA00330527 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BroadcastExtension; sourceTree = "<group>"; };
+		FBA74A022F83B0FA00330527 /* BroadcastExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				FBA74A162F83B0FA00330527 /* Exceptions for "BroadcastExtension" folder in "BroadcastExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = BroadcastExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -292,10 +303,10 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				FBA74A092F83B0FA00330527 /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				E667480AAA8E7709ADEACE48 /* [CP] Embed Pods Frameworks */,
 				DAD76651A540C32924E87AA7 /* [CP] Copy Pods Resources */,
-				FBA74A092F83B0FA00330527 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -323,8 +334,6 @@
 				FBA74A022F83B0FA00330527 /* BroadcastExtension */,
 			);
 			name = BroadcastExtension;
-			packageProductDependencies = (
-			);
 			productName = BroadcastExtension;
 			productReference = FBA749FF2F83B0FA00330527 /* BroadcastExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -486,13 +495,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -507,13 +512,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1308,7 +1309,7 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer.BroadcastExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer.canary.BroadcastExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1472,7 +1473,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer.BroadcastExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer.canary.BroadcastExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1628,7 +1629,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer.BroadcastExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer.canary.BroadcastExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
