@@ -973,4 +973,180 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get continueAction => 'Continue';
+
+  @override
+  String get profileCustomizationTitle => 'Profile Customization';
+
+  @override
+  String get profileCustomizationDescription =>
+      'Edit your profile appearance and see a live preview';
+
+  @override
+  String get usernameLabel => 'Username';
+
+  @override
+  String get claimAccountToChangeFluxerTag =>
+      'Claim your account to change your FluxerTag';
+
+  @override
+  String get changeFluxerTag => 'Change FluxerTag';
+
+  @override
+  String customizeTagWithPlutoniumTooltip(String discriminator) {
+    return 'Customize your 4-digit tag (#$discriminator) to your liking with Plutonium';
+  }
+
+  @override
+  String get changeUsernameAndTagHint => 'Change your username and 4-digit tag';
+
+  @override
+  String customTagSubscriptionWarning(String discriminator) {
+    return 'Your custom tag (#$discriminator) is tied to your Plutonium subscription and will revert to a random tag if it expires.';
+  }
+
+  @override
+  String get displayNameLabel => 'Display Name';
+
+  @override
+  String get pronounsLabel => 'Pronouns';
+
+  @override
+  String get avatarLabel => 'Avatar';
+
+  @override
+  String get changeAvatar => 'Change Avatar';
+
+  @override
+  String get removeAvatar => 'Remove Avatar';
+
+  @override
+  String get avatarDescription =>
+      'JPEG, PNG, GIF, WebP. Max 10MB. Recommended: 512×512px';
+
+  @override
+  String get bannerLabel => 'Banner';
+
+  @override
+  String get changeBanner => 'Change Banner';
+
+  @override
+  String get removeBanner => 'Remove Banner';
+
+  @override
+  String get bannerDescription =>
+      'JPEG, PNG, GIF, WebP. Max 10MB. Minimum: 680×240px (17:6)';
+
+  @override
+  String get accentColorLabel => 'Accent Color';
+
+  @override
+  String get accentColorDescription =>
+      'Customizes the border and banner color on your profile';
+
+  @override
+  String get aboutMeLabel => 'About Me';
+
+  @override
+  String get aboutMeHelperText => 'You can use links, emoji, and Markdown.';
+
+  @override
+  String get emojiPickerTitle => 'Emoji';
+
+  @override
+  String get plutoniumBadgePrivacyTitle => 'Plutonium Badge Privacy';
+
+  @override
+  String get plutoniumBadgePrivacyDescription =>
+      'Control how your Plutonium badge is displayed to others';
+
+  @override
+  String get hidePlutoniumBadgeLabel => 'Hide Plutonium badge entirely';
+
+  @override
+  String get hidePlutoniumBadgeDescription =>
+      'Completely hide your Plutonium badge from other users';
+
+  @override
+  String get hidePlutoniumPurchaseDate => 'Hide Plutonium purchase date';
+
+  @override
+  String hidePlutoniumPurchaseDateWithDate(String date) {
+    return 'Hide Plutonium purchase date ($date)';
+  }
+
+  @override
+  String get hidePurchaseDateDescription =>
+      'Remove when you first bought Plutonium from your badge';
+
+  @override
+  String get maskVisionaryAsSubscription => 'Mask Visionary as subscription';
+
+  @override
+  String get maskVisionaryDescription =>
+      'Show your Visionary as a regular subscription instead';
+
+  @override
+  String get hideVisionaryIdBadge => 'Hide Visionary ID badge';
+
+  @override
+  String hideVisionaryIdBadgeWithSequence(int sequence) {
+    return 'Hide Visionary ID badge (#$sequence)';
+  }
+
+  @override
+  String get hideVisionaryIdDescription => 'Remove your Visionary ID badge';
+
+  @override
+  String premiumTrialSubscriptionStarts(String date) {
+    return 'You\'re on a Plutonium trial — your subscription starts on $date';
+  }
+
+  @override
+  String get premiumTrialSubscriptionStartsDescription =>
+      'Your subscription will automatically begin when your trial ends. No action needed.';
+
+  @override
+  String premiumTrialExpiresOnProfile(String date) {
+    return 'You\'re on a Plutonium trial that expires on $date';
+  }
+
+  @override
+  String get premiumTrialActiveProfile => 'You\'re on a Plutonium trial';
+
+  @override
+  String get avatarDescriptionNonPremium =>
+      'JPEG, PNG, WebP. Max 10MB. Recommended: 512×512px. Animated avatars (GIF) require Plutonium.';
+
+  @override
+  String get bannerPlutoniumUpsell =>
+      'Customize your profile with a static or animated banner image to make it stand out.';
+
+  @override
+  String get getPlutonium => 'Get Plutonium';
+
+  @override
+  String get plutoniumNotAvailableTitle => 'Plutonium';
+
+  @override
+  String get plutoniumNotAvailableBody =>
+      'In-app purchases are not available on this platform yet. Stay tuned — coming soon!';
+
+  @override
+  String get profilePreviewLabel => 'Preview';
+
+  @override
+  String get profilePreviewMessage => 'Message';
+
+  @override
+  String get profilePreviewMemberSince => 'Fluxer Member Since';
+
+  @override
+  String get unclaimedAccountTitle => 'Unclaimed Account';
+
+  @override
+  String get unclaimedAccountDescription =>
+      'Your account is not yet claimed. Without an email and password, you could lose access. Claim your account now to secure it.';
+
+  @override
+  String get claimAccount => 'Claim Account';
 }

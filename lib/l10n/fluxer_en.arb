@@ -1237,8 +1237,223 @@
   "@continueAction": {
     "description": "Generic continue action button label."
   },
-  "cancel": "Cancel",
-  "@cancel": {
-    "description": "Generic cancel action button label."
+
+  "profileCustomizationTitle": "Profile Customization",
+  "@profileCustomizationTitle": {
+    "description": "Heading for the profile customization settings section."
+  },
+  "profileCustomizationDescription": "Edit your profile appearance and see a live preview",
+  "@profileCustomizationDescription": {
+    "description": "Subheading for the profile customization settings section."
+  },
+  "usernameLabel": "Username",
+  "@usernameLabel": {
+    "description": "Label for the username field in profile settings."
+  },
+  "claimAccountToChangeFluxerTag": "Claim your account to change your FluxerTag",
+  "@claimAccountToChangeFluxerTag": {
+    "description": "Tooltip when unverified user hovers the disabled Change FluxerTag button."
+  },
+  "changeFluxerTag": "Change FluxerTag",
+  "@changeFluxerTag": {
+    "description": "Button label to open the FluxerTag change flow."
+  },
+  "customizeTagWithPlutoniumTooltip": "Customize your 4-digit tag (#{discriminator}) to your liking with Plutonium",
+  "@customizeTagWithPlutoniumTooltip": {
+    "description": "Tooltip on the crown upsell button next to the FluxerTag button.",
+    "placeholders": {
+      "discriminator": { "type": "String" }
+    }
+  },
+  "changeUsernameAndTagHint": "Change your username and 4-digit tag",
+  "@changeUsernameAndTagHint": {
+    "description": "Hint text below the username buttons."
+  },
+  "customTagSubscriptionWarning": "Your custom tag (#{discriminator}) is tied to your Plutonium subscription and will revert to a random tag if it expires.",
+  "@customTagSubscriptionWarning": {
+    "description": "Warning shown when user has a premium discriminator that is not lifetime.",
+    "placeholders": {
+      "discriminator": { "type": "String" }
+    }
+  },
+  "displayNameLabel": "Display Name",
+  "@displayNameLabel": {
+    "description": "Label for the display name input."
+  },
+  "pronounsLabel": "Pronouns",
+  "@pronounsLabel": {
+    "description": "Label for the pronouns input."
+  },
+  "avatarLabel": "Avatar",
+  "@avatarLabel": {
+    "description": "Label for the avatar upload section."
+  },
+  "changeAvatar": "Change Avatar",
+  "@changeAvatar": {
+    "description": "Button to upload a new avatar image."
+  },
+  "removeAvatar": "Remove Avatar",
+  "@removeAvatar": {
+    "description": "Button to remove the current avatar."
+  },
+  "avatarDescription": "JPEG, PNG, GIF, WebP. Max 10MB. Recommended: 512×512px",
+  "@avatarDescription": {
+    "description": "Helper text describing avatar image requirements."
+  },
+  "bannerLabel": "Banner",
+  "@bannerLabel": {
+    "description": "Label for the banner upload section."
+  },
+  "changeBanner": "Change Banner",
+  "@changeBanner": {
+    "description": "Button to upload a new banner image."
+  },
+  "removeBanner": "Remove Banner",
+  "@removeBanner": {
+    "description": "Button to remove the current banner."
+  },
+  "bannerDescription": "JPEG, PNG, GIF, WebP. Max 10MB. Minimum: 680×240px (17:6)",
+  "@bannerDescription": {
+    "description": "Helper text describing banner image requirements."
+  },
+  "accentColorLabel": "Accent Color",
+  "@accentColorLabel": {
+    "description": "Label for the accent color picker."
+  },
+  "accentColorDescription": "Customizes the border and banner color on your profile",
+  "@accentColorDescription": {
+    "description": "Helper text for the accent color picker."
+  },
+  "aboutMeLabel": "About Me",
+  "@aboutMeLabel": {
+    "description": "Label for the bio text area."
+  },
+  "aboutMeHelperText": "You can use links, emoji, and Markdown.",
+  "@aboutMeHelperText": {
+    "description": "Helper text below the bio text area."
+  },
+  "emojiPickerTitle": "Emoji",
+  "@emojiPickerTitle": {
+    "description": "Title for the emoji picker sheet."
+  },
+  "plutoniumBadgePrivacyTitle": "Plutonium Badge Privacy",
+  "@plutoniumBadgePrivacyTitle": {
+    "description": "Heading for the premium badge privacy settings section."
+  },
+  "plutoniumBadgePrivacyDescription": "Control how your Plutonium badge is displayed to others",
+  "@plutoniumBadgePrivacyDescription": {
+    "description": "Subheading for the premium badge privacy settings section."
+  },
+  "hidePlutoniumBadgeLabel": "Hide Plutonium badge entirely",
+  "@hidePlutoniumBadgeLabel": {
+    "description": "Label for the toggle to hide the Plutonium badge."
+  },
+  "hidePlutoniumBadgeDescription": "Completely hide your Plutonium badge from other users",
+  "@hidePlutoniumBadgeDescription": {
+    "description": "Description for the toggle to hide the Plutonium badge."
+  },
+  "hidePlutoniumPurchaseDate": "Hide Plutonium purchase date",
+  "@hidePlutoniumPurchaseDate": {
+    "description": "Label for the toggle to hide the Plutonium purchase date."
+  },
+  "hidePlutoniumPurchaseDateWithDate": "Hide Plutonium purchase date ({date})",
+  "@hidePlutoniumPurchaseDateWithDate": {
+    "description": "Label for the toggle to hide the Plutonium purchase date, showing the actual date.",
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "hidePurchaseDateDescription": "Remove when you first bought Plutonium from your badge",
+  "@hidePurchaseDateDescription": {
+    "description": "Description for the toggle to hide the Plutonium purchase date."
+  },
+  "maskVisionaryAsSubscription": "Mask Visionary as subscription",
+  "@maskVisionaryAsSubscription": {
+    "description": "Label for the toggle to mask Visionary as a regular subscription."
+  },
+  "maskVisionaryDescription": "Show your Visionary as a regular subscription instead",
+  "@maskVisionaryDescription": {
+    "description": "Description for the toggle to mask Visionary as a regular subscription."
+  },
+  "hideVisionaryIdBadge": "Hide Visionary ID badge",
+  "@hideVisionaryIdBadge": {
+    "description": "Label for the toggle to hide the Visionary ID badge."
+  },
+  "hideVisionaryIdBadgeWithSequence": "Hide Visionary ID badge (#{sequence})",
+  "@hideVisionaryIdBadgeWithSequence": {
+    "description": "Label for the toggle to hide the Visionary ID badge, showing the sequence number.",
+    "placeholders": {
+      "sequence": { "type": "int" }
+    }
+  },
+  "hideVisionaryIdDescription": "Remove your Visionary ID badge",
+  "@hideVisionaryIdDescription": {
+    "description": "Description for the toggle to hide the Visionary ID badge."
+  },
+  "premiumTrialSubscriptionStarts": "You're on a Plutonium trial — your subscription starts on {date}",
+  "@premiumTrialSubscriptionStarts": {
+    "description": "Trial banner title when user has an active subscription pending after trial.",
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "premiumTrialSubscriptionStartsDescription": "Your subscription will automatically begin when your trial ends. No action needed.",
+  "@premiumTrialSubscriptionStartsDescription": {
+    "description": "Trial banner description when user has an active subscription pending after trial."
+  },
+  "premiumTrialExpiresOnProfile": "You're on a Plutonium trial that expires on {date}",
+  "@premiumTrialExpiresOnProfile": {
+    "description": "Trial banner title with expiry date.",
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "premiumTrialActiveProfile": "You're on a Plutonium trial",
+  "@premiumTrialActiveProfile": {
+    "description": "Trial banner title without specific expiry date."
+  },
+  "avatarDescriptionNonPremium": "JPEG, PNG, WebP. Max 10MB. Recommended: 512×512px. Animated avatars (GIF) require Plutonium.",
+  "@avatarDescriptionNonPremium": {
+    "description": "Avatar helper text for non-premium users, mentioning Plutonium requirement for animated avatars."
+  },
+  "bannerPlutoniumUpsell": "Customize your profile with a static or animated banner image to make it stand out.",
+  "@bannerPlutoniumUpsell": {
+    "description": "Upsell text shown in place of banner upload for non-premium users."
+  },
+  "getPlutonium": "Get Plutonium",
+  "@getPlutonium": {
+    "description": "Button label for the Plutonium upsell call-to-action."
+  },
+  "plutoniumNotAvailableTitle": "Plutonium",
+  "@plutoniumNotAvailableTitle": {
+    "description": "Title for the Plutonium not-available-yet bottom sheet."
+  },
+  "plutoniumNotAvailableBody": "In-app purchases are not available on this platform yet. Stay tuned — coming soon!",
+  "@plutoniumNotAvailableBody": {
+    "description": "Body text for the Plutonium not-available-yet bottom sheet."
+  },
+  "profilePreviewLabel": "Preview",
+  "@profilePreviewLabel": {
+    "description": "Label shown above the profile preview card in settings."
+  },
+  "profilePreviewMessage": "Message",
+  "@profilePreviewMessage": {
+    "description": "Disabled message button in the profile preview card."
+  },
+  "profilePreviewMemberSince": "Fluxer Member Since",
+  "@profilePreviewMemberSince": {
+    "description": "Label for the member-since date in the profile preview card."
+  },
+  "unclaimedAccountTitle": "Unclaimed Account",
+  "@unclaimedAccountTitle": {
+    "description": "Title for the unclaimed account warning bar."
+  },
+  "unclaimedAccountDescription": "Your account is not yet claimed. Without an email and password, you could lose access. Claim your account now to secure it.",
+  "@unclaimedAccountDescription": {
+    "description": "Description for the unclaimed account warning bar."
+  },
+  "claimAccount": "Claim Account",
+  "@claimAccount": {
+    "description": "Button to start the account claiming flow."
   }
 }

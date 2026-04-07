@@ -35,6 +35,8 @@ class UserSettingsViewState {
   final bool developerMode;
   final List<String> trustedDomains;
 
+  final int publicFlags;
+
   final String? bio;
   final String? pronouns;
   final int? accentColor;
@@ -84,6 +86,7 @@ class UserSettingsViewState {
     required this.messageDisplayCompact,
     required this.developerMode,
     required this.trustedDomains,
+    this.publicFlags = 0,
     this.bio,
     this.pronouns,
     this.accentColor,
@@ -143,43 +146,38 @@ class UserSettingsViewState {
   bool? get editedPremiumBadgeHidden => _editedPremiumBadgeHidden == _unset
       ? null
       : _editedPremiumBadgeHidden as bool?;
-  bool get isEditedPremiumBadgeHiddenSet =>
-      _editedPremiumBadgeHidden != _unset;
+  bool get isEditedPremiumBadgeHiddenSet => _editedPremiumBadgeHidden != _unset;
 
   bool? get editedPremiumBadgeMasked => _editedPremiumBadgeMasked == _unset
       ? null
       : _editedPremiumBadgeMasked as bool?;
-  bool get isEditedPremiumBadgeMaskedSet =>
-      _editedPremiumBadgeMasked != _unset;
+  bool get isEditedPremiumBadgeMaskedSet => _editedPremiumBadgeMasked != _unset;
 
   bool? get editedPremiumBadgeTimestampHidden =>
       _editedPremiumBadgeTimestampHidden == _unset
-          ? null
-          : _editedPremiumBadgeTimestampHidden as bool?;
+      ? null
+      : _editedPremiumBadgeTimestampHidden as bool?;
   bool get isEditedPremiumBadgeTimestampHiddenSet =>
       _editedPremiumBadgeTimestampHidden != _unset;
 
   bool? get editedPremiumBadgeSequenceHidden =>
       _editedPremiumBadgeSequenceHidden == _unset
-          ? null
-          : _editedPremiumBadgeSequenceHidden as bool?;
+      ? null
+      : _editedPremiumBadgeSequenceHidden as bool?;
   bool get isEditedPremiumBadgeSequenceHiddenSet =>
       _editedPremiumBadgeSequenceHidden != _unset;
 
   bool get isPremium =>
-      premiumType != null &&
-      premiumType != UserPremiumTypes.none.json;
+      premiumType != null && premiumType != UserPremiumTypes.none.json;
 
-  bool get hasLifetimePremium =>
-      premiumType == UserPremiumTypes.lifetime.json;
+  bool get hasLifetimePremium => premiumType == UserPremiumTypes.lifetime.json;
 
   bool get hasVerifiedEmail => email != null;
 
   bool get trustAllDomains =>
       external_link_utils.trustAllDomains(trustedDomains);
 
-  int get trustedDomainsCount =>
-      trustAllDomains ? 0 : trustedDomains.length;
+  int get trustedDomainsCount => trustAllDomains ? 0 : trustedDomains.length;
 
   bool get isOutOfBandTrialActive =>
       premiumOutOfBandTrialEndsAt != null &&
@@ -272,6 +270,7 @@ class UserSettingsViewState {
     bool? messageDisplayCompact,
     bool? developerMode,
     List<String>? trustedDomains,
+    int? publicFlags,
     Object? bio = _unset,
     Object? pronouns = _unset,
     Object? accentColor = _unset,
@@ -322,6 +321,7 @@ class UserSettingsViewState {
           messageDisplayCompact ?? this.messageDisplayCompact,
       developerMode: developerMode ?? this.developerMode,
       trustedDomains: trustedDomains ?? this.trustedDomains,
+      publicFlags: publicFlags ?? this.publicFlags,
       bio: bio == _unset ? this.bio : bio as String?,
       pronouns: pronouns == _unset ? this.pronouns : pronouns as String?,
       accentColor: accentColor == _unset
@@ -346,8 +346,7 @@ class UserSettingsViewState {
           premiumBadgeTimestampHidden ?? this.premiumBadgeTimestampHidden,
       premiumBadgeSequenceHidden:
           premiumBadgeSequenceHidden ?? this.premiumBadgeSequenceHidden,
-      premiumDiscriminator:
-          premiumDiscriminator ?? this.premiumDiscriminator,
+      premiumDiscriminator: premiumDiscriminator ?? this.premiumDiscriminator,
       premiumUntil: premiumUntil == _unset
           ? this.premiumUntil
           : premiumUntil as String?,
@@ -464,9 +463,10 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       }
       final data = jsonDecode(row.data) as Map<String, dynamic>;
       final developerMode = data['developer_mode'] as bool? ?? false;
-      final trustedDomains = (data['trusted_domains'] as List<dynamic>? ?? const [])
-          .whereType<String>()
-          .toList(growable: false);
+      final trustedDomains =
+          (data['trusted_domains'] as List<dynamic>? ?? const [])
+              .whereType<String>()
+              .toList(growable: false);
       state = state.copyWith(
         developerMode: developerMode,
         trustedDomains: trustedDomains,
@@ -480,6 +480,7 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       final client = ref.read(fluxerClientProvider);
       final profile = await client.users.getCurrentUser();
       state = state.copyWith(
+        publicFlags: profile.flags,
         bio: profile.bio,
         pronouns: profile.pronouns,
         accentColor: profile.accentColor,
@@ -521,20 +522,23 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
     state = state.copyWith(editedAccentColor: value);
   }
 
-  void togglePremiumBadge(String field, {required bool value}) {
-    switch (field) {
-      case 'premium_badge_hidden':
-        state = state.copyWith(editedPremiumBadgeHidden: value);
-      case 'premium_badge_timestamp_hidden':
-        state = state.copyWith(editedPremiumBadgeTimestampHidden: value);
-      case 'premium_badge_masked':
-        state = state.copyWith(editedPremiumBadgeMasked: value);
-        if (value) {
-          state = state.copyWith(editedPremiumBadgeSequenceHidden: true);
-        }
-      case 'premium_badge_sequence_hidden':
-        state = state.copyWith(editedPremiumBadgeSequenceHidden: value);
+  void setPremiumBadgeHidden({required bool value}) {
+    state = state.copyWith(editedPremiumBadgeHidden: value);
+  }
+
+  void setPremiumBadgeTimestampHidden({required bool value}) {
+    state = state.copyWith(editedPremiumBadgeTimestampHidden: value);
+  }
+
+  void setPremiumBadgeMasked({required bool value}) {
+    state = state.copyWith(editedPremiumBadgeMasked: value);
+    if (value) {
+      state = state.copyWith(editedPremiumBadgeSequenceHidden: true);
     }
+  }
+
+  void setPremiumBadgeSequenceHidden({required bool value}) {
+    state = state.copyWith(editedPremiumBadgeSequenceHidden: value);
   }
 
   void setAvatar(String base64) {
@@ -614,26 +618,40 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
 
       bool? premiumBadgeSequenceHidden;
       if (s.isEditedPremiumBadgeSequenceHiddenSet &&
-          s.editedPremiumBadgeSequenceHidden !=
-              s.premiumBadgeSequenceHidden) {
+          s.editedPremiumBadgeSequenceHidden != s.premiumBadgeSequenceHidden) {
         premiumBadgeSequenceHidden = s.editedPremiumBadgeSequenceHidden;
       }
 
-      final client = ref.read(fluxerClientProvider);
-      await client.users.updateCurrentUser(
-        body: UserUpdateWithVerificationRequest(
-          globalName: globalName,
-          bio: bio,
-          pronouns: pronouns,
-          accentColor: accentColor,
-          avatar: s.avatarCleared ? null : avatarValue,
-          banner: s.bannerCleared ? null : bannerValue,
-          premiumBadgeHidden: premiumBadgeHidden,
-          premiumBadgeMasked: premiumBadgeMasked,
-          premiumBadgeTimestampHidden: premiumBadgeTimestampHidden,
-          premiumBadgeSequenceHidden: premiumBadgeSequenceHidden,
-        ),
+      final body = UserUpdateWithVerificationRequest(
+        globalName: globalName,
+        bio: bio,
+        pronouns: pronouns,
+        accentColor: accentColor,
+        avatar: s.avatarCleared ? null : avatarValue,
+        banner: s.bannerCleared ? null : bannerValue,
+        premiumBadgeHidden: premiumBadgeHidden,
+        premiumBadgeMasked: premiumBadgeMasked,
+        premiumBadgeTimestampHidden: premiumBadgeTimestampHidden,
+        premiumBadgeSequenceHidden: premiumBadgeSequenceHidden,
       );
+
+      if (s.avatarCleared || s.bannerCleared) {
+        // SDK uses @JsonKey(includeIfNull: false) which omits null
+        // fields, but the API needs explicit nulls to clear
+        // avatar/banner on a PATCH request.
+        final json = body.toJson();
+        if (s.avatarCleared) {
+          json['avatar'] = null;
+        }
+        if (s.bannerCleared) {
+          json['banner'] = null;
+        }
+        final dio = ref.read(fluxerDioProvider);
+        await dio.patch<dynamic>('/users/@me', data: json);
+      } else {
+        final client = ref.read(fluxerClientProvider);
+        await client.users.updateCurrentUser(body: body);
+      }
 
       await loadProfile();
       reset();

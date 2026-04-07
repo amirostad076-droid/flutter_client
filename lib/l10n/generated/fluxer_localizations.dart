@@ -214,7 +214,7 @@ abstract class FluxerLocalizations {
   /// **'Try Turnstile instead'**
   String get captchaSwitchToTurnstile;
 
-  /// Generic cancel action button label.
+  /// Generic cancel action label.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
@@ -1803,6 +1803,306 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get continueAction;
+
+  /// Heading for the profile customization settings section.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Customization'**
+  String get profileCustomizationTitle;
+
+  /// Subheading for the profile customization settings section.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit your profile appearance and see a live preview'**
+  String get profileCustomizationDescription;
+
+  /// Label for the username field in profile settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get usernameLabel;
+
+  /// Tooltip when unverified user hovers the disabled Change FluxerTag button.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim your account to change your FluxerTag'**
+  String get claimAccountToChangeFluxerTag;
+
+  /// Button label to open the FluxerTag change flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Change FluxerTag'**
+  String get changeFluxerTag;
+
+  /// Tooltip on the crown upsell button next to the FluxerTag button.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize your 4-digit tag (#{discriminator}) to your liking with Plutonium'**
+  String customizeTagWithPlutoniumTooltip(String discriminator);
+
+  /// Hint text below the username buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'Change your username and 4-digit tag'**
+  String get changeUsernameAndTagHint;
+
+  /// Warning shown when user has a premium discriminator that is not lifetime.
+  ///
+  /// In en, this message translates to:
+  /// **'Your custom tag (#{discriminator}) is tied to your Plutonium subscription and will revert to a random tag if it expires.'**
+  String customTagSubscriptionWarning(String discriminator);
+
+  /// Label for the display name input.
+  ///
+  /// In en, this message translates to:
+  /// **'Display Name'**
+  String get displayNameLabel;
+
+  /// Label for the pronouns input.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronouns'**
+  String get pronounsLabel;
+
+  /// Label for the avatar upload section.
+  ///
+  /// In en, this message translates to:
+  /// **'Avatar'**
+  String get avatarLabel;
+
+  /// Button to upload a new avatar image.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Avatar'**
+  String get changeAvatar;
+
+  /// Button to remove the current avatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Avatar'**
+  String get removeAvatar;
+
+  /// Helper text describing avatar image requirements.
+  ///
+  /// In en, this message translates to:
+  /// **'JPEG, PNG, GIF, WebP. Max 10MB. Recommended: 512×512px'**
+  String get avatarDescription;
+
+  /// Label for the banner upload section.
+  ///
+  /// In en, this message translates to:
+  /// **'Banner'**
+  String get bannerLabel;
+
+  /// Button to upload a new banner image.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Banner'**
+  String get changeBanner;
+
+  /// Button to remove the current banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Banner'**
+  String get removeBanner;
+
+  /// Helper text describing banner image requirements.
+  ///
+  /// In en, this message translates to:
+  /// **'JPEG, PNG, GIF, WebP. Max 10MB. Minimum: 680×240px (17:6)'**
+  String get bannerDescription;
+
+  /// Label for the accent color picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Accent Color'**
+  String get accentColorLabel;
+
+  /// Helper text for the accent color picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Customizes the border and banner color on your profile'**
+  String get accentColorDescription;
+
+  /// Label for the bio text area.
+  ///
+  /// In en, this message translates to:
+  /// **'About Me'**
+  String get aboutMeLabel;
+
+  /// Helper text below the bio text area.
+  ///
+  /// In en, this message translates to:
+  /// **'You can use links, emoji, and Markdown.'**
+  String get aboutMeHelperText;
+
+  /// Title for the emoji picker sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji'**
+  String get emojiPickerTitle;
+
+  /// Heading for the premium badge privacy settings section.
+  ///
+  /// In en, this message translates to:
+  /// **'Plutonium Badge Privacy'**
+  String get plutoniumBadgePrivacyTitle;
+
+  /// Subheading for the premium badge privacy settings section.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how your Plutonium badge is displayed to others'**
+  String get plutoniumBadgePrivacyDescription;
+
+  /// Label for the toggle to hide the Plutonium badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Plutonium badge entirely'**
+  String get hidePlutoniumBadgeLabel;
+
+  /// Description for the toggle to hide the Plutonium badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Completely hide your Plutonium badge from other users'**
+  String get hidePlutoniumBadgeDescription;
+
+  /// Label for the toggle to hide the Plutonium purchase date.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Plutonium purchase date'**
+  String get hidePlutoniumPurchaseDate;
+
+  /// Label for the toggle to hide the Plutonium purchase date, showing the actual date.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Plutonium purchase date ({date})'**
+  String hidePlutoniumPurchaseDateWithDate(String date);
+
+  /// Description for the toggle to hide the Plutonium purchase date.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove when you first bought Plutonium from your badge'**
+  String get hidePurchaseDateDescription;
+
+  /// Label for the toggle to mask Visionary as a regular subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Mask Visionary as subscription'**
+  String get maskVisionaryAsSubscription;
+
+  /// Description for the toggle to mask Visionary as a regular subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your Visionary as a regular subscription instead'**
+  String get maskVisionaryDescription;
+
+  /// Label for the toggle to hide the Visionary ID badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Visionary ID badge'**
+  String get hideVisionaryIdBadge;
+
+  /// Label for the toggle to hide the Visionary ID badge, showing the sequence number.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Visionary ID badge (#{sequence})'**
+  String hideVisionaryIdBadgeWithSequence(int sequence);
+
+  /// Description for the toggle to hide the Visionary ID badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove your Visionary ID badge'**
+  String get hideVisionaryIdDescription;
+
+  /// Trial banner title when user has an active subscription pending after trial.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on a Plutonium trial — your subscription starts on {date}'**
+  String premiumTrialSubscriptionStarts(String date);
+
+  /// Trial banner description when user has an active subscription pending after trial.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription will automatically begin when your trial ends. No action needed.'**
+  String get premiumTrialSubscriptionStartsDescription;
+
+  /// Trial banner title with expiry date.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on a Plutonium trial that expires on {date}'**
+  String premiumTrialExpiresOnProfile(String date);
+
+  /// Trial banner title without specific expiry date.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on a Plutonium trial'**
+  String get premiumTrialActiveProfile;
+
+  /// Avatar helper text for non-premium users, mentioning Plutonium requirement for animated avatars.
+  ///
+  /// In en, this message translates to:
+  /// **'JPEG, PNG, WebP. Max 10MB. Recommended: 512×512px. Animated avatars (GIF) require Plutonium.'**
+  String get avatarDescriptionNonPremium;
+
+  /// Upsell text shown in place of banner upload for non-premium users.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize your profile with a static or animated banner image to make it stand out.'**
+  String get bannerPlutoniumUpsell;
+
+  /// Button label for the Plutonium upsell call-to-action.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Plutonium'**
+  String get getPlutonium;
+
+  /// Title for the Plutonium not-available-yet bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Plutonium'**
+  String get plutoniumNotAvailableTitle;
+
+  /// Body text for the Plutonium not-available-yet bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app purchases are not available on this platform yet. Stay tuned — coming soon!'**
+  String get plutoniumNotAvailableBody;
+
+  /// Label shown above the profile preview card in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get profilePreviewLabel;
+
+  /// Disabled message button in the profile preview card.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get profilePreviewMessage;
+
+  /// Label for the member-since date in the profile preview card.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluxer Member Since'**
+  String get profilePreviewMemberSince;
+
+  /// Title for the unclaimed account warning bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Unclaimed Account'**
+  String get unclaimedAccountTitle;
+
+  /// Description for the unclaimed account warning bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is not yet claimed. Without an email and password, you could lose access. Claim your account now to secure it.'**
+  String get unclaimedAccountDescription;
+
+  /// Button to start the account claiming flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim Account'**
+  String get claimAccount;
 }
 
 class _FluxerLocalizationsDelegate
