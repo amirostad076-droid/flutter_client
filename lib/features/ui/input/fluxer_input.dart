@@ -21,6 +21,7 @@ class FluxerInput extends StatelessWidget {
     this.autofocus = false,
     this.maxLength,
     this.showCounter = false,
+    this.counterLength,
     this.helperText,
     this.onChanged,
     this.onSubmitted,
@@ -50,6 +51,7 @@ class FluxerInput extends StatelessWidget {
     this.autofocus = false,
     this.maxLength,
     this.showCounter = false,
+    this.counterLength,
     this.helperText,
     this.onChanged,
     this.onSubmitted,
@@ -82,6 +84,7 @@ class FluxerInput extends StatelessWidget {
   final bool autofocus;
   final int? maxLength;
   final bool showCounter;
+  final ValueGetter<int>? counterLength;
   final String? helperText;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
@@ -307,7 +310,7 @@ class FluxerInput extends StatelessWidget {
                 child: ValueListenableBuilder<TextEditingValue>(
                   valueListenable: controller ?? TextEditingController(),
                   builder: (context, value, _) => FluxerCharacterCounter(
-                    current: value.text.length,
+                    current: counterLength?.call() ?? value.text.length,
                     max: maxLength!,
                   ),
                 ),
@@ -329,10 +332,7 @@ class FluxerInput extends StatelessWidget {
 
 @FluxerWidgetPreview(name: 'Single line', group: 'FluxerInput')
 Widget fluxerInputSinglePreview() {
-  return const FluxerInput(
-    label: 'Display name',
-    hint: 'How others see you',
-  );
+  return const FluxerInput(label: 'Display name', hint: 'How others see you');
 }
 
 @FluxerWidgetPreview(name: 'Multiline', group: 'FluxerInput')

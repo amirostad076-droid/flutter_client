@@ -1,16 +1,20 @@
 import 'dart:async';
+import 'dart:math' show max;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
+import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/fluxer_tag_change_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/image_crop_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/profile_preview_card.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/input/emoji_autocomplete_overlay.dart';
 import 'package:fluxer_app/features/ui/input/emoji_text_editing_controller.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -38,6 +42,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   final _expressionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
 
   bool _controllersInitialized = false;
+  List<GuildEmojiEntry> _customEmojis = const [];
 
   @override
   void initState() {
@@ -57,11 +62,34 @@ class _UserProfileState extends ConsumerState<UserProfile> {
 
   void _syncControllers(UserSettingsViewState state) {
     if (!_controllersInitialized && state.isProfileLoaded) {
-      _displayNameController.text = state.displayName;
-      _pronounsController.text = state.pronouns ?? '';
-      _bioController.loadWithTokens(state.bio ?? '');
+      _resetControllers(state);
       _controllersInitialized = true;
+      unawaited(_loadCustomEmojis());
     }
+  }
+
+  Future<void> _loadCustomEmojis() async {
+    final db = ref.read(fluxerDatabaseProvider);
+    final rows = await db.guildEmojiDao.getAll();
+    if (mounted) {
+      setState(() {
+        _customEmojis = rows
+            .map(GuildEmojiEntry.fromRow)
+            .toList(growable: false);
+      });
+    }
+  }
+
+  void _resetControllers(UserSettingsViewState state) {
+    _displayNameController.text = state.displayName;
+    _pronounsController.text = state.pronouns ?? '';
+    _bioController.loadWithTokens(state.bio ?? '');
+  }
+
+  void _notifyBioChanged() {
+    ref
+        .read(userSettingsViewModelProvider.notifier)
+        .updateBio(_bioController.actualText);
   }
 
   void _onSmileyTap() {
@@ -71,8 +99,14 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           context,
           title: FluxerLocalizations.of(context).emojiPickerTitle,
           maxHeight: 0.88,
-          onEmojiSelected: (emoji) =>
-              _bioController.insertEmoji(emoji.name, emoji.surrogates),
+          onEmojiSelected: (emoji) {
+            _bioController.insertEmoji(
+              emoji.name,
+              emoji.surrogates,
+              maxActualLength: _kMaxBioLength,
+            );
+            _notifyBioChanged();
+          },
           visibleTabs: const [ExpressionPickerTab.emojis],
         ),
       );
@@ -92,9 +126,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.backgroundSecondaryAlt,
-        border: Border(
-          top: BorderSide(color: colors.accentWarning, width: 2),
-        ),
+        border: Border(top: BorderSide(color: colors.accentWarning, width: 2)),
       ),
       child: Padding(
         padding: EdgeInsets.only(
@@ -158,9 +190,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     );
   }
 
-  Future<void> _handleImageUpload({
-    required bool isAvatar,
-  }) async {
+  Future<void> _handleImageUpload({required bool isAvatar}) async {
     final picked = await ImageUtils.pickImage();
     if (picked == null || !mounted) {
       return;
@@ -171,12 +201,14 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         return;
       }
       final l10n = FluxerLocalizations.of(context);
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: l10n.imageFileTooLarge,
-          variant: FluxerToastVariant.danger,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.imageFileTooLarge,
+              variant: FluxerToastVariant.danger,
+            ),
+          );
       return;
     }
 
@@ -189,14 +221,16 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           return;
         }
         final l10n = FluxerLocalizations.of(context);
-        ref.read(toastProvider.notifier).show(
-          FluxerToast(
-            message: isAvatar
-                ? l10n.animatedAvatarsRequirePlutonium
-                : l10n.animatedBannersRequirePlutonium,
-            variant: FluxerToastVariant.warning,
-          ),
-        );
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: isAvatar
+                    ? l10n.animatedAvatarsRequirePlutonium
+                    : l10n.animatedBannersRequirePlutonium,
+                variant: FluxerToastVariant.warning,
+              ),
+            );
         return;
       }
 
@@ -238,12 +272,15 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           return;
         }
       } else {
-        ref.read(toastProvider.notifier).show(
-          FluxerToast(
-            message: FluxerLocalizations.of(context)
-                .croppingAnimatedNotSupported,
-          ),
-        );
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: FluxerLocalizations.of(
+                  context,
+                ).croppingAnimatedNotSupported,
+              ),
+            );
       }
 
       final dataUri = ImageUtils.toDataUri(picked.bytes);
@@ -286,6 +323,15 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   Widget build(BuildContext context) {
     final state = ref.watch(userSettingsViewModelProvider);
     _syncControllers(state);
+
+    ref.listen(userSettingsViewModelProvider.select((s) => s.isDirty), (
+      prev,
+      next,
+    ) {
+      if ((prev ?? false) && !next) {
+        _resetControllers(ref.read(userSettingsViewModelProvider));
+      }
+    });
 
     if (!state.isProfileLoaded) {
       return const Center(child: FluxerLoadingSpinner());
@@ -345,29 +391,51 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                   defaultValue: 0x4641D9,
                 ),
                 SizedBox(height: layout.s6),
-                FluxerInput.multiline(
+                EmojiAutocompleteOverlay(
                   controller: _bioController,
-                  label: l10n.aboutMeLabel,
-                  maxLength: _kMaxBioLength,
-                  maxLines: 6,
-                  showCounter: true,
-                  helperText: l10n.aboutMeHelperText,
-                  onChanged: (_) => vm.updateBio(_bioController.actualText),
-                  suffixIcon: FluxerEmojiPickerPopout(
-                    key: _expressionPickerKey,
-                    visibleTabs: const [ExpressionPickerTab.emojis],
-                    onEmojiSelected: (emoji) =>
-                      _bioController.insertEmoji(
-                        emoji.name,
-                        emoji.surrogates,
-                      ),
-                    child: PhosphorIcon(
-                      PhosphorIconsFill.smiley,
-                      size: 20,
-                      color: colors.textTertiary,
-                    ),
+                  maxActualLength: _kMaxBioLength,
+                  customEmojis: _customEmojis,
+                  onEmojiInserted: _notifyBioChanged,
+                  child: ListenableBuilder(
+                    listenable: _bioController,
+                    builder: (context, _) {
+                      final bioDisplayMaxLength = max(
+                        0,
+                        _bioController.text.length +
+                            _kMaxBioLength -
+                            _bioController.actualTextLength,
+                      );
+                      return FluxerInput.multiline(
+                        controller: _bioController,
+                        label: l10n.aboutMeLabel,
+                        maxLength: bioDisplayMaxLength,
+                        maxLines: 6,
+                        showCounter: true,
+                        counterLength: () => _bioController.actualTextLength,
+                        helperText: l10n.aboutMeHelperText,
+                        onChanged: (_) =>
+                            vm.updateBio(_bioController.actualText),
+                        suffixIcon: FluxerEmojiPickerPopout(
+                          key: _expressionPickerKey,
+                          visibleTabs: const [ExpressionPickerTab.emojis],
+                          onEmojiSelected: (emoji) {
+                            _bioController.insertEmoji(
+                              emoji.name,
+                              emoji.surrogates,
+                              maxActualLength: _kMaxBioLength,
+                            );
+                            _notifyBioChanged();
+                          },
+                          child: PhosphorIcon(
+                            PhosphorIconsFill.smiley,
+                            size: 20,
+                            color: colors.textTertiary,
+                          ),
+                        ),
+                        onSuffixTap: _onSmileyTap,
+                      );
+                    },
                   ),
-                  onSuffixTap: _onSmileyTap,
                 ),
                 SizedBox(height: layout.s8),
                 ProfilePreviewCard(state: state),
@@ -380,8 +448,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             ),
           ),
         ),
-        if (!state.hasVerifiedEmail)
-          _buildUnclaimedAccountBar(layout, l10n),
+        if (!state.hasVerifiedEmail) _buildUnclaimedAccountBar(layout, l10n),
       ],
     );
   }
@@ -449,9 +516,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           SizedBox(height: layout.s2),
           Text(
             l10n.customTagSubscriptionWarning(state.discriminator),
-            style: textStyles.bodySmall.copyWith(
-              color: colors.accentWarning,
-            ),
+            style: textStyles.bodySmall.copyWith(color: colors.accentWarning),
           ),
         ],
       ],
@@ -518,8 +583,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                     Text(
                       description,
                       style: textStyles.bodySmall.copyWith(
-                        color: colors.textOnBrandPrimary
-                            .withValues(alpha: 0.9),
+                        color: colors.textOnBrandPrimary.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -705,16 +769,14 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           label: l10n.hidePlutoniumBadgeLabel,
           description: l10n.hidePlutoniumBadgeDescription,
           value: badgeHidden,
-          onChanged: (value) =>
-              vm.setPremiumBadgeHidden(value: value),
+          onChanged: (value) => vm.setPremiumBadgeHidden(value: value),
         ),
         FluxerSwitchGroupItem(
           label: timestampLabel,
           description: l10n.hidePurchaseDateDescription,
           value: state.effectivePremiumBadgeTimestampHidden,
           enabled: !badgeHidden,
-          onChanged: (value) =>
-              vm.setPremiumBadgeTimestampHidden(value: value),
+          onChanged: (value) => vm.setPremiumBadgeTimestampHidden(value: value),
         ),
         if (state.hasLifetimePremium) ...[
           FluxerSwitchGroupItem(
@@ -722,8 +784,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             description: l10n.maskVisionaryDescription,
             value: badgeMasked,
             enabled: !badgeHidden,
-            onChanged: (value) =>
-                vm.setPremiumBadgeMasked(value: value),
+            onChanged: (value) => vm.setPremiumBadgeMasked(value: value),
           ),
           FluxerSwitchGroupItem(
             label: sequenceLabel,

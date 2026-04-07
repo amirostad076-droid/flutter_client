@@ -129,35 +129,37 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
 
     final accentColor = Color(0xFF000000 | _effectiveAccentColor());
 
-    return Column(
-      children: [
-        Text(
-          l10n.profilePreviewLabel,
-          style: textStyles.label.copyWith(color: colors.textSecondary),
-        ),
-        SizedBox(height: layout.s4),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 300),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: colors.backgroundPrimary,
-              borderRadius: layout.radiusMd,
-              border: Border.all(color: accentColor, width: 2.5),
-            ),
-            child: ClipRRect(
-              borderRadius: layout.radiusMd,
-              child: _buildCardBody(
-                s,
-                accentColor,
-                colors,
-                textStyles,
-                layout,
-                l10n,
+    return Center(
+      child: Column(
+        children: [
+          Text(
+            l10n.profilePreviewLabel,
+            style: textStyles.label.copyWith(color: colors.textSecondary),
+          ),
+          SizedBox(height: layout.s4),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 300),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.backgroundPrimary,
+                borderRadius: layout.radiusMd,
+                border: Border.all(color: accentColor, width: 2.5),
+              ),
+              child: ClipRRect(
+                borderRadius: layout.radiusMd,
+                child: _buildCardBody(
+                  s,
+                  accentColor,
+                  colors,
+                  textStyles,
+                  layout,
+                  l10n,
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

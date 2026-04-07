@@ -21,6 +21,8 @@ class GuildEmojiDao extends DatabaseAccessor<FluxerDatabase>
             ]))
           .watch();
 
+  Future<List<GuildEmoji>> getAll() => select(guildEmojis).get();
+
   Future<List<GuildEmoji>> getByGuild(String guildId) =>
       (select(guildEmojis)..where((e) => e.guildId.equals(guildId))).get();
 
