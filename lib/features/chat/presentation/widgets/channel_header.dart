@@ -100,6 +100,10 @@ class ChannelHeader extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              if (dm != null && !dm.isGroup && dm.isBot) ...[
+                const SizedBox(width: 6),
+                const FluxerBotBadge(),
+              ],
               const SizedBox(width: 4),
               PhosphorIcon(
                 PhosphorIconsBold.caretRight,
@@ -160,10 +164,18 @@ class ChannelHeader extends ConsumerWidget {
         children: [
           _buildLeadingIcon(context, channel: channel, dm: dm),
           const SizedBox(width: 8),
-          Text(
-            _resolveTitle(channel: channel, dm: dm),
-            style: context.textStyles.channelName,
+          Flexible(
+            child: Text(
+              _resolveTitle(channel: channel, dm: dm),
+              style: context.textStyles.channelName,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
+          if (dm != null && !dm.isGroup && dm.isBot) ...[
+            const SizedBox(width: 6),
+            const FluxerBotBadge(),
+          ],
+          const SizedBox(width: 8),
           const Spacer(),
           _topBarIcon(context, PhosphorIconsFill.bell, 'Notification Settings'),
           _topBarIcon(context, PhosphorIconsFill.pushPin, 'Pinned Messages'),
