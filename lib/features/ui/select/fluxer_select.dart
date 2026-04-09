@@ -154,16 +154,17 @@ class FluxerSelect<T> extends StatelessWidget {
   }
 
   Future<void> _showOptions(BuildContext context) async {
-    final result = await FluxerBottomSheet.show<T>(
+    final result = await FluxerBottomSheet.showScrollable<T>(
       context,
       title: label,
-      builder: (sheetContext, close) {
+      builder: (sheetContext, scrollController, close) {
         return _FluxerSelectSheet<T>(
           items: items,
           value: value,
           searchHint: searchHint,
           emptyLabel: emptyLabel,
           enableSearch: enableSearch,
+          scrollController: scrollController,
           onSelected: (selected) => Navigator.of(sheetContext).pop(selected),
         );
       },
@@ -179,6 +180,7 @@ class _FluxerSelectSheet<T> extends StatefulWidget {
   _FluxerSelectSheet({
     required this.items,
     required ValueChanged<T> onSelected,
+    required this.scrollController,
     super.key,
     this.value,
     this.searchHint,
@@ -191,6 +193,7 @@ class _FluxerSelectSheet<T> extends StatefulWidget {
   final String? searchHint;
   final String? emptyLabel;
   final bool enableSearch;
+  final ScrollController scrollController;
   final ValueChanged<Object?> _onSelected;
 
   @override
@@ -248,6 +251,7 @@ class _FluxerSelectSheetState<T> extends State<_FluxerSelectSheet<T>> {
                   ),
                 )
               : ListView(
+                  controller: widget.scrollController,
                   padding: EdgeInsets.only(bottom: layout.s4),
                   children: [
                     FluxerBottomSheetSection(
