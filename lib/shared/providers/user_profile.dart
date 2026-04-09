@@ -9,22 +9,16 @@ part 'user_profile.g.dart';
 
 @riverpod
 Future<UserProfileFullResponse?> userProfile(Ref ref, {String? userId}) async {
-  String tempId = '';
+  final String resolvedId =
+      userId ?? ref.read(userSettingsViewModelProvider).userId;
 
-  if (userId == null) {
-    final UserSettingsViewState user = ref.watch(userSettingsViewModelProvider);
-    tempId = user.userId;
-  } else {
-    tempId = userId;
-  }
-
-  if (tempId.isEmpty) {
+  if (resolvedId.isEmpty) {
     return null;
   }
 
   final FluxerClient client = ref.read(fluxerClientProvider);
   try {
-    return await client.users.getUserProfile(targetId: tempId);
+    return await client.users.getUserProfile(targetId: resolvedId);
   } on Object {
     return null;
   }
