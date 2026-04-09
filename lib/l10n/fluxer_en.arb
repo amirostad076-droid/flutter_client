@@ -1455,5 +1455,37 @@
   "claimAccount": "Claim Account",
   "@claimAccount": {
     "description": "Button to start the account claiming flow."
+  },
+  "profileTypeLabel": "Profile Type",
+  "@profileTypeLabel": {
+    "description": "Label for the profile type dropdown"
+  },
+  "profileTypeGlobal": "Global Profile",
+  "@profileTypeGlobal": {
+    "description": "Option for global profile in profile type selector"
+  },
+  "profileTypeGuildDescription": "You are editing your per-community profile. This profile will only be visible in this community and will override your global profile.",
+  "@profileTypeGuildDescription": {
+    "description": "Description shown when editing a per-guild profile"
+  },
+  "communityNicknameLabel": "Community Nickname",
+  "@communityNicknameLabel": {
+    "description": "Label for the community nickname field"
+  },
+  "perGuildPremiumUpsellText": "Customizing your avatar, banner, accent color, and bio for individual communities requires Plutonium. Community nickname and pronouns are free for everyone.",
+  "@perGuildPremiumUpsellText": {
+    "description": "Upsell text for per-guild premium features"
+  },
+  "avatarModeInherit": "Use Global Profile",
+  "@avatarModeInherit": {
+    "description": "Avatar/banner mode: inherit from global profile"
+  },
+  "avatarModeCustom": "Use Custom Image",
+  "@avatarModeCustom": {
+    "description": "Avatar/banner mode: use a custom image"
+  },
+  "avatarModeUnset": "Don't Show",
+  "@avatarModeUnset": {
+    "description": "Avatar/banner mode: hide even if global exists"
   }
 }

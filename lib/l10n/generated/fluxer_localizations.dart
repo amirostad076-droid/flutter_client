@@ -2103,6 +2103,54 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Claim Account'**
   String get claimAccount;
+
+  /// Label for the profile type dropdown
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Type'**
+  String get profileTypeLabel;
+
+  /// Option for global profile in profile type selector
+  ///
+  /// In en, this message translates to:
+  /// **'Global Profile'**
+  String get profileTypeGlobal;
+
+  /// Description shown when editing a per-guild profile
+  ///
+  /// In en, this message translates to:
+  /// **'You are editing your per-community profile. This profile will only be visible in this community and will override your global profile.'**
+  String get profileTypeGuildDescription;
+
+  /// Label for the community nickname field
+  ///
+  /// In en, this message translates to:
+  /// **'Community Nickname'**
+  String get communityNicknameLabel;
+
+  /// Upsell text for per-guild premium features
+  ///
+  /// In en, this message translates to:
+  /// **'Customizing your avatar, banner, accent color, and bio for individual communities requires Plutonium. Community nickname and pronouns are free for everyone.'**
+  String get perGuildPremiumUpsellText;
+
+  /// Avatar/banner mode: inherit from global profile
+  ///
+  /// In en, this message translates to:
+  /// **'Use Global Profile'**
+  String get avatarModeInherit;
+
+  /// Avatar/banner mode: use a custom image
+  ///
+  /// In en, this message translates to:
+  /// **'Use Custom Image'**
+  String get avatarModeCustom;
+
+  /// Avatar/banner mode: hide even if global exists
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t Show'**
+  String get avatarModeUnset;
 }
 
 class _FluxerLocalizationsDelegate

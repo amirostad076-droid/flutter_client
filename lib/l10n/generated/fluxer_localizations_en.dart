@@ -1149,4 +1149,30 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get claimAccount => 'Claim Account';
+
+  @override
+  String get profileTypeLabel => 'Profile Type';
+
+  @override
+  String get profileTypeGlobal => 'Global Profile';
+
+  @override
+  String get profileTypeGuildDescription =>
+      'You are editing your per-community profile. This profile will only be visible in this community and will override your global profile.';
+
+  @override
+  String get communityNicknameLabel => 'Community Nickname';
+
+  @override
+  String get perGuildPremiumUpsellText =>
+      'Customizing your avatar, banner, accent color, and bio for individual communities requires Plutonium. Community nickname and pronouns are free for everyone.';
+
+  @override
+  String get avatarModeInherit => 'Use Global Profile';
+
+  @override
+  String get avatarModeCustom => 'Use Custom Image';
+
+  @override
+  String get avatarModeUnset => 'Don\'t Show';
 }
