@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' show max;
 
-import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -550,16 +549,11 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         FluxerSelectItem(
           value: guild.id,
           label: guild.name,
-          leading: guild.iconUrl != null
-              ? ClipOval(
-                  child: CachedNetworkImage(
-                    imageUrl: guild.iconUrl!,
-                    width: 20,
-                    height: 20,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              : null,
+          leading: FluxerAvatar.guild(
+            imageUrl: guild.iconUrl,
+            fallbackText: guild.name,
+            size: 20,
+          ),
         ),
     ];
 
