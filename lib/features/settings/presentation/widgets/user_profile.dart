@@ -372,15 +372,15 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           _resetControllers(ref.read(userSettingsViewModelProvider));
         }
       })
-      ..listen(
-        userSettingsViewModelProvider.select((s) => s.selectedGuildId),
-        (prev, next) {
-          final currentState = ref.read(userSettingsViewModelProvider);
-          _nickController.text = currentState.guildNick ?? '';
-          _guildPronounsController.text = currentState.guildPronouns ?? '';
-          _guildBioController.loadWithTokens(currentState.guildBio ?? '');
-        },
-      );
+      ..listen(userSettingsViewModelProvider.select((s) => s.selectedGuildId), (
+        prev,
+        next,
+      ) {
+        final currentState = ref.read(userSettingsViewModelProvider);
+        _nickController.text = currentState.guildNick ?? '';
+        _guildPronounsController.text = currentState.guildPronouns ?? '';
+        _guildBioController.loadWithTokens(currentState.guildBio ?? '');
+      });
 
     if (!state.isProfileLoaded) {
       return const Center(child: FluxerLoadingSpinner());

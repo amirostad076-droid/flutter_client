@@ -1,5 +1,1 @@
-enum GuildAssetMode {
-  inherit,
-  custom,
-  unset,
-}
+enum GuildAssetMode { inherit, custom, unset }

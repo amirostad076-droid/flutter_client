@@ -80,11 +80,10 @@ class FluxerBottomSheet {
           padding: EdgeInsets.only(bottom: bottomInset),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxHeight:
-                  maxHeight != null
-                      ? (mediaQuery.size.height - topPadding - layout.s4) *
-                            maxHeight
-                      : mediaQuery.size.height - topPadding - layout.s4,
+              maxHeight: maxHeight != null
+                  ? (mediaQuery.size.height - topPadding - layout.s4) *
+                        maxHeight
+                  : mediaQuery.size.height - topPadding - layout.s4,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -200,9 +199,7 @@ class FluxerBottomSheet {
                   SizedBox(height: layout.s2),
                 ],
                 Expanded(child: builder(sheetContext, scrollController, close)),
-                SizedBox(
-                  height: bottomPadding > 0 ? bottomPadding : layout.s4,
-                ),
+                SizedBox(height: bottomPadding > 0 ? bottomPadding : layout.s4),
               ],
             ),
           );
@@ -210,15 +207,14 @@ class FluxerBottomSheet {
 
         final sheet = ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight:
-                maxHeight != null
-                    ? (mediaQuery.size.height -
-                            mediaQuery.viewPadding.top -
-                            layout.s4) *
-                        maxHeight
-                    : mediaQuery.size.height -
-                        mediaQuery.viewPadding.top -
-                        layout.s4,
+            maxHeight: maxHeight != null
+                ? (mediaQuery.size.height -
+                          mediaQuery.viewPadding.top -
+                          layout.s4) *
+                      maxHeight
+                : mediaQuery.size.height -
+                      mediaQuery.viewPadding.top -
+                      layout.s4,
           ),
           child: DraggableScrollableSheet(
             expand: false,

@@ -938,11 +938,13 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         nick: s.canChangeNickname
             ? (s.isEditedNickSet ? s.editedNick : s.guildNick)
             : null,
-        avatar: s.guildAvatarMode == GuildAssetMode.inherit ||
+        avatar:
+            s.guildAvatarMode == GuildAssetMode.inherit ||
                 s.guildAvatarMode == GuildAssetMode.unset
             ? null
             : avatarValue,
-        banner: s.guildBannerMode == GuildAssetMode.inherit ||
+        banner:
+            s.guildBannerMode == GuildAssetMode.inherit ||
                 s.guildBannerMode == GuildAssetMode.unset
             ? null
             : bannerValue,
@@ -958,7 +960,7 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
 
       final needsExplicitNulls =
           s.guildAvatarMode != GuildAssetMode.custom ||
-              s.guildBannerMode != GuildAssetMode.custom;
+          s.guildBannerMode != GuildAssetMode.custom;
 
       if (needsExplicitNulls) {
         final json = body.toJson();
@@ -971,10 +973,7 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
           json['banner'] = null;
         }
         final dio = ref.read(fluxerDioProvider);
-        await dio.patch<dynamic>(
-          '/guilds/$guildId/members/@me',
-          data: json,
-        );
+        await dio.patch<dynamic>('/guilds/$guildId/members/@me', data: json);
       } else {
         final client = ref.read(fluxerClientProvider);
         await client.guilds.updateCurrentGuildMember(
