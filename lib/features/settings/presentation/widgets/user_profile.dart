@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' show max;
 
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,6 +10,8 @@ import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/settings/domain/guild_asset_mode.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/fluxer_tag_change_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/image_crop_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/profile_preview_card.dart';
@@ -39,6 +42,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   late final TextEditingController _displayNameController;
   late final TextEditingController _pronounsController;
   late final EmojiTextEditingController _bioController;
+  late final TextEditingController _nickController;
+  late final TextEditingController _guildPronounsController;
+  late final EmojiTextEditingController _guildBioController;
   final _expressionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
 
   bool _controllersInitialized = false;
@@ -50,6 +56,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     _displayNameController = TextEditingController();
     _pronounsController = TextEditingController();
     _bioController = EmojiTextEditingController();
+    _nickController = TextEditingController();
+    _guildPronounsController = TextEditingController();
+    _guildBioController = EmojiTextEditingController();
   }
 
   @override
@@ -57,6 +66,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     _displayNameController.dispose();
     _pronounsController.dispose();
     _bioController.dispose();
+    _nickController.dispose();
+    _guildPronounsController.dispose();
+    _guildBioController.dispose();
     super.dispose();
   }
 
@@ -84,23 +96,34 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     _displayNameController.text = state.displayName;
     _pronounsController.text = state.pronouns ?? '';
     _bioController.loadWithTokens(state.bio ?? '');
+    _nickController.text = state.guildNick ?? '';
+    _guildPronounsController.text = state.guildPronouns ?? '';
+    _guildBioController.loadWithTokens(state.guildBio ?? '');
   }
 
   void _notifyBioChanged() {
-    ref
-        .read(userSettingsViewModelProvider.notifier)
-        .updateBio(_bioController.actualText);
+    final vm = ref.read(userSettingsViewModelProvider.notifier);
+    final state = ref.read(userSettingsViewModelProvider);
+    if (state.isPerGuildProfile) {
+      vm.updateGuildBio(_guildBioController.actualText);
+    } else {
+      vm.updateBio(_bioController.actualText);
+    }
   }
 
   void _onSmileyTap() {
     if (isMobileLayout(context)) {
+      final state = ref.read(userSettingsViewModelProvider);
+      final controller = state.isPerGuildProfile
+          ? _guildBioController
+          : _bioController;
       unawaited(
         FluxerEmojiPickerSheet.show(
           context,
           title: FluxerLocalizations.of(context).emojiPickerTitle,
           maxHeight: 0.88,
           onEmojiSelected: (emoji) {
-            _bioController.insertEmoji(
+            controller.insertEmoji(
               emoji.name,
               emoji.surrogates,
               maxActualLength: _kMaxBioLength,
@@ -285,10 +308,18 @@ class _UserProfileState extends ConsumerState<UserProfile> {
 
       final dataUri = ImageUtils.toDataUri(picked.bytes);
       final vm = ref.read(userSettingsViewModelProvider.notifier);
-      if (isAvatar) {
-        vm.setAvatar(dataUri);
+      if (ref.read(userSettingsViewModelProvider).isPerGuildProfile) {
+        if (isAvatar) {
+          vm.setGuildAvatar(dataUri);
+        } else {
+          vm.setGuildBanner(dataUri);
+        }
       } else {
-        vm.setBanner(dataUri);
+        if (isAvatar) {
+          vm.setAvatar(dataUri);
+        } else {
+          vm.setBanner(dataUri);
+        }
       }
       return;
     }
@@ -312,10 +343,18 @@ class _UserProfileState extends ConsumerState<UserProfile> {
 
     final dataUri = ImageUtils.toDataUri(croppedBytes);
     final vm = ref.read(userSettingsViewModelProvider.notifier);
-    if (isAvatar) {
-      vm.setAvatar(dataUri);
+    if (ref.read(userSettingsViewModelProvider).isPerGuildProfile) {
+      if (isAvatar) {
+        vm.setGuildAvatar(dataUri);
+      } else {
+        vm.setGuildBanner(dataUri);
+      }
     } else {
-      vm.setBanner(dataUri);
+      if (isAvatar) {
+        vm.setAvatar(dataUri);
+      } else {
+        vm.setBanner(dataUri);
+      }
     }
   }
 
@@ -324,14 +363,24 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     final state = ref.watch(userSettingsViewModelProvider);
     _syncControllers(state);
 
-    ref.listen(userSettingsViewModelProvider.select((s) => s.isDirty), (
-      prev,
-      next,
-    ) {
-      if ((prev ?? false) && !next) {
-        _resetControllers(ref.read(userSettingsViewModelProvider));
-      }
-    });
+    ref
+      ..listen(userSettingsViewModelProvider.select((s) => s.isDirty), (
+        prev,
+        next,
+      ) {
+        if ((prev ?? false) && !next) {
+          _resetControllers(ref.read(userSettingsViewModelProvider));
+        }
+      })
+      ..listen(
+        userSettingsViewModelProvider.select((s) => s.selectedGuildId),
+        (prev, next) {
+          final currentState = ref.read(userSettingsViewModelProvider);
+          _nickController.text = currentState.guildNick ?? '';
+          _guildPronounsController.text = currentState.guildPronouns ?? '';
+          _guildBioController.loadWithTokens(currentState.guildBio ?? '');
+        },
+      );
 
     if (!state.isProfileLoaded) {
       return const Center(child: FluxerLoadingSpinner());
@@ -339,7 +388,6 @@ class _UserProfileState extends ConsumerState<UserProfile> {
 
     final vm = ref.read(userSettingsViewModelProvider.notifier);
     final layout = context.layout;
-    final colors = context.colors;
     final l10n = FluxerLocalizations.of(context);
 
     return Column(
@@ -355,91 +403,124 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                   title: l10n.profileCustomizationTitle,
                   description: l10n.profileCustomizationDescription,
                 ),
-                if (state.isOutOfBandTrialActive) ...[
+                SizedBox(height: layout.s6),
+                _buildProfileTypeSelector(state, vm, layout, l10n),
+                if (state.isLoadingGuildProfile) ...[
+                  SizedBox(height: layout.s6),
+                  const Center(child: FluxerLoadingSpinner()),
+                ],
+                if (!state.isPerGuildProfile &&
+                    state.isOutOfBandTrialActive) ...[
                   SizedBox(height: layout.s6),
                   _buildPremiumTrialBanner(state, layout),
                 ],
-                SizedBox(height: layout.s6),
-                _buildUsernameSection(state, layout, l10n),
+                if (!state.isPerGuildProfile) ...[
+                  SizedBox(height: layout.s6),
+                  _buildUsernameSection(state, layout, l10n),
+                ],
+                if (!state.isPerGuildProfile) ...[
+                  SizedBox(height: layout.s6),
+                  FluxerInput(
+                    controller: _displayNameController,
+                    label: l10n.displayNameLabel,
+                    hint: state.username,
+                    maxLength: _kMaxDisplayNameLength,
+                    onChanged: vm.updateDisplayName,
+                  ),
+                ],
+                if (state.isPerGuildProfile &&
+                    !state.isLoadingGuildProfile) ...[
+                  SizedBox(height: layout.s6),
+                  FluxerInput(
+                    controller: _nickController,
+                    label: l10n.communityNicknameLabel,
+                    hint: state.username,
+                    maxLength: _kMaxDisplayNameLength,
+                    enabled: state.canChangeNickname,
+                    onChanged: vm.updateNick,
+                  ),
+                ],
                 SizedBox(height: layout.s6),
                 FluxerInput(
-                  controller: _displayNameController,
-                  label: l10n.displayNameLabel,
-                  hint: state.username,
-                  maxLength: _kMaxDisplayNameLength,
-                  onChanged: vm.updateDisplayName,
-                ),
-                SizedBox(height: layout.s6),
-                FluxerInput(
-                  controller: _pronounsController,
+                  controller: state.isPerGuildProfile
+                      ? _guildPronounsController
+                      : _pronounsController,
                   label: l10n.pronounsLabel,
                   maxLength: _kMaxPronounsLength,
-                  onChanged: vm.updatePronouns,
+                  onChanged: state.isPerGuildProfile
+                      ? vm.updateGuildPronouns
+                      : vm.updatePronouns,
+                ),
+                if (state.isPerGuildProfile &&
+                    !state.hasPerGuildProfiles &&
+                    !state.isLoadingGuildProfile) ...[
+                  SizedBox(height: layout.s6),
+                  _buildPerGuildPremiumUpsell(layout, l10n),
+                ],
+                if (!state.isPerGuildProfile) ...[
+                  SizedBox(height: layout.s6),
+                  _buildAvatarSection(state, vm, layout, l10n),
+                  SizedBox(height: layout.s6),
+                  _buildBannerSection(state, vm, layout, l10n),
+                ] else if (!state.isLoadingGuildProfile) ...[
+                  SizedBox(height: layout.s6),
+                  Opacity(
+                    opacity: state.hasPerGuildProfiles ? 1.0 : 0.5,
+                    child: IgnorePointer(
+                      ignoring: !state.hasPerGuildProfiles,
+                      child: _buildGuildAvatarSection(state, vm, layout, l10n),
+                    ),
+                  ),
+                  SizedBox(height: layout.s6),
+                  Opacity(
+                    opacity: state.hasPerGuildProfiles ? 1.0 : 0.5,
+                    child: IgnorePointer(
+                      ignoring: !state.hasPerGuildProfiles,
+                      child: _buildGuildBannerSection(state, vm, layout, l10n),
+                    ),
+                  ),
+                ],
+                SizedBox(height: layout.s6),
+                Opacity(
+                  opacity: state.isPerGuildProfile && !state.hasPerGuildProfiles
+                      ? 0.5
+                      : 1.0,
+                  child: IgnorePointer(
+                    ignoring:
+                        state.isPerGuildProfile && !state.hasPerGuildProfiles,
+                    child: FluxerColorPickerField(
+                      label: l10n.accentColorLabel,
+                      description: l10n.accentColorDescription,
+                      value: state.isPerGuildProfile
+                          ? (state.isEditedGuildAccentColorSet
+                                ? (state.editedGuildAccentColor ?? 0)
+                                : (state.guildAccentColor ??
+                                      state.accentColor ??
+                                      0))
+                          : (state.isEditedAccentColorSet
+                                ? (state.editedAccentColor ?? 0)
+                                : (state.accentColor ?? 0)),
+                      onChanged: state.isPerGuildProfile
+                          ? vm.updateGuildAccentColor
+                          : vm.updateAccentColor,
+                      defaultValue: 0x4641D9,
+                    ),
+                  ),
                 ),
                 SizedBox(height: layout.s6),
-                _buildAvatarSection(state, vm, layout, l10n),
-                SizedBox(height: layout.s6),
-                _buildBannerSection(state, vm, layout, l10n),
-                SizedBox(height: layout.s6),
-                FluxerColorPickerField(
-                  label: l10n.accentColorLabel,
-                  description: l10n.accentColorDescription,
-                  value: state.isEditedAccentColorSet
-                      ? (state.editedAccentColor ?? 0)
-                      : (state.accentColor ?? 0),
-                  onChanged: vm.updateAccentColor,
-                  defaultValue: 0x4641D9,
-                ),
-                SizedBox(height: layout.s6),
-                EmojiAutocompleteOverlay(
-                  controller: _bioController,
-                  maxActualLength: _kMaxBioLength,
-                  customEmojis: _customEmojis,
-                  onEmojiInserted: _notifyBioChanged,
-                  child: ListenableBuilder(
-                    listenable: _bioController,
-                    builder: (context, _) {
-                      final bioDisplayMaxLength = max(
-                        0,
-                        _bioController.text.length +
-                            _kMaxBioLength -
-                            _bioController.actualTextLength,
-                      );
-                      return FluxerInput.multiline(
-                        controller: _bioController,
-                        label: l10n.aboutMeLabel,
-                        maxLength: bioDisplayMaxLength,
-                        maxLines: 6,
-                        showCounter: true,
-                        counterLength: () => _bioController.actualTextLength,
-                        helperText: l10n.aboutMeHelperText,
-                        onChanged: (_) =>
-                            vm.updateBio(_bioController.actualText),
-                        suffixIcon: FluxerEmojiPickerPopout(
-                          key: _expressionPickerKey,
-                          visibleTabs: const [ExpressionPickerTab.emojis],
-                          onEmojiSelected: (emoji) {
-                            _bioController.insertEmoji(
-                              emoji.name,
-                              emoji.surrogates,
-                              maxActualLength: _kMaxBioLength,
-                            );
-                            _notifyBioChanged();
-                          },
-                          child: PhosphorIcon(
-                            PhosphorIconsFill.smiley,
-                            size: 20,
-                            color: colors.textTertiary,
-                          ),
-                        ),
-                        onSuffixTap: _onSmileyTap,
-                      );
-                    },
+                Opacity(
+                  opacity: state.isPerGuildProfile && !state.hasPerGuildProfiles
+                      ? 0.5
+                      : 1.0,
+                  child: IgnorePointer(
+                    ignoring:
+                        state.isPerGuildProfile && !state.hasPerGuildProfiles,
+                    child: _buildBioSection(state, vm, layout, l10n),
                   ),
                 ),
                 SizedBox(height: layout.s8),
                 ProfilePreviewCard(state: state),
-                if (state.isPremium) ...[
+                if (state.isPremium && !state.isPerGuildProfile) ...[
                   SizedBox(height: layout.s8),
                   _buildPremiumBadgeSection(state, vm, layout, l10n),
                 ],
@@ -450,6 +531,273 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         ),
         if (!state.hasVerifiedEmail) _buildUnclaimedAccountBar(layout, l10n),
       ],
+    );
+  }
+
+  Widget _buildProfileTypeSelector(
+    UserSettingsViewState state,
+    UserSettingsViewModel vm,
+    FluxerLayoutTheme layout,
+    FluxerLocalizations l10n,
+  ) {
+    final guilds = ref.watch(
+      guildListViewModelProvider.select((s) => s.guilds),
+    );
+
+    final items = <FluxerSelectItem<String>>[
+      FluxerSelectItem(value: '', label: l10n.profileTypeGlobal),
+      for (final guild in guilds)
+        FluxerSelectItem(
+          value: guild.id,
+          label: guild.name,
+          leading: guild.iconUrl != null
+              ? ClipOval(
+                  child: CachedNetworkImage(
+                    imageUrl: guild.iconUrl!,
+                    width: 20,
+                    height: 20,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : null,
+        ),
+    ];
+
+    return FluxerSelect<String>(
+      label: l10n.profileTypeLabel,
+      items: items,
+      value: state.selectedGuildId ?? '',
+      enabled: !state.isDirty,
+      description: state.isPerGuildProfile
+          ? l10n.profileTypeGuildDescription
+          : null,
+      onChanged: (guildId) {
+        unawaited(vm.selectGuild(guildId.isEmpty ? null : guildId));
+      },
+    );
+  }
+
+  Widget _buildPerGuildPremiumUpsell(
+    FluxerLayoutTheme layout,
+    FluxerLocalizations l10n,
+  ) {
+    final colors = context.colors;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.brandPrimary,
+        borderRadius: layout.radiusMd,
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(layout.s3),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            PhosphorIcon(
+              PhosphorIconsFill.crown,
+              color: colors.textOnBrandPrimary,
+              size: 16,
+            ),
+            SizedBox(width: layout.s2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.perGuildPremiumUpsellText,
+                    style: TextStyle(
+                      color: colors.textOnBrandPrimary,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                  SizedBox(height: layout.s2),
+                  FluxerButton.inverted(
+                    onPressed: () => _showPlutoniumSheet(context),
+                    label: l10n.getPlutonium,
+                    size: FluxerButtonSize.small,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAssetModeSelector({
+    required GuildAssetMode value,
+    required ValueChanged<GuildAssetMode> onChanged,
+    required FluxerLocalizations l10n,
+  }) {
+    return FluxerRadioGroup<GuildAssetMode>(
+      value: value,
+      onChanged: onChanged,
+      items: [
+        FluxerRadioItem(
+          value: GuildAssetMode.inherit,
+          label: l10n.avatarModeInherit,
+        ),
+        FluxerRadioItem(
+          value: GuildAssetMode.custom,
+          label: l10n.avatarModeCustom,
+        ),
+        FluxerRadioItem(
+          value: GuildAssetMode.unset,
+          label: l10n.avatarModeUnset,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGuildAvatarSection(
+    UserSettingsViewState state,
+    UserSettingsViewModel vm,
+    FluxerLayoutTheme layout,
+    FluxerLocalizations l10n,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.avatarLabel,
+          style: context.textStyles.label.copyWith(
+            color: context.colors.textSecondary,
+          ),
+        ),
+        SizedBox(height: layout.s2),
+        _buildAssetModeSelector(
+          value: state.guildAvatarMode,
+          onChanged: vm.setGuildAvatarMode,
+          l10n: l10n,
+        ),
+        if (state.guildAvatarMode == GuildAssetMode.custom) ...[
+          SizedBox(height: layout.s3),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FluxerButton.primary(
+                onPressed: () => _handleImageUpload(isAvatar: true),
+                label: l10n.changeAvatar,
+              ),
+              if (state.guildAvatar != null ||
+                  state.editedGuildAvatarBase64 != null) ...[
+                SizedBox(height: layout.s2),
+                FluxerButton.secondary(
+                  onPressed: vm.clearGuildAvatar,
+                  label: l10n.removeAvatar,
+                ),
+              ],
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildGuildBannerSection(
+    UserSettingsViewState state,
+    UserSettingsViewModel vm,
+    FluxerLayoutTheme layout,
+    FluxerLocalizations l10n,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.bannerLabel,
+          style: context.textStyles.label.copyWith(
+            color: context.colors.textSecondary,
+          ),
+        ),
+        SizedBox(height: layout.s2),
+        _buildAssetModeSelector(
+          value: state.guildBannerMode,
+          onChanged: vm.setGuildBannerMode,
+          l10n: l10n,
+        ),
+        if (state.guildBannerMode == GuildAssetMode.custom) ...[
+          SizedBox(height: layout.s3),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FluxerButton.primary(
+                onPressed: () => _handleImageUpload(isAvatar: false),
+                label: l10n.changeBanner,
+              ),
+              if (state.guildBanner != null ||
+                  state.editedGuildBannerBase64 != null) ...[
+                SizedBox(height: layout.s2),
+                FluxerButton.secondary(
+                  onPressed: vm.clearGuildBanner,
+                  label: l10n.removeBanner,
+                ),
+              ],
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildBioSection(
+    UserSettingsViewState state,
+    UserSettingsViewModel vm,
+    FluxerLayoutTheme layout,
+    FluxerLocalizations l10n,
+  ) {
+    final colors = context.colors;
+    final controller = state.isPerGuildProfile
+        ? _guildBioController
+        : _bioController;
+    final onChanged = state.isPerGuildProfile
+        ? () => vm.updateGuildBio(controller.actualText)
+        : () => vm.updateBio(controller.actualText);
+
+    return EmojiAutocompleteOverlay(
+      controller: controller,
+      maxActualLength: _kMaxBioLength,
+      customEmojis: _customEmojis,
+      onEmojiInserted: onChanged,
+      child: ListenableBuilder(
+        listenable: controller,
+        builder: (context, _) {
+          final bioDisplayMaxLength = max(
+            0,
+            controller.text.length +
+                _kMaxBioLength -
+                controller.actualTextLength,
+          );
+          return FluxerInput.multiline(
+            controller: controller,
+            label: l10n.aboutMeLabel,
+            maxLength: bioDisplayMaxLength,
+            maxLines: 6,
+            showCounter: true,
+            counterLength: () => controller.actualTextLength,
+            helperText: l10n.aboutMeHelperText,
+            onChanged: (_) => onChanged(),
+            suffixIcon: FluxerEmojiPickerPopout(
+              key: _expressionPickerKey,
+              visibleTabs: const [ExpressionPickerTab.emojis],
+              onEmojiSelected: (emoji) {
+                controller.insertEmoji(
+                  emoji.name,
+                  emoji.surrogates,
+                  maxActualLength: _kMaxBioLength,
+                );
+                onChanged();
+              },
+              child: PhosphorIcon(
+                PhosphorIconsFill.smiley,
+                size: 20,
+                color: colors.textTertiary,
+              ),
+            ),
+            onSuffixTap: _onSmileyTap,
+          );
+        },
+      ),
     );
   }
 
