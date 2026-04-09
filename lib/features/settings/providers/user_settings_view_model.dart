@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart'
     show fluxerMediaCdn;
+import 'package:fluxer_app/features/settings/domain/guild_asset_mode.dart';
 import 'package:fluxer_app/shared/external_links/external_link_utils.dart'
     as external_link_utils;
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -74,6 +76,30 @@ class UserSettingsViewState {
   final bool isSaving;
   final String? error;
 
+  final String? selectedGuildId;
+  final bool isLoadingGuildProfile;
+  final String? guildNick;
+  final String? guildBio;
+  final String? guildPronouns;
+  final int? guildAccentColor;
+  final String? guildAvatar;
+  final String? guildBanner;
+  final int guildProfileFlags;
+  final int guildPermissions;
+
+  final Object? _editedNick;
+  final Object? _editedGuildBio;
+  final Object? _editedGuildPronouns;
+  final Object? _editedGuildAccentColor;
+  final String? editedGuildAvatarBase64;
+  final String? editedGuildBannerBase64;
+  final bool guildAvatarCleared;
+  final bool guildBannerCleared;
+  final GuildAssetMode guildAvatarMode;
+  final GuildAssetMode guildBannerMode;
+  final GuildAssetMode initialGuildAvatarMode;
+  final GuildAssetMode initialGuildBannerMode;
+
   const UserSettingsViewState({
     required this.userId,
     required this.username,
@@ -119,6 +145,28 @@ class UserSettingsViewState {
     this.bannerCleared = false,
     this.isSaving = false,
     this.error,
+    this.selectedGuildId,
+    this.isLoadingGuildProfile = false,
+    this.guildNick,
+    this.guildBio,
+    this.guildPronouns,
+    this.guildAccentColor,
+    this.guildAvatar,
+    this.guildBanner,
+    this.guildProfileFlags = 0,
+    this.guildPermissions = 0,
+    Object? editedNick = _unset,
+    Object? editedGuildBio = _unset,
+    Object? editedGuildPronouns = _unset,
+    Object? editedGuildAccentColor = _unset,
+    this.editedGuildAvatarBase64,
+    this.editedGuildBannerBase64,
+    this.guildAvatarCleared = false,
+    this.guildBannerCleared = false,
+    this.guildAvatarMode = GuildAssetMode.inherit,
+    this.guildBannerMode = GuildAssetMode.inherit,
+    this.initialGuildAvatarMode = GuildAssetMode.inherit,
+    this.initialGuildBannerMode = GuildAssetMode.inherit,
   }) : _editedPremiumBadgeHidden = editedPremiumBadgeHidden,
        _editedPremiumBadgeMasked = editedPremiumBadgeMasked,
        _editedPremiumBadgeTimestampHidden = editedPremiumBadgeTimestampHidden,
@@ -126,7 +174,11 @@ class UserSettingsViewState {
        _editedDisplayName = editedDisplayName,
        _editedBio = editedBio,
        _editedPronouns = editedPronouns,
-       _editedAccentColor = editedAccentColor;
+       _editedAccentColor = editedAccentColor,
+       _editedNick = editedNick,
+       _editedGuildBio = editedGuildBio,
+       _editedGuildPronouns = editedGuildPronouns,
+       _editedGuildAccentColor = editedGuildAccentColor;
 
   String? get editedDisplayName =>
       _editedDisplayName == _unset ? null : _editedDisplayName as String?;
@@ -195,6 +247,30 @@ class UserSettingsViewState {
   bool get effectivePremiumBadgeSequenceHidden =>
       editedPremiumBadgeSequenceHidden ?? premiumBadgeSequenceHidden;
 
+  bool get isPerGuildProfile => selectedGuildId != null;
+
+  String? get editedNick =>
+      _editedNick == _unset ? null : _editedNick as String?;
+  bool get isEditedNickSet => _editedNick != _unset;
+
+  String? get editedGuildBio =>
+      _editedGuildBio == _unset ? null : _editedGuildBio as String?;
+  bool get isEditedGuildBioSet => _editedGuildBio != _unset;
+
+  String? get editedGuildPronouns =>
+      _editedGuildPronouns == _unset ? null : _editedGuildPronouns as String?;
+  bool get isEditedGuildPronounsSet => _editedGuildPronouns != _unset;
+
+  int? get editedGuildAccentColor => _editedGuildAccentColor == _unset
+      ? null
+      : _editedGuildAccentColor as int?;
+  bool get isEditedGuildAccentColorSet => _editedGuildAccentColor != _unset;
+
+  bool get canChangeNickname =>
+      hasPermission(guildPermissions, Permission.changeNickname);
+
+  bool get hasPerGuildProfiles => isPremium;
+
   String? get avatarUrl {
     if (avatar == null) {
       return null;
@@ -221,6 +297,9 @@ class UserSettingsViewState {
   }
 
   bool get isDirty {
+    if (isPerGuildProfile) {
+      return _isGuildDirty;
+    }
     if (isEditedDisplayNameSet && editedDisplayName != displayName) {
       return true;
     }
@@ -253,6 +332,35 @@ class UserSettingsViewState {
     }
     if (isEditedPremiumBadgeSequenceHiddenSet &&
         editedPremiumBadgeSequenceHidden != premiumBadgeSequenceHidden) {
+      return true;
+    }
+    return false;
+  }
+
+  bool get _isGuildDirty {
+    if (isEditedNickSet && editedNick != guildNick) {
+      return true;
+    }
+    if (isEditedGuildBioSet && editedGuildBio != guildBio) {
+      return true;
+    }
+    if (isEditedGuildPronounsSet && editedGuildPronouns != guildPronouns) {
+      return true;
+    }
+    if (isEditedGuildAccentColorSet &&
+        editedGuildAccentColor != guildAccentColor) {
+      return true;
+    }
+    if (editedGuildAvatarBase64 != null || guildAvatarCleared) {
+      return true;
+    }
+    if (editedGuildBannerBase64 != null || guildBannerCleared) {
+      return true;
+    }
+    if (guildAvatarMode != initialGuildAvatarMode) {
+      return true;
+    }
+    if (guildBannerMode != initialGuildBannerMode) {
       return true;
     }
     return false;
@@ -303,6 +411,28 @@ class UserSettingsViewState {
     bool? bannerCleared,
     bool? isSaving,
     Object? error = _unset,
+    Object? selectedGuildId = _unset,
+    bool? isLoadingGuildProfile,
+    Object? guildNick = _unset,
+    Object? guildBio = _unset,
+    Object? guildPronouns = _unset,
+    Object? guildAccentColor = _unset,
+    Object? guildAvatar = _unset,
+    Object? guildBanner = _unset,
+    int? guildProfileFlags,
+    int? guildPermissions,
+    Object? editedNick = _unset,
+    Object? editedGuildBio = _unset,
+    Object? editedGuildPronouns = _unset,
+    Object? editedGuildAccentColor = _unset,
+    Object? editedGuildAvatarBase64 = _unset,
+    Object? editedGuildBannerBase64 = _unset,
+    bool? guildAvatarCleared,
+    bool? guildBannerCleared,
+    GuildAssetMode? guildAvatarMode,
+    GuildAssetMode? guildBannerMode,
+    GuildAssetMode? initialGuildAvatarMode,
+    GuildAssetMode? initialGuildBannerMode,
   }) {
     return UserSettingsViewState(
       userId: userId ?? this.userId,
@@ -408,6 +538,61 @@ class UserSettingsViewState {
       bannerCleared: bannerCleared ?? this.bannerCleared,
       isSaving: isSaving ?? this.isSaving,
       error: error == _unset ? this.error : error as String?,
+      selectedGuildId: selectedGuildId == _unset
+          ? this.selectedGuildId
+          : selectedGuildId as String?,
+      isLoadingGuildProfile:
+          isLoadingGuildProfile ?? this.isLoadingGuildProfile,
+      guildNick: guildNick == _unset ? this.guildNick : guildNick as String?,
+      guildBio: guildBio == _unset ? this.guildBio : guildBio as String?,
+      guildPronouns: guildPronouns == _unset
+          ? this.guildPronouns
+          : guildPronouns as String?,
+      guildAccentColor: guildAccentColor == _unset
+          ? this.guildAccentColor
+          : guildAccentColor as int?,
+      guildAvatar: guildAvatar == _unset
+          ? this.guildAvatar
+          : guildAvatar as String?,
+      guildBanner: guildBanner == _unset
+          ? this.guildBanner
+          : guildBanner as String?,
+      guildProfileFlags: guildProfileFlags ?? this.guildProfileFlags,
+      guildPermissions: guildPermissions ?? this.guildPermissions,
+      editedNick: editedNick == _unset
+          ? _editedNick
+          : editedNick == _resetEdited
+          ? _unset
+          : editedNick,
+      editedGuildBio: editedGuildBio == _unset
+          ? _editedGuildBio
+          : editedGuildBio == _resetEdited
+          ? _unset
+          : editedGuildBio,
+      editedGuildPronouns: editedGuildPronouns == _unset
+          ? _editedGuildPronouns
+          : editedGuildPronouns == _resetEdited
+          ? _unset
+          : editedGuildPronouns,
+      editedGuildAccentColor: editedGuildAccentColor == _unset
+          ? _editedGuildAccentColor
+          : editedGuildAccentColor == _resetEdited
+          ? _unset
+          : editedGuildAccentColor,
+      editedGuildAvatarBase64: editedGuildAvatarBase64 == _unset
+          ? this.editedGuildAvatarBase64
+          : editedGuildAvatarBase64 as String?,
+      editedGuildBannerBase64: editedGuildBannerBase64 == _unset
+          ? this.editedGuildBannerBase64
+          : editedGuildBannerBase64 as String?,
+      guildAvatarCleared: guildAvatarCleared ?? this.guildAvatarCleared,
+      guildBannerCleared: guildBannerCleared ?? this.guildBannerCleared,
+      guildAvatarMode: guildAvatarMode ?? this.guildAvatarMode,
+      guildBannerMode: guildBannerMode ?? this.guildBannerMode,
+      initialGuildAvatarMode:
+          initialGuildAvatarMode ?? this.initialGuildAvatarMode,
+      initialGuildBannerMode:
+          initialGuildBannerMode ?? this.initialGuildBannerMode,
     );
   }
 }
