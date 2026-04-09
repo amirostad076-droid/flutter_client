@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart'
@@ -742,7 +743,274 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
     state = state.copyWith(bannerCleared: true, editedBannerBase64: null);
   }
 
+  Future<void> selectGuild(String? guildId) async {
+    if (guildId == null) {
+      state = state.copyWith(
+        selectedGuildId: null,
+        isLoadingGuildProfile: false,
+        guildNick: null,
+        guildBio: null,
+        guildPronouns: null,
+        guildAccentColor: null,
+        guildAvatar: null,
+        guildBanner: null,
+        guildProfileFlags: 0,
+        guildPermissions: 0,
+        guildAvatarMode: GuildAssetMode.inherit,
+        guildBannerMode: GuildAssetMode.inherit,
+        initialGuildAvatarMode: GuildAssetMode.inherit,
+        initialGuildBannerMode: GuildAssetMode.inherit,
+      );
+      _resetGuildEdits();
+      return;
+    }
+
+    state = state.copyWith(
+      selectedGuildId: guildId,
+      isLoadingGuildProfile: true,
+    );
+    _resetGuildEdits();
+
+    try {
+      final client = ref.read(fluxerClientProvider);
+      final profile = await client.users.getUserProfile(
+        targetId: state.userId,
+        guildId: guildId,
+      );
+
+      final member = profile.guildMember;
+      final guildProfile = profile.guildMemberProfile;
+
+      final flags = member?.profileFlags ?? 0;
+      const avatarUnset = 1 << 0;
+      const bannerUnset = 1 << 1;
+
+      GuildAssetMode avatarMode;
+      if (flags & avatarUnset != 0) {
+        avatarMode = GuildAssetMode.unset;
+      } else if (member?.avatar != null) {
+        avatarMode = GuildAssetMode.custom;
+      } else {
+        avatarMode = GuildAssetMode.inherit;
+      }
+
+      GuildAssetMode bannerMode;
+      if (flags & bannerUnset != 0) {
+        bannerMode = GuildAssetMode.unset;
+      } else if (guildProfile?.banner != null) {
+        bannerMode = GuildAssetMode.custom;
+      } else {
+        bannerMode = GuildAssetMode.inherit;
+      }
+
+      final permissions = await ref
+          .read(guildPermissionsProvider.notifier)
+          .getPermissions(guildId);
+
+      state = state.copyWith(
+        isLoadingGuildProfile: false,
+        guildNick: member?.nick,
+        guildBio: guildProfile?.bio,
+        guildPronouns: guildProfile?.pronouns,
+        guildAccentColor: guildProfile?.accentColor,
+        guildAvatar: member?.avatar,
+        guildBanner: guildProfile?.banner,
+        guildProfileFlags: flags,
+        guildPermissions: permissions,
+        guildAvatarMode: avatarMode,
+        guildBannerMode: bannerMode,
+        initialGuildAvatarMode: avatarMode,
+        initialGuildBannerMode: bannerMode,
+      );
+    } on Exception catch (e) {
+      talker.error('Failed to load guild profile', e);
+      state = state.copyWith(
+        isLoadingGuildProfile: false,
+        error: 'Failed to load guild profile',
+      );
+    }
+  }
+
+  void updateNick(String value) {
+    state = state.copyWith(editedNick: value);
+  }
+
+  void updateGuildBio(String value) {
+    state = state.copyWith(editedGuildBio: value);
+  }
+
+  void updateGuildPronouns(String value) {
+    state = state.copyWith(editedGuildPronouns: value);
+  }
+
+  void updateGuildAccentColor(int value) {
+    state = state.copyWith(editedGuildAccentColor: value);
+  }
+
+  void setGuildAvatar(String base64) {
+    state = state.copyWith(
+      editedGuildAvatarBase64: base64,
+      guildAvatarCleared: false,
+      guildAvatarMode: GuildAssetMode.custom,
+    );
+  }
+
+  void clearGuildAvatar() {
+    state = state.copyWith(
+      guildAvatarCleared: true,
+      editedGuildAvatarBase64: null,
+    );
+  }
+
+  void setGuildBanner(String base64) {
+    state = state.copyWith(
+      editedGuildBannerBase64: base64,
+      guildBannerCleared: false,
+      guildBannerMode: GuildAssetMode.custom,
+    );
+  }
+
+  void clearGuildBanner() {
+    state = state.copyWith(
+      guildBannerCleared: true,
+      editedGuildBannerBase64: null,
+    );
+  }
+
+  void setGuildAvatarMode(GuildAssetMode mode) {
+    if (mode != GuildAssetMode.custom) {
+      state = state.copyWith(
+        guildAvatarMode: mode,
+        editedGuildAvatarBase64: null,
+        guildAvatarCleared: mode == GuildAssetMode.unset,
+      );
+    } else {
+      state = state.copyWith(guildAvatarMode: mode);
+    }
+  }
+
+  void setGuildBannerMode(GuildAssetMode mode) {
+    if (mode != GuildAssetMode.custom) {
+      state = state.copyWith(
+        guildBannerMode: mode,
+        editedGuildBannerBase64: null,
+        guildBannerCleared: mode == GuildAssetMode.unset,
+      );
+    } else {
+      state = state.copyWith(guildBannerMode: mode);
+    }
+  }
+
+  Future<void> saveGuildProfile() async {
+    final guildId = state.selectedGuildId;
+    if (guildId == null || !state._isGuildDirty) {
+      return;
+    }
+
+    state = state.copyWith(isSaving: true, error: null);
+
+    try {
+      final s = state;
+
+      const avatarUnset = 1 << 0;
+      const bannerUnset = 1 << 1;
+      var profileFlags = 0;
+      if (s.guildAvatarMode == GuildAssetMode.unset) {
+        profileFlags |= avatarUnset;
+      }
+      if (s.guildBannerMode == GuildAssetMode.unset) {
+        profileFlags |= bannerUnset;
+      }
+
+      String? avatarValue;
+      if (s.guildAvatarMode == GuildAssetMode.custom &&
+          s.editedGuildAvatarBase64 != null) {
+        avatarValue = s.editedGuildAvatarBase64;
+      }
+
+      String? bannerValue;
+      if (s.guildBannerMode == GuildAssetMode.custom &&
+          s.editedGuildBannerBase64 != null) {
+        bannerValue = s.editedGuildBannerBase64;
+      }
+
+      final body = MyGuildMemberUpdateRequest(
+        nick: s.canChangeNickname
+            ? (s.isEditedNickSet ? s.editedNick : s.guildNick)
+            : null,
+        avatar: s.guildAvatarMode == GuildAssetMode.inherit ||
+                s.guildAvatarMode == GuildAssetMode.unset
+            ? null
+            : avatarValue,
+        banner: s.guildBannerMode == GuildAssetMode.inherit ||
+                s.guildBannerMode == GuildAssetMode.unset
+            ? null
+            : bannerValue,
+        bio: s.isEditedGuildBioSet ? s.editedGuildBio : s.guildBio,
+        pronouns: s.isEditedGuildPronounsSet
+            ? s.editedGuildPronouns
+            : s.guildPronouns,
+        accentColor: s.isEditedGuildAccentColorSet
+            ? s.editedGuildAccentColor
+            : s.guildAccentColor,
+        profileFlags: profileFlags,
+      );
+
+      final needsExplicitNulls =
+          s.guildAvatarMode != GuildAssetMode.custom ||
+              s.guildBannerMode != GuildAssetMode.custom;
+
+      if (needsExplicitNulls) {
+        final json = body.toJson();
+        if (s.guildAvatarMode == GuildAssetMode.inherit ||
+            s.guildAvatarMode == GuildAssetMode.unset) {
+          json['avatar'] = null;
+        }
+        if (s.guildBannerMode == GuildAssetMode.inherit ||
+            s.guildBannerMode == GuildAssetMode.unset) {
+          json['banner'] = null;
+        }
+        final dio = ref.read(fluxerDioProvider);
+        await dio.patch<dynamic>(
+          '/guilds/$guildId/members/@me',
+          data: json,
+        );
+      } else {
+        final client = ref.read(fluxerClientProvider);
+        await client.guilds.updateCurrentGuildMember(
+          guildId: guildId,
+          body: body,
+        );
+      }
+
+      await selectGuild(guildId);
+    } on Exception catch (e) {
+      talker.error('Failed to save guild profile', e);
+      state = state.copyWith(
+        isSaving: false,
+        error: 'Failed to save guild profile',
+      );
+    }
+  }
+
+  void _resetGuildEdits() {
+    state = state.copyWith(
+      editedNick: UserSettingsViewState._resetEdited,
+      editedGuildBio: UserSettingsViewState._resetEdited,
+      editedGuildPronouns: UserSettingsViewState._resetEdited,
+      editedGuildAccentColor: UserSettingsViewState._resetEdited,
+      editedGuildAvatarBase64: null,
+      editedGuildBannerBase64: null,
+      guildAvatarCleared: false,
+      guildBannerCleared: false,
+    );
+  }
+
   Future<void> save() async {
+    if (state.isPerGuildProfile) {
+      return saveGuildProfile();
+    }
+
     if (!state.isDirty) {
       return;
     }
@@ -847,6 +1115,17 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
   }
 
   void reset() {
+    if (state.isPerGuildProfile) {
+      _resetGuildEdits();
+      state = state.copyWith(
+        guildAvatarMode: state.initialGuildAvatarMode,
+        guildBannerMode: state.initialGuildBannerMode,
+        isSaving: false,
+        error: null,
+      );
+      return;
+    }
+
     state = state.copyWith(
       editedDisplayName: UserSettingsViewState._resetEdited,
       editedBio: UserSettingsViewState._resetEdited,
