@@ -79,7 +79,10 @@ class FluxerSelect<T> extends StatelessWidget {
             padding: EdgeInsets.only(bottom: layout.s1_5),
             child: Text(
               label!,
-              style: textStyles.label.copyWith(color: colors.textSecondary),
+              style: textStyles.label.copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         FluxerTappable(
