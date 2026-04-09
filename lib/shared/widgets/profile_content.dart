@@ -6,10 +6,8 @@ import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
-import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
-import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
-import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/user_profile.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -46,6 +44,8 @@ class ProfileContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final FluxerColorTheme colors = context.colors;
+    final textStyles = context.textStyles;
+    final l10n = FluxerLocalizations.of(context);
     final AsyncValue<UserProfileFullResponse?> profileAsync = ref.watch(
       userProfileProvider(userId: userId),
     );
@@ -103,7 +103,7 @@ class ProfileContent extends ConsumerWidget {
                     children: [
                       Text(
                         displayName,
-                        style: TextStyle(
+                        style: textStyles.heading.copyWith(
                           color: colors.textChat,
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
@@ -118,10 +118,8 @@ class ProfileContent extends ConsumerWidget {
                             child: Text(
                               '$username'
                               '#$discriminator',
-                              style: TextStyle(
+                              style: textStyles.label.copyWith(
                                 color: colors.textPrimaryMuted,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -133,28 +131,10 @@ class ProfileContent extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 15),
-                  FilledButton.icon(
+                  FluxerButton.primary(
                     onPressed: () => _editProfile(context),
-                    icon: PhosphorIcon(
-                      PhosphorIconsDuotone.pencilSimple,
-                      size: 20,
-                      color: colors.textOnBrandPrimary,
-                    ),
-                    label: Text(
-                      'Edit Profile',
-                      style: TextStyle(
-                        color: colors.textOnBrandPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colors.brandPrimary,
-                      foregroundColor: colors.textOnBrandPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                    icon: PhosphorIconsDuotone.pencilSimple,
+                    label: l10n.profileEditButton,
                   ),
                   const SizedBox(height: 20),
                   _ProfileCard(
@@ -162,8 +142,8 @@ class ProfileContent extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'About me',
-                          style: TextStyle(
+                          l10n.aboutMeLabel,
+                          style: textStyles.label.copyWith(
                             color: colors.textChat,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -181,9 +161,8 @@ class ProfileContent extends ConsumerWidget {
                               data: raw,
                               markdownContext:
                                   FluxerMarkdownContext.restrictedUserBio,
-                              baseStyle: TextStyle(
+                              baseStyle: textStyles.bodySmall.copyWith(
                                 color: colors.textChat,
-                                fontSize: 14,
                                 height: 1.35,
                               ),
                             );
@@ -209,7 +188,7 @@ class ProfileContent extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Fluxer Member Since',
+                                  l10n.profilePreviewMemberSince,
                                   style: TextStyle(
                                     color: colors.textChat,
                                     fontSize: 15,
@@ -218,10 +197,9 @@ class ProfileContent extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  DateFormat(
-                                    'MMM d, y',
-                                  ).format(memberSince.toLocal()),
-                                  style: TextStyle(
+                                  DateFormat.yMMMd()
+                                      .format(memberSince.toLocal()),
+                                  style: textStyles.bodySmall.copyWith(
                                     color: colors.textChat,
                                     fontSize: 15,
                                   ),
@@ -248,7 +226,7 @@ class ProfileContent extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Note',
+                                    l10n.profileNoteLabel,
                                     style: TextStyle(
                                       color: colors.textChat,
                                       fontSize: 15,
@@ -257,28 +235,22 @@ class ProfileContent extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '(only visible to you)',
-                                    style: TextStyle(
-                                      color: colors.textPrimaryMuted,
-                                      fontSize: 12,
-                                    ),
+                                    l10n.profileNoteVisibility,
+                                    style: textStyles.timestamp,
                                   ),
                                 ],
                               ),
                             ),
-                            IconButton(
+                            FluxerButton.circle(
                               onPressed: () => _editProfile(context),
-                              visualDensity: VisualDensity.compact,
-                              icon: PhosphorIcon(
-                                PhosphorIconsRegular.pencilSimple,
-                                size: 20,
-                                color: colors.textPrimaryMuted,
-                              ),
+                              icon: PhosphorIconsRegular.pencilSimple,
+                              variant: FluxerButtonVariant.secondary,
+                              size: FluxerButtonSize.compact,
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        _SelfNoteText(userId: userId, colors: colors),
+                        _SelfNoteText(userId: userId),
                       ],
                     ),
                   ),
@@ -295,23 +267,25 @@ class ProfileContent extends ConsumerWidget {
 
 class _SelfNoteText extends ConsumerWidget {
   final String userId;
-  final FluxerColorTheme colors;
 
-  const _SelfNoteText({required this.userId, required this.colors});
-
-  static TextStyle _mutedStyle(FluxerColorTheme colors) =>
-      TextStyle(color: colors.textPrimaryMuted, fontSize: 14, height: 1.35);
+  const _SelfNoteText({required this.userId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (userId.isEmpty) {
       return const SizedBox.shrink();
     }
+    final noteStyle = context.textStyles.bodySmall.copyWith(
+      height: 1.35,
+    );
     return ref
         .watch(userProfileSelfNoteProvider(userId: userId))
         .when(
           data: (String? note) =>
-              Text(note ?? 'No note yet.', style: _mutedStyle(colors)),
+              Text(
+                note ?? FluxerLocalizations.of(context).profileNoteEmpty,
+                style: noteStyle,
+              ),
           loading: () => const SizedBox.shrink(),
           error: (_, _) => const SizedBox.shrink(),
         );

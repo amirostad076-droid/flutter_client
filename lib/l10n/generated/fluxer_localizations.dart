@@ -2151,6 +2151,36 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Don\'t Show'**
   String get avatarModeUnset;
+
+  /// Toast message shown after successfully saving profile changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated'**
+  String get profileSavedToast;
+
+  /// Button label to open profile editing from the profile content card.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get profileEditButton;
+
+  /// Label for the personal note section on a user profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get profileNoteLabel;
+
+  /// Hint that the note is private and only visible to the current user.
+  ///
+  /// In en, this message translates to:
+  /// **'(only visible to you)'**
+  String get profileNoteVisibility;
+
+  /// Placeholder shown when no personal note has been set for a user.
+  ///
+  /// In en, this message translates to:
+  /// **'No note yet.'**
+  String get profileNoteEmpty;
 }
 
 class _FluxerLocalizationsDelegate

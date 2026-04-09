@@ -1175,4 +1175,19 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get avatarModeUnset => 'Don\'t Show';
+
+  @override
+  String get profileSavedToast => 'Profile updated';
+
+  @override
+  String get profileEditButton => 'Edit Profile';
+
+  @override
+  String get profileNoteLabel => 'Note';
+
+  @override
+  String get profileNoteVisibility => '(only visible to you)';
+
+  @override
+  String get profileNoteEmpty => 'No note yet.';
 }

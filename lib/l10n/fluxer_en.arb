@@ -1487,5 +1487,25 @@
   "avatarModeUnset": "Don't Show",
   "@avatarModeUnset": {
     "description": "Avatar/banner mode: hide even if global exists"
+  },
+  "profileSavedToast": "Profile updated",
+  "@profileSavedToast": {
+    "description": "Toast message shown after successfully saving profile changes."
+  },
+  "profileEditButton": "Edit Profile",
+  "@profileEditButton": {
+    "description": "Button label to open profile editing from the profile content card."
+  },
+  "profileNoteLabel": "Note",
+  "@profileNoteLabel": {
+    "description": "Label for the personal note section on a user profile."
+  },
+  "profileNoteVisibility": "(only visible to you)",
+  "@profileNoteVisibility": {
+    "description": "Hint that the note is private and only visible to the current user."
+  },
+  "profileNoteEmpty": "No note yet.",
+  "@profileNoteEmpty": {
+    "description": "Placeholder shown when no personal note has been set for a user."
   }
 }
