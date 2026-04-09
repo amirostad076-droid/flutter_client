@@ -90,12 +90,10 @@ class FluxerSelect<T> extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               color: colors.backgroundTertiary,
-              borderRadius: layout.radiusLg,
-              border: Border.all(
-                color: errorText != null
-                    ? colors.statusDanger
-                    : colors.backgroundModifierAccent.withValues(alpha: 0.4),
-              ),
+              borderRadius: layout.radiusMd,
+              border: errorText != null
+                  ? Border.all(color: colors.statusDanger)
+                  : null,
             ),
             child: Row(
               children: [
