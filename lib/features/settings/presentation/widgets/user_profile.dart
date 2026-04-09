@@ -379,6 +379,23 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         _nickController.text = currentState.guildNick ?? '';
         _guildPronounsController.text = currentState.guildPronouns ?? '';
         _guildBioController.loadWithTokens(currentState.guildBio ?? '');
+      })
+      ..listen(userSettingsViewModelProvider.select((s) => s.isSaving), (
+        prev,
+        next,
+      ) {
+        if ((prev ?? false) && !next) {
+          final s = ref.read(userSettingsViewModelProvider);
+          if (s.error == null) {
+            ref.read(toastProvider.notifier).show(
+              FluxerToast(
+                message: FluxerLocalizations.of(context)
+                    .profileSavedToast,
+                variant: FluxerToastVariant.success,
+              ),
+            );
+          }
+        }
       });
 
     if (!state.isProfileLoaded) {
