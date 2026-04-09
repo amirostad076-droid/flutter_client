@@ -11,6 +11,7 @@ class FluxerSelectItem<T> {
   const FluxerSelectItem({
     required this.value,
     required this.label,
+    this.leading,
     this.icon,
     this.description,
     this.searchText,
@@ -19,6 +20,7 @@ class FluxerSelectItem<T> {
 
   final T value;
   final String label;
+  final Widget? leading;
   final IconData? icon;
   final String? description;
   final String? searchText;
@@ -97,6 +99,14 @@ class FluxerSelect<T> extends StatelessWidget {
             ),
             child: Row(
               children: [
+                if (selectedItem?.leading case final leading?) ...[
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: Center(child: leading),
+                  ),
+                  SizedBox(width: layout.s2),
+                ],
                 Expanded(
                   child: Text(
                     selectedItem?.label ?? hint ?? '',
@@ -244,6 +254,7 @@ class _FluxerSelectSheetState<T> extends State<_FluxerSelectSheet<T>> {
                             FluxerBottomSheetMenuItem(
                               label: item.label,
                               hint: item.description,
+                              leading: item.leading,
                               icon: item.icon,
                               enabled: item.enabled,
                               isSelected: item.value == widget.value,

@@ -530,6 +530,7 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
   final String label;
   final String? hint;
   final VoidCallback onTap;
+  final Widget? leading;
   final IconData? icon;
   final bool isDanger;
   final bool isSelected;
@@ -541,6 +542,7 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
     required this.onTap,
     super.key,
     this.hint,
+    this.leading,
     this.icon,
     this.isDanger = false,
     this.isSelected = false,
@@ -577,7 +579,14 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  if (icon != null) ...[
+                  if (leading case final leading?) ...[
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Center(child: leading),
+                    ),
+                    const SizedBox(width: 12),
+                  ] else if (icon != null) ...[
                     SizedBox(
                       width: 20,
                       height: 20,
@@ -750,9 +759,9 @@ Widget fluxerBottomSheetDragHandlePreview() {
 
 @FluxerWidgetPreview(name: 'Header', group: 'FluxerBottomSheet')
 Widget fluxerBottomSheetHeaderPreview() {
-  return FluxerBottomSheetHeader(
+  return const FluxerBottomSheetHeader(
     title: 'Invite friends',
-    subtitle: const Text('Share this server with people you trust.'),
+    subtitle: Text('Share this server with people you trust.'),
   );
 }
 
