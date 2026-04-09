@@ -18,6 +18,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_settings_view_model.g.dart';
 
+const int _kGuildProfileFlagAvatarUnset = 1 << 0;
+const int _kGuildProfileFlagBannerUnset = 1 << 1;
+
 class _ResetEdited {
   const _ResetEdited();
 }
@@ -782,11 +785,9 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       final guildProfile = profile.guildMemberProfile;
 
       final flags = member?.profileFlags ?? 0;
-      const avatarUnset = 1 << 0;
-      const bannerUnset = 1 << 1;
 
       GuildAssetMode avatarMode;
-      if (flags & avatarUnset != 0) {
+      if (flags & _kGuildProfileFlagAvatarUnset != 0) {
         avatarMode = GuildAssetMode.unset;
       } else if (member?.avatar != null) {
         avatarMode = GuildAssetMode.custom;
@@ -795,7 +796,7 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       }
 
       GuildAssetMode bannerMode;
-      if (flags & bannerUnset != 0) {
+      if (flags & _kGuildProfileFlagBannerUnset != 0) {
         bannerMode = GuildAssetMode.unset;
       } else if (guildProfile?.banner != null) {
         bannerMode = GuildAssetMode.custom;
@@ -912,14 +913,12 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
     try {
       final s = state;
 
-      const avatarUnset = 1 << 0;
-      const bannerUnset = 1 << 1;
       var profileFlags = 0;
       if (s.guildAvatarMode == GuildAssetMode.unset) {
-        profileFlags |= avatarUnset;
+        profileFlags |= _kGuildProfileFlagAvatarUnset;
       }
       if (s.guildBannerMode == GuildAssetMode.unset) {
-        profileFlags |= bannerUnset;
+        profileFlags |= _kGuildProfileFlagBannerUnset;
       }
 
       String? avatarValue;

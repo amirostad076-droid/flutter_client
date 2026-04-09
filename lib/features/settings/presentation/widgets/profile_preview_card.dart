@@ -482,7 +482,7 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
         ),
         const SizedBox(height: 4),
         Text(
-          DateFormat('MMM d, y').format(date.toLocal()),
+          DateFormat.yMMMd().format(date.toLocal()),
           style: textStyles.bodySmall.copyWith(color: colors.textChat),
         ),
       ],
