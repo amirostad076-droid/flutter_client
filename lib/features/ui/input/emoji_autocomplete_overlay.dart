@@ -235,11 +235,11 @@ class _EmojiAutocompleteOverlayState extends State<EmojiAutocompleteOverlay>
             child: const ColoredBox(color: Colors.transparent),
           ),
         ),
-        FadeTransition(
-          opacity: _fadeAnimation,
-          child: CompositedTransformFollower(
-            link: _layerLink,
-            followerAnchor: Alignment.bottomLeft,
+        CompositedTransformFollower(
+          link: _layerLink,
+          followerAnchor: Alignment.bottomLeft,
+          child: FadeTransition(
+            opacity: _fadeAnimation,
             child: TextFieldTapRegion(
               child: SizedBox(
                 width: targetWidth,
