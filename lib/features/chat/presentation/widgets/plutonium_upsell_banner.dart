@@ -5,12 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
-import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/ui/plutonium_upsell/fluxer_plutonium_upsell.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'plutonium_upsell_banner.g.dart';
@@ -42,7 +40,6 @@ class PlutoniumUpsellDismissed extends _$PlutoniumUpsellDismissed {
 }
 
 const _kCommunityIconLimit = 4;
-const _kPlutoniumUrl = 'https://fluxer.app/plutonium';
 
 class PlutoniumUpsellBanner extends ConsumerWidget {
   const PlutoniumUpsellBanner({
@@ -66,12 +63,11 @@ class PlutoniumUpsellBanner extends ConsumerWidget {
     }
 
     final l10n = FluxerLocalizations.of(context);
-    final colors = context.colors;
-    final layout = context.layout;
 
     final emojiLabel = l10n.emojiPlutoniumUpsellCustomEmoji(lockedEmojiCount);
-    final communityLabel =
-        l10n.emojiPlutoniumUpsellCommunity(lockedGuilds.length);
+    final communityLabel = l10n.emojiPlutoniumUpsellCommunity(
+      lockedGuilds.length,
+    );
     final text = l10n.emojiPlutoniumUpsellText(emojiLabel, communityLabel);
 
     final shownGuilds = lockedGuilds.take(_kCommunityIconLimit).toList();
@@ -81,106 +77,22 @@ class PlutoniumUpsellBanner extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.brandPrimary,
-          borderRadius: layout.radiusMd,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 2, right: 8),
-                child: PhosphorIcon(
-                  PhosphorIconsFill.crown,
-                  size: 16,
-                  color: Colors.white,
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      text,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                        height: 1.4,
-                      ),
-                    ),
-                    if (shownGuilds.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      _CommunityIconRow(
-                        guilds: shownGuilds,
-                        extraCount: extraCount,
-                      ),
-                    ],
-                    if (previewEmojis.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      _PreviewEmojiRow(emojis: previewEmojis),
-                    ],
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _GetPlutoniumButton(l10n: l10n),
-                        const SizedBox(width: 12),
-                        GestureDetector(
-                          onTap: () => ref
-                              .read(plutoniumUpsellDismissedProvider.notifier)
-                              .dismiss(),
-                          child: Text(
-                            l10n.emojiPlutoniumUpsellDismiss,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color.fromRGBO(255, 255, 255, 0.7),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+      child: FluxerPlutoniumUpsell(
+        text: text,
+        onDismiss: () =>
+            ref.read(plutoniumUpsellDismissedProvider.notifier).dismiss(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (shownGuilds.isNotEmpty)
+              _CommunityIconRow(guilds: shownGuilds, extraCount: extraCount),
+            if (previewEmojis.isNotEmpty)
+              _PreviewEmojiRow(emojis: previewEmojis),
+          ],
         ),
       ),
     );
   }
-}
-
-class _GetPlutoniumButton extends StatelessWidget {
-  const _GetPlutoniumButton({required this.l10n});
-
-  final FluxerLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: () async {
-      // TODO: open window in app (stripe)
-      await handleExternalLinkTap(context, _kPlutoniumUrl);
-    },
-    child: DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        child: Text(
-          l10n.emojiPlutoniumUpsellButton,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-      ),
-    ),
-  );
 }
 
 class _CommunityIconRow extends StatelessWidget {
@@ -229,9 +141,7 @@ class _CommunityIcon extends StatelessWidget {
         height: 20,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(
-            color: const Color.fromRGBO(255, 255, 255, 0.25),
-          ),
+          border: Border.all(color: const Color.fromRGBO(255, 255, 255, 0.25)),
           color: const Color.fromRGBO(255, 255, 255, 0.1),
         ),
         child: ClipOval(
@@ -300,8 +210,7 @@ class _PreviewEmojiRow extends StatelessWidget {
                   width: 32,
                   height: 32,
                   fit: BoxFit.contain,
-                  placeholder: (_, _) =>
-                      const SizedBox(width: 32, height: 32),
+                  placeholder: (_, _) => const SizedBox(width: 32, height: 32),
                   errorBuilder: (_, _, _) =>
                       const SizedBox(width: 32, height: 32),
                 ),
