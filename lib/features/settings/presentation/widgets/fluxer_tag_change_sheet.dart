@@ -6,9 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
-import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
-import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -85,7 +83,8 @@ class _FluxerTagChangeContentState
   }
 
   void _onFormChanged() {
-    final isDirty = _usernameController.text != _originalUsername ||
+    final isDirty =
+        _usernameController.text != _originalUsername ||
         _discriminatorController.text != _originalDiscriminator;
     widget.canDismissNotifier.value = !isDirty;
     setState(() {
@@ -142,8 +141,7 @@ class _FluxerTagChangeContentState
     }
 
     final username = _usernameController.text.trim();
-    final discriminator =
-        _discriminatorController.text.trim().padLeft(4, '0');
+    final discriminator = _discriminatorController.text.trim().padLeft(4, '0');
     final state = ref.read(userSettingsViewModelProvider);
 
     setState(() {
@@ -204,23 +202,28 @@ class _FluxerTagChangeContentState
         return;
       }
 
-      await ref.read(fluxerClientProvider).users.updateCurrentUser(
-        body: UserUpdateWithVerificationRequest(
-          username: username,
-          discriminator: discriminator,
-        ),
-      );
+      await ref
+          .read(fluxerClientProvider)
+          .users
+          .updateCurrentUser(
+            body: UserUpdateWithVerificationRequest(
+              username: username,
+              discriminator: discriminator,
+            ),
+          );
 
       if (!mounted) {
         return;
       }
 
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: FluxerLocalizations.of(context).fluxerTagUpdated,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: FluxerLocalizations.of(context).fluxerTagUpdated,
+              variant: FluxerToastVariant.success,
+            ),
+          );
       widget.onDone();
     } on Exception catch (e) {
       talker.error('Failed to update FluxerTag', e);
@@ -370,34 +373,24 @@ class _FluxerTagChangeContentState
   Widget _buildPremiumUpsell(
     UserSettingsViewState state,
     FluxerLayoutTheme layout,
-    FluxerColorTheme colors,
-    FluxerTextTheme textStyles,
     FluxerLocalizations l10n,
   ) {
+    final String text;
     if (state.isOutOfBandTrialActive) {
       final expiryDate = state.premiumOutOfBandTrialEndsAt;
-      final String trialText;
       if (expiryDate != null) {
         final formatted = DateFormat.yMMMd().format(expiryDate);
-        trialText = l10n.premiumTrialExpiresOn(formatted);
+        text = l10n.premiumTrialExpiresOn(formatted);
       } else {
-        trialText = l10n.premiumTrialActive;
+        text = l10n.premiumTrialActive;
       }
-      return Padding(
-        padding: EdgeInsets.only(top: layout.s3),
-        child: FluxerWarningAlert(
-          message: trialText,
-          variant: FluxerAlertVariant.info,
-        ),
-      );
+    } else {
+      text = l10n.premiumUpsellCustomizeTag;
     }
 
     return Padding(
       padding: EdgeInsets.only(top: layout.s3),
-      child: Text(
-        l10n.premiumUpsellCustomizeTag,
-        style: textStyles.bodySmall.copyWith(color: colors.textTertiary),
-      ),
+      child: FluxerPlutoniumUpsell(text: text),
     );
   }
 
@@ -409,23 +402,7 @@ class _FluxerTagChangeContentState
     final textStyles = context.textStyles;
 
     final l10n = FluxerLocalizations.of(context);
-    final showValidationRules = _usernameController.text.isNotEmpty;
     final premiumWarning = _buildPremiumWarningText(state, l10n);
-
-    Widget? discriminatorSuffix;
-    if (!state.isPremium) {
-      discriminatorSuffix = FluxerTooltip(
-        message: l10n.discriminatorPremiumTooltip,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: layout.s2),
-          child: PhosphorIcon(
-            PhosphorIconsFill.crown,
-            size: 18,
-            color: colors.brandPrimary,
-          ),
-        ),
-      );
-    }
 
     return SingleChildScrollView(
       child: Padding(
@@ -436,11 +413,19 @@ class _FluxerTagChangeContentState
           children: [
             Text(
               _buildDescriptionText(state, l10n),
-              style: textStyles.bodySmall.copyWith(
-                color: colors.textSecondary,
-              ),
+              style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
             ),
             SizedBox(height: layout.s4),
+            Padding(
+              padding: EdgeInsets.only(bottom: layout.s2),
+              child: Text(
+                l10n.fluxerTagInputLabel,
+                style: textStyles.bodySmall.copyWith(
+                  color: colors.textTertiary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -473,26 +458,24 @@ class _FluxerTagChangeContentState
                     maxLength: 4,
                     enabled: state.isPremium,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    suffixIcon: discriminatorSuffix,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
                 ),
               ],
             ),
-            SizedBox(height: layout.s2),
-            if (showValidationRules) ...[
-              _buildValidationRules(l10n),
-              SizedBox(height: layout.s2),
-            ],
-            if (!state.isPremium) _buildPremiumUpsell(
-              state,
-              layout,
-              colors,
-              textStyles,
-              l10n,
+            SizedBox(height: layout.s3),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.backgroundSecondary,
+                borderRadius: layout.radiusSm,
+                border: Border.all(color: colors.borderColor),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(layout.s3),
+                child: _buildValidationRules(l10n),
+              ),
             ),
+            if (!state.isPremium) _buildPremiumUpsell(state, layout, l10n),
             if (premiumWarning != null) ...[
               SizedBox(height: layout.s3),
               FluxerWarningAlert(message: premiumWarning),
@@ -508,8 +491,9 @@ class _FluxerTagChangeContentState
             ],
             SizedBox(height: layout.s4),
             FluxerButton.primary(
-              onPressed:
-                  _isFormValid && _isDirty && !_isSubmitting ? _submit : null,
+              onPressed: _isFormValid && _isDirty && !_isSubmitting
+                  ? _submit
+                  : null,
               label: l10n.continueAction,
               isLoading: _isSubmitting,
             ),
@@ -521,10 +505,7 @@ class _FluxerTagChangeContentState
 }
 
 class _ValidationRule extends StatelessWidget {
-  const _ValidationRule({
-    required this.label,
-    required this.isValid,
-  });
+  const _ValidationRule({required this.label, required this.isValid});
 
   final String label;
   final bool isValid;

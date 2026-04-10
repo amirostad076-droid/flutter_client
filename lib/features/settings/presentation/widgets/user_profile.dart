@@ -374,24 +374,27 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       ..listen(
         userSettingsViewModelProvider.select((s) => s.isLoadingGuildProfile),
         (prev, next) {
-        if ((prev ?? false) && !next) {
-          final currentState = ref.read(userSettingsViewModelProvider);
-          _nickController.text = currentState.guildNick ?? '';
-          _guildPronounsController.text = currentState.guildPronouns ?? '';
-          _guildBioController.loadWithTokens(currentState.guildBio ?? '');
-        }
-      })
+          if ((prev ?? false) && !next) {
+            final currentState = ref.read(userSettingsViewModelProvider);
+            _nickController.text = currentState.guildNick ?? '';
+            _guildPronounsController.text = currentState.guildPronouns ?? '';
+            _guildBioController.loadWithTokens(currentState.guildBio ?? '');
+          }
+        },
+      )
       ..listen(
-        userSettingsViewModelProvider
-            .select((s) => (s.bio, s.pronouns, s.displayName)),
+        userSettingsViewModelProvider.select(
+          (s) => (s.bio, s.pronouns, s.displayName),
+        ),
         (prev, next) {
-        final s = ref.read(userSettingsViewModelProvider);
-        if (!s.isDirty && !s.isPerGuildProfile) {
-          _displayNameController.text = s.displayName;
-          _pronounsController.text = s.pronouns ?? '';
-          _bioController.loadWithTokens(s.bio ?? '');
-        }
-      })
+          final s = ref.read(userSettingsViewModelProvider);
+          if (!s.isDirty && !s.isPerGuildProfile) {
+            _displayNameController.text = s.displayName;
+            _pronounsController.text = s.pronouns ?? '';
+            _bioController.loadWithTokens(s.bio ?? '');
+          }
+        },
+      )
       ..listen(userSettingsViewModelProvider.select((s) => s.isSaving), (
         prev,
         next,
@@ -399,13 +402,14 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         if ((prev ?? false) && !next) {
           final s = ref.read(userSettingsViewModelProvider);
           if (s.error == null) {
-            ref.read(toastProvider.notifier).show(
-              FluxerToast(
-                message: FluxerLocalizations.of(context)
-                    .profileSavedToast,
-                variant: FluxerToastVariant.success,
-              ),
-            );
+            ref
+                .read(toastProvider.notifier)
+                .show(
+                  FluxerToast(
+                    message: FluxerLocalizations.of(context).profileSavedToast,
+                    variant: FluxerToastVariant.success,
+                  ),
+                );
           }
         }
       });
@@ -857,7 +861,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 label: l10n.changeFluxerTag,
                 size: FluxerButtonSize.small,
               ),
-            if (!state.isPremium)
+            if (!state.isPremium && !isMobileLayout(context))
               FluxerTooltip(
                 message: l10n.customizeTagWithPlutoniumTooltip(
                   state.discriminator,

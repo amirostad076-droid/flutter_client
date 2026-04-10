@@ -895,6 +895,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get changeYourFluxerTag => 'Change Your FluxerTag';
 
   @override
+  String get fluxerTagInputLabel => 'FluxerTag';
+
+  @override
   String get fluxerTagDescriptionBase =>
       'Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive.';
 

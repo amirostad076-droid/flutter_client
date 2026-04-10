@@ -1684,6 +1684,12 @@ abstract class FluxerLocalizations {
   /// **'Change Your FluxerTag'**
   String get changeYourFluxerTag;
 
+  /// Label above the username and discriminator input fields.
+  ///
+  /// In en, this message translates to:
+  /// **'FluxerTag'**
+  String get fluxerTagInputLabel;
+
   /// Base description text on the FluxerTag change sheet.
   ///
   /// In en, this message translates to:

@@ -1140,6 +1140,10 @@
   "@changeYourFluxerTag": {
     "description": "Title for the FluxerTag change bottom sheet."
   },
+  "fluxerTagInputLabel": "FluxerTag",
+  "@fluxerTagInputLabel": {
+    "description": "Label above the username and discriminator input fields."
+  },
   "fluxerTagDescriptionBase": "Usernames can only contain letters (a-z, A-Z), numbers (0-9), and underscores. Usernames are case-insensitive.",
   "@fluxerTagDescriptionBase": {
     "description": "Base description text on the FluxerTag change sheet."
