@@ -22,6 +22,7 @@ class FluxerInput extends StatelessWidget {
     this.maxLength,
     this.showCounter = false,
     this.counterLength,
+    this.counterMax,
     this.helperText,
     this.onChanged,
     this.onSubmitted,
@@ -52,6 +53,7 @@ class FluxerInput extends StatelessWidget {
     this.maxLength,
     this.showCounter = false,
     this.counterLength,
+    this.counterMax,
     this.helperText,
     this.onChanged,
     this.onSubmitted,
@@ -85,6 +87,12 @@ class FluxerInput extends StatelessWidget {
   final int? maxLength;
   final bool showCounter;
   final ValueGetter<int>? counterLength;
+
+  /// When set, the character counter uses this as its max instead of
+  /// [maxLength]. Useful when [maxLength] is an adjusted display-text
+  /// limit but the counter should reflect the true API limit.
+  final int? counterMax;
+
   final String? helperText;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
@@ -311,7 +319,7 @@ class FluxerInput extends StatelessWidget {
                   valueListenable: controller ?? TextEditingController(),
                   builder: (context, value, _) => FluxerCharacterCounter(
                     current: counterLength?.call() ?? value.text.length,
-                    max: maxLength!,
+                    max: counterMax ?? maxLength!,
                   ),
                 ),
               ),

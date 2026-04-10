@@ -786,6 +786,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             maxLines: 6,
             showCounter: true,
             counterLength: () => controller.actualTextLength,
+            counterMax: _kMaxBioLength,
             helperText: l10n.aboutMeHelperText,
             onChanged: (_) => onChanged(),
             suffixIcon: FluxerEmojiPickerPopout(

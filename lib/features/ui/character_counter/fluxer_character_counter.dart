@@ -13,21 +13,23 @@ class FluxerCharacterCounter extends StatelessWidget {
   final int current;
   final int max;
 
+  static const int _kNearingThreshold = 50;
+
   @override
   Widget build(BuildContext context) {
-    final ratio = max > 0 ? current / max : 0.0;
+    final remaining = max - current;
 
     final Color color;
-    if (ratio > 1.0) {
+    if (remaining < 0) {
       color = context.colors.statusDanger;
-    } else if (ratio >= 0.8) {
-      color = context.colors.accentWarning;
+    } else if (remaining < _kNearingThreshold) {
+      color = context.colors.statusDanger;
     } else {
       color = context.colors.textSecondary;
     }
 
     return Text(
-      '$current/$max',
+      '$remaining',
       style: context.textStyles.smallText.copyWith(color: color),
       textAlign: TextAlign.right,
     );
