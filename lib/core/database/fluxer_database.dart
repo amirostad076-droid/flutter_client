@@ -113,7 +113,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 24;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -278,6 +278,19 @@ class FluxerDatabase extends _$FluxerDatabase {
         // v22: Add message reference and snapshot JSON columns
         await m.addColumn(messages, messages.messageReferenceJson);
         await m.addColumn(messages, messages.messageSnapshotsJson);
+      }
+      if (from < 23) {
+        // v23: Add profile columns to users
+        await m.addColumn(users, users.bio);
+        await m.addColumn(users, users.pronouns);
+        await m.addColumn(users, users.accentColor);
+        await m.addColumn(users, users.banner);
+      }
+      if (from < 24) {
+        await m.addColumn(users, users.premiumBadgeHidden);
+        await m.addColumn(users, users.premiumBadgeMasked);
+        await m.addColumn(users, users.premiumBadgeTimestampHidden);
+        await m.addColumn(users, users.premiumBadgeSequenceHidden);
       }
     },
   );

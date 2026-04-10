@@ -12,6 +12,14 @@ class Users extends Table {
   TextColumn get status => text().withDefault(const Constant('offline'))();
   TextColumn get customStatus => text().nullable()();
   DateTimeColumn get memberSince => dateTime().nullable()();
+  TextColumn get bio => text().nullable()();
+  TextColumn get pronouns => text().nullable()();
+  IntColumn get accentColor => integer().nullable()();
+  TextColumn get banner => text().nullable()();
+  BoolColumn get premiumBadgeHidden => boolean().nullable()();
+  BoolColumn get premiumBadgeMasked => boolean().nullable()();
+  BoolColumn get premiumBadgeTimestampHidden => boolean().nullable()();
+  BoolColumn get premiumBadgeSequenceHidden => boolean().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

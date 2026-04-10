@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
@@ -639,6 +641,16 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         discriminator: user.discriminator,
         avatar: user.avatar,
         avatarColor: user.avatarColor,
+        bio: user.bio,
+        pronouns: user.pronouns,
+        accentColor: user.accentColor,
+        banner: user.banner,
+        premiumBadgeHidden: user.premiumBadgeHidden ?? false,
+        premiumBadgeMasked: user.premiumBadgeMasked ?? false,
+        premiumBadgeTimestampHidden:
+            user.premiumBadgeTimestampHidden ?? false,
+        premiumBadgeSequenceHidden:
+            user.premiumBadgeSequenceHidden ?? false,
       );
     });
     ref.onDispose(subscription.cancel);
@@ -668,6 +680,27 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
     try {
       final client = ref.read(fluxerClientProvider);
       final profile = await client.users.getCurrentUser();
+
+      final db = ref.read(fluxerDatabaseProvider);
+      unawaited(
+        db.userDao.upsertUser(
+          UsersCompanion(
+            id: Value(profile.id),
+            username: Value(profile.username),
+            bio: Value(profile.bio),
+            pronouns: Value(profile.pronouns),
+            accentColor: Value(profile.accentColor),
+            banner: Value(profile.banner),
+            premiumBadgeHidden: Value(profile.premiumBadgeHidden),
+            premiumBadgeMasked: Value(profile.premiumBadgeMasked),
+            premiumBadgeTimestampHidden:
+                Value(profile.premiumBadgeTimestampHidden),
+            premiumBadgeSequenceHidden:
+                Value(profile.premiumBadgeSequenceHidden),
+          ),
+        ),
+      );
+
       state = state.copyWith(
         publicFlags: profile.flags,
         bio: profile.bio,
