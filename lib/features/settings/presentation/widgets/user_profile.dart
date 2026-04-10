@@ -371,14 +371,26 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           _resetControllers(ref.read(userSettingsViewModelProvider));
         }
       })
-      ..listen(userSettingsViewModelProvider.select((s) => s.selectedGuildId), (
-        prev,
-        next,
-      ) {
-        final currentState = ref.read(userSettingsViewModelProvider);
-        _nickController.text = currentState.guildNick ?? '';
-        _guildPronounsController.text = currentState.guildPronouns ?? '';
-        _guildBioController.loadWithTokens(currentState.guildBio ?? '');
+      ..listen(
+        userSettingsViewModelProvider.select((s) => s.isLoadingGuildProfile),
+        (prev, next) {
+        if ((prev ?? false) && !next) {
+          final currentState = ref.read(userSettingsViewModelProvider);
+          _nickController.text = currentState.guildNick ?? '';
+          _guildPronounsController.text = currentState.guildPronouns ?? '';
+          _guildBioController.loadWithTokens(currentState.guildBio ?? '');
+        }
+      })
+      ..listen(
+        userSettingsViewModelProvider
+            .select((s) => (s.bio, s.pronouns, s.displayName)),
+        (prev, next) {
+        final s = ref.read(userSettingsViewModelProvider);
+        if (!s.isDirty && !s.isPerGuildProfile) {
+          _displayNameController.text = s.displayName;
+          _pronounsController.text = s.pronouns ?? '';
+          _bioController.loadWithTokens(s.bio ?? '');
+        }
       })
       ..listen(userSettingsViewModelProvider.select((s) => s.isSaving), (
         prev,

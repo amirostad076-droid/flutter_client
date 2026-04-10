@@ -97,6 +97,12 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
 
   String? _effectivePronouns() {
     final s = widget.state;
+    if (s.isPerGuildProfile) {
+      if (s.isEditedGuildPronounsSet) {
+        return s.editedGuildPronouns;
+      }
+      return s.guildPronouns;
+    }
     if (s.isEditedPronounsSet) {
       return s.editedPronouns;
     }
@@ -105,6 +111,12 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
 
   String? _effectiveBio() {
     final s = widget.state;
+    if (s.isPerGuildProfile) {
+      if (s.isEditedGuildBioSet) {
+        return s.editedGuildBio;
+      }
+      return s.guildBio;
+    }
     if (s.isEditedBioSet) {
       return s.editedBio;
     }
@@ -113,6 +125,12 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
 
   int _effectiveAccentColor() {
     final s = widget.state;
+    if (s.isPerGuildProfile) {
+      if (s.isEditedGuildAccentColorSet) {
+        return s.editedGuildAccentColor ?? _kDefaultAccentColor;
+      }
+      return s.guildAccentColor ?? s.accentColor ?? _kDefaultAccentColor;
+    }
     if (s.isEditedAccentColorSet) {
       return s.editedAccentColor ?? _kDefaultAccentColor;
     }
