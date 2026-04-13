@@ -1511,5 +1511,29 @@
   "profileNoteEmpty": "No note yet.",
   "@profileNoteEmpty": {
     "description": "Placeholder shown when no personal note has been set for a user."
+  },
+  "sudoTitle": "Verify Your Identity",
+  "@sudoTitle": {
+    "description": "Title for the sudo verification bottom sheet shown for sensitive operations."
+  },
+  "sudoDescription": "This action requires verification to continue.",
+  "@sudoDescription": {
+    "description": "Description text in the sudo verification bottom sheet."
+  },
+  "sudoAuthenticatorCode": "Authenticator Code",
+  "@sudoAuthenticatorCode": {
+    "description": "Label for the TOTP authenticator code input field in sudo verification."
+  },
+  "sudoMethodPassword": "Password",
+  "@sudoMethodPassword": {
+    "description": "Label for the password verification method tab in sudo verification."
+  },
+  "sudoMethodTotp": "Authenticator",
+  "@sudoMethodTotp": {
+    "description": "Label for the TOTP authenticator method tab in sudo verification."
+  },
+  "sudoVerificationFailed": "Verification failed. Please try again.",
+  "@sudoVerificationFailed": {
+    "description": "Error message shown when sudo verification attempt fails."
   }
 }
