@@ -64,6 +64,7 @@ class _SudoVerificationSheetContent extends StatefulWidget {
 class _SudoVerificationSheetContentState
     extends State<_SudoVerificationSheetContent> {
   bool _isLoading = true;
+  bool _hasPassword = true;
   bool _hasTotp = false;
   _SudoMethod _selectedMethod = _SudoMethod.password;
   String? _error;
@@ -96,16 +97,16 @@ class _SudoVerificationSheetContentState
       final hasMfa = data['has_mfa'] as bool? ?? false;
       final totp = data['totp'] as bool? ?? false;
       setState(() {
+        // When MFA is enabled, password-only is not available (matches
+        // web app behavior in SudoPrompt.tsx).
+        _hasPassword = !hasMfa;
         _hasTotp = totp;
         _isLoading = false;
-        // If the user has MFA enabled, password-only is not allowed.
-        // Default to TOTP if available.
         if (hasMfa && totp) {
           _selectedMethod = _SudoMethod.totp;
+        } else if (!hasMfa) {
+          _selectedMethod = _SudoMethod.password;
         }
-        // If hasMfa is true but totp is false (only SMS/WebAuthn which
-        // we don't support yet), fall back to password. The server will
-        // reject it, but that's better than showing nothing.
       });
     } on Exception catch (e) {
       talker.warning('[SudoDialog] Failed to load MFA methods: $e');
@@ -157,7 +158,7 @@ class _SudoVerificationSheetContentState
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (_hasTotp) ...[
+          if (_hasPassword && _hasTotp) ...[
             FluxerSegmentedTabs(
               tabs: [
                 FluxerTab(label: l10n.sudoMethodPassword),
