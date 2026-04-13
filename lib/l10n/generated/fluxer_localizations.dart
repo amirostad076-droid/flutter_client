@@ -2187,6 +2187,42 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'No note yet.'**
   String get profileNoteEmpty;
+
+  /// Title for the sudo verification bottom sheet shown for sensitive operations.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Your Identity'**
+  String get sudoTitle;
+
+  /// Description text in the sudo verification bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'This action requires verification to continue.'**
+  String get sudoDescription;
+
+  /// Label for the TOTP authenticator code input field in sudo verification.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticator Code'**
+  String get sudoAuthenticatorCode;
+
+  /// Label for the password verification method tab in sudo verification.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get sudoMethodPassword;
+
+  /// Label for the TOTP authenticator method tab in sudo verification.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticator'**
+  String get sudoMethodTotp;
+
+  /// Error message shown when sudo verification attempt fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification failed. Please try again.'**
+  String get sudoVerificationFailed;
 }
 
 class _FluxerLocalizationsDelegate

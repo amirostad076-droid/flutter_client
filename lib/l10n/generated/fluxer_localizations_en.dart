@@ -1193,4 +1193,23 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get profileNoteEmpty => 'No note yet.';
+
+  @override
+  String get sudoTitle => 'Verify Your Identity';
+
+  @override
+  String get sudoDescription =>
+      'This action requires verification to continue.';
+
+  @override
+  String get sudoAuthenticatorCode => 'Authenticator Code';
+
+  @override
+  String get sudoMethodPassword => 'Password';
+
+  @override
+  String get sudoMethodTotp => 'Authenticator';
+
+  @override
+  String get sudoVerificationFailed => 'Verification failed. Please try again.';
 }
