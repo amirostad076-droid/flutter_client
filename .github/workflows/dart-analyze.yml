@@ -25,7 +25,9 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+      - name: Set up Flutter
+        # Temp use while waiting for a pr: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        uses: axi92/flutter-action@72633a794ba0b23276fa4fc465a6cacb758a90c5
         with:
           channel: stable
       - name: Restore pub cache
