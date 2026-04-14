@@ -214,7 +214,7 @@ abstract class FluxerLocalizations {
   /// **'Try Turnstile instead'**
   String get captchaSwitchToTurnstile;
 
-  /// Generic cancel action label.
+  /// Generic cancel button label.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
@@ -262,7 +262,7 @@ abstract class FluxerLocalizations {
   /// **'{seconds}s'**
   String ipAuthResendCountdown(int seconds);
 
-  /// Generic back navigation label.
+  /// Generic back button label.
   ///
   /// In en, this message translates to:
   /// **'Back'**
@@ -1804,7 +1804,7 @@ abstract class FluxerLocalizations {
   /// **'Failed to update FluxerTag. Please try again.'**
   String get fluxerTagUpdateFailed;
 
-  /// Generic continue action button label.
+  /// Generic continue button label.
   ///
   /// In en, this message translates to:
   /// **'Continue'**
@@ -2223,6 +2223,942 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Verification failed. Please try again.'**
   String get sudoVerificationFailed;
+
+  /// Top-level Account section heading in Security & Login settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get securityAccountTitle;
+
+  /// Description for Account section heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your email, password, and account settings'**
+  String get securityAccountDescription;
+
+  /// Top-level Security section heading in Security & Login settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get securitySectionTitle;
+
+  /// Description for Security section heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Protect your account with two-factor authentication and passkeys'**
+  String get securitySectionDescription;
+
+  /// Title for email settings section in Security & Login.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Settings'**
+  String get securityLoginEmailSectionTitle;
+
+  /// Description for email settings section.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage the email address you use to sign in to Fluxer'**
+  String get securityLoginEmailSectionDescription;
+
+  /// Label for email address row.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get securityLoginEmailAddressLabel;
+
+  /// Shown when the user has no email address set.
+  ///
+  /// In en, this message translates to:
+  /// **'No email address set'**
+  String get securityLoginNoEmailSet;
+
+  /// Button label to change email address.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Email'**
+  String get securityLoginChangeEmail;
+
+  /// Button label to add an email address.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Email'**
+  String get securityLoginAddEmail;
+
+  /// Button label to reveal masked email or phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal'**
+  String get securityLoginReveal;
+
+  /// Button label to hide revealed email or phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get securityLoginHide;
+
+  /// Title for password section in Security & Login.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get securityLoginPasswordSectionTitle;
+
+  /// Description for password section.
+  ///
+  /// In en, this message translates to:
+  /// **'Change your password to keep your account secure'**
+  String get securityLoginPasswordSectionDescription;
+
+  /// Label for current password row.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Password'**
+  String get securityLoginCurrentPasswordLabel;
+
+  /// Shows when the password was last changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last changed: {date}'**
+  String securityLoginPasswordLastChanged(String date);
+
+  /// Shown when the password has never been changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last changed: Never'**
+  String get securityLoginPasswordNeverChanged;
+
+  /// Shown when the user has no password set.
+  ///
+  /// In en, this message translates to:
+  /// **'No password set'**
+  String get securityLoginNoPasswordSet;
+
+  /// Button label to change password.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get securityLoginChangePassword;
+
+  /// Button label to set a password.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Password'**
+  String get securityLoginSetPassword;
+
+  /// Title for password change flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get passwordChangeTitle;
+
+  /// Description shown on the intro step of password change.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll send a verification code to your email address to confirm your identity before changing your password.'**
+  String get passwordChangeIntroDescription;
+
+  /// Button label to start password change flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get passwordChangeStart;
+
+  /// Title for email verification step in password change.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Your Email'**
+  String get passwordChangeVerifyTitle;
+
+  /// Description for email verification step.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code sent to your email address.'**
+  String get passwordChangeVerifyDescription;
+
+  /// Label for verification code input.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Code'**
+  String get passwordChangeVerificationCode;
+
+  /// Button label to verify the code.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get passwordChangeVerify;
+
+  /// Title for new password entry step.
+  ///
+  /// In en, this message translates to:
+  /// **'Set New Password'**
+  String get passwordChangeNewPasswordTitle;
+
+  /// Description for new password entry step.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your new password below.'**
+  String get passwordChangeNewPasswordDescription;
+
+  /// Label for new password input.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get passwordChangeNewPassword;
+
+  /// Label for confirm password input.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm New Password'**
+  String get passwordChangeConfirmPassword;
+
+  /// Button label to submit password change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get passwordChangeSubmit;
+
+  /// Toast shown after successful password change.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed'**
+  String get passwordChangeSuccess;
+
+  /// Error shown when new password and confirmation don't match.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordChangePasswordsDoNotMatch;
+
+  /// Error shown when verification code is invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or expired code'**
+  String get passwordChangeInvalidCode;
+
+  /// Title for email change flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Email'**
+  String get emailChangeTitle;
+
+  /// Description shown on the intro step of email change.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll send verification codes to verify your identity before changing your email address.'**
+  String get emailChangeIntroDescription;
+
+  /// Button label to start email change flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get emailChangeStart;
+
+  /// Title for verifying original email step.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Current Email'**
+  String get emailChangeVerifyOriginalTitle;
+
+  /// Description for original email verification step.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code sent to your current email address.'**
+  String get emailChangeVerifyOriginalDescription;
+
+  /// Title for new email entry step.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter New Email'**
+  String get emailChangeNewEmailTitle;
+
+  /// Description for new email entry step.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the new email address you\'d like to use.'**
+  String get emailChangeNewEmailDescription;
+
+  /// Label for new email input.
+  ///
+  /// In en, this message translates to:
+  /// **'New Email'**
+  String get emailChangeNewEmailLabel;
+
+  /// Button label to submit new email and send verification code.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Verification Code'**
+  String get emailChangeNewEmailSubmit;
+
+  /// Title for verifying new email step.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify New Email'**
+  String get emailChangeVerifyNewTitle;
+
+  /// Description for new email verification step.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code sent to your new email address.'**
+  String get emailChangeVerifyNewDescription;
+
+  /// Toast shown after successful email change.
+  ///
+  /// In en, this message translates to:
+  /// **'Email changed'**
+  String get emailChangeSuccess;
+
+  /// Error shown when email verification code is invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or expired code'**
+  String get emailChangeInvalidCode;
+
+  /// Generic resend button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend'**
+  String get resend;
+
+  /// Resend button with countdown timer.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend ({seconds}s)'**
+  String resendCountdown(int seconds);
+
+  /// Generic label for verification code input.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Code'**
+  String get verificationCode;
+
+  /// Generic verify button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verify;
+
+  /// Generic enable button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get enable;
+
+  /// Generic disable button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get disable;
+
+  /// Generic delete button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// Generic save button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// Title for the 2FA section.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-Factor Authentication'**
+  String get securityTfaSectionTitle;
+
+  /// Description for 2FA section.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an extra layer of security to your account'**
+  String get securityTfaSectionDescription;
+
+  /// Label for authenticator app row.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticator App'**
+  String get securityTfaAuthenticatorApp;
+
+  /// Status when TOTP is enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-factor authentication is enabled'**
+  String get securityTfaAuthenticatorEnabled;
+
+  /// Status when TOTP is disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Use an authenticator app to generate codes for two-factor authentication'**
+  String get securityTfaAuthenticatorDisabled;
+
+  /// Label for backup codes row.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Codes'**
+  String get securityTfaBackupCodes;
+
+  /// Description for backup codes.
+  ///
+  /// In en, this message translates to:
+  /// **'View and manage your backup codes for account recovery'**
+  String get securityTfaBackupCodesDescription;
+
+  /// Button to view backup codes.
+  ///
+  /// In en, this message translates to:
+  /// **'View Codes'**
+  String get securityTfaViewCodes;
+
+  /// Title for passkeys section.
+  ///
+  /// In en, this message translates to:
+  /// **'Passkeys'**
+  String get securityPasskeysSectionTitle;
+
+  /// Description for passkeys section.
+  ///
+  /// In en, this message translates to:
+  /// **'Use passkeys for passwordless sign-in and two-factor authentication'**
+  String get securityPasskeysSectionDescription;
+
+  /// Label for registered passkeys row.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered Passkeys'**
+  String get securityPasskeysRegistered;
+
+  /// Shown when no passkeys are registered.
+  ///
+  /// In en, this message translates to:
+  /// **'No passkeys registered'**
+  String get securityPasskeysNone;
+
+  /// Shows passkey count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, =1{passkey} other{passkeys}} registered (max 10)'**
+  String securityPasskeysCount(int count);
+
+  /// Button to add a passkey.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Passkey'**
+  String get securityPasskeysAdd;
+
+  /// Shows when passkey was added.
+  ///
+  /// In en, this message translates to:
+  /// **'Added: {date}'**
+  String securityPasskeysAdded(String date);
+
+  /// Shows when passkey was last used.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used: {date}'**
+  String securityPasskeysLastUsed(String date);
+
+  /// Button to rename a passkey.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get securityPasskeysRename;
+
+  /// Title for passkey delete confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Passkey'**
+  String get securityPasskeysDeleteTitle;
+
+  /// Description for passkey delete confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete the passkey \"{name}\"?'**
+  String securityPasskeysDeleteDescription(String name);
+
+  /// Title for passkey naming sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Name Passkey'**
+  String get securityPasskeyNameTitle;
+
+  /// Label for passkey name input.
+  ///
+  /// In en, this message translates to:
+  /// **'Passkey Name'**
+  String get securityPasskeyNameLabel;
+
+  /// Hint for passkey name input.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., YubiKey, iPhone, Work Computer'**
+  String get securityPasskeyNameHint;
+
+  /// Title for phone number section.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get securityPhoneSectionTitle;
+
+  /// Description for phone number section.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your phone number for SMS two-factor authentication'**
+  String get securityPhoneSectionDescription;
+
+  /// Label for phone number row.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get securityPhoneLabel;
+
+  /// Shown when no phone number is set.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a phone number to enable SMS two-factor authentication'**
+  String get securityPhoneNone;
+
+  /// Button to add phone number.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Phone'**
+  String get securityPhoneAdd;
+
+  /// Button to remove phone number.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get securityPhoneRemove;
+
+  /// Title for phone remove confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Phone Number'**
+  String get securityPhoneRemoveTitle;
+
+  /// Description for phone remove confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove your phone number?'**
+  String get securityPhoneRemoveDescription;
+
+  /// Warning when removing phone with SMS MFA.
+  ///
+  /// In en, this message translates to:
+  /// **'This will also disable SMS two-factor authentication.'**
+  String get securityPhoneRemoveWarning;
+
+  /// Toast after phone removed.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number removed'**
+  String get securityPhoneRemoved;
+
+  /// Title for SMS MFA section.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS Two-Factor Authentication'**
+  String get securitySmsSectionTitle;
+
+  /// Description for SMS MFA section.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive verification codes via SMS as a backup authentication method'**
+  String get securitySmsSectionDescription;
+
+  /// Label for SMS backup row.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS Backup'**
+  String get securitySmsBackup;
+
+  /// Status when SMS MFA is enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS two-factor authentication is enabled'**
+  String get securitySmsEnabled;
+
+  /// Status when SMS MFA is disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable SMS codes as a backup for your authenticator app'**
+  String get securitySmsDisabled;
+
+  /// Title for SMS MFA enable confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable SMS Two-Factor Authentication'**
+  String get securitySmsEnableTitle;
+
+  /// Description for SMS MFA enable.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS two-factor authentication adds an additional layer of security by requiring a verification code sent to your phone number when signing in.'**
+  String get securitySmsEnableDescription;
+
+  /// Title for SMS MFA disable confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable SMS Two-Factor Authentication'**
+  String get securitySmsDisableTitle;
+
+  /// Description for SMS MFA disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to disable SMS two-factor authentication? This will make your account less secure.'**
+  String get securitySmsDisableDescription;
+
+  /// Tooltip when SMS MFA is not available for partner accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS backup is disabled for partners'**
+  String get securitySmsDisabledForPartners;
+
+  /// Title when user needs to claim account for security.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Features'**
+  String get securityClaimTitle;
+
+  /// Description prompting user to claim account.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim your account to access security features like two-factor authentication and passkeys.'**
+  String get securityClaimDescription;
+
+  /// Warning when email is not verified.
+  ///
+  /// In en, this message translates to:
+  /// **'You must verify your email address before you can set up two-factor authentication, passkeys, or SMS verification.'**
+  String get securityVerifyEmailRequired;
+
+  /// Title for TOTP enable sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup Authenticator App'**
+  String get totpEnableTitle;
+
+  /// Description for TOTP enable sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR code with your authenticator app to generate codes for two-factor authentication.'**
+  String get totpEnableDescription;
+
+  /// Label for TOTP code input.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get totpEnableCodeLabel;
+
+  /// Hint for TOTP code input.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code from your authenticator app'**
+  String get totpEnableCodeHint;
+
+  /// Toast after TOTP enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-factor authentication has been enabled'**
+  String get totpEnableSuccess;
+
+  /// Title for TOTP disable sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Authenticator App'**
+  String get totpDisableTitle;
+
+  /// Description for TOTP disable sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code from your authenticator app to disable two-factor authentication.'**
+  String get totpDisableDescription;
+
+  /// Toast after TOTP disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-factor authentication disabled'**
+  String get totpDisableSuccess;
+
+  /// Title for backup codes sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Codes'**
+  String get backupCodesTitle;
+
+  /// Warning about backup codes.
+  ///
+  /// In en, this message translates to:
+  /// **'If you lose access to your authenticator app and don\'t have these codes, you will be permanently locked out of your account. Download or copy them now and store them somewhere safe.'**
+  String get backupCodesWarning;
+
+  /// Button to download backup codes.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get backupCodesDownload;
+
+  /// Button to copy backup codes.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get backupCodesCopy;
+
+  /// Toast after codes copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup codes copied to clipboard'**
+  String get backupCodesCopied;
+
+  /// Acknowledgement checkbox text.
+  ///
+  /// In en, this message translates to:
+  /// **'I have downloaded or copied my backup codes and stored them in a safe place.'**
+  String get backupCodesAcknowledge;
+
+  /// Button to close backup codes sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get backupCodesDone;
+
+  /// Title for viewing existing backup codes.
+  ///
+  /// In en, this message translates to:
+  /// **'View Backup Codes'**
+  String get backupCodesViewTitle;
+
+  /// Description for view backup codes.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification may be required before viewing your backup codes.'**
+  String get backupCodesViewDescription;
+
+  /// Title for phone add sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Phone Number'**
+  String get phoneAddTitle;
+
+  /// Label for phone input.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get phoneAddLabel;
+
+  /// Hint for phone input.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number'**
+  String get phoneAddHint;
+
+  /// Footer text for phone input.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number. We\'ll send you a verification code via SMS.'**
+  String get phoneAddFooter;
+
+  /// Button to send phone verification code.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Code'**
+  String get phoneAddSendCode;
+
+  /// Title for phone verify step.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Phone Number'**
+  String get phoneVerifyTitle;
+
+  /// Description for phone verify step.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code sent to your phone number.'**
+  String get phoneVerifyDescription;
+
+  /// Toast after phone added.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number added'**
+  String get phoneAddSuccess;
+
+  /// Title for danger zone section.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger Zone'**
+  String get dangerZoneSectionTitle;
+
+  /// Description for danger zone section heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Irreversible and destructive actions'**
+  String get dangerZoneSectionDescription;
+
+  /// Title for account disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable Account'**
+  String get dangerZoneDisableTitle;
+
+  /// Description for account disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporarily disable your account. You can reactivate it later by signing back in.'**
+  String get dangerZoneDisableDescription;
+
+  /// Confirmation description for account disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabling your account will log you out of all sessions. You can re-enable your account at any time by logging in again.'**
+  String get dangerZoneDisableConfirmDescription;
+
+  /// Title for account delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get dangerZoneDeleteTitle;
+
+  /// Description for account delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your account and all associated data. This action cannot be undone.'**
+  String get dangerZoneDeleteDescription;
+
+  /// Warning about active subscription before deletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel your active Plutonium subscription in Plutonium settings before deleting your account.'**
+  String get dangerZoneDeleteCancelSubscription;
+
+  /// Confirmation description for account delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete your account? This action will schedule your account for permanent deletion.'**
+  String get dangerZoneDeleteConfirmDescription;
+
+  /// First bullet point in delete confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'You can cancel the deletion process within 14 days'**
+  String get dangerZoneDeleteBullet1;
+
+  /// Second bullet point.
+  ///
+  /// In en, this message translates to:
+  /// **'After 14 days, your account will be permanently deleted'**
+  String get dangerZoneDeleteBullet2;
+
+  /// Third bullet point.
+  ///
+  /// In en, this message translates to:
+  /// **'Once deletion is processed, you cannot recover access to your account'**
+  String get dangerZoneDeleteBullet3;
+
+  /// Fourth bullet point.
+  ///
+  /// In en, this message translates to:
+  /// **'You will not be able to delete your sent messages after your account is deleted'**
+  String get dangerZoneDeleteBullet4;
+
+  /// Disclaimer about data export before deletion.
+  ///
+  /// In en, this message translates to:
+  /// **'If you want to export your data or delete your messages first, please visit the Privacy Dashboard section in User Settings before proceeding.'**
+  String get dangerZoneDeleteDisclaimer;
+
+  /// Title for claim account sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim Your Account'**
+  String get claimAccountTitle;
+
+  /// Description for claim account sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim your account by adding an email and password. We will send a verification code to confirm your email before finishing.'**
+  String get claimAccountDescription;
+
+  /// Label for email input in claim account.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get claimAccountEmailLabel;
+
+  /// Label for password input in claim account.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get claimAccountPasswordLabel;
+
+  /// Button to send verification code.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Code'**
+  String get claimAccountSendCode;
+
+  /// Description for verify step.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code we sent to your email to verify it. Your password will be set once the code is confirmed.'**
+  String get claimAccountVerifyDescription;
+
+  /// Toast after account claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Account claimed successfully'**
+  String get claimAccountSuccess;
+
+  /// Header for important information section.
+  ///
+  /// In en, this message translates to:
+  /// **'Important information:'**
+  String get importantInformation;
+
+  /// Generic fallback error message.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred'**
+  String get genericError;
+
+  /// Error message when a verification code is invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid code'**
+  String get invalidCode;
+
+  /// Relative time in years.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 year ago} other{{count} years ago}}'**
+  String relativeTimeYears(int count);
+
+  /// Relative time in months.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 month ago} other{{count} months ago}}'**
+  String relativeTimeMonths(int count);
+
+  /// Relative time in days.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day ago} other{{count} days ago}}'**
+  String relativeTimeDays(int count);
+
+  /// Relative time in hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour ago} other{{count} hours ago}}'**
+  String relativeTimeHours(int count);
+
+  /// Relative time in minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute ago} other{{count} minutes ago}}'**
+  String relativeTimeMinutes(int count);
+
+  /// Relative time for very recent events.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get relativeTimeJustNow;
 }
 
 class _FluxerLocalizationsDelegate

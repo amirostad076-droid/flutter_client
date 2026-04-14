@@ -1212,4 +1212,578 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get sudoVerificationFailed => 'Verification failed. Please try again.';
+
+  @override
+  String get securityAccountTitle => 'Account';
+
+  @override
+  String get securityAccountDescription =>
+      'Manage your email, password, and account settings';
+
+  @override
+  String get securitySectionTitle => 'Security';
+
+  @override
+  String get securitySectionDescription =>
+      'Protect your account with two-factor authentication and passkeys';
+
+  @override
+  String get securityLoginEmailSectionTitle => 'Email Settings';
+
+  @override
+  String get securityLoginEmailSectionDescription =>
+      'Manage the email address you use to sign in to Fluxer';
+
+  @override
+  String get securityLoginEmailAddressLabel => 'Email Address';
+
+  @override
+  String get securityLoginNoEmailSet => 'No email address set';
+
+  @override
+  String get securityLoginChangeEmail => 'Change Email';
+
+  @override
+  String get securityLoginAddEmail => 'Add Email';
+
+  @override
+  String get securityLoginReveal => 'Reveal';
+
+  @override
+  String get securityLoginHide => 'Hide';
+
+  @override
+  String get securityLoginPasswordSectionTitle => 'Password';
+
+  @override
+  String get securityLoginPasswordSectionDescription =>
+      'Change your password to keep your account secure';
+
+  @override
+  String get securityLoginCurrentPasswordLabel => 'Current Password';
+
+  @override
+  String securityLoginPasswordLastChanged(String date) {
+    return 'Last changed: $date';
+  }
+
+  @override
+  String get securityLoginPasswordNeverChanged => 'Last changed: Never';
+
+  @override
+  String get securityLoginNoPasswordSet => 'No password set';
+
+  @override
+  String get securityLoginChangePassword => 'Change Password';
+
+  @override
+  String get securityLoginSetPassword => 'Set Password';
+
+  @override
+  String get passwordChangeTitle => 'Change Password';
+
+  @override
+  String get passwordChangeIntroDescription =>
+      'We\'ll send a verification code to your email address to confirm your identity before changing your password.';
+
+  @override
+  String get passwordChangeStart => 'Start';
+
+  @override
+  String get passwordChangeVerifyTitle => 'Verify Your Email';
+
+  @override
+  String get passwordChangeVerifyDescription =>
+      'Enter the verification code sent to your email address.';
+
+  @override
+  String get passwordChangeVerificationCode => 'Verification Code';
+
+  @override
+  String get passwordChangeVerify => 'Verify';
+
+  @override
+  String get passwordChangeNewPasswordTitle => 'Set New Password';
+
+  @override
+  String get passwordChangeNewPasswordDescription =>
+      'Enter your new password below.';
+
+  @override
+  String get passwordChangeNewPassword => 'New Password';
+
+  @override
+  String get passwordChangeConfirmPassword => 'Confirm New Password';
+
+  @override
+  String get passwordChangeSubmit => 'Change Password';
+
+  @override
+  String get passwordChangeSuccess => 'Password changed';
+
+  @override
+  String get passwordChangePasswordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get passwordChangeInvalidCode => 'Invalid or expired code';
+
+  @override
+  String get emailChangeTitle => 'Change Email';
+
+  @override
+  String get emailChangeIntroDescription =>
+      'We\'ll send verification codes to verify your identity before changing your email address.';
+
+  @override
+  String get emailChangeStart => 'Start';
+
+  @override
+  String get emailChangeVerifyOriginalTitle => 'Verify Current Email';
+
+  @override
+  String get emailChangeVerifyOriginalDescription =>
+      'Enter the verification code sent to your current email address.';
+
+  @override
+  String get emailChangeNewEmailTitle => 'Enter New Email';
+
+  @override
+  String get emailChangeNewEmailDescription =>
+      'Enter the new email address you\'d like to use.';
+
+  @override
+  String get emailChangeNewEmailLabel => 'New Email';
+
+  @override
+  String get emailChangeNewEmailSubmit => 'Send Verification Code';
+
+  @override
+  String get emailChangeVerifyNewTitle => 'Verify New Email';
+
+  @override
+  String get emailChangeVerifyNewDescription =>
+      'Enter the verification code sent to your new email address.';
+
+  @override
+  String get emailChangeSuccess => 'Email changed';
+
+  @override
+  String get emailChangeInvalidCode => 'Invalid or expired code';
+
+  @override
+  String get resend => 'Resend';
+
+  @override
+  String resendCountdown(int seconds) {
+    return 'Resend (${seconds}s)';
+  }
+
+  @override
+  String get verificationCode => 'Verification Code';
+
+  @override
+  String get verify => 'Verify';
+
+  @override
+  String get enable => 'Enable';
+
+  @override
+  String get disable => 'Disable';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get securityTfaSectionTitle => 'Two-Factor Authentication';
+
+  @override
+  String get securityTfaSectionDescription =>
+      'Add an extra layer of security to your account';
+
+  @override
+  String get securityTfaAuthenticatorApp => 'Authenticator App';
+
+  @override
+  String get securityTfaAuthenticatorEnabled =>
+      'Two-factor authentication is enabled';
+
+  @override
+  String get securityTfaAuthenticatorDisabled =>
+      'Use an authenticator app to generate codes for two-factor authentication';
+
+  @override
+  String get securityTfaBackupCodes => 'Backup Codes';
+
+  @override
+  String get securityTfaBackupCodesDescription =>
+      'View and manage your backup codes for account recovery';
+
+  @override
+  String get securityTfaViewCodes => 'View Codes';
+
+  @override
+  String get securityPasskeysSectionTitle => 'Passkeys';
+
+  @override
+  String get securityPasskeysSectionDescription =>
+      'Use passkeys for passwordless sign-in and two-factor authentication';
+
+  @override
+  String get securityPasskeysRegistered => 'Registered Passkeys';
+
+  @override
+  String get securityPasskeysNone => 'No passkeys registered';
+
+  @override
+  String securityPasskeysCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'passkeys',
+      one: 'passkey',
+    );
+    return '$count $_temp0 registered (max 10)';
+  }
+
+  @override
+  String get securityPasskeysAdd => 'Add Passkey';
+
+  @override
+  String securityPasskeysAdded(String date) {
+    return 'Added: $date';
+  }
+
+  @override
+  String securityPasskeysLastUsed(String date) {
+    return 'Last used: $date';
+  }
+
+  @override
+  String get securityPasskeysRename => 'Rename';
+
+  @override
+  String get securityPasskeysDeleteTitle => 'Delete Passkey';
+
+  @override
+  String securityPasskeysDeleteDescription(String name) {
+    return 'Are you sure you want to delete the passkey \"$name\"?';
+  }
+
+  @override
+  String get securityPasskeyNameTitle => 'Name Passkey';
+
+  @override
+  String get securityPasskeyNameLabel => 'Passkey Name';
+
+  @override
+  String get securityPasskeyNameHint => 'e.g., YubiKey, iPhone, Work Computer';
+
+  @override
+  String get securityPhoneSectionTitle => 'Phone Number';
+
+  @override
+  String get securityPhoneSectionDescription =>
+      'Manage your phone number for SMS two-factor authentication';
+
+  @override
+  String get securityPhoneLabel => 'Phone Number';
+
+  @override
+  String get securityPhoneNone =>
+      'Add a phone number to enable SMS two-factor authentication';
+
+  @override
+  String get securityPhoneAdd => 'Add Phone';
+
+  @override
+  String get securityPhoneRemove => 'Remove';
+
+  @override
+  String get securityPhoneRemoveTitle => 'Remove Phone Number';
+
+  @override
+  String get securityPhoneRemoveDescription =>
+      'Are you sure you want to remove your phone number?';
+
+  @override
+  String get securityPhoneRemoveWarning =>
+      'This will also disable SMS two-factor authentication.';
+
+  @override
+  String get securityPhoneRemoved => 'Phone number removed';
+
+  @override
+  String get securitySmsSectionTitle => 'SMS Two-Factor Authentication';
+
+  @override
+  String get securitySmsSectionDescription =>
+      'Receive verification codes via SMS as a backup authentication method';
+
+  @override
+  String get securitySmsBackup => 'SMS Backup';
+
+  @override
+  String get securitySmsEnabled => 'SMS two-factor authentication is enabled';
+
+  @override
+  String get securitySmsDisabled =>
+      'Enable SMS codes as a backup for your authenticator app';
+
+  @override
+  String get securitySmsEnableTitle => 'Enable SMS Two-Factor Authentication';
+
+  @override
+  String get securitySmsEnableDescription =>
+      'SMS two-factor authentication adds an additional layer of security by requiring a verification code sent to your phone number when signing in.';
+
+  @override
+  String get securitySmsDisableTitle => 'Disable SMS Two-Factor Authentication';
+
+  @override
+  String get securitySmsDisableDescription =>
+      'Are you sure you want to disable SMS two-factor authentication? This will make your account less secure.';
+
+  @override
+  String get securitySmsDisabledForPartners =>
+      'SMS backup is disabled for partners';
+
+  @override
+  String get securityClaimTitle => 'Security Features';
+
+  @override
+  String get securityClaimDescription =>
+      'Claim your account to access security features like two-factor authentication and passkeys.';
+
+  @override
+  String get securityVerifyEmailRequired =>
+      'You must verify your email address before you can set up two-factor authentication, passkeys, or SMS verification.';
+
+  @override
+  String get totpEnableTitle => 'Setup Authenticator App';
+
+  @override
+  String get totpEnableDescription =>
+      'Scan the QR code with your authenticator app to generate codes for two-factor authentication.';
+
+  @override
+  String get totpEnableCodeLabel => 'Code';
+
+  @override
+  String get totpEnableCodeHint =>
+      'Enter the 6-digit code from your authenticator app';
+
+  @override
+  String get totpEnableSuccess => 'Two-factor authentication has been enabled';
+
+  @override
+  String get totpDisableTitle => 'Remove Authenticator App';
+
+  @override
+  String get totpDisableDescription =>
+      'Enter the 6-digit code from your authenticator app to disable two-factor authentication.';
+
+  @override
+  String get totpDisableSuccess => 'Two-factor authentication disabled';
+
+  @override
+  String get backupCodesTitle => 'Backup Codes';
+
+  @override
+  String get backupCodesWarning =>
+      'If you lose access to your authenticator app and don\'t have these codes, you will be permanently locked out of your account. Download or copy them now and store them somewhere safe.';
+
+  @override
+  String get backupCodesDownload => 'Download';
+
+  @override
+  String get backupCodesCopy => 'Copy';
+
+  @override
+  String get backupCodesCopied => 'Backup codes copied to clipboard';
+
+  @override
+  String get backupCodesAcknowledge =>
+      'I have downloaded or copied my backup codes and stored them in a safe place.';
+
+  @override
+  String get backupCodesDone => 'Done';
+
+  @override
+  String get backupCodesViewTitle => 'View Backup Codes';
+
+  @override
+  String get backupCodesViewDescription =>
+      'Verification may be required before viewing your backup codes.';
+
+  @override
+  String get phoneAddTitle => 'Add Phone Number';
+
+  @override
+  String get phoneAddLabel => 'Phone Number';
+
+  @override
+  String get phoneAddHint => 'Enter your phone number';
+
+  @override
+  String get phoneAddFooter =>
+      'Enter your phone number. We\'ll send you a verification code via SMS.';
+
+  @override
+  String get phoneAddSendCode => 'Send Code';
+
+  @override
+  String get phoneVerifyTitle => 'Verify Phone Number';
+
+  @override
+  String get phoneVerifyDescription =>
+      'Enter the verification code sent to your phone number.';
+
+  @override
+  String get phoneAddSuccess => 'Phone number added';
+
+  @override
+  String get dangerZoneSectionTitle => 'Danger Zone';
+
+  @override
+  String get dangerZoneSectionDescription =>
+      'Irreversible and destructive actions';
+
+  @override
+  String get dangerZoneDisableTitle => 'Disable Account';
+
+  @override
+  String get dangerZoneDisableDescription =>
+      'Temporarily disable your account. You can reactivate it later by signing back in.';
+
+  @override
+  String get dangerZoneDisableConfirmDescription =>
+      'Disabling your account will log you out of all sessions. You can re-enable your account at any time by logging in again.';
+
+  @override
+  String get dangerZoneDeleteTitle => 'Delete Account';
+
+  @override
+  String get dangerZoneDeleteDescription =>
+      'Permanently delete your account and all associated data. This action cannot be undone.';
+
+  @override
+  String get dangerZoneDeleteCancelSubscription =>
+      'Cancel your active Plutonium subscription in Plutonium settings before deleting your account.';
+
+  @override
+  String get dangerZoneDeleteConfirmDescription =>
+      'Are you sure you want to delete your account? This action will schedule your account for permanent deletion.';
+
+  @override
+  String get dangerZoneDeleteBullet1 =>
+      'You can cancel the deletion process within 14 days';
+
+  @override
+  String get dangerZoneDeleteBullet2 =>
+      'After 14 days, your account will be permanently deleted';
+
+  @override
+  String get dangerZoneDeleteBullet3 =>
+      'Once deletion is processed, you cannot recover access to your account';
+
+  @override
+  String get dangerZoneDeleteBullet4 =>
+      'You will not be able to delete your sent messages after your account is deleted';
+
+  @override
+  String get dangerZoneDeleteDisclaimer =>
+      'If you want to export your data or delete your messages first, please visit the Privacy Dashboard section in User Settings before proceeding.';
+
+  @override
+  String get claimAccountTitle => 'Claim Your Account';
+
+  @override
+  String get claimAccountDescription =>
+      'Claim your account by adding an email and password. We will send a verification code to confirm your email before finishing.';
+
+  @override
+  String get claimAccountEmailLabel => 'Email';
+
+  @override
+  String get claimAccountPasswordLabel => 'Password';
+
+  @override
+  String get claimAccountSendCode => 'Send Code';
+
+  @override
+  String get claimAccountVerifyDescription =>
+      'Enter the code we sent to your email to verify it. Your password will be set once the code is confirmed.';
+
+  @override
+  String get claimAccountSuccess => 'Account claimed successfully';
+
+  @override
+  String get importantInformation => 'Important information:';
+
+  @override
+  String get genericError => 'An error occurred';
+
+  @override
+  String get invalidCode => 'Invalid code';
+
+  @override
+  String relativeTimeYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years ago',
+      one: '1 year ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeTimeMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months ago',
+      one: '1 month ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeTimeDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeTimeHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours ago',
+      one: '1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeTimeMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes ago',
+      one: '1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get relativeTimeJustNow => 'just now';
 }

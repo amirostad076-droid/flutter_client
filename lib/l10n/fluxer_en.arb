@@ -1535,5 +1535,702 @@
   "sudoVerificationFailed": "Verification failed. Please try again.",
   "@sudoVerificationFailed": {
     "description": "Error message shown when sudo verification attempt fails."
+  },
+
+  "securityAccountTitle": "Account",
+  "@securityAccountTitle": {
+    "description": "Top-level Account section heading in Security & Login settings."
+  },
+  "securityAccountDescription": "Manage your email, password, and account settings",
+  "@securityAccountDescription": {
+    "description": "Description for Account section heading."
+  },
+  "securitySectionTitle": "Security",
+  "@securitySectionTitle": {
+    "description": "Top-level Security section heading in Security & Login settings."
+  },
+  "securitySectionDescription": "Protect your account with two-factor authentication and passkeys",
+  "@securitySectionDescription": {
+    "description": "Description for Security section heading."
+  },
+
+  "securityLoginEmailSectionTitle": "Email Settings",
+  "@securityLoginEmailSectionTitle": {
+    "description": "Title for email settings section in Security & Login."
+  },
+  "securityLoginEmailSectionDescription": "Manage the email address you use to sign in to Fluxer",
+  "@securityLoginEmailSectionDescription": {
+    "description": "Description for email settings section."
+  },
+  "securityLoginEmailAddressLabel": "Email Address",
+  "@securityLoginEmailAddressLabel": {
+    "description": "Label for email address row."
+  },
+  "securityLoginNoEmailSet": "No email address set",
+  "@securityLoginNoEmailSet": {
+    "description": "Shown when the user has no email address set."
+  },
+  "securityLoginChangeEmail": "Change Email",
+  "@securityLoginChangeEmail": {
+    "description": "Button label to change email address."
+  },
+  "securityLoginAddEmail": "Add Email",
+  "@securityLoginAddEmail": {
+    "description": "Button label to add an email address."
+  },
+  "securityLoginReveal": "Reveal",
+  "@securityLoginReveal": {
+    "description": "Button label to reveal masked email or phone."
+  },
+  "securityLoginHide": "Hide",
+  "@securityLoginHide": {
+    "description": "Button label to hide revealed email or phone."
+  },
+  "securityLoginPasswordSectionTitle": "Password",
+  "@securityLoginPasswordSectionTitle": {
+    "description": "Title for password section in Security & Login."
+  },
+  "securityLoginPasswordSectionDescription": "Change your password to keep your account secure",
+  "@securityLoginPasswordSectionDescription": {
+    "description": "Description for password section."
+  },
+  "securityLoginCurrentPasswordLabel": "Current Password",
+  "@securityLoginCurrentPasswordLabel": {
+    "description": "Label for current password row."
+  },
+  "securityLoginPasswordLastChanged": "Last changed: {date}",
+  "@securityLoginPasswordLastChanged": {
+    "description": "Shows when the password was last changed.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "securityLoginPasswordNeverChanged": "Last changed: Never",
+  "@securityLoginPasswordNeverChanged": {
+    "description": "Shown when the password has never been changed."
+  },
+  "securityLoginNoPasswordSet": "No password set",
+  "@securityLoginNoPasswordSet": {
+    "description": "Shown when the user has no password set."
+  },
+  "securityLoginChangePassword": "Change Password",
+  "@securityLoginChangePassword": {
+    "description": "Button label to change password."
+  },
+  "securityLoginSetPassword": "Set Password",
+  "@securityLoginSetPassword": {
+    "description": "Button label to set a password."
+  },
+
+  "passwordChangeTitle": "Change Password",
+  "@passwordChangeTitle": {
+    "description": "Title for password change flow."
+  },
+  "passwordChangeIntroDescription": "We'll send a verification code to your email address to confirm your identity before changing your password.",
+  "@passwordChangeIntroDescription": {
+    "description": "Description shown on the intro step of password change."
+  },
+  "passwordChangeStart": "Start",
+  "@passwordChangeStart": {
+    "description": "Button label to start password change flow."
+  },
+  "passwordChangeVerifyTitle": "Verify Your Email",
+  "@passwordChangeVerifyTitle": {
+    "description": "Title for email verification step in password change."
+  },
+  "passwordChangeVerifyDescription": "Enter the verification code sent to your email address.",
+  "@passwordChangeVerifyDescription": {
+    "description": "Description for email verification step."
+  },
+  "passwordChangeVerificationCode": "Verification Code",
+  "@passwordChangeVerificationCode": {
+    "description": "Label for verification code input."
+  },
+  "passwordChangeVerify": "Verify",
+  "@passwordChangeVerify": {
+    "description": "Button label to verify the code."
+  },
+  "passwordChangeNewPasswordTitle": "Set New Password",
+  "@passwordChangeNewPasswordTitle": {
+    "description": "Title for new password entry step."
+  },
+  "passwordChangeNewPasswordDescription": "Enter your new password below.",
+  "@passwordChangeNewPasswordDescription": {
+    "description": "Description for new password entry step."
+  },
+  "passwordChangeNewPassword": "New Password",
+  "@passwordChangeNewPassword": {
+    "description": "Label for new password input."
+  },
+  "passwordChangeConfirmPassword": "Confirm New Password",
+  "@passwordChangeConfirmPassword": {
+    "description": "Label for confirm password input."
+  },
+  "passwordChangeSubmit": "Change Password",
+  "@passwordChangeSubmit": {
+    "description": "Button label to submit password change."
+  },
+  "passwordChangeSuccess": "Password changed",
+  "@passwordChangeSuccess": {
+    "description": "Toast shown after successful password change."
+  },
+  "passwordChangePasswordsDoNotMatch": "Passwords do not match",
+  "@passwordChangePasswordsDoNotMatch": {
+    "description": "Error shown when new password and confirmation don't match."
+  },
+  "passwordChangeInvalidCode": "Invalid or expired code",
+  "@passwordChangeInvalidCode": {
+    "description": "Error shown when verification code is invalid."
+  },
+
+  "emailChangeTitle": "Change Email",
+  "@emailChangeTitle": {
+    "description": "Title for email change flow."
+  },
+  "emailChangeIntroDescription": "We'll send verification codes to verify your identity before changing your email address.",
+  "@emailChangeIntroDescription": {
+    "description": "Description shown on the intro step of email change."
+  },
+  "emailChangeStart": "Start",
+  "@emailChangeStart": {
+    "description": "Button label to start email change flow."
+  },
+  "emailChangeVerifyOriginalTitle": "Verify Current Email",
+  "@emailChangeVerifyOriginalTitle": {
+    "description": "Title for verifying original email step."
+  },
+  "emailChangeVerifyOriginalDescription": "Enter the verification code sent to your current email address.",
+  "@emailChangeVerifyOriginalDescription": {
+    "description": "Description for original email verification step."
+  },
+  "emailChangeNewEmailTitle": "Enter New Email",
+  "@emailChangeNewEmailTitle": {
+    "description": "Title for new email entry step."
+  },
+  "emailChangeNewEmailDescription": "Enter the new email address you'd like to use.",
+  "@emailChangeNewEmailDescription": {
+    "description": "Description for new email entry step."
+  },
+  "emailChangeNewEmailLabel": "New Email",
+  "@emailChangeNewEmailLabel": {
+    "description": "Label for new email input."
+  },
+  "emailChangeNewEmailSubmit": "Send Verification Code",
+  "@emailChangeNewEmailSubmit": {
+    "description": "Button label to submit new email and send verification code."
+  },
+  "emailChangeVerifyNewTitle": "Verify New Email",
+  "@emailChangeVerifyNewTitle": {
+    "description": "Title for verifying new email step."
+  },
+  "emailChangeVerifyNewDescription": "Enter the verification code sent to your new email address.",
+  "@emailChangeVerifyNewDescription": {
+    "description": "Description for new email verification step."
+  },
+  "emailChangeSuccess": "Email changed",
+  "@emailChangeSuccess": {
+    "description": "Toast shown after successful email change."
+  },
+  "emailChangeInvalidCode": "Invalid or expired code",
+  "@emailChangeInvalidCode": {
+    "description": "Error shown when email verification code is invalid."
+  },
+  "resend": "Resend",
+  "@resend": {
+    "description": "Generic resend button label."
+  },
+  "resendCountdown": "Resend ({seconds}s)",
+  "@resendCountdown": {
+    "description": "Resend button with countdown timer.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "verificationCode": "Verification Code",
+  "@verificationCode": {
+    "description": "Generic label for verification code input."
+  },
+  "verify": "Verify",
+  "@verify": {
+    "description": "Generic verify button label."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Generic cancel button label."
+  },
+  "enable": "Enable",
+  "@enable": {
+    "description": "Generic enable button label."
+  },
+  "disable": "Disable",
+  "@disable": {
+    "description": "Generic disable button label."
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Generic delete button label."
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Generic save button label."
+  },
+
+  "securityTfaSectionTitle": "Two-Factor Authentication",
+  "@securityTfaSectionTitle": {
+    "description": "Title for the 2FA section."
+  },
+  "securityTfaSectionDescription": "Add an extra layer of security to your account",
+  "@securityTfaSectionDescription": {
+    "description": "Description for 2FA section."
+  },
+  "securityTfaAuthenticatorApp": "Authenticator App",
+  "@securityTfaAuthenticatorApp": {
+    "description": "Label for authenticator app row."
+  },
+  "securityTfaAuthenticatorEnabled": "Two-factor authentication is enabled",
+  "@securityTfaAuthenticatorEnabled": {
+    "description": "Status when TOTP is enabled."
+  },
+  "securityTfaAuthenticatorDisabled": "Use an authenticator app to generate codes for two-factor authentication",
+  "@securityTfaAuthenticatorDisabled": {
+    "description": "Status when TOTP is disabled."
+  },
+  "securityTfaBackupCodes": "Backup Codes",
+  "@securityTfaBackupCodes": {
+    "description": "Label for backup codes row."
+  },
+  "securityTfaBackupCodesDescription": "View and manage your backup codes for account recovery",
+  "@securityTfaBackupCodesDescription": {
+    "description": "Description for backup codes."
+  },
+  "securityTfaViewCodes": "View Codes",
+  "@securityTfaViewCodes": {
+    "description": "Button to view backup codes."
+  },
+
+  "securityPasskeysSectionTitle": "Passkeys",
+  "@securityPasskeysSectionTitle": {
+    "description": "Title for passkeys section."
+  },
+  "securityPasskeysSectionDescription": "Use passkeys for passwordless sign-in and two-factor authentication",
+  "@securityPasskeysSectionDescription": {
+    "description": "Description for passkeys section."
+  },
+  "securityPasskeysRegistered": "Registered Passkeys",
+  "@securityPasskeysRegistered": {
+    "description": "Label for registered passkeys row."
+  },
+  "securityPasskeysNone": "No passkeys registered",
+  "@securityPasskeysNone": {
+    "description": "Shown when no passkeys are registered."
+  },
+  "securityPasskeysCount": "{count} {count, plural, =1{passkey} other{passkeys}} registered (max 10)",
+  "@securityPasskeysCount": {
+    "description": "Shows passkey count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "securityPasskeysAdd": "Add Passkey",
+  "@securityPasskeysAdd": {
+    "description": "Button to add a passkey."
+  },
+  "securityPasskeysAdded": "Added: {date}",
+  "@securityPasskeysAdded": {
+    "description": "Shows when passkey was added.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "securityPasskeysLastUsed": "Last used: {date}",
+  "@securityPasskeysLastUsed": {
+    "description": "Shows when passkey was last used.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "securityPasskeysRename": "Rename",
+  "@securityPasskeysRename": {
+    "description": "Button to rename a passkey."
+  },
+  "securityPasskeysDeleteTitle": "Delete Passkey",
+  "@securityPasskeysDeleteTitle": {
+    "description": "Title for passkey delete confirmation."
+  },
+  "securityPasskeysDeleteDescription": "Are you sure you want to delete the passkey \"{name}\"?",
+  "@securityPasskeysDeleteDescription": {
+    "description": "Description for passkey delete confirmation.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "securityPasskeyNameTitle": "Name Passkey",
+  "@securityPasskeyNameTitle": {
+    "description": "Title for passkey naming sheet."
+  },
+  "securityPasskeyNameLabel": "Passkey Name",
+  "@securityPasskeyNameLabel": {
+    "description": "Label for passkey name input."
+  },
+  "securityPasskeyNameHint": "e.g., YubiKey, iPhone, Work Computer",
+  "@securityPasskeyNameHint": {
+    "description": "Hint for passkey name input."
+  },
+
+  "securityPhoneSectionTitle": "Phone Number",
+  "@securityPhoneSectionTitle": {
+    "description": "Title for phone number section."
+  },
+  "securityPhoneSectionDescription": "Manage your phone number for SMS two-factor authentication",
+  "@securityPhoneSectionDescription": {
+    "description": "Description for phone number section."
+  },
+  "securityPhoneLabel": "Phone Number",
+  "@securityPhoneLabel": {
+    "description": "Label for phone number row."
+  },
+  "securityPhoneNone": "Add a phone number to enable SMS two-factor authentication",
+  "@securityPhoneNone": {
+    "description": "Shown when no phone number is set."
+  },
+  "securityPhoneAdd": "Add Phone",
+  "@securityPhoneAdd": {
+    "description": "Button to add phone number."
+  },
+  "securityPhoneRemove": "Remove",
+  "@securityPhoneRemove": {
+    "description": "Button to remove phone number."
+  },
+  "securityPhoneRemoveTitle": "Remove Phone Number",
+  "@securityPhoneRemoveTitle": {
+    "description": "Title for phone remove confirmation."
+  },
+  "securityPhoneRemoveDescription": "Are you sure you want to remove your phone number?",
+  "@securityPhoneRemoveDescription": {
+    "description": "Description for phone remove confirmation."
+  },
+  "securityPhoneRemoveWarning": "This will also disable SMS two-factor authentication.",
+  "@securityPhoneRemoveWarning": {
+    "description": "Warning when removing phone with SMS MFA."
+  },
+  "securityPhoneRemoved": "Phone number removed",
+  "@securityPhoneRemoved": {
+    "description": "Toast after phone removed."
+  },
+
+  "securitySmsSectionTitle": "SMS Two-Factor Authentication",
+  "@securitySmsSectionTitle": {
+    "description": "Title for SMS MFA section."
+  },
+  "securitySmsSectionDescription": "Receive verification codes via SMS as a backup authentication method",
+  "@securitySmsSectionDescription": {
+    "description": "Description for SMS MFA section."
+  },
+  "securitySmsBackup": "SMS Backup",
+  "@securitySmsBackup": {
+    "description": "Label for SMS backup row."
+  },
+  "securitySmsEnabled": "SMS two-factor authentication is enabled",
+  "@securitySmsEnabled": {
+    "description": "Status when SMS MFA is enabled."
+  },
+  "securitySmsDisabled": "Enable SMS codes as a backup for your authenticator app",
+  "@securitySmsDisabled": {
+    "description": "Status when SMS MFA is disabled."
+  },
+  "securitySmsEnableTitle": "Enable SMS Two-Factor Authentication",
+  "@securitySmsEnableTitle": {
+    "description": "Title for SMS MFA enable confirmation."
+  },
+  "securitySmsEnableDescription": "SMS two-factor authentication adds an additional layer of security by requiring a verification code sent to your phone number when signing in.",
+  "@securitySmsEnableDescription": {
+    "description": "Description for SMS MFA enable."
+  },
+  "securitySmsDisableTitle": "Disable SMS Two-Factor Authentication",
+  "@securitySmsDisableTitle": {
+    "description": "Title for SMS MFA disable confirmation."
+  },
+  "securitySmsDisableDescription": "Are you sure you want to disable SMS two-factor authentication? This will make your account less secure.",
+  "@securitySmsDisableDescription": {
+    "description": "Description for SMS MFA disable."
+  },
+  "securitySmsDisabledForPartners": "SMS backup is disabled for partners",
+  "@securitySmsDisabledForPartners": {
+    "description": "Tooltip when SMS MFA is not available for partner accounts."
+  },
+
+  "securityClaimTitle": "Security Features",
+  "@securityClaimTitle": {
+    "description": "Title when user needs to claim account for security."
+  },
+  "securityClaimDescription": "Claim your account to access security features like two-factor authentication and passkeys.",
+  "@securityClaimDescription": {
+    "description": "Description prompting user to claim account."
+  },
+  "securityVerifyEmailRequired": "You must verify your email address before you can set up two-factor authentication, passkeys, or SMS verification.",
+  "@securityVerifyEmailRequired": {
+    "description": "Warning when email is not verified."
+  },
+
+  "totpEnableTitle": "Setup Authenticator App",
+  "@totpEnableTitle": {
+    "description": "Title for TOTP enable sheet."
+  },
+  "totpEnableDescription": "Scan the QR code with your authenticator app to generate codes for two-factor authentication.",
+  "@totpEnableDescription": {
+    "description": "Description for TOTP enable sheet."
+  },
+  "totpEnableCodeLabel": "Code",
+  "@totpEnableCodeLabel": {
+    "description": "Label for TOTP code input."
+  },
+  "totpEnableCodeHint": "Enter the 6-digit code from your authenticator app",
+  "@totpEnableCodeHint": {
+    "description": "Hint for TOTP code input."
+  },
+  "totpEnableSuccess": "Two-factor authentication has been enabled",
+  "@totpEnableSuccess": {
+    "description": "Toast after TOTP enabled."
+  },
+  "totpDisableTitle": "Remove Authenticator App",
+  "@totpDisableTitle": {
+    "description": "Title for TOTP disable sheet."
+  },
+  "totpDisableDescription": "Enter the 6-digit code from your authenticator app to disable two-factor authentication.",
+  "@totpDisableDescription": {
+    "description": "Description for TOTP disable sheet."
+  },
+  "totpDisableSuccess": "Two-factor authentication disabled",
+  "@totpDisableSuccess": {
+    "description": "Toast after TOTP disabled."
+  },
+
+  "backupCodesTitle": "Backup Codes",
+  "@backupCodesTitle": {
+    "description": "Title for backup codes sheet."
+  },
+  "backupCodesWarning": "If you lose access to your authenticator app and don't have these codes, you will be permanently locked out of your account. Download or copy them now and store them somewhere safe.",
+  "@backupCodesWarning": {
+    "description": "Warning about backup codes."
+  },
+  "backupCodesDownload": "Download",
+  "@backupCodesDownload": {
+    "description": "Button to download backup codes."
+  },
+  "backupCodesCopy": "Copy",
+  "@backupCodesCopy": {
+    "description": "Button to copy backup codes."
+  },
+  "backupCodesCopied": "Backup codes copied to clipboard",
+  "@backupCodesCopied": {
+    "description": "Toast after codes copied."
+  },
+  "backupCodesAcknowledge": "I have downloaded or copied my backup codes and stored them in a safe place.",
+  "@backupCodesAcknowledge": {
+    "description": "Acknowledgement checkbox text."
+  },
+  "backupCodesDone": "Done",
+  "@backupCodesDone": {
+    "description": "Button to close backup codes sheet."
+  },
+  "backupCodesViewTitle": "View Backup Codes",
+  "@backupCodesViewTitle": {
+    "description": "Title for viewing existing backup codes."
+  },
+  "backupCodesViewDescription": "Verification may be required before viewing your backup codes.",
+  "@backupCodesViewDescription": {
+    "description": "Description for view backup codes."
+  },
+
+  "phoneAddTitle": "Add Phone Number",
+  "@phoneAddTitle": {
+    "description": "Title for phone add sheet."
+  },
+  "phoneAddLabel": "Phone Number",
+  "@phoneAddLabel": {
+    "description": "Label for phone input."
+  },
+  "phoneAddHint": "Enter your phone number",
+  "@phoneAddHint": {
+    "description": "Hint for phone input."
+  },
+  "phoneAddFooter": "Enter your phone number. We'll send you a verification code via SMS.",
+  "@phoneAddFooter": {
+    "description": "Footer text for phone input."
+  },
+  "phoneAddSendCode": "Send Code",
+  "@phoneAddSendCode": {
+    "description": "Button to send phone verification code."
+  },
+  "phoneVerifyTitle": "Verify Phone Number",
+  "@phoneVerifyTitle": {
+    "description": "Title for phone verify step."
+  },
+  "phoneVerifyDescription": "Enter the verification code sent to your phone number.",
+  "@phoneVerifyDescription": {
+    "description": "Description for phone verify step."
+  },
+  "phoneAddSuccess": "Phone number added",
+  "@phoneAddSuccess": {
+    "description": "Toast after phone added."
+  },
+
+  "dangerZoneSectionTitle": "Danger Zone",
+  "@dangerZoneSectionTitle": {
+    "description": "Title for danger zone section."
+  },
+  "dangerZoneSectionDescription": "Irreversible and destructive actions",
+  "@dangerZoneSectionDescription": {
+    "description": "Description for danger zone section heading."
+  },
+  "dangerZoneDisableTitle": "Disable Account",
+  "@dangerZoneDisableTitle": {
+    "description": "Title for account disable."
+  },
+  "dangerZoneDisableDescription": "Temporarily disable your account. You can reactivate it later by signing back in.",
+  "@dangerZoneDisableDescription": {
+    "description": "Description for account disable."
+  },
+  "dangerZoneDisableConfirmDescription": "Disabling your account will log you out of all sessions. You can re-enable your account at any time by logging in again.",
+  "@dangerZoneDisableConfirmDescription": {
+    "description": "Confirmation description for account disable."
+  },
+  "dangerZoneDeleteTitle": "Delete Account",
+  "@dangerZoneDeleteTitle": {
+    "description": "Title for account delete."
+  },
+  "dangerZoneDeleteDescription": "Permanently delete your account and all associated data. This action cannot be undone.",
+  "@dangerZoneDeleteDescription": {
+    "description": "Description for account delete."
+  },
+  "dangerZoneDeleteCancelSubscription": "Cancel your active Plutonium subscription in Plutonium settings before deleting your account.",
+  "@dangerZoneDeleteCancelSubscription": {
+    "description": "Warning about active subscription before deletion."
+  },
+  "dangerZoneDeleteConfirmDescription": "Are you sure you want to delete your account? This action will schedule your account for permanent deletion.",
+  "@dangerZoneDeleteConfirmDescription": {
+    "description": "Confirmation description for account delete."
+  },
+  "dangerZoneDeleteBullet1": "You can cancel the deletion process within 14 days",
+  "@dangerZoneDeleteBullet1": {
+    "description": "First bullet point in delete confirmation."
+  },
+  "dangerZoneDeleteBullet2": "After 14 days, your account will be permanently deleted",
+  "@dangerZoneDeleteBullet2": {
+    "description": "Second bullet point."
+  },
+  "dangerZoneDeleteBullet3": "Once deletion is processed, you cannot recover access to your account",
+  "@dangerZoneDeleteBullet3": {
+    "description": "Third bullet point."
+  },
+  "dangerZoneDeleteBullet4": "You will not be able to delete your sent messages after your account is deleted",
+  "@dangerZoneDeleteBullet4": {
+    "description": "Fourth bullet point."
+  },
+  "dangerZoneDeleteDisclaimer": "If you want to export your data or delete your messages first, please visit the Privacy Dashboard section in User Settings before proceeding.",
+  "@dangerZoneDeleteDisclaimer": {
+    "description": "Disclaimer about data export before deletion."
+  },
+
+  "claimAccountTitle": "Claim Your Account",
+  "@claimAccountTitle": {
+    "description": "Title for claim account sheet."
+  },
+  "claimAccountDescription": "Claim your account by adding an email and password. We will send a verification code to confirm your email before finishing.",
+  "@claimAccountDescription": {
+    "description": "Description for claim account sheet."
+  },
+  "claimAccountEmailLabel": "Email",
+  "@claimAccountEmailLabel": {
+    "description": "Label for email input in claim account."
+  },
+  "claimAccountPasswordLabel": "Password",
+  "@claimAccountPasswordLabel": {
+    "description": "Label for password input in claim account."
+  },
+  "claimAccountSendCode": "Send Code",
+  "@claimAccountSendCode": {
+    "description": "Button to send verification code."
+  },
+  "claimAccountVerifyDescription": "Enter the code we sent to your email to verify it. Your password will be set once the code is confirmed.",
+  "@claimAccountVerifyDescription": {
+    "description": "Description for verify step."
+  },
+  "claimAccountSuccess": "Account claimed successfully",
+  "@claimAccountSuccess": {
+    "description": "Toast after account claimed."
+  },
+
+  "continueAction": "Continue",
+  "@continueAction": {
+    "description": "Generic continue button label."
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Generic back button label."
+  },
+  "importantInformation": "Important information:",
+  "@importantInformation": {
+    "description": "Header for important information section."
+  },
+  "genericError": "An error occurred",
+  "@genericError": {
+    "description": "Generic fallback error message."
+  },
+  "invalidCode": "Invalid code",
+  "@invalidCode": {
+    "description": "Error message when a verification code is invalid."
+  },
+
+  "relativeTimeYears": "{count, plural, =1{1 year ago} other{{count} years ago}}",
+  "@relativeTimeYears": {
+    "description": "Relative time in years.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "relativeTimeMonths": "{count, plural, =1{1 month ago} other{{count} months ago}}",
+  "@relativeTimeMonths": {
+    "description": "Relative time in months.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "relativeTimeDays": "{count, plural, =1{1 day ago} other{{count} days ago}}",
+  "@relativeTimeDays": {
+    "description": "Relative time in days.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "relativeTimeHours": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
+  "@relativeTimeHours": {
+    "description": "Relative time in hours.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "relativeTimeMinutes": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
+  "@relativeTimeMinutes": {
+    "description": "Relative time in minutes.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "relativeTimeJustNow": "just now",
+  "@relativeTimeJustNow": {
+    "description": "Relative time for very recent events."
   }
 }
