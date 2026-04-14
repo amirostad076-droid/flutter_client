@@ -620,8 +620,7 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       controlButtonDangerHoverBg:
           controlButtonDangerHoverBg ?? this.controlButtonDangerHoverBg,
       // Switch
-      switchTrackInactive:
-          switchTrackInactive ?? this.switchTrackInactive,
+      switchTrackInactive: switchTrackInactive ?? this.switchTrackInactive,
       // Menu
       menuDangerText: menuDangerText ?? this.menuDangerText,
       // Content Background

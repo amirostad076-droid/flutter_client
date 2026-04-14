@@ -16,7 +16,7 @@ mixin ResendTimerMixin<T extends StatefulWidget> on State<T> {
     _resendTimer?.cancel();
     _resendAvailableAt = resendAvailableAt != null
         ? (DateTime.tryParse(resendAvailableAt) ??
-            DateTime.now().add(const Duration(seconds: 30)))
+              DateTime.now().add(const Duration(seconds: 30)))
         : DateTime.now().add(const Duration(seconds: 30));
     _updateResendCountdown();
     _resendTimer = Timer.periodic(
@@ -30,11 +30,8 @@ mixin ResendTimerMixin<T extends StatefulWidget> on State<T> {
       setState(() => _resendCountdown = 0);
       return;
     }
-    final remaining =
-        _resendAvailableAt!.difference(DateTime.now()).inSeconds;
-    setState(
-      () => _resendCountdown = remaining > 0 ? remaining : 0,
-    );
+    final remaining = _resendAvailableAt!.difference(DateTime.now()).inSeconds;
+    setState(() => _resendCountdown = remaining > 0 ? remaining : 0);
     if (remaining <= 0) {
       _resendTimer?.cancel();
     }

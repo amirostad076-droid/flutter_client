@@ -71,15 +71,17 @@ class _AccountDisableSheetState extends ConsumerState<AccountDisableSheet> {
         children: [
           Text(
             l10n.dangerZoneDisableConfirmDescription,
-            style: context.textStyles.bodySmall
-                .copyWith(color: colors.textSecondary),
+            style: context.textStyles.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
           ),
           if (_error != null) ...[
             SizedBox(height: layout.s3),
             Text(
               _error!,
-              style: context.textStyles.bodySmall
-                  .copyWith(color: colors.statusDanger),
+              style: context.textStyles.bodySmall.copyWith(
+                color: colors.statusDanger,
+              ),
             ),
           ],
           SizedBox(height: layout.s4),
@@ -87,8 +89,9 @@ class _AccountDisableSheetState extends ConsumerState<AccountDisableSheet> {
             children: [
               Expanded(
                 child: FluxerButton.secondary(
-                  onPressed:
-                      _loading ? null : () => Navigator.of(context).pop(),
+                  onPressed: _loading
+                      ? null
+                      : () => Navigator.of(context).pop(),
                   label: l10n.cancel,
                   fitContent: true,
                 ),

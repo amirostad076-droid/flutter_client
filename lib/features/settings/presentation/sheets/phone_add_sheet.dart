@@ -108,12 +108,14 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
       );
 
       final l10n = FluxerLocalizations.of(context);
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: l10n.phoneAddSuccess,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.phoneAddSuccess,
+              variant: FluxerToastVariant.success,
+            ),
+          );
 
       await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
 
@@ -142,8 +144,9 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
           if (_step == _Step.phone) ...[
             Text(
               l10n.phoneAddFooter,
-              style: context.textStyles.bodySmall
-                  .copyWith(color: colors.textSecondary),
+              style: context.textStyles.bodySmall.copyWith(
+                color: colors.textSecondary,
+              ),
             ),
             SizedBox(height: layout.s4),
             FluxerInput(
@@ -162,8 +165,9 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
               children: [
                 Expanded(
                   child: FluxerButton.secondary(
-                    onPressed:
-                        _loading ? null : () => Navigator.of(context).pop(),
+                    onPressed: _loading
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     label: l10n.cancel,
                     fitContent: true,
                   ),
@@ -181,8 +185,9 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
           ] else ...[
             Text(
               l10n.phoneVerifyDescription,
-              style: context.textStyles.bodySmall
-                  .copyWith(color: colors.textSecondary),
+              style: context.textStyles.bodySmall.copyWith(
+                color: colors.textSecondary,
+              ),
             ),
             SizedBox(height: layout.s4),
             FluxerInput(
@@ -205,9 +210,9 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
                     onPressed: _loading
                         ? null
                         : () => setState(() {
-                              _step = _Step.phone;
-                              _error = null;
-                            }),
+                            _step = _Step.phone;
+                            _error = null;
+                          }),
                     label: l10n.back,
                     fitContent: true,
                   ),

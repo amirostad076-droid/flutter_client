@@ -74,9 +74,7 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            FluxerLoadingSpinner(
-              color: context.colors.brandPrimary,
-            ),
+            FluxerLoadingSpinner(color: context.colors.brandPrimary),
           ],
         ),
       ),

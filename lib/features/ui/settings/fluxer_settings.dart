@@ -340,10 +340,7 @@ Widget fluxerSettingsGroupPreview() {
       FluxerSettingsRow(
         title: 'Email digest',
         onTap: () {},
-        trailing: const PhosphorIcon(
-          PhosphorIconsBold.caretRight,
-          size: 18,
-        ),
+        trailing: const PhosphorIcon(PhosphorIconsBold.caretRight, size: 18),
       ),
     ],
   );
@@ -354,9 +351,7 @@ Widget fluxerSettingsFormSectionPreview() {
   return const FluxerSettingsFormSection(
     title: 'Profile',
     description: 'This information is visible to others.',
-    children: [
-      FluxerInput(label: 'Display name', hint: 'Your name'),
-    ],
+    children: [FluxerInput(label: 'Display name', hint: 'Your name')],
   );
 }
 

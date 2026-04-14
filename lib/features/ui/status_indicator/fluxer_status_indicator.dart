@@ -69,10 +69,7 @@ class FluxerStatusIndicator extends StatelessWidget {
     if (status == 'offline' || status == 'invisible') {
       return Center(
         child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: cutoutColor,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: cutoutColor, shape: BoxShape.circle),
           child: SizedBox(width: size * 0.4, height: size * 0.4),
         ),
       );

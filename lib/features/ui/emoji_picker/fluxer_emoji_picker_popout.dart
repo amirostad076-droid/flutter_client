@@ -83,8 +83,9 @@ class FluxerEmojiPickerPopoutState extends State<FluxerEmojiPickerPopout>
       return;
     }
     final screenHeight = MediaQuery.sizeOf(context).height;
-    final anchorBottom =
-        renderBox.localToGlobal(Offset(0, renderBox.size.height)).dy;
+    final anchorBottom = renderBox
+        .localToGlobal(Offset(0, renderBox.size.height))
+        .dy;
     final spaceBelow = screenHeight - anchorBottom;
     _openUpward = spaceBelow < _kHeight + 8;
   }
@@ -144,9 +145,7 @@ class FluxerEmojiPickerPopoutState extends State<FluxerEmojiPickerPopout>
                   decoration: BoxDecoration(
                     color: colors.backgroundTertiary,
                     borderRadius: layout.radiusXl,
-                    border: Border.all(
-                      color: colors.backgroundModifierAccent,
-                    ),
+                    border: Border.all(color: colors.backgroundModifierAccent),
                     boxShadow: const [
                       BoxShadow(
                         color: Color.fromRGBO(0, 0, 0, 0.2),
@@ -177,9 +176,6 @@ class FluxerEmojiPickerPopoutState extends State<FluxerEmojiPickerPopout>
   Widget build(BuildContext context) => OverlayPortal(
     controller: _overlayController,
     overlayChildBuilder: _buildOverlay,
-    child: CompositedTransformTarget(
-      link: _layerLink,
-      child: widget.child,
-    ),
+    child: CompositedTransformTarget(link: _layerLink, child: widget.child),
   );
 }

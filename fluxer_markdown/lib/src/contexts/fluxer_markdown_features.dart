@@ -50,22 +50,21 @@ class FluxerMarkdownFeatures {
           allowTables: false,
           allowUserMentions: true,
         ),
-      FluxerMarkdownContext.restrictedUserBio =>
-        const FluxerMarkdownFeatures(
-          allowAutolinks: true,
-          allowAlerts: false,
-          allowBlockquotes: true,
-          allowChannelMentions: true,
-          allowCodeBlocks: false,
-          allowEveryoneMentions: false,
-          allowHeadings: false,
-          allowJumboEmoji: false,
-          allowLists: true,
-          allowRoleMentions: false,
-          allowSubtext: false,
-          allowTables: false,
-          allowUserMentions: true,
-        ),
+      FluxerMarkdownContext.restrictedUserBio => const FluxerMarkdownFeatures(
+        allowAutolinks: true,
+        allowAlerts: false,
+        allowBlockquotes: true,
+        allowChannelMentions: true,
+        allowCodeBlocks: false,
+        allowEveryoneMentions: false,
+        allowHeadings: false,
+        allowJumboEmoji: false,
+        allowLists: true,
+        allowRoleMentions: false,
+        allowSubtext: false,
+        allowTables: false,
+        allowUserMentions: true,
+      ),
       FluxerMarkdownContext.restrictedEmbedDescription =>
         const FluxerMarkdownFeatures(
           allowAutolinks: false,
@@ -115,4 +114,3 @@ class FluxerMarkdownFeatures {
   final bool allowTables;
   final bool allowUserMentions;
 }
-

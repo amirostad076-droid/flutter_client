@@ -68,8 +68,5 @@ class FluxerTextLink extends StatelessWidget {
 
 @FluxerWidgetPreview(name: 'Default', group: 'FluxerTextLink')
 Widget fluxerTextLinkPreview() {
-  return FluxerTextLink(
-    text: 'Open documentation',
-    onTap: () {},
-  );
+  return FluxerTextLink(text: 'Open documentation', onTap: () {});
 }

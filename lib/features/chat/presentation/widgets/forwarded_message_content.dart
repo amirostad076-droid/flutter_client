@@ -47,44 +47,44 @@ class ForwardedMessageContent extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _ForwardedHeader(),
-                  if (snapshot.content.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: MessageMarkdown(
-                        data: snapshot.content,
-                        channelId: message.channelId,
-                        baseStyle: TextStyle(
-                          fontSize: 13,
-                          color: context.colors.textChat,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _ForwardedHeader(),
+                    if (snapshot.content.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: MessageMarkdown(
+                          data: snapshot.content,
+                          channelId: message.channelId,
+                          baseStyle: TextStyle(
+                            fontSize: 13,
+                            color: context.colors.textChat,
+                          ),
                         ),
                       ),
-                    ),
-                  ...snapshot.attachments.map(
-                    (attachment) => Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: attachment.isImage
-                          ? AttachmentImage(attachment: attachment)
-                          : _ForwardedAttachmentLabel(attachment: attachment),
-                    ),
-                  ),
-                  ...snapshot.embeds.map(
-                    (embed) => Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: _ForwardedEmbed(embed: embed),
-                    ),
-                  ),
-                  if (message.messageReference != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: _ForwardedSourceButton(
-                        reference: message.messageReference!,
+                    ...snapshot.attachments.map(
+                      (attachment) => Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: attachment.isImage
+                            ? AttachmentImage(attachment: attachment)
+                            : _ForwardedAttachmentLabel(attachment: attachment),
                       ),
                     ),
-                ],
-              ),
+                    ...snapshot.embeds.map(
+                      (embed) => Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: _ForwardedEmbed(embed: embed),
+                      ),
+                    ),
+                    if (message.messageReference != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: _ForwardedSourceButton(
+                          reference: message.messageReference!,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -146,10 +146,7 @@ class _ForwardedAttachmentLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       attachment.filename,
-      style: TextStyle(
-        fontSize: 13,
-        color: context.colors.textPrimaryMuted,
-      ),
+      style: TextStyle(fontSize: 13, color: context.colors.textPrimaryMuted),
       overflow: TextOverflow.ellipsis,
     );
   }
@@ -335,11 +332,7 @@ class _ForwardedSourceInfo extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PhosphorIcon(
-            PhosphorIconsFill.usersThree,
-            size: 14,
-            color: muted,
-          ),
+          PhosphorIcon(PhosphorIconsFill.usersThree, size: 14, color: muted),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
@@ -368,11 +361,7 @@ class _ForwardedSourceInfo extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          PhosphorIcon(
-            PhosphorIconsBold.caretRight,
-            size: 12,
-            color: muted,
-          ),
+          PhosphorIcon(PhosphorIconsBold.caretRight, size: 12, color: muted),
           const SizedBox(width: 4),
           ChannelIcon(
             type: data.channelType ?? ChannelType.text,

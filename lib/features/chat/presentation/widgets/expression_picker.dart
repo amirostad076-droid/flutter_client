@@ -12,15 +12,13 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 enum ExpressionPickerTab { gifs, memes, stickers, emojis }
 
-String expressionTabLabel(
-  ExpressionPickerTab tab,
-  FluxerLocalizations l10n,
-) => switch (tab) {
-  ExpressionPickerTab.gifs => l10n.emojiTabGifs,
-  ExpressionPickerTab.memes => l10n.emojiTabMedia,
-  ExpressionPickerTab.stickers => l10n.emojiTabStickers,
-  ExpressionPickerTab.emojis => l10n.emojiTabEmojis,
-};
+String expressionTabLabel(ExpressionPickerTab tab, FluxerLocalizations l10n) =>
+    switch (tab) {
+      ExpressionPickerTab.gifs => l10n.emojiTabGifs,
+      ExpressionPickerTab.memes => l10n.emojiTabMedia,
+      ExpressionPickerTab.stickers => l10n.emojiTabStickers,
+      ExpressionPickerTab.emojis => l10n.emojiTabEmojis,
+    };
 
 class ExpressionPicker extends ConsumerStatefulWidget {
   const ExpressionPicker({
@@ -74,10 +72,9 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
   String get _searchQuery =>
       widget.searchController != null ? widget.searchQuery : _ownSearchQuery;
 
-  String? get _hoveredEmoji =>
-      widget.searchController != null
-          ? widget.hoveredEmojiName
-          : _ownHoveredEmoji;
+  String? get _hoveredEmoji => widget.searchController != null
+      ? widget.hoveredEmojiName
+      : _ownHoveredEmoji;
 
   @override
   void initState() {

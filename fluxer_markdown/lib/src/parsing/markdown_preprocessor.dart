@@ -19,10 +19,7 @@ final class FluxerSubtextSegment extends FluxerMarkdownSegment {
   final String text;
 }
 
-String preprocessFluxerMarkdown(
-  String text,
-  FluxerMarkdownFeatures features,
-) {
+String preprocessFluxerMarkdown(String text, FluxerMarkdownFeatures features) {
   final lines = text.split('\n');
   final output = <String>[];
 
@@ -32,8 +29,7 @@ String preprocessFluxerMarkdown(
     if (!features.allowSubtext && next.startsWith('-# ')) {
       next = '\\$next';
     }
-    if (!features.allowHeadings &&
-        RegExp(r'^\s{0,3}#{1,6}\s').hasMatch(next)) {
+    if (!features.allowHeadings && RegExp(r'^\s{0,3}#{1,6}\s').hasMatch(next)) {
       next = '\\$next';
     }
     if (!features.allowLists &&
@@ -46,8 +42,7 @@ String preprocessFluxerMarkdown(
     if (!features.allowTables && next.contains('|')) {
       next = next.replaceAll('|', r'\|');
     }
-    if (!features.allowCodeBlocks &&
-        RegExp(r'^\s{0,3}```').hasMatch(next)) {
+    if (!features.allowCodeBlocks && RegExp(r'^\s{0,3}```').hasMatch(next)) {
       next = '\\$next';
     }
 

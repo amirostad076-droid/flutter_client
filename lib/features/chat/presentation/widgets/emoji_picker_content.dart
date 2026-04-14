@@ -68,8 +68,7 @@ class EmojiPickerContent extends ConsumerStatefulWidget {
   final bool isMobile;
 
   @override
-  ConsumerState<EmojiPickerContent> createState() =>
-      _EmojiPickerContentState();
+  ConsumerState<EmojiPickerContent> createState() => _EmojiPickerContentState();
 }
 
 class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
@@ -122,8 +121,9 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
 
   void _onEmojiSelected(EmojiEntry emoji) {
     final hasTone = widget.skinTone.isNotEmpty && emoji.hasDiversity;
-    final surrogates =
-        hasTone ? emoji.surrogates + widget.skinTone : emoji.surrogates;
+    final surrogates = hasTone
+        ? emoji.surrogates + widget.skinTone
+        : emoji.surrogates;
     unawaited(
       ref
           .read(fluxerDatabaseProvider)
@@ -291,9 +291,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     }
     final allGuilds = ref.watch(guildListViewModelProvider).guilds;
     final activeGuildId = ref.watch(activeGuildIdProvider);
-    final lockedGuilds = allGuilds
-        .where((g) => g.id != activeGuildId)
-        .toList();
+    final lockedGuilds = allGuilds.where((g) => g.id != activeGuildId).toList();
     if (lockedGuilds.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -326,15 +324,13 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     return _buildCategoryGrid(context, colors);
   }
 
-  Widget _buildSearchResults(
-    BuildContext context,
-    FluxerColorTheme colors,
-  ) {
+  Widget _buildSearchResults(BuildContext context, FluxerColorTheme colors) {
     final unicodeResults = EmojiRegistry.search(widget.searchQuery);
     final guildEmojis = _getGuildEmojis();
     final query = widget.searchQuery.toLowerCase();
-    final customResults =
-        guildEmojis.where((e) => e.name.toLowerCase().contains(query)).toList();
+    final customResults = guildEmojis
+        .where((e) => e.name.toLowerCase().contains(query))
+        .toList();
     _scheduleCustomEmojiPrefetch(context, customResults);
 
     if (unicodeResults.isEmpty && customResults.isEmpty) {
@@ -381,10 +377,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     );
   }
 
-  Widget _buildCategoryGrid(
-    BuildContext context,
-    FluxerColorTheme colors,
-  ) {
+  Widget _buildCategoryGrid(BuildContext context, FluxerColorTheme colors) {
     final categories = EmojiRegistry.categories;
     final frecent = ref.watch(frecentEmojisProvider).value ?? [];
     final guildEmojisByGuild = _getGuildEmojisByGuild();
@@ -530,7 +523,8 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   }) {
     final l10n = FluxerLocalizations.of(context);
     final isCollapsed = _collapsedCategories.contains(category);
-    final label = labelOverride ??
+    final label =
+        labelOverride ??
         (category == 'frequently-used'
             ? l10n.emojiFrequentlyUsed
             : _categoryLabel(category, l10n));
@@ -583,7 +577,8 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
         child: Container(
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: _hoveredEmojiName == emoji.primaryName &&
+            color:
+                _hoveredEmojiName == emoji.primaryName &&
                     _hoveredCustomEmoji == null
                 ? colors.backgroundModifierSelected
                 : Colors.transparent,
@@ -608,8 +603,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   ) => GestureDetector(
     onTap: () => _onCustomEmojiSelected(emoji),
     child: MouseRegion(
-      onEnter: (_) =>
-          _setHoveredEmoji(emoji.name, customEmoji: emoji),
+      onEnter: (_) => _setHoveredEmoji(emoji.name, customEmoji: emoji),
       onExit: (_) => _setHoveredEmoji(null),
       child: Container(
         alignment: Alignment.center,
@@ -768,8 +762,8 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     // Unicode emoji hovered
     final emoji = name != null
         ? EmojiRegistry.allEmojis
-            .where((e) => e.primaryName == name)
-            .firstOrNull
+              .where((e) => e.primaryName == name)
+              .firstOrNull
         : null;
     final hasTone =
         widget.skinTone.isNotEmpty && (emoji?.hasDiversity ?? false);
@@ -942,10 +936,7 @@ class _RetryEmojiImageState extends State<_RetryEmojiImage> {
     }
     _retryScheduled = true;
     unawaited(
-      CachedNetworkImage.evictFromCache(
-        _imageUrl,
-        cacheKey: _cacheKey,
-      ),
+      CachedNetworkImage.evictFromCache(_imageUrl, cacheKey: _cacheKey),
     );
     final delay = _kBaseDelay * (1 << _attempt);
     _retryTimer = Timer(delay, () {

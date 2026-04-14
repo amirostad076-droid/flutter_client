@@ -20,10 +20,7 @@ class FluxerSettingsNavItem {
 }
 
 class FluxerSettingsNavGroup {
-  const FluxerSettingsNavGroup({
-    required this.items,
-    this.label,
-  });
+  const FluxerSettingsNavGroup({required this.items, this.label});
 
   final String? label;
   final List<FluxerSettingsNavItem> items;

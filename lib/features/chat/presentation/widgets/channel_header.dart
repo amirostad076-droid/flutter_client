@@ -84,9 +84,7 @@ class ChannelHeader extends ConsumerWidget {
           onPressed: () => context.pop(),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          style: IconButton.styleFrom(
-            shape: const CircleBorder(),
-          ),
+          style: IconButton.styleFrom(shape: const CircleBorder()),
         ),
         _buildLeadingIcon(context, channel: channel, dm: dm),
         const SizedBox(width: 6),

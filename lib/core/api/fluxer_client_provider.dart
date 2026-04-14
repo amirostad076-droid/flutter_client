@@ -41,8 +41,9 @@ FluxerClientProperties fluxerClientProperties(Ref ref) {
 
 @Riverpod(keepAlive: true)
 String fluxerClientPropertiesHeader(Ref ref) {
-  final FluxerClientProperties properties =
-      ref.watch(fluxerClientPropertiesProvider);
+  final FluxerClientProperties properties = ref.watch(
+    fluxerClientPropertiesProvider,
+  );
   return encodeFluxerClientPropertiesHeader(
     toClientPropertiesWireMap(properties),
   );
@@ -53,8 +54,9 @@ Dio fluxerDio(Ref ref) {
   final baseUrl = ref.watch(fluxerBaseUrlProvider);
   final token = ref.watch(fluxerAuthTokenProvider);
   final userAgent = ref.watch(fluxerClientPropertiesProvider).userAgent;
-  final clientPropertiesHeader =
-      ref.watch(fluxerClientPropertiesHeaderProvider);
+  final clientPropertiesHeader = ref.watch(
+    fluxerClientPropertiesHeaderProvider,
+  );
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
@@ -94,10 +96,8 @@ Dio fluxerDio(Ref ref) {
   dio.interceptors.add(
     SudoInterceptor(
       dio: dio,
-      showSudoSheet: () => showSudoVerificationSheet(
-        navigatorKey: rootNavigatorKey,
-        dio: dio,
-      ),
+      showSudoSheet: () =>
+          showSudoVerificationSheet(navigatorKey: rootNavigatorKey, dio: dio),
     ),
   );
 

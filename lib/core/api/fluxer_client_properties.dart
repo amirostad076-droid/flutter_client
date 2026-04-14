@@ -225,16 +225,16 @@ FluxerClientProperties buildFluxerClientProperties({
   final String clientPlatform = resolveClientPlatform(target);
   final AppBuildEnvironment environment =
       runtimeInfo?.environment ?? AppBuildConfig.environment;
-  final String releaseChannel =
-      mapAppBuildEnvironmentToReleaseChannel(environment);
+  final String releaseChannel = mapAppBuildEnvironmentToReleaseChannel(
+    environment,
+  );
   final String? clientVersion = normalizeOptionalString(runtimeInfo?.version);
   final String userAgent = buildFluxerClientUserAgent(
     clientPlatform: clientPlatform,
     clientVersion: clientVersion,
     releaseChannel: releaseChannel,
   );
-  final int? parsedBuildNumber =
-      int.tryParse(runtimeInfo?.buildNumber ?? '');
+  final int? parsedBuildNumber = int.tryParse(runtimeInfo?.buildNumber ?? '');
   return FluxerClientProperties(
     schemaVersion: fluxerClientPropertiesSchemaVersion,
     clientPlatform: clientPlatform,

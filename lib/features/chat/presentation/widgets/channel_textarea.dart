@@ -91,8 +91,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         if (pending == null) {
           return;
         }
-        ref.read(pendingEmojiInsertProvider.notifier)
-          ..consume();
+        ref.read(pendingEmojiInsertProvider.notifier)..consume();
         _insertEmoji(pending.name, pending.surrogates);
       },
     );
@@ -346,10 +345,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               ),
               isDense: true,
               suffixIcon: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 4,
-                  horizontal: 7,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 7),
                 child: _buildMobilePickerButton(context),
               ),
               suffixIconConstraints: const BoxConstraints(),
@@ -404,9 +400,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final isPanelOpen = ref.watch(expressionPanelProvider);
 
     return FluxerButton.ghost(
-      icon: isPanelOpen
-          ? PhosphorIconsFill.keyboard
-          : PhosphorIconsFill.smiley,
+      icon: isPanelOpen ? PhosphorIconsFill.keyboard : PhosphorIconsFill.smiley,
       isSquare: true,
       size: FluxerButtonSize.compact,
       onPressed: () {

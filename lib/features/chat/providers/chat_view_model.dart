@@ -219,11 +219,8 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void scrollToMessage(String messageId) {
-    final version =
-        (state.scrollToMessageSignal?.$2 ?? 0) + 1;
-    state = state.copyWith(
-      scrollToMessageSignal: (messageId, version),
-    );
+    final version = (state.scrollToMessageSignal?.$2 ?? 0) + 1;
+    state = state.copyWith(scrollToMessageSignal: (messageId, version));
   }
 
   void updateMessageText(String text) {

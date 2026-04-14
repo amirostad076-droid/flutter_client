@@ -44,11 +44,8 @@ class GuildEmojiEntry {
       'emoji_${id}_${animated ? 'a' : 's'}_$size';
 
   /// Markdown token inserted into the message text.
-  String get markdown => getCustomEmojiMarkdown(
-    name: name,
-    id: id,
-    animated: animated,
-  );
+  String get markdown =>
+      getCustomEmojiMarkdown(name: name, id: id, animated: animated);
 }
 
 @riverpod
@@ -73,10 +70,7 @@ Future<List<EmojiEntry>> frecentEmojis(Ref ref) async {
 }
 
 @Riverpod(keepAlive: true)
-Stream<List<GuildEmojiEntry>> guildEmojisForPicker(
-  Ref ref,
-  String guildId,
-) {
+Stream<List<GuildEmojiEntry>> guildEmojisForPicker(Ref ref, String guildId) {
   final db = ref.watch(fluxerDatabaseProvider);
   return db.guildEmojiDao
       .watchByGuild(guildId)

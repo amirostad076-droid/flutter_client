@@ -24,13 +24,13 @@ class FluxerButton extends StatefulWidget {
     this.recording = false,
     this.child,
     super.key,
-  })  : _variant = FluxerButtonVariant.primary,
-        _isCircle = false,
-        _iconSizeOverride = null,
-        assert(
-          onPressed == null || onPressedAsync == null,
-          'Cannot provide both onPressed and onPressedAsync',
-        );
+  }) : _variant = FluxerButtonVariant.primary,
+       _isCircle = false,
+       _iconSizeOverride = null,
+       assert(
+         onPressed == null || onPressedAsync == null,
+         'Cannot provide both onPressed and onPressedAsync',
+       );
 
   const FluxerButton.secondary({
     this.onPressed,
@@ -45,13 +45,13 @@ class FluxerButton extends StatefulWidget {
     this.recording = false,
     this.child,
     super.key,
-  })  : _variant = FluxerButtonVariant.secondary,
-        _isCircle = false,
-        _iconSizeOverride = null,
-        assert(
-          onPressed == null || onPressedAsync == null,
-          'Cannot provide both onPressed and onPressedAsync',
-        );
+  }) : _variant = FluxerButtonVariant.secondary,
+       _isCircle = false,
+       _iconSizeOverride = null,
+       assert(
+         onPressed == null || onPressedAsync == null,
+         'Cannot provide both onPressed and onPressedAsync',
+       );
 
   const FluxerButton.dangerPrimary({
     this.onPressed,
@@ -66,13 +66,13 @@ class FluxerButton extends StatefulWidget {
     this.recording = false,
     this.child,
     super.key,
-  })  : _variant = FluxerButtonVariant.dangerPrimary,
-        _isCircle = false,
-        _iconSizeOverride = null,
-        assert(
-          onPressed == null || onPressedAsync == null,
-          'Cannot provide both onPressed and onPressedAsync',
-        );
+  }) : _variant = FluxerButtonVariant.dangerPrimary,
+       _isCircle = false,
+       _iconSizeOverride = null,
+       assert(
+         onPressed == null || onPressedAsync == null,
+         'Cannot provide both onPressed and onPressedAsync',
+       );
 
   const FluxerButton.dangerSecondary({
     this.onPressed,
@@ -87,13 +87,13 @@ class FluxerButton extends StatefulWidget {
     this.recording = false,
     this.child,
     super.key,
-  })  : _variant = FluxerButtonVariant.dangerSecondary,
-        _isCircle = false,
-        _iconSizeOverride = null,
-        assert(
-          onPressed == null || onPressedAsync == null,
-          'Cannot provide both onPressed and onPressedAsync',
-        );
+  }) : _variant = FluxerButtonVariant.dangerSecondary,
+       _isCircle = false,
+       _iconSizeOverride = null,
+       assert(
+         onPressed == null || onPressedAsync == null,
+         'Cannot provide both onPressed and onPressedAsync',
+       );
 
   const FluxerButton.inverted({
     this.onPressed,
@@ -108,13 +108,13 @@ class FluxerButton extends StatefulWidget {
     this.recording = false,
     this.child,
     super.key,
-  })  : _variant = FluxerButtonVariant.inverted,
-        _isCircle = false,
-        _iconSizeOverride = null,
-        assert(
-          onPressed == null || onPressedAsync == null,
-          'Cannot provide both onPressed and onPressedAsync',
-        );
+  }) : _variant = FluxerButtonVariant.inverted,
+       _isCircle = false,
+       _iconSizeOverride = null,
+       assert(
+         onPressed == null || onPressedAsync == null,
+         'Cannot provide both onPressed and onPressedAsync',
+       );
 
   const FluxerButton.invertedOutline({
     this.onPressed,
@@ -129,13 +129,13 @@ class FluxerButton extends StatefulWidget {
     this.recording = false,
     this.child,
     super.key,
-  })  : _variant = FluxerButtonVariant.invertedOutline,
-        _isCircle = false,
-        _iconSizeOverride = null,
-        assert(
-          onPressed == null || onPressedAsync == null,
-          'Cannot provide both onPressed and onPressedAsync',
-        );
+  }) : _variant = FluxerButtonVariant.invertedOutline,
+       _isCircle = false,
+       _iconSizeOverride = null,
+       assert(
+         onPressed == null || onPressedAsync == null,
+         'Cannot provide both onPressed and onPressedAsync',
+       );
 
   const FluxerButton.ghost({
     this.onPressed,
@@ -150,13 +150,13 @@ class FluxerButton extends StatefulWidget {
     this.recording = false,
     this.child,
     super.key,
-  })  : _variant = FluxerButtonVariant.ghost,
-        _isCircle = false,
-        _iconSizeOverride = null,
-        assert(
-          onPressed == null || onPressedAsync == null,
-          'Cannot provide both onPressed and onPressedAsync',
-        );
+  }) : _variant = FluxerButtonVariant.ghost,
+       _isCircle = false,
+       _iconSizeOverride = null,
+       assert(
+         onPressed == null || onPressedAsync == null,
+         'Cannot provide both onPressed and onPressedAsync',
+       );
 
   const FluxerButton.circle({
     required IconData this.icon,
@@ -168,18 +168,18 @@ class FluxerButton extends StatefulWidget {
     this.isLoading = false,
     this.recording = false,
     super.key,
-  })  : _variant = variant,
-        _isCircle = true,
-        _iconSizeOverride = iconSize,
-        isSquare = true,
-        label = null,
-        trailingIcon = null,
-        fitContent = false,
-        child = null,
-        assert(
-          onPressed == null || onPressedAsync == null,
-          'Cannot provide both onPressed and onPressedAsync',
-        );
+  }) : _variant = variant,
+       _isCircle = true,
+       _iconSizeOverride = iconSize,
+       isSquare = true,
+       label = null,
+       trailingIcon = null,
+       fitContent = false,
+       child = null,
+       assert(
+         onPressed == null || onPressedAsync == null,
+         'Cannot provide both onPressed and onPressedAsync',
+       );
 
   final FluxerButtonVariant _variant;
   final bool _isCircle;
@@ -209,15 +209,13 @@ class _FluxerButtonState extends State<FluxerButton> {
       !_effectiveLoading;
 
   BorderRadius get _borderRadius => BorderRadius.circular(
-        widget._isCircle
-            ? widget.size.height / 2
-            : switch (widget.size) {
-                FluxerButtonSize.regular || FluxerButtonSize.small => 8.0,
-                FluxerButtonSize.compact ||
-                FluxerButtonSize.superCompact =>
-                  6.0,
-              },
-      );
+    widget._isCircle
+        ? widget.size.height / 2
+        : switch (widget.size) {
+            FluxerButtonSize.regular || FluxerButtonSize.small => 8.0,
+            FluxerButtonSize.compact || FluxerButtonSize.superCompact => 6.0,
+          },
+  );
 
   void _handleTap() {
     if (widget.onPressedAsync != null) {
@@ -249,10 +247,11 @@ class _FluxerButtonState extends State<FluxerButton> {
         final fill = widget.recording
             ? colors.accentSuccess
             : isHovered
-                ? widget._variant.activeFill(colors)
-                : widget._variant.fill(colors);
-        final border =
-            widget.recording ? null : widget._variant.borderColor(colors);
+            ? widget._variant.activeFill(colors)
+            : widget._variant.fill(colors);
+        final border = widget.recording
+            ? null
+            : widget._variant.borderColor(colors);
 
         Widget container = AnimatedContainer(
           duration: motion.fast,
@@ -288,26 +287,17 @@ class _FluxerButtonState extends State<FluxerButton> {
   }
 
   Widget _buildContent(Color foreground) {
-    final effectiveIconSize =
-        widget._iconSizeOverride ?? widget.size.iconSize;
+    final effectiveIconSize = widget._iconSizeOverride ?? widget.size.iconSize;
 
     if (_effectiveLoading) {
-      return Center(
-        child: FluxerLoadingSpinner(
-          color: foreground,
-        ),
-      );
+      return Center(child: FluxerLoadingSpinner(color: foreground));
     }
 
     final contentWidgets = <Widget>[];
 
     if (widget.icon != null) {
       contentWidgets.add(
-        PhosphorIcon(
-          widget.icon!,
-          size: effectiveIconSize,
-          color: foreground,
-        ),
+        PhosphorIcon(widget.icon!, size: effectiveIconSize, color: foreground),
       );
     }
 
@@ -416,9 +406,7 @@ class _RecordingPulseState extends State<_RecordingPulse>
           decoration: BoxDecoration(
             borderRadius: widget.borderRadius,
             boxShadow: [
-              BoxShadow(
-                color: widget.color.withValues(alpha: spread1Opacity),
-              ),
+              BoxShadow(color: widget.color.withValues(alpha: spread1Opacity)),
               BoxShadow(
                 color: widget.color.withValues(alpha: spread2Opacity),
                 spreadRadius: spread2Radius,
@@ -435,18 +423,12 @@ class _RecordingPulseState extends State<_RecordingPulse>
 
 @FluxerWidgetPreview(name: 'Primary', group: 'FluxerButton')
 Widget fluxerButtonPrimaryPreview() {
-  return FluxerButton.primary(
-    onPressed: () {},
-    label: 'Continue',
-  );
+  return FluxerButton.primary(onPressed: () {}, label: 'Continue');
 }
 
 @FluxerWidgetPreview(name: 'Secondary', group: 'FluxerButton')
 Widget fluxerButtonSecondaryPreview() {
-  return FluxerButton.secondary(
-    onPressed: () {},
-    label: 'Cancel',
-  );
+  return FluxerButton.secondary(onPressed: () {}, label: 'Cancel');
 }
 
 @FluxerWidgetPreview(name: 'Danger secondary', group: 'FluxerButton')
@@ -459,16 +441,10 @@ Widget fluxerButtonDangerSecondaryPreview() {
 
 @FluxerWidgetPreview(name: 'Ghost', group: 'FluxerButton')
 Widget fluxerButtonGhostPreview() {
-  return FluxerButton.ghost(
-    onPressed: () {},
-    label: 'Learn more',
-  );
+  return FluxerButton.ghost(onPressed: () {}, label: 'Learn more');
 }
 
 @FluxerWidgetPreview(name: 'Circle icon', group: 'FluxerButton')
 Widget fluxerButtonCirclePreview() {
-  return FluxerButton.circle(
-    onPressed: () {},
-    icon: PhosphorIconsBold.plus,
-  );
+  return FluxerButton.circle(onPressed: () {}, icon: PhosphorIconsBold.plus);
 }

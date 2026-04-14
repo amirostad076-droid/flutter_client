@@ -32,11 +32,7 @@ class PickerSearchInput extends StatelessWidget {
     final searchInputFillColor = _resolveSearchInputFillColor(context, colors);
 
     return Padding(
-      padding: EdgeInsets.only(
-        left: horizontalPadding,
-        top: 12,
-        bottom: 12,
-      ),
+      padding: EdgeInsets.only(left: horizontalPadding, top: 12, bottom: 12),
       child: Row(
         children: [
           if (showBackButton && onBackButtonClick != null) ...[
@@ -133,7 +129,10 @@ class PickerSearchInput extends StatelessWidget {
     );
   }
 
-  Color _resolveSearchInputFillColor(BuildContext context, FluxerColorTheme colors) {
+  Color _resolveSearchInputFillColor(
+    BuildContext context,
+    FluxerColorTheme colors,
+  ) {
     final formSurface = Theme.of(context).brightness == Brightness.light
         ? colors.backgroundPrimary
         : colors.backgroundTertiary;

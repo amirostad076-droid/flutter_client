@@ -197,11 +197,7 @@ class _EmojiAutocompleteOverlayState extends State<EmojiAutocompleteOverlay>
     _results = const [];
   }
 
-  void _selectSuggestion(
-    _Suggestion suggestion,
-    int triggerStart,
-    int cursor,
-  ) {
+  void _selectSuggestion(_Suggestion suggestion, int triggerStart, int cursor) {
     widget.controller.replaceRangeWithEmoji(
       triggerStart,
       cursor,
@@ -375,16 +371,13 @@ class _SuggestionItem extends StatelessWidget {
                   height: _kEmojiSize,
                   child: switch (suggestion) {
                     _Suggestion(displayEmoji: final emoji?) => Center(
-                        child: Text(
-                          emoji,
-                          style: const TextStyle(fontSize: 22),
-                        ),
-                      ),
+                      child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                    ),
                     _Suggestion(imageUrl: final url?) => CachedNetworkImage(
-                        imageUrl: url,
-                        width: _kEmojiSize,
-                        height: _kEmojiSize,
-                      ),
+                      imageUrl: url,
+                      width: _kEmojiSize,
+                      height: _kEmojiSize,
+                    ),
                     _ => const SizedBox.shrink(),
                   },
                 ),
@@ -392,10 +385,7 @@ class _SuggestionItem extends StatelessWidget {
                 Expanded(
                   child: Text(
                     ':${suggestion.name}:',
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: colors.textPrimary, fontSize: 16),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

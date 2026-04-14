@@ -566,21 +566,13 @@ class _FluxerSliderState extends State<FluxerSlider> {
 
 @FluxerWidgetPreview(name: 'Default', group: 'FluxerSlider')
 Widget fluxerSliderPreview() {
-  return const SizedBox(
-    width: 280,
-    child: FluxerSlider(
-      defaultValue: 40,
-    ),
-  );
+  return const SizedBox(width: 280, child: FluxerSlider(defaultValue: 40));
 }
 
 @FluxerWidgetPreview(name: 'Mini', group: 'FluxerSlider')
 Widget fluxerSliderMiniPreview() {
   return const SizedBox(
     width: 200,
-    child: FluxerSlider(
-      defaultValue: 60,
-      mini: true,
-    ),
+    child: FluxerSlider(defaultValue: 60, mini: true),
   );
 }

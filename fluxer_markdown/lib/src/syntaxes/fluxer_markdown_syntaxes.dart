@@ -67,8 +67,7 @@ class FluxerUnicodeEmojiToneSyntax extends md.InlineSyntax {
       surrogate = surrogate + _kTones[idx - 1];
     }
 
-    final el = md.Element.text(tag, name)
-      ..attributes['surrogate'] = surrogate;
+    final el = md.Element.text(tag, name)..attributes['surrogate'] = surrogate;
     parser.addNode(el);
     return true;
   }
@@ -92,8 +91,7 @@ class FluxerUnicodeEmojiSyntax extends md.InlineSyntax {
       parser.addNode(md.Text(match[0]!));
       return true;
     }
-    final el = md.Element.text(tag, name)
-      ..attributes['surrogate'] = surrogate;
+    final el = md.Element.text(tag, name)..attributes['surrogate'] = surrogate;
     parser.addNode(el);
     return true;
   }
@@ -121,7 +119,8 @@ class FluxerCustomEmojiSyntax extends md.InlineSyntax {
 }
 
 class FluxerRawUnicodeEmojiSyntax extends md.InlineSyntax {
-  FluxerRawUnicodeEmojiSyntax(RegExp emojiPattern) : super(emojiPattern.pattern);
+  FluxerRawUnicodeEmojiSyntax(RegExp emojiPattern)
+    : super(emojiPattern.pattern);
 
   static const String tag = FluxerUnicodeEmojiToneSyntax.tag;
 

@@ -16,10 +16,7 @@ import 'package:fluxer_dart/export.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class BackupCodesSheet extends ConsumerStatefulWidget {
-  const BackupCodesSheet({
-    required this.codes,
-    super.key,
-  });
+  const BackupCodesSheet({required this.codes, super.key});
 
   final List<MfaBackupCodeResponse> codes;
 
@@ -63,12 +60,14 @@ class _BackupCodesSheetState extends ConsumerState<BackupCodesSheet> {
     Clipboard.setData(ClipboardData(text: codesText));
 
     final l10n = FluxerLocalizations.of(context);
-    ref.read(toastProvider.notifier).show(
-      FluxerToast(
-        message: l10n.backupCodesCopied,
-        variant: FluxerToastVariant.success,
-      ),
-    );
+    ref
+        .read(toastProvider.notifier)
+        .show(
+          FluxerToast(
+            message: l10n.backupCodesCopied,
+            variant: FluxerToastVariant.success,
+          ),
+        );
   }
 
   @override
@@ -93,8 +92,10 @@ class _BackupCodesSheetState extends ConsumerState<BackupCodesSheet> {
             runSpacing: 8,
             children: widget.codes.map((code) {
               return Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: colors.backgroundSecondaryAlt,
                   borderRadius: BorderRadius.circular(6),
@@ -139,8 +140,7 @@ class _BackupCodesSheetState extends ConsumerState<BackupCodesSheet> {
           SizedBox(height: layout.s4),
 
           FluxerButton.primary(
-            onPressed:
-                _acknowledged ? () => Navigator.of(context).pop() : null,
+            onPressed: _acknowledged ? () => Navigator.of(context).pop() : null,
             label: l10n.backupCodesDone,
           ),
         ],

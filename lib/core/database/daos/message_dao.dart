@@ -72,11 +72,12 @@ class MessageDao extends DatabaseAccessor<FluxerDatabase>
     }
     final result = <String, Message>{};
     for (final channelId in channelIds) {
-      final msg = await (select(messages)
-            ..where((m) => m.channelId.equals(channelId))
-            ..orderBy([(m) => OrderingTerm.desc(m.timestamp)])
-            ..limit(1))
-          .getSingleOrNull();
+      final msg =
+          await (select(messages)
+                ..where((m) => m.channelId.equals(channelId))
+                ..orderBy([(m) => OrderingTerm.desc(m.timestamp)])
+                ..limit(1))
+              .getSingleOrNull();
       if (msg != null) {
         result[channelId] = msg;
       }

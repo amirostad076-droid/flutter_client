@@ -22,8 +22,7 @@ class AccountDeleteSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<AccountDeleteSheet> createState() =>
-      _AccountDeleteSheetState();
+  ConsumerState<AccountDeleteSheet> createState() => _AccountDeleteSheetState();
 }
 
 class _AccountDeleteSheetState extends ConsumerState<AccountDeleteSheet> {
@@ -71,8 +70,9 @@ class _AccountDeleteSheetState extends ConsumerState<AccountDeleteSheet> {
         children: [
           Text(
             l10n.dangerZoneDeleteConfirmDescription,
-            style: context.textStyles.bodySmall
-                .copyWith(color: colors.textSecondary),
+            style: context.textStyles.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -100,8 +100,9 @@ class _AccountDeleteSheetState extends ConsumerState<AccountDeleteSheet> {
             SizedBox(height: layout.s3),
             Text(
               _error!,
-              style: context.textStyles.bodySmall
-                  .copyWith(color: colors.statusDanger),
+              style: context.textStyles.bodySmall.copyWith(
+                color: colors.statusDanger,
+              ),
             ),
           ],
           SizedBox(height: layout.s4),
@@ -110,8 +111,9 @@ class _AccountDeleteSheetState extends ConsumerState<AccountDeleteSheet> {
             children: [
               Expanded(
                 child: FluxerButton.secondary(
-                  onPressed:
-                      _loading ? null : () => Navigator.of(context).pop(),
+                  onPressed: _loading
+                      ? null
+                      : () => Navigator.of(context).pop(),
                   label: l10n.cancel,
                   fitContent: true,
                 ),

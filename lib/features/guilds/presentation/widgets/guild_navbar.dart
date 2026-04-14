@@ -2593,9 +2593,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: layout.s8),
                     child: Center(
-                      child: FluxerLoadingSpinner(
-                        color: colors.brandPrimary,
-                      ),
+                      child: FluxerLoadingSpinner(color: colors.brandPrimary),
                     ),
                   );
                 }
@@ -3131,14 +3129,12 @@ class _GuildListItemState extends State<_GuildListItem> {
                   children: [
                     ValueListenableBuilder<bool>(
                       valueListenable: suppressEveryone,
-                      builder: (_, suppress, _) =>
-                          FluxerSwitchGroupItem(
+                      builder: (_, suppress, _) => FluxerSwitchGroupItem(
                         label: l10n.notificationSuppressEveryone,
                         value: suppress,
                         onChanged: (value) {
                           suppressEveryone.value = value;
-                          widget.onUpdateNotificationSetting
-                              ?.call(
+                          widget.onUpdateNotificationSetting?.call(
                             suppressEveryone: value,
                           );
                         },
@@ -3146,14 +3142,12 @@ class _GuildListItemState extends State<_GuildListItem> {
                     ),
                     ValueListenableBuilder<bool>(
                       valueListenable: suppressRoles,
-                      builder: (_, suppress, _) =>
-                          FluxerSwitchGroupItem(
+                      builder: (_, suppress, _) => FluxerSwitchGroupItem(
                         label: l10n.notificationSuppressRoles,
                         value: suppress,
                         onChanged: (value) {
                           suppressRoles.value = value;
-                          widget.onUpdateNotificationSetting
-                              ?.call(
+                          widget.onUpdateNotificationSetting?.call(
                             suppressRoles: value,
                           );
                         },
@@ -3167,14 +3161,12 @@ class _GuildListItemState extends State<_GuildListItem> {
                   children: [
                     ValueListenableBuilder<bool>(
                       valueListenable: mobilePush,
-                      builder: (_, push, _) =>
-                          FluxerSwitchGroupItem(
+                      builder: (_, push, _) => FluxerSwitchGroupItem(
                         label: l10n.notificationMobilePush,
                         value: push,
                         onChanged: (value) {
                           mobilePush.value = value;
-                          widget.onUpdateNotificationSetting
-                              ?.call(
+                          widget.onUpdateNotificationSetting?.call(
                             mobilePush: value,
                           );
                         },

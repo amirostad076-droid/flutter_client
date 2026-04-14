@@ -39,9 +39,7 @@ class FluxerSaveBar extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: colors.backgroundSecondaryAlt,
-            border: Border(
-              top: BorderSide(color: colors.borderColor),
-            ),
+            border: Border(top: BorderSide(color: colors.borderColor)),
           ),
           child: Padding(
             padding: EdgeInsets.only(
@@ -87,18 +85,10 @@ class FluxerSaveBar extends StatelessWidget {
 
 @FluxerWidgetPreview(name: 'Visible', group: 'FluxerSaveBar')
 Widget fluxerSaveBarVisiblePreview() {
-  return FluxerSaveBar(
-    visible: true,
-    onReset: () {},
-    onSave: () {},
-  );
+  return FluxerSaveBar(visible: true, onReset: () {}, onSave: () {});
 }
 
 @FluxerWidgetPreview(name: 'Hidden', group: 'FluxerSaveBar')
 Widget fluxerSaveBarHiddenPreview() {
-  return FluxerSaveBar(
-    visible: false,
-    onReset: () {},
-    onSave: () {},
-  );
+  return FluxerSaveBar(visible: false, onReset: () {}, onSave: () {});
 }

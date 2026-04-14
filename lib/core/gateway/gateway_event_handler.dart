@@ -706,10 +706,7 @@ class GatewayEventHandler {
   }
 
   void _handleMessageCreate(MessageCreateEvent event) {
-    final msg = Message.fromSdk(
-      event.message,
-      currentUserId: currentUserId,
-    );
+    final msg = Message.fromSdk(event.message, currentUserId: currentUserId);
 
     // Clear typing indicator for the message author.
     onTypingClear?.call(msg.channelId, msg.authorId);
@@ -736,10 +733,7 @@ class GatewayEventHandler {
   }
 
   void _handleMessageUpdate(MessageUpdateEvent event) {
-    final msg = Message.fromSdk(
-      event.message,
-      currentUserId: currentUserId,
-    );
+    final msg = Message.fromSdk(event.message, currentUserId: currentUserId);
     unawaited(database.messageDao.upsertMessage(msg.toCompanion()));
   }
 
@@ -833,10 +827,12 @@ class GatewayEventHandler {
           banner: Value(event.user.banner),
           premiumBadgeHidden: Value(event.user.premiumBadgeHidden),
           premiumBadgeMasked: Value(event.user.premiumBadgeMasked),
-          premiumBadgeTimestampHidden:
-              Value(event.user.premiumBadgeTimestampHidden),
-          premiumBadgeSequenceHidden:
-              Value(event.user.premiumBadgeSequenceHidden),
+          premiumBadgeTimestampHidden: Value(
+            event.user.premiumBadgeTimestampHidden,
+          ),
+          premiumBadgeSequenceHidden: Value(
+            event.user.premiumBadgeSequenceHidden,
+          ),
         ),
       ),
     );

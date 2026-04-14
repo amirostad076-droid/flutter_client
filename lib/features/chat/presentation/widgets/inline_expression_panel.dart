@@ -167,14 +167,15 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _snapAnimation = Tween(begin: _panelHeight, end: target).animate(
-      CurvedAnimation(parent: _snapController!, curve: Curves.easeOutCubic),
-    )..addListener(() {
-      setState(() {
-        _panelHeight = _snapAnimation.value;
-        _isExpanded = _panelHeight >= _expandedHeight - 1;
-      });
-    });
+    _snapAnimation =
+        Tween(begin: _panelHeight, end: target).animate(
+          CurvedAnimation(parent: _snapController!, curve: Curves.easeOutCubic),
+        )..addListener(() {
+          setState(() {
+            _panelHeight = _snapAnimation.value;
+            _isExpanded = _panelHeight >= _expandedHeight - 1;
+          });
+        });
     unawaited(_snapController!.forward());
   }
 
@@ -191,9 +192,7 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: colors.backgroundSecondary,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(16),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             boxShadow: const [
               BoxShadow(
                 color: Color.fromRGBO(0, 0, 0, 0.15),
@@ -248,10 +247,7 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
 }
 
 class _ExpressionPanelContent extends ConsumerStatefulWidget {
-  const _ExpressionPanelContent({
-    required this.onClose,
-    this.onEmojiSelect,
-  });
+  const _ExpressionPanelContent({required this.onClose, this.onEmojiSelect});
 
   final VoidCallback onClose;
   final void Function(String name, String surrogates)? onEmojiSelect;

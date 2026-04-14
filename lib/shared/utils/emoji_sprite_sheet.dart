@@ -21,7 +21,8 @@ const Map<String, String> _kSpriteSheetNames = {
   '1f3ff': 'spritesheet-1f3ff',
 };
 
-String _buildSpriteSheetUrl(String name) => '$_kSpriteBase/$name@2x.png?v=$_kSpriteVersion';
+String _buildSpriteSheetUrl(String name) =>
+    '$_kSpriteBase/$name@2x.png?v=$_kSpriteVersion';
 
 String _spriteSheetKeyForSkinTone(String? skinTone) {
   if (skinTone == null || skinTone.isEmpty) {
@@ -79,8 +80,9 @@ class EmojiSpriteSheet {
 
   /// Source rect for [index] in the @2x sheet (64px per sprite).
   static Rect spriteRect(int index, {required bool diversity}) {
-    final spritesPerRow =
-        diversity ? _kDiversitySpritesPerRow : _kNonDiversitySpritesPerRow;
+    final spritesPerRow = diversity
+        ? _kDiversitySpritesPerRow
+        : _kNonDiversitySpritesPerRow;
     final col = index % spritesPerRow;
     final row = index ~/ spritesPerRow;
     const size = _kSpriteSize * 2;
@@ -106,10 +108,7 @@ class EmojiSpritePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final src = EmojiSpriteSheet.spriteRect(
-      spriteIndex,
-      diversity: diversity,
-    );
+    final src = EmojiSpriteSheet.spriteRect(spriteIndex, diversity: diversity);
     final dst = Offset.zero & size;
     canvas.drawImageRect(
       image,
@@ -142,9 +141,7 @@ class SpriteEmoji extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final useDiversitySheet =
-        skinTone != null &&
-        skinTone!.isNotEmpty &&
-        diversityIndex != null;
+        skinTone != null && skinTone!.isNotEmpty && diversityIndex != null;
     final targetSkinTone = useDiversitySheet ? skinTone : null;
     final image = EmojiSpriteSheet.imageFor(skinTone: targetSkinTone);
 

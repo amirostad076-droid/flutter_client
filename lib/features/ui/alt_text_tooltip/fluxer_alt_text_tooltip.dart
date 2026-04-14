@@ -27,9 +27,7 @@ class FluxerAltTextTooltip extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 320),
         child: Text(
           altText,
-          style: textStyles.bodySmall.copyWith(
-            color: colors.textPrimary,
-          ),
+          style: textStyles.bodySmall.copyWith(color: colors.textPrimary),
           softWrap: true,
         ),
       ),
@@ -42,10 +40,6 @@ class FluxerAltTextTooltip extends StatelessWidget {
 Widget fluxerAltTextTooltipPreview() {
   return FluxerAltTextTooltip(
     altText: 'User avatar showing a mountain landscape at sunset.',
-    child: Container(
-      width: 48,
-      height: 48,
-      color: const Color(0xFF3C45A5),
-    ),
+    child: Container(width: 48, height: 48, color: const Color(0xFF3C45A5)),
   );
 }

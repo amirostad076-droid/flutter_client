@@ -25,25 +25,22 @@ class InlineReplyPreview extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final messages = ref.watch(
-      chatViewModelProvider.select((s) => s.messages),
-    );
+    final messages = ref.watch(chatViewModelProvider.select((s) => s.messages));
     final replyMsg = _findMessage(messages, replyToId);
     final guildId = ref.watch(activeGuildIdProvider);
     Color? roleColor;
     if (replyMsg != null && guildId != null) {
-      roleColor = ref.watch(
-        memberRoleColorProvider((replyMsg.authorId, guildId)),
-      ).value;
+      roleColor = ref
+          .watch(memberRoleColorProvider((replyMsg.authorId, guildId)))
+          .value;
     }
     final nameColor = (roleColor ?? context.colors.textChat).withValues(
       alpha: 0.64,
     );
 
     return GestureDetector(
-      onTap: () => ref
-          .read(chatViewModelProvider.notifier)
-          .scrollToMessage(replyToId),
+      onTap: () =>
+          ref.read(chatViewModelProvider.notifier).scrollToMessage(replyToId),
       child: Row(
         children: [
           if (replyMsg != null) ...[
@@ -114,10 +111,7 @@ class InlineReplyPreview extends ConsumerWidget {
 }
 
 class _ReplyPreviewContent extends StatelessWidget {
-  const _ReplyPreviewContent({
-    required this.message,
-    required this.emptyLabel,
-  });
+  const _ReplyPreviewContent({required this.message, required this.emptyLabel});
 
   final Message message;
   final String emptyLabel;
@@ -151,10 +145,7 @@ class _ReplyPreviewContent extends StatelessWidget {
       child: RichText(
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        text: TextSpan(
-          style: style,
-          children: _buildSpans(content, style),
-        ),
+        text: TextSpan(style: style, children: _buildSpans(content, style)),
         strutStyle: const StrutStyle(
           fontSize: 14,
           height: 1.2,
@@ -201,10 +192,7 @@ class _ReplyPreviewContent extends StatelessWidget {
       return WidgetSpan(
         alignment: PlaceholderAlignment.middle,
         child: IgnorePointer(
-          child: ChannelMention(
-            channelId: channelId,
-            baseStyle: baseStyle,
-          ),
+          child: ChannelMention(channelId: channelId, baseStyle: baseStyle),
         ),
       );
     }

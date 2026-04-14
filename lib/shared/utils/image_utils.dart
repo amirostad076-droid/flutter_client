@@ -152,10 +152,8 @@ abstract final class ImageUtils {
     if (bytes.length < 16) {
       return false;
     }
-    final boxSize = (bytes[0] << 24) |
-        (bytes[1] << 16) |
-        (bytes[2] << 8) |
-        bytes[3];
+    final boxSize =
+        (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
     final limit = boxSize < bytes.length ? boxSize : bytes.length;
     for (var i = 16; i + 3 < limit; i += 4) {
       final brand = String.fromCharCodes(bytes.sublist(i, i + 4));

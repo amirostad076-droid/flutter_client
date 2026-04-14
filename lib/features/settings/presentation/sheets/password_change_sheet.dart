@@ -176,12 +176,14 @@ class _PasswordChangeSheetState extends ConsumerState<PasswordChangeSheet>
         ),
       );
 
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: l10n.passwordChangeSuccess,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.passwordChangeSuccess,
+              variant: FluxerToastVariant.success,
+            ),
+          );
 
       await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
 
@@ -326,8 +328,7 @@ class _PasswordChangeSheetState extends ConsumerState<PasswordChangeSheet>
             ),
             const SizedBox(width: 8),
             FluxerButton.ghost(
-              onPressed:
-                  resendCountdown > 0 ? null : _handleResendCode,
+              onPressed: resendCountdown > 0 ? null : _handleResendCode,
               label: resendCountdown > 0
                   ? l10n.resendCountdown(resendCountdown)
                   : l10n.resend,

@@ -40,18 +40,18 @@ Future<void> showDebugBottomSheet(
               SizedBox(
                 width: double.infinity,
                 child: ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(4)),
-                child: HighlightView(
-                  json,
-                  language: 'json',
-                  theme: isDark ? vs2015Theme : githubTheme,
-                  padding: const EdgeInsets.all(12),
-                  textStyle: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 13,
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  child: HighlightView(
+                    json,
+                    language: 'json',
+                    theme: isDark ? vs2015Theme : githubTheme,
+                    padding: const EdgeInsets.all(12),
+                    textStyle: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                    ),
                   ),
                 ),
-              ),
               ),
               Positioned(
                 top: 4,

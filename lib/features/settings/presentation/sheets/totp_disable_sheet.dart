@@ -52,16 +52,16 @@ class _TotpDisableSheetState extends ConsumerState<TotpDisableSheet> {
 
     try {
       final client = ref.read(fluxerClientProvider);
-      await client.users.disableTotpMfa(
-        body: DisableTotpRequest(code: code),
-      );
+      await client.users.disableTotpMfa(body: DisableTotpRequest(code: code));
 
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: l10n.totpDisableSuccess,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.totpDisableSuccess,
+              variant: FluxerToastVariant.success,
+            ),
+          );
 
       await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
 
@@ -93,8 +93,9 @@ class _TotpDisableSheetState extends ConsumerState<TotpDisableSheet> {
         children: [
           Text(
             l10n.totpDisableDescription,
-            style: context.textStyles.bodySmall
-                .copyWith(color: colors.textSecondary),
+            style: context.textStyles.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
           ),
           SizedBox(height: layout.s4),
           FluxerInput(
@@ -114,8 +115,9 @@ class _TotpDisableSheetState extends ConsumerState<TotpDisableSheet> {
             children: [
               Expanded(
                 child: FluxerButton.secondary(
-                  onPressed:
-                      _loading ? null : () => Navigator.of(context).pop(),
+                  onPressed: _loading
+                      ? null
+                      : () => Navigator.of(context).pop(),
                   label: l10n.cancel,
                   fitContent: true,
                 ),

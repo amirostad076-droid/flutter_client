@@ -5,11 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerLoadingSpinner extends StatefulWidget {
-  const FluxerLoadingSpinner({
-    super.key,
-    this.color,
-    this.inverted = false,
-  });
+  const FluxerLoadingSpinner({super.key, this.color, this.inverted = false});
 
   final Color? color;
   final bool inverted;
@@ -66,10 +62,7 @@ class _FluxerLoadingSpinnerState extends State<FluxerLoadingSpinner>
 
                 return Transform.scale(
                   scale: scale,
-                  child: Opacity(
-                    opacity: opacity,
-                    child: child,
-                  ),
+                  child: Opacity(opacity: opacity, child: child),
                 );
               },
               child: Container(

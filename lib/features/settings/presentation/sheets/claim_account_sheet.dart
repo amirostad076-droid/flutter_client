@@ -135,12 +135,14 @@ class _ClaimAccountSheetState extends ConsumerState<ClaimAccountSheet>
       );
 
       final l10n = FluxerLocalizations.of(context);
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: l10n.claimAccountSuccess,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.claimAccountSuccess,
+              variant: FluxerToastVariant.success,
+            ),
+          );
 
       await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
 
@@ -184,8 +186,9 @@ class _ClaimAccountSheetState extends ConsumerState<ClaimAccountSheet>
             _stage == _Stage.collect
                 ? l10n.claimAccountDescription
                 : l10n.claimAccountVerifyDescription,
-            style: context.textStyles.bodySmall
-                .copyWith(color: colors.textSecondary),
+            style: context.textStyles.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
           ),
           SizedBox(height: layout.s4),
           if (_stage == _Stage.collect) ...[
@@ -236,8 +239,9 @@ class _ClaimAccountSheetState extends ConsumerState<ClaimAccountSheet>
             SizedBox(height: layout.s3),
             Text(
               _error!,
-              style: context.textStyles.bodySmall
-                  .copyWith(color: colors.statusDanger),
+              style: context.textStyles.bodySmall.copyWith(
+                color: colors.statusDanger,
+              ),
             ),
           ],
           SizedBox(height: layout.s4),
@@ -246,8 +250,9 @@ class _ClaimAccountSheetState extends ConsumerState<ClaimAccountSheet>
               children: [
                 Expanded(
                   child: FluxerButton.secondary(
-                    onPressed:
-                        _loading ? null : () => Navigator.of(context).pop(),
+                    onPressed: _loading
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     label: l10n.cancel,
                     fitContent: true,
                   ),

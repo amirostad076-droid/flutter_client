@@ -25,18 +25,13 @@ class GuildSettingsModal extends ConsumerStatefulWidget {
     super.key,
   });
 
-  static Future<void> show(
-    BuildContext context, {
-    required String guildId,
-  }) {
+  static Future<void> show(BuildContext context, {required String guildId}) {
     if (isMobileLayout(context)) {
       return _showMobileSettings(context, guildId: guildId);
     }
 
     return Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (_) => GuildSettingsModal(guildId: guildId),
-      ),
+      MaterialPageRoute(builder: (_) => GuildSettingsModal(guildId: guildId)),
     );
   }
 

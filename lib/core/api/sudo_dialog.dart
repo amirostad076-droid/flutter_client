@@ -167,8 +167,9 @@ class _SudoVerificationSheetContentState
               selectedIndex: _selectedMethod == _SudoMethod.password ? 0 : 1,
               onChanged: (index) {
                 setState(() {
-                  _selectedMethod =
-                      index == 0 ? _SudoMethod.password : _SudoMethod.totp;
+                  _selectedMethod = index == 0
+                      ? _SudoMethod.password
+                      : _SudoMethod.totp;
                   _error = null;
                 });
               },
@@ -185,9 +186,7 @@ class _SudoVerificationSheetContentState
               ),
               child: Text(
                 _error!,
-                style: textStyles.bodySmall.copyWith(
-                  color: colors.textDanger,
-                ),
+                style: textStyles.bodySmall.copyWith(color: colors.textDanger),
               ),
             ),
             SizedBox(height: layout.s3),
@@ -209,10 +208,7 @@ class _SudoVerificationSheetContentState
               onSubmitted: (_) => _submit(),
             ),
           SizedBox(height: layout.s4),
-          FluxerButton.primary(
-            onPressed: _submit,
-            label: l10n.continueAction,
-          ),
+          FluxerButton.primary(onPressed: _submit, label: l10n.continueAction),
           SizedBox(height: layout.s2),
         ],
       ),

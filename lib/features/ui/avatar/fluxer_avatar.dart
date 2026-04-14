@@ -251,9 +251,7 @@ class _StatusCutoutClipper extends CustomClipper<Path> {
 
     return Path()
       ..addOval(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..addOval(
-        Rect.fromCircle(center: center, radius: cutoutRadius),
-      )
+      ..addOval(Rect.fromCircle(center: center, radius: cutoutRadius))
       ..fillType = PathFillType.evenOdd;
   }
 

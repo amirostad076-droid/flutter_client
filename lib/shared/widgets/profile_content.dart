@@ -197,8 +197,9 @@ class ProfileContent extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  DateFormat.yMMMd()
-                                      .format(memberSince.toLocal()),
+                                  DateFormat.yMMMd().format(
+                                    memberSince.toLocal(),
+                                  ),
                                   style: textStyles.bodySmall.copyWith(
                                     color: colors.textChat,
                                     fontSize: 15,
@@ -275,17 +276,14 @@ class _SelfNoteText extends ConsumerWidget {
     if (userId.isEmpty) {
       return const SizedBox.shrink();
     }
-    final noteStyle = context.textStyles.bodySmall.copyWith(
-      height: 1.35,
-    );
+    final noteStyle = context.textStyles.bodySmall.copyWith(height: 1.35);
     return ref
         .watch(userProfileSelfNoteProvider(userId: userId))
         .when(
-          data: (String? note) =>
-              Text(
-                note ?? FluxerLocalizations.of(context).profileNoteEmpty,
-                style: noteStyle,
-              ),
+          data: (String? note) => Text(
+            note ?? FluxerLocalizations.of(context).profileNoteEmpty,
+            style: noteStyle,
+          ),
           loading: () => const SizedBox.shrink(),
           error: (_, _) => const SizedBox.shrink(),
         );

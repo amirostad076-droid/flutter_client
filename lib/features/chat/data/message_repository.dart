@@ -136,9 +136,7 @@ class MessageRepository {
                 const [],
             attachments:
                 (map['attachments'] as List<dynamic>?)
-                    ?.map(
-                      (e) => Attachment.fromJson(e as Map<String, dynamic>),
-                    )
+                    ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
                     .toList() ??
                 const [],
             replyToId:
@@ -258,10 +256,7 @@ class MessageRepository {
 
       final schema = MessageResponseSchema.fromJson(data);
 
-      final message = Message.fromSdk(
-        schema,
-        currentUserId: _currentUserId,
-      );
+      final message = Message.fromSdk(schema, currentUserId: _currentUserId);
       await _db.messageDao.upsertMessage(message.toCompanion());
       return message;
     } on DioException catch (e) {

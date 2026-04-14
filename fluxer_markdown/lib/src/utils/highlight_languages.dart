@@ -90,4 +90,3 @@ void ensureFluxerMarkdownLanguagesRegistered() {
   _languagesRegistered = true;
   kFluxerMarkdownLanguages.forEach(highlight.registerLanguage);
 }
-

@@ -206,9 +206,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     final guildId = ref.watch(activeGuildIdProvider);
     Color? authorRoleColor;
     if (guildId != null) {
-      authorRoleColor = ref.watch(
-        memberRoleColorProvider((msg.authorId, guildId)),
-      ).value;
+      authorRoleColor = ref
+          .watch(memberRoleColorProvider((msg.authorId, guildId)))
+          .value;
     }
 
     return GestureDetector(
@@ -232,10 +232,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                 : Colors.transparent,
             border: msg.isMentioned
                 ? const Border(
-                    left: BorderSide(
-                      color: _kMentionColor,
-                      width: 2,
-                    ),
+                    left: BorderSide(color: _kMentionColor, width: 2),
                   )
                 : null,
           ),
@@ -251,7 +248,10 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (!isGrouped && msg.isReply) _buildReplyRow(msg),
-                  if (!isGrouped && msg.isForwarded && !msg.hasForwardSnapshots && msg.forwardedFrom != null)
+                  if (!isGrouped &&
+                      msg.isForwarded &&
+                      !msg.hasForwardSnapshots &&
+                      msg.forwardedFrom != null)
                     Padding(
                       padding: const EdgeInsets.only(left: _kAvatarColumnWidth),
                       child: ForwardIndicator(source: msg.forwardedFrom!),
@@ -386,70 +386,67 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   /// Main message row: avatar on the left, content on
   /// the right.
-  Widget _buildMainRow(
-    BuildContext context,
-    Message msg,
-    Color? roleColor,
-  ) => Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Padding(
-        padding: const EdgeInsets.only(top: 2),
-        child: FluxerAvatar.user(
-          fallbackText: msg.authorName,
-          userId: msg.authorId,
-          imageUrl: msg.authorAvatarUrl,
-          avatarColor: msg.authorAvatarColor,
-        ),
-      ),
-      const SizedBox(width: 16),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+  Widget _buildMainRow(BuildContext context, Message msg, Color? roleColor) =>
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: FluxerAvatar.user(
+              fallbackText: msg.authorName,
+              userId: msg.authorId,
+              imageUrl: msg.authorAvatarUrl,
+              avatarColor: msg.authorAvatarColor,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
-                  child: Text(
-                    msg.authorName,
-                    style: TextStyle(
-                      color: roleColor ?? context.colors.textChat,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        msg.authorName,
+                        style: TextStyle(
+                          color: roleColor ?? context.colors.textChat,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                if (msg.authorIsBot) ...[
-                  const SizedBox(width: 6),
-                  const FluxerBotBadge(),
-                ],
+                    if (msg.authorIsBot) ...[
+                      const SizedBox(width: 6),
+                      const FluxerBotBadge(),
+                    ],
 
-                const SizedBox(width: 8),
-                Text(
-                  _formatTimestamp(msg.timestamp),
-                  style: context.textStyles.timestamp,
-                ),
-                if (msg.isEdited) ...[
-                  const SizedBox(width: 4),
-                  Text(
-                    '(edited)',
-                    style: TextStyle(
-                      color: context.colors.textTertiaryMuted,
-                      fontSize: 10,
+                    const SizedBox(width: 8),
+                    Text(
+                      _formatTimestamp(msg.timestamp),
+                      style: context.textStyles.timestamp,
                     ),
-                  ),
-                ],
+                    if (msg.isEdited) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        '(edited)',
+                        style: TextStyle(
+                          color: context.colors.textTertiaryMuted,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                ..._buildMessageContent(context, msg),
               ],
             ),
-            const SizedBox(height: 2),
-            ..._buildMessageContent(context, msg),
-          ],
-        ),
-      ),
-    ],
-  );
+          ),
+        ],
+      );
 
   Widget _buildEmbed(Embed embed) => Padding(
     padding: const EdgeInsets.only(top: 2),

@@ -523,11 +523,9 @@ class Message {
     this.type = 0,
   });
 
-  factory Message.fromSdk(
-    MessageResponseSchema sdk, {
-    String? currentUserId,
-  }) {
-    final isMentioned = sdk.mentionEveryone ||
+  factory Message.fromSdk(MessageResponseSchema sdk, {String? currentUserId}) {
+    final isMentioned =
+        sdk.mentionEveryone ||
         (currentUserId != null &&
             (sdk.mentions?.any((u) => u.id == currentUserId) ?? false));
 
@@ -610,9 +608,11 @@ class Message {
       ),
       replyToId: Value(replyToId),
       forwardedFrom: Value(forwardedFrom),
-      messageReferenceJson: Value(messageReference == null
-          ? null
-          : jsonEncode(messageReference!.toJson())),
+      messageReferenceJson: Value(
+        messageReference == null
+            ? null
+            : jsonEncode(messageReference!.toJson()),
+      ),
       messageSnapshotsJson: Value(
         jsonEncode(messageSnapshots.map((s) => s.toJson()).toList()),
       ),

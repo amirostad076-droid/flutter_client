@@ -116,10 +116,7 @@ class _EmailChangeSheetState extends ConsumerState<EmailChangeSheet>
     try {
       final client = ref.read(fluxerClientProvider);
       final response = await client.users.verifyOriginalEmailAddress(
-        body: EmailChangeVerifyOriginalRequest(
-          ticket: _ticket!,
-          code: code,
-        ),
+        body: EmailChangeVerifyOriginalRequest(ticket: _ticket!, code: code),
       );
 
       _originalProof = response.originalProof;
@@ -219,12 +216,14 @@ class _EmailChangeSheetState extends ConsumerState<EmailChangeSheet>
       );
 
       final l10n = FluxerLocalizations.of(context);
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: l10n.emailChangeSuccess,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.emailChangeSuccess,
+              variant: FluxerToastVariant.success,
+            ),
+          );
 
       await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
 
@@ -397,9 +396,7 @@ class _EmailChangeSheetState extends ConsumerState<EmailChangeSheet>
             ),
             const SizedBox(width: 8),
             FluxerButton.ghost(
-              onPressed: resendCountdown > 0
-                  ? null
-                  : _handleResendOriginalCode,
+              onPressed: resendCountdown > 0 ? null : _handleResendOriginalCode,
               label: resendCountdown > 0
                   ? l10n.resendCountdown(resendCountdown)
                   : l10n.resend,
@@ -425,8 +422,7 @@ class _EmailChangeSheetState extends ConsumerState<EmailChangeSheet>
             ),
             const SizedBox(width: 8),
             FluxerButton.ghost(
-              onPressed:
-                  resendCountdown > 0 ? null : _handleResendNewCode,
+              onPressed: resendCountdown > 0 ? null : _handleResendNewCode,
               label: resendCountdown > 0
                   ? l10n.resendCountdown(resendCountdown)
                   : l10n.resend,

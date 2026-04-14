@@ -65,8 +65,8 @@ class AppStartup extends _$AppStartup {
           avatar: user.avatar,
         );
         ref
-          .read(currentUserPremiumTypeProvider.notifier)
-          .set(user.premiumType?.json ?? 0);
+            .read(currentUserPremiumTypeProvider.notifier)
+            .set(user.premiumType?.json ?? 0);
         break; // Session is valid.
       } on DioException catch (e) {
         if (e.response?.statusCode == 401) {

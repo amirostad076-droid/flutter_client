@@ -209,15 +209,12 @@ class _MarkdownBlockRenderer {
       width: double.infinity,
       padding: const EdgeInsets.only(left: 10),
       decoration: BoxDecoration(
-        border: Border(
-          left: BorderSide(
-            color: borderColor,
-            width: 4,
-          ),
-        ),
+        border: Border(left: BorderSide(color: borderColor, width: 4)),
       ),
       child: DefaultTextStyle.merge(
-        style: textColor == null ? const TextStyle() : TextStyle(color: textColor),
+        style: textColor == null
+            ? const TextStyle()
+            : TextStyle(color: textColor),
         child: build(node.children ?? const []),
       ),
     );
@@ -419,13 +416,17 @@ class _MarkdownInlineRenderer {
 
     switch (node.tag) {
       case 'strong':
-        final strongStyle = effectiveStyle.copyWith(fontWeight: FontWeight.w700);
+        final strongStyle = effectiveStyle.copyWith(
+          fontWeight: FontWeight.w700,
+        );
         return TextSpan(
           style: strongStyle,
           children: build(node.children ?? const [], style: strongStyle),
         );
       case 'em':
-        final emphasisStyle = effectiveStyle.copyWith(fontStyle: FontStyle.italic);
+        final emphasisStyle = effectiveStyle.copyWith(
+          fontStyle: FontStyle.italic,
+        );
         return TextSpan(
           style: emphasisStyle,
           children: build(node.children ?? const [], style: emphasisStyle),

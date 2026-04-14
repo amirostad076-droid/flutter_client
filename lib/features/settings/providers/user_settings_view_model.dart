@@ -676,10 +676,8 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         banner: user.banner,
         premiumBadgeHidden: user.premiumBadgeHidden ?? false,
         premiumBadgeMasked: user.premiumBadgeMasked ?? false,
-        premiumBadgeTimestampHidden:
-            user.premiumBadgeTimestampHidden ?? false,
-        premiumBadgeSequenceHidden:
-            user.premiumBadgeSequenceHidden ?? false,
+        premiumBadgeTimestampHidden: user.premiumBadgeTimestampHidden ?? false,
+        premiumBadgeSequenceHidden: user.premiumBadgeSequenceHidden ?? false,
       );
     });
     ref.onDispose(subscription.cancel);
@@ -722,10 +720,12 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
             banner: Value(profile.banner),
             premiumBadgeHidden: Value(profile.premiumBadgeHidden),
             premiumBadgeMasked: Value(profile.premiumBadgeMasked),
-            premiumBadgeTimestampHidden:
-                Value(profile.premiumBadgeTimestampHidden),
-            premiumBadgeSequenceHidden:
-                Value(profile.premiumBadgeSequenceHidden),
+            premiumBadgeTimestampHidden: Value(
+              profile.premiumBadgeTimestampHidden,
+            ),
+            premiumBadgeSequenceHidden: Value(
+              profile.premiumBadgeSequenceHidden,
+            ),
           ),
         ),
       );
@@ -741,7 +741,8 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         passwordLastChangedAt: profile.passwordLastChangedAt,
         mfaEnabled: profile.mfaEnabled,
         phone: profile.phone,
-        authenticatorTypes: profile.authenticatorTypes
+        authenticatorTypes:
+            profile.authenticatorTypes
                 ?.map((t) => t.json)
                 .whereType<int>()
                 .toList(growable: false) ??

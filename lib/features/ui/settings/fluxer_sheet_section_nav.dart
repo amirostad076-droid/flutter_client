@@ -50,11 +50,9 @@ class _FluxerSheetSectionNavState extends State<FluxerSheetSectionNav> {
     for (final section in widget.sections) {
       _keys.putIfAbsent(section.id, GlobalKey.new);
     }
-    _keys.removeWhere(
-      (id, _) {
-        return !widget.sections.any((s) => s.id == id);
-      },
-    );
+    _keys.removeWhere((id, _) {
+      return !widget.sections.any((s) => s.id == id);
+    });
   }
 
   void _scrollToActive() {
@@ -133,9 +131,7 @@ class _SheetSectionPill extends StatelessWidget {
           vertical: layout.s2,
         ),
         decoration: BoxDecoration(
-          color: isActive
-              ? colors.brandPrimary
-              : colors.backgroundSecondaryAlt,
+          color: isActive ? colors.brandPrimary : colors.backgroundSecondaryAlt,
           borderRadius: layout.radiusFull,
         ),
         child: AnimatedDefaultTextStyle(
@@ -143,9 +139,7 @@ class _SheetSectionPill extends StatelessWidget {
           curve: motion.curve,
           style: textStyles.bodySmall.copyWith(
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: isActive
-                ? colors.textOnBrandPrimary
-                : colors.textSecondary,
+            color: isActive ? colors.textOnBrandPrimary : colors.textSecondary,
           ),
           child: Text(section.label),
         ),

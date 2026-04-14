@@ -66,12 +66,14 @@ class _TotpEnableSheetState extends ConsumerState<TotpEnableSheet> {
         body: EnableMfaTotpRequest(secret: _secret, code: code),
       );
 
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: l10n.totpEnableSuccess,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.totpEnableSuccess,
+              variant: FluxerToastVariant.success,
+            ),
+          );
 
       await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
 
@@ -107,8 +109,9 @@ class _TotpEnableSheetState extends ConsumerState<TotpEnableSheet> {
         children: [
           Text(
             l10n.totpEnableDescription,
-            style: context.textStyles.bodySmall
-                .copyWith(color: colors.textSecondary),
+            style: context.textStyles.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
           ),
           const SizedBox(height: 20),
 
@@ -126,10 +129,7 @@ class _TotpEnableSheetState extends ConsumerState<TotpEnableSheet> {
                   child: Text(
                     'QR Code\n(scan with authenticator)',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
                 ),
               ),

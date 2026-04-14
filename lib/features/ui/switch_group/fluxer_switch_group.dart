@@ -70,10 +70,7 @@ class FluxerSwitchGroupItem extends StatelessWidget {
               ? colors.backgroundModifierHover.withValues(alpha: 0.5)
               : Colors.transparent,
           constraints: const BoxConstraints(minHeight: 68),
-          padding: EdgeInsets.symmetric(
-            horizontal: 0,
-            vertical: layout.s3,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 0, vertical: layout.s3),
           child: Row(
             children: [
               Expanded(
@@ -113,10 +110,7 @@ class FluxerSwitchGroupItem extends StatelessWidget {
                 ),
               ),
               SizedBox(width: layout.s4),
-              Switch(
-                value: value,
-                onChanged: enabled ? onChanged : null,
-              ),
+              Switch(value: value, onChanged: enabled ? onChanged : null),
             ],
           ),
         );
@@ -182,10 +176,7 @@ class FluxerSwitchGroupCustomItem extends StatelessWidget {
               extraContent!,
               SizedBox(width: layout.s2),
             ],
-            Switch(
-              value: value,
-              onChanged: enabled ? onChanged : null,
-            ),
+            Switch(value: value, onChanged: enabled ? onChanged : null),
           ],
         ),
       ),

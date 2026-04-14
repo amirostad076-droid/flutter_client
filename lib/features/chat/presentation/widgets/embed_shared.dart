@@ -7,11 +7,7 @@ import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 
 class EmbedInlineText extends StatelessWidget {
-  const EmbedInlineText({
-    required this.text,
-    required this.style,
-    super.key,
-  });
+  const EmbedInlineText({required this.text, required this.style, super.key});
 
   final String text;
   final TextStyle style;

@@ -161,8 +161,11 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader(colors, l10n.securityLoginEmailSectionTitle,
-            l10n.securityLoginEmailSectionDescription),
+        _sectionHeader(
+          colors,
+          l10n.securityLoginEmailSectionTitle,
+          l10n.securityLoginEmailSectionDescription,
+        ),
         const SizedBox(height: 20),
         if (!s.hasVerifiedEmail) ...[
           FluxerWarningAlert(
@@ -182,9 +185,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _emailRevealed
-                      ? s.email!
-                      : _maskEmail(s.email!),
+                  _emailRevealed ? s.email! : _maskEmail(s.email!),
                   style: TextStyle(
                     fontSize: 14,
                     color: colors.textPrimaryMuted,
@@ -195,9 +196,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
                   text: _emailRevealed
                       ? l10n.securityLoginHide
                       : l10n.securityLoginReveal,
-                  onTap: () => setState(
-                    () => _emailRevealed = !_emailRevealed,
-                  ),
+                  onTap: () => setState(() => _emailRevealed = !_emailRevealed),
                 ),
               ],
             ),
@@ -227,8 +226,11 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader(colors, l10n.securityLoginPasswordSectionTitle,
-            l10n.securityLoginPasswordSectionDescription),
+        _sectionHeader(
+          colors,
+          l10n.securityLoginPasswordSectionTitle,
+          l10n.securityLoginPasswordSectionDescription,
+        ),
         const SizedBox(height: 20),
         if (!s.hasVerifiedEmail) ...[
           Text(
@@ -249,8 +251,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
               style: TextStyle(fontSize: 14, color: colors.textPrimaryMuted),
             ),
             button: FluxerButton.primary(
-              onPressedAsync: () =>
-                  PasswordChangeSheet.show(context, ref),
+              onPressedAsync: () => PasswordChangeSheet.show(context, ref),
               label: l10n.securityLoginChangePassword,
               size: FluxerButtonSize.small,
             ),
@@ -268,9 +269,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     if (lc == null) {
       return l10n.securityLoginPasswordNeverChanged;
     }
-    return l10n.securityLoginPasswordLastChanged(
-      _relativeDate(lc, l10n),
-    );
+    return l10n.securityLoginPasswordLastChanged(_relativeDate(lc, l10n));
   }
 
   Widget _buildSecuritySection(
@@ -283,7 +282,10 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader(
-              colors, l10n.securityClaimTitle, l10n.securityClaimDescription),
+            colors,
+            l10n.securityClaimTitle,
+            l10n.securityClaimDescription,
+          ),
           const SizedBox(height: 12),
           FluxerButton.primary(
             onPressedAsync: () => ClaimAccountSheet.show(context, ref),
@@ -354,14 +356,12 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
           ),
           button: s.hasTotpMfa
               ? FluxerButton.dangerPrimary(
-                  onPressedAsync: () =>
-                      TotpDisableSheet.show(context, ref),
+                  onPressedAsync: () => TotpDisableSheet.show(context, ref),
                   label: l10n.disable,
                   size: FluxerButtonSize.small,
                 )
               : FluxerButton.primary(
-                  onPressedAsync: () =>
-                      TotpEnableSheet.show(context, ref),
+                  onPressedAsync: () => TotpEnableSheet.show(context, ref),
                   label: l10n.enable,
                   size: FluxerButtonSize.small,
                 ),
@@ -375,8 +375,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
               style: TextStyle(fontSize: 14, color: colors.textPrimaryMuted),
             ),
             button: FluxerButton.secondary(
-              onPressedAsync: () =>
-                  BackupCodesSheet.showView(context, ref),
+              onPressedAsync: () => BackupCodesSheet.showView(context, ref),
               label: l10n.securityTfaViewCodes,
               size: FluxerButtonSize.small,
             ),
@@ -385,7 +384,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       ],
     );
   }
-
 
   Widget _buildPasskeysSubsection(
     UserSettingsViewState s,
@@ -397,8 +395,11 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader(colors, l10n.securityPasskeysSectionTitle,
-            l10n.securityPasskeysSectionDescription),
+        _sectionHeader(
+          colors,
+          l10n.securityPasskeysSectionTitle,
+          l10n.securityPasskeysSectionDescription,
+        ),
         const SizedBox(height: 20),
         _responsiveRow(
           label: l10n.securityPasskeysRegistered,
@@ -409,10 +410,9 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
             style: TextStyle(fontSize: 14, color: colors.textPrimaryMuted),
           ),
           button: FluxerButton.primary(
-            onPressedAsync:
-                _loadingPasskeys || count >= _kMaxPasskeys
-                    ? null
-                    : _handleAddPasskey,
+            onPressedAsync: _loadingPasskeys || count >= _kMaxPasskeys
+                ? null
+                : _handleAddPasskey,
             label: l10n.securityPasskeysAdd,
             size: FluxerButtonSize.small,
           ),
@@ -431,9 +431,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     FluxerLocalizations l10n,
   ) {
     final details = StringBuffer(
-      l10n.securityPasskeysAdded(
-        _relativeDate(pk.createdAt, l10n),
-      ),
+      l10n.securityPasskeysAdded(_relativeDate(pk.createdAt, l10n)),
     );
     if (pk.lastUsedAt != null) {
       details.write(
@@ -471,8 +469,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
               ),
               const SizedBox(width: 8),
               FluxerButton.dangerSecondary(
-                onPressedAsync: () =>
-                    _handleDeletePasskey(pk, l10n),
+                onPressedAsync: () => _handleDeletePasskey(pk, l10n),
                 label: l10n.delete,
                 size: FluxerButtonSize.compact,
                 fitContent: true,
@@ -538,8 +535,11 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader(colors, l10n.securityPhoneSectionTitle,
-            l10n.securityPhoneSectionDescription),
+        _sectionHeader(
+          colors,
+          l10n.securityPhoneSectionTitle,
+          l10n.securityPhoneSectionDescription,
+        ),
         const SizedBox(height: 20),
         if (s.phone != null)
           _responsiveRow(
@@ -549,17 +549,17 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
               children: [
                 Text(
                   _phoneRevealed ? s.phone! : _maskPhone(s.phone!),
-                  style:
-                      TextStyle(fontSize: 14, color: colors.textPrimaryMuted),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colors.textPrimaryMuted,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 FluxerTextLink(
                   text: _phoneRevealed
                       ? l10n.securityLoginHide
                       : l10n.securityLoginReveal,
-                  onTap: () => setState(
-                    () => _phoneRevealed = !_phoneRevealed,
-                  ),
+                  onTap: () => setState(() => _phoneRevealed = !_phoneRevealed),
                 ),
               ],
             ),
@@ -592,7 +592,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
   ) async {
     final description = s.hasSmsMfa
         ? '${l10n.securityPhoneRemoveDescription}'
-            '\n\n${l10n.securityPhoneRemoveWarning}'
+              '\n\n${l10n.securityPhoneRemoveWarning}'
         : l10n.securityPhoneRemoveDescription;
 
     final confirmed = await FluxerConfirmModal.show(
@@ -612,12 +612,14 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       await client.users.removePhoneFromAccount(
         body: const SudoVerificationSchema(),
       );
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: l10n.securityPhoneRemoved,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.securityPhoneRemoved,
+              variant: FluxerToastVariant.success,
+            ),
+          );
       await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
     } on Exception {
       // TODO: show error toast
@@ -635,8 +637,11 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader(colors, l10n.securitySmsSectionTitle,
-            l10n.securitySmsSectionDescription),
+        _sectionHeader(
+          colors,
+          l10n.securitySmsSectionTitle,
+          l10n.securitySmsSectionDescription,
+        ),
         const SizedBox(height: 20),
         _responsiveRow(
           label: l10n.securitySmsBackup,
@@ -651,19 +656,19 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
                   size: FluxerButtonSize.small,
                 )
               : isDisabledForUser
-                  ? FluxerTooltip(
-                      message: l10n.securitySmsDisabledForPartners,
-                      child: FluxerButton.primary(
-                        onPressed: null,
-                        label: l10n.enable,
-                        size: FluxerButtonSize.small,
-                      ),
-                    )
-                  : FluxerButton.primary(
-                      onPressedAsync: () => _handleEnableSms(l10n),
-                      label: l10n.enable,
-                      size: FluxerButtonSize.small,
-                    ),
+              ? FluxerTooltip(
+                  message: l10n.securitySmsDisabledForPartners,
+                  child: FluxerButton.primary(
+                    onPressed: null,
+                    label: l10n.enable,
+                    size: FluxerButtonSize.small,
+                  ),
+                )
+              : FluxerButton.primary(
+                  onPressedAsync: () => _handleEnableSms(l10n),
+                  label: l10n.enable,
+                  size: FluxerButtonSize.small,
+                ),
         ),
       ],
     );
@@ -727,20 +732,25 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
         SizedBox(height: context.layout.s4),
 
         if (s.hasVerifiedEmail) ...[
-          _sectionHeader(colors, l10n.dangerZoneDisableTitle,
-              l10n.dangerZoneDisableDescription),
+          _sectionHeader(
+            colors,
+            l10n.dangerZoneDisableTitle,
+            l10n.dangerZoneDisableDescription,
+          ),
           const SizedBox(height: 12),
           FluxerButton.dangerPrimary(
-            onPressedAsync: () =>
-                AccountDisableSheet.show(context, ref),
+            onPressedAsync: () => AccountDisableSheet.show(context, ref),
             label: l10n.dangerZoneDisableTitle,
             size: FluxerButtonSize.small,
           ),
           const SizedBox(height: 32),
         ],
 
-        _sectionHeader(colors, l10n.dangerZoneDeleteTitle,
-            l10n.dangerZoneDeleteDescription),
+        _sectionHeader(
+          colors,
+          l10n.dangerZoneDeleteTitle,
+          l10n.dangerZoneDeleteDescription,
+        ),
         if (s.hasActiveSubscription) ...[
           const SizedBox(height: 8),
           Text(

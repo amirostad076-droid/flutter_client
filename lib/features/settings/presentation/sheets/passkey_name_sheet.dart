@@ -31,9 +31,7 @@ class PasskeyNameSheet extends ConsumerStatefulWidget {
       context,
       title: l10n.securityPasskeyNameTitle,
       useRootNavigator: true,
-      builder: (_, _) => PasskeyNameSheet(
-        onSubmitted: onCreated,
-      ),
+      builder: (_, _) => PasskeyNameSheet(onSubmitted: onCreated),
     );
   }
 
@@ -155,8 +153,9 @@ class _PasskeyNameSheetState extends ConsumerState<PasskeyNameSheet> {
             children: [
               Expanded(
                 child: FluxerButton.secondary(
-                  onPressed:
-                      _loading ? null : () => Navigator.of(context).pop(),
+                  onPressed: _loading
+                      ? null
+                      : () => Navigator.of(context).pop(),
                   label: l10n.cancel,
                   fitContent: true,
                 ),

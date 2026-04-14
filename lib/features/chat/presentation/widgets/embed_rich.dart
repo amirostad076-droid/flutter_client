@@ -181,8 +181,7 @@ class _EmbedFieldTile extends StatelessWidget {
         MessageMarkdown(
           data: field.value,
           baseStyle: TextStyle(color: context.colors.textChat, fontSize: 13),
-          markdownContext:
-              FluxerMarkdownContext.restrictedEmbedDescription,
+          markdownContext: FluxerMarkdownContext.restrictedEmbedDescription,
         ),
       ],
     ),

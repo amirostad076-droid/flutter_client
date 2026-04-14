@@ -5,4 +5,3 @@ enum FluxerMarkdownContext {
   restrictedEmbedDescription,
   standardWithoutJumbo,
 }
-

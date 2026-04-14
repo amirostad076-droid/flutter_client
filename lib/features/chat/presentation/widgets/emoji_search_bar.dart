@@ -134,10 +134,7 @@ class _SkinToneButtonState extends State<_SkinToneButton> {
                     onTap: () => _select(tone),
                     child: Padding(
                       padding: const EdgeInsets.all(4),
-                      child: Text(
-                        emoji,
-                        style: const TextStyle(fontSize: 24),
-                      ),
+                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
                     ),
                   );
                 }).toList(),

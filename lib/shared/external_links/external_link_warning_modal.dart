@@ -164,20 +164,18 @@ class _ExternalLinkWarningModalState extends State<ExternalLinkWarningModal> {
                     text: widget.hostname,
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  TextSpan(
-                    text: l10n.externalLinkWarningTrustSuffix,
-                  ),
+                  TextSpan(text: l10n.externalLinkWarningTrustSuffix),
                 ],
               ),
-              style: textStyles.bodySmall.copyWith(
-                color: colors.textPrimary,
-              ),
+              style: textStyles.bodySmall.copyWith(color: colors.textPrimary),
             ),
           ),
           SizedBox(height: layout.s4),
           if (useStackedButtons) ...[
             FluxerButton.secondary(
-              onPressed: isSubmitting ? null : () => Navigator.of(context).pop(),
+              onPressed: isSubmitting
+                  ? null
+                  : () => Navigator.of(context).pop(),
               label: l10n.cancel,
             ),
             const SizedBox(height: 8),

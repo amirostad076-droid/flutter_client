@@ -287,9 +287,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Center(
-              child: FluxerLoadingSpinner(
-                color: context.colors.brandPrimary,
-              ),
+              child: FluxerLoadingSpinner(color: context.colors.brandPrimary),
             ),
           );
         }

@@ -18,4 +18,3 @@ bool isFluxerMarkdownJumboEmoji(String text) {
   final count = emojiRe.allMatches(trimmed).length;
   return count >= 1 && count <= kFluxerMarkdownJumboMaxCount;
 }
-

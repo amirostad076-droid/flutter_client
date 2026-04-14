@@ -93,11 +93,7 @@ void main() {
           selection: TextSelection.collapsed(offset: 5),
         );
 
-        controller.insertEmoji(
-          'wave',
-          '\u{1F44B}',
-          maxActualLength: 10,
-        );
+        controller.insertEmoji('wave', '\u{1F44B}', maxActualLength: 10);
 
         expect(controller.actualText, 'abcde');
       });
@@ -108,11 +104,7 @@ void main() {
           selection: TextSelection.collapsed(offset: 2),
         );
 
-        controller.insertEmoji(
-          'wave',
-          '\u{1F44B}',
-          maxActualLength: 20,
-        );
+        controller.insertEmoji('wave', '\u{1F44B}', maxActualLength: 20);
 
         expect(controller.actualText, 'ab :wave:');
       });
@@ -125,11 +117,7 @@ void main() {
 
         // actualText would be "abcde :wave: fghij" = 18 chars
         // but maxActualLength is 17 → should be blocked
-        controller.insertEmoji(
-          'wave',
-          '\u{1F44B}',
-          maxActualLength: 17,
-        );
+        controller.insertEmoji('wave', '\u{1F44B}', maxActualLength: 17);
 
         expect(controller.actualText, 'abcdefghij');
       });
@@ -196,9 +184,7 @@ void main() {
 
         controller.value = TextEditingValue(
           text: '$sentinelText :wave',
-          selection: TextSelection.collapsed(
-            offset: sentinelText.length + 6,
-          ),
+          selection: TextSelection.collapsed(offset: sentinelText.length + 6),
         );
 
         controller.replaceRangeWithEmoji(
@@ -492,66 +478,64 @@ void main() {
         expect(result!.children!.first, isA<WidgetSpan>());
       });
 
-      testWidgets(
-        'renders mixed content as text and widget spans',
-        (tester) async {
-          controller.loadWithTokens('hello :wave: world');
-          TextSpan? result;
+      testWidgets('renders mixed content as text and widget spans', (
+        tester,
+      ) async {
+        controller.loadWithTokens('hello :wave: world');
+        TextSpan? result;
 
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Scaffold(
-                body: Builder(
-                  builder: (context) {
-                    result = controller.buildTextSpan(
-                      context: context,
-                      withComposing: false,
-                    );
-                    return const SizedBox.shrink();
-                  },
-                ),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) {
+                  result = controller.buildTextSpan(
+                    context: context,
+                    withComposing: false,
+                  );
+                  return const SizedBox.shrink();
+                },
               ),
             ),
-          );
+          ),
+        );
 
-          expect(result, isNotNull);
-          // "hello " text, :wave: widget, " world" text
-          expect(result!.children!.length, 3);
-          expect(result!.children![0], isA<TextSpan>());
-          expect(result!.children![1], isA<WidgetSpan>());
-          expect(result!.children![2], isA<TextSpan>());
-        },
-      );
+        expect(result, isNotNull);
+        // "hello " text, :wave: widget, " world" text
+        expect(result!.children!.length, 3);
+        expect(result!.children![0], isA<TextSpan>());
+        expect(result!.children![1], isA<WidgetSpan>());
+        expect(result!.children![2], isA<TextSpan>());
+      });
 
-      testWidgets(
-        'cleans up stale segments for deleted emojis',
-        (tester) async {
-          controller.loadWithTokens(':wave::smile:');
-          expect(controller.text.length, 2);
+      testWidgets('cleans up stale segments for deleted emojis', (
+        tester,
+      ) async {
+        controller.loadWithTokens(':wave::smile:');
+        expect(controller.text.length, 2);
 
-          // Remove the second sentinel manually
-          controller.text = controller.text.substring(0, 1);
+        // Remove the second sentinel manually
+        controller.text = controller.text.substring(0, 1);
 
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Scaffold(
-                body: Builder(
-                  builder: (context) {
-                    controller.buildTextSpan(
-                      context: context,
-                      withComposing: false,
-                    );
-                    return const SizedBox.shrink();
-                  },
-                ),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) {
+                  controller.buildTextSpan(
+                    context: context,
+                    withComposing: false,
+                  );
+                  return const SizedBox.shrink();
+                },
               ),
             ),
-          );
+          ),
+        );
 
-          // After buildTextSpan, stale segment should be cleaned
-          expect(controller.actualText, ':wave:');
-        },
-      );
+        // After buildTextSpan, stale segment should be cleaned
+        expect(controller.actualText, ':wave:');
+      });
     });
 
     group('sentinel allocation', () {

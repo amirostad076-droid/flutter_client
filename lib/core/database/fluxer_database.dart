@@ -261,7 +261,7 @@ class FluxerDatabase extends _$FluxerDatabase {
         await m.addColumn(dmChannels, dmChannels.recipientIds);
       }
       if (from < 20) {
-        // v20: Add plutoniumUpsellDismissed 
+        // v20: Add plutoniumUpsellDismissed
         await m.addColumn(
           userPreferencesTable,
           userPreferencesTable.plutoniumUpsellDismissed,
