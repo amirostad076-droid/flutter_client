@@ -20,6 +20,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/settings_sideb
 import 'package:fluxer_app/features/settings/presentation/widgets/user_appearance.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_messages_media.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_security_login.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -250,6 +251,8 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
           onToggleCompact: () =>
               ref.read(userSettingsViewModelProvider.notifier).toggleCompact(),
         );
+      case 'Security & Login':
+        return const UserSecurityLogin();
       case 'Messages & Media':
         return const UserMessagesMedia();
       default:
@@ -580,6 +583,8 @@ class _MobileSettingsContentBody extends ConsumerWidget {
           onToggleCompact: () =>
               ref.read(userSettingsViewModelProvider.notifier).toggleCompact(),
         );
+      case 'Security & Login':
+        return UserSecurityLogin(scrollController: scrollController);
       case 'Messages & Media':
         return const UserMessagesMedia();
       default:
