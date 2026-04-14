@@ -124,7 +124,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Account Section ──
           FluxerSectionHeading(
             title: l10n.securityAccountTitle,
             description: l10n.securityAccountDescription,
@@ -134,7 +133,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
           _divider(colors),
           _buildPasswordSection(state, colors, l10n),
 
-          // ── Security Section ──
           _divider(colors),
           FluxerSectionHeading(
             title: l10n.securitySectionTitle,
@@ -143,7 +141,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
           SizedBox(height: layout.s4),
           _buildSecuritySection(state, colors, l10n),
 
-          // ── Danger Zone ──
           _divider(colors),
           _buildDangerZone(state, colors, l10n),
         ],
@@ -155,10 +152,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     padding: const EdgeInsets.symmetric(vertical: 32),
     child: Divider(color: colors.borderColor),
   );
-
-  // ────────────────────────────────────────────────────────────
-  // Account: Email
-  // ────────────────────────────────────────────────────────────
 
   Widget _buildEmailSection(
     UserSettingsViewState s,
@@ -226,10 +219,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     );
   }
 
-  // ────────────────────────────────────────────────────────────
-  // Account: Password
-  // ────────────────────────────────────────────────────────────
-
   Widget _buildPasswordSection(
     UserSettingsViewState s,
     FluxerColorTheme colors,
@@ -284,10 +273,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     );
   }
 
-  // ────────────────────────────────────────────────────────────
-  // Security Section
-  // ────────────────────────────────────────────────────────────
-
   Widget _buildSecuritySection(
     UserSettingsViewState s,
     FluxerColorTheme colors,
@@ -330,20 +315,13 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 2FA
         _buildTfaSubsection(s, colors, l10n),
-
-        // Passkeys
         const SizedBox(height: 32),
         _buildPasskeysSubsection(s, colors, l10n),
-
-        // Phone (only if MFA enabled)
         if (s.mfaEnabled) ...[
           const SizedBox(height: 32),
           _buildPhoneSubsection(s, colors, l10n),
         ],
-
-        // SMS MFA (only if phone exists)
         if (s.mfaEnabled && s.phone != null) ...[
           const SizedBox(height: 32),
           _buildSmsSubsection(s, colors, l10n),
@@ -351,8 +329,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       ],
     );
   }
-
-  // ── 2FA ──
 
   Widget _buildTfaSubsection(
     UserSettingsViewState s,
@@ -410,7 +386,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     );
   }
 
-  // ── Passkeys ──
 
   Widget _buildPasskeysSubsection(
     UserSettingsViewState s,
@@ -510,8 +485,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
   }
 
   Future<void> _handleAddPasskey() async {
-    // WebAuthn registration is handled by the passkey name sheet
-    // which coordinates with WebAuthnService
     await PasskeyNameSheet.showForCreate(
       context,
       ref,
@@ -553,11 +526,9 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       );
       await _loadPasskeys();
     } on Exception {
-      // Error handling via toast would go here
+      // TODO: show error toast
     }
   }
-
-  // ── Phone ──
 
   Widget _buildPhoneSubsection(
     UserSettingsViewState s,
@@ -649,11 +620,9 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       );
       await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
     } on Exception {
-      // Error handling
+      // TODO: show error toast
     }
   }
-
-  // ── SMS MFA ──
 
   Widget _buildSmsSubsection(
     UserSettingsViewState s,
@@ -717,7 +686,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       await client.users.enableSmsMfa(body: const SudoVerificationSchema());
       await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
     } on Exception {
-      // Error handling
+      // TODO: show error toast
     }
   }
 
@@ -739,13 +708,9 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       await client.users.disableSmsMfa(body: const SudoVerificationSchema());
       await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
     } on Exception {
-      // Error handling
+      // TODO: show error toast
     }
   }
-
-  // ────────────────────────────────────────────────────────────
-  // Danger Zone
-  // ────────────────────────────────────────────────────────────
 
   Widget _buildDangerZone(
     UserSettingsViewState s,
@@ -761,7 +726,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
         ),
         SizedBox(height: context.layout.s4),
 
-        // Disable Account (only if email verified)
         if (s.hasVerifiedEmail) ...[
           _sectionHeader(colors, l10n.dangerZoneDisableTitle,
               l10n.dangerZoneDisableDescription),
@@ -775,7 +739,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
           const SizedBox(height: 32),
         ],
 
-        // Delete Account
         _sectionHeader(colors, l10n.dangerZoneDeleteTitle,
             l10n.dangerZoneDeleteDescription),
         if (s.hasActiveSubscription) ...[
@@ -796,10 +759,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       ],
     );
   }
-
-  // ────────────────────────────────────────────────────────────
-  // Shared layout helpers
-  // ────────────────────────────────────────────────────────────
 
   Widget _sectionHeader(FluxerColorTheme colors, String title, String desc) {
     return Column(

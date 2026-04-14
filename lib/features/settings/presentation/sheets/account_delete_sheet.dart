@@ -76,7 +76,6 @@ class _AccountDeleteSheetState extends ConsumerState<AccountDeleteSheet> {
           ),
           const SizedBox(height: 16),
 
-          // Important information bullets
           Text(
             l10n.importantInformation,
             style: TextStyle(

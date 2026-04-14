@@ -47,7 +47,7 @@ class BackupCodesSheet extends ConsumerStatefulWidget {
         await showWithCodes(context, ref, codes: response.backupCodes);
       }
     } on DioException {
-      // Error handling
+      // TODO: show error toast
     }
   }
 
@@ -88,7 +88,6 @@ class _BackupCodesSheetState extends ConsumerState<BackupCodesSheet> {
           ),
           const SizedBox(height: 20),
 
-          // Codes grid
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -119,7 +118,6 @@ class _BackupCodesSheetState extends ConsumerState<BackupCodesSheet> {
           ),
           const SizedBox(height: 20),
 
-          // Action buttons
           Row(
             children: [
               FluxerButton.secondary(
@@ -133,7 +131,6 @@ class _BackupCodesSheetState extends ConsumerState<BackupCodesSheet> {
           ),
           const SizedBox(height: 24),
 
-          // Acknowledgement
           FluxerCheckbox(
             value: _acknowledged,
             onChanged: (v) => setState(() => _acknowledged = v ?? false),

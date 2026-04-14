@@ -112,7 +112,6 @@ class _TotpEnableSheetState extends ConsumerState<TotpEnableSheet> {
           ),
           const SizedBox(height: 20),
 
-          // QR Code placeholder — rendered as the URI for now
           Center(
             child: Container(
               padding: const EdgeInsets.all(16),
@@ -138,7 +137,6 @@ class _TotpEnableSheetState extends ConsumerState<TotpEnableSheet> {
           ),
           const SizedBox(height: 12),
 
-          // Secret display
           Center(
             child: SelectableText(
               _secret,

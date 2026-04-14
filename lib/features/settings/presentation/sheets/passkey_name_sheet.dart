@@ -98,10 +98,6 @@ class _PasskeyNameSheetState extends ConsumerState<PasskeyNameSheet> {
           body: WebAuthnCredentialUpdateRequest(name: name),
         );
       } else {
-        // For create flow: get registration options, perform WebAuthn ceremony,
-        // then register the credential with the chosen name.
-        // The WebAuthn ceremony itself is platform-specific.
-        // For now, we get registration options and attempt registration.
         await client.users.getWebauthnRegistrationOptions(
           body: const SudoVerificationSchema(),
         );
