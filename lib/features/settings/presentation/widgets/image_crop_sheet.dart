@@ -62,8 +62,12 @@ class _ImageCropContentState extends State<_ImageCropContent> {
             withCircleUi: widget.maskShape == CropMaskShape.circle,
             baseColor: colors.backgroundPrimary,
             maskColor: colors.backgroundPrimary.withValues(alpha: 0.7),
-            onCropped: (croppedImage) {
-              Navigator.of(context).pop(croppedImage);
+            onCropped: (result) {
+              if (result case CropSuccess(:final croppedImage)) {
+                Navigator.of(context).pop(croppedImage);
+              } else {
+                setState(() => _isCropping = false);
+              }
             },
           ),
         ),
