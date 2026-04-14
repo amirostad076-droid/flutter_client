@@ -43,7 +43,6 @@ enum FluxerButtonVariant {
 
   Color? borderColor(FluxerColorTheme colors) => switch (this) {
     invertedOutline => colors.buttonOutlineBorder,
-    dangerSecondary => colors.buttonDangerOutlineBorder,
     _ => null,
   };
 }
