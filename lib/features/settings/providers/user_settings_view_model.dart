@@ -52,6 +52,11 @@ class UserSettingsViewState {
   final String? email;
   final bool verified;
   final bool isProfileLoaded;
+  final String? passwordLastChangedAt;
+  final bool mfaEnabled;
+  final String? phone;
+  final List<int> authenticatorTypes;
+  final bool premiumWillCancel;
 
   final int? premiumType;
   final String? premiumSince;
@@ -126,6 +131,11 @@ class UserSettingsViewState {
     this.email,
     this.verified = false,
     this.isProfileLoaded = false,
+    this.passwordLastChangedAt,
+    this.mfaEnabled = false,
+    this.phone,
+    this.authenticatorTypes = const [],
+    this.premiumWillCancel = false,
     this.premiumType,
     this.premiumSince,
     this.premiumLifetimeSequence,
@@ -231,6 +241,13 @@ class UserSettingsViewState {
   bool get hasLifetimePremium => premiumType == UserPremiumTypes.lifetime.json;
 
   bool get hasVerifiedEmail => email != null;
+
+  bool get hasTotpMfa => authenticatorTypes.contains(0);
+  bool get hasSmsMfa => authenticatorTypes.contains(1);
+  bool get hasWebauthnMfa => authenticatorTypes.contains(2);
+
+  bool get hasActiveSubscription =>
+      premiumType == UserPremiumTypes.subscription.json && !premiumWillCancel;
 
   bool get trustAllDomains =>
       external_link_utils.trustAllDomains(trustedDomains);
@@ -392,6 +409,11 @@ class UserSettingsViewState {
     Object? email = _unset,
     bool? verified,
     bool? isProfileLoaded,
+    Object? passwordLastChangedAt = _unset,
+    bool? mfaEnabled,
+    Object? phone = _unset,
+    List<int>? authenticatorTypes,
+    bool? premiumWillCancel,
     Object? premiumType = _unset,
     Object? premiumSince = _unset,
     Object? premiumLifetimeSequence = _unset,
@@ -467,6 +489,13 @@ class UserSettingsViewState {
       email: email == _unset ? this.email : email as String?,
       verified: verified ?? this.verified,
       isProfileLoaded: isProfileLoaded ?? this.isProfileLoaded,
+      passwordLastChangedAt: passwordLastChangedAt == _unset
+          ? this.passwordLastChangedAt
+          : passwordLastChangedAt as String?,
+      mfaEnabled: mfaEnabled ?? this.mfaEnabled,
+      phone: phone == _unset ? this.phone : phone as String?,
+      authenticatorTypes: authenticatorTypes ?? this.authenticatorTypes,
+      premiumWillCancel: premiumWillCancel ?? this.premiumWillCancel,
       premiumType: premiumType == _unset
           ? this.premiumType
           : premiumType as int?,
@@ -709,6 +738,15 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         banner: profile.banner,
         email: profile.email,
         verified: profile.verified,
+        passwordLastChangedAt: profile.passwordLastChangedAt,
+        mfaEnabled: profile.mfaEnabled,
+        phone: profile.phone,
+        authenticatorTypes: profile.authenticatorTypes
+                ?.map((t) => t.json)
+                .whereType<int>()
+                .toList(growable: false) ??
+            const [],
+        premiumWillCancel: profile.premiumWillCancel,
         premiumType: profile.premiumType?.json,
         premiumSince: profile.premiumSince,
         premiumLifetimeSequence: profile.premiumLifetimeSequence,
