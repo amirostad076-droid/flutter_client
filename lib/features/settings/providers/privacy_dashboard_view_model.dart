@@ -307,8 +307,6 @@ class PrivacyDashboardViewModel extends _$PrivacyDashboardViewModel {
   // ---------------------------------------------------------------------------
 
   Future<void> loadSettings() async {
-    state = state.copyWith(isLoading: true, error: null);
-
     try {
       final client = ref.read(fluxerClientProvider);
 
