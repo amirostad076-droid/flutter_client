@@ -138,13 +138,16 @@ class PrivacyDashboardViewState {
     if (incomingCallFlags & IncomingCallFlag.nobody != 0) {
       return PermissionMode.nobody;
     }
-    if (incomingCallFlags & IncomingCallFlag.friendsOnly != 0) {
-      return PermissionMode.friendsOnly;
-    }
     if (incomingCallFlags & IncomingCallFlag.everyone != 0) {
       return PermissionMode.everyone;
     }
-    return PermissionMode.custom;
+    final hasCustom =
+        (incomingCallFlags & IncomingCallFlag.friendsOfFriends != 0) ||
+        (incomingCallFlags & IncomingCallFlag.guildMembers != 0);
+    if (hasCustom) {
+      return PermissionMode.custom;
+    }
+    return PermissionMode.friendsOnly;
   }
 
   bool get callFriendsOfFriends =>
@@ -164,13 +167,19 @@ class PrivacyDashboardViewState {
     if (groupDmAddPermissionFlags & GroupDmAddPermissionFlag.nobody != 0) {
       return PermissionMode.nobody;
     }
-    if (groupDmAddPermissionFlags & GroupDmAddPermissionFlag.friendsOnly != 0) {
-      return PermissionMode.friendsOnly;
-    }
     if (groupDmAddPermissionFlags & GroupDmAddPermissionFlag.everyone != 0) {
       return PermissionMode.everyone;
     }
-    return PermissionMode.custom;
+    final hasCustom =
+        (groupDmAddPermissionFlags &
+                GroupDmAddPermissionFlag.friendsOfFriends !=
+            0) ||
+        (groupDmAddPermissionFlags & GroupDmAddPermissionFlag.guildMembers !=
+            0);
+    if (hasCustom) {
+      return PermissionMode.custom;
+    }
+    return PermissionMode.friendsOnly;
   }
 
   bool get groupDmFriendsOfFriends =>
@@ -197,10 +206,14 @@ class PrivacyDashboardViewState {
       editedBlurUnscannedMedia ?? blurUnscannedMedia;
 
   bool get isSensitiveContentDirty =>
-      editedFriendDmFilter != null ||
-      editedNonFriendDmFilter != null ||
-      editedGuildFilter != null ||
-      editedBlurUnscannedMedia != null;
+      (editedFriendDmFilter != null &&
+          editedFriendDmFilter != sensitiveContentFriendDmFilter) ||
+      (editedNonFriendDmFilter != null &&
+          editedNonFriendDmFilter != sensitiveContentNonFriendDmFilter) ||
+      (editedGuildFilter != null &&
+          editedGuildFilter != sensitiveContentGuildFilter) ||
+      (editedBlurUnscannedMedia != null &&
+          editedBlurUnscannedMedia != blurUnscannedMedia);
 
   // ---------------------------------------------------------------------------
   // Computed — data deletion
@@ -521,6 +534,14 @@ class PrivacyDashboardViewModel extends _$PrivacyDashboardViewModel {
     } on Object catch (e, st) {
       talker.error('Failed to save sensitive content settings', e, st);
       state = state.copyWith(isSavingSensitiveContent: false);
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            const FluxerToast(
+              message: 'Failed to save sensitive content settings.',
+              variant: FluxerToastVariant.danger,
+            ),
+          );
     }
   }
 

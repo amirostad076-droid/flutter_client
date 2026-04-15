@@ -104,6 +104,7 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
           children: [
             FluxerSwitchGroupItem(
               label: 'Everyone',
+              description: 'Allow anyone to send you friend requests',
               value: state.everyoneCanFriendRequest,
               onChanged: (value) => unawaited(
                 ref
@@ -116,6 +117,7 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
             ),
             FluxerSwitchGroupItem(
               label: 'Friends of Friends',
+              description: 'Allow friends of your friends to send you requests',
               value: state.friendsOfFriendsCanFriend,
               enabled: !state.everyoneCanFriendRequest,
               onChanged: (value) => unawaited(
@@ -129,6 +131,9 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
             ),
             FluxerSwitchGroupItem(
               label: 'Community Members',
+              description:
+                  'Allow members from communities '
+                  "you're in to send you requests",
               value: state.communityMembersCanFriend,
               enabled: !state.everyoneCanFriendRequest,
               onChanged: (value) => unawaited(
@@ -149,12 +154,18 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
           children: [
             FluxerSwitchGroupItem(
               label: 'Allow direct messages from community members',
+              description:
+                  'Allow members from communities '
+                  "you're in to send you direct messages",
               value: !state.defaultGuildsRestricted,
               onChanged: (value) =>
                   _showDmConfirmationSheet(allowing: value, isBots: false),
             ),
             FluxerSwitchGroupItem(
               label: 'Allow direct messages from community bots',
+              description:
+                  'Allow bots from communities '
+                  "you're in to send you direct messages",
               value: !state.botDefaultGuildsRestricted,
               onChanged: (value) =>
                   _showDmConfirmationSheet(allowing: value, isBots: true),
@@ -285,17 +296,26 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
         FluxerRadioGroup<PermissionMode>(
           value: mode,
           items: const [
-            FluxerRadioItem(value: PermissionMode.nobody, label: 'Nobody'),
+            FluxerRadioItem(
+              value: PermissionMode.nobody,
+              label: 'Nobody',
+              description: 'Block all incoming calls',
+            ),
             FluxerRadioItem(
               value: PermissionMode.friendsOnly,
               label: 'Friends Only',
-              description: 'Recommended',
+              description: 'Only allow friends to call you (recommended)',
             ),
             FluxerRadioItem(
               value: PermissionMode.custom,
               label: 'Friends + Custom',
+              description: 'Allow friends plus additional groups you choose',
             ),
-            FluxerRadioItem(value: PermissionMode.everyone, label: 'Everyone'),
+            FluxerRadioItem(
+              value: PermissionMode.everyone,
+              label: 'Everyone',
+              description: 'Allow anyone to call you, even strangers',
+            ),
           ],
           onChanged: (newMode) {
             final silentFlag =
@@ -323,6 +343,8 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
             children: [
               FluxerSwitchGroupItem(
                 label: 'Friends of Friends',
+                description:
+                    'People who are friends with your friends can call you',
                 value: state.callFriendsOfFriends,
                 onChanged: (value) {
                   var flags = state.incomingCallFlags;
@@ -336,6 +358,8 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
               ),
               FluxerSwitchGroupItem(
                 label: 'Community Members',
+                description:
+                    "People from communities you're both in can call you",
                 value: state.callGuildMembers,
                 onChanged: (value) {
                   var flags = state.incomingCallFlags;
@@ -354,6 +378,10 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
           SizedBox(height: layout.s3),
           FluxerSwitchGroupItem(
             label: 'Silent calls from everyone',
+            description:
+                'All calls will notify silently instead '
+                'of ringing. By default, calls from '
+                'non-friends are always silent.',
             value: state.silentCallsEnabled,
             onChanged: (value) {
               var flags = state.incomingCallFlags;
@@ -386,17 +414,29 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
         FluxerRadioGroup<PermissionMode>(
           value: mode,
           items: const [
-            FluxerRadioItem(value: PermissionMode.nobody, label: 'Nobody'),
+            FluxerRadioItem(
+              value: PermissionMode.nobody,
+              label: 'Nobody',
+              description:
+                  "Don't let anyone add you to group chats without asking",
+            ),
             FluxerRadioItem(
               value: PermissionMode.friendsOnly,
               label: 'Friends Only',
-              description: 'Recommended',
+              description:
+                  'Only allow friends to add you without asking (recommended)',
             ),
             FluxerRadioItem(
               value: PermissionMode.custom,
               label: 'Friends + Custom',
+              description: 'Allow friends plus additional groups to add you',
             ),
-            FluxerRadioItem(value: PermissionMode.everyone, label: 'Everyone'),
+            FluxerRadioItem(
+              value: PermissionMode.everyone,
+              label: 'Everyone',
+              description:
+                  'Allow anyone to add you to group chats without asking',
+            ),
           ],
           onChanged: (newMode) {
             int flags;
@@ -421,6 +461,9 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
             children: [
               FluxerSwitchGroupItem(
                 label: 'Friends of Friends',
+                description:
+                    'People who are friends with your '
+                    'friends can add you to group chats',
                 value: state.groupDmFriendsOfFriends,
                 onChanged: (value) {
                   var flags = state.groupDmAddPermissionFlags;
@@ -434,6 +477,10 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
               ),
               FluxerSwitchGroupItem(
                 label: 'Community Members',
+                description:
+                    'People from communities '
+                    "you're both in can add you "
+                    'to group chats',
                 value: state.groupDmGuildMembers,
                 onChanged: (value) {
                   var flags = state.groupDmAddPermissionFlags;
@@ -615,9 +662,6 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
   }
 
   void _showDataExportSheet() {
-    final colors = context.colors;
-    final layout = context.layout;
-
     unawaited(
       FluxerBottomSheet.showScrollable<void>(
         context,
@@ -627,8 +671,6 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
           return _DataExportSheetContent(
             scrollController: scrollController,
             initialSelected: const {'account', 'messages', 'communities'},
-            colors: colors,
-            layout: layout,
             onRequest: (categories) async {
               final vm = ref.read(privacyDashboardViewModelProvider.notifier);
               await vm.requestDataExport(categories);
@@ -875,16 +917,12 @@ class _DataExportSheetContent extends StatefulWidget {
   const _DataExportSheetContent({
     required this.scrollController,
     required this.initialSelected,
-    required this.colors,
-    required this.layout,
     required this.onRequest,
     required this.onCancel,
   });
 
   final ScrollController scrollController;
   final Set<String> initialSelected;
-  final FluxerColorTheme colors;
-  final FluxerLayoutTheme layout;
   final Future<void> Function(Set<String> categories) onRequest;
   final VoidCallback onCancel;
 
