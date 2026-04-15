@@ -29,6 +29,7 @@ db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String guildId) {
     id: sdk.id,
     guildId: guildId,
     name: sdk.name ?? '',
+    url: Value(sdk.url),
     type: Value(sdk.type),
     topic: Value(sdk.topic),
     parentId: Value(sdk.parentId),

@@ -11,6 +11,7 @@ import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.d
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -172,11 +173,10 @@ class GuildSidebar extends ConsumerWidget {
       child: InkWell(
         onTap: () {
           if (channel.type == ChannelType.link) {
-            // TODO: Add are you sure message with URL
-            final messenger = ScaffoldMessenger.maybeOf(context);
-            messenger?.showSnackBar(
-              const SnackBar(content: Text('Coming soon')),
-            );
+            final channelUrl = channel.url;
+            if (channelUrl != null && channelUrl.isNotEmpty) {
+              unawaited(handleExternalLinkTap(context, channelUrl));
+            }
             return;
           }
 

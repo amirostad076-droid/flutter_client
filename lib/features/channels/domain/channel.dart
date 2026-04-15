@@ -44,6 +44,7 @@ class Channel {
   final String id;
   final String guildId;
   final String name;
+  final String? url;
   final ChannelType type;
   final String? topic;
   final String? parentId;
@@ -53,6 +54,7 @@ class Channel {
     required this.id,
     required this.guildId,
     required this.name,
+    this.url,
     this.type = ChannelType.text,
     this.topic,
     this.parentId,
@@ -64,6 +66,7 @@ class Channel {
       id: row.id,
       guildId: row.guildId,
       name: row.name,
+      url: row.url,
       type: channelTypeFromInt(row.type),
       topic: row.topic,
       parentId: row.parentId,
@@ -76,6 +79,7 @@ class Channel {
       id: id,
       guildId: guildId,
       name: name,
+      url: Value(url),
       type: Value(channelTypeToInt(type)),
       topic: Value(topic),
       parentId: Value(parentId),

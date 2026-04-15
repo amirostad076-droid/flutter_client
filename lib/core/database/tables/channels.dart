@@ -5,6 +5,7 @@ class Channels extends Table {
   TextColumn get id => text()();
   TextColumn get guildId => text()();
   TextColumn get name => text()();
+  TextColumn get url => text().nullable()();
   IntColumn get type => integer().withDefault(const Constant(0))();
   TextColumn get topic => text().nullable()();
   TextColumn get parentId => text().nullable()();
