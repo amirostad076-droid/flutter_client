@@ -19,6 +19,7 @@ import 'package:fluxer_app/features/members/providers/member_list_view_model.dar
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_appearance.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_messages_media.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_privacy_dashboard.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_security_login.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -253,6 +254,8 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
         );
       case 'Security & Login':
         return const UserSecurityLogin();
+      case 'Privacy Dashboard':
+        return const UserPrivacyDashboard();
       case 'Messages & Media':
         return const UserMessagesMedia();
       default:
@@ -585,6 +588,8 @@ class _MobileSettingsContentBody extends ConsumerWidget {
         );
       case 'Security & Login':
         return UserSecurityLogin(scrollController: scrollController);
+      case 'Privacy Dashboard':
+        return UserPrivacyDashboard(scrollController: scrollController);
       case 'Messages & Media':
         return const UserMessagesMedia();
       default:
