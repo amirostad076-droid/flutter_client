@@ -100,77 +100,69 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
         SizedBox(height: layout.s4),
         const FluxerFieldLabel('Friend Requests'),
         SizedBox(height: layout.s2),
-        FluxerSwitchGroup(
-          children: [
-            FluxerSwitchGroupItem(
-              label: 'Everyone',
-              description: 'Allow anyone to send you friend requests',
-              value: state.everyoneCanFriendRequest,
-              onChanged: (value) => unawaited(
-                ref
-                    .read(privacyDashboardViewModelProvider.notifier)
-                    .updateFriendSourceFlag(
-                      FriendSourceFlag.noRelation,
-                      enabled: value,
-                    ),
-              ),
-            ),
-            FluxerSwitchGroupItem(
-              label: 'Friends of Friends',
-              description: 'Allow friends of your friends to send you requests',
-              value: state.friendsOfFriendsCanFriend,
-              enabled: !state.everyoneCanFriendRequest,
-              onChanged: (value) => unawaited(
-                ref
-                    .read(privacyDashboardViewModelProvider.notifier)
-                    .updateFriendSourceFlag(
-                      FriendSourceFlag.mutualFriends,
-                      enabled: value,
-                    ),
-              ),
-            ),
-            FluxerSwitchGroupItem(
-              label: 'Community Members',
-              description:
-                  'Allow members from communities '
-                  "you're in to send you requests",
-              value: state.communityMembersCanFriend,
-              enabled: !state.everyoneCanFriendRequest,
-              onChanged: (value) => unawaited(
-                ref
-                    .read(privacyDashboardViewModelProvider.notifier)
-                    .updateFriendSourceFlag(
-                      FriendSourceFlag.mutualGuilds,
-                      enabled: value,
-                    ),
-              ),
-            ),
-          ],
+        FluxerSwitchGroupItem(
+          label: 'Everyone',
+          description: 'Allow anyone to send you friend requests',
+          value: state.everyoneCanFriendRequest,
+          onChanged: (value) => unawaited(
+            ref
+                .read(privacyDashboardViewModelProvider.notifier)
+                .updateFriendSourceFlag(
+                  FriendSourceFlag.noRelation,
+                  enabled: value,
+                ),
+          ),
+        ),
+        FluxerSwitchGroupItem(
+          label: 'Friends of Friends',
+          description: 'Allow friends of your friends to send you requests',
+          value: state.friendsOfFriendsCanFriend,
+          enabled: !state.everyoneCanFriendRequest,
+          onChanged: (value) => unawaited(
+            ref
+                .read(privacyDashboardViewModelProvider.notifier)
+                .updateFriendSourceFlag(
+                  FriendSourceFlag.mutualFriends,
+                  enabled: value,
+                ),
+          ),
+        ),
+        FluxerSwitchGroupItem(
+          label: 'Community Members',
+          description:
+              'Allow members from communities '
+              "you're in to send you requests",
+          value: state.communityMembersCanFriend,
+          enabled: !state.everyoneCanFriendRequest,
+          onChanged: (value) => unawaited(
+            ref
+                .read(privacyDashboardViewModelProvider.notifier)
+                .updateFriendSourceFlag(
+                  FriendSourceFlag.mutualGuilds,
+                  enabled: value,
+                ),
+          ),
         ),
         SizedBox(height: layout.s4),
         const FluxerFieldLabel('Direct Messages'),
         SizedBox(height: layout.s2),
-        FluxerSwitchGroup(
-          children: [
-            FluxerSwitchGroupItem(
-              label: 'Allow direct messages from community members',
-              description:
-                  'Allow members from communities '
-                  "you're in to send you direct messages",
-              value: !state.defaultGuildsRestricted,
-              onChanged: (value) =>
-                  _showDmConfirmationSheet(allowing: value, isBots: false),
-            ),
-            FluxerSwitchGroupItem(
-              label: 'Allow direct messages from community bots',
-              description:
-                  'Allow bots from communities '
-                  "you're in to send you direct messages",
-              value: !state.botDefaultGuildsRestricted,
-              onChanged: (value) =>
-                  _showDmConfirmationSheet(allowing: value, isBots: true),
-            ),
-          ],
+        FluxerSwitchGroupItem(
+          label: 'Allow direct messages from community members',
+          description:
+              'Allow members from communities '
+              "you're in to send you direct messages",
+          value: !state.defaultGuildsRestricted,
+          onChanged: (value) =>
+              _showDmConfirmationSheet(allowing: value, isBots: false),
+        ),
+        FluxerSwitchGroupItem(
+          label: 'Allow direct messages from community bots',
+          description:
+              'Allow bots from communities '
+              "you're in to send you direct messages",
+          value: !state.botDefaultGuildsRestricted,
+          onChanged: (value) =>
+              _showDmConfirmationSheet(allowing: value, isBots: true),
         ),
       ],
     );
@@ -339,39 +331,34 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
         ),
         if (mode == PermissionMode.custom) ...[
           SizedBox(height: layout.s3),
-          FluxerSwitchGroup(
-            children: [
-              FluxerSwitchGroupItem(
-                label: 'Friends of Friends',
-                description:
-                    'People who are friends with your friends can call you',
-                value: state.callFriendsOfFriends,
-                onChanged: (value) {
-                  var flags = state.incomingCallFlags;
-                  if (value) {
-                    flags |= IncomingCallFlag.friendsOfFriends;
-                  } else {
-                    flags &= ~IncomingCallFlag.friendsOfFriends;
-                  }
-                  unawaited(vm.updateIncomingCallFlags(flags));
-                },
-              ),
-              FluxerSwitchGroupItem(
-                label: 'Community Members',
-                description:
-                    "People from communities you're both in can call you",
-                value: state.callGuildMembers,
-                onChanged: (value) {
-                  var flags = state.incomingCallFlags;
-                  if (value) {
-                    flags |= IncomingCallFlag.guildMembers;
-                  } else {
-                    flags &= ~IncomingCallFlag.guildMembers;
-                  }
-                  unawaited(vm.updateIncomingCallFlags(flags));
-                },
-              ),
-            ],
+          FluxerSwitchGroupItem(
+            label: 'Friends of Friends',
+            description:
+                'People who are friends with your friends can call you',
+            value: state.callFriendsOfFriends,
+            onChanged: (value) {
+              var flags = state.incomingCallFlags;
+              if (value) {
+                flags |= IncomingCallFlag.friendsOfFriends;
+              } else {
+                flags &= ~IncomingCallFlag.friendsOfFriends;
+              }
+              unawaited(vm.updateIncomingCallFlags(flags));
+            },
+          ),
+          FluxerSwitchGroupItem(
+            label: 'Community Members',
+            description: "People from communities you're both in can call you",
+            value: state.callGuildMembers,
+            onChanged: (value) {
+              var flags = state.incomingCallFlags;
+              if (value) {
+                flags |= IncomingCallFlag.guildMembers;
+              } else {
+                flags &= ~IncomingCallFlag.guildMembers;
+              }
+              unawaited(vm.updateIncomingCallFlags(flags));
+            },
           ),
         ],
         if (mode != PermissionMode.nobody) ...[
@@ -457,42 +444,38 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
         ),
         if (mode == PermissionMode.custom) ...[
           SizedBox(height: layout.s3),
-          FluxerSwitchGroup(
-            children: [
-              FluxerSwitchGroupItem(
-                label: 'Friends of Friends',
-                description:
-                    'People who are friends with your '
-                    'friends can add you to group chats',
-                value: state.groupDmFriendsOfFriends,
-                onChanged: (value) {
-                  var flags = state.groupDmAddPermissionFlags;
-                  if (value) {
-                    flags |= GroupDmAddPermissionFlag.friendsOfFriends;
-                  } else {
-                    flags &= ~GroupDmAddPermissionFlag.friendsOfFriends;
-                  }
-                  unawaited(vm.updateGroupDmAddPermissionFlags(flags));
-                },
-              ),
-              FluxerSwitchGroupItem(
-                label: 'Community Members',
-                description:
-                    'People from communities '
-                    "you're both in can add you "
-                    'to group chats',
-                value: state.groupDmGuildMembers,
-                onChanged: (value) {
-                  var flags = state.groupDmAddPermissionFlags;
-                  if (value) {
-                    flags |= GroupDmAddPermissionFlag.guildMembers;
-                  } else {
-                    flags &= ~GroupDmAddPermissionFlag.guildMembers;
-                  }
-                  unawaited(vm.updateGroupDmAddPermissionFlags(flags));
-                },
-              ),
-            ],
+          FluxerSwitchGroupItem(
+            label: 'Friends of Friends',
+            description:
+                'People who are friends with your '
+                'friends can add you to group chats',
+            value: state.groupDmFriendsOfFriends,
+            onChanged: (value) {
+              var flags = state.groupDmAddPermissionFlags;
+              if (value) {
+                flags |= GroupDmAddPermissionFlag.friendsOfFriends;
+              } else {
+                flags &= ~GroupDmAddPermissionFlag.friendsOfFriends;
+              }
+              unawaited(vm.updateGroupDmAddPermissionFlags(flags));
+            },
+          ),
+          FluxerSwitchGroupItem(
+            label: 'Community Members',
+            description:
+                'People from communities '
+                "you're both in can add you "
+                'to group chats',
+            value: state.groupDmGuildMembers,
+            onChanged: (value) {
+              var flags = state.groupDmAddPermissionFlags;
+              if (value) {
+                flags |= GroupDmAddPermissionFlag.guildMembers;
+              } else {
+                flags &= ~GroupDmAddPermissionFlag.guildMembers;
+              }
+              unawaited(vm.updateGroupDmAddPermissionFlags(flags));
+            },
           ),
         ],
       ],
