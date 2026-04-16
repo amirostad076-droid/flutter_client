@@ -8,11 +8,13 @@ enum FluxerAlertVariant { info, warning, danger }
 class FluxerWarningAlert extends StatelessWidget {
   const FluxerWarningAlert({
     required this.message,
+    this.title,
     this.variant = FluxerAlertVariant.warning,
     super.key,
   });
 
   final String message;
+  final String? title;
   final FluxerAlertVariant variant;
 
   @override
@@ -47,11 +49,26 @@ class FluxerWarningAlert extends StatelessWidget {
           Icon(icon, color: borderColor, size: 20),
           SizedBox(width: layout.s2),
           Expanded(
-            child: Text(
-              message,
-              style: context.textStyles.bodySmall.copyWith(
-                color: colors.textPrimary,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (title != null) ...[
+                  Text(
+                    title!,
+                    style: context.textStyles.bodySmall.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: layout.s1),
+                ],
+                Text(
+                  message,
+                  style: context.textStyles.bodySmall.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
