@@ -31,6 +31,8 @@ export 'package:fluxer_app/features/ui/settings/fluxer_save_bar.dart';
 export 'package:fluxer_app/features/ui/settings/fluxer_settings.dart';
 export 'package:fluxer_app/features/ui/settings/fluxer_settings_nav_list.dart';
 export 'package:fluxer_app/features/ui/settings/fluxer_settings_sheet.dart';
+export 'package:fluxer_app/features/ui/settings/fluxer_settings_section.dart';
+export 'package:fluxer_app/features/ui/settings/fluxer_settings_subsection.dart';
 export 'package:fluxer_app/features/ui/settings/fluxer_sheet_section_nav.dart';
 export 'package:fluxer_app/features/ui/slider/fluxer_slider.dart';
 export 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
@@ -43,7 +45,7 @@ export 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 // Text
 export 'package:fluxer_app/features/ui/text/fluxer_field_label.dart';
 export 'package:fluxer_app/features/ui/text/fluxer_hint_text.dart';
-export 'package:fluxer_app/features/ui/text/fluxer_section_heading.dart';
+export 'package:fluxer_app/features/ui/text/fluxer_subsection_label.dart';
 export 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
 // Feedback
 export 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
