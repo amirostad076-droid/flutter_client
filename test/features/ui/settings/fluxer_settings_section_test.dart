@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/settings/fluxer_settings_section.dart';
+import 'package:fluxer_app/features/ui/settings/fluxer_settings_subsection.dart';
 
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();
@@ -106,6 +107,52 @@ void main() {
       expect(find.text('child one'), findsOneWidget);
       expect(find.text('child two'), findsOneWidget);
       expect(find.text('child three'), findsOneWidget);
+    });
+  });
+
+  group('FluxerSettingsSubsection', () {
+    testWidgets('renders title, description, and children', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          const FluxerSettingsSubsection(
+            title: 'Friend Requests',
+            description: 'Control who can send you friend requests',
+            children: [Text('switch one'), Text('switch two')],
+          ),
+        ),
+      );
+
+      expect(find.text('Friend Requests'), findsOneWidget);
+      expect(
+        find.text('Control who can send you friend requests'),
+        findsOneWidget,
+      );
+      expect(find.text('switch one'), findsOneWidget);
+      expect(find.text('switch two'), findsOneWidget);
+    });
+
+    testWidgets('renders children only when no title', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          const FluxerSettingsSubsection(children: [Text('just content')]),
+        ),
+      );
+
+      expect(find.text('just content'), findsOneWidget);
+    });
+
+    testWidgets('renders title without description', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          const FluxerSettingsSubsection(
+            title: 'Passkeys',
+            children: [Text('content')],
+          ),
+        ),
+      );
+
+      expect(find.text('Passkeys'), findsOneWidget);
+      expect(find.text('content'), findsOneWidget);
     });
   });
 }
