@@ -431,132 +431,154 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FluxerSectionHeading(
+                FluxerSettingsSection(
                   title: l10n.profileCustomizationTitle,
                   description: l10n.profileCustomizationDescription,
-                ),
-                SizedBox(height: layout.s6),
-                _buildProfileTypeSelector(state, vm, layout, l10n),
-                if (state.isLoadingGuildProfile) ...[
-                  SizedBox(height: layout.s6),
-                  const Center(child: FluxerLoadingSpinner()),
-                ],
-                if (!state.isPerGuildProfile &&
-                    state.isOutOfBandTrialActive) ...[
-                  SizedBox(height: layout.s6),
-                  _buildPremiumTrialBanner(state, layout),
-                ],
-                if (!state.isPerGuildProfile) ...[
-                  SizedBox(height: layout.s6),
-                  _buildUsernameSection(state, layout, l10n),
-                ],
-                if (!state.isPerGuildProfile) ...[
-                  SizedBox(height: layout.s6),
-                  FluxerInput(
-                    controller: _displayNameController,
-                    label: l10n.displayNameLabel,
-                    hint: state.username,
-                    maxLength: _kMaxDisplayNameLength,
-                    onChanged: vm.updateDisplayName,
-                  ),
-                ],
-                if (state.isPerGuildProfile &&
-                    !state.isLoadingGuildProfile) ...[
-                  SizedBox(height: layout.s6),
-                  FluxerInput(
-                    controller: _nickController,
-                    label: l10n.communityNicknameLabel,
-                    hint: state.username,
-                    maxLength: _kMaxDisplayNameLength,
-                    enabled: state.canChangeNickname,
-                    onChanged: vm.updateNick,
-                  ),
-                ],
-                SizedBox(height: layout.s6),
-                FluxerInput(
-                  controller: state.isPerGuildProfile
-                      ? _guildPronounsController
-                      : _pronounsController,
-                  label: l10n.pronounsLabel,
-                  maxLength: _kMaxPronounsLength,
-                  onChanged: state.isPerGuildProfile
-                      ? vm.updateGuildPronouns
-                      : vm.updatePronouns,
-                ),
-                if (state.isPerGuildProfile &&
-                    !state.hasPerGuildProfiles &&
-                    !state.isLoadingGuildProfile) ...[
-                  SizedBox(height: layout.s6),
-                  _buildPerGuildPremiumUpsell(layout, l10n),
-                ],
-                if (!state.isPerGuildProfile) ...[
-                  SizedBox(height: layout.s6),
-                  _buildAvatarSection(state, vm, layout, l10n),
-                  SizedBox(height: layout.s6),
-                  _buildBannerSection(state, vm, layout, l10n),
-                ] else if (!state.isLoadingGuildProfile) ...[
-                  SizedBox(height: layout.s6),
-                  Opacity(
-                    opacity: state.hasPerGuildProfiles ? 1.0 : 0.5,
-                    child: IgnorePointer(
-                      ignoring: !state.hasPerGuildProfiles,
-                      child: _buildGuildAvatarSection(state, vm, layout, l10n),
+                  isFirst: true,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileTypeSelector(state, vm, layout, l10n),
+                        if (state.isLoadingGuildProfile) ...[
+                          SizedBox(height: layout.s6),
+                          const Center(child: FluxerLoadingSpinner()),
+                        ],
+                        if (!state.isPerGuildProfile &&
+                            state.isOutOfBandTrialActive) ...[
+                          SizedBox(height: layout.s6),
+                          _buildPremiumTrialBanner(state, layout),
+                        ],
+                        if (!state.isPerGuildProfile) ...[
+                          SizedBox(height: layout.s6),
+                          _buildUsernameSection(state, layout, l10n),
+                        ],
+                        if (!state.isPerGuildProfile) ...[
+                          SizedBox(height: layout.s6),
+                          FluxerInput(
+                            controller: _displayNameController,
+                            label: l10n.displayNameLabel,
+                            hint: state.username,
+                            maxLength: _kMaxDisplayNameLength,
+                            onChanged: vm.updateDisplayName,
+                          ),
+                        ],
+                        if (state.isPerGuildProfile &&
+                            !state.isLoadingGuildProfile) ...[
+                          SizedBox(height: layout.s6),
+                          FluxerInput(
+                            controller: _nickController,
+                            label: l10n.communityNicknameLabel,
+                            hint: state.username,
+                            maxLength: _kMaxDisplayNameLength,
+                            enabled: state.canChangeNickname,
+                            onChanged: vm.updateNick,
+                          ),
+                        ],
+                        SizedBox(height: layout.s6),
+                        FluxerInput(
+                          controller: state.isPerGuildProfile
+                              ? _guildPronounsController
+                              : _pronounsController,
+                          label: l10n.pronounsLabel,
+                          maxLength: _kMaxPronounsLength,
+                          onChanged: state.isPerGuildProfile
+                              ? vm.updateGuildPronouns
+                              : vm.updatePronouns,
+                        ),
+                        if (state.isPerGuildProfile &&
+                            !state.hasPerGuildProfiles &&
+                            !state.isLoadingGuildProfile) ...[
+                          SizedBox(height: layout.s6),
+                          _buildPerGuildPremiumUpsell(layout, l10n),
+                        ],
+                        if (!state.isPerGuildProfile) ...[
+                          SizedBox(height: layout.s6),
+                          _buildAvatarSection(state, vm, layout, l10n),
+                          SizedBox(height: layout.s6),
+                          _buildBannerSection(state, vm, layout, l10n),
+                        ] else if (!state.isLoadingGuildProfile) ...[
+                          SizedBox(height: layout.s6),
+                          Opacity(
+                            opacity: state.hasPerGuildProfiles ? 1.0 : 0.5,
+                            child: IgnorePointer(
+                              ignoring: !state.hasPerGuildProfiles,
+                              child: _buildGuildAvatarSection(
+                                state,
+                                vm,
+                                layout,
+                                l10n,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: layout.s6),
+                          Opacity(
+                            opacity: state.hasPerGuildProfiles ? 1.0 : 0.5,
+                            child: IgnorePointer(
+                              ignoring: !state.hasPerGuildProfiles,
+                              child: _buildGuildBannerSection(
+                                state,
+                                vm,
+                                layout,
+                                l10n,
+                              ),
+                            ),
+                          ),
+                        ],
+                        SizedBox(height: layout.s6),
+                        Opacity(
+                          opacity:
+                              state.isPerGuildProfile &&
+                                  !state.hasPerGuildProfiles
+                              ? 0.5
+                              : 1.0,
+                          child: IgnorePointer(
+                            ignoring:
+                                state.isPerGuildProfile &&
+                                !state.hasPerGuildProfiles,
+                            child: FluxerColorPickerField(
+                              label: l10n.accentColorLabel,
+                              description: l10n.accentColorDescription,
+                              value: state.isPerGuildProfile
+                                  ? (state.isEditedGuildAccentColorSet
+                                        ? (state.editedGuildAccentColor ?? 0)
+                                        : (state.guildAccentColor ??
+                                              state.accentColor ??
+                                              0))
+                                  : (state.isEditedAccentColorSet
+                                        ? (state.editedAccentColor ?? 0)
+                                        : (state.accentColor ?? 0)),
+                              onChanged: state.isPerGuildProfile
+                                  ? vm.updateGuildAccentColor
+                                  : vm.updateAccentColor,
+                              defaultValue: 0x4641D9,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: layout.s6),
+                        Opacity(
+                          opacity:
+                              state.isPerGuildProfile &&
+                                  !state.hasPerGuildProfiles
+                              ? 0.5
+                              : 1.0,
+                          child: IgnorePointer(
+                            ignoring:
+                                state.isPerGuildProfile &&
+                                !state.hasPerGuildProfiles,
+                            child: _buildBioSection(state, vm, layout, l10n),
+                          ),
+                        ),
+                        SizedBox(height: layout.s8),
+                        ProfilePreviewCard(state: state),
+                        if (state.isPremium && !state.isPerGuildProfile) ...[
+                          SizedBox(height: layout.s8),
+                          _buildPremiumBadgeSection(state, vm, layout, l10n),
+                        ],
+                      ],
                     ),
-                  ),
-                  SizedBox(height: layout.s6),
-                  Opacity(
-                    opacity: state.hasPerGuildProfiles ? 1.0 : 0.5,
-                    child: IgnorePointer(
-                      ignoring: !state.hasPerGuildProfiles,
-                      child: _buildGuildBannerSection(state, vm, layout, l10n),
-                    ),
-                  ),
-                ],
-                SizedBox(height: layout.s6),
-                Opacity(
-                  opacity: state.isPerGuildProfile && !state.hasPerGuildProfiles
-                      ? 0.5
-                      : 1.0,
-                  child: IgnorePointer(
-                    ignoring:
-                        state.isPerGuildProfile && !state.hasPerGuildProfiles,
-                    child: FluxerColorPickerField(
-                      label: l10n.accentColorLabel,
-                      description: l10n.accentColorDescription,
-                      value: state.isPerGuildProfile
-                          ? (state.isEditedGuildAccentColorSet
-                                ? (state.editedGuildAccentColor ?? 0)
-                                : (state.guildAccentColor ??
-                                      state.accentColor ??
-                                      0))
-                          : (state.isEditedAccentColorSet
-                                ? (state.editedAccentColor ?? 0)
-                                : (state.accentColor ?? 0)),
-                      onChanged: state.isPerGuildProfile
-                          ? vm.updateGuildAccentColor
-                          : vm.updateAccentColor,
-                      defaultValue: 0x4641D9,
-                    ),
-                  ),
+                  ],
                 ),
-                SizedBox(height: layout.s6),
-                Opacity(
-                  opacity: state.isPerGuildProfile && !state.hasPerGuildProfiles
-                      ? 0.5
-                      : 1.0,
-                  child: IgnorePointer(
-                    ignoring:
-                        state.isPerGuildProfile && !state.hasPerGuildProfiles,
-                    child: _buildBioSection(state, vm, layout, l10n),
-                  ),
-                ),
-                SizedBox(height: layout.s8),
-                ProfilePreviewCard(state: state),
-                if (state.isPremium && !state.isPerGuildProfile) ...[
-                  SizedBox(height: layout.s8),
-                  _buildPremiumBadgeSection(state, vm, layout, l10n),
-                ],
-                SizedBox(height: layout.s8),
               ],
             ),
           ),
@@ -1133,44 +1155,45 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return FluxerSettingsSection(
+      title: l10n.plutoniumBadgePrivacyTitle,
+      description: l10n.plutoniumBadgePrivacyDescription,
       children: [
-        FluxerSectionHeading(
-          title: l10n.plutoniumBadgePrivacyTitle,
-          description: l10n.plutoniumBadgePrivacyDescription,
+        FluxerSettingsSubsection(
+          children: [
+            FluxerSwitchGroupItem(
+              label: l10n.hidePlutoniumBadgeLabel,
+              description: l10n.hidePlutoniumBadgeDescription,
+              value: badgeHidden,
+              onChanged: (value) => vm.setPremiumBadgeHidden(value: value),
+            ),
+            FluxerSwitchGroupItem(
+              label: timestampLabel,
+              description: l10n.hidePurchaseDateDescription,
+              value: state.effectivePremiumBadgeTimestampHidden,
+              enabled: !badgeHidden,
+              onChanged: (value) =>
+                  vm.setPremiumBadgeTimestampHidden(value: value),
+            ),
+            if (state.hasLifetimePremium) ...[
+              FluxerSwitchGroupItem(
+                label: l10n.maskVisionaryAsSubscription,
+                description: l10n.maskVisionaryDescription,
+                value: badgeMasked,
+                enabled: !badgeHidden,
+                onChanged: (value) => vm.setPremiumBadgeMasked(value: value),
+              ),
+              FluxerSwitchGroupItem(
+                label: sequenceLabel,
+                description: l10n.hideVisionaryIdDescription,
+                value: state.effectivePremiumBadgeSequenceHidden,
+                enabled: !badgeHidden && !badgeMasked,
+                onChanged: (value) =>
+                    vm.setPremiumBadgeSequenceHidden(value: value),
+              ),
+            ],
+          ],
         ),
-        SizedBox(height: layout.s4),
-        FluxerSwitchGroupItem(
-          label: l10n.hidePlutoniumBadgeLabel,
-          description: l10n.hidePlutoniumBadgeDescription,
-          value: badgeHidden,
-          onChanged: (value) => vm.setPremiumBadgeHidden(value: value),
-        ),
-        FluxerSwitchGroupItem(
-          label: timestampLabel,
-          description: l10n.hidePurchaseDateDescription,
-          value: state.effectivePremiumBadgeTimestampHidden,
-          enabled: !badgeHidden,
-          onChanged: (value) => vm.setPremiumBadgeTimestampHidden(value: value),
-        ),
-        if (state.hasLifetimePremium) ...[
-          FluxerSwitchGroupItem(
-            label: l10n.maskVisionaryAsSubscription,
-            description: l10n.maskVisionaryDescription,
-            value: badgeMasked,
-            enabled: !badgeHidden,
-            onChanged: (value) => vm.setPremiumBadgeMasked(value: value),
-          ),
-          FluxerSwitchGroupItem(
-            label: sequenceLabel,
-            description: l10n.hideVisionaryIdDescription,
-            value: state.effectivePremiumBadgeSequenceHidden,
-            enabled: !badgeHidden && !badgeMasked,
-            onChanged: (value) =>
-                vm.setPremiumBadgeSequenceHidden(value: value),
-          ),
-        ],
       ],
     );
   }
