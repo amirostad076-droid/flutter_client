@@ -19,8 +19,9 @@ import 'package:fluxer_app/features/settings/providers/user_settings_view_model.
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
+import 'package:fluxer_app/features/ui/settings/fluxer_settings_section.dart';
+import 'package:fluxer_app/features/ui/settings/fluxer_settings_subsection.dart';
 import 'package:fluxer_app/features/ui/text/fluxer_field_label.dart';
-import 'package:fluxer_app/features/ui/text/fluxer_section_heading.dart';
 import 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
@@ -124,55 +125,40 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FluxerSectionHeading(
+          FluxerSettingsSection(
             title: l10n.securityAccountTitle,
             description: l10n.securityAccountDescription,
+            isFirst: true,
+            children: [
+              _buildEmailSection(state, colors, l10n),
+              _buildPasswordSection(state, colors, l10n),
+            ],
           ),
-          SizedBox(height: layout.s4),
-          _buildEmailSection(state, colors, l10n),
-          _divider(colors),
-          _buildPasswordSection(state, colors, l10n),
-
-          _divider(colors),
-          FluxerSectionHeading(
+          FluxerSettingsSection(
             title: l10n.securitySectionTitle,
             description: l10n.securitySectionDescription,
+            children: [_buildSecuritySection(state, colors, l10n)],
           ),
-          SizedBox(height: layout.s4),
-          _buildSecuritySection(state, colors, l10n),
-
-          _divider(colors),
           _buildDangerZone(state, colors, l10n),
         ],
       ),
     );
   }
 
-  Widget _divider(FluxerColorTheme colors) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 32),
-    child: Divider(color: colors.borderColor),
-  );
-
   Widget _buildEmailSection(
     UserSettingsViewState s,
     FluxerColorTheme colors,
     FluxerLocalizations l10n,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSubsection(
+      title: l10n.securityLoginEmailSectionTitle,
+      description: l10n.securityLoginEmailSectionDescription,
       children: [
-        _sectionHeader(
-          colors,
-          l10n.securityLoginEmailSectionTitle,
-          l10n.securityLoginEmailSectionDescription,
-        ),
-        const SizedBox(height: 20),
         if (!s.hasVerifiedEmail) ...[
           FluxerWarningAlert(
             variant: FluxerAlertVariant.warning,
             message: l10n.securityLoginNoEmailSet,
           ),
-          const SizedBox(height: 12),
           FluxerButton.primary(
             onPressedAsync: () => ClaimAccountSheet.show(context, ref),
             label: l10n.securityLoginAddEmail,
@@ -206,13 +192,11 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
               size: FluxerButtonSize.small,
             ),
           ),
-          if (!s.verified) ...[
-            const SizedBox(height: 16),
+          if (!s.verified)
             FluxerWarningAlert(
               variant: FluxerAlertVariant.info,
               message: l10n.securityVerifyEmailRequired,
             ),
-          ],
         ],
       ],
     );
@@ -223,27 +207,21 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     FluxerColorTheme colors,
     FluxerLocalizations l10n,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSubsection(
+      title: l10n.securityLoginPasswordSectionTitle,
+      description: l10n.securityLoginPasswordSectionDescription,
       children: [
-        _sectionHeader(
-          colors,
-          l10n.securityLoginPasswordSectionTitle,
-          l10n.securityLoginPasswordSectionDescription,
-        ),
-        const SizedBox(height: 20),
         if (!s.hasVerifiedEmail) ...[
           Text(
             l10n.securityLoginNoPasswordSet,
             style: TextStyle(fontSize: 14, color: colors.statusWarning),
           ),
-          const SizedBox(height: 12),
           FluxerButton.primary(
             onPressedAsync: () => ClaimAccountSheet.show(context, ref),
             label: l10n.securityLoginSetPassword,
             size: FluxerButtonSize.small,
           ),
-        ] else ...[
+        ] else
           _responsiveRow(
             label: l10n.securityLoginCurrentPasswordLabel,
             child: Text(
@@ -256,7 +234,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
               size: FluxerButtonSize.small,
             ),
           ),
-        ],
       ],
     );
   }
@@ -278,15 +255,10 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     FluxerLocalizations l10n,
   ) {
     if (!s.hasVerifiedEmail) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      return FluxerSettingsSubsection(
+        title: l10n.securityClaimTitle,
+        description: l10n.securityClaimDescription,
         children: [
-          _sectionHeader(
-            colors,
-            l10n.securityClaimTitle,
-            l10n.securityClaimDescription,
-          ),
-          const SizedBox(height: 12),
           FluxerButton.primary(
             onPressedAsync: () => ClaimAccountSheet.show(context, ref),
             label: l10n.claimAccount,
@@ -297,15 +269,10 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     }
 
     if (!s.verified) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      return FluxerSettingsSubsection(
+        title: l10n.securityTfaSectionTitle,
+        description: l10n.securityTfaSectionDescription,
         children: [
-          _sectionHeader(
-            colors,
-            l10n.securityTfaSectionTitle,
-            l10n.securityTfaSectionDescription,
-          ),
-          const SizedBox(height: 12),
           FluxerWarningAlert(
             variant: FluxerAlertVariant.warning,
             message: l10n.securityVerifyEmailRequired,
@@ -337,15 +304,10 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     FluxerColorTheme colors,
     FluxerLocalizations l10n,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSubsection(
+      title: l10n.securityTfaSectionTitle,
+      description: l10n.securityTfaSectionDescription,
       children: [
-        _sectionHeader(
-          colors,
-          l10n.securityTfaSectionTitle,
-          l10n.securityTfaSectionDescription,
-        ),
-        const SizedBox(height: 20),
         _responsiveRow(
           label: l10n.securityTfaAuthenticatorApp,
           child: Text(
@@ -366,8 +328,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
                   size: FluxerButtonSize.small,
                 ),
         ),
-        if (s.hasTotpMfa) ...[
-          const SizedBox(height: 20),
+        if (s.hasTotpMfa)
           _responsiveRow(
             label: l10n.securityTfaBackupCodes,
             child: Text(
@@ -380,7 +341,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
               size: FluxerButtonSize.small,
             ),
           ),
-        ],
       ],
     );
   }
@@ -392,15 +352,10 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
   ) {
     final count = _passkeys?.length ?? 0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSubsection(
+      title: l10n.securityPasskeysSectionTitle,
+      description: l10n.securityPasskeysSectionDescription,
       children: [
-        _sectionHeader(
-          colors,
-          l10n.securityPasskeysSectionTitle,
-          l10n.securityPasskeysSectionDescription,
-        ),
-        const SizedBox(height: 20),
         _responsiveRow(
           label: l10n.securityPasskeysRegistered,
           child: Text(
@@ -417,10 +372,8 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
             size: FluxerButtonSize.small,
           ),
         ),
-        if (_passkeys != null && _passkeys!.isNotEmpty) ...[
-          const SizedBox(height: 16),
+        if (_passkeys != null && _passkeys!.isNotEmpty)
           ..._passkeys!.map((pk) => _buildPasskeyItem(pk, colors, l10n)),
-        ],
       ],
     );
   }
@@ -532,15 +485,10 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     FluxerColorTheme colors,
     FluxerLocalizations l10n,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSubsection(
+      title: l10n.securityPhoneSectionTitle,
+      description: l10n.securityPhoneSectionDescription,
       children: [
-        _sectionHeader(
-          colors,
-          l10n.securityPhoneSectionTitle,
-          l10n.securityPhoneSectionDescription,
-        ),
-        const SizedBox(height: 20),
         if (s.phone != null)
           _responsiveRow(
             label: l10n.securityPhoneLabel,
@@ -634,15 +582,10 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     final isDisabledForUser =
         s.publicFlags & _kFlagStaff != 0 || s.publicFlags & _kFlagPartner != 0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSubsection(
+      title: l10n.securitySmsSectionTitle,
+      description: l10n.securitySmsSectionDescription,
       children: [
-        _sectionHeader(
-          colors,
-          l10n.securitySmsSectionTitle,
-          l10n.securitySmsSectionDescription,
-        ),
-        const SizedBox(height: 20),
         _responsiveRow(
           label: l10n.securitySmsBackup,
           child: Text(
@@ -722,70 +665,39 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     FluxerColorTheme colors,
     FluxerLocalizations l10n,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSection(
+      title: l10n.dangerZoneSectionTitle,
+      description: l10n.dangerZoneSectionDescription,
       children: [
-        FluxerSectionHeading(
-          title: l10n.dangerZoneSectionTitle,
-          description: l10n.dangerZoneSectionDescription,
-        ),
-        SizedBox(height: context.layout.s4),
-
-        if (s.hasVerifiedEmail) ...[
-          _sectionHeader(
-            colors,
-            l10n.dangerZoneDisableTitle,
-            l10n.dangerZoneDisableDescription,
+        if (s.hasVerifiedEmail)
+          FluxerSettingsSubsection(
+            title: l10n.dangerZoneDisableTitle,
+            description: l10n.dangerZoneDisableDescription,
+            children: [
+              FluxerButton.dangerPrimary(
+                onPressedAsync: () => AccountDisableSheet.show(context, ref),
+                label: l10n.dangerZoneDisableTitle,
+                size: FluxerButtonSize.small,
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          FluxerButton.dangerPrimary(
-            onPressedAsync: () => AccountDisableSheet.show(context, ref),
-            label: l10n.dangerZoneDisableTitle,
-            size: FluxerButtonSize.small,
-          ),
-          const SizedBox(height: 32),
-        ],
-
-        _sectionHeader(
-          colors,
-          l10n.dangerZoneDeleteTitle,
-          l10n.dangerZoneDeleteDescription,
-        ),
-        if (s.hasActiveSubscription) ...[
-          const SizedBox(height: 8),
-          Text(
-            l10n.dangerZoneDeleteCancelSubscription,
-            style: TextStyle(fontSize: 13, color: colors.statusWarning),
-          ),
-        ],
-        const SizedBox(height: 12),
-        FluxerButton.dangerPrimary(
-          onPressedAsync: s.hasActiveSubscription
-              ? null
-              : () => AccountDeleteSheet.show(context, ref),
-          label: l10n.dangerZoneDeleteTitle,
-          size: FluxerButtonSize.small,
-        ),
-      ],
-    );
-  }
-
-  Widget _sectionHeader(FluxerColorTheme colors, String title, String desc) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: colors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          desc,
-          style: TextStyle(fontSize: 13, color: colors.textPrimaryMuted),
+        FluxerSettingsSubsection(
+          title: l10n.dangerZoneDeleteTitle,
+          description: l10n.dangerZoneDeleteDescription,
+          children: [
+            if (s.hasActiveSubscription)
+              Text(
+                l10n.dangerZoneDeleteCancelSubscription,
+                style: TextStyle(fontSize: 13, color: colors.statusWarning),
+              ),
+            FluxerButton.dangerPrimary(
+              onPressedAsync: s.hasActiveSubscription
+                  ? null
+                  : () => AccountDeleteSheet.show(context, ref),
+              label: l10n.dangerZoneDeleteTitle,
+              size: FluxerButtonSize.small,
+            ),
+          ],
         ),
       ],
     );
