@@ -42,7 +42,7 @@ class _UserAuthorizedAppsState extends ConsumerState<UserAuthorizedApps> {
           mainAxisSize: MainAxisSize.min,
           children: [
             PhosphorIcon(
-              PhosphorIconsBold.wifiSlash,
+              PhosphorIconsFill.networkSlash,
               size: 48,
               color: colors.textPrimaryMuted,
             ),
@@ -71,7 +71,7 @@ class _UserAuthorizedAppsState extends ConsumerState<UserAuthorizedApps> {
           mainAxisSize: MainAxisSize.min,
           children: [
             PhosphorIcon(
-              PhosphorIconsBold.appWindow,
+              PhosphorIconsFill.appWindow,
               size: 48,
               color: colors.textPrimaryMuted,
             ),
@@ -220,7 +220,7 @@ class _AuthorizedAppCard extends StatelessWidget {
   ) {
     final placeholder = Center(
       child: PhosphorIcon(
-        PhosphorIconsBold.appWindow,
+        PhosphorIconsFill.appWindow,
         size: _iconPlaceholderSize,
         color: colors.textTertiary,
       ),
