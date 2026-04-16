@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
-import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
-import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_link_utils.dart';
@@ -14,7 +11,6 @@ class UserMessagesMedia extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(userSettingsViewModelProvider);
-    final layout = context.layout;
     final l10n = FluxerLocalizations.of(context);
 
     return SingleChildScrollView(
@@ -22,20 +18,27 @@ class UserMessagesMedia extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          FluxerSectionHeading(
+          FluxerSettingsSection(
             title: l10n.externalLinksSectionTitle,
             description: l10n.externalLinksSectionDescription,
-          ),
-          SizedBox(height: layout.s4),
-          FluxerSwitchGroupItem(
-            label: l10n.externalLinkTrustAllLabel,
-            description: trustedDomainsDescription(
-              l10n: l10n,
-              trustAll: state.trustAllDomains,
-              trustedCount: state.trustedDomainsCount,
-            ),
-            value: state.trustAllDomains,
-            onChanged: (value) => _handleTrustAllChange(context, ref, value),
+            isFirst: true,
+            children: [
+              FluxerSettingsSubsection(
+                children: [
+                  FluxerSwitchGroupItem(
+                    label: l10n.externalLinkTrustAllLabel,
+                    description: trustedDomainsDescription(
+                      l10n: l10n,
+                      trustAll: state.trustAllDomains,
+                      trustedCount: state.trustedDomainsCount,
+                    ),
+                    value: state.trustAllDomains,
+                    onChanged: (value) =>
+                        _handleTrustAllChange(context, ref, value),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
