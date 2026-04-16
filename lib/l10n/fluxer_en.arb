@@ -2232,5 +2232,83 @@
   "relativeTimeJustNow": "just now",
   "@relativeTimeJustNow": {
     "description": "Relative time for very recent events."
+  },
+  "authorizedAppsTitle": "Authorized Applications",
+  "@authorizedAppsTitle": {
+    "description": "Title for the Authorized Applications settings section."
+  },
+  "authorizedAppsDescription": "These applications have been granted access to your Fluxer account.",
+  "@authorizedAppsDescription": {
+    "description": "Description under the Authorized Applications section title."
+  },
+  "authorizedAppsEmptyTitle": "No Authorized Applications",
+  "@authorizedAppsEmptyTitle": {
+    "description": "Title shown when the user has no authorized OAuth2 applications."
+  },
+  "authorizedAppsEmptyDescription": "You haven't authorized any applications to access your account.",
+  "@authorizedAppsEmptyDescription": {
+    "description": "Body text shown when the user has no authorized OAuth2 applications."
+  },
+  "authorizedAppsLoadError": "Failed to Load Authorized Applications",
+  "@authorizedAppsLoadError": {
+    "description": "Error message shown when loading authorized applications fails."
+  },
+  "authorizedAppsAuthorizedOn": "Authorized on {date}",
+  "@authorizedAppsAuthorizedOn": {
+    "description": "Shows when an application was authorized.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "authorizedAppsPermissionsGranted": "Permissions granted",
+  "@authorizedAppsPermissionsGranted": {
+    "description": "Subsection label listing OAuth2 scopes granted to an application."
+  },
+  "authorizedAppsRevoke": "Revoke",
+  "@authorizedAppsRevoke": {
+    "description": "Button label to revoke an authorized application's access."
+  },
+  "authorizedAppsRevokeTitle": "Revoke application access",
+  "@authorizedAppsRevokeTitle": {
+    "description": "Confirmation modal title when revoking an authorized application."
+  },
+  "authorizedAppsRevokeDescription": "Are you sure you want to revoke access for {appName}? This application will no longer have access to your account.",
+  "@authorizedAppsRevokeDescription": {
+    "description": "Confirmation modal body when revoking an authorized application.",
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "authorizedAppsScopeIdentify": "Access your basic profile information (username, avatar, etc.)",
+  "@authorizedAppsScopeIdentify": {
+    "description": "OAuth2 scope description: identify."
+  },
+  "authorizedAppsScopeEmail": "View your email address",
+  "@authorizedAppsScopeEmail": {
+    "description": "OAuth2 scope description: email."
+  },
+  "authorizedAppsScopeGuilds": "View the communities you are a member of",
+  "@authorizedAppsScopeGuilds": {
+    "description": "OAuth2 scope description: guilds."
+  },
+  "authorizedAppsScopeConnections": "View your connected accounts",
+  "@authorizedAppsScopeConnections": {
+    "description": "OAuth2 scope description: connections."
+  },
+  "authorizedAppsScopeBot": "Add a bot to a community with requested permissions",
+  "@authorizedAppsScopeBot": {
+    "description": "OAuth2 scope description: bot."
+  },
+  "authorizedAppsScopeAdmin": "Access administrative endpoints",
+  "@authorizedAppsScopeAdmin": {
+    "description": "OAuth2 scope description: admin."
+  },
+  "privacyPendingDeletionTitle": "Pending Deletion",
+  "@privacyPendingDeletionTitle": {
+    "description": "Title of the warning alert shown when a bulk message deletion is pending."
   }
 }

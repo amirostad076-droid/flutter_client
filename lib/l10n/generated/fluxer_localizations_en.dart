@@ -1786,4 +1786,65 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get relativeTimeJustNow => 'just now';
+
+  @override
+  String get authorizedAppsTitle => 'Authorized Applications';
+
+  @override
+  String get authorizedAppsDescription =>
+      'These applications have been granted access to your Fluxer account.';
+
+  @override
+  String get authorizedAppsEmptyTitle => 'No Authorized Applications';
+
+  @override
+  String get authorizedAppsEmptyDescription =>
+      'You haven\'t authorized any applications to access your account.';
+
+  @override
+  String get authorizedAppsLoadError =>
+      'Failed to Load Authorized Applications';
+
+  @override
+  String authorizedAppsAuthorizedOn(String date) {
+    return 'Authorized on $date';
+  }
+
+  @override
+  String get authorizedAppsPermissionsGranted => 'Permissions granted';
+
+  @override
+  String get authorizedAppsRevoke => 'Revoke';
+
+  @override
+  String get authorizedAppsRevokeTitle => 'Revoke application access';
+
+  @override
+  String authorizedAppsRevokeDescription(String appName) {
+    return 'Are you sure you want to revoke access for $appName? This application will no longer have access to your account.';
+  }
+
+  @override
+  String get authorizedAppsScopeIdentify =>
+      'Access your basic profile information (username, avatar, etc.)';
+
+  @override
+  String get authorizedAppsScopeEmail => 'View your email address';
+
+  @override
+  String get authorizedAppsScopeGuilds =>
+      'View the communities you are a member of';
+
+  @override
+  String get authorizedAppsScopeConnections => 'View your connected accounts';
+
+  @override
+  String get authorizedAppsScopeBot =>
+      'Add a bot to a community with requested permissions';
+
+  @override
+  String get authorizedAppsScopeAdmin => 'Access administrative endpoints';
+
+  @override
+  String get privacyPendingDeletionTitle => 'Pending Deletion';
 }

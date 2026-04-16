@@ -3159,6 +3159,108 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'just now'**
   String get relativeTimeJustNow;
+
+  /// Title for the Authorized Applications settings section.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorized Applications'**
+  String get authorizedAppsTitle;
+
+  /// Description under the Authorized Applications section title.
+  ///
+  /// In en, this message translates to:
+  /// **'These applications have been granted access to your Fluxer account.'**
+  String get authorizedAppsDescription;
+
+  /// Title shown when the user has no authorized OAuth2 applications.
+  ///
+  /// In en, this message translates to:
+  /// **'No Authorized Applications'**
+  String get authorizedAppsEmptyTitle;
+
+  /// Body text shown when the user has no authorized OAuth2 applications.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t authorized any applications to access your account.'**
+  String get authorizedAppsEmptyDescription;
+
+  /// Error message shown when loading authorized applications fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to Load Authorized Applications'**
+  String get authorizedAppsLoadError;
+
+  /// Shows when an application was authorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorized on {date}'**
+  String authorizedAppsAuthorizedOn(String date);
+
+  /// Subsection label listing OAuth2 scopes granted to an application.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions granted'**
+  String get authorizedAppsPermissionsGranted;
+
+  /// Button label to revoke an authorized application's access.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke'**
+  String get authorizedAppsRevoke;
+
+  /// Confirmation modal title when revoking an authorized application.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke application access'**
+  String get authorizedAppsRevokeTitle;
+
+  /// Confirmation modal body when revoking an authorized application.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to revoke access for {appName}? This application will no longer have access to your account.'**
+  String authorizedAppsRevokeDescription(String appName);
+
+  /// OAuth2 scope description: identify.
+  ///
+  /// In en, this message translates to:
+  /// **'Access your basic profile information (username, avatar, etc.)'**
+  String get authorizedAppsScopeIdentify;
+
+  /// OAuth2 scope description: email.
+  ///
+  /// In en, this message translates to:
+  /// **'View your email address'**
+  String get authorizedAppsScopeEmail;
+
+  /// OAuth2 scope description: guilds.
+  ///
+  /// In en, this message translates to:
+  /// **'View the communities you are a member of'**
+  String get authorizedAppsScopeGuilds;
+
+  /// OAuth2 scope description: connections.
+  ///
+  /// In en, this message translates to:
+  /// **'View your connected accounts'**
+  String get authorizedAppsScopeConnections;
+
+  /// OAuth2 scope description: bot.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a bot to a community with requested permissions'**
+  String get authorizedAppsScopeBot;
+
+  /// OAuth2 scope description: admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Access administrative endpoints'**
+  String get authorizedAppsScopeAdmin;
+
+  /// Title of the warning alert shown when a bulk message deletion is pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Deletion'**
+  String get privacyPendingDeletionTitle;
 }
 
 class _FluxerLocalizationsDelegate

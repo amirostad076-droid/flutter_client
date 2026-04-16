@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/privacy_dashboard_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 class UserPrivacyDashboard extends ConsumerStatefulWidget {
   const UserPrivacyDashboard({super.key, this.scrollController});
@@ -750,6 +751,9 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   FluxerWarningAlert(
+                    title: FluxerLocalizations.of(
+                      context,
+                    ).privacyPendingDeletionTitle,
                     message:
                         'Deletion will remove ${state.pendingDeletion!.messageCount} '
                         'messages from '

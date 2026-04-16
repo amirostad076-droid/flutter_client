@@ -18,6 +18,7 @@ import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provid
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_appearance.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_authorized_apps.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_messages_media.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_privacy_dashboard.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.dart';
@@ -65,7 +66,6 @@ class UserSettingsModal extends ConsumerStatefulWidget {
     await FluxerBottomSheet.showScrollable<void>(
       context,
       title: 'Settings',
-      leading: const SizedBox.shrink(),
       useRootNavigator: true,
       builder: (sheetContext, scrollController, close) =>
           _MobileSettingsNavBody(
@@ -90,22 +90,30 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
     ),
     SettingsSidebarItem('Fluxer Plutonium', icon: PhosphorIconsFill.crown),
     SettingsSidebarItem('Gifts & Codes', icon: PhosphorIconsFill.gift),
-    SettingsSidebarItem('Privacy Dashboard', icon: PhosphorIconsFill.detective),
-    SettingsSidebarItem('Authorized Apps', icon: PhosphorIconsFill.gridFour),
+    SettingsSidebarItem('Expression Packs', icon: PhosphorIconsFill.sticker),
+    SettingsSidebarItem('Privacy Dashboard', icon: PhosphorIconsFill.eyeSlash),
+    SettingsSidebarItem('Authorized Apps', icon: PhosphorIconsFill.robot),
     SettingsSidebarItem('Blocked Users', icon: PhosphorIconsFill.prohibit),
     SettingsSidebarItem('Linked Devices', icon: PhosphorIconsFill.devices),
-    SettingsSidebarItem('Connections', icon: PhosphorIconsFill.usersThree),
+    SettingsSidebarItem('Connections', icon: PhosphorIconsFill.userList),
     SettingsSidebarItem.separator('APPLICATION'),
     SettingsSidebarItem('Look & Feel', icon: PhosphorIconsFill.paintBrush),
-    SettingsSidebarItem('Accessibility', icon: PhosphorIconsFill.wheelchair),
+    SettingsSidebarItem(
+      'Accessibility',
+      icon: PhosphorIconsFill.personSimpleCircle,
+    ),
     SettingsSidebarItem('Messages & Media', icon: PhosphorIconsFill.chatCircle),
     SettingsSidebarItem('Audio & Video', icon: PhosphorIconsFill.microphone),
     SettingsSidebarItem('Keybinds', icon: PhosphorIconsFill.keyboard),
     SettingsSidebarItem('Sounds & Alerts', icon: PhosphorIconsFill.bell),
     SettingsSidebarItem('Language & Time', icon: PhosphorIconsFill.translate),
-    SettingsSidebarItem('Advanced', icon: PhosphorIconsFill.faders),
+    SettingsSidebarItem('Advanced', icon: PhosphorIconsFill.flask),
     SettingsSidebarItem.separator('DEVELOPER'),
     SettingsSidebarItem('Applications', icon: PhosphorIconsFill.code),
+    SettingsSidebarItem.separator('STAFF-ONLY'),
+    SettingsSidebarItem('Developer Tools', icon: PhosphorIconsFill.code),
+    SettingsSidebarItem('Limits Config', icon: PhosphorIconsFill.flag),
+    SettingsSidebarItem('Feature Flags', icon: PhosphorIconsFill.flag),
     SettingsSidebarItem.separator(),
     SettingsSidebarItem("What's New", icon: PhosphorIconsFill.megaphone),
     SettingsSidebarItem(
@@ -258,6 +266,8 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
         return const UserPrivacyDashboard();
       case 'Messages & Media':
         return const UserMessagesMedia();
+      case 'Authorized Apps':
+        return const UserAuthorizedApps();
       default:
         return Center(
           child: Text(
@@ -390,13 +400,18 @@ class _MobileSettingsNavBodyState
               onTap: () => _openSettingsPage('Gifts & Codes'),
             ),
             FluxerSettingsNavItem(
+              label: 'Expression Packs',
+              icon: PhosphorIconsFill.sticker,
+              onTap: () => _openSettingsPage('Expression Packs'),
+            ),
+            FluxerSettingsNavItem(
               label: 'Privacy Dashboard',
-              icon: PhosphorIconsFill.detective,
+              icon: PhosphorIconsFill.eyeSlash,
               onTap: () => _openSettingsPage('Privacy Dashboard'),
             ),
             FluxerSettingsNavItem(
               label: 'Authorized Apps',
-              icon: PhosphorIconsFill.gridFour,
+              icon: PhosphorIconsFill.robot,
               onTap: () => _openSettingsPage('Authorized Apps'),
             ),
             FluxerSettingsNavItem(
@@ -411,7 +426,7 @@ class _MobileSettingsNavBodyState
             ),
             FluxerSettingsNavItem(
               label: 'Connections',
-              icon: PhosphorIconsFill.usersThree,
+              icon: PhosphorIconsFill.userList,
               onTap: () => _openSettingsPage('Connections'),
             ),
           ],
@@ -426,7 +441,7 @@ class _MobileSettingsNavBodyState
             ),
             FluxerSettingsNavItem(
               label: 'Accessibility',
-              icon: PhosphorIconsFill.wheelchair,
+              icon: PhosphorIconsFill.personSimpleCircle,
               onTap: () => _openSettingsPage('Accessibility'),
             ),
             FluxerSettingsNavItem(
@@ -440,11 +455,6 @@ class _MobileSettingsNavBodyState
               onTap: () => _openSettingsPage('Audio & Video'),
             ),
             FluxerSettingsNavItem(
-              label: 'Keybinds',
-              icon: PhosphorIconsFill.keyboard,
-              onTap: () => _openSettingsPage('Keybinds'),
-            ),
-            FluxerSettingsNavItem(
               label: 'Sounds & Alerts',
               icon: PhosphorIconsFill.bell,
               onTap: () => _openSettingsPage('Sounds & Alerts'),
@@ -456,7 +466,7 @@ class _MobileSettingsNavBodyState
             ),
             FluxerSettingsNavItem(
               label: 'Advanced',
-              icon: PhosphorIconsFill.faders,
+              icon: PhosphorIconsFill.flask,
               onTap: () => _openSettingsPage('Advanced'),
             ),
           ],
@@ -468,6 +478,26 @@ class _MobileSettingsNavBodyState
               label: 'Applications',
               icon: PhosphorIconsFill.code,
               onTap: () => _openSettingsPage('Applications'),
+            ),
+          ],
+        ),
+        FluxerSettingsNavGroup(
+          label: 'STAFF-ONLY',
+          items: [
+            FluxerSettingsNavItem(
+              label: 'Developer Tools',
+              icon: PhosphorIconsFill.code,
+              onTap: () => _openSettingsPage('Developer Tools'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Limits Config',
+              icon: PhosphorIconsFill.flag,
+              onTap: () => _openSettingsPage('Limits Config'),
+            ),
+            FluxerSettingsNavItem(
+              label: 'Feature Flags',
+              icon: PhosphorIconsFill.flag,
+              onTap: () => _openSettingsPage('Feature Flags'),
             ),
           ],
         ),
@@ -592,6 +622,8 @@ class _MobileSettingsContentBody extends ConsumerWidget {
         return UserPrivacyDashboard(scrollController: scrollController);
       case 'Messages & Media':
         return const UserMessagesMedia();
+      case 'Authorized Apps':
+        return UserAuthorizedApps(scrollController: scrollController);
       default:
         return Center(
           child: Text(
