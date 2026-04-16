@@ -29,7 +29,7 @@ class FluxerSettingsSection extends StatelessWidget {
       children: [
         if (!isFirst) ...[
           Divider(color: colors.borderColor),
-          const SizedBox(height: 32),
+          SizedBox(height: layout.s8),
         ],
         Text(
           title,
@@ -45,9 +45,9 @@ class FluxerSettingsSection extends StatelessWidget {
         SizedBox(height: layout.s4),
         for (int i = 0; i < children.length; i++) ...[
           children[i],
-          if (i < children.length - 1) const SizedBox(height: 32),
+          if (i < children.length - 1) SizedBox(height: layout.s8),
         ],
-        const SizedBox(height: 32),
+        SizedBox(height: layout.s8),
       ],
     );
   }

@@ -281,18 +281,20 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       );
     }
 
+    final layout = context.layout;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTfaSubsection(s, colors, l10n),
-        const SizedBox(height: 32),
+        SizedBox(height: layout.s8),
         _buildPasskeysSubsection(s, colors, l10n),
         if (s.mfaEnabled) ...[
-          const SizedBox(height: 32),
+          SizedBox(height: layout.s8),
           _buildPhoneSubsection(s, colors, l10n),
         ],
         if (s.mfaEnabled && s.phone != null) ...[
-          const SizedBox(height: 32),
+          SizedBox(height: layout.s8),
           _buildSmsSubsection(s, colors, l10n),
         ],
       ],
@@ -393,8 +395,10 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       );
     }
 
+    final layout = context.layout;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: layout.s3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -406,12 +410,12 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
               color: colors.textPrimary,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: layout.s1),
           Text(
             details.toString(),
             style: TextStyle(fontSize: 13, color: colors.textPrimaryMuted),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: layout.s2),
           Row(
             children: [
               FluxerButton.secondary(
@@ -420,7 +424,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
                 size: FluxerButtonSize.compact,
                 fitContent: true,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: layout.s2),
               FluxerButton.dangerSecondary(
                 onPressedAsync: () => _handleDeletePasskey(pk, l10n),
                 label: l10n.delete,
@@ -710,6 +714,8 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final layout = context.layout;
+
         if (constraints.maxWidth >= 500) {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -719,12 +725,12 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     FluxerFieldLabel(label),
-                    const SizedBox(height: 4),
+                    SizedBox(height: layout.s1),
                     child,
                   ],
                 ),
               ),
-              const SizedBox(width: 24),
+              SizedBox(width: layout.s4),
               button,
             ],
           );
@@ -734,9 +740,9 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FluxerFieldLabel(label),
-            const SizedBox(height: 4),
+            SizedBox(height: layout.s1),
             child,
-            const SizedBox(height: 12),
+            SizedBox(height: layout.s3),
             button,
           ],
         );
