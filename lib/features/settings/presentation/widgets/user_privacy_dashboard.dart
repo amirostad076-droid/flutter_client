@@ -62,23 +62,14 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildConnectionsSection(state, colors, layout),
-          _divider(colors),
           _buildCommunicationSection(state, colors, layout),
-          _divider(colors),
           _buildSensitiveContentSection(state, colors, layout),
-          _divider(colors),
           _buildDataExportSection(state, colors, layout),
-          _divider(colors),
           _buildDataDeletionSection(state, colors, layout),
         ],
       ),
     );
   }
-
-  Widget _divider(FluxerColorTheme colors) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 32),
-    child: Divider(color: colors.borderColor),
-  );
 
   // ---------------------------------------------------------------------------
   // Connections section
@@ -89,80 +80,84 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
     FluxerColorTheme colors,
     FluxerLayoutTheme layout,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSection(
+      title: 'Connections',
+      description:
+          'Control who can send you friend requests and direct messages',
+      isFirst: true,
       children: [
-        const FluxerSectionHeading(
-          title: 'Connections',
-          description:
-              'Control who can send you friend requests and direct messages.',
+        FluxerSettingsSubsection(
+          title: 'Friend Requests',
+          description: 'Control who can send you friend requests',
+          children: [
+            FluxerSwitchGroupItem(
+              label: 'Everyone',
+              description: 'Allow anyone to send you friend requests',
+              value: state.everyoneCanFriendRequest,
+              onChanged: (value) => unawaited(
+                ref
+                    .read(privacyDashboardViewModelProvider.notifier)
+                    .updateFriendSourceFlag(
+                      FriendSourceFlag.noRelation,
+                      enabled: value,
+                    ),
+              ),
+            ),
+            FluxerSwitchGroupItem(
+              label: 'Friends of Friends',
+              description: 'Allow friends of your friends to send you requests',
+              value: state.friendsOfFriendsCanFriend,
+              enabled: !state.everyoneCanFriendRequest,
+              onChanged: (value) => unawaited(
+                ref
+                    .read(privacyDashboardViewModelProvider.notifier)
+                    .updateFriendSourceFlag(
+                      FriendSourceFlag.mutualFriends,
+                      enabled: value,
+                    ),
+              ),
+            ),
+            FluxerSwitchGroupItem(
+              label: 'Community Members',
+              description:
+                  'Allow members from communities '
+                  "you're in to send you requests",
+              value: state.communityMembersCanFriend,
+              enabled: !state.everyoneCanFriendRequest,
+              onChanged: (value) => unawaited(
+                ref
+                    .read(privacyDashboardViewModelProvider.notifier)
+                    .updateFriendSourceFlag(
+                      FriendSourceFlag.mutualGuilds,
+                      enabled: value,
+                    ),
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: layout.s4),
-        const FluxerFieldLabel('Friend Requests'),
-        SizedBox(height: layout.s2),
-        FluxerSwitchGroupItem(
-          label: 'Everyone',
-          description: 'Allow anyone to send you friend requests',
-          value: state.everyoneCanFriendRequest,
-          onChanged: (value) => unawaited(
-            ref
-                .read(privacyDashboardViewModelProvider.notifier)
-                .updateFriendSourceFlag(
-                  FriendSourceFlag.noRelation,
-                  enabled: value,
-                ),
-          ),
-        ),
-        FluxerSwitchGroupItem(
-          label: 'Friends of Friends',
-          description: 'Allow friends of your friends to send you requests',
-          value: state.friendsOfFriendsCanFriend,
-          enabled: !state.everyoneCanFriendRequest,
-          onChanged: (value) => unawaited(
-            ref
-                .read(privacyDashboardViewModelProvider.notifier)
-                .updateFriendSourceFlag(
-                  FriendSourceFlag.mutualFriends,
-                  enabled: value,
-                ),
-          ),
-        ),
-        FluxerSwitchGroupItem(
-          label: 'Community Members',
-          description:
-              'Allow members from communities '
-              "you're in to send you requests",
-          value: state.communityMembersCanFriend,
-          enabled: !state.everyoneCanFriendRequest,
-          onChanged: (value) => unawaited(
-            ref
-                .read(privacyDashboardViewModelProvider.notifier)
-                .updateFriendSourceFlag(
-                  FriendSourceFlag.mutualGuilds,
-                  enabled: value,
-                ),
-          ),
-        ),
-        SizedBox(height: layout.s4),
-        const FluxerFieldLabel('Direct Messages'),
-        SizedBox(height: layout.s2),
-        FluxerSwitchGroupItem(
-          label: 'Allow direct messages from community members',
-          description:
-              'Allow members from communities '
-              "you're in to send you direct messages",
-          value: !state.defaultGuildsRestricted,
-          onChanged: (value) =>
-              _showDmConfirmationSheet(allowing: value, isBots: false),
-        ),
-        FluxerSwitchGroupItem(
-          label: 'Allow direct messages from community bots',
-          description:
-              'Allow bots from communities '
-              "you're in to send you direct messages",
-          value: !state.botDefaultGuildsRestricted,
-          onChanged: (value) =>
-              _showDmConfirmationSheet(allowing: value, isBots: true),
+        FluxerSettingsSubsection(
+          title: 'Direct Messages',
+          description: 'Control who can send you direct messages',
+          children: [
+            FluxerSwitchGroupItem(
+              label: 'Allow direct messages from community members',
+              description:
+                  'Allow members from communities '
+                  "you're in to send you direct messages",
+              value: !state.defaultGuildsRestricted,
+              onChanged: (value) =>
+                  _showDmConfirmationSheet(allowing: value, isBots: false),
+            ),
+            FluxerSwitchGroupItem(
+              label: 'Allow direct messages from community bots',
+              description:
+                  'Allow bots from communities '
+                  "you're in to send you direct messages",
+              value: !state.botDefaultGuildsRestricted,
+              onChanged: (value) =>
+                  _showDmConfirmationSheet(allowing: value, isBots: true),
+            ),
+          ],
         ),
       ],
     );
@@ -174,14 +169,34 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
   }) async {
     final colors = context.colors;
     final layout = context.layout;
-    final subject = isBots ? 'bots' : 'members';
-    final action = allowing ? 'allow' : 'block';
-    final actionCapitalized =
-        '${action[0].toUpperCase()}${action.substring(1)}';
+
+    final String title;
+    final String description;
+    if (allowing && isBots) {
+      title = 'Allow bots to send you direct messages?';
+      description =
+          'Do you also want to allow bots from your existing '
+          'communities to send you direct messages?';
+    } else if (allowing) {
+      title = 'Allow direct messages from community members?';
+      description =
+          'Do you also want to allow direct messages from '
+          'members of your existing communities?';
+    } else if (isBots) {
+      title = 'Block bots from sending you direct messages?';
+      description =
+          'Do you also want to block bots from your '
+          'existing communities?';
+    } else {
+      title = 'Block direct messages from community members?';
+      description =
+          'Do you also want to block direct messages from '
+          'members of your existing communities?';
+    }
 
     final result = await FluxerBottomSheet.show<bool>(
       context,
-      title: '$actionCapitalized DMs from $subject?',
+      title: title,
       useRootNavigator: true,
       builder: (sheetContext, close) {
         return Padding(
@@ -191,20 +206,27 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Would you like to apply this to all existing communities?',
-                style: TextStyle(fontSize: 14, color: colors.textPrimary),
+                description,
+                style: context.textStyles.bodySmall.copyWith(
+                  color: colors.textPrimary,
+                ),
               ),
               SizedBox(height: layout.s2),
               Text(
-                'You can also change this on a per-community '
-                'basis in community settings.',
-                style: TextStyle(fontSize: 13, color: colors.textPrimaryMuted),
+                'You can also change this setting per-community '
+                'by long-pressing the community name and '
+                'selecting Privacy Settings.',
+                style: context.textStyles.bodySmall.copyWith(
+                  color: colors.textPrimaryMuted,
+                ),
               ),
               SizedBox(height: layout.s4),
               SizedBox(
                 width: double.infinity,
                 child: FluxerButton.primary(
-                  label: '$actionCapitalized for all communities',
+                  label: allowing
+                      ? 'Allow for all communities'
+                      : 'Block for all communities',
                   onPressed: () =>
                       Navigator.of(sheetContext, rootNavigator: true).pop(true),
                 ),
@@ -257,16 +279,11 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
     FluxerColorTheme colors,
     FluxerLayoutTheme layout,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSection(
+      title: 'Communication',
+      description: 'Control who can call you and add you to group chats',
       children: [
-        const FluxerSectionHeading(
-          title: 'Communication',
-          description: 'Control who can call you and add you to group chats.',
-        ),
-        SizedBox(height: layout.s4),
         _buildIncomingCallsSubsection(state, colors, layout),
-        SizedBox(height: layout.s4),
         _buildGroupDmSubsection(state, colors, layout),
       ],
     );
@@ -280,11 +297,10 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
     final vm = ref.read(privacyDashboardViewModelProvider.notifier);
     final mode = state.incomingCallMode;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSubsection(
+      title: 'Incoming Calls',
+      description: 'Control who can call you',
       children: [
-        const FluxerFieldLabel('Incoming Calls'),
-        SizedBox(height: layout.s2),
         FluxerRadioGroup<PermissionMode>(
           value: mode,
           items: const [
@@ -329,58 +345,69 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
             unawaited(vm.updateIncomingCallFlags(flags));
           },
         ),
-        if (mode == PermissionMode.custom) ...[
-          SizedBox(height: layout.s3),
-          FluxerSwitchGroupItem(
-            label: 'Friends of Friends',
-            description:
-                'People who are friends with your friends can call you',
-            value: state.callFriendsOfFriends,
-            onChanged: (value) {
-              var flags = state.incomingCallFlags;
-              if (value) {
-                flags |= IncomingCallFlag.friendsOfFriends;
-              } else {
-                flags &= ~IncomingCallFlag.friendsOfFriends;
-              }
-              unawaited(vm.updateIncomingCallFlags(flags));
-            },
+        if (mode == PermissionMode.custom)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const FluxerSubsectionLabel('Additional Groups'),
+              SizedBox(height: layout.s2),
+              FluxerSwitchGroupItem(
+                label: 'Friends of Friends',
+                description:
+                    'People who are friends with your friends can call you',
+                value: state.callFriendsOfFriends,
+                onChanged: (value) {
+                  var flags = state.incomingCallFlags;
+                  if (value) {
+                    flags |= IncomingCallFlag.friendsOfFriends;
+                  } else {
+                    flags &= ~IncomingCallFlag.friendsOfFriends;
+                  }
+                  unawaited(vm.updateIncomingCallFlags(flags));
+                },
+              ),
+              FluxerSwitchGroupItem(
+                label: 'Community Members',
+                description:
+                    "People from communities you're both in can call you",
+                value: state.callGuildMembers,
+                onChanged: (value) {
+                  var flags = state.incomingCallFlags;
+                  if (value) {
+                    flags |= IncomingCallFlag.guildMembers;
+                  } else {
+                    flags &= ~IncomingCallFlag.guildMembers;
+                  }
+                  unawaited(vm.updateIncomingCallFlags(flags));
+                },
+              ),
+            ],
           ),
-          FluxerSwitchGroupItem(
-            label: 'Community Members',
-            description: "People from communities you're both in can call you",
-            value: state.callGuildMembers,
-            onChanged: (value) {
-              var flags = state.incomingCallFlags;
-              if (value) {
-                flags |= IncomingCallFlag.guildMembers;
-              } else {
-                flags &= ~IncomingCallFlag.guildMembers;
-              }
-              unawaited(vm.updateIncomingCallFlags(flags));
-            },
+        if (mode != PermissionMode.nobody)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const FluxerSubsectionLabel('Ring Behavior'),
+              SizedBox(height: layout.s2),
+              FluxerSwitchGroupItem(
+                label: 'Silent calls from everyone',
+                description:
+                    'All calls will notify silently instead '
+                    'of ringing. By default, calls from '
+                    'non-friends are always silent.',
+                value: state.silentCallsEnabled,
+                onChanged: (value) {
+                  var flags = state.incomingCallFlags;
+                  if (value) {
+                    flags |= IncomingCallFlag.silentEveryone;
+                  } else {
+                    flags &= ~IncomingCallFlag.silentEveryone;
+                  }
+                  unawaited(vm.updateIncomingCallFlags(flags));
+                },
+              ),
+            ],
           ),
-        ],
-        if (mode != PermissionMode.nobody) ...[
-          SizedBox(height: layout.s3),
-          FluxerSwitchGroupItem(
-            label: 'Silent calls from everyone',
-            description:
-                'All calls will notify silently instead '
-                'of ringing. By default, calls from '
-                'non-friends are always silent.',
-            value: state.silentCallsEnabled,
-            onChanged: (value) {
-              var flags = state.incomingCallFlags;
-              if (value) {
-                flags |= IncomingCallFlag.silentEveryone;
-              } else {
-                flags &= ~IncomingCallFlag.silentEveryone;
-              }
-              unawaited(vm.updateIncomingCallFlags(flags));
-            },
-          ),
-        ],
       ],
     );
   }
@@ -393,11 +420,12 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
     final vm = ref.read(privacyDashboardViewModelProvider.notifier);
     final mode = state.groupDmAddMode;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSubsection(
+      title: 'Who Can Add You to Group Chats',
+      description:
+          'Control who can add you to group chats without asking. '
+          'Anyone can still send you invite links to join.',
       children: [
-        const FluxerFieldLabel('Who Can Add You to Group Chats'),
-        SizedBox(height: layout.s2),
         FluxerRadioGroup<PermissionMode>(
           value: mode,
           items: const [
@@ -442,42 +470,47 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
             unawaited(vm.updateGroupDmAddPermissionFlags(flags));
           },
         ),
-        if (mode == PermissionMode.custom) ...[
-          SizedBox(height: layout.s3),
-          FluxerSwitchGroupItem(
-            label: 'Friends of Friends',
-            description:
-                'People who are friends with your '
-                'friends can add you to group chats',
-            value: state.groupDmFriendsOfFriends,
-            onChanged: (value) {
-              var flags = state.groupDmAddPermissionFlags;
-              if (value) {
-                flags |= GroupDmAddPermissionFlag.friendsOfFriends;
-              } else {
-                flags &= ~GroupDmAddPermissionFlag.friendsOfFriends;
-              }
-              unawaited(vm.updateGroupDmAddPermissionFlags(flags));
-            },
+        if (mode == PermissionMode.custom)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const FluxerSubsectionLabel('Additional Groups'),
+              SizedBox(height: layout.s2),
+              FluxerSwitchGroupItem(
+                label: 'Friends of Friends',
+                description:
+                    'People who are friends with your '
+                    'friends can add you to group chats',
+                value: state.groupDmFriendsOfFriends,
+                onChanged: (value) {
+                  var flags = state.groupDmAddPermissionFlags;
+                  if (value) {
+                    flags |= GroupDmAddPermissionFlag.friendsOfFriends;
+                  } else {
+                    flags &= ~GroupDmAddPermissionFlag.friendsOfFriends;
+                  }
+                  unawaited(vm.updateGroupDmAddPermissionFlags(flags));
+                },
+              ),
+              FluxerSwitchGroupItem(
+                label: 'Community Members',
+                description:
+                    'People from communities '
+                    "you're both in can add you "
+                    'to group chats',
+                value: state.groupDmGuildMembers,
+                onChanged: (value) {
+                  var flags = state.groupDmAddPermissionFlags;
+                  if (value) {
+                    flags |= GroupDmAddPermissionFlag.guildMembers;
+                  } else {
+                    flags &= ~GroupDmAddPermissionFlag.guildMembers;
+                  }
+                  unawaited(vm.updateGroupDmAddPermissionFlags(flags));
+                },
+              ),
+            ],
           ),
-          FluxerSwitchGroupItem(
-            label: 'Community Members',
-            description:
-                'People from communities '
-                "you're both in can add you "
-                'to group chats',
-            value: state.groupDmGuildMembers,
-            onChanged: (value) {
-              var flags = state.groupDmAddPermissionFlags;
-              if (value) {
-                flags |= GroupDmAddPermissionFlag.guildMembers;
-              } else {
-                flags &= ~GroupDmAddPermissionFlag.guildMembers;
-              }
-              unawaited(vm.updateGroupDmAddPermissionFlags(flags));
-            },
-          ),
-        ],
       ],
     );
   }
@@ -493,86 +526,98 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
   ) {
     final vm = ref.read(privacyDashboardViewModelProvider.notifier);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSection(
+      title: 'Sensitive Content',
+      description:
+          'Control how mature or sensitive media is filtered '
+          'in different contexts',
       children: [
-        const FluxerSectionHeading(
-          title: 'Sensitive Content',
-          description: 'Control how sensitive media is handled in messages.',
-        ),
-        SizedBox(height: layout.s4),
-        const FluxerFieldLabel('Direct messages from friends'),
-        SizedBox(height: layout.s2),
-        FluxerRadioGroup<int>(
-          value: state.effectiveFriendDmFilter,
-          items: const [
-            FluxerRadioItem(value: 0, label: 'Show'),
-            FluxerRadioItem(value: 1, label: 'Blur'),
-            FluxerRadioItem(value: 2, label: 'Block'),
-          ],
-          onChanged: vm.editFriendDmFilter,
-        ),
-        SizedBox(height: layout.s4),
-        const FluxerFieldLabel('Direct messages from others'),
-        SizedBox(height: layout.s2),
-        FluxerRadioGroup<int>(
-          value: state.effectiveNonFriendDmFilter,
-          items: const [
-            FluxerRadioItem(value: 0, label: 'Show'),
-            FluxerRadioItem(value: 1, label: 'Blur'),
-            FluxerRadioItem(value: 2, label: 'Block'),
-          ],
-          onChanged: vm.editNonFriendDmFilter,
-        ),
-        SizedBox(height: layout.s4),
-        const FluxerFieldLabel('Messages in community channels'),
-        SizedBox(height: layout.s2),
-        FluxerRadioGroup<int>(
-          value: state.effectiveGuildFilter,
-          items: const [
-            FluxerRadioItem(value: 0, label: 'Show'),
-            FluxerRadioItem(value: 1, label: 'Blur'),
-          ],
-          onChanged: vm.editGuildFilter,
-        ),
-        SizedBox(height: layout.s4),
-        FluxerSwitchGroupItem(
-          label: 'Blur media until safety scan completes',
-          description: state.isAdult
-              ? 'When enabled, images and videos are blurred '
-                    'until the content safety scan finishes.'
-              : 'This setting is always on for your account.',
-          value: !state.isAdult || state.effectiveBlurUnscannedMedia,
-          enabled: state.isAdult,
-          onChanged: (v) => vm.editBlurUnscannedMedia(value: v),
-        ),
-        if (state.isSensitiveContentDirty) ...[
-          SizedBox(height: layout.s4),
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FluxerButton.secondary(
-                    label: 'Reset',
-                    onPressed: vm.resetSensitiveContent,
-                  ),
+        FluxerSettingsSubsection(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FluxerFieldLabel('Direct messages from friends'),
+                SizedBox(height: layout.s2),
+                FluxerRadioGroup<int>(
+                  value: state.effectiveFriendDmFilter,
+                  items: const [
+                    FluxerRadioItem(value: 0, label: 'Show'),
+                    FluxerRadioItem(value: 1, label: 'Blur'),
+                    FluxerRadioItem(value: 2, label: 'Block'),
+                  ],
+                  onChanged: vm.editFriendDmFilter,
                 ),
-              ),
-              SizedBox(width: layout.s2),
-              Expanded(
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FluxerButton.primary(
-                    label: 'Save',
-                    isLoading: state.isSavingSensitiveContent,
-                    onPressedAsync: vm.saveSensitiveContent,
-                  ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FluxerFieldLabel('Direct messages from others'),
+                SizedBox(height: layout.s2),
+                FluxerRadioGroup<int>(
+                  value: state.effectiveNonFriendDmFilter,
+                  items: const [
+                    FluxerRadioItem(value: 0, label: 'Show'),
+                    FluxerRadioItem(value: 1, label: 'Blur'),
+                    FluxerRadioItem(value: 2, label: 'Block'),
+                  ],
+                  onChanged: vm.editNonFriendDmFilter,
                 ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FluxerFieldLabel('Messages in community channels'),
+                SizedBox(height: layout.s2),
+                FluxerRadioGroup<int>(
+                  value: state.effectiveGuildFilter,
+                  items: const [
+                    FluxerRadioItem(value: 0, label: 'Show'),
+                    FluxerRadioItem(value: 1, label: 'Blur'),
+                  ],
+                  onChanged: vm.editGuildFilter,
+                ),
+              ],
+            ),
+            FluxerSwitchGroupItem(
+              label: 'Blur media until safety scan completes',
+              description: state.isAdult
+                  ? 'When enabled, images and videos are blurred '
+                        'until the content safety scan finishes.'
+                  : 'This setting is always on for your account.',
+              value: !state.isAdult || state.effectiveBlurUnscannedMedia,
+              enabled: state.isAdult,
+              onChanged: (v) => vm.editBlurUnscannedMedia(value: v),
+            ),
+            if (state.isSensitiveContentDirty)
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FluxerButton.secondary(
+                        label: 'Reset',
+                        onPressed: vm.resetSensitiveContent,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: layout.s2),
+                  Expanded(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FluxerButton.primary(
+                        label: 'Save',
+                        isLoading: state.isSavingSensitiveContent,
+                        onPressedAsync: vm.saveSensitiveContent,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ],
     );
   }
@@ -586,59 +631,74 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
     FluxerColorTheme colors,
     FluxerLayoutTheme layout,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSection(
+      title: 'Data Export',
+      description:
+          'Download a complete package of your account data, '
+          'including all messages and attachment URLs',
       children: [
-        const FluxerSectionHeading(
-          title: 'Data Export',
-          description: 'Download a complete package of your account data.',
-        ),
-        SizedBox(height: layout.s4),
-        Text(
-          'You can choose to include:',
-          style: context.textStyles.bodySmall.copyWith(
-            color: colors.textPrimary,
-          ),
-        ),
-        SizedBox(height: layout.s2),
-        _bulletPoint(
-          colors,
-          'Account',
-          'profile, settings, relationships, payments, '
-              'and all account metadata',
-        ),
-        SizedBox(height: layout.s1),
-        _bulletPoint(
-          colors,
-          'Messages',
-          "all messages you've sent, with channel context and attachment URLs",
-        ),
-        SizedBox(height: layout.s1),
-        _bulletPoint(
-          colors,
-          'Communities',
-          "basic metadata about communities you're in",
-        ),
-        SizedBox(height: layout.s1),
-        _bulletPoint(
-          colors,
-          'Analytics',
-          'all analytics events associated with your activity',
-        ),
-        SizedBox(height: layout.s4),
-        const FluxerWarningAlert(
-          message:
+        FluxerSettingsSubsection(
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: colors.backgroundSecondary,
+                border: Border.all(color: colors.backgroundHeaderSecondary),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              padding: EdgeInsets.all(layout.s3),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'You can choose to include:',
+                    style: context.textStyles.bodySmall.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: layout.s2),
+                  _infoListItem(
+                    colors,
+                    'Account \u2013 profile, settings, relationships, '
+                    'payments, and all account metadata',
+                  ),
+                  SizedBox(height: layout.s1),
+                  _infoListItem(
+                    colors,
+                    "Messages \u2013 all messages you've sent, with "
+                    'channel context and attachment URLs',
+                  ),
+                  SizedBox(height: layout.s1),
+                  _infoListItem(
+                    colors,
+                    "Communities \u2013 basic metadata about "
+                    "communities you're in",
+                  ),
+                  SizedBox(height: layout.s1),
+                  _infoListItem(
+                    colors,
+                    'Analytics \u2013 all analytics events associated '
+                    'with your activity',
+                  ),
+                ],
+              ),
+            ),
+            Text(
               "You can request a data export once every 7 days. You'll "
               'receive an email with a download link valid for 7 days.',
-          variant: FluxerAlertVariant.info,
-        ),
-        SizedBox(height: layout.s4),
-        SizedBox(
-          width: double.infinity,
-          child: FluxerButton.primary(
-            label: 'Request Data Export',
-            onPressed: _showDataExportSheet,
-          ),
+              style: context.textStyles.bodySmall.copyWith(
+                color: colors.textPrimaryMuted,
+              ),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: FluxerButton.primary(
+                label: 'Request Data Export',
+                onPressed: _showDataExportSheet,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -677,50 +737,53 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
   ) {
     final vm = ref.read(privacyDashboardViewModelProvider.notifier);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return FluxerSettingsSection(
+      title: 'Data Deletion',
+      description:
+          'Permanently delete all messages you have sent '
+          'across the platform',
       children: [
-        const FluxerSectionHeading(
-          title: 'Data Deletion',
-          description: 'Permanently delete all messages you have sent.',
-        ),
-        if (state.hasPendingDeletion) ...[
-          SizedBox(height: layout.s4),
-          FluxerWarningAlert(
-            message:
-                'Deletion will remove ${state.pendingDeletion!.messageCount} '
-                'messages from '
-                '${state.pendingDeletion!.channelCount} channels. '
-                'Scheduled to run on '
-                '${_formatScheduledDate(state.pendingDeletion!.scheduledAt)}.',
-          ),
-          SizedBox(height: layout.s3),
-          SizedBox(
-            width: double.infinity,
-            child: FluxerButton.secondary(
-              label: 'Cancel pending deletion',
-              onPressedAsync: vm.cancelBulkMessageDeletion,
+        FluxerSettingsSubsection(
+          children: [
+            if (state.hasPendingDeletion)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FluxerWarningAlert(
+                    message:
+                        'Deletion will remove ${state.pendingDeletion!.messageCount} '
+                        'messages from '
+                        '${state.pendingDeletion!.channelCount} channels. '
+                        'Scheduled to run on '
+                        '${_formatScheduledDate(state.pendingDeletion!.scheduledAt)}.',
+                  ),
+                  SizedBox(height: layout.s3),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FluxerButton.secondary(
+                      label: 'Cancel pending deletion',
+                      onPressedAsync: vm.cancelBulkMessageDeletion,
+                    ),
+                  ),
+                ],
+              ),
+            Text(
+              'Once deleted, your messages cannot be recovered. The deletion '
+              'process runs in the background and may take some time depending '
+              'on how many messages you have sent.',
+              style: context.textStyles.bodySmall.copyWith(
+                color: colors.textPrimaryMuted,
+              ),
             ),
-          ),
-        ],
-        SizedBox(height: layout.s4),
-        Text(
-          'Once deleted, your messages cannot be recovered. The deletion '
-          'process runs in the background and may take some time depending '
-          'on how many messages you have sent.',
-          style: context.textStyles.bodySmall.copyWith(
-            color: colors.textPrimaryMuted,
-          ),
-        ),
-        SizedBox(height: layout.s4),
-        SizedBox(
-          width: double.infinity,
-          child: FluxerButton.dangerPrimary(
-            label: 'Delete all my messages',
-            onPressed: state.hasPendingDeletion
-                ? null
-                : _showDeleteMessagesSheet,
-          ),
+            if (!state.hasPendingDeletion)
+              SizedBox(
+                width: double.infinity,
+                child: FluxerButton.dangerPrimary(
+                  label: 'Delete all my messages',
+                  onPressed: _showDeleteMessagesSheet,
+                ),
+              ),
+          ],
         ),
       ],
     );
@@ -750,39 +813,53 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
                   ),
                 ),
                 SizedBox(height: layout.s4),
-                Text(
-                  'What happens next:',
-                  style: context.textStyles.bodyMedium.copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: colors.backgroundSecondary,
+                    border: Border.all(color: colors.backgroundHeaderSecondary),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                ),
-                SizedBox(height: layout.s2),
-                _numberedStep(
-                  colors,
-                  1,
-                  'Your deletion request will be queued and processed '
-                  'in the background',
-                ),
-                SizedBox(height: layout.s1),
-                _numberedStep(
-                  colors,
-                  2,
-                  'The job starts 24 hours after you confirm and can be '
-                  'canceled or restarted anytime',
-                ),
-                SizedBox(height: layout.s1),
-                _numberedStep(
-                  colors,
-                  3,
-                  'The time to complete depends on how many messages '
-                  'you have sent',
-                ),
-                SizedBox(height: layout.s1),
-                _numberedStep(
-                  colors,
-                  4,
-                  'Once deleted, your messages cannot be recovered',
+                  padding: EdgeInsets.all(layout.s3),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'What happens next:',
+                        style: context.textStyles.bodySmall.copyWith(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: layout.s2),
+                      _numberedStep(
+                        colors,
+                        1,
+                        'Your deletion request will be queued and '
+                        'processed in the background',
+                      ),
+                      SizedBox(height: layout.s1),
+                      _numberedStep(
+                        colors,
+                        2,
+                        'The job starts 24 hours after you confirm '
+                        'and can be canceled or restarted anytime',
+                      ),
+                      SizedBox(height: layout.s1),
+                      _numberedStep(
+                        colors,
+                        3,
+                        'The time to complete depends on how many '
+                        'messages you have sent',
+                      ),
+                      SizedBox(height: layout.s1),
+                      _numberedStep(
+                        colors,
+                        4,
+                        'Once deleted, your messages cannot be recovered',
+                      ),
+                    ],
+                  ),
                 ),
                 SizedBox(height: layout.s4),
                 SizedBox(
@@ -818,7 +895,7 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  Widget _bulletPoint(FluxerColorTheme colors, String title, String detail) {
+  Widget _infoListItem(FluxerColorTheme colors, String text) {
     return Padding(
       padding: const EdgeInsets.only(left: 8),
       child: Row(
@@ -827,27 +904,14 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
           Text(
             '\u2022 ',
             style: context.textStyles.bodySmall.copyWith(
-              color: colors.textPrimary,
+              color: colors.textPrimaryMuted,
             ),
           ),
           Expanded(
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: title,
-                    style: context.textStyles.bodySmall.copyWith(
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' \u2013 $detail',
-                    style: context.textStyles.bodySmall.copyWith(
-                      color: colors.textPrimaryMuted,
-                    ),
-                  ),
-                ],
+            child: Text(
+              text,
+              style: context.textStyles.bodySmall.copyWith(
+                color: colors.textPrimaryMuted,
               ),
             ),
           ),
@@ -949,65 +1013,92 @@ class _DataExportSheetContentState extends State<_DataExportSheetContent> {
           ),
         ),
         SizedBox(height: layout.s4),
-        FluxerCheckbox(
+        _checkboxWithDescription(
+          colors,
+          layout,
           value: _selected.contains('account'),
-          onChanged: (_) => _toggle('account'),
-          child: Text(
-            'Account \u2013 profile, settings, relationships, payments',
-            style: context.textStyles.bodySmall.copyWith(
-              color: colors.textPrimary,
-            ),
-          ),
+          onChanged: () => _toggle('account'),
+          label: 'Account',
+          description:
+              'Profile, settings, relationships, payments, '
+              'sessions, and all account metadata',
         ),
         SizedBox(height: layout.s3),
-        FluxerCheckbox(
+        _checkboxWithDescription(
+          colors,
+          layout,
           value: _selected.contains('messages'),
-          onChanged: (_) => _toggle('messages'),
-          child: Text(
-            'Messages \u2013 all messages with channel context',
-            style: context.textStyles.bodySmall.copyWith(
-              color: colors.textPrimary,
-            ),
-          ),
+          onChanged: () => _toggle('messages'),
+          label: 'Messages',
+          description:
+              "All messages you've sent, with channel context "
+              'and attachment URLs',
         ),
         SizedBox(height: layout.s3),
-        FluxerCheckbox(
+        _checkboxWithDescription(
+          colors,
+          layout,
           value: _selected.contains('communities'),
-          onChanged: (_) => _toggle('communities'),
-          child: Text(
-            'Communities \u2013 basic community metadata',
-            style: context.textStyles.bodySmall.copyWith(
-              color: colors.textPrimary,
-            ),
-          ),
+          onChanged: () => _toggle('communities'),
+          label: 'Communities',
+          description:
+              "Basic metadata about all communities you're "
+              'currently in',
         ),
         SizedBox(height: layout.s3),
-        FluxerCheckbox(
+        _checkboxWithDescription(
+          colors,
+          layout,
           value: _selected.contains('analytics'),
-          onChanged: (_) => _toggle('analytics'),
-          child: Text(
-            'Analytics \u2013 activity events and usage data',
-            style: context.textStyles.bodySmall.copyWith(
-              color: colors.textPrimary,
-            ),
-          ),
+          onChanged: () => _toggle('analytics'),
+          label: 'Analytics',
+          description:
+              'All analytics events associated with your '
+              'activity, exported as JSON-LD',
         ),
         SizedBox(height: layout.s4),
-        Text(
-          'What happens next:',
-          style: context.textStyles.bodyMedium.copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w600,
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: colors.backgroundSecondary,
+            border: Border.all(color: colors.backgroundHeaderSecondary),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          padding: EdgeInsets.all(layout.s3),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'What happens next:',
+                style: context.textStyles.bodySmall.copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: layout.s2),
+              _buildStep(colors, 1, 'Your export request will be processed'),
+              SizedBox(height: layout.s1),
+              _buildStep(
+                colors,
+                2,
+                "You'll receive an email when your data "
+                'package is ready',
+              ),
+              SizedBox(height: layout.s1),
+              _buildStep(
+                colors,
+                3,
+                'The download link will be valid for 7 days',
+              ),
+              SizedBox(height: layout.s1),
+              _buildStep(
+                colors,
+                4,
+                'You can request a new export once every 7 days',
+              ),
+            ],
           ),
         ),
-        SizedBox(height: layout.s2),
-        _buildStep(colors, 1, 'Your export request will be queued'),
-        SizedBox(height: layout.s1),
-        _buildStep(colors, 2, 'Data is compiled in the background'),
-        SizedBox(height: layout.s1),
-        _buildStep(colors, 3, "You'll receive an email when it's ready"),
-        SizedBox(height: layout.s1),
-        _buildStep(colors, 4, 'The download link is valid for 7 days'),
         SizedBox(height: layout.s4),
         SizedBox(
           width: double.infinity,
@@ -1027,6 +1118,40 @@ class _DataExportSheetContentState extends State<_DataExportSheetContent> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _checkboxWithDescription(
+    FluxerColorTheme colors,
+    FluxerLayoutTheme layout, {
+    required bool value,
+    required VoidCallback onChanged,
+    required String label,
+    required String description,
+  }) {
+    return FluxerCheckbox(
+      value: value,
+      onChanged: (_) => onChanged(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: context.textStyles.bodySmall.copyWith(
+              color: colors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: layout.s1 / 2),
+          Text(
+            description,
+            style: context.textStyles.bodySmall.copyWith(
+              color: colors.textPrimary.withValues(alpha: 0.7),
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
