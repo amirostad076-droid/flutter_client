@@ -56,6 +56,7 @@ class FluxerActionMenu {
         final sections = _buildMobileSections(builder(sheetContext, close));
 
         return ListView(
+          shrinkWrap: true,
           padding: EdgeInsets.only(bottom: sheetContext.layout.s2),
           children: [
             FluxerBottomSheetGroupColumn(
