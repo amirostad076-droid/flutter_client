@@ -148,6 +148,7 @@ class FluxerBottomSheet {
     double maxChildSize = 0.95,
     ValueNotifier<bool>? canDismissNotifier,
     double? maxHeight,
+    bool disableTopPadding = false,
   }) {
     final colors = context.colors;
     final layout = context.layout;
@@ -183,7 +184,7 @@ class FluxerBottomSheet {
             padding: EdgeInsets.only(bottom: bottomInset),
             child: Column(
               children: [
-                SizedBox(height: layout.s2),
+                if (!disableTopPadding) SizedBox(height: layout.s2),
                 if (showDragHandle) ...[
                   const FluxerBottomSheetDragHandle(),
                   SizedBox(height: layout.s2),
