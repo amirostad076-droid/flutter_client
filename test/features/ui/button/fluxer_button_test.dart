@@ -151,9 +151,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        buildTestApp(
-          const FluxerButton.primary(label: 'Disabled'),
-        ),
+        buildTestApp(const FluxerButton.primary(label: 'Disabled')),
       );
 
       await tester.tap(find.byType(FluxerButton));

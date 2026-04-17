@@ -155,9 +155,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       description: l10n.securityLoginEmailSectionDescription,
       children: [
         if (!s.hasVerifiedEmail) ...[
-          FluxerWarningAlert(
-            message: l10n.securityLoginNoEmailSet,
-          ),
+          FluxerWarningAlert(message: l10n.securityLoginNoEmailSet),
           FluxerButton.primary(
             onPressedAsync: () => ClaimAccountSheet.show(context, ref),
             label: l10n.securityLoginAddEmail,
@@ -272,9 +270,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
         title: l10n.securityTfaSectionTitle,
         description: l10n.securityTfaSectionDescription,
         children: [
-          FluxerWarningAlert(
-            message: l10n.securityVerifyEmailRequired,
-          ),
+          FluxerWarningAlert(message: l10n.securityVerifyEmailRequired),
         ],
       );
     }

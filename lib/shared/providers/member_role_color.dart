@@ -35,8 +35,11 @@ Color? _resolveMemberRoleColor(
 ///
 /// Checks the local DB first; if the member is missing,
 /// fetches from the REST API and caches the result.
-final FutureProviderFamily<Color?, (String, String)> memberRoleColorProvider = FutureProvider.autoDispose
-    .family<Color?, (String, String)>((ref, args) async {
+final FutureProviderFamily<Color?, (String, String)> memberRoleColorProvider =
+    FutureProvider.autoDispose.family<Color?, (String, String)>((
+      ref,
+      args,
+    ) async {
       final (userId, guildId) = args;
       final database = ref.watch(fluxerDatabaseProvider);
 

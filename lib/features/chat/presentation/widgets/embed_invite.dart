@@ -31,9 +31,7 @@ class EmbedInvite extends ConsumerWidget {
         icon: _SkeletonCircle(),
         title: const _SkeletonBar(width: 120),
         stats: const _SkeletonBar(width: 160),
-        footer: FluxerButton.primary(
-          label: l10n.embedInviteJoin,
-        ),
+        footer: FluxerButton.primary(label: l10n.embedInviteJoin),
       ),
       error: (_, _) => _InviteNotFound(l10n: l10n),
       data: (state) => switch (state) {
@@ -41,9 +39,7 @@ class EmbedInvite extends ConsumerWidget {
           icon: _SkeletonCircle(),
           title: const _SkeletonBar(width: 120),
           stats: const _SkeletonBar(width: 160),
-          footer: FluxerButton.primary(
-            label: l10n.embedInviteJoin,
-          ),
+          footer: FluxerButton.primary(label: l10n.embedInviteJoin),
         ),
         InviteEmbedNotFound() => _InviteNotFound(l10n: l10n),
         InviteEmbedGuild(:final invite) => _GuildInviteCard(
@@ -232,9 +228,7 @@ class _InviteNotFound extends StatelessWidget {
       l10n.embedInviteUnknownSubtitle,
       style: TextStyle(color: context.colors.textTertiaryMuted, fontSize: 12),
     ),
-    footer: FluxerButton.primary(
-      label: l10n.embedInviteUnavailable,
-    ),
+    footer: FluxerButton.primary(label: l10n.embedInviteUnavailable),
   );
 }
 
