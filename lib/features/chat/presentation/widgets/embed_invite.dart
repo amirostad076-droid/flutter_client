@@ -32,7 +32,6 @@ class EmbedInvite extends ConsumerWidget {
         title: const _SkeletonBar(width: 120),
         stats: const _SkeletonBar(width: 160),
         footer: FluxerButton.primary(
-          onPressed: null,
           label: l10n.embedInviteJoin,
         ),
       ),
@@ -43,7 +42,6 @@ class EmbedInvite extends ConsumerWidget {
           title: const _SkeletonBar(width: 120),
           stats: const _SkeletonBar(width: 160),
           footer: FluxerButton.primary(
-            onPressed: null,
             label: l10n.embedInviteJoin,
           ),
         ),
@@ -235,7 +233,6 @@ class _InviteNotFound extends StatelessWidget {
       style: TextStyle(color: context.colors.textTertiaryMuted, fontSize: 12),
     ),
     footer: FluxerButton.primary(
-      onPressed: null,
       label: l10n.embedInviteUnavailable,
     ),
   );

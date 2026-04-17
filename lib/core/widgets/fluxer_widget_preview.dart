@@ -29,7 +29,7 @@ class _PreviewAppWrapper extends StatelessWidget {
   final Widget child;
 
   static final FluxerLayoutTheme _layoutTheme = FluxerLayoutTheme.scaled(
-    scaleFactor: 1.0,
+    
   );
   static final FluxerColorTheme _colorTheme = buildDarkColorTheme();
   static final FluxerTextTheme _textTheme = FluxerTextTheme.fromColors(
@@ -39,7 +39,6 @@ class _PreviewAppWrapper extends StatelessWidget {
     colorTheme: _colorTheme,
     textTheme: _textTheme,
     layoutTheme: _layoutTheme,
-    brightness: Brightness.dark,
   );
 
   @override

@@ -565,7 +565,6 @@ class Message {
       authorName: row.authorName.isNotEmpty ? row.authorName : row.authorId,
       authorAvatar: row.authorAvatar,
       authorAvatarColor: row.authorAvatarColor,
-      authorIsBot: false,
       content: row.content,
       timestamp: row.timestamp,
       editedTimestamp: row.editedTimestamp,

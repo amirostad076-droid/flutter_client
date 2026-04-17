@@ -89,7 +89,6 @@ Widget fluxerWarningAlertInfoPreview() {
 Widget fluxerWarningAlertWarningPreview() {
   return const FluxerWarningAlert(
     message: 'This action may have unintended consequences.',
-    variant: FluxerAlertVariant.warning,
   );
 }
 

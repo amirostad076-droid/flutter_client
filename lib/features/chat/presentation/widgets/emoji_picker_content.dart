@@ -742,7 +742,6 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
               memCacheHeight: 32,
               fadeInDuration: Duration.zero,
               fadeOutDuration: Duration.zero,
-              filterQuality: FilterQuality.low,
               fit: BoxFit.contain,
               placeholder: (_, _) => const SizedBox(width: 32, height: 32),
             ),
@@ -997,7 +996,6 @@ class _RetryEmojiImageState extends State<_RetryEmojiImage> {
     memCacheHeight: widget.size.toInt(),
     fadeInDuration: Duration.zero,
     fadeOutDuration: Duration.zero,
-    filterQuality: FilterQuality.low,
     fit: BoxFit.contain,
     placeholder: (_, _) => SizedBox(width: widget.size, height: widget.size),
     errorBuilder: (_, _, _) {

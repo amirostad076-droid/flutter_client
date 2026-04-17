@@ -40,7 +40,6 @@ class EmbedTheme extends StatelessWidget {
         ),
       ),
       footer: FluxerButton.dangerPrimary(
-        onPressed: null,
         label: l10n.embedThemeUnavailableButton,
       ),
     );

@@ -70,7 +70,7 @@ class FluxerSwitchGroupItem extends StatelessWidget {
               ? colors.backgroundModifierHover.withValues(alpha: 0.5)
               : Colors.transparent,
           constraints: const BoxConstraints(minHeight: 68),
-          padding: EdgeInsets.symmetric(horizontal: 0, vertical: layout.s3),
+          padding: EdgeInsets.symmetric(vertical: layout.s3),
           child: Row(
             children: [
               Expanded(

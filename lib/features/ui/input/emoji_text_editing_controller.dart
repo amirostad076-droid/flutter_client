@@ -202,8 +202,7 @@ class EmojiTextEditingController extends TextEditingController {
   @override
   TextSpan buildTextSpan({
     required BuildContext context,
-    TextStyle? style,
-    required bool withComposing,
+    required bool withComposing, TextStyle? style,
   }) {
     final children = <InlineSpan>[];
     final buffer = StringBuffer();

@@ -2,7 +2,7 @@ import 'package:fluxer_markdown/src/config/fluxer_markdown_config.dart';
 import 'package:markdown/markdown.dart' as md;
 
 class FluxerUnderlineSyntax extends md.InlineSyntax {
-  FluxerUnderlineSyntax() : super(r'(?<!_)__(?!_)(.+?)(?<!_)__(?!_)');
+  FluxerUnderlineSyntax() : super('(?<!_)__(?!_)(.+?)(?<!_)__(?!_)');
 
   static const tag = 'underline';
 

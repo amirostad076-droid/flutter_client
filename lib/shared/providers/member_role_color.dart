@@ -5,7 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:riverpod/src/providers/future_provider.dart';
 
 int? _opaqueRoleColorValue(int? color) {
   if (color == null || color == 0) {
@@ -35,7 +35,7 @@ Color? _resolveMemberRoleColor(
 ///
 /// Checks the local DB first; if the member is missing,
 /// fetches from the REST API and caches the result.
-final memberRoleColorProvider = FutureProvider.autoDispose
+final FutureProviderFamily<Color?, (String, String)> memberRoleColorProvider = FutureProvider.autoDispose
     .family<Color?, (String, String)>((ref, args) async {
       final (userId, guildId) = args;
       final database = ref.watch(fluxerDatabaseProvider);

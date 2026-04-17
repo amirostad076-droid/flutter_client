@@ -243,7 +243,6 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
                     layout.s3,
                   ),
                   child: FluxerButton.primary(
-                    onPressed: null,
                     label: l10n.profilePreviewMessage,
                     icon: PhosphorIconsFill.chatTeardrop,
                     size: FluxerButtonSize.small,

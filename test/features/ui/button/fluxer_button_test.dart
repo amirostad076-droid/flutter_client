@@ -152,7 +152,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         buildTestApp(
-          const FluxerButton.primary(onPressed: null, label: 'Disabled'),
+          const FluxerButton.primary(label: 'Disabled'),
         ),
       );
 

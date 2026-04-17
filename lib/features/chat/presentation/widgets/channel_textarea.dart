@@ -91,7 +91,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         if (pending == null) {
           return;
         }
-        ref.read(pendingEmojiInsertProvider.notifier)..consume();
+        ref.read(pendingEmojiInsertProvider.notifier).consume();
         _insertEmoji(pending.name, pending.surrogates);
       },
     );

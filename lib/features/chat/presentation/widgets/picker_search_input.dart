@@ -75,7 +75,7 @@ class PickerSearchInput extends StatelessWidget {
                       height: 1.2,
                     ),
                     prefixIcon: Padding(
-                      padding: const EdgeInsets.only(left: 10, right: 0),
+                      padding: const EdgeInsets.only(left: 10),
                       child: Icon(
                         PhosphorIconsRegular.magnifyingGlass,
                         size: 18,
@@ -102,21 +102,18 @@ class PickerSearchInput extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                       borderSide: BorderSide(
                         color: colors.backgroundModifierAccent,
-                        width: 1,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
                       borderSide: BorderSide(
                         color: colors.backgroundModifierAccent,
-                        width: 1,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
                       borderSide: BorderSide(
                         color: colors.backgroundModifierAccentFocus,
-                        width: 1,
                       ),
                     ),
                   ),

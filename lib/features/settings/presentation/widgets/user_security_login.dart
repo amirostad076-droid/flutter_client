@@ -156,7 +156,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       children: [
         if (!s.hasVerifiedEmail) ...[
           FluxerWarningAlert(
-            variant: FluxerAlertVariant.warning,
             message: l10n.securityLoginNoEmailSet,
           ),
           FluxerButton.primary(
@@ -274,7 +273,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
         description: l10n.securityTfaSectionDescription,
         children: [
           FluxerWarningAlert(
-            variant: FluxerAlertVariant.warning,
             message: l10n.securityVerifyEmailRequired,
           ),
         ],
@@ -606,7 +604,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
               ? FluxerTooltip(
                   message: l10n.securitySmsDisabledForPartners,
                   child: FluxerButton.primary(
-                    onPressed: null,
                     label: l10n.enable,
                     size: FluxerButtonSize.small,
                   ),
@@ -718,7 +715,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
 
         if (constraints.maxWidth >= 500) {
           return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: Column(

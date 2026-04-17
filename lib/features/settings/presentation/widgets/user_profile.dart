@@ -872,7 +872,6 @@ class _UserProfileState extends ConsumerState<UserProfile> {
               FluxerTooltip(
                 message: l10n.claimAccountToChangeFluxerTag,
                 child: FluxerButton.primary(
-                  onPressed: null,
                   label: l10n.changeFluxerTag,
                   size: FluxerButtonSize.small,
                 ),

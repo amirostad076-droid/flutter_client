@@ -2954,7 +2954,6 @@ class _GuildListItemState extends State<_GuildListItem> {
                 return const FluxerButton.secondary(
                   fitContent: true,
                   size: FluxerButtonSize.compact,
-                  onPressed: null,
                   label: 'Sent',
                 );
               }

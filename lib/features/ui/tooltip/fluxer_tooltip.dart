@@ -209,8 +209,8 @@ class _FluxerTooltipState extends State<FluxerTooltip>
 
 @FluxerWidgetPreview(name: 'Text', group: 'FluxerTooltip')
 Widget fluxerTooltipTextPreview() {
-  return FluxerTooltip(
+  return const FluxerTooltip(
     message: 'This action cannot be undone.',
-    child: const Text('Hover or long-press'),
+    child: Text('Hover or long-press'),
   );
 }

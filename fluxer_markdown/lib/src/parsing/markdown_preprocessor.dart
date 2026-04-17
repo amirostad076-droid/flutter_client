@@ -66,7 +66,7 @@ String _trimInlineMarkerSpacing(String text, String marker) {
   final markerChar = RegExp.escape(marker[0]);
   final escapedMarker = RegExp.escape(marker);
   final pattern = RegExp(
-    '(^|\\s)'
+    r'(^|\s)'
     '(?<!\\\\)(?<!$markerChar)$escapedMarker(?!$markerChar)'
     r'(\s+)'
     r'([^\n]+?)'

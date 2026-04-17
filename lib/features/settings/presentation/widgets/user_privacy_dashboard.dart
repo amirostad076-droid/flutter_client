@@ -673,7 +673,7 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
                   SizedBox(height: layout.s1),
                   _infoListItem(
                     colors,
-                    "Communities \u2013 basic metadata about "
+                    'Communities \u2013 basic metadata about '
                     "communities you're in",
                   ),
                   SizedBox(height: layout.s1),
