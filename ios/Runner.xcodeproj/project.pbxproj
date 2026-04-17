@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -21,6 +21,11 @@
 		FB0ADAC52F5C91D70078A4D4 /* ApplePushBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0ADAC42F5C91D70078A4D4 /* ApplePushBridge.swift */; };
 		FBA74A012F83B0FA00330527 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBA74A002F83B0FA00330527 /* ReplayKit.framework */; };
 		FBA74A082F83B0FA00330527 /* BroadcastExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FBA749FF2F83B0FA00330527 /* BroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FBA74A263F83B0FA00330527 /* Atomic.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA74A203F83B0FA00330527 /* Atomic.swift */; };
+		FBA74A273F83B0FA00330527 /* DarwinNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA74A213F83B0FA00330527 /* DarwinNotificationCenter.swift */; };
+		FBA74A283F83B0FA00330527 /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA74A233F83B0FA00330527 /* SampleHandler.swift */; };
+		FBA74A293F83B0FA00330527 /* SampleUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA74A243F83B0FA00330527 /* SampleUploader.swift */; };
+		FBA74A2A3F83B0FA00330527 /* SocketConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA74A253F83B0FA00330527 /* SocketConnection.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -112,22 +117,14 @@
 		FB0ADAC42F5C91D70078A4D4 /* ApplePushBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePushBridge.swift; sourceTree = "<group>"; };
 		FBA749FF2F83B0FA00330527 /* BroadcastExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BroadcastExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FBA74A002F83B0FA00330527 /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
+		FBA74A203F83B0FA00330527 /* Atomic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atomic.swift; sourceTree = "<group>"; };
+		FBA74A213F83B0FA00330527 /* DarwinNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarwinNotificationCenter.swift; sourceTree = "<group>"; };
+		FBA74A223F83B0FA00330527 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FBA74A233F83B0FA00330527 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
+		FBA74A243F83B0FA00330527 /* SampleUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleUploader.swift; sourceTree = "<group>"; };
+		FBA74A253F83B0FA00330527 /* SocketConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketConnection.swift; sourceTree = "<group>"; };
 		FD58880BB4495395298E1AE8 /* Pods-RunnerTests.release-stable.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release-stable.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release-stable.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		FBA74A162F83B0FA00330527 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = FBA749FE2F83B0FA00330527 /* BroadcastExtension */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		FBA74A022F83B0FA00330527 /* BroadcastExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (FBA74A162F83B0FA00330527 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BroadcastExtension; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		2F0ADEEEFF81E6E6FAAF3A1B /* Frameworks */ = {
@@ -175,6 +172,19 @@
 				9740EEB31CF90195004384FC /* Generated.xcconfig */,
 			);
 			name = Flutter;
+			sourceTree = "<group>";
+		};
+		FBA74A022F83B0FA00330527 /* BroadcastExtension */ = {
+			isa = PBXGroup;
+			children = (
+				FBA74A203F83B0FA00330527 /* Atomic.swift */,
+				FBA74A213F83B0FA00330527 /* DarwinNotificationCenter.swift */,
+				FBA74A223F83B0FA00330527 /* Info.plist */,
+				FBA74A233F83B0FA00330527 /* SampleHandler.swift */,
+				FBA74A243F83B0FA00330527 /* SampleUploader.swift */,
+				FBA74A253F83B0FA00330527 /* SocketConnection.swift */,
+			);
+			path = BroadcastExtension;
 			sourceTree = "<group>";
 		};
 		97C146E51CF9000F007C117D = {
@@ -318,9 +328,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				FBA74A022F83B0FA00330527 /* BroadcastExtension */,
 			);
 			name = BroadcastExtension;
 			productName = BroadcastExtension;
@@ -544,6 +551,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FBA74A263F83B0FA00330527 /* Atomic.swift in Sources */,
+				FBA74A273F83B0FA00330527 /* DarwinNotificationCenter.swift in Sources */,
+				FBA74A283F83B0FA00330527 /* SampleHandler.swift in Sources */,
+				FBA74A293F83B0FA00330527 /* SampleUploader.swift in Sources */,
+				FBA74A2A3F83B0FA00330527 /* SocketConnection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
