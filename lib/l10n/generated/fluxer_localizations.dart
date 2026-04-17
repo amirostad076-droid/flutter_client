@@ -3321,6 +3321,168 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Copy User ID'**
   String get blockedUsersCopyId;
+
+  /// Empty-state title shown when the user profile sheet fails to fetch.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load profile'**
+  String get userProfileLoadError;
+
+  /// Retry button on the profile load-error state.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get userProfileRetry;
+
+  /// Action card label that opens a DM with the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get userProfileMessage;
+
+  /// Action card label shown on the current user's own profile sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get userProfileEditProfile;
+
+  /// Title of the confirmation sheet shown when opening a DM with a blocked user.
+  ///
+  /// In en, this message translates to:
+  /// **'Open DM'**
+  String get userProfileOpenBlockedDmTitle;
+
+  /// Body of the open-DM-while-blocked confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'You blocked {username}. You won\'t be able to send messages unless you unblock them.'**
+  String userProfileOpenBlockedDmDescription(String username);
+
+  /// Primary button label on the open-DM-while-blocked confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Open DM'**
+  String get userProfileOpenDm;
+
+  /// Note section title on the profile sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get userProfileNoteTitle;
+
+  /// Subtitle clarifying the note is private.
+  ///
+  /// In en, this message translates to:
+  /// **'(only visible to you)'**
+  String get userProfileNoteVisibility;
+
+  /// Save button in the note editor sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get userProfileNoteSave;
+
+  /// Delete button in the note editor sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get userProfileNoteDelete;
+
+  /// Hint text when no note has been written yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to add a note'**
+  String get userProfileNoteEmpty;
+
+  /// Header of the member-since section in the bio card.
+  ///
+  /// In en, this message translates to:
+  /// **'Member Since'**
+  String get userProfileMemberSince;
+
+  /// Header of the bio section in the bio card.
+  ///
+  /// In en, this message translates to:
+  /// **'About Me'**
+  String get userProfileAboutMe;
+
+  /// Three-dot menu item: copy username#discriminator to clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Username'**
+  String get userProfileCopyUsername;
+
+  /// Three-dot menu item: copy user snowflake to clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy User ID'**
+  String get userProfileCopyUserId;
+
+  /// Three-dot menu item to block the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Block User'**
+  String get userProfileBlockUser;
+
+  /// Three-dot menu item to unblock the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock User'**
+  String get userProfileUnblockUser;
+
+  /// Three-dot menu item to remove the friendship.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Friend'**
+  String get userProfileRemoveFriend;
+
+  /// Confirmation sheet title before blocking a user.
+  ///
+  /// In en, this message translates to:
+  /// **'Block User'**
+  String get userProfileBlockConfirmTitle;
+
+  /// Confirmation sheet body before blocking a user.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to block {username}?'**
+  String userProfileBlockConfirmDescription(String username);
+
+  /// Confirmation sheet title before unblocking a user.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock User'**
+  String get userProfileUnblockConfirmTitle;
+
+  /// Confirmation sheet body before unblocking a user.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to unblock {username}?'**
+  String userProfileUnblockConfirmDescription(String username);
+
+  /// Confirmation sheet title before removing a friend.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Friend'**
+  String get userProfileRemoveFriendConfirmTitle;
+
+  /// Confirmation sheet body before removing a friend.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove {username} as a friend?'**
+  String userProfileRemoveFriendConfirmDescription(String username);
+
+  /// Toast shown when opening a DM channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to open DM'**
+  String get userProfileFailedOpenDm;
+
+  /// Toast shown when saving the user note fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save note'**
+  String get userProfileFailedSaveNote;
 }
 
 class _FluxerLocalizationsDelegate

@@ -1880,4 +1880,93 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get blockedUsersCopyId => 'Copy User ID';
+
+  @override
+  String get userProfileLoadError => 'Couldn\'t load profile';
+
+  @override
+  String get userProfileRetry => 'Retry';
+
+  @override
+  String get userProfileMessage => 'Message';
+
+  @override
+  String get userProfileEditProfile => 'Edit Profile';
+
+  @override
+  String get userProfileOpenBlockedDmTitle => 'Open DM';
+
+  @override
+  String userProfileOpenBlockedDmDescription(String username) {
+    return 'You blocked $username. You won\'t be able to send messages unless you unblock them.';
+  }
+
+  @override
+  String get userProfileOpenDm => 'Open DM';
+
+  @override
+  String get userProfileNoteTitle => 'Note';
+
+  @override
+  String get userProfileNoteVisibility => '(only visible to you)';
+
+  @override
+  String get userProfileNoteSave => 'Save';
+
+  @override
+  String get userProfileNoteDelete => 'Delete';
+
+  @override
+  String get userProfileNoteEmpty => 'Click to add a note';
+
+  @override
+  String get userProfileMemberSince => 'Member Since';
+
+  @override
+  String get userProfileAboutMe => 'About Me';
+
+  @override
+  String get userProfileCopyUsername => 'Copy Username';
+
+  @override
+  String get userProfileCopyUserId => 'Copy User ID';
+
+  @override
+  String get userProfileBlockUser => 'Block User';
+
+  @override
+  String get userProfileUnblockUser => 'Unblock User';
+
+  @override
+  String get userProfileRemoveFriend => 'Remove Friend';
+
+  @override
+  String get userProfileBlockConfirmTitle => 'Block User';
+
+  @override
+  String userProfileBlockConfirmDescription(String username) {
+    return 'Are you sure you want to block $username?';
+  }
+
+  @override
+  String get userProfileUnblockConfirmTitle => 'Unblock User';
+
+  @override
+  String userProfileUnblockConfirmDescription(String username) {
+    return 'Are you sure you want to unblock $username?';
+  }
+
+  @override
+  String get userProfileRemoveFriendConfirmTitle => 'Remove Friend';
+
+  @override
+  String userProfileRemoveFriendConfirmDescription(String username) {
+    return 'Are you sure you want to remove $username as a friend?';
+  }
+
+  @override
+  String get userProfileFailedOpenDm => 'Failed to open DM';
+
+  @override
+  String get userProfileFailedSaveNote => 'Failed to save note';
 }

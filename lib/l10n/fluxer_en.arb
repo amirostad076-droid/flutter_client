@@ -2353,5 +2353,117 @@
   "blockedUsersCopyId": "Copy User ID",
   "@blockedUsersCopyId": {
     "description": "Context menu item that copies the user's ID."
+  },
+  "userProfileLoadError": "Couldn't load profile",
+  "@userProfileLoadError": {
+    "description": "Empty-state title shown when the user profile sheet fails to fetch."
+  },
+  "userProfileRetry": "Retry",
+  "@userProfileRetry": {
+    "description": "Retry button on the profile load-error state."
+  },
+  "userProfileMessage": "Message",
+  "@userProfileMessage": {
+    "description": "Action card label that opens a DM with the user."
+  },
+  "userProfileEditProfile": "Edit Profile",
+  "@userProfileEditProfile": {
+    "description": "Action card label shown on the current user's own profile sheet."
+  },
+  "userProfileOpenBlockedDmTitle": "Open DM",
+  "@userProfileOpenBlockedDmTitle": {
+    "description": "Title of the confirmation sheet shown when opening a DM with a blocked user."
+  },
+  "userProfileOpenBlockedDmDescription": "You blocked {username}. You won't be able to send messages unless you unblock them.",
+  "@userProfileOpenBlockedDmDescription": {
+    "description": "Body of the open-DM-while-blocked confirmation.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileOpenDm": "Open DM",
+  "@userProfileOpenDm": {
+    "description": "Primary button label on the open-DM-while-blocked confirmation."
+  },
+  "userProfileNoteTitle": "Note",
+  "@userProfileNoteTitle": {
+    "description": "Note section title on the profile sheet."
+  },
+  "userProfileNoteVisibility": "(only visible to you)",
+  "@userProfileNoteVisibility": {
+    "description": "Subtitle clarifying the note is private."
+  },
+  "userProfileNoteSave": "Save",
+  "@userProfileNoteSave": {
+    "description": "Save button in the note editor sheet."
+  },
+  "userProfileNoteDelete": "Delete",
+  "@userProfileNoteDelete": {
+    "description": "Delete button in the note editor sheet."
+  },
+  "userProfileNoteEmpty": "Click to add a note",
+  "@userProfileNoteEmpty": {
+    "description": "Hint text when no note has been written yet."
+  },
+  "userProfileMemberSince": "Member Since",
+  "@userProfileMemberSince": {
+    "description": "Header of the member-since section in the bio card."
+  },
+  "userProfileAboutMe": "About Me",
+  "@userProfileAboutMe": {
+    "description": "Header of the bio section in the bio card."
+  },
+  "userProfileCopyUsername": "Copy Username",
+  "@userProfileCopyUsername": {
+    "description": "Three-dot menu item: copy username#discriminator to clipboard."
+  },
+  "userProfileCopyUserId": "Copy User ID",
+  "@userProfileCopyUserId": {
+    "description": "Three-dot menu item: copy user snowflake to clipboard."
+  },
+  "userProfileBlockUser": "Block User",
+  "@userProfileBlockUser": {
+    "description": "Three-dot menu item to block the user."
+  },
+  "userProfileUnblockUser": "Unblock User",
+  "@userProfileUnblockUser": {
+    "description": "Three-dot menu item to unblock the user."
+  },
+  "userProfileRemoveFriend": "Remove Friend",
+  "@userProfileRemoveFriend": {
+    "description": "Three-dot menu item to remove the friendship."
+  },
+  "userProfileBlockConfirmTitle": "Block User",
+  "@userProfileBlockConfirmTitle": {
+    "description": "Confirmation sheet title before blocking a user."
+  },
+  "userProfileBlockConfirmDescription": "Are you sure you want to block {username}?",
+  "@userProfileBlockConfirmDescription": {
+    "description": "Confirmation sheet body before blocking a user.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileUnblockConfirmTitle": "Unblock User",
+  "@userProfileUnblockConfirmTitle": {
+    "description": "Confirmation sheet title before unblocking a user."
+  },
+  "userProfileUnblockConfirmDescription": "Are you sure you want to unblock {username}?",
+  "@userProfileUnblockConfirmDescription": {
+    "description": "Confirmation sheet body before unblocking a user.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileRemoveFriendConfirmTitle": "Remove Friend",
+  "@userProfileRemoveFriendConfirmTitle": {
+    "description": "Confirmation sheet title before removing a friend."
+  },
+  "userProfileRemoveFriendConfirmDescription": "Are you sure you want to remove {username} as a friend?",
+  "@userProfileRemoveFriendConfirmDescription": {
+    "description": "Confirmation sheet body before removing a friend.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileFailedOpenDm": "Failed to open DM",
+  "@userProfileFailedOpenDm": {
+    "description": "Toast shown when opening a DM channel fails."
+  },
+  "userProfileFailedSaveNote": "Failed to save note",
+  "@userProfileFailedSaveNote": {
+    "description": "Toast shown when saving the user note fails."
   }
 }
