@@ -82,23 +82,38 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           rm -f $RUNNER_TEMP/cert.p12
 
-      - name: Install provisioning profile
+      - name: Install provisioning profiles
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+          BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64: ${{ secrets.BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64 }}
         run: |
           PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILES_DIR"
           echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILES_DIR/profile.mobileprovision"
+          if [ -n "$BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64" ]; then
+            echo "$BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILES_DIR/broadcast_extension.mobileprovision"
+          else
+            cp "$PROFILES_DIR/profile.mobileprovision" "$PROFILES_DIR/broadcast_extension.mobileprovision"
+          fi
           PROFILE_UUID=$(security cms -D -i "$PROFILES_DIR/profile.mobileprovision" | plutil -extract UUID raw -)
           PROFILE_NAME=$(security cms -D -i "$PROFILES_DIR/profile.mobileprovision" | plutil -extract Name raw -)
           PROFILE_TEAM_ID=$(security cms -D -i "$PROFILES_DIR/profile.mobileprovision" | plutil -extract TeamIdentifier.0 raw -)
           IS_DEVELOPMENT_PROFILE=$(security cms -D -i "$PROFILES_DIR/profile.mobileprovision" | plutil -extract Entitlements.get-task-allow raw - 2>/dev/null || echo "false")
+          BROADCAST_EXTENSION_PROFILE_UUID=$(security cms -D -i "$PROFILES_DIR/broadcast_extension.mobileprovision" | plutil -extract UUID raw -)
+          BROADCAST_EXTENSION_PROFILE_NAME=$(security cms -D -i "$PROFILES_DIR/broadcast_extension.mobileprovision" | plutil -extract Name raw -)
+          IS_BROADCAST_EXTENSION_DEVELOPMENT_PROFILE=$(security cms -D -i "$PROFILES_DIR/broadcast_extension.mobileprovision" | plutil -extract Entitlements.get-task-allow raw - 2>/dev/null || echo "false")
           echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
           echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
           echo "PROFILE_TEAM_ID=$PROFILE_TEAM_ID" >> $GITHUB_ENV
+          echo "BROADCAST_EXTENSION_PROFILE_UUID=$BROADCAST_EXTENSION_PROFILE_UUID" >> $GITHUB_ENV
           echo "::notice::Provisioning profile metadata - name: $PROFILE_NAME, uuid: $PROFILE_UUID, team: $PROFILE_TEAM_ID, development: $IS_DEVELOPMENT_PROFILE"
+          echo "::notice::Broadcast extension profile metadata - name: $BROADCAST_EXTENSION_PROFILE_NAME, uuid: $BROADCAST_EXTENSION_PROFILE_UUID, development: $IS_BROADCAST_EXTENSION_DEVELOPMENT_PROFILE"
           if [ "$IS_DEVELOPMENT_PROFILE" = "true" ]; then
             echo "::error::Provisioning profile is Development type. Use an App Store distribution profile."
+            exit 1
+          fi
+          if [ "$IS_BROADCAST_EXTENSION_DEVELOPMENT_PROFILE" = "true" ]; then
+            echo "::error::Broadcast extension provisioning profile is Development type. Use an App Store distribution profile."
             exit 1
           fi
 
