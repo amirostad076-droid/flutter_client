@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -116,7 +116,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		FBA74A162F83B0FA00330527 /* Exceptions for "BroadcastExtension" folder in "BroadcastExtension" target */ = {
+		FBA74A162F83B0FA00330527 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -126,18 +126,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		FBA74A022F83B0FA00330527 /* BroadcastExtension */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				FBA74A162F83B0FA00330527 /* Exceptions for "BroadcastExtension" folder in "BroadcastExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = BroadcastExtension;
-			sourceTree = "<group>";
-		};
+		FBA74A022F83B0FA00330527 /* BroadcastExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (FBA74A162F83B0FA00330527 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BroadcastExtension; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -495,9 +484,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -512,9 +505,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -677,6 +674,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.parakeetsoft.fluxer_app.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -695,6 +693,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.parakeetsoft.fluxer_app.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -711,6 +710,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.parakeetsoft.fluxer_app.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1171,6 +1171,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 54B5F69891A808A2982536F3 /* Pods-RunnerTests.debug-canary.xcconfig */;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = RunnerTests;
 			};
 			name = "Debug-canary";
@@ -1179,6 +1180,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 52A13F4ABC9779741F77C09D /* Pods-RunnerTests.debug-stable.xcconfig */;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = RunnerTests;
 			};
 			name = "Debug-stable";
@@ -1187,6 +1189,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7318F822EA4964C7B0F58847 /* Pods-RunnerTests.debug-beta.xcconfig */;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = RunnerTests;
 			};
 			name = "Debug-beta";
@@ -1195,6 +1198,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 35C33869E199AFDBEFD8ABB7 /* Pods-RunnerTests.release-canary.xcconfig */;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = RunnerTests;
 			};
 			name = "Release-canary";
@@ -1203,6 +1207,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = FD58880BB4495395298E1AE8 /* Pods-RunnerTests.release-stable.xcconfig */;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = RunnerTests;
 			};
 			name = "Release-stable";
@@ -1211,6 +1216,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 0C35AB7B31433FBA527EF547 /* Pods-RunnerTests.release-beta.xcconfig */;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = RunnerTests;
 			};
 			name = "Release-beta";
@@ -1219,6 +1225,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8E535D3223D7997B1F27DF7C /* Pods-RunnerTests.profile-canary.xcconfig */;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = RunnerTests;
 			};
 			name = "Profile-canary";
@@ -1227,6 +1234,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E6A7B568B45862F9F5F2219A /* Pods-RunnerTests.profile-stable.xcconfig */;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = RunnerTests;
 			};
 			name = "Profile-stable";
@@ -1235,6 +1243,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 323C4FE138C3CFF89A4B107B /* Pods-RunnerTests.profile-beta.xcconfig */;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = RunnerTests;
 			};
 			name = "Profile-beta";
@@ -1257,7 +1266,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1299,7 +1308,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1341,7 +1350,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1383,7 +1392,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1425,7 +1434,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1464,7 +1473,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1503,7 +1512,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1542,7 +1551,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1581,7 +1590,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1620,7 +1629,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1659,7 +1668,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1698,7 +1707,7 @@
 				INFOPLIST_FILE = BroadcastExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BroadcastExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
