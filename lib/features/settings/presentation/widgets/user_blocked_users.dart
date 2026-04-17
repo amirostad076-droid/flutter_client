@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart'
     show fluxerMediaCdn;
+import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/blocked_users_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -229,40 +230,44 @@ class _BlockedUserCard extends StatelessWidget {
     final colors = context.colors;
     final layout = context.layout;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.backgroundSecondary,
-        border: Border.all(color: colors.borderColor),
-        borderRadius: layout.radiusMd,
-      ),
-      padding: EdgeInsets.all(layout.s3),
-      child: Row(
-        children: [
-          FluxerAvatar.user(
-            fallbackText: friend.displayName,
-            userId: friend.id,
-            imageUrl: _avatarUrl(),
-            avatarColor: friend.avatarColor,
-            showStatus: false,
-          ),
-          SizedBox(width: layout.s3),
-          Expanded(child: _buildName(context, colors)),
-          SizedBox(width: layout.s2),
-          FluxerButton.secondary(
-            label: FluxerLocalizations.of(context).blockedUsersUnblock,
-            size: FluxerButtonSize.compact,
-            fitContent: true,
-            onPressed: onUnblock,
-          ),
-          SizedBox(width: layout.s2),
-          FluxerButton.secondary(
-            key: _moreButtonKey,
-            icon: PhosphorIconsBold.dotsThreeVertical,
-            isSquare: true,
-            size: FluxerButtonSize.compact,
-            onPressed: _emitMorePosition,
-          ),
-        ],
+    return FluxerTappable(
+      onTap: () =>
+          FluxerUserProfileSheet.show(context, userId: friend.id),
+      builder: (context, _) => Container(
+        decoration: BoxDecoration(
+          color: colors.backgroundSecondary,
+          border: Border.all(color: colors.borderColor),
+          borderRadius: layout.radiusMd,
+        ),
+        padding: EdgeInsets.all(layout.s3),
+        child: Row(
+          children: [
+            FluxerAvatar.user(
+              fallbackText: friend.displayName,
+              userId: friend.id,
+              imageUrl: _avatarUrl(),
+              avatarColor: friend.avatarColor,
+              showStatus: false,
+            ),
+            SizedBox(width: layout.s3),
+            Expanded(child: _buildName(context, colors)),
+            SizedBox(width: layout.s2),
+            FluxerButton.secondary(
+              label: FluxerLocalizations.of(context).blockedUsersUnblock,
+              size: FluxerButtonSize.compact,
+              fitContent: true,
+              onPressed: onUnblock,
+            ),
+            SizedBox(width: layout.s2),
+            FluxerButton.secondary(
+              key: _moreButtonKey,
+              icon: PhosphorIconsBold.dotsThreeVertical,
+              isSquare: true,
+              size: FluxerButtonSize.compact,
+              onPressed: _emitMorePosition,
+            ),
+          ],
+        ),
       ),
     );
   }
