@@ -3,6 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
+/// Vertical density of the section's children.
+///
+/// Use [comfortable] for form fields and complex cards (the default).
+/// Use [compact] for flat tile/card lists where rows should sit close together.
+enum FluxerSettingsSectionDensity { comfortable, compact }
+
 class FluxerSettingsSection extends StatelessWidget {
   const FluxerSettingsSection({
     required this.title,
@@ -10,18 +16,25 @@ class FluxerSettingsSection extends StatelessWidget {
     super.key,
     this.description,
     this.isFirst = false,
+    this.density = FluxerSettingsSectionDensity.comfortable,
   });
 
   final String title;
   final String? description;
   final bool isFirst;
   final List<Widget> children;
+  final FluxerSettingsSectionDensity density;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final textStyles = context.textStyles;
     final layout = context.layout;
+
+    final childGap = switch (density) {
+      FluxerSettingsSectionDensity.comfortable => layout.s8,
+      FluxerSettingsSectionDensity.compact => layout.s2,
+    };
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,7 +58,7 @@ class FluxerSettingsSection extends StatelessWidget {
         SizedBox(height: layout.s4),
         for (int i = 0; i < children.length; i++) ...[
           children[i],
-          if (i < children.length - 1) SizedBox(height: layout.s8),
+          if (i < children.length - 1) SizedBox(height: childGap),
         ],
         SizedBox(height: layout.s8),
       ],
@@ -60,5 +73,21 @@ Widget fluxerSettingsSectionPreview() {
     description: 'Control who can send you friend requests and direct messages',
     isFirst: true,
     children: [Text('Subsection content goes here')],
+  );
+}
+
+@FluxerWidgetPreview(name: 'Compact', group: 'FluxerSettingsSection')
+Widget fluxerSettingsSectionCompactPreview() {
+  return const FluxerSettingsSection(
+    title: 'Blocked Users',
+    description: "Blocked users can't send you friend requests or message you "
+        'directly.',
+    isFirst: true,
+    density: FluxerSettingsSectionDensity.compact,
+    children: [
+      Text('Row 1'),
+      Text('Row 2'),
+      Text('Row 3'),
+    ],
   );
 }
