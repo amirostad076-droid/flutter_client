@@ -6,6 +6,7 @@ enum FriendStatus { accepted, pendingIncoming, pendingOutgoing, blocked }
 class Friend {
   final String id;
   final String username;
+  final String discriminator;
   final String? globalName;
   final String? avatar;
   final int? avatarColor;
@@ -19,6 +20,7 @@ class Friend {
     required this.id,
     required this.username,
     required this.friendStatus,
+    this.discriminator = '0',
     this.globalName,
     this.avatar,
     this.avatarColor,
@@ -32,6 +34,7 @@ class Friend {
     return Friend(
       id: sdk.user.id,
       username: sdk.user.username,
+      discriminator: sdk.user.discriminator,
       globalName: sdk.user.globalName,
       avatar: sdk.user.avatar,
       avatarColor: sdk.user.avatarColor,
@@ -45,6 +48,7 @@ class Friend {
     return Friend(
       id: row.userId,
       username: user?.username ?? 'Unknown',
+      discriminator: user?.discriminator ?? '0',
       globalName: user?.globalName,
       avatar: user?.avatar,
       avatarColor: user?.avatarColor,
@@ -57,6 +61,7 @@ class Friend {
   }
 
   String get displayName => globalName ?? username;
+  String get tag => '$username#$discriminator';
 
   static FriendStatus _mapType(RelationshipTypes type) => switch (type) {
     RelationshipTypes.friend => FriendStatus.accepted,
