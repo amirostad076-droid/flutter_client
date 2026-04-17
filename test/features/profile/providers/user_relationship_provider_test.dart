@@ -13,8 +13,7 @@ class _FakeFriendRepository implements FriendRepository {
   Stream<List<Friend>> watchRelationships() => Stream.value(_friends);
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -39,8 +38,9 @@ void main() {
     );
     addTearDown(sub.close);
 
-    final result = await container
-        .read(userRelationshipProvider(userId: '123').future);
+    final result = await container.read(
+      userRelationshipProvider(userId: '123').future,
+    );
     expect(result?.id, '123');
     expect(result?.friendStatus, FriendStatus.blocked);
   });
@@ -61,8 +61,9 @@ void main() {
     );
     addTearDown(sub.close);
 
-    final result = await container
-        .read(userRelationshipProvider(userId: 'missing').future);
+    final result = await container.read(
+      userRelationshipProvider(userId: 'missing').future,
+    );
     expect(result, isNull);
   });
 }

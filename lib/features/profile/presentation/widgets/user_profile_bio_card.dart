@@ -71,9 +71,7 @@ class UserProfileBioCard extends StatelessWidget {
               SizedBox(height: layout.s2),
               Text(
                 DateFormat.yMMMd().format(memberSince.toLocal()),
-                style: textStyles.bodySmall.copyWith(
-                  color: colors.textChat,
-                ),
+                style: textStyles.bodySmall.copyWith(color: colors.textChat),
               ),
             ],
           ],

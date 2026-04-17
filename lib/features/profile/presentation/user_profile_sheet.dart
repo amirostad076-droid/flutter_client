@@ -8,7 +8,8 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart' show fluxerMediaCdn;
+import 'package:fluxer_app/features/guilds/domain/guild.dart'
+    show fluxerMediaCdn;
 import 'package:fluxer_app/features/profile/presentation/sheets/user_profile_actions_sheet.dart';
 import 'package:fluxer_app/features/profile/presentation/sheets/user_profile_confirmation_sheet.dart';
 import 'package:fluxer_app/features/profile/presentation/sheets/user_profile_note_edit_sheet.dart';
@@ -372,14 +373,13 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
                             ),
                             SizedBox(width: layout.s2),
                             _MoreButton(
-                              onTap: (position) =>
-                                  UserProfileActionsSheet.show(
-                                    context,
-                                    ref,
-                                    relationship: relationship,
-                                    user: user,
-                                    position: position,
-                                  ),
+                              onTap: (position) => UserProfileActionsSheet.show(
+                                context,
+                                ref,
+                                relationship: relationship,
+                                user: user,
+                                position: position,
+                              ),
                             ),
                           ],
                         ),

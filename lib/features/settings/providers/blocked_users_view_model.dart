@@ -11,9 +11,7 @@ class BlockedUsersViewModel extends _$BlockedUsersViewModel {
     final repo = ref.watch(friendRepositoryProvider);
     return repo.watchRelationships().map((all) {
       final blocked =
-          all
-              .where((f) => f.friendStatus == FriendStatus.blocked)
-              .toList()
+          all.where((f) => f.friendStatus == FriendStatus.blocked).toList()
             ..sort(
               (a, b) => a.displayName.toLowerCase().compareTo(
                 b.displayName.toLowerCase(),

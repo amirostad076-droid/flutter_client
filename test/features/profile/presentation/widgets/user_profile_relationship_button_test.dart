@@ -97,9 +97,7 @@ void main() {
 
     testWidgets('null (stranger) → onSendFriendRequest', (tester) async {
       String? action;
-      await tester.pumpWidget(
-        buildTestApp(_build(record: (a) => action = a)),
-      );
+      await tester.pumpWidget(buildTestApp(_build(record: (a) => action = a)));
       await tester.tap(find.byType(PhosphorIcon));
       expect(action, 'send');
     });

@@ -49,8 +49,7 @@ class UserBlockedUsers extends ConsumerWidget {
             SizedBox(height: layout.s4),
             FluxerButton.primary(
               label: l10n.retry,
-              onPressed: () =>
-                  ref.invalidate(blockedUsersViewModelProvider),
+              onPressed: () => ref.invalidate(blockedUsersViewModelProvider),
             ),
           ],
         ),
@@ -231,8 +230,7 @@ class _BlockedUserCard extends StatelessWidget {
     final layout = context.layout;
 
     return FluxerTappable(
-      onTap: () =>
-          FluxerUserProfileSheet.show(context, userId: friend.id),
+      onTap: () => FluxerUserProfileSheet.show(context, userId: friend.id),
       builder: (context, _) => Container(
         decoration: BoxDecoration(
           color: colors.backgroundSecondary,
@@ -278,9 +276,7 @@ class _BlockedUserCard extends StatelessWidget {
     if (renderBox == null) {
       return;
     }
-    final position = renderBox.localToGlobal(
-      Offset(0, renderBox.size.height),
-    );
+    final position = renderBox.localToGlobal(Offset(0, renderBox.size.height));
     onMoreOptions(position);
   }
 
@@ -297,9 +293,7 @@ class _BlockedUserCard extends StatelessWidget {
           TextSpan(text: friend.username),
           TextSpan(
             text: '#${friend.discriminator}',
-            style: TextStyle(
-              color: colors.textPrimary.withValues(alpha: 0.5),
-            ),
+            style: TextStyle(color: colors.textPrimary.withValues(alpha: 0.5)),
           ),
         ],
       ),

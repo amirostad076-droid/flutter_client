@@ -80,14 +80,11 @@ Widget fluxerSettingsSectionPreview() {
 Widget fluxerSettingsSectionCompactPreview() {
   return const FluxerSettingsSection(
     title: 'Blocked Users',
-    description: "Blocked users can't send you friend requests or message you "
+    description:
+        "Blocked users can't send you friend requests or message you "
         'directly.',
     isFirst: true,
     density: FluxerSettingsSectionDensity.compact,
-    children: [
-      Text('Row 1'),
-      Text('Row 2'),
-      Text('Row 3'),
-    ],
+    children: [Text('Row 1'), Text('Row 2'), Text('Row 3')],
   );
 }

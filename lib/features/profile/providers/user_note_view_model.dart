@@ -9,9 +9,7 @@ class UserNoteViewModel extends _$UserNoteViewModel {
   @override
   Stream<String?> build({required String userId}) {
     final database = ref.watch(fluxerDatabaseProvider);
-    return database.userNotesDao
-        .watchNote(userId)
-        .map((row) => row?.content);
+    return database.userNotesDao.watchNote(userId).map((row) => row?.content);
   }
 
   Future<void> save(String content) async {
@@ -21,10 +19,7 @@ class UserNoteViewModel extends _$UserNoteViewModel {
     }
     final database = ref.read(fluxerDatabaseProvider);
     await database.userNotesDao.upsertNote(
-      UserNotesTableCompanion.insert(
-        targetUserId: userId,
-        content: trimmed,
-      ),
+      UserNotesTableCompanion.insert(targetUserId: userId, content: trimmed),
     );
   }
 

@@ -46,10 +46,7 @@ class UserProfileRelationshipButton extends StatelessWidget {
         icon: PhosphorIconsFill.clockCounterClockwise,
         onTap: onCancelRequest,
       ),
-      null => (
-        icon: PhosphorIconsFill.userPlus,
-        onTap: onSendFriendRequest,
-      ),
+      null => (icon: PhosphorIconsFill.userPlus, onTap: onSendFriendRequest),
     };
   }
 

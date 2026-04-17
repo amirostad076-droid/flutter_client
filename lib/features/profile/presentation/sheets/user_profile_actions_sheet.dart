@@ -115,8 +115,7 @@ class UserProfileActionsSheet {
                 if (ok) {
                   await _runRepoAction(
                     ref,
-                    () =>
-                        ref.read(friendRepositoryProvider).blockUser(user.id),
+                    () => ref.read(friendRepositoryProvider).blockUser(user.id),
                   );
                 }
               },
