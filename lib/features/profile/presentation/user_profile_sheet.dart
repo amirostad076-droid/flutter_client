@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
 import 'package:fluxer_app/core/router/route_names.dart' show RoutePaths;
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
@@ -42,7 +43,6 @@ class FluxerUserProfileSheet {
   static Future<void> show(
     BuildContext context, {
     required String userId,
-    String? guildId,
     bool autoFocusNote = false,
   }) {
     return FluxerBottomSheet.showScrollable<void>(
@@ -125,7 +125,6 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
         return;
       }
     }
-    widget.onClose();
     try {
       final channelId = await ref
           .read(dmRepositoryProvider)
@@ -133,11 +132,10 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
       if (!mounted) {
         return;
       }
+      widget.onClose();
       context.go(RoutePaths.dmChannel(channelId));
-    } on Object {
-      if (!mounted) {
-        return;
-      }
+    } on Object catch (e, st) {
+      talker.error('[UserProfileSheet] Failed to open DM: $e', e, st);
       ref
           .read(toastProvider.notifier)
           .show(
@@ -156,6 +154,7 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
     String? confirmPrimary,
     FluxerButtonVariant? confirmVariant,
   }) async {
+    final l10n = FluxerLocalizations.of(context);
     if (confirmTitle != null) {
       final ok = await UserProfileConfirmationSheet.show(
         context,
@@ -170,29 +169,25 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
     }
     try {
       await repoCall();
-    } on Object catch (e) {
-      if (!mounted) {
-        return;
-      }
+    } on Object catch (e, st) {
+      talker.error('[UserProfileSheet] Relationship action failed: $e', e, st);
       ref
           .read(toastProvider.notifier)
           .show(
             FluxerToast(
-              message: e.toString(),
+              message: l10n.userProfileActionFailed,
               variant: FluxerToastVariant.danger,
             ),
           );
     }
   }
 
-  void _maybeAutoFocusNote() {
-    if (_autoFocusTriggered || !widget.autoFocusNote) {
+  void _maybeAutoFocusNote(AsyncValue<String?> noteAsync) {
+    if (_autoFocusTriggered || !widget.autoFocusNote || !noteAsync.hasValue) {
       return;
     }
     _autoFocusTriggered = true;
-    final initial = ref
-        .read(userNoteViewModelProvider(userId: widget.userId))
-        .value;
+    final initial = noteAsync.value;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -221,7 +216,7 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
     );
     final ownUserId = ref.watch(userSettingsViewModelProvider).userId;
 
-    _maybeAutoFocusNote();
+    _maybeAutoFocusNote(noteAsync);
 
     return profileAsync.when(
       loading: () => const Center(child: FluxerLoadingSpinner()),
@@ -378,6 +373,7 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
                                 ref,
                                 relationship: relationship,
                                 user: user,
+                                isCurrentUser: isCurrentUser,
                                 position: position,
                               ),
                             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/profile/presentation/sheets/user_profile_confirmation_sheet.dart';
@@ -17,6 +18,7 @@ class UserProfileActionsSheet {
     WidgetRef ref, {
     required Friend? relationship,
     required UserProfileFullResponseUser user,
+    required bool isCurrentUser,
     required Offset position,
   }) {
     return FluxerActionMenu.show(
@@ -44,82 +46,88 @@ class UserProfileActionsSheet {
               await Clipboard.setData(ClipboardData(text: user.id));
             },
           ),
-          const FluxerMenuDivider(),
-          if (status == FriendStatus.accepted)
-            FluxerMenuItem(
-              label: l10n.userProfileRemoveFriend,
-              icon: PhosphorIconsFill.userMinus,
-              isDanger: true,
-              onPressed: () async {
-                close();
-                final ok = await UserProfileConfirmationSheet.show(
-                  context,
-                  title: l10n.userProfileRemoveFriendConfirmTitle,
-                  description: l10n.userProfileRemoveFriendConfirmDescription(
-                    user.username,
-                  ),
-                  primaryLabel: l10n.userProfileRemoveFriend,
-                  primaryVariant: FluxerButtonVariant.dangerPrimary,
-                );
-                if (ok) {
-                  await _runRepoAction(
-                    ref,
-                    () => ref
-                        .read(friendRepositoryProvider)
-                        .removeRelationship(user.id),
+          if (!isCurrentUser) ...[
+            const FluxerMenuDivider(),
+            if (status == FriendStatus.accepted)
+              FluxerMenuItem(
+                label: l10n.userProfileRemoveFriend,
+                icon: PhosphorIconsFill.userMinus,
+                isDanger: true,
+                onPressed: () async {
+                  close();
+                  final ok = await UserProfileConfirmationSheet.show(
+                    context,
+                    title: l10n.userProfileRemoveFriendConfirmTitle,
+                    description: l10n.userProfileRemoveFriendConfirmDescription(
+                      user.username,
+                    ),
+                    primaryLabel: l10n.userProfileRemoveFriend,
+                    primaryVariant: FluxerButtonVariant.dangerPrimary,
                   );
-                }
-              },
-            ),
-          if (status == FriendStatus.blocked)
-            FluxerMenuItem(
-              label: l10n.userProfileUnblockUser,
-              icon: PhosphorIconsFill.prohibit,
-              onPressed: () async {
-                close();
-                final ok = await UserProfileConfirmationSheet.show(
-                  context,
-                  title: l10n.userProfileUnblockConfirmTitle,
-                  description: l10n.userProfileUnblockConfirmDescription(
-                    user.username,
-                  ),
-                  primaryLabel: l10n.userProfileUnblockUser,
-                  primaryVariant: FluxerButtonVariant.primary,
-                );
-                if (ok) {
-                  await _runRepoAction(
-                    ref,
-                    () => ref
-                        .read(friendRepositoryProvider)
-                        .removeRelationship(user.id),
+                  if (ok) {
+                    await _runRepoAction(
+                      ref,
+                      l10n.userProfileActionFailed,
+                      () => ref
+                          .read(friendRepositoryProvider)
+                          .removeRelationship(user.id),
+                    );
+                  }
+                },
+              ),
+            if (status == FriendStatus.blocked)
+              FluxerMenuItem(
+                label: l10n.userProfileUnblockUser,
+                icon: PhosphorIconsFill.prohibit,
+                onPressed: () async {
+                  close();
+                  final ok = await UserProfileConfirmationSheet.show(
+                    context,
+                    title: l10n.userProfileUnblockConfirmTitle,
+                    description: l10n.userProfileUnblockConfirmDescription(
+                      user.username,
+                    ),
+                    primaryLabel: l10n.userProfileUnblockUser,
+                    primaryVariant: FluxerButtonVariant.primary,
                   );
-                }
-              },
-            )
-          else
-            FluxerMenuItem(
-              label: l10n.userProfileBlockUser,
-              icon: PhosphorIconsFill.prohibit,
-              isDanger: true,
-              onPressed: () async {
-                close();
-                final ok = await UserProfileConfirmationSheet.show(
-                  context,
-                  title: l10n.userProfileBlockConfirmTitle,
-                  description: l10n.userProfileBlockConfirmDescription(
-                    user.username,
-                  ),
-                  primaryLabel: l10n.userProfileBlockUser,
-                  primaryVariant: FluxerButtonVariant.dangerPrimary,
-                );
-                if (ok) {
-                  await _runRepoAction(
-                    ref,
-                    () => ref.read(friendRepositoryProvider).blockUser(user.id),
+                  if (ok) {
+                    await _runRepoAction(
+                      ref,
+                      l10n.userProfileActionFailed,
+                      () => ref
+                          .read(friendRepositoryProvider)
+                          .removeRelationship(user.id),
+                    );
+                  }
+                },
+              )
+            else
+              FluxerMenuItem(
+                label: l10n.userProfileBlockUser,
+                icon: PhosphorIconsFill.prohibit,
+                isDanger: true,
+                onPressed: () async {
+                  close();
+                  final ok = await UserProfileConfirmationSheet.show(
+                    context,
+                    title: l10n.userProfileBlockConfirmTitle,
+                    description: l10n.userProfileBlockConfirmDescription(
+                      user.username,
+                    ),
+                    primaryLabel: l10n.userProfileBlockUser,
+                    primaryVariant: FluxerButtonVariant.dangerPrimary,
                   );
-                }
-              },
-            ),
+                  if (ok) {
+                    await _runRepoAction(
+                      ref,
+                      l10n.userProfileActionFailed,
+                      () =>
+                          ref.read(friendRepositoryProvider).blockUser(user.id),
+                    );
+                  }
+                },
+              ),
+          ],
         ];
       },
     );
@@ -127,16 +135,18 @@ class UserProfileActionsSheet {
 
   static Future<void> _runRepoAction(
     WidgetRef ref,
+    String errorMessage,
     Future<void> Function() action,
   ) async {
     try {
       await action();
-    } on Object catch (e) {
+    } on Object catch (e, st) {
+      talker.error('[UserProfileActionsSheet] action failed: $e', e, st);
       ref
           .read(toastProvider.notifier)
           .show(
             FluxerToast(
-              message: e.toString(),
+              message: errorMessage,
               variant: FluxerToastVariant.danger,
             ),
           );

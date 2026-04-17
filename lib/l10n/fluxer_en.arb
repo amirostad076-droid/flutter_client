@@ -2465,5 +2465,9 @@
   "userProfileFailedSaveNote": "Failed to save note",
   "@userProfileFailedSaveNote": {
     "description": "Toast shown when saving the user note fails."
+  },
+  "userProfileActionFailed": "Action failed, please try again",
+  "@userProfileActionFailed": {
+    "description": "Toast shown when a relationship action (block, unblock, friend request, etc.) fails."
   }
 }

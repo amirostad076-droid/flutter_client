@@ -25,10 +25,13 @@ class UserProfileActionCardRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = FluxerLocalizations.of(context);
     if (isCurrentUser) {
-      return FluxerButton.primary(
-        label: l10n.userProfileEditProfile,
-        icon: PhosphorIconsFill.pencil,
-        onPressed: onEditProfile,
+      return SizedBox(
+        width: double.infinity,
+        child: FluxerButton.primary(
+          label: l10n.userProfileEditProfile,
+          icon: PhosphorIconsFill.pencil,
+          onPressed: onEditProfile,
+        ),
       );
     }
 

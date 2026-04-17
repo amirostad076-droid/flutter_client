@@ -3483,6 +3483,12 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Failed to save note'**
   String get userProfileFailedSaveNote;
+
+  /// Toast shown when a relationship action (block, unblock, friend request, etc.) fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed, please try again'**
+  String get userProfileActionFailed;
 }
 
 class _FluxerLocalizationsDelegate

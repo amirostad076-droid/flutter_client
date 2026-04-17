@@ -1969,4 +1969,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get userProfileFailedSaveNote => 'Failed to save note';
+
+  @override
+  String get userProfileActionFailed => 'Action failed, please try again';
 }
