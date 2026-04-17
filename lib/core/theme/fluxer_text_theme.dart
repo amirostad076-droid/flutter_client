@@ -22,99 +22,82 @@ class FluxerTextTheme extends ThemeExtension<FluxerTextTheme> {
   });
 
   factory FluxerTextTheme.fromColors(FluxerColorTheme colors) {
-    final fontFamily = GoogleFonts.ibmPlexSans().fontFamily!;
-
     return FluxerTextTheme(
-      heading: TextStyle(
-        fontFamily: fontFamily,
+      heading: GoogleFonts.ibmPlexSans(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: colors.textPrimary,
       ),
-      channelName: TextStyle(
-        fontFamily: fontFamily,
+      channelName: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: colors.textPrimary,
       ),
-      username: TextStyle(
-        fontFamily: fontFamily,
+      username: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: colors.textPrimary,
       ),
-      messageText: TextStyle(
-        fontFamily: fontFamily,
+      messageText: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: colors.textChat,
         height: 1.375,
       ),
-      bodyMedium: TextStyle(
-        fontFamily: fontFamily,
+      bodyMedium: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: colors.textPrimary,
       ),
-      bodySmall: TextStyle(
-        fontFamily: fontFamily,
+      bodySmall: GoogleFonts.ibmPlexSans(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: colors.textPrimaryMuted,
       ),
-      label: TextStyle(
-        fontFamily: fontFamily,
+      label: GoogleFonts.ibmPlexSans(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: colors.textPrimary,
       ),
-      timestamp: TextStyle(
-        fontFamily: fontFamily,
+      timestamp: GoogleFonts.ibmPlexSans(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: colors.textPrimaryMuted,
       ),
-      smallText: TextStyle(
-        fontFamily: fontFamily,
+      smallText: GoogleFonts.ibmPlexSans(
         fontSize: 12,
         fontWeight: FontWeight.w600,
         color: colors.textPrimaryMuted,
         letterSpacing: 0.02,
       ),
-      categoryName: TextStyle(
-        fontFamily: fontFamily,
+      categoryName: GoogleFonts.ibmPlexSans(
         fontSize: 12,
         fontWeight: FontWeight.w600,
         color: colors.textPrimaryMuted,
         letterSpacing: 0.5,
       ),
-      inputText: TextStyle(
-        fontFamily: fontFamily,
+      inputText: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: colors.textChat,
       ),
-      inputHint: TextStyle(
-        fontFamily: fontFamily,
+      inputHint: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: colors.textChatMuted,
       ),
-      embedTitle: TextStyle(
-        fontFamily: fontFamily,
+      embedTitle: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: colors.textLink,
       ),
-      embedDescription: TextStyle(
-        fontFamily: fontFamily,
+      embedDescription: GoogleFonts.ibmPlexSans(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: colors.textChat,
         height: 1.3,
       ),
-      embedFooter: TextStyle(
-        fontFamily: fontFamily,
+      embedFooter: GoogleFonts.ibmPlexSans(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: colors.textPrimaryMuted,
