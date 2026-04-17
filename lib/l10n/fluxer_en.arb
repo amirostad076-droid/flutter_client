@@ -2310,5 +2310,48 @@
   "privacyPendingDeletionTitle": "Pending Deletion",
   "@privacyPendingDeletionTitle": {
     "description": "Title of the warning alert shown when a bulk message deletion is pending."
+  },
+  "blockedUsersTitle": "Blocked Users",
+  "@blockedUsersTitle": {
+    "description": "Header title of the Blocked Users settings page."
+  },
+  "blockedUsersDescription": "Blocked users can't send you friend requests or message you directly.",
+  "@blockedUsersDescription": {
+    "description": "Subtitle under the Blocked Users header."
+  },
+  "blockedUsersEmptyTitle": "No Blocked Users",
+  "@blockedUsersEmptyTitle": {
+    "description": "Empty state title shown when the user has not blocked anyone."
+  },
+  "blockedUsersEmptyDescription": "You haven't blocked anyone yet.",
+  "@blockedUsersEmptyDescription": {
+    "description": "Empty state description for blocked users."
+  },
+  "blockedUsersLoadError": "Failed to Load Blocked Users",
+  "@blockedUsersLoadError": {
+    "description": "Error message shown when blocked users fail to load."
+  },
+  "blockedUsersUnblock": "Unblock",
+  "@blockedUsersUnblock": {
+    "description": "Button label that unblocks a user."
+  },
+  "blockedUsersUnblockTitle": "Unblock User",
+  "@blockedUsersUnblockTitle": {
+    "description": "Title of the bottom sheet that confirms unblocking a user."
+  },
+  "blockedUsersUnblockDescription": "Are you sure you want to unblock {username}?",
+  "@blockedUsersUnblockDescription": {
+    "description": "Body of the unblock confirmation sheet.",
+    "placeholders": {
+      "username": { "type": "String" }
+    }
+  },
+  "blockedUsersCopyTag": "Copy FluxerTag",
+  "@blockedUsersCopyTag": {
+    "description": "Context menu item that copies the user's tag."
+  },
+  "blockedUsersCopyId": "Copy User ID",
+  "@blockedUsersCopyId": {
+    "description": "Context menu item that copies the user's ID."
   }
 }

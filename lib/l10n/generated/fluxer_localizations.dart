@@ -3261,6 +3261,66 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Pending Deletion'**
   String get privacyPendingDeletionTitle;
+
+  /// Header title of the Blocked Users settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked Users'**
+  String get blockedUsersTitle;
+
+  /// Subtitle under the Blocked Users header.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked users can\'t send you friend requests or message you directly.'**
+  String get blockedUsersDescription;
+
+  /// Empty state title shown when the user has not blocked anyone.
+  ///
+  /// In en, this message translates to:
+  /// **'No Blocked Users'**
+  String get blockedUsersEmptyTitle;
+
+  /// Empty state description for blocked users.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t blocked anyone yet.'**
+  String get blockedUsersEmptyDescription;
+
+  /// Error message shown when blocked users fail to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to Load Blocked Users'**
+  String get blockedUsersLoadError;
+
+  /// Button label that unblocks a user.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get blockedUsersUnblock;
+
+  /// Title of the bottom sheet that confirms unblocking a user.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock User'**
+  String get blockedUsersUnblockTitle;
+
+  /// Body of the unblock confirmation sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to unblock {username}?'**
+  String blockedUsersUnblockDescription(String username);
+
+  /// Context menu item that copies the user's tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy FluxerTag'**
+  String get blockedUsersCopyTag;
+
+  /// Context menu item that copies the user's ID.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy User ID'**
+  String get blockedUsersCopyId;
 }
 
 class _FluxerLocalizationsDelegate

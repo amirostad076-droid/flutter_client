@@ -19,6 +19,7 @@ import 'package:fluxer_app/features/members/providers/member_list_view_model.dar
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_appearance.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_authorized_apps.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_blocked_users.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_messages_media.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_privacy_dashboard.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.dart';
@@ -268,6 +269,8 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
         return const UserMessagesMedia();
       case 'Authorized Apps':
         return const UserAuthorizedApps();
+      case 'Blocked Users':
+        return const UserBlockedUsers();
       default:
         return Center(
           child: Text(
@@ -624,6 +627,8 @@ class _MobileSettingsContentBody extends ConsumerWidget {
         return const UserMessagesMedia();
       case 'Authorized Apps':
         return UserAuthorizedApps(scrollController: scrollController);
+      case 'Blocked Users':
+        return UserBlockedUsers(scrollController: scrollController);
       default:
         return Center(
           child: Text(

@@ -1847,4 +1847,37 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get privacyPendingDeletionTitle => 'Pending Deletion';
+
+  @override
+  String get blockedUsersTitle => 'Blocked Users';
+
+  @override
+  String get blockedUsersDescription =>
+      'Blocked users can\'t send you friend requests or message you directly.';
+
+  @override
+  String get blockedUsersEmptyTitle => 'No Blocked Users';
+
+  @override
+  String get blockedUsersEmptyDescription => 'You haven\'t blocked anyone yet.';
+
+  @override
+  String get blockedUsersLoadError => 'Failed to Load Blocked Users';
+
+  @override
+  String get blockedUsersUnblock => 'Unblock';
+
+  @override
+  String get blockedUsersUnblockTitle => 'Unblock User';
+
+  @override
+  String blockedUsersUnblockDescription(String username) {
+    return 'Are you sure you want to unblock $username?';
+  }
+
+  @override
+  String get blockedUsersCopyTag => 'Copy FluxerTag';
+
+  @override
+  String get blockedUsersCopyId => 'Copy User ID';
 }
