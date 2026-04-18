@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/core/constants/assets.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/shell/utils/splash_quotes.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -17,14 +18,16 @@ class SplashScreen extends ConsumerStatefulWidget {
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
-  static const double _logoHeight = 100;
-  static const Duration _pulseDuration = Duration(milliseconds: 1000);
+  static const double _logoHeight = 85;
+  static const Duration _pulseDuration = Duration(milliseconds: 1300);
 
   late final AnimationController _pulseController;
+  late final SplashQuote _selectedQuote;
 
   @override
   void initState() {
     super.initState();
+    _selectedQuote = pickRandomSplashQuote();
     _pulseController = AnimationController(
       vsync: this,
       duration: _pulseDuration,
@@ -45,13 +48,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final AsyncError<dynamic>? startupError = startup is AsyncError<dynamic>
         ? startup
         : null;
-    final String statusText = startupError == null
-        ? strings.connectingCaps
-        : strings.splashStartupFailed(startupError.error.toString());
-    final Color statusTextColor = startupError == null
-        ? context.colors.textChatMuted
-        : context.colors.textDanger;
-    final int statusTextMaxLines = startupError == null ? 1 : 3;
+    final String statusText = strings.splashStartupFailed(
+      startupError?.error.toString() ?? '',
+    );
 
     return Scaffold(
       backgroundColor: context.colors.backgroundSecondary,
@@ -97,19 +96,39 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 ],
               ),
             ),
-            const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                statusText,
-                style: context.textStyles.smallText.copyWith(
-                  color: statusTextColor,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: statusTextMaxLines,
-                overflow: TextOverflow.ellipsis,
+              child: startupError == null
+                  ? Column(
+                      children: [
+                        Text(
+                          _selectedQuote.text,
+                          style: context.textStyles.bodyMedium.copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _selectedQuote.source,
+                          style: context.textStyles.bodySmall.copyWith(
+                            color: context.colors.textChatMuted,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    )
+                  : Text(
+                      statusText,
+                      style: context.textStyles.smallText.copyWith(
+                        color: context.colors.textDanger,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
               ),
-            ),
             if (startupError != null) ...[
               const SizedBox(height: 16),
               FilledButton(
