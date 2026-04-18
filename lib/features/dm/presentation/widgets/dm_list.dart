@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1734,6 +1735,7 @@ class _DmBottomSheet extends StatelessWidget {
       maxChildSize: 0.85,
       builder: (context, scrollController) {
         return SafeArea(
+          bottom: Platform.isAndroid,
           child: Column(
             children: [
               FluxerBottomSheetHeader(
@@ -1834,6 +1836,7 @@ class _DmMuteSheet extends StatelessWidget {
       maxChildSize: 0.85,
       builder: (context, scrollController) {
         return SafeArea(
+          bottom: Platform.isAndroid,
           child: Column(
             children: [
               FluxerBottomSheetSubmenuHeader(
@@ -1930,6 +1933,7 @@ class _DmInviteSheet extends ConsumerWidget {
       maxChildSize: 0.85,
       builder: (context, scrollController) {
         return SafeArea(
+          bottom: Platform.isAndroid,
           child: Column(
             children: [
               FluxerBottomSheetSubmenuHeader(

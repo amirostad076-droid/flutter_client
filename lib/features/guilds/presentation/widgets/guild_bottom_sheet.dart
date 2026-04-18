@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -70,6 +71,7 @@ class _GuildBottomSheet extends StatelessWidget {
       maxChildSize: 0.85,
       builder: (context, scrollController) {
         return SafeArea(
+          bottom: Platform.isAndroid,
           child: Column(
             children: [
               FluxerBottomSheetHeader(
@@ -155,6 +157,7 @@ class _GuildSubmenuSheet extends StatelessWidget {
       maxChildSize: 0.85,
       builder: (context, scrollController) {
         return SafeArea(
+          bottom: Platform.isAndroid,
           child: Column(
             children: [
               FluxerBottomSheetSubmenuHeader(
