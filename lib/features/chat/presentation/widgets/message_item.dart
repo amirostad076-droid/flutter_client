@@ -257,9 +257,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                       child: ForwardIndicator(source: msg.forwardedFrom!),
                     ),
                   if (isGrouped)
-                    _buildGroupedRow(context, msg)
+                    _buildGroupedRow(context, msg, isMobile)
                   else
-                    _buildMainRow(context, msg, authorRoleColor),
+                    _buildMainRow(context, msg, authorRoleColor, isMobile),
                 ],
               ),
               if ((_isHovered || _isReactionPickerOpen) && !isMobile)
@@ -310,11 +310,11 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   /// Returns the content, embeds, and reactions
   /// widgets for a message.
-  List<Widget> _buildMessageContent(BuildContext context, Message msg) => [
+  List<Widget> _buildMessageContent(BuildContext context, Message msg, bool isMobile) => [
     if (msg.content.isNotEmpty && !msg.shouldHideContent)
       MessageMarkdown(
         data: msg.content,
-        selectable: true,
+        selectable: !isMobile,
         channelId: msg.channelId,
       ),
     if (msg.hasForwardSnapshots)
@@ -349,7 +349,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   /// Grouped message row: hover-reveal short timestamp
   /// in the left column, content on the right.
-  Widget _buildGroupedRow(BuildContext context, Message msg) => Row(
+  Widget _buildGroupedRow(BuildContext context, Message msg, bool isMobile) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       SizedBox(
@@ -372,7 +372,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       Expanded(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: _buildMessageContent(context, msg),
+          children: _buildMessageContent(context, msg, isMobile),
         ),
       ),
     ],
@@ -386,7 +386,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   /// Main message row: avatar on the left, content on
   /// the right.
-  Widget _buildMainRow(BuildContext context, Message msg, Color? roleColor) =>
+  Widget _buildMainRow(BuildContext context, Message msg, Color? roleColor, bool isMobile) =>
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -441,7 +441,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                   ],
                 ),
                 const SizedBox(height: 2),
-                ..._buildMessageContent(context, msg),
+                ..._buildMessageContent(context, msg, isMobile),
               ],
             ),
           ),
