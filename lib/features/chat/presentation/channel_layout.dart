@@ -34,7 +34,9 @@ class ChannelLayout extends ConsumerWidget {
     final isPanelOpen = ref.watch(expressionPanelProvider);
 
     return ColoredBox(
-      color: context.colors.chatBackground,
+      color: isMobile
+          ? context.colors.chatInputBackground
+          : context.colors.chatBackground,
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
