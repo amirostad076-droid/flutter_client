@@ -19,6 +19,8 @@ import 'package:markdown/markdown.dart' as md;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+const double _kBlockSpacing = 4;
+
 Widget defaultFluxerAlertBuilder(
   BuildContext context,
   FluxerAlertType type,
@@ -104,6 +106,7 @@ class _MarkdownBlockRenderer {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: _kBlockSpacing,
       children: children,
     );
   }
@@ -122,59 +125,51 @@ class _MarkdownBlockRenderer {
 
     switch (node.tag) {
       case 'p':
-        return _withSpacing(_buildParagraph(node.children ?? const []));
+        return _buildParagraph(node.children ?? const []);
       case 'h1':
-        return _withSpacing(
-          _buildParagraph(
-            node.children ?? const [],
-            style: baseStyle.copyWith(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-            ),
+        return _buildParagraph(
+          node.children ?? const [],
+          style: baseStyle.copyWith(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
           ),
         );
       case 'h2':
-        return _withSpacing(
-          _buildParagraph(
-            node.children ?? const [],
-            style: baseStyle.copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
+        return _buildParagraph(
+          node.children ?? const [],
+          style: baseStyle.copyWith(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
           ),
         );
       case 'h3':
-        return _withSpacing(
-          _buildParagraph(
-            node.children ?? const [],
-            style: baseStyle.copyWith(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+        return _buildParagraph(
+          node.children ?? const [],
+          style: baseStyle.copyWith(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
           ),
         );
       case 'blockquote':
-        return _withSpacing(_buildBlockquote(node));
+        return _buildBlockquote(node);
       case 'pre':
-        return _withSpacing(_buildCodeBlock(node));
+        return _buildCodeBlock(node);
       case 'ul':
-        return _withSpacing(_buildList(node, ordered: false));
+        return _buildList(node, ordered: false);
       case 'ol':
-        return _withSpacing(_buildList(node, ordered: true));
+        return _buildList(node, ordered: true);
       case 'table':
-        return _withSpacing(_buildTable(node));
+        return _buildTable(node);
       case 'hr':
-        return _withSpacing(
-          Divider(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            height: 16,
-          ),
+        return Divider(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          height: 16,
         );
       default:
         if (_isInlineOnlyTag(node.tag)) {
-          return _withSpacing(_buildParagraph([node]));
+          return _buildParagraph([node]);
         }
-        return _withSpacing(build(node.children ?? const []));
+        return build(node.children ?? const []);
     }
   }
 
@@ -361,12 +356,6 @@ class _MarkdownBlockRenderer {
     );
   }
 
-  Widget _withSpacing(Widget child) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: child,
-    );
-  }
 }
 
 class _MarkdownInlineRenderer {
