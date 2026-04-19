@@ -8,6 +8,8 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
+import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
@@ -55,6 +57,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
   final connection = ref.watch(gatewayConnectionProvider);
 
   final currentUserId = ref.read(currentUserIdProvider);
+  final messageBus = ref.watch(messageRealtimeBusProvider);
   final handler = GatewayEventHandler(
     database: db,
     currentUserId: currentUserId,
@@ -118,6 +121,14 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     onPermissionsClearAll: () {
       ref.read(guildPermissionsProvider.notifier).clearAll();
     },
+    onMessageCreate: (event) => messageBus.emit(MessageCreated(event)),
+    onMessageUpdate: (event) => messageBus.emit(MessageUpdated(event)),
+    onMessageDelete: (event) => messageBus.emit(MessageDeleted(event)),
+    onMessageDeleteBulk: (event) =>
+        messageBus.emit(MessagesDeletedBulk(event)),
+    onMessageReactionChange: (channelId, messageId) => messageBus.emit(
+      MessageReactionsChanged(channelId: channelId, messageId: messageId),
+    ),
   );
 
   final subscription = connection.events.listen(

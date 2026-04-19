@@ -20,6 +20,13 @@ typedef InviteCreateCallback = void Function(Map<String, dynamic> data);
 typedef InviteDeleteCallback = void Function(String code);
 typedef ReadyCallback = void Function();
 typedef GuildCallback = void Function(String guildId);
+typedef MessageCreateCallback = void Function(MessageCreateEvent event);
+typedef MessageUpdateCallback = void Function(MessageUpdateEvent event);
+typedef MessageDeleteCallback = void Function(MessageDeleteEvent event);
+typedef MessageDeleteBulkCallback =
+    void Function(MessageDeleteBulkEvent event);
+typedef MessageReactionChangeCallback =
+    void Function(String channelId, String messageId);
 
 class GatewayEventHandler {
   GatewayEventHandler({
@@ -38,6 +45,11 @@ class GatewayEventHandler {
     this.onGuildPermissionsChanged,
     this.onGuildPermissionsEvict,
     this.onPermissionsClearAll,
+    this.onMessageCreate,
+    this.onMessageUpdate,
+    this.onMessageDelete,
+    this.onMessageDeleteBulk,
+    this.onMessageReactionChange,
   });
 
   final db.FluxerDatabase database;
@@ -55,6 +67,11 @@ class GatewayEventHandler {
   final GuildCallback? onGuildPermissionsChanged;
   final GuildCallback? onGuildPermissionsEvict;
   final void Function()? onPermissionsClearAll;
+  final MessageCreateCallback? onMessageCreate;
+  final MessageUpdateCallback? onMessageUpdate;
+  final MessageDeleteCallback? onMessageDelete;
+  final MessageDeleteBulkCallback? onMessageDeleteBulk;
+  final MessageReactionChangeCallback? onMessageReactionChange;
 
   /// The current user's ID, set during READY processing.
   String? _currentUserId;
@@ -730,15 +747,19 @@ class GatewayEventHandler {
         msg.timestamp,
       ),
     );
+
+    onMessageCreate?.call(event);
   }
 
   void _handleMessageUpdate(MessageUpdateEvent event) {
     final msg = Message.fromSdk(event.message, currentUserId: currentUserId);
     unawaited(database.messageDao.upsertMessage(msg.toCompanion()));
+    onMessageUpdate?.call(event);
   }
 
   void _handleMessageDelete(MessageDeleteEvent event) {
     unawaited(database.messageDao.deleteMessage(event.messageId));
+    onMessageDelete?.call(event);
   }
 
   void _handleTypingStart(TypingStartEvent event) {
@@ -842,6 +863,7 @@ class GatewayEventHandler {
     for (final id in event.ids) {
       unawaited(database.messageDao.deleteMessage(id));
     }
+    onMessageDeleteBulk?.call(event);
   }
 
   void _handleRoleUpsert(String guildId, GuildRoleResponse role) {
@@ -988,20 +1010,38 @@ class GatewayEventHandler {
   }
 
   void _handleReactionAdd(MessageReactionAddEvent event) {
-    unawaited(_modifyReaction(event.messageId, event.emoji, isAdd: true));
+    unawaited(
+      _modifyReaction(event.messageId, event.emoji, isAdd: true).then((_) {
+        onMessageReactionChange?.call(event.channelId, event.messageId);
+      }),
+    );
   }
 
   void _handleReactionRemove(MessageReactionRemoveEvent event) {
-    unawaited(_modifyReaction(event.messageId, event.emoji, isAdd: false));
+    unawaited(
+      _modifyReaction(event.messageId, event.emoji, isAdd: false).then((_) {
+        onMessageReactionChange?.call(event.channelId, event.messageId);
+      }),
+    );
   }
 
   void _handleReactionRemoveAll(MessageReactionRemoveAllEvent event) {
-    unawaited(database.messageDao.updateReactions(event.messageId, '[]'));
+    unawaited(
+      database.messageDao.updateReactions(event.messageId, '[]').then((_) {
+        onMessageReactionChange?.call(event.channelId, event.messageId);
+      }),
+    );
   }
 
   void _handleReactionRemoveEmoji(MessageReactionRemoveEmojiEvent event) {
     unawaited(
-      _removeEmojiReaction(event.messageId, event.emoji.name, event.emoji.id),
+      _removeEmojiReaction(
+        event.messageId,
+        event.emoji.name,
+        event.emoji.id,
+      ).then((_) {
+        onMessageReactionChange?.call(event.channelId, event.messageId);
+      }),
     );
   }
 
@@ -1078,12 +1118,13 @@ class GatewayEventHandler {
   }
 
   void _handleReactionAddMany(MessageReactionAddManyEvent event) {
+    final futures = <Future<void>>[];
     for (final r in event.reactions) {
       final emoji = r['emoji'] as Map<String, dynamic>?;
       if (emoji == null) {
         continue;
       }
-      unawaited(
+      futures.add(
         _modifyReaction(
           event.messageId,
           ReactionEmoji(
@@ -1094,6 +1135,11 @@ class GatewayEventHandler {
         ),
       );
     }
+    unawaited(
+      Future.wait(futures).then((_) {
+        onMessageReactionChange?.call(event.channelId, event.messageId);
+      }),
+    );
   }
 
   void _handlePassiveUpdates(PassiveUpdatesEvent event) {

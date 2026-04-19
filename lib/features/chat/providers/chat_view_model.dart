@@ -2,8 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
+import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
+import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_view_model.g.dart';
@@ -80,8 +84,14 @@ class ChatViewState {
 
 @Riverpod(keepAlive: true)
 class ChatViewModel extends _$ChatViewModel {
+  StreamSubscription<MessageRealtimeEvent>? _eventsSub;
+
   @override
   ChatViewState build() {
+    final bus = ref.watch(messageRealtimeBusProvider);
+    unawaited(_eventsSub?.cancel());
+    _eventsSub = bus.stream.listen(_onRealtimeEvent);
+    ref.onDispose(() => unawaited(_eventsSub?.cancel()));
     return const ChatViewState(
       channelId: '',
       messages: [],
@@ -94,6 +104,77 @@ class ChatViewModel extends _$ChatViewModel {
       hasMoreMessages: true,
       errorMessage: null,
     );
+  }
+
+  Future<void> _onRealtimeEvent(MessageRealtimeEvent ev) async {
+    final next = await _nextMessagesFor(ev);
+    if (next != null) {
+      state = state.copyWith(messages: next);
+    }
+  }
+
+  Future<List<Message>?> _nextMessagesFor(MessageRealtimeEvent ev) async {
+    switch (ev) {
+      case MessageCreated(:final event):
+        if (event.message.channelId != state.channelId) {
+          return null;
+        }
+        final msg = _toDomain(event.message);
+        if (state.messages.any((m) => m.id == msg.id)) {
+          return null;
+        }
+        return [...state.messages, msg];
+      case MessageUpdated(:final event):
+        if (event.message.channelId != state.channelId) {
+          return null;
+        }
+        return _replaceById(state.messages, _toDomain(event.message));
+      case MessageDeleted(:final event):
+        if (event.channelId != state.channelId) {
+          return null;
+        }
+        return _removeIds(state.messages, {event.messageId});
+      case MessagesDeletedBulk(:final event):
+        if (event.channelId != state.channelId) {
+          return null;
+        }
+        return _removeIds(state.messages, event.ids.toSet());
+      case MessageReactionsChanged(:final channelId, :final messageId):
+        if (channelId != state.channelId) {
+          return null;
+        }
+        final row = await ref
+            .read(fluxerDatabaseProvider)
+            .messageDao
+            .getMessage(messageId);
+        if (row == null || state.channelId != channelId) {
+          return null;
+        }
+        return _replaceById(state.messages, Message.fromRow(row));
+    }
+  }
+
+  Message _toDomain(MessageResponseSchema schema) => Message.fromSdk(
+    schema,
+    currentUserId: ref.read(currentUserIdProvider),
+  );
+
+  List<Message>? _replaceById(List<Message> list, Message msg) {
+    final idx = list.indexWhere((m) => m.id == msg.id);
+    if (idx == -1) {
+      return null;
+    }
+    final updated = List<Message>.from(list);
+    updated[idx] = msg;
+    return updated;
+  }
+
+  List<Message>? _removeIds(List<Message> list, Set<String> ids) {
+    if (ids.isEmpty) {
+      return null;
+    }
+    final filtered = list.where((m) => !ids.contains(m.id)).toList();
+    return filtered.length == list.length ? null : filtered;
   }
 
   Future<void> switchChannel(
