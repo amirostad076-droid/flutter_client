@@ -24,6 +24,7 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_context_menu.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/swipe_to_reply.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -203,6 +204,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     final msg = widget.message;
     final isGrouped = widget.isGrouped;
     final isMobile = isMobileLayout(context);
+    final isTouch =
+        layoutModeOf(MediaQuery.sizeOf(context).width) != LayoutMode.desktop;
     final guildId = ref.watch(activeGuildIdProvider);
     Color? authorRoleColor;
     if (guildId != null) {
@@ -211,7 +214,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           .value;
     }
 
-    return GestureDetector(
+    final body = GestureDetector(
       onLongPress: isMobile ? () => _showActions(context) : null,
       onSecondaryTapUp: !isMobile
           ? (details) => _showContextMenu(context, details.globalPosition)
@@ -269,6 +272,11 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         ),
       ),
     );
+    final onReply = widget.onReply;
+    if (!isTouch || onReply == null) {
+      return body;
+    }
+    return SwipeToReply(onReply: onReply, child: body);
   }
 
   /// Builds the reply preview row with space for the
