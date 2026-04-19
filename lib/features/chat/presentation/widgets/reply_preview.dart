@@ -319,7 +319,7 @@ class ReplyInputBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
     decoration: BoxDecoration(
       color: context.colors.chatInputBackground,
       border: Border(
@@ -328,12 +328,6 @@ class ReplyInputBar extends StatelessWidget {
     ),
     child: Row(
       children: [
-        PhosphorIcon(
-          PhosphorIconsFill.arrowBendUpLeft,
-          size: 16,
-          color: context.colors.textPrimaryMuted,
-        ),
-        const SizedBox(width: 8),
         Expanded(
           child: RichText(
             overflow: TextOverflow.ellipsis,
@@ -356,7 +350,7 @@ class ReplyInputBar extends StatelessWidget {
           ),
         ),
         IconButton(
-          icon: const PhosphorIcon(PhosphorIconsFill.x, size: 16),
+          icon: const PhosphorIcon(PhosphorIconsFill.xCircle, size: 16),
           color: context.colors.textPrimaryMuted,
           onPressed: onCancel,
           padding: EdgeInsets.zero,
