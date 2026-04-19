@@ -412,7 +412,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                         style: TextStyle(
                           color: roleColor ?? context.colors.textChat,
                           fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
