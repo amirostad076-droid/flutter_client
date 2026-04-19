@@ -273,8 +273,14 @@ class ChatViewModel extends _$ChatViewModel {
         content: text,
         replyToId: replyToId,
       );
+      // TODO: Handle sending message states (pending/sent/failed) so the
+      // UI can show an optimistic echo before the server/realtime round-trip.
+      final alreadyPresent = state.messages.any((m) => m.id == sent.id);
+      final nextMessages = alreadyPresent
+          ? _replaceById(state.messages, sent) ?? state.messages
+          : [...state.messages, sent];
       state = state.copyWith(
-        messages: [...state.messages, sent],
+        messages: nextMessages,
         scrollToBottomSignal: state.scrollToBottomSignal + 1,
       );
     } on Exception catch (e) {
