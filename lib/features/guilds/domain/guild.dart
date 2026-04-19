@@ -83,7 +83,7 @@ class Guild {
     if (icon == null || !hasAnimatedIcon) {
       return null;
     }
-    return '$fluxerMediaCdn/icons/$id/$icon.gif';
+    return '$fluxerMediaCdn/icons/$id/$icon.gif?animated=true';
   }
 
   String? get bannerUrl {

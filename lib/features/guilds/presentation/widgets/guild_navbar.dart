@@ -2198,7 +2198,7 @@ class _GuildListItemState extends State<_GuildListItem> {
                                 : widget.iconUrl != null
                                 ? CachedNetworkImage(
                                     imageUrl:
-                                        _isHovered &&
+                                        isActive &&
                                             widget.guild?.animatedIconUrl !=
                                                 null
                                         ? widget.guild!.animatedIconUrl!
