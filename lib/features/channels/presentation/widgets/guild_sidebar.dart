@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
@@ -10,6 +11,7 @@ import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:go_router/go_router.dart';
@@ -21,7 +23,7 @@ class GuildSidebar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(channelListViewModelProvider);
-    final serverName = state.serverName;
+    final guild = state.guild;
     final categories = state.categories;
     final selectedId = ref.watch(activeChannelIdProvider);
     final collapsed = state.collapsedCategories;
@@ -35,7 +37,7 @@ class GuildSidebar extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          _buildServerHeader(context, ref, serverName),
+          _buildServerHeader(context, ref, guild),
           Expanded(
             child: _buildChannelList(
               context,
@@ -50,43 +52,89 @@ class GuildSidebar extends ConsumerWidget {
     );
   }
 
-  Widget _buildServerHeader(BuildContext context, WidgetRef ref, String name) =>
-      Material(
-        color: context.colors.channelSidebarBackground,
-        child: InkWell(
-          onTap: () {
-            final guildId = ref.read(activeGuildIdProvider);
-            if (guildId != null) {
-              unawaited(context.push(RoutePaths.guildSettingsPath(guildId)));
-            }
-          },
-          child: Container(
-            height: 56,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: context.colors.borderColor),
+  Widget _buildServerHeader(BuildContext context, WidgetRef ref, Guild? guild) {
+    final bool hasImage = guild?.banner != null;
+    const double headerHeight = 56;
+    const double bannerAspectRatio = 16 / 9;
+    final List<Shadow> bannerShadows = hasImage
+        ? <Shadow>[
+            Shadow(
+              color: const Color(0xCC000000).withValues(alpha: 0.7),
+              offset: const Offset(0, 1),
+              blurRadius: 18,
+            ),
+          ]
+        : const <Shadow>[];
+    final Widget headerContent = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        final guildId = ref.read(activeGuildIdProvider);
+        if (guildId != null) {
+          unawaited(context.push(RoutePaths.guildSettingsPath(guildId)));
+        }
+      },
+      child: Row(
+        crossAxisAlignment: hasImage
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
+        children: [
+          if (guild != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: FluxerGuildBadge(
+                features: guild.features,
+                shadows: bannerShadows,
+                forceBrightness: hasImage ? Brightness.dark : null,
               ),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    name,
-                    style: context.textStyles.channelName,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                PhosphorIcon(
-                  PhosphorIconsFill.caretDown,
-                  color: context.colors.textChat,
-                  size: 20,
-                ),
-              ],
+          Expanded(
+            child: Text(
+              guild?.name ?? '',
+              style: context.textStyles.channelName.copyWith(
+                shadows: bannerShadows,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
+          PhosphorIcon(
+            PhosphorIconsFill.caretDown,
+            color: context.colors.textChat,
+            size: 16,
+            shadows: bannerShadows,
+          ),
+        ],
+      ),
+    );
+
+    if (hasImage) {
+      return AspectRatio(
+        aspectRatio: bannerAspectRatio,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: context.colors.channelSidebarBackground,
+            border: Border(
+              bottom: BorderSide(color: context.colors.borderColor),
+            ),
+            image: DecorationImage(
+              image: CachedNetworkImageProvider(guild!.bannerUrl!),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: headerContent,
         ),
       );
+    }
+    return Container(
+      height: headerHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: context.colors.channelSidebarBackground,
+        border: Border(bottom: BorderSide(color: context.colors.borderColor)),
+      ),
+      child: headerContent,
+    );
+  }
 
   Widget _buildChannelList(
     BuildContext context,

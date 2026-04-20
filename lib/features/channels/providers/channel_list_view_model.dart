@@ -3,19 +3,20 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'channel_list_view_model.g.dart';
 
 class ChannelListState {
-  final String serverName;
+  final Guild? guild;
   final List<ChannelCategory> categories;
   final String? selectedChannelId;
   final Set<String> collapsedCategories;
   final bool isMemberListVisible;
 
   const ChannelListState({
-    required this.serverName,
+    required this.guild,
     required this.categories,
     required this.selectedChannelId,
     required this.collapsedCategories,
@@ -23,14 +24,14 @@ class ChannelListState {
   });
 
   ChannelListState copyWith({
-    String? serverName,
+    Guild? guild,
     List<ChannelCategory>? categories,
     String? selectedChannelId,
     Set<String>? collapsedCategories,
     bool? isMemberListVisible,
   }) {
     return ChannelListState(
-      serverName: serverName ?? this.serverName,
+      guild: guild ?? this.guild,
       categories: categories ?? this.categories,
       selectedChannelId: selectedChannelId ?? this.selectedChannelId,
       collapsedCategories: collapsedCategories ?? this.collapsedCategories,
@@ -48,23 +49,23 @@ class ChannelListViewModel extends _$ChannelListViewModel {
   ChannelListState build() {
     ref.onDispose(() => unawaited(_subscription?.cancel()));
     return const ChannelListState(
-      serverName: '',
+      guild: null,
       categories: [],
       selectedChannelId: null,
       collapsedCategories: {},
     );
   }
 
-  void loadChannels(String guildId, {String? serverName}) {
+  void loadChannels(String guildId, {Guild? guild}) {
     if (_currentGuildId == guildId) {
-      if (serverName != null) {
-        state = state.copyWith(serverName: serverName);
+      if (guild != null) {
+        state = state.copyWith(guild: guild);
       }
       return;
     }
     _currentGuildId = guildId;
     state = state.copyWith(
-      serverName: serverName ?? state.serverName,
+      guild: guild ?? state.guild,
       collapsedCategories: {},
     );
 
@@ -87,8 +88,8 @@ class ChannelListViewModel extends _$ChannelListViewModel {
     state = state.copyWith(selectedChannelId: channelId);
   }
 
-  void setServerName(String name) {
-    state = state.copyWith(serverName: name);
+  void setGuild(Guild guild) {
+    state = state.copyWith(guild: guild);
   }
 
   void toggleMemberList() {

@@ -67,10 +67,12 @@ class Guild {
 
   bool get isVerified => features.contains('VERIFIED');
   bool get isPartnered => features.contains('PARTNERED');
+  bool get isDiscoverable => features.contains('DISCOVERABLE');
   bool get isUnavailable =>
       unavailable || features.contains('UNAVAILABLE_FOR_EVERYONE_BUT_STAFF');
 
   bool get hasAnimatedIcon => icon?.startsWith('a_') ?? false;
+  bool get hasAnimatedBanner => banner?.startsWith('a_') ?? false;
 
   String? get iconUrl {
     if (icon == null) {
@@ -90,6 +92,9 @@ class Guild {
     if (banner == null) {
       return null;
     }
-    return '$fluxerMediaCdn/banners/$id/$banner.png';
+    if (hasAnimatedBanner) {
+      return '$fluxerMediaCdn/banners/$id/$banner.gif?animated=true&size=1024';
+    }
+    return '$fluxerMediaCdn/banners/$id/$banner.png?size=1024';
   }
 }

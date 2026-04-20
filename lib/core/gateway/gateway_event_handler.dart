@@ -388,34 +388,29 @@ class GatewayEventHandler {
       }
 
       // Insert guilds (skip unavailable — no metadata).
-      if (event.guilds.isNotEmpty) {
+      if (event.rawGuilds.isNotEmpty) {
         final guildCompanions = <db.ServersCompanion>[];
+        final processedGuilds = <GuildCreateData>[];
         var fallbackPosition = guildPositions.length;
-        for (final g in event.guilds) {
-          if (g.unavailable ?? false) {
-            continue;
-          }
-          final position = guildPositions[g.id] ?? fallbackPosition++;
-          guildCompanions.add(
-            db.ServersCompanion.insert(
-              id: g.id,
-              name: g.name ?? '',
-              icon: Value(g.icon),
-              ownerId: Value(g.ownerId),
-              position: Value(position),
-              featuresJson: Value(jsonEncode(g.features)),
-            ),
-          );
-        }
-        await database.guildDao.upsertServers(guildCompanions);
-
         for (final rawGuild in event.rawGuilds) {
           final unavailable = rawGuild['unavailable'] as bool? ?? false;
           if (unavailable) {
             continue;
           }
           final guildData = GuildCreateData.fromJson(rawGuild);
-          final guildId = rawGuild['id'] as String;
+          final guildId = guildData.guild.id;
+          final position = guildPositions[guildId] ?? fallbackPosition++;
+          guildCompanions.add(
+            guildFromSdk(guildData.guild, position: position),
+          );
+          processedGuilds.add(guildData);
+        }
+        if (guildCompanions.isNotEmpty) {
+          await database.guildDao.upsertServers(guildCompanions);
+        }
+
+        for (final guildData in processedGuilds) {
+          final guildId = guildData.guild.id;
 
           for (final channel in guildData.channels) {
             await database.channelDao.upsertChannel(

@@ -76,6 +76,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/icons/
     - assets/images/badges/
     - assets/emojis.json
 
