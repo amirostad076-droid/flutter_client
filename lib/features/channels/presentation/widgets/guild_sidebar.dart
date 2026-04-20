@@ -78,7 +78,10 @@ class GuildSidebar extends ConsumerWidget {
             ? CrossAxisAlignment.start
             : CrossAxisAlignment.center,
         children: [
-          if (guild != null)
+          if (guild != null &&
+              (guild.isPartnered ||
+                  guild.isVerified ||
+                  guild.isDiscoverable))
             Padding(
               padding: const EdgeInsets.only(right: 4),
               child: FluxerGuildBadge(
