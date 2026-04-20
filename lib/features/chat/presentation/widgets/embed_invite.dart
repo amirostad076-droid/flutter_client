@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/providers/invite_embed_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
+import 'package:fluxer_app/features/ui/badge/fluxer_guild_badge.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart';
@@ -95,9 +96,6 @@ class _GuildInviteCard extends StatelessWidget {
     return null;
   }
 
-  bool get _isVerified => invite.guild.features.any((f) => f == 'VERIFIED');
-  bool get _isPartnered => invite.guild.features.any((f) => f == 'PARTNERED');
-
   void _onJoin(BuildContext context) {
     if (isAlreadyMember) {
       ref
@@ -145,10 +143,10 @@ class _GuildInviteCard extends StatelessWidget {
               maxLines: 1,
             ),
           ),
-          if (_isVerified || _isPartnered) ...[
-            const SizedBox(width: 4),
-            _GuildBadgeIcon(isPartnered: _isPartnered),
-          ],
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: FluxerGuildBadge(features: invite.guild.features),
+          ),
         ],
       ),
       stats: Row(
@@ -349,20 +347,6 @@ class _Fallback extends StatelessWidget {
         fontWeight: FontWeight.w600,
       ),
     ),
-  );
-}
-
-/// Verified  iccon
-class _GuildBadgeIcon extends StatelessWidget {
-  const _GuildBadgeIcon({required this.isPartnered});
-
-  final bool isPartnered;
-
-  @override
-  Widget build(BuildContext context) => PhosphorIcon(
-    isPartnered ? PhosphorIconsFill.infinity : PhosphorIconsFill.sealCheck,
-    size: 16,
-    color: context.colors.textPrimary,
   );
 }
 
