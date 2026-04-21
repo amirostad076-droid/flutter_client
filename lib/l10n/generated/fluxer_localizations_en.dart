@@ -2005,4 +2005,169 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get typingIndicatorApocalypse => 'Whoa, it\'s a typing apocalypse';
+
+  @override
+  String get relativeTimeShortNow => 'now';
+
+  @override
+  String relativeTimeShortMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '${count}m',
+      one: '1m',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeTimeShortHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '${count}h',
+      one: '1h',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeTimeShortDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '${count}d',
+      one: '1d',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeTimeShortMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '${count}mo',
+      one: '1mo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeTimeShortYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '${count}y',
+      one: '1y',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get linkedDevicesTitle => 'My Devices';
+
+  @override
+  String get linkedDevicesDescription =>
+      'See all devices that are currently logged into your account. Revoke any sessions that you don\'t recognize.';
+
+  @override
+  String get linkedDevicesCurrentDevice => 'Current Device';
+
+  @override
+  String get linkedDevicesOtherDevices => 'Other Devices';
+
+  @override
+  String get linkedDevicesEnterSelection => 'Enter Selection Mode';
+
+  @override
+  String get linkedDevicesExitSelection => 'Exit Selection Mode';
+
+  @override
+  String get linkedDevicesSelectAll => 'Select All';
+
+  @override
+  String get linkedDevicesClearSelection => 'Clear Selection';
+
+  @override
+  String get linkedDevicesRevokeTooltip => 'Revoke device';
+
+  @override
+  String get linkedDevicesSignOutAll => 'Sign out all other devices';
+
+  @override
+  String linkedDevicesSignOutN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sign out $count devices',
+      one: 'Sign out 1 device',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String linkedDevicesSignOutSheetTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sign out $count devices',
+      one: 'Sign out 1 device',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get linkedDevicesSignOutAllSheetTitle => 'Sign out all other devices';
+
+  @override
+  String linkedDevicesSignOutSheetDescription(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'This will log out the selected devices from your account. You will need to log in again on those devices.',
+      one:
+          'This will log out the selected device from your account. You will need to log in again on that device.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get linkedDevicesSignOutAllSheetDescription =>
+      'This will log out the selected devices from your account. You will need to log in again on those devices.';
+
+  @override
+  String get linkedDevicesSignOutConfirm => 'Continue';
+
+  @override
+  String get linkedDevicesLogoutDisclaimer =>
+      'You\'ll have to log back in on all logged out devices';
+
+  @override
+  String get linkedDevicesLoadErrorTitle => 'Network Error';
+
+  @override
+  String get linkedDevicesLoadErrorDescription =>
+      'We\'re having trouble connecting to the space-time continuum. Please check your connection and try again.';
+
+  @override
+  String linkedDevicesRevokeSuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Device revoked',
+      one: 'Device revoked',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get linkedDevicesRevokeError => 'Couldn\'t sign out. Try again.';
+
+  @override
+  String get linkedDevicesUnknownOs => 'Unknown OS';
+
+  @override
+  String get linkedDevicesUnknownPlatform => 'Unknown Platform';
 }

@@ -2511,5 +2511,148 @@
   "typingIndicatorApocalypse": "Whoa, it's a typing apocalypse",
   "@typingIndicatorApocalypse": {
     "description": "Typing indicator shown when 20 or more other users are typing."
+  },
+  "relativeTimeShortNow": "now",
+  "@relativeTimeShortNow": {
+    "description": "Short-form relative time for events less than a minute ago."
+  },
+  "relativeTimeShortMinutes": "{count, plural, =1{1m} other{{count}m}}",
+  "@relativeTimeShortMinutes": {
+    "description": "Short-form relative time in minutes (e.g. '5m').",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "relativeTimeShortHours": "{count, plural, =1{1h} other{{count}h}}",
+  "@relativeTimeShortHours": {
+    "description": "Short-form relative time in hours (e.g. '2h').",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "relativeTimeShortDays": "{count, plural, =1{1d} other{{count}d}}",
+  "@relativeTimeShortDays": {
+    "description": "Short-form relative time in days (e.g. '3d').",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "relativeTimeShortMonths": "{count, plural, =1{1mo} other{{count}mo}}",
+  "@relativeTimeShortMonths": {
+    "description": "Short-form relative time in months (e.g. '2mo').",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "relativeTimeShortYears": "{count, plural, =1{1y} other{{count}y}}",
+  "@relativeTimeShortYears": {
+    "description": "Short-form relative time in years (e.g. '2y').",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "linkedDevicesTitle": "My Devices",
+  "@linkedDevicesTitle": {
+    "description": "Heading for the Linked Devices settings page."
+  },
+  "linkedDevicesDescription": "See all devices that are currently logged into your account. Revoke any sessions that you don't recognize.",
+  "@linkedDevicesDescription": {
+    "description": "Description shown under the Linked Devices heading."
+  },
+  "linkedDevicesCurrentDevice": "Current Device",
+  "@linkedDevicesCurrentDevice": {
+    "description": "Group label for the session currently making the request."
+  },
+  "linkedDevicesOtherDevices": "Other Devices",
+  "@linkedDevicesOtherDevices": {
+    "description": "Group label for sessions other than the current one."
+  },
+  "linkedDevicesEnterSelection": "Enter Selection Mode",
+  "@linkedDevicesEnterSelection": {
+    "description": "Tooltip on the button that enables bulk-revoke selection mode."
+  },
+  "linkedDevicesExitSelection": "Exit Selection Mode",
+  "@linkedDevicesExitSelection": {
+    "description": "Tooltip on the button that disables bulk-revoke selection mode."
+  },
+  "linkedDevicesSelectAll": "Select All",
+  "@linkedDevicesSelectAll": {
+    "description": "Tooltip on the select-all button while in selection mode."
+  },
+  "linkedDevicesClearSelection": "Clear Selection",
+  "@linkedDevicesClearSelection": {
+    "description": "Tooltip on the clear-selection button while in selection mode."
+  },
+  "linkedDevicesRevokeTooltip": "Revoke device",
+  "@linkedDevicesRevokeTooltip": {
+    "description": "Tooltip on the per-card X button that opens the single-revoke sheet."
+  },
+  "linkedDevicesSignOutAll": "Sign out all other devices",
+  "@linkedDevicesSignOutAll": {
+    "description": "Label for the bulk action when no selection is active."
+  },
+  "linkedDevicesSignOutN": "{count, plural, =1{Sign out 1 device} other{Sign out {count} devices}}",
+  "@linkedDevicesSignOutN": {
+    "description": "Label for the bulk action button when devices are selected.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "linkedDevicesSignOutSheetTitle": "{count, plural, =1{Sign out 1 device} other{Sign out {count} devices}}",
+  "@linkedDevicesSignOutSheetTitle": {
+    "description": "Title of the confirmation bottom sheet for selected devices (same wording as the button label but used as a heading).",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "linkedDevicesSignOutAllSheetTitle": "Sign out all other devices",
+  "@linkedDevicesSignOutAllSheetTitle": {
+    "description": "Title of the confirmation bottom sheet when revoking all other devices."
+  },
+  "linkedDevicesSignOutSheetDescription": "{count, plural, =1{This will log out the selected device from your account. You will need to log in again on that device.} other{This will log out the selected devices from your account. You will need to log in again on those devices.}}",
+  "@linkedDevicesSignOutSheetDescription": {
+    "description": "Body of the confirmation bottom sheet for selected devices.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "linkedDevicesSignOutAllSheetDescription": "This will log out the selected devices from your account. You will need to log in again on those devices.",
+  "@linkedDevicesSignOutAllSheetDescription": {
+    "description": "Body of the confirmation bottom sheet when revoking all other devices."
+  },
+  "linkedDevicesSignOutConfirm": "Continue",
+  "@linkedDevicesSignOutConfirm": {
+    "description": "Destructive confirm button inside the sign-out bottom sheet."
+  },
+  "linkedDevicesLogoutDisclaimer": "You'll have to log back in on all logged out devices",
+  "@linkedDevicesLogoutDisclaimer": {
+    "description": "Disclaimer shown beneath the bulk-action button."
+  },
+  "linkedDevicesLoadErrorTitle": "Network Error",
+  "@linkedDevicesLoadErrorTitle": {
+    "description": "Title shown when loading the sessions list fails."
+  },
+  "linkedDevicesLoadErrorDescription": "We're having trouble connecting to the space-time continuum. Please check your connection and try again.",
+  "@linkedDevicesLoadErrorDescription": {
+    "description": "Body shown when loading the sessions list fails."
+  },
+  "linkedDevicesRevokeSuccess": "{count, plural, =1{Device revoked} other{Device revoked}}",
+  "@linkedDevicesRevokeSuccess": {
+    "description": "Toast shown after successfully signing devices out.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "linkedDevicesRevokeError": "Couldn't sign out. Try again.",
+  "@linkedDevicesRevokeError": {
+    "description": "Toast shown when the sign-out request fails."
+  },
+  "linkedDevicesUnknownOs": "Unknown OS",
+  "@linkedDevicesUnknownOs": {
+    "description": "Fallback shown when the session's OS field is missing."
+  },
+  "linkedDevicesUnknownPlatform": "Unknown Platform",
+  "@linkedDevicesUnknownPlatform": {
+    "description": "Fallback shown when the session's platform field is missing."
   }
 }

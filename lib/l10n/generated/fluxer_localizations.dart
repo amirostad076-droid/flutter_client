@@ -3537,6 +3537,180 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Whoa, it\'s a typing apocalypse'**
   String get typingIndicatorApocalypse;
+
+  /// Short-form relative time for events less than a minute ago.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get relativeTimeShortNow;
+
+  /// Short-form relative time in minutes (e.g. '5m').
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1m} other{{count}m}}'**
+  String relativeTimeShortMinutes(int count);
+
+  /// Short-form relative time in hours (e.g. '2h').
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1h} other{{count}h}}'**
+  String relativeTimeShortHours(int count);
+
+  /// Short-form relative time in days (e.g. '3d').
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1d} other{{count}d}}'**
+  String relativeTimeShortDays(int count);
+
+  /// Short-form relative time in months (e.g. '2mo').
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1mo} other{{count}mo}}'**
+  String relativeTimeShortMonths(int count);
+
+  /// Short-form relative time in years (e.g. '2y').
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1y} other{{count}y}}'**
+  String relativeTimeShortYears(int count);
+
+  /// Heading for the Linked Devices settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'My Devices'**
+  String get linkedDevicesTitle;
+
+  /// Description shown under the Linked Devices heading.
+  ///
+  /// In en, this message translates to:
+  /// **'See all devices that are currently logged into your account. Revoke any sessions that you don\'t recognize.'**
+  String get linkedDevicesDescription;
+
+  /// Group label for the session currently making the request.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Device'**
+  String get linkedDevicesCurrentDevice;
+
+  /// Group label for sessions other than the current one.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Devices'**
+  String get linkedDevicesOtherDevices;
+
+  /// Tooltip on the button that enables bulk-revoke selection mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Selection Mode'**
+  String get linkedDevicesEnterSelection;
+
+  /// Tooltip on the button that disables bulk-revoke selection mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Selection Mode'**
+  String get linkedDevicesExitSelection;
+
+  /// Tooltip on the select-all button while in selection mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get linkedDevicesSelectAll;
+
+  /// Tooltip on the clear-selection button while in selection mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Selection'**
+  String get linkedDevicesClearSelection;
+
+  /// Tooltip on the per-card X button that opens the single-revoke sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke device'**
+  String get linkedDevicesRevokeTooltip;
+
+  /// Label for the bulk action when no selection is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out all other devices'**
+  String get linkedDevicesSignOutAll;
+
+  /// Label for the bulk action button when devices are selected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Sign out 1 device} other{Sign out {count} devices}}'**
+  String linkedDevicesSignOutN(int count);
+
+  /// Title of the confirmation bottom sheet for selected devices (same wording as the button label but used as a heading).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Sign out 1 device} other{Sign out {count} devices}}'**
+  String linkedDevicesSignOutSheetTitle(int count);
+
+  /// Title of the confirmation bottom sheet when revoking all other devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out all other devices'**
+  String get linkedDevicesSignOutAllSheetTitle;
+
+  /// Body of the confirmation bottom sheet for selected devices.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This will log out the selected device from your account. You will need to log in again on that device.} other{This will log out the selected devices from your account. You will need to log in again on those devices.}}'**
+  String linkedDevicesSignOutSheetDescription(int count);
+
+  /// Body of the confirmation bottom sheet when revoking all other devices.
+  ///
+  /// In en, this message translates to:
+  /// **'This will log out the selected devices from your account. You will need to log in again on those devices.'**
+  String get linkedDevicesSignOutAllSheetDescription;
+
+  /// Destructive confirm button inside the sign-out bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get linkedDevicesSignOutConfirm;
+
+  /// Disclaimer shown beneath the bulk-action button.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll have to log back in on all logged out devices'**
+  String get linkedDevicesLogoutDisclaimer;
+
+  /// Title shown when loading the sessions list fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Network Error'**
+  String get linkedDevicesLoadErrorTitle;
+
+  /// Body shown when loading the sessions list fails.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re having trouble connecting to the space-time continuum. Please check your connection and try again.'**
+  String get linkedDevicesLoadErrorDescription;
+
+  /// Toast shown after successfully signing devices out.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Device revoked} other{Device revoked}}'**
+  String linkedDevicesRevokeSuccess(int count);
+
+  /// Toast shown when the sign-out request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign out. Try again.'**
+  String get linkedDevicesRevokeError;
+
+  /// Fallback shown when the session's OS field is missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown OS'**
+  String get linkedDevicesUnknownOs;
+
+  /// Fallback shown when the session's platform field is missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Platform'**
+  String get linkedDevicesUnknownPlatform;
 }
 
 class _FluxerLocalizationsDelegate
