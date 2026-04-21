@@ -7,6 +7,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
+import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -311,7 +312,18 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void updateMessageText(String text) {
+    final previous = state.messageText;
     state = state.copyWith(messageText: text);
+    if (text.isEmpty || text == previous) {
+      return;
+    }
+    final channelId = state.channelId;
+    if (channelId.isEmpty) {
+      return;
+    }
+    unawaited(
+      ref.read(typingSenderProvider.notifier).notifyUserTyping(channelId),
+    );
   }
 
   Future<void> toggleReaction(
