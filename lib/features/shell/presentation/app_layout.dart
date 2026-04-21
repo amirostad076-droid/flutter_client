@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/guild_sidebar.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_list.dart';
+import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/presentation/widgets/guild_navbar.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
@@ -79,6 +80,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
             .read(channelListViewModelProvider.notifier)
             .loadChannels(next, guild: guild);
         ref.read(memberListViewModelProvider.notifier).loadMembers(next);
+        ref.read(guildSyncProvider.notifier).syncIfNeeded(next);
       }
     });
 
