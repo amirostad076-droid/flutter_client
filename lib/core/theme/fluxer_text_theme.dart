@@ -71,10 +71,10 @@ class FluxerTextTheme extends ThemeExtension<FluxerTextTheme> {
         letterSpacing: 0.02,
       ),
       categoryName: GoogleFonts.ibmPlexSans(
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: FontWeight.w600,
+        height: 20 / 14,
         color: colors.textPrimaryMuted,
-        letterSpacing: 0.5,
       ),
       inputText: GoogleFonts.ibmPlexSans(
         fontSize: 16,

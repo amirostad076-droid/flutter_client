@@ -267,9 +267,8 @@ class GuildSidebar extends ConsumerWidget {
               Expanded(
                 child: Text(
                   channel.name,
-                  style: TextStyle(
+                  style: context.textStyles.channelName.copyWith(
                     color: textColor,
-                    fontSize: 16,
                     fontWeight: hasUnread ? FontWeight.w600 : null,
                   ),
                   overflow: TextOverflow.ellipsis,
