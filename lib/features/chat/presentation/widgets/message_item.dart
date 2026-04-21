@@ -368,7 +368,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             opacity: _isHovered ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 100),
             child: Text(
-              _formatShortTimestamp(msg.timestamp),
+              _formatShortTimestamp(msg.timestamp.toLocal()),
               style: TextStyle(
                 color: context.colors.textTertiaryMuted,
                 fontSize: 10,
@@ -433,7 +433,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
                     const SizedBox(width: 8),
                     Text(
-                      _formatTimestamp(msg.timestamp),
+                      _formatTimestamp(msg.timestamp.toLocal()),
                       style: context.textStyles.timestamp,
                     ),
                     if (msg.isEdited) ...[
