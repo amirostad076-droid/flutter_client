@@ -50,6 +50,7 @@ class GatewayEventHandler {
     this.onMessageDelete,
     this.onMessageDeleteBulk,
     this.onMessageReactionChange,
+    this.onAuthSessionIdHashChanged,
   });
 
   final db.FluxerDatabase database;
@@ -72,6 +73,7 @@ class GatewayEventHandler {
   final MessageDeleteCallback? onMessageDelete;
   final MessageDeleteBulkCallback? onMessageDeleteBulk;
   final MessageReactionChangeCallback? onMessageReactionChange;
+  final void Function(String? idHash)? onAuthSessionIdHashChanged;
 
   /// The current user's ID, set during READY processing.
   String? _currentUserId;
@@ -279,6 +281,7 @@ class GatewayEventHandler {
         talker.debug('[Gateway] USER_CONNECTIONS_UPDATE');
       case AuthSessionChangeEvent():
         talker.debug('[Gateway] AUTH_SESSION_CHANGE');
+        onAuthSessionIdHashChanged?.call(event.newAuthSessionIdHash);
       case InviteCreateEvent():
         talker.debug('[Gateway] INVITE_CREATE');
         onInviteCreate?.call(event.data);
@@ -326,6 +329,7 @@ class GatewayEventHandler {
 
     _currentUserId = event.user.id;
     onPermissionsClearAll?.call();
+    onAuthSessionIdHashChanged?.call(event.authSessionIdHash);
 
     await database.transaction(() async {
       // Clear all entity tables (full replace).

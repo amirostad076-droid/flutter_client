@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/auth/providers/current_auth_session_provider.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
@@ -129,6 +130,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     onMessageReactionChange: (channelId, messageId) => messageBus.emit(
       MessageReactionsChanged(channelId: channelId, messageId: messageId),
     ),
+    onAuthSessionIdHashChanged: (idHash) {
+      ref.read(currentAuthSessionIdHashProvider.notifier).update(idHash);
+    },
   );
 
   final subscription = connection.events.listen(
