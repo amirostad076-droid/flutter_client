@@ -125,8 +125,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     onMessageCreate: (event) => messageBus.emit(MessageCreated(event)),
     onMessageUpdate: (event) => messageBus.emit(MessageUpdated(event)),
     onMessageDelete: (event) => messageBus.emit(MessageDeleted(event)),
-    onMessageDeleteBulk: (event) =>
-        messageBus.emit(MessagesDeletedBulk(event)),
+    onMessageDeleteBulk: (event) => messageBus.emit(MessagesDeletedBulk(event)),
     onMessageReactionChange: (channelId, messageId) => messageBus.emit(
       MessageReactionsChanged(channelId: channelId, messageId: messageId),
     ),

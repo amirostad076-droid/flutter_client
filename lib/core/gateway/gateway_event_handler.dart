@@ -23,8 +23,7 @@ typedef GuildCallback = void Function(String guildId);
 typedef MessageCreateCallback = void Function(MessageCreateEvent event);
 typedef MessageUpdateCallback = void Function(MessageUpdateEvent event);
 typedef MessageDeleteCallback = void Function(MessageDeleteEvent event);
-typedef MessageDeleteBulkCallback =
-    void Function(MessageDeleteBulkEvent event);
+typedef MessageDeleteBulkCallback = void Function(MessageDeleteBulkEvent event);
 typedef MessageReactionChangeCallback =
     void Function(String channelId, String messageId);
 

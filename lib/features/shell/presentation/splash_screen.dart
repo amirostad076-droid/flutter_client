@@ -126,7 +126,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
-              ),
+            ),
             if (startupError != null) ...[
               const SizedBox(height: 16),
               FilledButton(

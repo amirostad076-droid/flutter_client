@@ -53,7 +53,10 @@ const List<SplashQuote> _baseSplashQuotes = <SplashQuote>[
         "Fluxer is 100% powered by flux capacitors. And furries. We don't forget about the furries.",
     source: 'jb',
   ),
-  SplashQuote(text: 'Unable to decrypt loading quote.', source: 'SteveLinkNoah'),
+  SplashQuote(
+    text: 'Unable to decrypt loading quote.',
+    source: 'SteveLinkNoah',
+  ),
   SplashQuote(
     text: "Remember to hydrate! Or don't, I'm not the boss of you.",
     source: 'jb',
@@ -64,7 +67,8 @@ const List<SplashQuote> _baseSplashQuotes = <SplashQuote>[
   ),
   SplashQuote(text: 'Nu \u00e4r det dags f\u00f6r en fika.', source: 'Chip'),
   SplashQuote(
-    text: "Is Fluxer loading? Why are you asking me? I'm just a loading screen!",
+    text:
+        "Is Fluxer loading? Why are you asking me? I'm just a loading screen!",
     source: 'Caus',
   ),
   SplashQuote(text: 'Welcome back to 2015!', source: 'Pan'),
@@ -93,8 +97,7 @@ const List<SplashQuote> _baseSplashQuotes = <SplashQuote>[
   ),
   SplashQuote(text: 'Ya like Jazz?', source: 'catnaros'),
   SplashQuote(
-    text:
-        "If it smells like chicken, you're holding the soldering iron wrong.",
+    text: "If it smells like chicken, you're holding the soldering iron wrong.",
     source: 'viriona',
   ),
   SplashQuote(text: 'Everything is in flux.', source: 'Alyx'),

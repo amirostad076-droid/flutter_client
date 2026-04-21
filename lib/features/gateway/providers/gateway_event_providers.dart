@@ -26,10 +26,7 @@ class TypingIndicators extends _$TypingIndicators {
 
   @override
   List<TypingUser> build() {
-    _cleanupTimer = Timer.periodic(
-      _kTypingCleanupInterval,
-      (_) => _cleanup(),
-    );
+    _cleanupTimer = Timer.periodic(_kTypingCleanupInterval, (_) => _cleanup());
     ref.onDispose(() => _cleanupTimer?.cancel());
     return const [];
   }

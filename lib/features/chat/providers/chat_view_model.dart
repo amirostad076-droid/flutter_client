@@ -155,10 +155,8 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  Message _toDomain(MessageResponseSchema schema) => Message.fromSdk(
-    schema,
-    currentUserId: ref.read(currentUserIdProvider),
-  );
+  Message _toDomain(MessageResponseSchema schema) =>
+      Message.fromSdk(schema, currentUserId: ref.read(currentUserIdProvider));
 
   List<Message>? _replaceById(List<Message> list, Message msg) {
     final idx = list.indexWhere((m) => m.id == msg.id);

@@ -81,9 +81,7 @@ class _TypingIndicatorBarState extends ConsumerState<TypingIndicatorBar> {
     if (channelId.isEmpty || activeUserIds.isEmpty) {
       return const SizedBox.shrink();
     }
-    return IgnorePointer(
-      child: _TypingPill(userIds: activeUserIds),
-    );
+    return IgnorePointer(child: _TypingPill(userIds: activeUserIds));
   }
 }
 
@@ -259,4 +257,3 @@ class _AvatarStack extends StatelessWidget {
     );
   }
 }
-

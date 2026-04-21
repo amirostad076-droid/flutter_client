@@ -318,7 +318,11 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   /// Returns the content, embeds, and reactions
   /// widgets for a message.
-  List<Widget> _buildMessageContent(BuildContext context, Message msg, bool isMobile) => [
+  List<Widget> _buildMessageContent(
+    BuildContext context,
+    Message msg,
+    bool isMobile,
+  ) => [
     if (msg.content.isNotEmpty && !msg.shouldHideContent)
       MessageMarkdown(
         data: msg.content,
@@ -357,34 +361,35 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   /// Grouped message row: hover-reveal short timestamp
   /// in the left column, content on the right.
-  Widget _buildGroupedRow(BuildContext context, Message msg, bool isMobile) => Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      SizedBox(
-        width: _kAvatarColumnWidth,
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: AnimatedOpacity(
-            opacity: _isHovered ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 100),
-            child: Text(
-              _formatShortTimestamp(msg.timestamp.toLocal()),
-              style: TextStyle(
-                color: context.colors.textTertiaryMuted,
-                fontSize: 10,
+  Widget _buildGroupedRow(BuildContext context, Message msg, bool isMobile) =>
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: _kAvatarColumnWidth,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: AnimatedOpacity(
+                opacity: _isHovered ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 100),
+                child: Text(
+                  _formatShortTimestamp(msg.timestamp.toLocal()),
+                  style: TextStyle(
+                    color: context.colors.textTertiaryMuted,
+                    fontSize: 10,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: _buildMessageContent(context, msg, isMobile),
-        ),
-      ),
-    ],
-  );
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _buildMessageContent(context, msg, isMobile),
+            ),
+          ),
+        ],
+      );
 
   String _formatShortTimestamp(DateTime dt) {
     final h = dt.hour.toString().padLeft(2, '0');
@@ -394,67 +399,71 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   /// Main message row: avatar on the left, content on
   /// the right.
-  Widget _buildMainRow(BuildContext context, Message msg, Color? roleColor, bool isMobile) =>
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: FluxerAvatar.user(
-              fallbackText: msg.authorName,
-              userId: msg.authorId,
-              imageUrl: msg.authorAvatarUrl,
-              avatarColor: msg.authorAvatarColor,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildMainRow(
+    BuildContext context,
+    Message msg,
+    Color? roleColor,
+    bool isMobile,
+  ) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: FluxerAvatar.user(
+          fallbackText: msg.authorName,
+          userId: msg.authorId,
+          imageUrl: msg.authorAvatarUrl,
+          avatarColor: msg.authorAvatarColor,
+        ),
+      ),
+      const SizedBox(width: 16),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        msg.authorName,
-                        style: TextStyle(
-                          color: roleColor ?? context.colors.textChat,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
+                Flexible(
+                  child: Text(
+                    msg.authorName,
+                    style: TextStyle(
+                      color: roleColor ?? context.colors.textChat,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
-                    if (msg.authorIsBot) ...[
-                      const SizedBox(width: 6),
-                      const FluxerBotBadge(),
-                    ],
-
-                    const SizedBox(width: 8),
-                    Text(
-                      _formatTimestamp(msg.timestamp.toLocal()),
-                      style: context.textStyles.timestamp,
-                    ),
-                    if (msg.isEdited) ...[
-                      const SizedBox(width: 4),
-                      Text(
-                        '(edited)',
-                        style: TextStyle(
-                          color: context.colors.textTertiaryMuted,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ],
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
-                const SizedBox(height: 2),
-                ..._buildMessageContent(context, msg, isMobile),
+                if (msg.authorIsBot) ...[
+                  const SizedBox(width: 6),
+                  const FluxerBotBadge(),
+                ],
+
+                const SizedBox(width: 8),
+                Text(
+                  _formatTimestamp(msg.timestamp.toLocal()),
+                  style: context.textStyles.timestamp,
+                ),
+                if (msg.isEdited) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    '(edited)',
+                    style: TextStyle(
+                      color: context.colors.textTertiaryMuted,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
               ],
             ),
-          ),
-        ],
-      );
+            const SizedBox(height: 2),
+            ..._buildMessageContent(context, msg, isMobile),
+          ],
+        ),
+      ),
+    ],
+  );
 
   Widget _buildEmbed(Embed embed) => Padding(
     padding: const EdgeInsets.only(top: 2),

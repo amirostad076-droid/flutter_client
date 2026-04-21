@@ -24,7 +24,8 @@ class FluxerGuildBadge extends StatelessWidget {
   final Brightness? forceBrightness;
 
   const FluxerGuildBadge({
-    required List<String> this.features, super.key,
+    required List<String> this.features,
+    super.key,
     this.size = _defaultBadgeSize,
     this.shadows,
     this.color,
@@ -32,7 +33,8 @@ class FluxerGuildBadge extends StatelessWidget {
   }) : forcedKind = null;
 
   const FluxerGuildBadge.forced({
-    required FluxerGuildBadgeKind kind, super.key,
+    required FluxerGuildBadgeKind kind,
+    super.key,
     this.size = _defaultBadgeSize,
     this.shadows,
     this.color,
@@ -75,9 +77,8 @@ class FluxerGuildBadge extends StatelessWidget {
     return null;
   }
 
-  Widget _buildPartnered(bool isDark) => _buildImageBadge(
-    isDark ? _partneredDarkAsset : _partneredLightAsset,
-  );
+  Widget _buildPartnered(bool isDark) =>
+      _buildImageBadge(isDark ? _partneredDarkAsset : _partneredLightAsset);
 
   Widget _buildVerified(BuildContext context) => Icon(
     PhosphorIconsFill.sealCheck,

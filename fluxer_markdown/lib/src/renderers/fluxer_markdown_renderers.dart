@@ -129,26 +129,17 @@ class _MarkdownBlockRenderer {
       case 'h1':
         return _buildParagraph(
           node.children ?? const [],
-          style: baseStyle.copyWith(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-          ),
+          style: baseStyle.copyWith(fontSize: 24, fontWeight: FontWeight.w700),
         );
       case 'h2':
         return _buildParagraph(
           node.children ?? const [],
-          style: baseStyle.copyWith(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
+          style: baseStyle.copyWith(fontSize: 20, fontWeight: FontWeight.w700),
         );
       case 'h3':
         return _buildParagraph(
           node.children ?? const [],
-          style: baseStyle.copyWith(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: baseStyle.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
         );
       case 'blockquote':
         return _buildBlockquote(node);
@@ -355,7 +346,6 @@ class _MarkdownBlockRenderer {
       children: rows,
     );
   }
-
 }
 
 class _MarkdownInlineRenderer {
