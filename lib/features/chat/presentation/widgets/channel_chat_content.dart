@@ -8,6 +8,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/channel_header.dar
 import 'package:fluxer_app/features/chat/presentation/widgets/channel_textarea.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/inline_expression_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_list.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/typing_indicator_bar.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -70,7 +71,20 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
               children: [
                 if (widget.showTopBar) const ChannelHeader(),
                 Expanded(
-                  child: MessageList(targetMessageId: widget.targetMessageId),
+                  child: Stack(
+                    children: [
+                      MessageList(targetMessageId: widget.targetMessageId),
+                      const Positioned(
+                        left: 8,
+                        right: 8,
+                        bottom: 8,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: TypingIndicatorBar(),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const ChannelTextarea(),
                 if (isMobile && isPanelOpen)

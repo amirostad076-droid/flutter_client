@@ -3489,6 +3489,54 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Action failed, please try again'**
   String get userProfileActionFailed;
+
+  /// Typing indicator shown above the chat input when exactly one other user is typing.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is typing...'**
+  String typingIndicatorOne(String name);
+
+  /// Typing indicator shown above the chat input when two other users are typing.
+  ///
+  /// In en, this message translates to:
+  /// **'{name1} and {name2} are typing...'**
+  String typingIndicatorTwo(String name1, String name2);
+
+  /// Typing indicator shown above the chat input when three other users are typing.
+  ///
+  /// In en, this message translates to:
+  /// **'{name1}, {name2} and {name3} are typing...'**
+  String typingIndicatorThree(String name1, String name2, String name3);
+
+  /// Typing indicator shown when exactly four other users are typing.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple people are typing...'**
+  String get typingIndicatorMultiple;
+
+  /// Typing indicator shown when 5-9 other users are typing.
+  ///
+  /// In en, this message translates to:
+  /// **'A handful of keyboard warriors are assembling...'**
+  String get typingIndicatorHandful;
+
+  /// Typing indicator shown when 10-14 other users are typing.
+  ///
+  /// In en, this message translates to:
+  /// **'A symphony of clacking keys is underway...'**
+  String get typingIndicatorSymphony;
+
+  /// Typing indicator shown when 15-19 other users are typing.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s a full-blown typing fiesta in here'**
+  String get typingIndicatorFiesta;
+
+  /// Typing indicator shown when 20 or more other users are typing.
+  ///
+  /// In en, this message translates to:
+  /// **'Whoa, it\'s a typing apocalypse'**
+  String get typingIndicatorApocalypse;
 }
 
 class _FluxerLocalizationsDelegate

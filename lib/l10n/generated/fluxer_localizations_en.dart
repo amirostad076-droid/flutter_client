@@ -1972,4 +1972,37 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get userProfileActionFailed => 'Action failed, please try again';
+
+  @override
+  String typingIndicatorOne(String name) {
+    return '$name is typing...';
+  }
+
+  @override
+  String typingIndicatorTwo(String name1, String name2) {
+    return '$name1 and $name2 are typing...';
+  }
+
+  @override
+  String typingIndicatorThree(String name1, String name2, String name3) {
+    return '$name1, $name2 and $name3 are typing...';
+  }
+
+  @override
+  String get typingIndicatorMultiple => 'Multiple people are typing...';
+
+  @override
+  String get typingIndicatorHandful =>
+      'A handful of keyboard warriors are assembling...';
+
+  @override
+  String get typingIndicatorSymphony =>
+      'A symphony of clacking keys is underway...';
+
+  @override
+  String get typingIndicatorFiesta =>
+      'It\'s a full-blown typing fiesta in here';
+
+  @override
+  String get typingIndicatorApocalypse => 'Whoa, it\'s a typing apocalypse';
 }

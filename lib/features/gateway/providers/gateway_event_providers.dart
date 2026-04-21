@@ -17,6 +17,9 @@ class TypingUser {
   });
 }
 
+const Duration _kTypingExpiry = Duration(seconds: 10);
+const Duration _kTypingCleanupInterval = Duration(seconds: 1);
+
 @Riverpod(keepAlive: true)
 class TypingIndicators extends _$TypingIndicators {
   Timer? _cleanupTimer;
@@ -24,7 +27,7 @@ class TypingIndicators extends _$TypingIndicators {
   @override
   List<TypingUser> build() {
     _cleanupTimer = Timer.periodic(
-      const Duration(seconds: 2),
+      _kTypingCleanupInterval,
       (_) => _cleanup(),
     );
     ref.onDispose(() => _cleanupTimer?.cancel());
@@ -32,7 +35,7 @@ class TypingIndicators extends _$TypingIndicators {
   }
 
   void addTyping(String channelId, String userId) {
-    final expiresAt = DateTime.now().add(const Duration(seconds: 8));
+    final expiresAt = DateTime.now().add(_kTypingExpiry);
 
     state = [
       ...state.where((t) => !(t.channelId == channelId && t.userId == userId)),

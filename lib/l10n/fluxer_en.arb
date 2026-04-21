@@ -2469,5 +2469,47 @@
   "userProfileActionFailed": "Action failed, please try again",
   "@userProfileActionFailed": {
     "description": "Toast shown when a relationship action (block, unblock, friend request, etc.) fails."
+  },
+  "typingIndicatorOne": "{name} is typing...",
+  "@typingIndicatorOne": {
+    "description": "Typing indicator shown above the chat input when exactly one other user is typing.",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "typingIndicatorTwo": "{name1} and {name2} are typing...",
+  "@typingIndicatorTwo": {
+    "description": "Typing indicator shown above the chat input when two other users are typing.",
+    "placeholders": {
+      "name1": {"type": "String"},
+      "name2": {"type": "String"}
+    }
+  },
+  "typingIndicatorThree": "{name1}, {name2} and {name3} are typing...",
+  "@typingIndicatorThree": {
+    "description": "Typing indicator shown above the chat input when three other users are typing.",
+    "placeholders": {
+      "name1": {"type": "String"},
+      "name2": {"type": "String"},
+      "name3": {"type": "String"}
+    }
+  },
+  "typingIndicatorMultiple": "Multiple people are typing...",
+  "@typingIndicatorMultiple": {
+    "description": "Typing indicator shown when exactly four other users are typing."
+  },
+  "typingIndicatorHandful": "A handful of keyboard warriors are assembling...",
+  "@typingIndicatorHandful": {
+    "description": "Typing indicator shown when 5-9 other users are typing."
+  },
+  "typingIndicatorSymphony": "A symphony of clacking keys is underway...",
+  "@typingIndicatorSymphony": {
+    "description": "Typing indicator shown when 10-14 other users are typing."
+  },
+  "typingIndicatorFiesta": "It's a full-blown typing fiesta in here",
+  "@typingIndicatorFiesta": {
+    "description": "Typing indicator shown when 15-19 other users are typing."
+  },
+  "typingIndicatorApocalypse": "Whoa, it's a typing apocalypse",
+  "@typingIndicatorApocalypse": {
+    "description": "Typing indicator shown when 20 or more other users are typing."
   }
 }
