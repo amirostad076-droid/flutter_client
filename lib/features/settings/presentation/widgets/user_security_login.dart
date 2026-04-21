@@ -28,6 +28,7 @@ import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/features/ui/tooltip/fluxer_tooltip.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/utils/relative_time.dart';
 import 'package:fluxer_dart/export.dart';
 
 const int _kFlagStaff = 1 << 0;
@@ -86,30 +87,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       return '*' * phone.length;
     }
     return '${'*' * (phone.length - 2)}${phone.substring(phone.length - 2)}';
-  }
-
-  String _relativeDate(String isoDate, FluxerLocalizations l10n) {
-    final date = DateTime.tryParse(isoDate);
-    if (date == null) {
-      return isoDate;
-    }
-    final diff = DateTime.now().difference(date);
-    if (diff.inDays > 365) {
-      return l10n.relativeTimeYears((diff.inDays / 365).floor());
-    }
-    if (diff.inDays > 30) {
-      return l10n.relativeTimeMonths((diff.inDays / 30).floor());
-    }
-    if (diff.inDays > 0) {
-      return l10n.relativeTimeDays(diff.inDays);
-    }
-    if (diff.inHours > 0) {
-      return l10n.relativeTimeHours(diff.inHours);
-    }
-    if (diff.inMinutes > 0) {
-      return l10n.relativeTimeMinutes(diff.inMinutes);
-    }
-    return l10n.relativeTimeJustNow;
   }
 
   @override
@@ -243,7 +220,11 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     if (lc == null) {
       return l10n.securityLoginPasswordNeverChanged;
     }
-    return l10n.securityLoginPasswordLastChanged(_relativeDate(lc, l10n));
+    final date = DateTime.tryParse(lc);
+    if (date == null) {
+      return l10n.securityLoginPasswordLastChanged(lc);
+    }
+    return l10n.securityLoginPasswordLastChanged(relativeTime(date, l10n));
   }
 
   Widget _buildSecuritySection(
@@ -379,13 +360,19 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     FluxerColorTheme colors,
     FluxerLocalizations l10n,
   ) {
-    final details = StringBuffer(
-      l10n.securityPasskeysAdded(_relativeDate(pk.createdAt, l10n)),
-    );
+    final createdAt = DateTime.tryParse(pk.createdAt);
+    final createdAtLabel = createdAt != null
+        ? relativeTime(createdAt, l10n)
+        : pk.createdAt;
+    final details = StringBuffer(l10n.securityPasskeysAdded(createdAtLabel));
     if (pk.lastUsedAt != null) {
+      final lastUsedAt = DateTime.tryParse(pk.lastUsedAt!);
+      final lastUsedLabel = lastUsedAt != null
+          ? relativeTime(lastUsedAt, l10n)
+          : pk.lastUsedAt!;
       details.write(
         ' \u2022 '
-        '${l10n.securityPasskeysLastUsed(_relativeDate(pk.lastUsedAt!, l10n))}',
+        '${l10n.securityPasskeysLastUsed(lastUsedLabel)}',
       );
     }
 
