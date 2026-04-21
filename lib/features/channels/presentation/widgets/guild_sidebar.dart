@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -11,6 +12,7 @@ import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
+import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
@@ -79,9 +81,7 @@ class GuildSidebar extends ConsumerWidget {
             : CrossAxisAlignment.center,
         children: [
           if (guild != null &&
-              (guild.isPartnered ||
-                  guild.isVerified ||
-                  guild.isDiscoverable))
+              (guild.isPartnered || guild.isVerified || guild.isDiscoverable))
             Padding(
               padding: const EdgeInsets.only(right: 4),
               child: FluxerGuildBadge(
@@ -212,6 +212,18 @@ class GuildSidebar extends ConsumerWidget {
     final unread = unreadAsync.value;
     final hasUnread = unread?.hasUnread ?? false;
     final mentionCount = unread?.mentionCount ?? 0;
+    final currentUserId = ref.watch(currentUserIdProvider);
+    final hasTyping = ref.watch(
+      typingIndicatorsProvider.select((entries) {
+        final now = DateTime.now();
+        return entries.any(
+          (t) =>
+              t.channelId == channel.id &&
+              t.userId != currentUserId &&
+              t.expiresAt.isAfter(now),
+        );
+      }),
+    );
 
     final textColor = isSelected
         ? context.colors.textPrimary
@@ -263,10 +275,17 @@ class GuildSidebar extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (!isSelected && (hasUnread || mentionCount > 0))
-                mentionCount > 0
-                    ? FluxerBadge.count(count: mentionCount)
-                    : const FluxerBadge.dot(),
+              if (hasTyping) ...[
+                const SizedBox(width: 4),
+                FluxerLoadingSpinner(color: context.colors.textSecondary),
+              ],
+              if (!isSelected && (hasUnread || mentionCount > 0)) ...[
+                const SizedBox(width: 4),
+                if (mentionCount > 0)
+                  FluxerBadge.count(count: mentionCount)
+                else
+                  const FluxerBadge.dot(),
+              ],
             ],
           ),
         ),
