@@ -19,6 +19,8 @@ class FluxerTextTheme extends ThemeExtension<FluxerTextTheme> {
     required this.embedTitle,
     required this.embedDescription,
     required this.embedFooter,
+    required this.quote,
+    required this.quoteLink,
   });
 
   factory FluxerTextTheme.fromColors(FluxerColorTheme colors) {
@@ -102,6 +104,21 @@ class FluxerTextTheme extends ThemeExtension<FluxerTextTheme> {
         fontWeight: FontWeight.w400,
         color: colors.textPrimaryMuted,
       ),
+      quote: GoogleFonts.ibmPlexSans(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        fontStyle: FontStyle.italic,
+        color: colors.textSecondary,
+        height: 1.4,
+      ),
+      quoteLink: GoogleFonts.ibmPlexSans(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        fontStyle: FontStyle.italic,
+        color: colors.textLink,
+        height: 1.4,
+        decoration: TextDecoration.none,
+      ),
     );
   }
 
@@ -120,6 +137,8 @@ class FluxerTextTheme extends ThemeExtension<FluxerTextTheme> {
   final TextStyle embedTitle;
   final TextStyle embedDescription;
   final TextStyle embedFooter;
+  final TextStyle quote;
+  final TextStyle quoteLink;
 
   @override
   FluxerTextTheme copyWith({
@@ -138,6 +157,8 @@ class FluxerTextTheme extends ThemeExtension<FluxerTextTheme> {
     TextStyle? embedTitle,
     TextStyle? embedDescription,
     TextStyle? embedFooter,
+    TextStyle? quote,
+    TextStyle? quoteLink,
   }) {
     return FluxerTextTheme(
       heading: heading ?? this.heading,
@@ -155,6 +176,8 @@ class FluxerTextTheme extends ThemeExtension<FluxerTextTheme> {
       embedTitle: embedTitle ?? this.embedTitle,
       embedDescription: embedDescription ?? this.embedDescription,
       embedFooter: embedFooter ?? this.embedFooter,
+      quote: quote ?? this.quote,
+      quoteLink: quoteLink ?? this.quoteLink,
     );
   }
 
@@ -183,6 +206,8 @@ class FluxerTextTheme extends ThemeExtension<FluxerTextTheme> {
         t,
       )!,
       embedFooter: TextStyle.lerp(embedFooter, other.embedFooter, t)!,
+      quote: TextStyle.lerp(quote, other.quote, t)!,
+      quoteLink: TextStyle.lerp(quoteLink, other.quoteLink, t)!,
     );
   }
 }

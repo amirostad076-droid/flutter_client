@@ -103,17 +103,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       children: [
                         Text(
                           _selectedQuote.text,
-                          style: context.textStyles.bodyMedium.copyWith(
-                            fontStyle: FontStyle.italic,
-                          ),
+                          style: context.textStyles.quote,
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _selectedQuote.source,
-                          style: context.textStyles.bodySmall.copyWith(
+                          style: context.textStyles.quoteLink.copyWith(
                             color: context.colors.textChatMuted,
-                            fontWeight: FontWeight.w600,
+                            fontStyle: FontStyle.normal,
                           ),
                           textAlign: TextAlign.center,
                         ),
