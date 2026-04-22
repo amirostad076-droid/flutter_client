@@ -97,10 +97,9 @@ class _SlowmodePill extends StatelessWidget {
     final borderColor = isActive
         ? colors.textDanger
         : colors.userAreaDividerColor;
-    final textStyle = TextStyle(
+    final textStyle = context.textStyles.timestamp.copyWith(
       color: foreground,
-      fontSize: 12,
-      height: 1.2,
+      fontWeight: FontWeight.w600,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
     final label = isActive
@@ -121,7 +120,7 @@ class _SlowmodePill extends StatelessWidget {
           border: Border.all(color: borderColor),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

@@ -113,7 +113,7 @@ class _TypingPill extends ConsumerWidget {
         border: Border.all(color: colors.userAreaDividerColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -145,10 +145,10 @@ class _TypingPill extends ConsumerWidget {
   ) {
     final l10n = FluxerLocalizations.of(context);
     final colors = context.colors;
-    final baseStyle = TextStyle(
+    final baseStyle = context.textStyles.timestamp.copyWith(
       color: colors.textSecondary,
       fontSize: 12,
-      height: 1.2,
+      fontWeight: FontWeight.w600,
     );
     final fallback = _bulkDescriptor(l10n, total);
     final haveEnoughNames = resolved.length >= total;
