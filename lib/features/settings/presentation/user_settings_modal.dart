@@ -20,6 +20,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/settings_sideb
 import 'package:fluxer_app/features/settings/presentation/widgets/user_appearance.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_authorized_apps.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_blocked_users.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_connections.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_linked_devices.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_messages_media.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_privacy_dashboard.dart';
@@ -274,6 +275,8 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
         return const UserBlockedUsers();
       case 'Linked Devices':
         return const UserLinkedDevices();
+      case 'Connections':
+        return const UserConnections();
       default:
         return Center(
           child: Text(
@@ -634,6 +637,8 @@ class _MobileSettingsContentBody extends ConsumerWidget {
         return UserBlockedUsers(scrollController: scrollController);
       case 'Linked Devices':
         return UserLinkedDevices(scrollController: scrollController);
+      case 'Connections':
+        return UserConnections(scrollController: scrollController);
       default:
         return Center(
           child: Text(
