@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -34,7 +36,14 @@ class AppLayout extends ConsumerStatefulWidget {
 class _AppLayoutState extends ConsumerState<AppLayout>
     with SingleTickerProviderStateMixin {
   static const _youBranchIndex = 2;
-  static const _swipeThreshold = 0.35;
+  static const _kBackGestureMinWidthCupertino = 20.0;
+  static const _kBackGestureMinWidthMaterial = 32.0;
+  static const _kBackSwipeFlingWidthPerSecond = 1.0;
+  static const _kBackSwipeProgressThresholdMaterial = 0.4;
+  static const _kBackSwipeProgressThresholdCupertino = 0.5;
+  static const _kBackSwipeSnapDuration = Duration(milliseconds: 350);
+  static const Curve _kBackSwipeSnapCurve = Curves.fastEaseInToSlowEaseOut;
+  static const _kBackSwipeUnderlayParallax = 0.3;
   static final _rootRoutePattern = RegExp(r'^/channels/[^/]+$');
   static final _chatRoutePattern = RegExp('^/channels/[^/]+/.+');
   late final GoRouter _router;
@@ -47,7 +56,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     _router.routerDelegate.addListener(_onRouteChange);
     _swipeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: _kBackSwipeSnapDuration,
     );
   }
 
@@ -160,84 +169,186 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     String location, {
     required bool showBottomNav,
   }) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
     final canSwipePop = _canSwipePop(location);
-
-    return GestureDetector(
-      onHorizontalDragUpdate: canSwipePop
-          ? (details) {
-              _swipeController.value =
-                  (_swipeController.value +
-                          (details.primaryDelta ?? 0) / screenWidth)
-                      .clamp(0.0, 1.0);
-            }
-          : null,
-      onHorizontalDragEnd: canSwipePop
-          ? (details) {
-              final velocity = details.velocity.pixelsPerSecond.dx;
-              if (_swipeController.value > _swipeThreshold || velocity > 800) {
-                unawaited(
-                  _swipeController.forward().then((_) {
-                    if (mounted) {
-                      context.pop();
-                    }
-                  }),
-                );
-              } else {
-                unawaited(_swipeController.reverse());
-              }
-            }
-          : null,
-      child: AnimatedBuilder(
-        animation: _swipeController,
-        builder: (context, child) {
-          if (_swipeController.value == 0) {
-            if (showBottomNav) {
-              return Column(
-                children: [
-                  Expanded(child: child!),
-                  _buildBottomNav(context),
-                ],
+    final mainContent = AnimatedBuilder(
+      animation: _swipeController,
+      builder: (context, child) {
+        return _backSwipeBuildTransition(
+          context,
+          child: child!,
+          location: location,
+          showBottomNav: showBottomNav,
+        );
+      },
+      child: widget.navigationShell,
+    );
+    if (!canSwipePop) {
+      return mainContent;
+    }
+    final mediaQuery = MediaQuery.of(context);
+    final double screenWidth = mediaQuery.size.width;
+    if (screenWidth <= 0) {
+      return mainContent;
+    }
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    return Stack(
+      fit: StackFit.passthrough,
+      children: [
+        mainContent,
+        PositionedDirectional(
+          start: 0,
+          top: 0,
+          bottom: 0,
+          width: _backSwipeEdgeWidth(context),
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragUpdate: (DragUpdateDetails details) {
+              final double primaryDelta = details.primaryDelta ?? 0;
+              final double logical =
+                  (isRtl ? -primaryDelta : primaryDelta) / screenWidth;
+              _swipeController.value = (_swipeController.value + logical).clamp(
+                0.0,
+                1.0,
               );
-            }
-            return child!;
-          }
-          final slideOffset = _swipeController.value * screenWidth;
-          Widget slidingContent = child!;
-          if (showBottomNav) {
-            slidingContent = Column(
-              children: [
-                Expanded(child: slidingContent),
-                _buildBottomNav(context),
-              ],
-            );
-          }
-          return Stack(
+            },
+            onHorizontalDragEnd: (DragEndDetails details) {
+              _onBackSwipeEnd(
+                context,
+                isRtl: isRtl,
+                screenWidth: screenWidth,
+                endDetails: details,
+              );
+            },
+            onHorizontalDragCancel: () {
+              unawaited(
+                _swipeController.animateBack(
+                  0,
+                  duration: _kBackSwipeSnapDuration,
+                  curve: _kBackSwipeSnapCurve,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  double _backSwipeEdgeWidth(BuildContext context) {
+    final EdgeInsets padding = MediaQuery.paddingOf(context);
+    final bool isRtl = Directionality.of(context) == TextDirection.rtl;
+    final double startEdgePadding = isRtl ? padding.right : padding.left;
+    if (defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb) {
+      return math.max(_kBackGestureMinWidthCupertino, startEdgePadding);
+    }
+    return math.max(_kBackGestureMinWidthMaterial, startEdgePadding);
+  }
+
+  double _backSwipeProgressThreshold() {
+    if (defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb) {
+      return _kBackSwipeProgressThresholdCupertino;
+    }
+    return _kBackSwipeProgressThresholdMaterial;
+  }
+
+  void _onBackSwipeEnd(
+    BuildContext context, {
+    required bool isRtl,
+    required double screenWidth,
+    required DragEndDetails endDetails,
+  }) {
+    final double vx = endDetails.velocity.pixelsPerSecond.dx;
+    final double logicalWidthPerSec = (isRtl ? -vx : vx) / screenWidth;
+    final bool shouldComplete;
+    if (logicalWidthPerSec.abs() >= _kBackSwipeFlingWidthPerSecond) {
+      shouldComplete = logicalWidthPerSec > 0;
+    } else {
+      shouldComplete = _swipeController.value > _backSwipeProgressThreshold();
+    }
+    if (shouldComplete) {
+      unawaited(
+        _swipeController
+            .animateTo(
+              1,
+              duration: _kBackSwipeSnapDuration,
+              curve: _kBackSwipeSnapCurve,
+            )
+            .then((void _) {
+              if (mounted) {
+                context.pop();
+              }
+            }),
+      );
+    } else {
+      unawaited(
+        _swipeController.animateBack(
+          0,
+          duration: _kBackSwipeSnapDuration,
+          curve: _kBackSwipeSnapCurve,
+        ),
+      );
+    }
+  }
+
+  Widget _backSwipeBuildTransition(
+    BuildContext context, {
+    required Widget child,
+    required String location,
+    required bool showBottomNav,
+  }) {
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final bool isRtl = Directionality.of(context) == TextDirection.rtl;
+    if (_swipeController.value == 0) {
+      if (showBottomNav) {
+        return Column(
+          children: [
+            Expanded(child: child),
+            _buildBottomNav(context),
+          ],
+        );
+      }
+      return child;
+    }
+    final double t = _swipeController.value;
+    final double slideOffset = t * screenWidth;
+    final double sign = isRtl ? -1.0 : 1.0;
+    final double parallaxOffset =
+        sign * slideOffset * _kBackSwipeUnderlayParallax;
+    final double foregroundOffset = sign * slideOffset;
+    Widget slidingContent = child;
+    if (showBottomNav) {
+      slidingContent = Column(
+        children: [
+          Expanded(child: slidingContent),
+          _buildBottomNav(context),
+        ],
+      );
+    }
+    return Stack(
+      children: [
+        IgnorePointer(
+          child: Column(
             children: [
-              IgnorePointer(
-                child: Column(
-                  children: [
-                    Expanded(child: _buildMobileSidebar(location)),
-                    _buildBottomNav(context),
-                  ],
+              Expanded(
+                child: Transform.translate(
+                  offset: Offset(parallaxOffset, 0),
+                  child: _buildMobileSidebar(location),
                 ),
               ),
-              Positioned.fill(
-                child: ColoredBox(
-                  color: Colors.black.withValues(
-                    alpha: 0.5 * (1 - _swipeController.value),
-                  ),
-                ),
-              ),
-              Transform.translate(
-                offset: Offset(slideOffset, 0),
-                child: slidingContent,
-              ),
+              _buildBottomNav(context),
             ],
-          );
-        },
-        child: widget.navigationShell,
-      ),
+          ),
+        ),
+        Positioned.fill(
+          child: ColoredBox(
+            color: Colors.black.withValues(alpha: 0.5 * (1 - t)),
+          ),
+        ),
+        Transform.translate(
+          offset: Offset(foregroundOffset, 0),
+          child: slidingContent,
+        ),
+      ],
     );
   }
 
