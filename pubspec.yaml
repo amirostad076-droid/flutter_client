@@ -78,6 +78,7 @@ flutter:
     - assets/images/
     - assets/images/icons/
     - assets/images/badges/
+    - assets/images/connections/
     - assets/emojis.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
