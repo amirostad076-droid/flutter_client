@@ -232,7 +232,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       guildListViewModelProvider.select((s) => s.guilds),
     );
     final activeGuildId = ref.watch(activeGuildIdProvider);
-    final currentLocation = GoRouterState.of(context).matchedLocation;
+    final currentLocation = ref.watch(currentLocationProvider);
     final isDm = currentLocation.startsWith('/channels/@me');
     final isFavorites = currentLocation.startsWith('/channels/@favorites');
     final pendingFriendCount =

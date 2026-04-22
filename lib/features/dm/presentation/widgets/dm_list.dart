@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
@@ -67,7 +68,7 @@ class _DMListState extends ConsumerState<DMList> {
   Widget build(BuildContext context) {
     final vm = ref.watch(dmViewModelProvider);
     final convos = vm.conversations;
-    final location = GoRouterState.of(context).matchedLocation;
+    final location = ref.watch(currentLocationProvider);
     const mePrefix = '${RoutePaths.me}/';
     final selectedId = location.startsWith(mePrefix)
         ? location.substring(mePrefix.length)
@@ -103,7 +104,7 @@ class _DMListState extends ConsumerState<DMList> {
                 Divider(color: context.colors.borderColor, height: 1),
                 Builder(
                   builder: (context) {
-                    final location = GoRouterState.of(context).matchedLocation;
+                    final location = ref.watch(currentLocationProvider);
                     final userId = ref.watch(currentUserIdProvider);
                     final isFriends = location == RoutePaths.me;
                     final isNotes =

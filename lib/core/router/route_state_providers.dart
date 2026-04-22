@@ -5,6 +5,31 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'route_state_providers.g.dart';
 
+/// Watches the router's matched location.
+///
+/// Prefer this over `GoRouterState.of(context)` — the app's shell is mounted
+/// via `StatefulShellRoute.indexedStack.pageBuilder`, and go_router's state
+/// lookup is not available for descendants of a `pageBuilder`.
+@Riverpod(keepAlive: true)
+class CurrentLocation extends _$CurrentLocation {
+  @override
+  String build() {
+    final router = ref.watch(fluxerRouterProvider);
+
+    void listener() {
+      final config = router.routerDelegate.currentConfiguration;
+      final next = config.isNotEmpty ? config.last.matchedLocation : '/';
+      unawaited(Future(() => state = next));
+    }
+
+    router.routerDelegate.addListener(listener);
+    ref.onDispose(() => router.routerDelegate.removeListener(listener));
+
+    final config = router.routerDelegate.currentConfiguration;
+    return config.isNotEmpty ? config.last.matchedLocation : '/';
+  }
+}
+
 /// Watches the router location and extracts the active guild ID.
 /// Returns null for @me, @favorites, and non-channel routes.
 @Riverpod(keepAlive: true)
