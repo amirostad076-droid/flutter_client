@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.d
 import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
+import 'package:fluxer_app/features/chat/providers/slowmode_blocked_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -72,7 +73,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<String>(
+    ref..listen<String>(
       chatViewModelProvider.select((state) => state.messageText),
       (_, messageText) {
         if (_controller.text == messageText) {
@@ -83,9 +84,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           selection: TextSelection.collapsed(offset: messageText.length),
         );
       },
-    );
-
-    ref.listen<({String name, String surrogates})?>(
+    )
+    ..listen<({String name, String surrogates})?>(
       pendingEmojiInsertProvider,
       (_, pending) {
         if (pending == null) {
@@ -421,6 +421,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     required bool hasText,
     FluxerButtonSize size = FluxerButtonSize.compact,
   }) {
+    final channelId = ref.watch(
+      chatViewModelProvider.select((s) => s.channelId),
+    );
+    final isBlocked =
+        ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) =>
@@ -431,7 +436,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               icon: PhosphorIconsBold.arrowUp,
               iconSize: 20,
               size: size,
-              onPressed: chatNotifier.sendMessage,
+              onPressed: isBlocked ? null : chatNotifier.sendMessage,
             )
           : FluxerButton.circle(
               key: const ValueKey('voice'),

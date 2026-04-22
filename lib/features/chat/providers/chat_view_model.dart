@@ -7,8 +7,10 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -256,6 +258,32 @@ class ChatViewModel extends _$ChatViewModel {
     final text = state.messageText.trim();
     if (text.isEmpty) {
       return;
+    }
+    final channelId = state.channelId;
+    final channelRow = await ref
+        .read(fluxerDatabaseProvider)
+        .channelDao
+        .getChannelById(channelId);
+    final rateLimit = channelRow?.rateLimitPerUser ?? 0;
+    if (rateLimit > 0) {
+      final guildId = channelRow?.guildId ?? '';
+      bool isImmune = false;
+      if (guildId.isNotEmpty) {
+        final bits = await ref
+            .read(guildPermissionsProvider.notifier)
+            .getPermissions(guildId);
+        isImmune = hasPermission(bits, Permission.bypassSlowmode) ||
+            hasPermission(bits, Permission.manageChannels) ||
+            hasPermission(bits, Permission.manageMessages);
+      }
+      if (!isImmune) {
+        final remaining = ref
+            .read(slowmodeTrackerProvider.notifier)
+            .remainingFor(channelId, rateLimit);
+        if (remaining > Duration.zero) {
+          return;
+        }
+      }
     }
 
     final replyToId = state.replyingTo?.id;
