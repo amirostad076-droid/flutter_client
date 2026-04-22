@@ -29,19 +29,14 @@ class ConnectionEditSheet {
       context,
       title: l10n.connectionEditTitle,
       useRootNavigator: true,
-      builder: (sheetContext, close) => _ConnectionEditBody(
-        connection: connection,
-        close: close,
-      ),
+      builder: (sheetContext, close) =>
+          _ConnectionEditBody(connection: connection, close: close),
     );
   }
 }
 
 class _ConnectionEditBody extends ConsumerStatefulWidget {
-  const _ConnectionEditBody({
-    required this.connection,
-    required this.close,
-  });
+  const _ConnectionEditBody({required this.connection, required this.close});
 
   final ConnectionResponse connection;
   final VoidCallback close;
@@ -105,10 +100,7 @@ class _ConnectionEditBodyState extends ConsumerState<_ConnectionEditBody> {
             enabled: !everyoneEnabled,
           ),
           SizedBox(height: layout.s4),
-          FluxerButton.primary(
-            label: l10n.save,
-            onPressedAsync: _save,
-          ),
+          FluxerButton.primary(label: l10n.save, onPressedAsync: _save),
         ],
       ),
     );
@@ -117,7 +109,9 @@ class _ConnectionEditBodyState extends ConsumerState<_ConnectionEditBody> {
   Future<void> _save() async {
     final l10n = FluxerLocalizations.of(context);
     try {
-      await ref.read(connectionsViewModelProvider.notifier).updateVisibility(
+      await ref
+          .read(connectionsViewModelProvider.notifier)
+          .updateVisibility(
             widget.connection.type.toJson(),
             widget.connection.id,
             _flags,
@@ -126,7 +120,9 @@ class _ConnectionEditBodyState extends ConsumerState<_ConnectionEditBody> {
         widget.close();
       }
     } on Object catch (_) {
-      ref.read(toastProvider.notifier).show(
+      ref
+          .read(toastProvider.notifier)
+          .show(
             FluxerToast(
               message: l10n.connectionUpdateFailed,
               variant: FluxerToastVariant.danger,

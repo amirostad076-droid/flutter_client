@@ -22,19 +22,14 @@ class ConnectionRemoveSheet {
       context,
       title: l10n.connectionRemoveTitle,
       useRootNavigator: true,
-      builder: (sheetContext, close) => _ConnectionRemoveBody(
-        connection: connection,
-        close: close,
-      ),
+      builder: (sheetContext, close) =>
+          _ConnectionRemoveBody(connection: connection, close: close),
     );
   }
 }
 
 class _ConnectionRemoveBody extends ConsumerWidget {
-  const _ConnectionRemoveBody({
-    required this.connection,
-    required this.close,
-  });
+  const _ConnectionRemoveBody({required this.connection, required this.close});
 
   final ConnectionResponse connection;
   final VoidCallback close;
@@ -69,7 +64,9 @@ class _ConnectionRemoveBody extends ConsumerWidget {
                   close();
                 }
               } on Object catch (_) {
-                ref.read(toastProvider.notifier).show(
+                ref
+                    .read(toastProvider.notifier)
+                    .show(
                       FluxerToast(
                         message: l10n.connectionRemoveFailed,
                         variant: FluxerToastVariant.danger,

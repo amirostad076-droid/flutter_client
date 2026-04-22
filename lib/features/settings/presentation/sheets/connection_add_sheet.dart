@@ -393,9 +393,7 @@ class _ConnectionAddBodyState extends ConsumerState<_ConnectionAddBody> {
         height: 32,
         alignment: Alignment.center,
         child: PhosphorIcon(
-          copied
-              ? PhosphorIconsFill.checkCircle
-              : PhosphorIconsBold.clipboard,
+          copied ? PhosphorIconsFill.checkCircle : PhosphorIconsBold.clipboard,
           size: 16,
           color: copied ? colors.accentSuccess : colors.textSecondary,
         ),

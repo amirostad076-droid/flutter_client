@@ -261,11 +261,8 @@ class _ConnectionList extends ConsumerWidget {
           child: _ConnectionCard(connection: c, index: i),
         );
       },
-      proxyDecorator: (child, index, animation) => Material(
-        color: Colors.transparent,
-        elevation: 4,
-        child: child,
-      ),
+      proxyDecorator: (child, index, animation) =>
+          Material(color: Colors.transparent, elevation: 4, child: child),
       onReorder: (oldIndex, newIndex) async {
         try {
           await ref

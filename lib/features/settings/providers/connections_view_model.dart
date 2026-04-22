@@ -82,10 +82,7 @@ class ConnectionsViewModel extends _$ConnectionsViewModel {
       if (_updateSeq != seq) {
         return;
       }
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString,
-      );
+      state = state.copyWith(isLoading: false, error: e.toString);
     }
   }
 
@@ -122,10 +119,7 @@ class ConnectionsViewModel extends _$ConnectionsViewModel {
     state = state.copyWith(pendingIds: pending);
     try {
       final client = ref.read(fluxerClientProvider);
-      await client.connections.deleteConnection(
-        type: type,
-        connectionId: id,
-      );
+      await client.connections.deleteConnection(type: type, connectionId: id);
       final next = state.connections.where((c) => c.id != id).toList();
       state = state.copyWith(connections: next);
     } on Object catch (e, st) {
@@ -196,9 +190,7 @@ class ConnectionsViewModel extends _$ConnectionsViewModel {
         ),
       );
       _updateSeq++;
-      state = state.copyWith(
-        connections: [...state.connections, created],
-      );
+      state = state.copyWith(connections: [...state.connections, created]);
     } on Object catch (e, st) {
       talker.error('Failed to verify connection', e, st);
       rethrow;
