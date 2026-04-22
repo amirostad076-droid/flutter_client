@@ -279,7 +279,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     return ListView.builder(
       controller: _scrollController,
       reverse: true,
-      padding: const EdgeInsets.only(top: 8, bottom: 16),
+      padding: const EdgeInsets.only(top: 8, bottom: 48),
       itemCount: itemCount,
       itemBuilder: (context, index) {
         // Loading indicator at the very top
