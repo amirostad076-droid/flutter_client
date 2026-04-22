@@ -62,8 +62,8 @@ class _SlowmodeIndicatorState extends ConsumerState<SlowmodeIndicator> {
       _ensureTicker(false);
       return const SizedBox.shrink();
     }
-    final isImmune = ref.watch(isSlowmodeImmuneProvider(channelId)).value ??
-        false;
+    final isImmune =
+        ref.watch(isSlowmodeImmuneProvider(channelId)).value ?? false;
     final remaining = ref
         .read(slowmodeTrackerProvider.notifier)
         .remainingFor(channelId, rateLimit);
@@ -111,6 +111,8 @@ class _SlowmodePill extends StatelessWidget {
         : l10n.slowmodeTooltipActive;
     return Tooltip(
       message: tooltip,
+      preferBelow: false,
+      verticalOffset: 12,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
