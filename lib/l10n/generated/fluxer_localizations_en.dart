@@ -2183,4 +2183,197 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   @override
   String get slowmodeTooltipImmune =>
       'Slowmode is enabled, but you are immune.';
+
+  @override
+  String get connectionsTitle => 'Connections';
+
+  @override
+  String get connectionsDescription =>
+      'Link external accounts and domains to your Fluxer profile. Verified connections will be displayed on your profile for others to see.';
+
+  @override
+  String get connectionsEmptyTitle => 'No connections yet';
+
+  @override
+  String get connectionsEmptyDescriptionBluesky =>
+      'Link your Bluesky account or verify domain ownership to display them on your profile.';
+
+  @override
+  String get connectionsEmptyDescriptionDomainOnly =>
+      'Verify domain ownership to display it on your profile.';
+
+  @override
+  String get connectionsAddBluesky => 'Bluesky';
+
+  @override
+  String get connectionsAddDomain => 'Domain';
+
+  @override
+  String get connectionsAddBlueskyAriaLabel => 'Add Bluesky connection';
+
+  @override
+  String get connectionsAddDomainAriaLabel => 'Add domain connection';
+
+  @override
+  String get connectionEdit => 'Edit';
+
+  @override
+  String get connectionRemove => 'Remove';
+
+  @override
+  String get connectionVerifiedLabel => 'This connection has been verified.';
+
+  @override
+  String get connectionUnverifiedLabel =>
+      'This connection has not been verified.';
+
+  @override
+  String get connectionAddTitle => 'Add Connection';
+
+  @override
+  String get connectionTypeLabel => 'Connection Type';
+
+  @override
+  String get connectionHandleLabel => 'Handle';
+
+  @override
+  String get connectionDomainLabel => 'Domain';
+
+  @override
+  String get connectionHandlePlaceholder => 'username.bsky.social';
+
+  @override
+  String get connectionDomainPlaceholder => 'example.com';
+
+  @override
+  String get connectionAlreadyExists => 'You already have this connection.';
+
+  @override
+  String get connectionConnectBluesky => 'Connect with Bluesky';
+
+  @override
+  String get connectionContinue => 'Continue';
+
+  @override
+  String get connectionVerifyTitle => 'Verify Connection';
+
+  @override
+  String get connectionVerifyInstructions =>
+      'Use the record below to prove domain ownership.';
+
+  @override
+  String get connectionDnsRecordTitle => 'DNS TXT record';
+
+  @override
+  String get connectionDnsHostLabel => 'Host';
+
+  @override
+  String get connectionDnsValueLabel => 'Value';
+
+  @override
+  String get connectionCopyHost => 'Copy host';
+
+  @override
+  String get connectionCopyValue => 'Copy value';
+
+  @override
+  String get connectionCopied => 'Copied!';
+
+  @override
+  String get connectionTokenFileTitle => 'Serve the token file';
+
+  @override
+  String get connectionTokenFileDescription =>
+      'Download **fluxer-verification** and place it in your **.well-known** folder so we can validate the domain.';
+
+  @override
+  String get connectionTokenFileDownload => 'Download fluxer-verification';
+
+  @override
+  String connectionTokenFileMeta(String dnsUrl) {
+    return 'The file contains the verification token we will fetch from **$dnsUrl**.';
+  }
+
+  @override
+  String get connectionSaveTokenDialogTitle => 'Save fluxer-verification';
+
+  @override
+  String get connectionVerifyButton => 'Verify';
+
+  @override
+  String get connectionBack => 'Back';
+
+  @override
+  String get connectionEditTitle => 'Edit Connection';
+
+  @override
+  String get connectionEditDescription =>
+      'Choose who can see this connection on your profile.';
+
+  @override
+  String get connectionVisibilityEveryone => 'Everyone';
+
+  @override
+  String get connectionVisibilityEveryoneDesc =>
+      'Allow anyone to see this connection on your profile';
+
+  @override
+  String get connectionVisibilityFriends => 'Friends';
+
+  @override
+  String get connectionVisibilityFriendsDesc =>
+      'Allow your friends to see this connection';
+
+  @override
+  String get connectionVisibilityCommunityMembers => 'Community Members';
+
+  @override
+  String get connectionVisibilityCommunityMembersDesc =>
+      'Allow members from communities you\'re in to see this connection';
+
+  @override
+  String get connectionRemoveTitle => 'Remove Connection';
+
+  @override
+  String get connectionRemoveDescription =>
+      'Are you sure you want to remove this connection? This action cannot be undone.';
+
+  @override
+  String get connectionRemoveConfirm => 'Remove';
+
+  @override
+  String get connectionsLoadError => 'Failed to load connections';
+
+  @override
+  String get connectionsReorderError => 'Failed to update order';
+
+  @override
+  String get connectionInitiateFailed =>
+      'Couldn\'t start verification. Try again.';
+
+  @override
+  String get connectionVerifyFailed =>
+      'Couldn\'t verify. Check your DNS record and try again.';
+
+  @override
+  String get connectionBlueskyAuthorizeFailed =>
+      'Couldn\'t start Bluesky authorization.';
+
+  @override
+  String get connectionUpdateFailed => 'Couldn\'t update connection';
+
+  @override
+  String get connectionRemoveFailed => 'Couldn\'t remove connection';
+
+  @override
+  String get connectionTokenSavedToast => 'Saved fluxer-verification';
+
+  @override
+  String get connectionTokenSaveFailedToast => 'Couldn\'t save file';
+
+  @override
+  String get connectionEnterHandle => 'Enter a Bluesky handle.';
+
+  @override
+  String get connectionEnterDomain => 'Enter a domain.';
 }

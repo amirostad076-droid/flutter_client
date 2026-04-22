@@ -3729,6 +3729,360 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Slowmode is enabled, but you are immune.'**
   String get slowmodeTooltipImmune;
+
+  /// Title of the Connections settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get connectionsTitle;
+
+  /// Description shown under the Connections settings page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Link external accounts and domains to your Fluxer profile. Verified connections will be displayed on your profile for others to see.'**
+  String get connectionsDescription;
+
+  /// Empty-state title when the user has no connections.
+  ///
+  /// In en, this message translates to:
+  /// **'No connections yet'**
+  String get connectionsEmptyTitle;
+
+  /// Empty-state description when Bluesky is enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Link your Bluesky account or verify domain ownership to display them on your profile.'**
+  String get connectionsEmptyDescriptionBluesky;
+
+  /// Empty-state description when Bluesky is disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify domain ownership to display it on your profile.'**
+  String get connectionsEmptyDescriptionDomainOnly;
+
+  /// Label on the Bluesky add-connection tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluesky'**
+  String get connectionsAddBluesky;
+
+  /// Label on the Domain add-connection tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Domain'**
+  String get connectionsAddDomain;
+
+  /// Semantic label for the Bluesky add-connection tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Bluesky connection'**
+  String get connectionsAddBlueskyAriaLabel;
+
+  /// Semantic label for the Domain add-connection tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Add domain connection'**
+  String get connectionsAddDomainAriaLabel;
+
+  /// Label for the edit button on a connection card.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get connectionEdit;
+
+  /// Label for the remove button on a connection card.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get connectionRemove;
+
+  /// Semantic label / tooltip for the verified badge on a connection card.
+  ///
+  /// In en, this message translates to:
+  /// **'This connection has been verified.'**
+  String get connectionVerifiedLabel;
+
+  /// Semantic label / tooltip for the unverified badge on a connection card.
+  ///
+  /// In en, this message translates to:
+  /// **'This connection has not been verified.'**
+  String get connectionUnverifiedLabel;
+
+  /// Title of the add-connection bottom sheet (step 1).
+  ///
+  /// In en, this message translates to:
+  /// **'Add Connection'**
+  String get connectionAddTitle;
+
+  /// Label for the connection-type select in the add-connection sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection Type'**
+  String get connectionTypeLabel;
+
+  /// Input field label when adding a Bluesky connection.
+  ///
+  /// In en, this message translates to:
+  /// **'Handle'**
+  String get connectionHandleLabel;
+
+  /// Input field label when adding a domain connection.
+  ///
+  /// In en, this message translates to:
+  /// **'Domain'**
+  String get connectionDomainLabel;
+
+  /// Placeholder text for the Bluesky handle input.
+  ///
+  /// In en, this message translates to:
+  /// **'username.bsky.social'**
+  String get connectionHandlePlaceholder;
+
+  /// Placeholder text for the domain input.
+  ///
+  /// In en, this message translates to:
+  /// **'example.com'**
+  String get connectionDomainPlaceholder;
+
+  /// Inline error shown when the identifier is already in the user's connections list.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have this connection.'**
+  String get connectionAlreadyExists;
+
+  /// Primary button label on the add-connection sheet when Bluesky is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with Bluesky'**
+  String get connectionConnectBluesky;
+
+  /// Primary button label on the add-connection sheet for the domain flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get connectionContinue;
+
+  /// Title of the verify-connection bottom sheet (step 2).
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Connection'**
+  String get connectionVerifyTitle;
+
+  /// Instructional text at the top of the domain verification step.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the record below to prove domain ownership.'**
+  String get connectionVerifyInstructions;
+
+  /// Title of the DNS TXT record card.
+  ///
+  /// In en, this message translates to:
+  /// **'DNS TXT record'**
+  String get connectionDnsRecordTitle;
+
+  /// Label for the DNS record host field.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get connectionDnsHostLabel;
+
+  /// Label for the DNS record value field.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get connectionDnsValueLabel;
+
+  /// Accessible label for the host copy button.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy host'**
+  String get connectionCopyHost;
+
+  /// Accessible label for the value copy button.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy value'**
+  String get connectionCopyValue;
+
+  /// Short feedback text shown on copy buttons after successful copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied!'**
+  String get connectionCopied;
+
+  /// Title of the token-file section in the verify step.
+  ///
+  /// In en, this message translates to:
+  /// **'Serve the token file'**
+  String get connectionTokenFileTitle;
+
+  /// Explanatory text for the token-file step. **bold markers** indicate inline-code styling applied by the widget.
+  ///
+  /// In en, this message translates to:
+  /// **'Download **fluxer-verification** and place it in your **.well-known** folder so we can validate the domain.'**
+  String get connectionTokenFileDescription;
+
+  /// Label on the download button for the verification token file.
+  ///
+  /// In en, this message translates to:
+  /// **'Download fluxer-verification'**
+  String get connectionTokenFileDownload;
+
+  /// Meta text below the download button with the fetch URL. **markers** indicate inline-code styling.
+  ///
+  /// In en, this message translates to:
+  /// **'The file contains the verification token we will fetch from **{dnsUrl}**.'**
+  String connectionTokenFileMeta(String dnsUrl);
+
+  /// Title of the save-file dialog opened by the download button.
+  ///
+  /// In en, this message translates to:
+  /// **'Save fluxer-verification'**
+  String get connectionSaveTokenDialogTitle;
+
+  /// Primary button on the verify step.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get connectionVerifyButton;
+
+  /// Secondary button on the verify step that returns to step 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get connectionBack;
+
+  /// Title of the edit-connection bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Connection'**
+  String get connectionEditTitle;
+
+  /// Description at the top of the edit-connection sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who can see this connection on your profile.'**
+  String get connectionEditDescription;
+
+  /// Label for the Everyone visibility toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get connectionVisibilityEveryone;
+
+  /// Description under the Everyone visibility toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow anyone to see this connection on your profile'**
+  String get connectionVisibilityEveryoneDesc;
+
+  /// Label for the Friends visibility toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get connectionVisibilityFriends;
+
+  /// Description under the Friends visibility toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow your friends to see this connection'**
+  String get connectionVisibilityFriendsDesc;
+
+  /// Label for the Community Members visibility toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Members'**
+  String get connectionVisibilityCommunityMembers;
+
+  /// Description under the Community Members visibility toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow members from communities you\'re in to see this connection'**
+  String get connectionVisibilityCommunityMembersDesc;
+
+  /// Title of the remove-connection confirmation sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Connection'**
+  String get connectionRemoveTitle;
+
+  /// Body text of the remove-connection confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove this connection? This action cannot be undone.'**
+  String get connectionRemoveDescription;
+
+  /// Primary (danger) button on the remove-connection sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get connectionRemoveConfirm;
+
+  /// Error message shown when the connections list fails to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load connections'**
+  String get connectionsLoadError;
+
+  /// Toast message when the reorder PATCH request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update order'**
+  String get connectionsReorderError;
+
+  /// Error message shown in the add-connection sheet when the initiate request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start verification. Try again.'**
+  String get connectionInitiateFailed;
+
+  /// Error message shown in the verify step when the verify request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t verify. Check your DNS record and try again.'**
+  String get connectionVerifyFailed;
+
+  /// Error shown when the Bluesky authorize endpoint or url_launcher fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start Bluesky authorization.'**
+  String get connectionBlueskyAuthorizeFailed;
+
+  /// Toast shown when the visibility update fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update connection'**
+  String get connectionUpdateFailed;
+
+  /// Toast shown when the delete request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t remove connection'**
+  String get connectionRemoveFailed;
+
+  /// Toast shown after the token file is saved successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved fluxer-verification'**
+  String get connectionTokenSavedToast;
+
+  /// Toast shown if saving the token file fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save file'**
+  String get connectionTokenSaveFailedToast;
+
+  /// Inline error shown when the Bluesky handle input is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a Bluesky handle.'**
+  String get connectionEnterHandle;
+
+  /// Inline error shown when the domain input is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a domain.'**
+  String get connectionEnterDomain;
 }
 
 class _FluxerLocalizationsDelegate

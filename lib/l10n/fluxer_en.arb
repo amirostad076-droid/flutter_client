@@ -2672,5 +2672,247 @@
   "slowmodeTooltipImmune": "Slowmode is enabled, but you are immune.",
   "@slowmodeTooltipImmune": {
     "description": "Tooltip shown on the slowmode indicator when slowmode is on but the current user bypasses it."
+  },
+  "connectionsTitle": "Connections",
+  "@connectionsTitle": {
+    "description": "Title of the Connections settings page."
+  },
+  "connectionsDescription": "Link external accounts and domains to your Fluxer profile. Verified connections will be displayed on your profile for others to see.",
+  "@connectionsDescription": {
+    "description": "Description shown under the Connections settings page title."
+  },
+  "connectionsEmptyTitle": "No connections yet",
+  "@connectionsEmptyTitle": {
+    "description": "Empty-state title when the user has no connections."
+  },
+  "connectionsEmptyDescriptionBluesky": "Link your Bluesky account or verify domain ownership to display them on your profile.",
+  "@connectionsEmptyDescriptionBluesky": {
+    "description": "Empty-state description when Bluesky is enabled."
+  },
+  "connectionsEmptyDescriptionDomainOnly": "Verify domain ownership to display it on your profile.",
+  "@connectionsEmptyDescriptionDomainOnly": {
+    "description": "Empty-state description when Bluesky is disabled."
+  },
+  "connectionsAddBluesky": "Bluesky",
+  "@connectionsAddBluesky": {
+    "description": "Label on the Bluesky add-connection tile."
+  },
+  "connectionsAddDomain": "Domain",
+  "@connectionsAddDomain": {
+    "description": "Label on the Domain add-connection tile."
+  },
+  "connectionsAddBlueskyAriaLabel": "Add Bluesky connection",
+  "@connectionsAddBlueskyAriaLabel": {
+    "description": "Semantic label for the Bluesky add-connection tile."
+  },
+  "connectionsAddDomainAriaLabel": "Add domain connection",
+  "@connectionsAddDomainAriaLabel": {
+    "description": "Semantic label for the Domain add-connection tile."
+  },
+  "connectionEdit": "Edit",
+  "@connectionEdit": {
+    "description": "Label for the edit button on a connection card."
+  },
+  "connectionRemove": "Remove",
+  "@connectionRemove": {
+    "description": "Label for the remove button on a connection card."
+  },
+  "connectionVerifiedLabel": "This connection has been verified.",
+  "@connectionVerifiedLabel": {
+    "description": "Semantic label / tooltip for the verified badge on a connection card."
+  },
+  "connectionUnverifiedLabel": "This connection has not been verified.",
+  "@connectionUnverifiedLabel": {
+    "description": "Semantic label / tooltip for the unverified badge on a connection card."
+  },
+  "connectionAddTitle": "Add Connection",
+  "@connectionAddTitle": {
+    "description": "Title of the add-connection bottom sheet (step 1)."
+  },
+  "connectionTypeLabel": "Connection Type",
+  "@connectionTypeLabel": {
+    "description": "Label for the connection-type select in the add-connection sheet."
+  },
+  "connectionHandleLabel": "Handle",
+  "@connectionHandleLabel": {
+    "description": "Input field label when adding a Bluesky connection."
+  },
+  "connectionDomainLabel": "Domain",
+  "@connectionDomainLabel": {
+    "description": "Input field label when adding a domain connection."
+  },
+  "connectionHandlePlaceholder": "username.bsky.social",
+  "@connectionHandlePlaceholder": {
+    "description": "Placeholder text for the Bluesky handle input."
+  },
+  "connectionDomainPlaceholder": "example.com",
+  "@connectionDomainPlaceholder": {
+    "description": "Placeholder text for the domain input."
+  },
+  "connectionAlreadyExists": "You already have this connection.",
+  "@connectionAlreadyExists": {
+    "description": "Inline error shown when the identifier is already in the user's connections list."
+  },
+  "connectionConnectBluesky": "Connect with Bluesky",
+  "@connectionConnectBluesky": {
+    "description": "Primary button label on the add-connection sheet when Bluesky is selected."
+  },
+  "connectionContinue": "Continue",
+  "@connectionContinue": {
+    "description": "Primary button label on the add-connection sheet for the domain flow."
+  },
+  "connectionVerifyTitle": "Verify Connection",
+  "@connectionVerifyTitle": {
+    "description": "Title of the verify-connection bottom sheet (step 2)."
+  },
+  "connectionVerifyInstructions": "Use the record below to prove domain ownership.",
+  "@connectionVerifyInstructions": {
+    "description": "Instructional text at the top of the domain verification step."
+  },
+  "connectionDnsRecordTitle": "DNS TXT record",
+  "@connectionDnsRecordTitle": {
+    "description": "Title of the DNS TXT record card."
+  },
+  "connectionDnsHostLabel": "Host",
+  "@connectionDnsHostLabel": {
+    "description": "Label for the DNS record host field."
+  },
+  "connectionDnsValueLabel": "Value",
+  "@connectionDnsValueLabel": {
+    "description": "Label for the DNS record value field."
+  },
+  "connectionCopyHost": "Copy host",
+  "@connectionCopyHost": {
+    "description": "Accessible label for the host copy button."
+  },
+  "connectionCopyValue": "Copy value",
+  "@connectionCopyValue": {
+    "description": "Accessible label for the value copy button."
+  },
+  "connectionCopied": "Copied!",
+  "@connectionCopied": {
+    "description": "Short feedback text shown on copy buttons after successful copy."
+  },
+  "connectionTokenFileTitle": "Serve the token file",
+  "@connectionTokenFileTitle": {
+    "description": "Title of the token-file section in the verify step."
+  },
+  "connectionTokenFileDescription": "Download **fluxer-verification** and place it in your **.well-known** folder so we can validate the domain.",
+  "@connectionTokenFileDescription": {
+    "description": "Explanatory text for the token-file step. **bold markers** indicate inline-code styling applied by the widget."
+  },
+  "connectionTokenFileDownload": "Download fluxer-verification",
+  "@connectionTokenFileDownload": {
+    "description": "Label on the download button for the verification token file."
+  },
+  "connectionTokenFileMeta": "The file contains the verification token we will fetch from **{dnsUrl}**.",
+  "@connectionTokenFileMeta": {
+    "description": "Meta text below the download button with the fetch URL. **markers** indicate inline-code styling.",
+    "placeholders": {
+      "dnsUrl": {
+        "type": "String",
+        "example": "https://example.com/.well-known/fluxer-verification"
+      }
+    }
+  },
+  "connectionSaveTokenDialogTitle": "Save fluxer-verification",
+  "@connectionSaveTokenDialogTitle": {
+    "description": "Title of the save-file dialog opened by the download button."
+  },
+  "connectionVerifyButton": "Verify",
+  "@connectionVerifyButton": {
+    "description": "Primary button on the verify step."
+  },
+  "connectionBack": "Back",
+  "@connectionBack": {
+    "description": "Secondary button on the verify step that returns to step 1."
+  },
+  "connectionEditTitle": "Edit Connection",
+  "@connectionEditTitle": {
+    "description": "Title of the edit-connection bottom sheet."
+  },
+  "connectionEditDescription": "Choose who can see this connection on your profile.",
+  "@connectionEditDescription": {
+    "description": "Description at the top of the edit-connection sheet."
+  },
+  "connectionVisibilityEveryone": "Everyone",
+  "@connectionVisibilityEveryone": {
+    "description": "Label for the Everyone visibility toggle."
+  },
+  "connectionVisibilityEveryoneDesc": "Allow anyone to see this connection on your profile",
+  "@connectionVisibilityEveryoneDesc": {
+    "description": "Description under the Everyone visibility toggle."
+  },
+  "connectionVisibilityFriends": "Friends",
+  "@connectionVisibilityFriends": {
+    "description": "Label for the Friends visibility toggle."
+  },
+  "connectionVisibilityFriendsDesc": "Allow your friends to see this connection",
+  "@connectionVisibilityFriendsDesc": {
+    "description": "Description under the Friends visibility toggle."
+  },
+  "connectionVisibilityCommunityMembers": "Community Members",
+  "@connectionVisibilityCommunityMembers": {
+    "description": "Label for the Community Members visibility toggle."
+  },
+  "connectionVisibilityCommunityMembersDesc": "Allow members from communities you're in to see this connection",
+  "@connectionVisibilityCommunityMembersDesc": {
+    "description": "Description under the Community Members visibility toggle."
+  },
+  "connectionRemoveTitle": "Remove Connection",
+  "@connectionRemoveTitle": {
+    "description": "Title of the remove-connection confirmation sheet."
+  },
+  "connectionRemoveDescription": "Are you sure you want to remove this connection? This action cannot be undone.",
+  "@connectionRemoveDescription": {
+    "description": "Body text of the remove-connection confirmation."
+  },
+  "connectionRemoveConfirm": "Remove",
+  "@connectionRemoveConfirm": {
+    "description": "Primary (danger) button on the remove-connection sheet."
+  },
+  "connectionsLoadError": "Failed to load connections",
+  "@connectionsLoadError": {
+    "description": "Error message shown when the connections list fails to load."
+  },
+  "connectionsReorderError": "Failed to update order",
+  "@connectionsReorderError": {
+    "description": "Toast message when the reorder PATCH request fails."
+  },
+  "connectionInitiateFailed": "Couldn't start verification. Try again.",
+  "@connectionInitiateFailed": {
+    "description": "Error message shown in the add-connection sheet when the initiate request fails."
+  },
+  "connectionVerifyFailed": "Couldn't verify. Check your DNS record and try again.",
+  "@connectionVerifyFailed": {
+    "description": "Error message shown in the verify step when the verify request fails."
+  },
+  "connectionBlueskyAuthorizeFailed": "Couldn't start Bluesky authorization.",
+  "@connectionBlueskyAuthorizeFailed": {
+    "description": "Error shown when the Bluesky authorize endpoint or url_launcher fails."
+  },
+  "connectionUpdateFailed": "Couldn't update connection",
+  "@connectionUpdateFailed": {
+    "description": "Toast shown when the visibility update fails."
+  },
+  "connectionRemoveFailed": "Couldn't remove connection",
+  "@connectionRemoveFailed": {
+    "description": "Toast shown when the delete request fails."
+  },
+  "connectionTokenSavedToast": "Saved fluxer-verification",
+  "@connectionTokenSavedToast": {
+    "description": "Toast shown after the token file is saved successfully."
+  },
+  "connectionTokenSaveFailedToast": "Couldn't save file",
+  "@connectionTokenSaveFailedToast": {
+    "description": "Toast shown if saving the token file fails."
+  },
+  "connectionEnterHandle": "Enter a Bluesky handle.",
+  "@connectionEnterHandle": {
+    "description": "Inline error shown when the Bluesky handle input is empty."
+  },
+  "connectionEnterDomain": "Enter a domain.",
+  "@connectionEnterDomain": {
+    "description": "Inline error shown when the domain input is empty."
   }
 }
