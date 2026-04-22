@@ -13,6 +13,11 @@ class AppBuildConfig {
     'PUSH_PROVIDER',
     defaultValue: 'apns',
   );
+  // ignore: do_not_use_environment -- compile-time build flavor config
+  static const bool _blueskyEnabled = bool.fromEnvironment(
+    'BLUESKY_ENABLED',
+    defaultValue: true,
+  );
   static AppBuildEnvironment get environment {
     switch (_environmentValue) {
       case 'canary':
@@ -47,4 +52,5 @@ class AppBuildConfig {
   static bool get isStable => environment == AppBuildEnvironment.stable;
   static bool get isFirebaseMessagingEnabled =>
       pushProvider == PushProviderKind.firebaseMessaging;
+  static bool get isBlueskyEnabled => _blueskyEnabled;
 }
