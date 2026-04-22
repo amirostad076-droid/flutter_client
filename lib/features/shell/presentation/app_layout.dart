@@ -43,7 +43,6 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   static const _kBackSwipeProgressThresholdCupertino = 0.5;
   static const _kBackSwipeSnapDuration = Duration(milliseconds: 350);
   static const Curve _kBackSwipeSnapCurve = Curves.fastEaseInToSlowEaseOut;
-  static const _kBackSwipeUnderlayParallax = 0.3;
   static final _rootRoutePattern = RegExp(r'^/channels/[^/]+$');
   static final _chatRoutePattern = RegExp('^/channels/[^/]+/.+');
   late final GoRouter _router;
@@ -312,8 +311,6 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     final double t = _swipeController.value;
     final double slideOffset = t * screenWidth;
     final double sign = isRtl ? -1.0 : 1.0;
-    final double parallaxOffset =
-        sign * slideOffset * _kBackSwipeUnderlayParallax;
     final double foregroundOffset = sign * slideOffset;
     Widget slidingContent = child;
     if (showBottomNav) {
@@ -329,12 +326,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         IgnorePointer(
           child: Column(
             children: [
-              Expanded(
-                child: Transform.translate(
-                  offset: Offset(parallaxOffset, 0),
-                  child: _buildMobileSidebar(location),
-                ),
-              ),
+              Expanded(child: _buildMobileSidebar(location)),
               _buildBottomNav(context),
             ],
           ),
@@ -346,7 +338,10 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         ),
         Transform.translate(
           offset: Offset(foregroundOffset, 0),
-          child: slidingContent,
+          // [Transform] + semantics can assert during pan; t > 0 only here.
+          child: ExcludeSemantics(
+            child: slidingContent,
+          ),
         ),
       ],
     );
