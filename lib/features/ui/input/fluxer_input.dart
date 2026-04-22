@@ -19,6 +19,7 @@ class FluxerInput extends StatelessWidget {
     this.obscureText = false,
     this.enabled = true,
     this.autofocus = false,
+    this.readOnly = false,
     this.maxLength,
     this.showCounter = false,
     this.counterLength,
@@ -50,6 +51,7 @@ class FluxerInput extends StatelessWidget {
     this.obscureText = false,
     this.enabled = true,
     this.autofocus = false,
+    this.readOnly = false,
     this.maxLength,
     this.showCounter = false,
     this.counterLength,
@@ -84,6 +86,9 @@ class FluxerInput extends StatelessWidget {
   final bool obscureText;
   final bool enabled;
   final bool autofocus;
+
+  /// When true, the field displays text but cannot be edited.
+  final bool readOnly;
   final int? maxLength;
   final bool showCounter;
   final ValueGetter<int>? counterLength;
@@ -156,6 +161,7 @@ class FluxerInput extends StatelessWidget {
           autofillHints: autofillHints,
           enabled: enabled,
           autofocus: autofocus,
+          readOnly: readOnly,
           maxLength: maxLength,
           onChanged: onChanged,
           onFieldSubmitted: onSubmitted,
@@ -232,6 +238,7 @@ class FluxerInput extends StatelessWidget {
                       autofillHints: autofillHints,
                       enabled: enabled,
                       autofocus: autofocus,
+                      readOnly: readOnly,
                       maxLength: maxLength,
                       onChanged: onChanged,
                       onFieldSubmitted: onSubmitted,
@@ -300,6 +307,7 @@ class FluxerInput extends StatelessWidget {
               autofillHints: autofillHints,
               enabled: enabled,
               autofocus: autofocus,
+              readOnly: readOnly,
               maxLength: maxLength,
               onChanged: onChanged,
               onFieldSubmitted: onSubmitted,
