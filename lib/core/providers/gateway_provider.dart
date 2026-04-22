@@ -14,6 +14,7 @@ import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dar
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
+import 'package:fluxer_app/features/settings/providers/connections_view_model.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -131,6 +132,11 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     ),
     onAuthSessionIdHashChanged: (idHash) {
       ref.read(currentAuthSessionIdHashProvider.notifier).update(idHash);
+    },
+    onConnectionsUpdate: (connections) {
+      ref
+          .read(connectionsViewModelProvider.notifier)
+          .setConnections(connections);
     },
   );
 

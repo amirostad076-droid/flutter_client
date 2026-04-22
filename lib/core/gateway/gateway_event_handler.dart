@@ -26,6 +26,8 @@ typedef MessageDeleteCallback = void Function(MessageDeleteEvent event);
 typedef MessageDeleteBulkCallback = void Function(MessageDeleteBulkEvent event);
 typedef MessageReactionChangeCallback =
     void Function(String channelId, String messageId);
+typedef ConnectionsUpdateCallback =
+    void Function(List<ConnectionResponse> connections);
 
 class GatewayEventHandler {
   GatewayEventHandler({
@@ -50,6 +52,7 @@ class GatewayEventHandler {
     this.onMessageDeleteBulk,
     this.onMessageReactionChange,
     this.onAuthSessionIdHashChanged,
+    this.onConnectionsUpdate,
   });
 
   final db.FluxerDatabase database;
@@ -73,6 +76,7 @@ class GatewayEventHandler {
   final MessageDeleteBulkCallback? onMessageDeleteBulk;
   final MessageReactionChangeCallback? onMessageReactionChange;
   final void Function(String? idHash)? onAuthSessionIdHashChanged;
+  final ConnectionsUpdateCallback? onConnectionsUpdate;
 
   /// The current user's ID, set during READY processing.
   String? _currentUserId;
@@ -278,6 +282,7 @@ class GatewayEventHandler {
         unawaited(_handleUserNoteUpdate(event));
       case UserConnectionsUpdateEvent():
         talker.debug('[Gateway] USER_CONNECTIONS_UPDATE');
+        _handleUserConnectionsUpdate(event);
       case AuthSessionChangeEvent():
         talker.debug('[Gateway] AUTH_SESSION_CHANGE');
         onAuthSessionIdHashChanged?.call(event.newAuthSessionIdHash);
@@ -675,6 +680,26 @@ class GatewayEventHandler {
         ),
       );
     }
+  }
+
+  void _handleUserConnectionsUpdate(UserConnectionsUpdateEvent event) {
+    final callback = onConnectionsUpdate;
+    if (callback == null) {
+      return;
+    }
+    final rawList = event.data['connections'];
+    if (rawList is! List) {
+      return;
+    }
+    final connections = <ConnectionResponse>[];
+    for (final raw in rawList) {
+      if (raw is Map) {
+        connections.add(
+          ConnectionResponse.fromJson(raw.cast<String, Object?>()),
+        );
+      }
+    }
+    callback(connections);
   }
 
   Future<void> _handleUserPinnedDmsUpdate(
