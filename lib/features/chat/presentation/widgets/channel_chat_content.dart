@@ -80,9 +80,10 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                         right: 8,
                         bottom: 8,
                         child: Row(
+                          spacing: 8,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            TypingIndicatorBar(),
-                            Spacer(),
+                            Flexible(child: TypingIndicatorBar()),
                             SlowmodeIndicator(),
                           ],
                         ),
