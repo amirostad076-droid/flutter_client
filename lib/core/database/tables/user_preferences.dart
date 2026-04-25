@@ -7,6 +7,18 @@ class UserPreferencesTable extends Table {
   BoolColumn get plutoniumUpsellDismissed =>
       boolean().withDefault(const Constant(false))();
   TextColumn get emojiSkinTone => text().withDefault(const Constant(''))();
+  IntColumn get chatFontSize => integer().withDefault(const Constant(16))();
+  BoolColumn get syncAcrossDevices =>
+      boolean().withDefault(const Constant(true))();
+  TextColumn get channelTypingIndicatorMode =>
+      text().withDefault(const Constant('avatars'))();
+  BoolColumn get showSelectedChannelTypingIndicator =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get collapseDMs => boolean().withDefault(const Constant(false))();
+  BoolColumn get showFadedUnreadOnMutedChannels =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showActiveNow => boolean().withDefault(const Constant(true))();
+  BoolColumn get showFavorites => boolean().withDefault(const Constant(true))();
 
   @override
   String get tableName => 'user_preferences';

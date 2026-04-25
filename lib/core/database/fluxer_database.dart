@@ -113,7 +113,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -297,6 +297,40 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 26) {
         await m.addColumn(channels, channels.rateLimitPerUser);
+      }
+      if (from < 27) {
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.chatFontSize,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.syncAcrossDevices,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.channelTypingIndicatorMode,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.showSelectedChannelTypingIndicator,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.collapseDMs,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.showFadedUnreadOnMutedChannels,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.showActiveNow,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.showFavorites,
+        );
       }
     },
   );
