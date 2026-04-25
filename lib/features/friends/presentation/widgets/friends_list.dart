@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -18,8 +19,12 @@ class FriendsList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final vm = ref.watch(dmViewModelProvider);
     final activeTab = vm.activeTab;
+    final showActiveNowPref = ref.watch(
+      appearancePreferencesProvider.select((s) => s.showActiveNow),
+    );
 
     final showActiveNow =
+        showActiveNowPref &&
         MediaQuery.sizeOf(context).width >= _kActiveNowMinWidth;
 
     return ColoredBox(

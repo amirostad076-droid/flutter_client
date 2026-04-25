@@ -48,6 +48,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -241,6 +242,9 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
 
     final dmFolderState = ref.watch(dmFolderProvider);
     final unreadDms = ref.watch(unreadDmChannelsProvider).channels;
+    final showFavorites = ref.watch(
+      appearancePreferencesProvider.select((s) => s.showFavorites),
+    );
 
     final List<DmChannel> allowlistedDms;
     final List<DmChannel> regularDms;
@@ -310,14 +314,15 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                     context.go(RoutePaths.me);
                   },
                 ),
-                _GuildListItem(
-                  label: 'Favorites',
-                  isSelected: isFavorites,
-                  icon: PhosphorIconsFill.star,
-                  onTap: () {
-                    context.go(RoutePaths.favoritesBase);
-                  },
-                ),
+                if (showFavorites)
+                  _GuildListItem(
+                    label: 'Favorites',
+                    isSelected: isFavorites,
+                    icon: PhosphorIconsFill.star,
+                    onTap: () {
+                      context.go(RoutePaths.favoritesBase);
+                    },
+                  ),
                 for (final dm in allowlistedDms)
                   DmNavbarItem(
                     key: ValueKey('dm-${dm.id}'),
