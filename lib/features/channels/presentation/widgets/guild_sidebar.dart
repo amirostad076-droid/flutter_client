@@ -11,9 +11,12 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:go_router/go_router.dart';
@@ -213,6 +216,24 @@ class GuildSidebar extends ConsumerWidget {
     final hasUnread = unread?.hasUnread ?? false;
     final mentionCount = unread?.mentionCount ?? 0;
     final currentUserId = ref.watch(currentUserIdProvider);
+    final guildId = ref.watch(activeGuildIdProvider);
+    final mutedSet = guildId != null
+        ? ref.watch(mutedChannelIdsProvider(guildId)).value ??
+              const <String>{}
+        : const <String>{};
+    final guildMuted =
+        guildId != null &&
+        (ref.watch(guildMuteProvider(guildId)).value?.isMuted ?? false);
+    final isMuted =
+        guildMuted ||
+        mutedSet.contains(channel.id) ||
+        (channel.parentId != null && mutedSet.contains(channel.parentId));
+    final showFadedUnread = ref.watch(
+      appearancePreferencesProvider.select(
+        (s) => s.showFadedUnreadOnMutedChannels,
+      ),
+    );
+    final treatAsUnread = hasUnread && (!isMuted || showFadedUnread);
     final hasTyping = ref.watch(
       typingIndicatorsProvider.select((entries) {
         final now = DateTime.now();
@@ -227,7 +248,7 @@ class GuildSidebar extends ConsumerWidget {
 
     final textColor = isSelected
         ? context.colors.textPrimary
-        : hasUnread
+        : treatAsUnread
         ? context.colors.textChat
         : context.colors.textTertiary;
 
@@ -269,7 +290,7 @@ class GuildSidebar extends ConsumerWidget {
                   channel.name,
                   style: context.textStyles.channelName.copyWith(
                     color: textColor,
-                    fontWeight: hasUnread ? FontWeight.w600 : null,
+                    fontWeight: treatAsUnread ? FontWeight.w600 : null,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -278,10 +299,15 @@ class GuildSidebar extends ConsumerWidget {
                 const SizedBox(width: 4),
                 FluxerLoadingSpinner(color: context.colors.textSecondary),
               ],
-              if (!isSelected && (hasUnread || mentionCount > 0)) ...[
+              if (!isSelected && (mentionCount > 0 || treatAsUnread)) ...[
                 const SizedBox(width: 4),
                 if (mentionCount > 0)
                   FluxerBadge.count(count: mentionCount)
+                else if (isMuted)
+                  const Opacity(
+                    opacity: 0.4,
+                    child: FluxerBadge.dot(),
+                  )
                 else
                   const FluxerBadge.dot(),
               ],
