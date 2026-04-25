@@ -2412,6 +2412,10 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'System theme automatically disables sync to track your system\'s preference on this device.';
 
   @override
+  String get lookAndFeelThemeSyncFailed =>
+      'Couldn\'t sync theme to your account. Please try again.';
+
+  @override
   String get lookAndFeelChatFontScalingTitle => 'Chat Font Scaling';
 
   @override

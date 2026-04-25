@@ -15,12 +15,15 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'theme_preference_provider.g.dart';
 
+const _kInflightSentinel = Object();
+
 class ThemePreferenceState {
   ThemePreferenceState({
     this.mode = FluxerThemeMode.dark,
     this.scaleFactor = 1.0,
     this.chatFontSize = 16,
     this.syncAcrossDevices = true,
+    this.inflightTheme,
   }) : darkColorTheme = buildDarkColorTheme(),
        lightColorTheme = buildLightColorTheme(),
        coalColorTheme = buildCoalColorTheme(),
@@ -30,10 +33,17 @@ class ThemePreferenceState {
   final double scaleFactor;
   final int chatFontSize;
   final bool syncAcrossDevices;
+
+  /// Non-null while a server PATCH for this theme is in flight. UI uses this
+  /// to disable swatches and surface a spinner on the targeted swatch.
+  final FluxerThemeMode? inflightTheme;
+
   final FluxerColorTheme darkColorTheme;
   final FluxerColorTheme lightColorTheme;
   final FluxerColorTheme coalColorTheme;
   final FluxerLayoutTheme layoutTheme;
+
+  bool get isSyncing => inflightTheme != null;
 
   FluxerColorTheme get colorTheme => switch (mode) {
     FluxerThemeMode.dark => darkColorTheme,
@@ -53,12 +63,16 @@ class ThemePreferenceState {
     double? scaleFactor,
     int? chatFontSize,
     bool? syncAcrossDevices,
+    Object? inflightTheme = _kInflightSentinel,
   }) {
     return ThemePreferenceState(
       mode: mode ?? this.mode,
       scaleFactor: scaleFactor ?? this.scaleFactor,
       chatFontSize: chatFontSize ?? this.chatFontSize,
       syncAcrossDevices: syncAcrossDevices ?? this.syncAcrossDevices,
+      inflightTheme: identical(inflightTheme, _kInflightSentinel)
+          ? this.inflightTheme
+          : inflightTheme as FluxerThemeMode?,
     );
   }
 }
@@ -88,11 +102,36 @@ class ThemePreference extends _$ThemePreference {
     }
   }
 
+  /// Switches the theme. When sync is active and the target is non-system,
+  /// blocks on a server PATCH and only commits on success. Throws on failure
+  /// so the caller (UI) can surface a toast.
   Future<void> setTheme(FluxerThemeMode mode) async {
-    state = state.copyWith(mode: mode);
-    await _persist();
-    if (state.syncAcrossDevices && mode != FluxerThemeMode.system) {
-      ref.read(userSettingsSyncProvider).enqueueTheme(_toUserThemeType(mode));
+    if (state.inflightTheme != null) {
+      return;
+    }
+    if (state.mode == mode) {
+      return;
+    }
+
+    final wantsServerPush =
+        state.syncAcrossDevices && mode != FluxerThemeMode.system;
+
+    if (!wantsServerPush) {
+      state = state.copyWith(mode: mode);
+      await _persist();
+      return;
+    }
+
+    state = state.copyWith(inflightTheme: mode);
+    try {
+      await ref
+          .read(userSettingsSyncProvider)
+          .pushTheme(_toUserThemeType(mode));
+      state = state.copyWith(mode: mode, inflightTheme: null);
+      await _persist();
+    } on Object {
+      state = state.copyWith(inflightTheme: null);
+      rethrow;
     }
   }
 
@@ -106,25 +145,45 @@ class ThemePreference extends _$ThemePreference {
     await _persist();
   }
 
+  /// Toggles cross-device theme sync. Toggling ON pushes the current theme
+  /// and blocks on the ack — on failure, the toggle reverts. Throws on
+  /// failure so the caller can surface a toast.
   Future<void> setSyncAcrossDevices({required bool value}) async {
     if (state.mode == FluxerThemeMode.system) {
       return;
     }
-    final wasOff = !state.syncAcrossDevices;
-    state = state.copyWith(syncAcrossDevices: value);
-    await _persist();
-    final sync = ref.read(userSettingsSyncProvider);
-    if (value && wasOff) {
-      sync.enqueueTheme(_toUserThemeType(state.mode));
-      await sync.flushNow();
-    } else if (!value) {
-      sync.cancel();
+    if (state.inflightTheme != null) {
+      return;
+    }
+    if (state.syncAcrossDevices == value) {
+      return;
+    }
+
+    if (!value) {
+      state = state.copyWith(syncAcrossDevices: false);
+      await _persist();
+      return;
+    }
+
+    state = state.copyWith(syncAcrossDevices: true, inflightTheme: state.mode);
+    try {
+      await ref
+          .read(userSettingsSyncProvider)
+          .pushTheme(_toUserThemeType(state.mode));
+      state = state.copyWith(inflightTheme: null);
+      await _persist();
+    } on Object {
+      state = state.copyWith(syncAcrossDevices: false, inflightTheme: null);
+      await _persist();
+      rethrow;
     }
   }
 
   /// Apply settings received from the server (READY hydration or
-  /// `USER_SETTINGS_UPDATE` echo). No-op when sync is disabled or the value
-  /// already matches local. Persists locally; never pushes back.
+  /// `USER_SETTINGS_UPDATE` echo). No-op when sync is effectively disabled
+  /// (raw flag off OR the device is in system mode), or when a local change
+  /// is already in flight (we don't want a stale echo to fight it). Persists
+  /// locally; never pushes back.
   Future<void> applyServerSettings(UserSettingsResponse settings) async {
     if (_userId == null) {
       talker.warning(
@@ -132,7 +191,10 @@ class ThemePreference extends _$ThemePreference {
       );
       return;
     }
-    if (!state.syncAcrossDevices) {
+    if (!state.syncAcrossDevices || state.mode == FluxerThemeMode.system) {
+      return;
+    }
+    if (state.inflightTheme != null) {
       return;
     }
     final serverMode = _modeFromJson(settings.theme);

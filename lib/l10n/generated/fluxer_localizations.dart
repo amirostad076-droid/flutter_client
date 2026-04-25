@@ -4144,6 +4144,12 @@ abstract class FluxerLocalizations {
   /// **'System theme automatically disables sync to track your system\'s preference on this device.'**
   String get lookAndFeelSyncThemeAcrossDevicesSystemDescription;
 
+  /// Toast message shown when the server PATCH for a theme change or sync toggle fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sync theme to your account. Please try again.'**
+  String get lookAndFeelThemeSyncFailed;
+
   /// Section title for the chat font size slider.
   ///
   /// In en, this message translates to:

@@ -37,6 +37,37 @@ class UserLookAndFeel extends ConsumerWidget {
         : _lightSwatch;
 
     final isSystem = themePref.mode == FluxerThemeMode.system;
+    final inflightMode = themePref.inflightTheme;
+    final swatchesEnabled = inflightMode == null;
+
+    void showSyncFailedToast() {
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.lookAndFeelThemeSyncFailed,
+              variant: FluxerToastVariant.danger,
+            ),
+          );
+    }
+
+    Future<void> changeTheme(FluxerThemeMode mode) async {
+      try {
+        await ref.read(themePreferenceProvider.notifier).setTheme(mode);
+      } on Object {
+        showSyncFailedToast();
+      }
+    }
+
+    Future<void> changeSync({required bool value}) async {
+      try {
+        await ref
+            .read(themePreferenceProvider.notifier)
+            .setSyncAcrossDevices(value: value);
+      } on Object {
+        showSyncFailedToast();
+      }
+    }
 
     return SingleChildScrollView(
       controller: scrollController,
@@ -57,42 +88,34 @@ class UserLookAndFeel extends ConsumerWidget {
                     label: l10n.lookAndFeelThemeDark,
                     backgroundColor: _darkSwatch,
                     isSelected: themePref.mode == FluxerThemeMode.dark,
-                    onTap: () => unawaited(
-                      ref
-                          .read(themePreferenceProvider.notifier)
-                          .setTheme(FluxerThemeMode.dark),
-                    ),
+                    enabled: swatchesEnabled,
+                    isLoading: inflightMode == FluxerThemeMode.dark,
+                    onTap: () => unawaited(changeTheme(FluxerThemeMode.dark)),
                   ),
                   ThemeSwatchButton(
                     label: l10n.lookAndFeelThemeCoal,
                     backgroundColor: _coalSwatch,
                     isSelected: themePref.mode == FluxerThemeMode.coal,
-                    onTap: () => unawaited(
-                      ref
-                          .read(themePreferenceProvider.notifier)
-                          .setTheme(FluxerThemeMode.coal),
-                    ),
+                    enabled: swatchesEnabled,
+                    isLoading: inflightMode == FluxerThemeMode.coal,
+                    onTap: () => unawaited(changeTheme(FluxerThemeMode.coal)),
                   ),
                   ThemeSwatchButton(
                     label: l10n.lookAndFeelThemeLight,
                     backgroundColor: _lightSwatch,
                     isSelected: themePref.mode == FluxerThemeMode.light,
-                    onTap: () => unawaited(
-                      ref
-                          .read(themePreferenceProvider.notifier)
-                          .setTheme(FluxerThemeMode.light),
-                    ),
+                    enabled: swatchesEnabled,
+                    isLoading: inflightMode == FluxerThemeMode.light,
+                    onTap: () => unawaited(changeTheme(FluxerThemeMode.light)),
                   ),
                   ThemeSwatchButton(
                     label: l10n.lookAndFeelThemeSystem,
                     backgroundColor: systemSwatchColor,
                     isSelected: isSystem,
                     centerIcon: PhosphorIconsFill.arrowsCounterClockwise,
-                    onTap: () => unawaited(
-                      ref
-                          .read(themePreferenceProvider.notifier)
-                          .setTheme(FluxerThemeMode.system),
-                    ),
+                    enabled: swatchesEnabled,
+                    isLoading: inflightMode == FluxerThemeMode.system,
+                    onTap: () => unawaited(changeTheme(FluxerThemeMode.system)),
                   ),
                 ],
               ),
@@ -102,12 +125,8 @@ class UserLookAndFeel extends ConsumerWidget {
                     ? l10n.lookAndFeelSyncThemeAcrossDevicesSystemDescription
                     : l10n.lookAndFeelSyncThemeAcrossDevicesDescription,
                 value: themePref.syncAcrossDevices && !isSystem,
-                enabled: !isSystem,
-                onChanged: (value) => unawaited(
-                  ref
-                      .read(themePreferenceProvider.notifier)
-                      .setSyncAcrossDevices(value: value),
-                ),
+                enabled: !isSystem && swatchesEnabled,
+                onChanged: (value) => unawaited(changeSync(value: value)),
               ),
             ],
           ),

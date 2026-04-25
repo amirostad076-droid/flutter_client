@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -25,14 +27,63 @@ class _NoopUserSettingsSyncService extends UserSettingsSyncService {
   _NoopUserSettingsSyncService(super.ref);
 
   @override
-  void enqueueTheme(UserThemeType theme) {}
-
-  @override
-  Future<void> flushNow() async {}
-
-  @override
-  void cancel() {}
+  Future<void> pushTheme(UserThemeType theme) async {}
 }
+
+class _BlockingUserSettingsSyncService extends UserSettingsSyncService {
+  _BlockingUserSettingsSyncService(super.ref);
+
+  Completer<void>? _gate;
+
+  void hold() => _gate = Completer<void>();
+
+  void release() => _gate?.complete();
+
+  @override
+  Future<void> pushTheme(UserThemeType theme) async {
+    final gate = _gate;
+    if (gate != null) {
+      await gate.future;
+    }
+  }
+}
+
+class _FailingUserSettingsSyncService extends UserSettingsSyncService {
+  _FailingUserSettingsSyncService(super.ref);
+
+  @override
+  Future<void> pushTheme(UserThemeType theme) =>
+      Future<void>.error(StateError('PATCH refused'));
+}
+
+UserSettingsResponse _settingsResponseWithTheme(String theme) =>
+    UserSettingsResponse.fromJson(<String, Object?>{
+      'status': 'online',
+      'theme': theme,
+      'locale': 'en-US',
+      'restricted_guilds': <String>[],
+      'bot_restricted_guilds': <String>[],
+      'default_guilds_restricted': false,
+      'bot_default_guilds_restricted': false,
+      'inline_attachment_media': true,
+      'inline_embed_media': true,
+      'gif_auto_play': true,
+      'render_embeds': true,
+      'render_reactions': true,
+      'animate_emoji': true,
+      'animate_stickers': 0,
+      'render_spoilers': 0,
+      'message_display_compact': false,
+      'friend_source_flags': 0,
+      'incoming_call_flags': 0,
+      'group_dm_add_permission_flags': 0,
+      'guild_folders': <Map<String, Object?>>[],
+      'afk_timeout': 600,
+      'time_format': 0,
+      'developer_mode': false,
+      'trusted_domains': <String>[],
+      'default_hide_muted_channels': false,
+    });
 
 Widget _wrap(Widget child, {required FluxerDatabase db}) {
   final colorTheme = buildDarkColorTheme();
@@ -218,4 +269,170 @@ void main() {
       isFalse,
     );
   });
+
+  test('setTheme blocks subsequent taps while a PATCH is in flight', () async {
+    final container = ProviderContainer(
+      overrides: [
+        fluxerDatabaseProvider.overrideWithValue(db),
+        userSettingsSyncProvider.overrideWith(
+          (ref) => _BlockingUserSettingsSyncService(ref)..hold(),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final blocking =
+        container.read(userSettingsSyncProvider)
+            as _BlockingUserSettingsSyncService;
+    final notifier = container.read(themePreferenceProvider.notifier);
+
+    final firstTap = notifier.setTheme(FluxerThemeMode.coal);
+
+    expect(
+      container.read(themePreferenceProvider).inflightTheme,
+      FluxerThemeMode.coal,
+    );
+    expect(
+      container.read(themePreferenceProvider).mode,
+      FluxerThemeMode.dark,
+      reason: 'mode does not move until the server acks',
+    );
+
+    await notifier.setTheme(FluxerThemeMode.light);
+    expect(
+      container.read(themePreferenceProvider).inflightTheme,
+      FluxerThemeMode.coal,
+      reason: 'second tap is dropped while a PATCH is in flight',
+    );
+
+    blocking.release();
+    await firstTap;
+
+    expect(
+      container.read(themePreferenceProvider).mode,
+      FluxerThemeMode.coal,
+    );
+    expect(
+      container.read(themePreferenceProvider).inflightTheme,
+      isNull,
+    );
+  });
+
+  test('setTheme reverts inflight on PATCH failure and rethrows', () async {
+    final container = ProviderContainer(
+      overrides: [
+        fluxerDatabaseProvider.overrideWithValue(db),
+        userSettingsSyncProvider.overrideWith(
+          _FailingUserSettingsSyncService.new,
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final notifier = container.read(themePreferenceProvider.notifier);
+
+    await expectLater(
+      notifier.setTheme(FluxerThemeMode.coal),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(
+      container.read(themePreferenceProvider).mode,
+      FluxerThemeMode.dark,
+      reason: 'mode stays on the previous value when PATCH fails',
+    );
+    expect(
+      container.read(themePreferenceProvider).inflightTheme,
+      isNull,
+      reason: 'inflight cleared on failure so swatches re-enable',
+    );
+  });
+
+  test(
+    'applyServerSettings is a no-op when local mode is system',
+    () async {
+      await db.userPreferencesDao.savePreferences(
+        const UserPreferencesTableCompanion(
+          userId: Value('u1'),
+          theme: Value('system'),
+        ),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          fluxerDatabaseProvider.overrideWithValue(db),
+          userSettingsSyncProvider.overrideWith(
+            _NoopUserSettingsSyncService.new,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(themePreferenceProvider.notifier);
+      await notifier.load('u1');
+      expect(
+        container.read(themePreferenceProvider).mode,
+        FluxerThemeMode.system,
+      );
+
+      await notifier.applyServerSettings(_settingsResponseWithTheme('coal'));
+
+      expect(
+        container.read(themePreferenceProvider).mode,
+        FluxerThemeMode.system,
+        reason: 'gateway theme update must not knock the user out of system',
+      );
+    },
+  );
+
+  test(
+    'applyServerSettings is a no-op while a local PATCH is inflight',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          fluxerDatabaseProvider.overrideWithValue(db),
+          userSettingsSyncProvider.overrideWith(
+            (ref) => _BlockingUserSettingsSyncService(ref)..hold(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final blocking =
+          container.read(userSettingsSyncProvider)
+              as _BlockingUserSettingsSyncService;
+
+      await db.userPreferencesDao.savePreferences(
+        const UserPreferencesTableCompanion(userId: Value('u1')),
+      );
+      final notifier = container.read(themePreferenceProvider.notifier);
+      await notifier.load('u1');
+
+      final pending = notifier.setTheme(FluxerThemeMode.coal);
+      expect(
+        container.read(themePreferenceProvider).inflightTheme,
+        FluxerThemeMode.coal,
+      );
+
+      await notifier.applyServerSettings(_settingsResponseWithTheme('light'));
+
+      expect(
+        container.read(themePreferenceProvider).mode,
+        FluxerThemeMode.dark,
+        reason: 'gateway echo must not interfere with the inflight change',
+      );
+      expect(
+        container.read(themePreferenceProvider).inflightTheme,
+        FluxerThemeMode.coal,
+      );
+
+      blocking.release();
+      await pending;
+
+      expect(
+        container.read(themePreferenceProvider).mode,
+        FluxerThemeMode.coal,
+      );
+    },
+  );
 }

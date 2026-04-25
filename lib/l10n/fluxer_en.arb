@@ -2955,6 +2955,10 @@
   "@lookAndFeelSyncThemeAcrossDevicesSystemDescription": {
     "description": "Description shown under the sync toggle when System theme is active and the toggle is therefore disabled."
   },
+  "lookAndFeelThemeSyncFailed": "Couldn't sync theme to your account. Please try again.",
+  "@lookAndFeelThemeSyncFailed": {
+    "description": "Toast message shown when the server PATCH for a theme change or sync toggle fails."
+  },
   "lookAndFeelChatFontScalingTitle": "Chat Font Scaling",
   "@lookAndFeelChatFontScalingTitle": {
     "description": "Section title for the chat font size slider."
