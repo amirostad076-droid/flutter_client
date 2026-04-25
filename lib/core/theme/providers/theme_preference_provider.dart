@@ -16,24 +16,46 @@ class ThemePreferenceState {
   ThemePreferenceState({
     this.mode = FluxerThemeMode.dark,
     this.scaleFactor = 1.0,
-  }) : colorTheme = switch (mode) {
-         FluxerThemeMode.dark => buildDarkColorTheme(),
-         FluxerThemeMode.light => buildLightColorTheme(),
-         FluxerThemeMode.coal => buildCoalColorTheme(),
-       },
+    this.chatFontSize = 16,
+    this.syncAcrossDevices = true,
+  }) : darkColorTheme = buildDarkColorTheme(),
+       lightColorTheme = buildLightColorTheme(),
+       coalColorTheme = buildCoalColorTheme(),
        layoutTheme = FluxerLayoutTheme.scaled(scaleFactor: scaleFactor);
 
   final FluxerThemeMode mode;
   final double scaleFactor;
-  final FluxerColorTheme colorTheme;
+  final int chatFontSize;
+  final bool syncAcrossDevices;
+  final FluxerColorTheme darkColorTheme;
+  final FluxerColorTheme lightColorTheme;
+  final FluxerColorTheme coalColorTheme;
   final FluxerLayoutTheme layoutTheme;
 
-  late final FluxerTextTheme textTheme = FluxerTextTheme.fromColors(colorTheme);
+  FluxerColorTheme get colorTheme => switch (mode) {
+    FluxerThemeMode.dark => darkColorTheme,
+    FluxerThemeMode.light => lightColorTheme,
+    FluxerThemeMode.coal => coalColorTheme,
+    FluxerThemeMode.system => darkColorTheme,
+  };
 
-  ThemePreferenceState copyWith({FluxerThemeMode? mode, double? scaleFactor}) {
+  late final FluxerTextTheme textTheme = FluxerTextTheme.fromColors(colorTheme);
+  late final FluxerTextTheme darkTextTheme =
+      FluxerTextTheme.fromColors(darkColorTheme);
+  late final FluxerTextTheme lightTextTheme =
+      FluxerTextTheme.fromColors(lightColorTheme);
+
+  ThemePreferenceState copyWith({
+    FluxerThemeMode? mode,
+    double? scaleFactor,
+    int? chatFontSize,
+    bool? syncAcrossDevices,
+  }) {
     return ThemePreferenceState(
       mode: mode ?? this.mode,
       scaleFactor: scaleFactor ?? this.scaleFactor,
+      chatFontSize: chatFontSize ?? this.chatFontSize,
+      syncAcrossDevices: syncAcrossDevices ?? this.syncAcrossDevices,
     );
   }
 }
@@ -54,7 +76,12 @@ class ThemePreference extends _$ThemePreference {
         (m) => m.name == prefs.theme,
         orElse: () => FluxerThemeMode.dark,
       );
-      state = ThemePreferenceState(mode: mode, scaleFactor: prefs.scaleFactor);
+      state = ThemePreferenceState(
+        mode: mode,
+        scaleFactor: prefs.scaleFactor,
+        chatFontSize: prefs.chatFontSize,
+        syncAcrossDevices: prefs.syncAcrossDevices,
+      );
     }
   }
 
@@ -65,6 +92,16 @@ class ThemePreference extends _$ThemePreference {
 
   Future<void> setScaleFactor(double factor) async {
     state = state.copyWith(scaleFactor: factor);
+    await _persist();
+  }
+
+  Future<void> setChatFontSize(int size) async {
+    state = state.copyWith(chatFontSize: size);
+    await _persist();
+  }
+
+  Future<void> setSyncAcrossDevices({required bool value}) async {
+    state = state.copyWith(syncAcrossDevices: value);
     await _persist();
   }
 
@@ -79,6 +116,8 @@ class ThemePreference extends _$ThemePreference {
         userId: Value(userId),
         theme: Value(state.mode.name),
         scaleFactor: Value(state.scaleFactor),
+        chatFontSize: Value(state.chatFontSize),
+        syncAcrossDevices: Value(state.syncAcrossDevices),
       ),
     );
   }

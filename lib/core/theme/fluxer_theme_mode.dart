@@ -1,1 +1,1 @@
-enum FluxerThemeMode { dark, light, coal }
+enum FluxerThemeMode { dark, light, coal, system }

@@ -23,19 +23,53 @@ class FluxerApp extends ConsumerWidget {
     final router = ref.watch(fluxerRouterProvider);
     final themePref = ref.watch(themePreferenceProvider);
 
+    final darkTheme = buildFluxerTheme(
+      colorTheme: themePref.darkColorTheme,
+      textTheme: themePref.darkTextTheme,
+      layoutTheme: themePref.layoutTheme,
+    );
+    final lightTheme = buildFluxerTheme(
+      colorTheme: themePref.lightColorTheme,
+      textTheme: themePref.lightTextTheme,
+      layoutTheme: themePref.layoutTheme,
+      brightness: Brightness.light,
+    );
+    final explicitTheme = buildFluxerTheme(
+      colorTheme: themePref.colorTheme,
+      textTheme: themePref.textTheme,
+      layoutTheme: themePref.layoutTheme,
+      brightness: themePref.mode == FluxerThemeMode.light
+          ? Brightness.light
+          : Brightness.dark,
+    );
+
+    final ThemeMode themeMode;
+    final ThemeData theme;
+    final ThemeData? darkThemeData;
+    switch (themePref.mode) {
+      case FluxerThemeMode.system:
+        themeMode = ThemeMode.system;
+        theme = lightTheme;
+        darkThemeData = darkTheme;
+      case FluxerThemeMode.light:
+        themeMode = ThemeMode.light;
+        theme = explicitTheme;
+        darkThemeData = null;
+      case FluxerThemeMode.dark:
+      case FluxerThemeMode.coal:
+        themeMode = ThemeMode.dark;
+        theme = explicitTheme;
+        darkThemeData = explicitTheme;
+    }
+
     return MaterialApp.router(
       title: 'Fluxer',
       debugShowCheckedModeBanner: false,
       localizationsDelegates: FluxerLocalizations.localizationsDelegates,
       supportedLocales: FluxerLocalizations.supportedLocales,
-      theme: buildFluxerTheme(
-        colorTheme: themePref.colorTheme,
-        textTheme: themePref.textTheme,
-        layoutTheme: themePref.layoutTheme,
-        brightness: themePref.mode == FluxerThemeMode.light
-            ? Brightness.light
-            : Brightness.dark,
-      ),
+      theme: theme,
+      darkTheme: darkThemeData,
+      themeMode: themeMode,
       routerConfig: router,
       builder: (context, child) {
         if (!_isDesktopPlatform) {
