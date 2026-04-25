@@ -289,9 +289,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Center(
-                child: FluxerLoadingSpinner(
-                  color: context.colors.brandPrimary,
-                ),
+                child: FluxerLoadingSpinner(color: context.colors.brandPrimary),
               ),
             );
           }
@@ -301,8 +299,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           final prevMsg = msgIndex > 0 ? messages[msgIndex - 1] : null;
 
           final isNewDay =
-              prevMsg == null ||
-              !_isSameDay(msg.timestamp, prevMsg.timestamp);
+              prevMsg == null || !_isSameDay(msg.timestamp, prevMsg.timestamp);
 
           if (msg.isSystemMessage) {
             final systemWidget = SystemMessage(
@@ -334,15 +331,14 @@ class _MessageListState extends ConsumerState<MessageList> {
                 ref.read(chatViewModelProvider.notifier).startReply(msg),
             onForward: () =>
                 ref.read(chatViewModelProvider.notifier).startForward(msg),
-            onReaction: (emoji, {String? emojiId, bool animated = false}) =>
-                ref
-                    .read(chatViewModelProvider.notifier)
-                    .toggleReaction(
-                      msg.id,
-                      emoji,
-                      emojiId: emojiId,
-                      animated: animated,
-                    ),
+            onReaction: (emoji, {String? emojiId, bool animated = false}) => ref
+                .read(chatViewModelProvider.notifier)
+                .toggleReaction(
+                  msg.id,
+                  emoji,
+                  emojiId: emojiId,
+                  animated: animated,
+                ),
           );
 
           if (isNewDay) {

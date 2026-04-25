@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
-import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
@@ -272,7 +272,8 @@ class ChatViewModel extends _$ChatViewModel {
         final bits = await ref
             .read(guildPermissionsProvider.notifier)
             .getPermissions(guildId);
-        isImmune = hasPermission(bits, Permission.bypassSlowmode) ||
+        isImmune =
+            hasPermission(bits, Permission.bypassSlowmode) ||
             hasPermission(bits, Permission.manageChannels) ||
             hasPermission(bits, Permission.manageMessages);
       }

@@ -73,28 +73,29 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   @override
   Widget build(BuildContext context) {
-    ref..listen<String>(
-      chatViewModelProvider.select((state) => state.messageText),
-      (_, messageText) {
-        if (_controller.text == messageText) {
-          return;
-        }
-        _controller.value = TextEditingValue(
-          text: messageText,
-          selection: TextSelection.collapsed(offset: messageText.length),
-        );
-      },
-    )
-    ..listen<({String name, String surrogates})?>(
-      pendingEmojiInsertProvider,
-      (_, pending) {
-        if (pending == null) {
-          return;
-        }
-        ref.read(pendingEmojiInsertProvider.notifier).consume();
-        _insertEmoji(pending.name, pending.surrogates);
-      },
-    );
+    ref
+      ..listen<String>(
+        chatViewModelProvider.select((state) => state.messageText),
+        (_, messageText) {
+          if (_controller.text == messageText) {
+            return;
+          }
+          _controller.value = TextEditingValue(
+            text: messageText,
+            selection: TextSelection.collapsed(offset: messageText.length),
+          );
+        },
+      )
+      ..listen<({String name, String surrogates})?>(
+        pendingEmojiInsertProvider,
+        (_, pending) {
+          if (pending == null) {
+            return;
+          }
+          ref.read(pendingEmojiInsertProvider.notifier).consume();
+          _insertEmoji(pending.name, pending.surrogates);
+        },
+      );
 
     final vm = ref.watch(chatViewModelProvider);
     final chatNotifier = ref.read(chatViewModelProvider.notifier);

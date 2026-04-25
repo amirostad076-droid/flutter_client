@@ -13,17 +13,14 @@ Stream<bool> isSlowmodeBlocked(Ref ref, String channelId) async* {
   }
   final channel = await ref.watch(channelByIdProvider(channelId).future);
   final rate = channel?.rateLimitPerUser ?? 0;
-  final isImmune = await ref.watch(
-    isSlowmodeImmuneProvider(channelId).future,
-  );
+  final isImmune = await ref.watch(isSlowmodeImmuneProvider(channelId).future);
   ref.watch(slowmodeTrackerProvider);
   if (rate <= 0 || isImmune) {
     yield false;
     return;
   }
-  Duration remaining() => ref
-      .read(slowmodeTrackerProvider.notifier)
-      .remainingFor(channelId, rate);
+  Duration remaining() =>
+      ref.read(slowmodeTrackerProvider.notifier).remainingFor(channelId, rate);
   while (remaining() > Duration.zero) {
     yield true;
     await Future<void>.delayed(const Duration(seconds: 1));

@@ -19,9 +19,8 @@ import 'package:fluxer_app/features/settings/providers/user_settings_sync_servic
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart';
 
-FluxerDatabase _buildDatabase() => FluxerDatabase.forTesting(
-      NativeDatabase.memory(),
-    );
+FluxerDatabase _buildDatabase() =>
+    FluxerDatabase.forTesting(NativeDatabase.memory());
 
 class _NoopUserSettingsSyncService extends UserSettingsSyncService {
   _NoopUserSettingsSyncService(super.ref);
@@ -90,9 +89,7 @@ Widget _wrap(Widget child, {required FluxerDatabase db}) {
   final container = ProviderContainer(
     overrides: [
       fluxerDatabaseProvider.overrideWithValue(db),
-      userSettingsSyncProvider.overrideWith(
-        _NoopUserSettingsSyncService.new,
-      ),
+      userSettingsSyncProvider.overrideWith(_NoopUserSettingsSyncService.new),
     ],
   );
   return UncontrolledProviderScope(
@@ -110,7 +107,7 @@ Widget _wrap(Widget child, {required FluxerDatabase db}) {
   );
 }
 
-/// Suppress rendering overflow exceptions that originate from [FluxerSlider]'s
+/// Suppress rendering overflow exceptions that originate from FluxerSlider's
 /// fixed-size marker column in test environments.
 void _ignoreSliderOverflows() {
   final previousHandler = FlutterError.onError;
@@ -144,10 +141,7 @@ void main() {
     });
 
     await tester.pumpWidget(
-      _wrap(
-        UserLookAndFeel(scrollController: ScrollController()),
-        db: db,
-      ),
+      _wrap(UserLookAndFeel(scrollController: ScrollController()), db: db),
     );
     await tester.pump();
 
@@ -171,9 +165,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         fluxerDatabaseProvider.overrideWithValue(db),
-        userSettingsSyncProvider.overrideWith(
-          _NoopUserSettingsSyncService.new,
-        ),
+        userSettingsSyncProvider.overrideWith(_NoopUserSettingsSyncService.new),
       ],
     );
     addTearDown(container.dispose);
@@ -200,10 +192,7 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Light Theme'));
     await tester.pump();
 
-    expect(
-      container.read(themePreferenceProvider).mode,
-      FluxerThemeMode.light,
-    );
+    expect(container.read(themePreferenceProvider).mode, FluxerThemeMode.light);
   });
 
   testWidgets('toggling Enable Favorites updates provider', (tester) async {
@@ -218,9 +207,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         fluxerDatabaseProvider.overrideWithValue(db),
-        userSettingsSyncProvider.overrideWith(
-          _NoopUserSettingsSyncService.new,
-        ),
+        userSettingsSyncProvider.overrideWith(_NoopUserSettingsSyncService.new),
       ],
     );
     addTearDown(container.dispose);
@@ -228,9 +215,7 @@ void main() {
     await db.userPreferencesDao.savePreferences(
       const UserPreferencesTableCompanion(userId: Value('u1')),
     );
-    await container
-        .read(appearancePreferencesProvider.notifier)
-        .load('u1');
+    await container.read(appearancePreferencesProvider.notifier).load('u1');
 
     await tester.pumpWidget(
       UncontrolledProviderScope(
@@ -251,10 +236,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(
-      container.read(appearancePreferencesProvider).showFavorites,
-      isTrue,
-    );
+    expect(container.read(appearancePreferencesProvider).showFavorites, isTrue);
 
     await tester.dragUntilVisible(
       find.bySemanticsLabel('Enable Favorites'),
@@ -308,14 +290,8 @@ void main() {
     blocking.release();
     await firstTap;
 
-    expect(
-      container.read(themePreferenceProvider).mode,
-      FluxerThemeMode.coal,
-    );
-    expect(
-      container.read(themePreferenceProvider).inflightTheme,
-      isNull,
-    );
+    expect(container.read(themePreferenceProvider).mode, FluxerThemeMode.coal);
+    expect(container.read(themePreferenceProvider).inflightTheme, isNull);
   });
 
   test('setTheme reverts inflight on PATCH failure and rethrows', () async {
@@ -348,42 +324,37 @@ void main() {
     );
   });
 
-  test(
-    'applyServerSettings is a no-op when local mode is system',
-    () async {
-      await db.userPreferencesDao.savePreferences(
-        const UserPreferencesTableCompanion(
-          userId: Value('u1'),
-          theme: Value('system'),
-        ),
-      );
+  test('applyServerSettings is a no-op when local mode is system', () async {
+    await db.userPreferencesDao.savePreferences(
+      const UserPreferencesTableCompanion(
+        userId: Value('u1'),
+        theme: Value('system'),
+      ),
+    );
 
-      final container = ProviderContainer(
-        overrides: [
-          fluxerDatabaseProvider.overrideWithValue(db),
-          userSettingsSyncProvider.overrideWith(
-            _NoopUserSettingsSyncService.new,
-          ),
-        ],
-      );
-      addTearDown(container.dispose);
+    final container = ProviderContainer(
+      overrides: [
+        fluxerDatabaseProvider.overrideWithValue(db),
+        userSettingsSyncProvider.overrideWith(_NoopUserSettingsSyncService.new),
+      ],
+    );
+    addTearDown(container.dispose);
 
-      final notifier = container.read(themePreferenceProvider.notifier);
-      await notifier.load('u1');
-      expect(
-        container.read(themePreferenceProvider).mode,
-        FluxerThemeMode.system,
-      );
+    final notifier = container.read(themePreferenceProvider.notifier);
+    await notifier.load('u1');
+    expect(
+      container.read(themePreferenceProvider).mode,
+      FluxerThemeMode.system,
+    );
 
-      await notifier.applyServerSettings(_settingsResponseWithTheme('coal'));
+    await notifier.applyServerSettings(_settingsResponseWithTheme('coal'));
 
-      expect(
-        container.read(themePreferenceProvider).mode,
-        FluxerThemeMode.system,
-        reason: 'gateway theme update must not knock the user out of system',
-      );
-    },
-  );
+    expect(
+      container.read(themePreferenceProvider).mode,
+      FluxerThemeMode.system,
+      reason: 'gateway theme update must not knock the user out of system',
+    );
+  });
 
   test(
     'applyServerSettings is a no-op while a local PATCH is inflight',

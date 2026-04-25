@@ -339,9 +339,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         Transform.translate(
           offset: Offset(foregroundOffset, 0),
           // [Transform] + semantics can assert during pan; t > 0 only here.
-          child: ExcludeSemantics(
-            child: slidingContent,
-          ),
+          child: ExcludeSemantics(child: slidingContent),
         ),
       ],
     );

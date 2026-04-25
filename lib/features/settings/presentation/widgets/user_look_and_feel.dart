@@ -191,7 +191,8 @@ class UserLookAndFeel extends ConsumerWidget {
                     items: [
                       FluxerRadioItem(
                         value: ChannelTypingIndicatorMode.avatars,
-                        label: l10n.lookAndFeelChannelTypingIndicatorAvatarsName,
+                        label:
+                            l10n.lookAndFeelChannelTypingIndicatorAvatarsName,
                         description: l10n
                             .lookAndFeelChannelTypingIndicatorAvatarsDescription,
                       ),
@@ -210,8 +211,8 @@ class UserLookAndFeel extends ConsumerWidget {
                     ],
                   ),
                   FluxerSwitchGroupItem(
-                    label: l10n
-                        .lookAndFeelShowSelectedChannelTypingIndicatorLabel,
+                    label:
+                        l10n.lookAndFeelShowSelectedChannelTypingIndicatorLabel,
                     description: l10n
                         .lookAndFeelShowSelectedChannelTypingIndicatorDescription,
                     value: appearance.showSelectedChannelTypingIndicator,

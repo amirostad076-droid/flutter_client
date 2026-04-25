@@ -218,8 +218,7 @@ class GuildSidebar extends ConsumerWidget {
     final currentUserId = ref.watch(currentUserIdProvider);
     final guildId = ref.watch(activeGuildIdProvider);
     final mutedSet = guildId != null
-        ? ref.watch(mutedChannelIdsProvider(guildId)).value ??
-              const <String>{}
+        ? ref.watch(mutedChannelIdsProvider(guildId)).value ?? const <String>{}
         : const <String>{};
     final guildMuted =
         guildId != null &&
@@ -304,10 +303,7 @@ class GuildSidebar extends ConsumerWidget {
                 if (mentionCount > 0)
                   FluxerBadge.count(count: mentionCount)
                 else if (isMuted)
-                  const Opacity(
-                    opacity: 0.4,
-                    child: FluxerBadge.dot(),
-                  )
+                  const Opacity(opacity: 0.4, child: FluxerBadge.dot())
                 else
                   const FluxerBadge.dot(),
               ],

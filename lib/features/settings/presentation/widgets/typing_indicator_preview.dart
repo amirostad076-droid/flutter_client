@@ -29,10 +29,7 @@ class TypingIndicatorPreview extends StatelessWidget {
 
     return Container(
       constraints: const BoxConstraints(maxWidth: 264),
-      padding: EdgeInsets.symmetric(
-        horizontal: layout.s3,
-        vertical: layout.s2,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: layout.s3, vertical: layout.s2),
       decoration: BoxDecoration(
         color: colors.backgroundModifierSelected,
         borderRadius: layout.radiusMd,

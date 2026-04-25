@@ -43,8 +43,7 @@ class AppearancePreferencesState {
           this.showSelectedChannelTypingIndicator,
       collapseDMs: collapseDMs ?? this.collapseDMs,
       showFadedUnreadOnMutedChannels:
-          showFadedUnreadOnMutedChannels ??
-          this.showFadedUnreadOnMutedChannels,
+          showFadedUnreadOnMutedChannels ?? this.showFadedUnreadOnMutedChannels,
       showActiveNow: showActiveNow ?? this.showActiveNow,
       showFavorites: showFavorites ?? this.showFavorites,
       hideKeyboardHints: hideKeyboardHints ?? this.hideKeyboardHints,

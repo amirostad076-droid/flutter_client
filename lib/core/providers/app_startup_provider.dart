@@ -93,9 +93,7 @@ class AppStartup extends _$AppStartup {
     ref.read(authStateProvider.notifier).setAuthenticated(value: true);
     ref.read(currentUserIdProvider.notifier).set(session.userId);
     await ref.read(themePreferenceProvider.notifier).load(session.userId);
-    await ref
-        .read(appearancePreferencesProvider.notifier)
-        .load(session.userId);
+    await ref.read(appearancePreferencesProvider.notifier).load(session.userId);
 
     unawaited(ref.read(gatewayConnectionProvider).connect());
     ref

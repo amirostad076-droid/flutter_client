@@ -53,10 +53,12 @@ class ThemePreferenceState {
   };
 
   late final FluxerTextTheme textTheme = FluxerTextTheme.fromColors(colorTheme);
-  late final FluxerTextTheme darkTextTheme =
-      FluxerTextTheme.fromColors(darkColorTheme);
-  late final FluxerTextTheme lightTextTheme =
-      FluxerTextTheme.fromColors(lightColorTheme);
+  late final FluxerTextTheme darkTextTheme = FluxerTextTheme.fromColors(
+    darkColorTheme,
+  );
+  late final FluxerTextTheme lightTextTheme = FluxerTextTheme.fromColors(
+    lightColorTheme,
+  );
 
   ThemePreferenceState copyWith({
     FluxerThemeMode? mode,
