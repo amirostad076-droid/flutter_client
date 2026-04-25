@@ -19,6 +19,8 @@ class UserPreferencesTable extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get showActiveNow => boolean().withDefault(const Constant(true))();
   BoolColumn get showFavorites => boolean().withDefault(const Constant(true))();
+  BoolColumn get hideKeyboardHints =>
+      boolean().withDefault(const Constant(false))();
 
   @override
   String get tableName => 'user_preferences';

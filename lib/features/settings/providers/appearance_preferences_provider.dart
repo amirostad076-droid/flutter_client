@@ -15,6 +15,7 @@ class AppearancePreferencesState {
     this.showFadedUnreadOnMutedChannels = true,
     this.showActiveNow = true,
     this.showFavorites = true,
+    this.hideKeyboardHints = false,
   });
 
   final ChannelTypingIndicatorMode channelTypingIndicatorMode;
@@ -23,6 +24,7 @@ class AppearancePreferencesState {
   final bool showFadedUnreadOnMutedChannels;
   final bool showActiveNow;
   final bool showFavorites;
+  final bool hideKeyboardHints;
 
   AppearancePreferencesState copyWith({
     ChannelTypingIndicatorMode? channelTypingIndicatorMode,
@@ -31,6 +33,7 @@ class AppearancePreferencesState {
     bool? showFadedUnreadOnMutedChannels,
     bool? showActiveNow,
     bool? showFavorites,
+    bool? hideKeyboardHints,
   }) {
     return AppearancePreferencesState(
       channelTypingIndicatorMode:
@@ -44,6 +47,7 @@ class AppearancePreferencesState {
           this.showFadedUnreadOnMutedChannels,
       showActiveNow: showActiveNow ?? this.showActiveNow,
       showFavorites: showFavorites ?? this.showFavorites,
+      hideKeyboardHints: hideKeyboardHints ?? this.hideKeyboardHints,
     );
   }
 }
@@ -72,6 +76,7 @@ class AppearancePreferences extends _$AppearancePreferences {
         showFadedUnreadOnMutedChannels: prefs.showFadedUnreadOnMutedChannels,
         showActiveNow: prefs.showActiveNow,
         showFavorites: prefs.showFavorites,
+        hideKeyboardHints: prefs.hideKeyboardHints,
       );
     }
   }
@@ -110,6 +115,11 @@ class AppearancePreferences extends _$AppearancePreferences {
     await _persist();
   }
 
+  Future<void> setHideKeyboardHints({required bool value}) async {
+    state = state.copyWith(hideKeyboardHints: value);
+    await _persist();
+  }
+
   Future<void> _persist() async {
     final userId = _userId;
     if (userId == null) {
@@ -131,6 +141,7 @@ class AppearancePreferences extends _$AppearancePreferences {
         ),
         showActiveNow: Value(state.showActiveNow),
         showFavorites: Value(state.showFavorites),
+        hideKeyboardHints: Value(state.hideKeyboardHints),
       ),
     );
   }
