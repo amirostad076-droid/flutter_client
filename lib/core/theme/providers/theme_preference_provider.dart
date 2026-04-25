@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
@@ -8,6 +9,8 @@ import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxer_app/core/theme/themes/coal.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/core/theme/themes/light.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_sync_service.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'theme_preference_provider.g.dart';
@@ -88,6 +91,9 @@ class ThemePreference extends _$ThemePreference {
   Future<void> setTheme(FluxerThemeMode mode) async {
     state = state.copyWith(mode: mode);
     await _persist();
+    if (state.syncAcrossDevices && mode != FluxerThemeMode.system) {
+      ref.read(userSettingsSyncProvider).enqueueTheme(_toUserThemeType(mode));
+    }
   }
 
   Future<void> setScaleFactor(double factor) async {
@@ -101,8 +107,19 @@ class ThemePreference extends _$ThemePreference {
   }
 
   Future<void> setSyncAcrossDevices({required bool value}) async {
+    if (state.mode == FluxerThemeMode.system) {
+      return;
+    }
+    final wasOff = !state.syncAcrossDevices;
     state = state.copyWith(syncAcrossDevices: value);
     await _persist();
+    final sync = ref.read(userSettingsSyncProvider);
+    if (value && wasOff) {
+      sync.enqueueTheme(_toUserThemeType(state.mode));
+      await sync.flushNow();
+    } else if (!value) {
+      sync.cancel();
+    }
   }
 
   Future<void> _persist() async {
@@ -111,14 +128,25 @@ class ThemePreference extends _$ThemePreference {
       return;
     }
     final db = ref.read(fluxerDatabaseProvider);
-    await db.userPreferencesDao.savePreferences(
-      UserPreferencesTableCompanion(
-        userId: Value(userId),
-        theme: Value(state.mode.name),
-        scaleFactor: Value(state.scaleFactor),
-        chatFontSize: Value(state.chatFontSize),
-        syncAcrossDevices: Value(state.syncAcrossDevices),
-      ),
-    );
+    try {
+      await db.userPreferencesDao.savePreferences(
+        UserPreferencesTableCompanion(
+          userId: Value(userId),
+          theme: Value(state.mode.name),
+          scaleFactor: Value(state.scaleFactor),
+          chatFontSize: Value(state.chatFontSize),
+          syncAcrossDevices: Value(state.syncAcrossDevices),
+        ),
+      );
+    } on Object catch (e, st) {
+      talker.error('[ThemePreference] Persist failed', e, st);
+    }
   }
+
+  UserThemeType _toUserThemeType(FluxerThemeMode mode) => switch (mode) {
+    FluxerThemeMode.dark => UserThemeType.dark,
+    FluxerThemeMode.coal => UserThemeType.coal,
+    FluxerThemeMode.light => UserThemeType.light,
+    FluxerThemeMode.system => UserThemeType.system,
+  };
 }
