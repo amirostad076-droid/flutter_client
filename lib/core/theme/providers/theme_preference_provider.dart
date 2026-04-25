@@ -122,6 +122,27 @@ class ThemePreference extends _$ThemePreference {
     }
   }
 
+  /// Apply settings received from the server (READY hydration or
+  /// `USER_SETTINGS_UPDATE` echo). No-op when sync is disabled or the value
+  /// already matches local. Persists locally; never pushes back.
+  Future<void> applyServerSettings(UserSettingsResponse settings) async {
+    if (_userId == null) {
+      talker.warning(
+        '[ThemePreference] Hydration dropped: userId not loaded yet',
+      );
+      return;
+    }
+    if (!state.syncAcrossDevices) {
+      return;
+    }
+    final serverMode = _modeFromJson(settings.theme);
+    if (serverMode == null || serverMode == state.mode) {
+      return;
+    }
+    state = state.copyWith(mode: serverMode);
+    await _persist();
+  }
+
   Future<void> _persist() async {
     final userId = _userId;
     if (userId == null) {
@@ -148,5 +169,13 @@ class ThemePreference extends _$ThemePreference {
     FluxerThemeMode.coal => UserThemeType.coal,
     FluxerThemeMode.light => UserThemeType.light,
     FluxerThemeMode.system => UserThemeType.system,
+  };
+
+  FluxerThemeMode? _modeFromJson(String raw) => switch (raw) {
+    'dark' => FluxerThemeMode.dark,
+    'coal' => FluxerThemeMode.coal,
+    'light' => FluxerThemeMode.light,
+    'system' => FluxerThemeMode.system,
+    _ => null,
   };
 }

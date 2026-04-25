@@ -28,6 +28,8 @@ typedef MessageReactionChangeCallback =
     void Function(String channelId, String messageId);
 typedef ConnectionsUpdateCallback =
     void Function(List<ConnectionResponse> connections);
+typedef UserSettingsHydrateCallback =
+    void Function(UserSettingsResponse settings);
 
 class GatewayEventHandler {
   GatewayEventHandler({
@@ -53,6 +55,7 @@ class GatewayEventHandler {
     this.onMessageReactionChange,
     this.onAuthSessionIdHashChanged,
     this.onConnectionsUpdate,
+    this.onUserSettingsHydrate,
   });
 
   final db.FluxerDatabase database;
@@ -77,6 +80,7 @@ class GatewayEventHandler {
   final MessageReactionChangeCallback? onMessageReactionChange;
   final void Function(String? idHash)? onAuthSessionIdHashChanged;
   final ConnectionsUpdateCallback? onConnectionsUpdate;
+  final UserSettingsHydrateCallback? onUserSettingsHydrate;
 
   /// The current user's ID, set during READY processing.
   String? _currentUserId;
@@ -642,6 +646,10 @@ class GatewayEventHandler {
     });
 
     talker.info('[Gateway] READY transaction committed successfully');
+    final hydratedSettings = event.userSettings;
+    if (hydratedSettings != null) {
+      onUserSettingsHydrate?.call(hydratedSettings);
+    }
     onReady?.call();
   }
 
@@ -656,6 +664,7 @@ class GatewayEventHandler {
         data: Value(jsonEncode(event.settings.toJson())),
       ),
     );
+    onUserSettingsHydrate?.call(event.settings);
   }
 
   Future<void> _handleUserGuildSettingsUpdate(

@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/auth/providers/current_auth_session_provider.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
@@ -137,6 +138,13 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       ref
           .read(connectionsViewModelProvider.notifier)
           .setConnections(connections);
+    },
+    onUserSettingsHydrate: (settings) {
+      unawaited(
+        ref
+            .read(themePreferenceProvider.notifier)
+            .applyServerSettings(settings),
+      );
     },
   );
 
