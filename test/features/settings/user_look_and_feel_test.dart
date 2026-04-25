@@ -13,16 +13,36 @@ import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_look_and_feel.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_sync_service.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_dart/export.dart';
 
 FluxerDatabase _buildDatabase() => FluxerDatabase.forTesting(
       NativeDatabase.memory(),
     );
 
+class _NoopUserSettingsSyncService extends UserSettingsSyncService {
+  _NoopUserSettingsSyncService(super.ref);
+
+  @override
+  void enqueueTheme(UserThemeType theme) {}
+
+  @override
+  Future<void> flushNow() async {}
+
+  @override
+  void cancel() {}
+}
+
 Widget _wrap(Widget child, {required FluxerDatabase db}) {
   final colorTheme = buildDarkColorTheme();
   final container = ProviderContainer(
-    overrides: [fluxerDatabaseProvider.overrideWithValue(db)],
+    overrides: [
+      fluxerDatabaseProvider.overrideWithValue(db),
+      userSettingsSyncProvider.overrideWith(
+        _NoopUserSettingsSyncService.new,
+      ),
+    ],
   );
   return UncontrolledProviderScope(
     container: container,
@@ -98,7 +118,12 @@ void main() {
     });
 
     final container = ProviderContainer(
-      overrides: [fluxerDatabaseProvider.overrideWithValue(db)],
+      overrides: [
+        fluxerDatabaseProvider.overrideWithValue(db),
+        userSettingsSyncProvider.overrideWith(
+          _NoopUserSettingsSyncService.new,
+        ),
+      ],
     );
     addTearDown(container.dispose);
 
@@ -140,7 +165,12 @@ void main() {
     });
 
     final container = ProviderContainer(
-      overrides: [fluxerDatabaseProvider.overrideWithValue(db)],
+      overrides: [
+        fluxerDatabaseProvider.overrideWithValue(db),
+        userSettingsSyncProvider.overrideWith(
+          _NoopUserSettingsSyncService.new,
+        ),
+      ],
     );
     addTearDown(container.dispose);
 
@@ -168,7 +198,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(
       container.read(appearancePreferencesProvider).showFavorites,
@@ -181,7 +211,7 @@ void main() {
       const Offset(0, -200),
     );
     await tester.tap(find.bySemanticsLabel('Enable Favorites'));
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(
       container.read(appearancePreferencesProvider).showFavorites,
