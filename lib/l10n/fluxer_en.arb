@@ -2914,5 +2914,165 @@
   "connectionEnterDomain": "Enter a domain.",
   "@connectionEnterDomain": {
     "description": "Inline error shown when the domain input is empty."
+  },
+  "lookAndFeelTitle": "Look & Feel",
+  "@lookAndFeelTitle": {
+    "description": "Title of the Look & Feel (Appearance) settings page."
+  },
+  "lookAndFeelThemeSectionTitle": "Theme",
+  "@lookAndFeelThemeSectionTitle": {
+    "description": "Section title for theme selection."
+  },
+  "lookAndFeelThemeSectionDescription": "Choose between dark, coal, or light appearance.",
+  "@lookAndFeelThemeSectionDescription": {
+    "description": "Section description for theme selection."
+  },
+  "lookAndFeelThemeDark": "Dark Theme",
+  "@lookAndFeelThemeDark": {
+    "description": "Label on the dark theme swatch button."
+  },
+  "lookAndFeelThemeCoal": "Coal Theme",
+  "@lookAndFeelThemeCoal": {
+    "description": "Label on the coal (pitch-black) theme swatch button."
+  },
+  "lookAndFeelThemeLight": "Light Theme",
+  "@lookAndFeelThemeLight": {
+    "description": "Label on the light theme swatch button."
+  },
+  "lookAndFeelThemeSystem": "System Theme",
+  "@lookAndFeelThemeSystem": {
+    "description": "Label on the system (OS-driven) theme swatch button."
+  },
+  "lookAndFeelSyncThemeAcrossDevicesLabel": "Sync theme across devices",
+  "@lookAndFeelSyncThemeAcrossDevicesLabel": {
+    "description": "Toggle label — sync the selected theme to the user's other devices."
+  },
+  "lookAndFeelSyncThemeAcrossDevicesDescription": "When enabled, theme changes will sync to all your devices. When disabled, this device will use its own theme setting.",
+  "@lookAndFeelSyncThemeAcrossDevicesDescription": {
+    "description": "Default description for the sync-theme-across-devices toggle."
+  },
+  "lookAndFeelSyncThemeAcrossDevicesSystemDescription": "System theme automatically disables sync to track your system's preference on this device.",
+  "@lookAndFeelSyncThemeAcrossDevicesSystemDescription": {
+    "description": "Description shown under the sync toggle when System theme is active and the toggle is therefore disabled."
+  },
+  "lookAndFeelChatFontScalingTitle": "Chat Font Scaling",
+  "@lookAndFeelChatFontScalingTitle": {
+    "description": "Section title for the chat font size slider."
+  },
+  "lookAndFeelChatFontScalingDescription": "Adjust the font size in the chat area.",
+  "@lookAndFeelChatFontScalingDescription": {
+    "description": "Section description for the chat font size slider."
+  },
+  "lookAndFeelInterfaceTitle": "Interface",
+  "@lookAndFeelInterfaceTitle": {
+    "description": "Section title for interface customization."
+  },
+  "lookAndFeelInterfaceDescription": "Customize interface elements and behaviors.",
+  "@lookAndFeelInterfaceDescription": {
+    "description": "Section description for interface customization."
+  },
+  "lookAndFeelChannelTypingIndicatorsTitle": "Channel list typing indicators",
+  "@lookAndFeelChannelTypingIndicatorsTitle": {
+    "description": "Subsection title under Interface."
+  },
+  "lookAndFeelChannelTypingIndicatorsDescription": "Choose how typing indicators appear in the channel list when someone is typing in a channel.",
+  "@lookAndFeelChannelTypingIndicatorsDescription": {
+    "description": "Subsection description for channel typing indicators."
+  },
+  "lookAndFeelChannelTypingIndicatorAvatarsName": "Typing Indicator + Avatars",
+  "@lookAndFeelChannelTypingIndicatorAvatarsName": {
+    "description": "Radio option label for showing the typing indicator with user avatars."
+  },
+  "lookAndFeelChannelTypingIndicatorAvatarsDescription": "Show typing indicator with user avatars in the channel list",
+  "@lookAndFeelChannelTypingIndicatorAvatarsDescription": {
+    "description": "Radio option description for typing indicator + avatars."
+  },
+  "lookAndFeelChannelTypingIndicatorOnlyName": "Typing Indicator Only",
+  "@lookAndFeelChannelTypingIndicatorOnlyName": {
+    "description": "Radio option label for typing indicator without avatars."
+  },
+  "lookAndFeelChannelTypingIndicatorOnlyDescription": "Show just the typing indicator without avatars",
+  "@lookAndFeelChannelTypingIndicatorOnlyDescription": {
+    "description": "Radio option description for typing indicator only."
+  },
+  "lookAndFeelChannelTypingIndicatorHiddenName": "Hidden",
+  "@lookAndFeelChannelTypingIndicatorHiddenName": {
+    "description": "Radio option label for hiding the typing indicator entirely."
+  },
+  "lookAndFeelChannelTypingIndicatorHiddenDescription": "Don't show typing indicators in the channel list",
+  "@lookAndFeelChannelTypingIndicatorHiddenDescription": {
+    "description": "Radio option description for hidden typing indicators."
+  },
+  "lookAndFeelShowSelectedChannelTypingIndicatorLabel": "Show typing on selected channel",
+  "@lookAndFeelShowSelectedChannelTypingIndicatorLabel": {
+    "description": "Toggle label — whether to also show the typing indicator on the currently viewed channel."
+  },
+  "lookAndFeelShowSelectedChannelTypingIndicatorDescription": "When disabled (default), typing indicators won't appear on the channel you're currently viewing.",
+  "@lookAndFeelShowSelectedChannelTypingIndicatorDescription": {
+    "description": "Toggle description for show-typing-on-selected-channel."
+  },
+  "lookAndFeelGuildSidebarTitle": "Guild sidebar",
+  "@lookAndFeelGuildSidebarTitle": {
+    "description": "Subsection title under Interface — guild sidebar config."
+  },
+  "lookAndFeelGuildSidebarDescription": "Configure how the guild sidebar displays direct messages.",
+  "@lookAndFeelGuildSidebarDescription": {
+    "description": "Subsection description for guild sidebar config."
+  },
+  "lookAndFeelCollapseDMsLabel": "Collapse DMs Into Folder",
+  "@lookAndFeelCollapseDMsLabel": {
+    "description": "Toggle label — collapse unread DMs into the Fluxer button folder."
+  },
+  "lookAndFeelCollapseDMsDescription": "When enabled, unread DMs in the guild sidebar are collapsed into a folder on the Fluxer button. Click the Fluxer button while on the DMs page to expand or collapse the folder.",
+  "@lookAndFeelCollapseDMsDescription": {
+    "description": "Toggle description for the DM folder collapse behavior."
+  },
+  "lookAndFeelChannelListSectionTitle": "Channel List",
+  "@lookAndFeelChannelListSectionTitle": {
+    "description": "Section title for channel list options."
+  },
+  "lookAndFeelChannelListSectionDescription": "Control unread indicator behavior for muted channels in channel lists.",
+  "@lookAndFeelChannelListSectionDescription": {
+    "description": "Section description for channel list options."
+  },
+  "lookAndFeelShowFadedUnreadOnMutedChannelsLabel": "Show unread indicator on muted channels",
+  "@lookAndFeelShowFadedUnreadOnMutedChannelsLabel": {
+    "description": "Toggle label — show a faded unread bar on muted channels."
+  },
+  "lookAndFeelShowFadedUnreadOnMutedChannelsDescription": "When enabled, muted channels show a faded unread indicator on the left side. Mentions still appear regardless of this setting.",
+  "@lookAndFeelShowFadedUnreadOnMutedChannelsDescription": {
+    "description": "Toggle description for faded unread on muted channels."
+  },
+  "lookAndFeelActiveNowSectionTitle": "Active Now",
+  "@lookAndFeelActiveNowSectionTitle": {
+    "description": "Section title for Active Now visibility."
+  },
+  "lookAndFeelActiveNowSectionDescription": "Control how Active Now surfaces across the app.",
+  "@lookAndFeelActiveNowSectionDescription": {
+    "description": "Section description for Active Now visibility."
+  },
+  "lookAndFeelShowActiveNowLabel": "Show Active Now on the home screen",
+  "@lookAndFeelShowActiveNowLabel": {
+    "description": "Toggle label — show Active Now on the home screen."
+  },
+  "lookAndFeelShowActiveNowDescription": "Show Active Now on the home screen to surface friends active in voice. You'll see a preview, the channel context, who's already there, and a quick way to join in.",
+  "@lookAndFeelShowActiveNowDescription": {
+    "description": "Toggle description for show-active-now."
+  },
+  "lookAndFeelFavoritesSectionTitle": "Favorites",
+  "@lookAndFeelFavoritesSectionTitle": {
+    "description": "Section title for favorites visibility."
+  },
+  "lookAndFeelFavoritesSectionDescription": "Control the visibility of favorites throughout the app.",
+  "@lookAndFeelFavoritesSectionDescription": {
+    "description": "Section description for favorites visibility."
+  },
+  "lookAndFeelEnableFavoritesLabel": "Enable Favorites",
+  "@lookAndFeelEnableFavoritesLabel": {
+    "description": "Toggle label — enable the Favorites feature."
+  },
+  "lookAndFeelEnableFavoritesDescription": "When enabled, you can favorite channels and they'll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.",
+  "@lookAndFeelEnableFavoritesDescription": {
+    "description": "Toggle description for the Enable Favorites switch."
   }
 }

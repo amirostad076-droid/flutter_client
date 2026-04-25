@@ -2376,4 +2376,149 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get connectionEnterDomain => 'Enter a domain.';
+
+  @override
+  String get lookAndFeelTitle => 'Look & Feel';
+
+  @override
+  String get lookAndFeelThemeSectionTitle => 'Theme';
+
+  @override
+  String get lookAndFeelThemeSectionDescription =>
+      'Choose between dark, coal, or light appearance.';
+
+  @override
+  String get lookAndFeelThemeDark => 'Dark Theme';
+
+  @override
+  String get lookAndFeelThemeCoal => 'Coal Theme';
+
+  @override
+  String get lookAndFeelThemeLight => 'Light Theme';
+
+  @override
+  String get lookAndFeelThemeSystem => 'System Theme';
+
+  @override
+  String get lookAndFeelSyncThemeAcrossDevicesLabel =>
+      'Sync theme across devices';
+
+  @override
+  String get lookAndFeelSyncThemeAcrossDevicesDescription =>
+      'When enabled, theme changes will sync to all your devices. When disabled, this device will use its own theme setting.';
+
+  @override
+  String get lookAndFeelSyncThemeAcrossDevicesSystemDescription =>
+      'System theme automatically disables sync to track your system\'s preference on this device.';
+
+  @override
+  String get lookAndFeelChatFontScalingTitle => 'Chat Font Scaling';
+
+  @override
+  String get lookAndFeelChatFontScalingDescription =>
+      'Adjust the font size in the chat area.';
+
+  @override
+  String get lookAndFeelInterfaceTitle => 'Interface';
+
+  @override
+  String get lookAndFeelInterfaceDescription =>
+      'Customize interface elements and behaviors.';
+
+  @override
+  String get lookAndFeelChannelTypingIndicatorsTitle =>
+      'Channel list typing indicators';
+
+  @override
+  String get lookAndFeelChannelTypingIndicatorsDescription =>
+      'Choose how typing indicators appear in the channel list when someone is typing in a channel.';
+
+  @override
+  String get lookAndFeelChannelTypingIndicatorAvatarsName =>
+      'Typing Indicator + Avatars';
+
+  @override
+  String get lookAndFeelChannelTypingIndicatorAvatarsDescription =>
+      'Show typing indicator with user avatars in the channel list';
+
+  @override
+  String get lookAndFeelChannelTypingIndicatorOnlyName =>
+      'Typing Indicator Only';
+
+  @override
+  String get lookAndFeelChannelTypingIndicatorOnlyDescription =>
+      'Show just the typing indicator without avatars';
+
+  @override
+  String get lookAndFeelChannelTypingIndicatorHiddenName => 'Hidden';
+
+  @override
+  String get lookAndFeelChannelTypingIndicatorHiddenDescription =>
+      'Don\'t show typing indicators in the channel list';
+
+  @override
+  String get lookAndFeelShowSelectedChannelTypingIndicatorLabel =>
+      'Show typing on selected channel';
+
+  @override
+  String get lookAndFeelShowSelectedChannelTypingIndicatorDescription =>
+      'When disabled (default), typing indicators won\'t appear on the channel you\'re currently viewing.';
+
+  @override
+  String get lookAndFeelGuildSidebarTitle => 'Guild sidebar';
+
+  @override
+  String get lookAndFeelGuildSidebarDescription =>
+      'Configure how the guild sidebar displays direct messages.';
+
+  @override
+  String get lookAndFeelCollapseDMsLabel => 'Collapse DMs Into Folder';
+
+  @override
+  String get lookAndFeelCollapseDMsDescription =>
+      'When enabled, unread DMs in the guild sidebar are collapsed into a folder on the Fluxer button. Click the Fluxer button while on the DMs page to expand or collapse the folder.';
+
+  @override
+  String get lookAndFeelChannelListSectionTitle => 'Channel List';
+
+  @override
+  String get lookAndFeelChannelListSectionDescription =>
+      'Control unread indicator behavior for muted channels in channel lists.';
+
+  @override
+  String get lookAndFeelShowFadedUnreadOnMutedChannelsLabel =>
+      'Show unread indicator on muted channels';
+
+  @override
+  String get lookAndFeelShowFadedUnreadOnMutedChannelsDescription =>
+      'When enabled, muted channels show a faded unread indicator on the left side. Mentions still appear regardless of this setting.';
+
+  @override
+  String get lookAndFeelActiveNowSectionTitle => 'Active Now';
+
+  @override
+  String get lookAndFeelActiveNowSectionDescription =>
+      'Control how Active Now surfaces across the app.';
+
+  @override
+  String get lookAndFeelShowActiveNowLabel =>
+      'Show Active Now on the home screen';
+
+  @override
+  String get lookAndFeelShowActiveNowDescription =>
+      'Show Active Now on the home screen to surface friends active in voice. You\'ll see a preview, the channel context, who\'s already there, and a quick way to join in.';
+
+  @override
+  String get lookAndFeelFavoritesSectionTitle => 'Favorites';
+
+  @override
+  String get lookAndFeelFavoritesSectionDescription =>
+      'Control the visibility of favorites throughout the app.';
+
+  @override
+  String get lookAndFeelEnableFavoritesLabel => 'Enable Favorites';
+
+  @override
+  String get lookAndFeelEnableFavoritesDescription =>
+      'When enabled, you can favorite channels and they\'ll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.';
 }

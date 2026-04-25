@@ -4083,6 +4083,246 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Enter a domain.'**
   String get connectionEnterDomain;
+
+  /// Title of the Look & Feel (Appearance) settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Look & Feel'**
+  String get lookAndFeelTitle;
+
+  /// Section title for theme selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get lookAndFeelThemeSectionTitle;
+
+  /// Section description for theme selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose between dark, coal, or light appearance.'**
+  String get lookAndFeelThemeSectionDescription;
+
+  /// Label on the dark theme swatch button.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Theme'**
+  String get lookAndFeelThemeDark;
+
+  /// Label on the coal (pitch-black) theme swatch button.
+  ///
+  /// In en, this message translates to:
+  /// **'Coal Theme'**
+  String get lookAndFeelThemeCoal;
+
+  /// Label on the light theme swatch button.
+  ///
+  /// In en, this message translates to:
+  /// **'Light Theme'**
+  String get lookAndFeelThemeLight;
+
+  /// Label on the system (OS-driven) theme swatch button.
+  ///
+  /// In en, this message translates to:
+  /// **'System Theme'**
+  String get lookAndFeelThemeSystem;
+
+  /// Toggle label — sync the selected theme to the user's other devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync theme across devices'**
+  String get lookAndFeelSyncThemeAcrossDevicesLabel;
+
+  /// Default description for the sync-theme-across-devices toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, theme changes will sync to all your devices. When disabled, this device will use its own theme setting.'**
+  String get lookAndFeelSyncThemeAcrossDevicesDescription;
+
+  /// Description shown under the sync toggle when System theme is active and the toggle is therefore disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'System theme automatically disables sync to track your system\'s preference on this device.'**
+  String get lookAndFeelSyncThemeAcrossDevicesSystemDescription;
+
+  /// Section title for the chat font size slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Font Scaling'**
+  String get lookAndFeelChatFontScalingTitle;
+
+  /// Section description for the chat font size slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust the font size in the chat area.'**
+  String get lookAndFeelChatFontScalingDescription;
+
+  /// Section title for interface customization.
+  ///
+  /// In en, this message translates to:
+  /// **'Interface'**
+  String get lookAndFeelInterfaceTitle;
+
+  /// Section description for interface customization.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize interface elements and behaviors.'**
+  String get lookAndFeelInterfaceDescription;
+
+  /// Subsection title under Interface.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel list typing indicators'**
+  String get lookAndFeelChannelTypingIndicatorsTitle;
+
+  /// Subsection description for channel typing indicators.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how typing indicators appear in the channel list when someone is typing in a channel.'**
+  String get lookAndFeelChannelTypingIndicatorsDescription;
+
+  /// Radio option label for showing the typing indicator with user avatars.
+  ///
+  /// In en, this message translates to:
+  /// **'Typing Indicator + Avatars'**
+  String get lookAndFeelChannelTypingIndicatorAvatarsName;
+
+  /// Radio option description for typing indicator + avatars.
+  ///
+  /// In en, this message translates to:
+  /// **'Show typing indicator with user avatars in the channel list'**
+  String get lookAndFeelChannelTypingIndicatorAvatarsDescription;
+
+  /// Radio option label for typing indicator without avatars.
+  ///
+  /// In en, this message translates to:
+  /// **'Typing Indicator Only'**
+  String get lookAndFeelChannelTypingIndicatorOnlyName;
+
+  /// Radio option description for typing indicator only.
+  ///
+  /// In en, this message translates to:
+  /// **'Show just the typing indicator without avatars'**
+  String get lookAndFeelChannelTypingIndicatorOnlyDescription;
+
+  /// Radio option label for hiding the typing indicator entirely.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get lookAndFeelChannelTypingIndicatorHiddenName;
+
+  /// Radio option description for hidden typing indicators.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show typing indicators in the channel list'**
+  String get lookAndFeelChannelTypingIndicatorHiddenDescription;
+
+  /// Toggle label — whether to also show the typing indicator on the currently viewed channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Show typing on selected channel'**
+  String get lookAndFeelShowSelectedChannelTypingIndicatorLabel;
+
+  /// Toggle description for show-typing-on-selected-channel.
+  ///
+  /// In en, this message translates to:
+  /// **'When disabled (default), typing indicators won\'t appear on the channel you\'re currently viewing.'**
+  String get lookAndFeelShowSelectedChannelTypingIndicatorDescription;
+
+  /// Subsection title under Interface — guild sidebar config.
+  ///
+  /// In en, this message translates to:
+  /// **'Guild sidebar'**
+  String get lookAndFeelGuildSidebarTitle;
+
+  /// Subsection description for guild sidebar config.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure how the guild sidebar displays direct messages.'**
+  String get lookAndFeelGuildSidebarDescription;
+
+  /// Toggle label — collapse unread DMs into the Fluxer button folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse DMs Into Folder'**
+  String get lookAndFeelCollapseDMsLabel;
+
+  /// Toggle description for the DM folder collapse behavior.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, unread DMs in the guild sidebar are collapsed into a folder on the Fluxer button. Click the Fluxer button while on the DMs page to expand or collapse the folder.'**
+  String get lookAndFeelCollapseDMsDescription;
+
+  /// Section title for channel list options.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel List'**
+  String get lookAndFeelChannelListSectionTitle;
+
+  /// Section description for channel list options.
+  ///
+  /// In en, this message translates to:
+  /// **'Control unread indicator behavior for muted channels in channel lists.'**
+  String get lookAndFeelChannelListSectionDescription;
+
+  /// Toggle label — show a faded unread bar on muted channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Show unread indicator on muted channels'**
+  String get lookAndFeelShowFadedUnreadOnMutedChannelsLabel;
+
+  /// Toggle description for faded unread on muted channels.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, muted channels show a faded unread indicator on the left side. Mentions still appear regardless of this setting.'**
+  String get lookAndFeelShowFadedUnreadOnMutedChannelsDescription;
+
+  /// Section title for Active Now visibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Now'**
+  String get lookAndFeelActiveNowSectionTitle;
+
+  /// Section description for Active Now visibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how Active Now surfaces across the app.'**
+  String get lookAndFeelActiveNowSectionDescription;
+
+  /// Toggle label — show Active Now on the home screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Active Now on the home screen'**
+  String get lookAndFeelShowActiveNowLabel;
+
+  /// Toggle description for show-active-now.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Active Now on the home screen to surface friends active in voice. You\'ll see a preview, the channel context, who\'s already there, and a quick way to join in.'**
+  String get lookAndFeelShowActiveNowDescription;
+
+  /// Section title for favorites visibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get lookAndFeelFavoritesSectionTitle;
+
+  /// Section description for favorites visibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Control the visibility of favorites throughout the app.'**
+  String get lookAndFeelFavoritesSectionDescription;
+
+  /// Toggle label — enable the Favorites feature.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Favorites'**
+  String get lookAndFeelEnableFavoritesLabel;
+
+  /// Toggle description for the Enable Favorites switch.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, you can favorite channels and they\'ll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.'**
+  String get lookAndFeelEnableFavoritesDescription;
 }
 
 class _FluxerLocalizationsDelegate
