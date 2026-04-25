@@ -270,10 +270,10 @@ ThemeData buildFluxerTheme({
     // Bottom sheets — web mobile modal: bg-secondary, 16px top radius
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: colorTheme.backgroundSecondary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
+      modalBackgroundColor: colorTheme.backgroundSecondary,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: layoutTheme.radiusXxl.topLeft,
         ),
       ),
     ),

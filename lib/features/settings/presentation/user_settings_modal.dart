@@ -55,10 +55,6 @@ class UserSettingsModal extends ConsumerStatefulWidget {
       isScrollControlled: true,
       useSafeArea: true,
       constraints: const BoxConstraints(maxWidth: 1400),
-      backgroundColor: context.colors.backgroundSecondary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
       builder: (_) => UserSettingsModal(openProfileSection: openProfileSection),
     );
   }

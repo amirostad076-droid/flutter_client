@@ -46,7 +46,6 @@ class FluxerBottomSheet {
     bool enableDrag = true,
     double? maxHeight,
   }) {
-    final colors = context.colors;
     final layout = context.layout;
 
     return showModalBottomSheet<T>(
@@ -54,11 +53,7 @@ class FluxerBottomSheet {
       useRootNavigator: useRootNavigator,
       isScrollControlled: true,
       enableDrag: enableDrag,
-      backgroundColor: colors.backgroundSecondary,
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: layout.radiusXxl.topLeft),
-      ),
       builder: (sheetContext) {
         void close() =>
             Navigator.of(sheetContext, rootNavigator: useRootNavigator).pop();
@@ -150,7 +145,6 @@ class FluxerBottomSheet {
     double? maxHeight,
     bool disableTopPadding = false,
   }) {
-    final colors = context.colors;
     final layout = context.layout;
 
     return showModalBottomSheet<T>(
@@ -158,11 +152,7 @@ class FluxerBottomSheet {
       useRootNavigator: useRootNavigator,
       isScrollControlled: true,
       enableDrag: false,
-      backgroundColor: colors.backgroundSecondary,
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: layout.radiusXxl.topLeft),
-      ),
       builder: (sheetContext) {
         void close() =>
             Navigator.of(sheetContext, rootNavigator: useRootNavigator).pop();
