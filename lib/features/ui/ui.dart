@@ -6,6 +6,7 @@ export 'package:fluxer_app/features/ui/action_menu/fluxer_action_menu.dart';
 export 'package:fluxer_app/features/ui/alt_text_tooltip/fluxer_alt_text_tooltip.dart';
 export 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 export 'package:fluxer_app/features/ui/avatar/fluxer_avatar_cluster.dart';
+export 'package:fluxer_app/features/ui/avatar/fluxer_avatar_stack.dart';
 export 'package:fluxer_app/features/ui/badge/fluxer_badge.dart';
 export 'package:fluxer_app/features/ui/badge/fluxer_bot_badge.dart';
 export 'package:fluxer_app/features/ui/badge/fluxer_guild_badge.dart';

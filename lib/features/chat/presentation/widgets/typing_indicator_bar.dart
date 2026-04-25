@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,13 +11,13 @@ import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.da
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/providers/blocked_users_view_model.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
+import 'package:fluxer_app/features/ui/avatar/fluxer_avatar_stack.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
 
 const double _kAvatarSize = 12;
-const double _kAvatarOverlap = 4;
-const int _kMaxDisplayedAvatars = 5;
+const int _kMaxVisibleAvatars = 5;
 const int _kMaxNamedUsers = 3;
 const Duration _kRefreshInterval = Duration(milliseconds: 500);
 const String _kNameSentinel = '\uFFFC';
@@ -101,9 +100,6 @@ class _TypingPill extends ConsumerWidget {
       }
     }
     final total = userIds.length;
-    final avatarUsers = resolvedUsers
-        .take(math.min(_kMaxDisplayedAvatars, total))
-        .toList();
     final guildId = ref.watch(activeGuildIdProvider);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -123,9 +119,20 @@ class _TypingPill extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           FluxerLoadingSpinner(color: colors.textSecondary),
-          if (avatarUsers.isNotEmpty) ...[
+          if (resolvedUsers.isNotEmpty) ...[
             const SizedBox(width: 8),
-            _AvatarStack(users: avatarUsers),
+            FluxerAvatarStack(
+              size: _kAvatarSize,
+              maxVisible: _kMaxVisibleAvatars,
+              avatars: [
+                for (final user in resolvedUsers)
+                  FluxerAvatar.fromUserRow(
+                    user,
+                    size: _kAvatarSize,
+                    showStatus: false,
+                  ),
+              ],
+            ),
           ],
           const SizedBox(width: 8),
           Flexible(
@@ -227,33 +234,4 @@ class _TypingPill extends ConsumerWidget {
   }
 
   String _displayName(db.User user) => user.globalName ?? user.username;
-}
-
-class _AvatarStack extends StatelessWidget {
-  const _AvatarStack({required this.users});
-
-  final List<db.User> users;
-
-  @override
-  Widget build(BuildContext context) {
-    const step = _kAvatarSize - _kAvatarOverlap;
-    final stackWidth = _kAvatarSize + step * (users.length - 1);
-    return SizedBox(
-      width: stackWidth,
-      height: _kAvatarSize,
-      child: Stack(
-        children: [
-          for (int i = 0; i < users.length; i++)
-            Positioned(
-              left: i * step,
-              child: FluxerAvatar.fromUserRow(
-                users[i],
-                size: _kAvatarSize,
-                showStatus: false,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 }
