@@ -3011,6 +3011,46 @@
   "@lookAndFeelShowSelectedChannelTypingIndicatorDescription": {
     "description": "Toggle description for show-typing-on-selected-channel."
   },
+  "lookAndFeelTypingIndicatorPreviewChannelName": "general",
+  "@lookAndFeelTypingIndicatorPreviewChannelName": {
+    "description": "Placeholder channel name shown in the typing-indicator preview card."
+  },
+  "lookAndFeelKeyboardHintsTitle": "Keyboard Hints",
+  "@lookAndFeelKeyboardHintsTitle": {
+    "description": "Section title for keyboard shortcut hint visibility settings."
+  },
+  "lookAndFeelKeyboardHintsDescription": "Control whether keyboard shortcut hints appear inside tooltips.",
+  "@lookAndFeelKeyboardHintsDescription": {
+    "description": "Section description for keyboard shortcut hint visibility settings."
+  },
+  "lookAndFeelHideKeyboardHintsLabel": "Hide keyboard hints in tooltips",
+  "@lookAndFeelHideKeyboardHintsLabel": {
+    "description": "Toggle label — hide keyboard shortcut badges in tooltips."
+  },
+  "lookAndFeelHideKeyboardHintsDescription": "When enabled, shortcut badges are hidden in tooltip popups.",
+  "@lookAndFeelHideKeyboardHintsDescription": {
+    "description": "Toggle description for the hide-keyboard-hints switch."
+  },
+  "lookAndFeelVoiceChannelJoinTitle": "Voice channel join behavior",
+  "@lookAndFeelVoiceChannelJoinTitle": {
+    "description": "Subsection title under Interface — voice channel join behavior."
+  },
+  "lookAndFeelVoiceChannelJoinDescription": "Control how you join voice channels in communities.",
+  "@lookAndFeelVoiceChannelJoinDescription": {
+    "description": "Subsection description for voice channel join behavior."
+  },
+  "lookAndFeelRequireDoubleClickJoinLabel": "Require double-click to join voice channels",
+  "@lookAndFeelRequireDoubleClickJoinLabel": {
+    "description": "Toggle label — require double-click to join voice channels."
+  },
+  "lookAndFeelRequireDoubleClickJoinDescription": "When enabled, you'll need to double-click on voice channels to join them. When disabled (default), single-clicking will join the channel immediately.",
+  "@lookAndFeelRequireDoubleClickJoinDescription": {
+    "description": "Toggle description for the require-double-click voice channel join switch."
+  },
+  "lookAndFeelChatFontPreviewSample": "The quick brown fox jumps over the lazy dog.",
+  "@lookAndFeelChatFontPreviewSample": {
+    "description": "Sample text rendered at the selected chat font size to preview scaling."
+  },
   "lookAndFeelGuildSidebarTitle": "Guild sidebar",
   "@lookAndFeelGuildSidebarTitle": {
     "description": "Subsection title under Interface — guild sidebar config."

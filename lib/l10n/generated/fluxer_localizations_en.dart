@@ -2465,6 +2465,43 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'When disabled (default), typing indicators won\'t appear on the channel you\'re currently viewing.';
 
   @override
+  String get lookAndFeelTypingIndicatorPreviewChannelName => 'general';
+
+  @override
+  String get lookAndFeelKeyboardHintsTitle => 'Keyboard Hints';
+
+  @override
+  String get lookAndFeelKeyboardHintsDescription =>
+      'Control whether keyboard shortcut hints appear inside tooltips.';
+
+  @override
+  String get lookAndFeelHideKeyboardHintsLabel =>
+      'Hide keyboard hints in tooltips';
+
+  @override
+  String get lookAndFeelHideKeyboardHintsDescription =>
+      'When enabled, shortcut badges are hidden in tooltip popups.';
+
+  @override
+  String get lookAndFeelVoiceChannelJoinTitle => 'Voice channel join behavior';
+
+  @override
+  String get lookAndFeelVoiceChannelJoinDescription =>
+      'Control how you join voice channels in communities.';
+
+  @override
+  String get lookAndFeelRequireDoubleClickJoinLabel =>
+      'Require double-click to join voice channels';
+
+  @override
+  String get lookAndFeelRequireDoubleClickJoinDescription =>
+      'When enabled, you\'ll need to double-click on voice channels to join them. When disabled (default), single-clicking will join the channel immediately.';
+
+  @override
+  String get lookAndFeelChatFontPreviewSample =>
+      'The quick brown fox jumps over the lazy dog.';
+
+  @override
   String get lookAndFeelGuildSidebarTitle => 'Guild sidebar';
 
   @override

@@ -4228,6 +4228,66 @@ abstract class FluxerLocalizations {
   /// **'When disabled (default), typing indicators won\'t appear on the channel you\'re currently viewing.'**
   String get lookAndFeelShowSelectedChannelTypingIndicatorDescription;
 
+  /// Placeholder channel name shown in the typing-indicator preview card.
+  ///
+  /// In en, this message translates to:
+  /// **'general'**
+  String get lookAndFeelTypingIndicatorPreviewChannelName;
+
+  /// Section title for keyboard shortcut hint visibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard Hints'**
+  String get lookAndFeelKeyboardHintsTitle;
+
+  /// Section description for keyboard shortcut hint visibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control whether keyboard shortcut hints appear inside tooltips.'**
+  String get lookAndFeelKeyboardHintsDescription;
+
+  /// Toggle label — hide keyboard shortcut badges in tooltips.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide keyboard hints in tooltips'**
+  String get lookAndFeelHideKeyboardHintsLabel;
+
+  /// Toggle description for the hide-keyboard-hints switch.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, shortcut badges are hidden in tooltip popups.'**
+  String get lookAndFeelHideKeyboardHintsDescription;
+
+  /// Subsection title under Interface — voice channel join behavior.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice channel join behavior'**
+  String get lookAndFeelVoiceChannelJoinTitle;
+
+  /// Subsection description for voice channel join behavior.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how you join voice channels in communities.'**
+  String get lookAndFeelVoiceChannelJoinDescription;
+
+  /// Toggle label — require double-click to join voice channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Require double-click to join voice channels'**
+  String get lookAndFeelRequireDoubleClickJoinLabel;
+
+  /// Toggle description for the require-double-click voice channel join switch.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, you\'ll need to double-click on voice channels to join them. When disabled (default), single-clicking will join the channel immediately.'**
+  String get lookAndFeelRequireDoubleClickJoinDescription;
+
+  /// Sample text rendered at the selected chat font size to preview scaling.
+  ///
+  /// In en, this message translates to:
+  /// **'The quick brown fox jumps over the lazy dog.'**
+  String get lookAndFeelChatFontPreviewSample;
+
   /// Subsection title under Interface — guild sidebar config.
   ///
   /// In en, this message translates to:

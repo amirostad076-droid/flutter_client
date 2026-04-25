@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/theme_swatch_button.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/typing_indicator_preview.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -48,76 +49,65 @@ class UserLookAndFeel extends ConsumerWidget {
             description: l10n.lookAndFeelThemeSectionDescription,
             isFirst: true,
             children: [
-              Row(
+              Wrap(
                 spacing: layout.s3,
+                runSpacing: layout.s3,
                 children: [
-                  Expanded(
-                    child: ThemeSwatchButton(
-                      label: l10n.lookAndFeelThemeDark,
-                      backgroundColor: _darkSwatch,
-                      isSelected: themePref.mode == FluxerThemeMode.dark,
-                      onTap: () => unawaited(
-                        ref
-                            .read(themePreferenceProvider.notifier)
-                            .setTheme(FluxerThemeMode.dark),
-                      ),
+                  ThemeSwatchButton(
+                    label: l10n.lookAndFeelThemeDark,
+                    backgroundColor: _darkSwatch,
+                    isSelected: themePref.mode == FluxerThemeMode.dark,
+                    onTap: () => unawaited(
+                      ref
+                          .read(themePreferenceProvider.notifier)
+                          .setTheme(FluxerThemeMode.dark),
                     ),
                   ),
-                  Expanded(
-                    child: ThemeSwatchButton(
-                      label: l10n.lookAndFeelThemeCoal,
-                      backgroundColor: _coalSwatch,
-                      isSelected: themePref.mode == FluxerThemeMode.coal,
-                      onTap: () => unawaited(
-                        ref
-                            .read(themePreferenceProvider.notifier)
-                            .setTheme(FluxerThemeMode.coal),
-                      ),
+                  ThemeSwatchButton(
+                    label: l10n.lookAndFeelThemeCoal,
+                    backgroundColor: _coalSwatch,
+                    isSelected: themePref.mode == FluxerThemeMode.coal,
+                    onTap: () => unawaited(
+                      ref
+                          .read(themePreferenceProvider.notifier)
+                          .setTheme(FluxerThemeMode.coal),
                     ),
                   ),
-                  Expanded(
-                    child: ThemeSwatchButton(
-                      label: l10n.lookAndFeelThemeLight,
-                      backgroundColor: _lightSwatch,
-                      isSelected: themePref.mode == FluxerThemeMode.light,
-                      onTap: () => unawaited(
-                        ref
-                            .read(themePreferenceProvider.notifier)
-                            .setTheme(FluxerThemeMode.light),
-                      ),
+                  ThemeSwatchButton(
+                    label: l10n.lookAndFeelThemeLight,
+                    backgroundColor: _lightSwatch,
+                    isSelected: themePref.mode == FluxerThemeMode.light,
+                    onTap: () => unawaited(
+                      ref
+                          .read(themePreferenceProvider.notifier)
+                          .setTheme(FluxerThemeMode.light),
                     ),
                   ),
-                  Expanded(
-                    child: ThemeSwatchButton(
-                      label: l10n.lookAndFeelThemeSystem,
-                      backgroundColor: systemSwatchColor,
-                      isSelected: isSystem,
-                      centerIcon: PhosphorIconsFill.arrowsCounterClockwise,
-                      onTap: () => unawaited(
-                        ref
-                            .read(themePreferenceProvider.notifier)
-                            .setTheme(FluxerThemeMode.system),
-                      ),
+                  ThemeSwatchButton(
+                    label: l10n.lookAndFeelThemeSystem,
+                    backgroundColor: systemSwatchColor,
+                    isSelected: isSystem,
+                    centerIcon: PhosphorIconsFill.arrowsCounterClockwise,
+                    onTap: () => unawaited(
+                      ref
+                          .read(themePreferenceProvider.notifier)
+                          .setTheme(FluxerThemeMode.system),
                     ),
                   ),
                 ],
               ),
-              FluxerSwitchGroup(
-                children: [
-                  FluxerSwitchGroupItem(
-                    label: l10n.lookAndFeelSyncThemeAcrossDevicesLabel,
-                    description: isSystem
-                        ? l10n.lookAndFeelSyncThemeAcrossDevicesSystemDescription
-                        : l10n.lookAndFeelSyncThemeAcrossDevicesDescription,
-                    value: themePref.syncAcrossDevices && !isSystem,
-                    enabled: !isSystem,
-                    onChanged: (value) => unawaited(
-                      ref
-                          .read(themePreferenceProvider.notifier)
-                          .setSyncAcrossDevices(value: value),
-                    ),
-                  ),
-                ],
+              FluxerSwitchGroupItem(
+                label: l10n.lookAndFeelSyncThemeAcrossDevicesLabel,
+                description: isSystem
+                    ? l10n.lookAndFeelSyncThemeAcrossDevicesSystemDescription
+                    : l10n.lookAndFeelSyncThemeAcrossDevicesDescription,
+                value: themePref.syncAcrossDevices && !isSystem,
+                enabled: !isSystem,
+                onChanged: (value) => unawaited(
+                  ref
+                      .read(themePreferenceProvider.notifier)
+                      .setSyncAcrossDevices(value: value),
+                ),
               ),
             ],
           ),
@@ -125,6 +115,10 @@ class UserLookAndFeel extends ConsumerWidget {
             title: l10n.lookAndFeelChatFontScalingTitle,
             description: l10n.lookAndFeelChatFontScalingDescription,
             children: [
+              _ChatFontPreview(
+                sample: l10n.lookAndFeelChatFontPreviewSample,
+                fontSize: themePref.chatFontSize.toDouble(),
+              ),
               FluxerSlider(
                 defaultValue: themePref.chatFontSize.toDouble(),
                 factoryDefaultValue: 16,
@@ -132,7 +126,18 @@ class UserLookAndFeel extends ConsumerWidget {
                 maxValue: 24,
                 markers: _chatFontSizeMarkers,
                 stickToMarkers: true,
-                onMarkerRender: (value) => Text('${value.toInt()}px'),
+                onMarkerRender: (value) => FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '${value.toInt()}px',
+                    style: context.textStyles.smallText.copyWith(
+                      color: value == 16
+                          ? context.colors.textPositive
+                          : context.colors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
                 onValueRender: (value) => Text('${value.toInt()}px'),
                 onValueChange: (value) => unawaited(
                   ref
@@ -150,6 +155,13 @@ class UserLookAndFeel extends ConsumerWidget {
                 title: l10n.lookAndFeelChannelTypingIndicatorsTitle,
                 description: l10n.lookAndFeelChannelTypingIndicatorsDescription,
                 children: [
+                  Center(
+                    child: TypingIndicatorPreview(
+                      mode: appearance.channelTypingIndicatorMode,
+                      channelName:
+                          l10n.lookAndFeelTypingIndicatorPreviewChannelName,
+                    ),
+                  ),
                   FluxerRadioGroup<ChannelTypingIndicatorMode>(
                     value: appearance.channelTypingIndicatorMode,
                     onChanged: (value) => unawaited(
@@ -178,23 +190,49 @@ class UserLookAndFeel extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  FluxerSwitchGroup(
-                    children: [
-                      FluxerSwitchGroupItem(
-                        label: l10n
-                            .lookAndFeelShowSelectedChannelTypingIndicatorLabel,
-                        description: l10n
-                            .lookAndFeelShowSelectedChannelTypingIndicatorDescription,
-                        value: appearance.showSelectedChannelTypingIndicator,
-                        onChanged: (value) => unawaited(
-                          ref
-                              .read(appearancePreferencesProvider.notifier)
-                              .setShowSelectedChannelTypingIndicator(
-                                value: value,
-                              ),
-                        ),
-                      ),
-                    ],
+                  FluxerSwitchGroupItem(
+                    label: l10n
+                        .lookAndFeelShowSelectedChannelTypingIndicatorLabel,
+                    description: l10n
+                        .lookAndFeelShowSelectedChannelTypingIndicatorDescription,
+                    value: appearance.showSelectedChannelTypingIndicator,
+                    onChanged: (value) => unawaited(
+                      ref
+                          .read(appearancePreferencesProvider.notifier)
+                          .setShowSelectedChannelTypingIndicator(value: value),
+                    ),
+                  ),
+                ],
+              ),
+              FluxerSettingsSubsection(
+                title: l10n.lookAndFeelKeyboardHintsTitle,
+                description: l10n.lookAndFeelKeyboardHintsDescription,
+                children: [
+                  FluxerSwitchGroupItem(
+                    label: l10n.lookAndFeelHideKeyboardHintsLabel,
+                    description: l10n.lookAndFeelHideKeyboardHintsDescription,
+                    value: appearance.hideKeyboardHints,
+                    onChanged: (value) => unawaited(
+                      ref
+                          .read(appearancePreferencesProvider.notifier)
+                          .setHideKeyboardHints(value: value),
+                    ),
+                  ),
+                ],
+              ),
+              FluxerSettingsSubsection(
+                title: l10n.lookAndFeelVoiceChannelJoinTitle,
+                description: l10n.lookAndFeelVoiceChannelJoinDescription,
+                children: [
+                  // TODO(M0n7y5): wire to UserPreferences + sync once the
+                  // Dart SDK exposes SyncedAccessibilityPreferences. Toggle is
+                  // presentational only for now.
+                  FluxerSwitchGroupItem(
+                    label: l10n.lookAndFeelRequireDoubleClickJoinLabel,
+                    description:
+                        l10n.lookAndFeelRequireDoubleClickJoinDescription,
+                    value: false,
+                    onChanged: (_) {},
                   ),
                 ],
               ),
@@ -202,19 +240,15 @@ class UserLookAndFeel extends ConsumerWidget {
                 title: l10n.lookAndFeelGuildSidebarTitle,
                 description: l10n.lookAndFeelGuildSidebarDescription,
                 children: [
-                  FluxerSwitchGroup(
-                    children: [
-                      FluxerSwitchGroupItem(
-                        label: l10n.lookAndFeelCollapseDMsLabel,
-                        description: l10n.lookAndFeelCollapseDMsDescription,
-                        value: appearance.collapseDMs,
-                        onChanged: (value) => unawaited(
-                          ref
-                              .read(appearancePreferencesProvider.notifier)
-                              .setCollapseDMs(value: value),
-                        ),
-                      ),
-                    ],
+                  FluxerSwitchGroupItem(
+                    label: l10n.lookAndFeelCollapseDMsLabel,
+                    description: l10n.lookAndFeelCollapseDMsDescription,
+                    value: appearance.collapseDMs,
+                    onChanged: (value) => unawaited(
+                      ref
+                          .read(appearancePreferencesProvider.notifier)
+                          .setCollapseDMs(value: value),
+                    ),
                   ),
                 ],
               ),
@@ -224,21 +258,16 @@ class UserLookAndFeel extends ConsumerWidget {
             title: l10n.lookAndFeelChannelListSectionTitle,
             description: l10n.lookAndFeelChannelListSectionDescription,
             children: [
-              FluxerSwitchGroup(
-                children: [
-                  FluxerSwitchGroupItem(
-                    label: l10n
-                        .lookAndFeelShowFadedUnreadOnMutedChannelsLabel,
-                    description: l10n
-                        .lookAndFeelShowFadedUnreadOnMutedChannelsDescription,
-                    value: appearance.showFadedUnreadOnMutedChannels,
-                    onChanged: (value) => unawaited(
-                      ref
-                          .read(appearancePreferencesProvider.notifier)
-                          .setShowFadedUnreadOnMutedChannels(value: value),
-                    ),
-                  ),
-                ],
+              FluxerSwitchGroupItem(
+                label: l10n.lookAndFeelShowFadedUnreadOnMutedChannelsLabel,
+                description:
+                    l10n.lookAndFeelShowFadedUnreadOnMutedChannelsDescription,
+                value: appearance.showFadedUnreadOnMutedChannels,
+                onChanged: (value) => unawaited(
+                  ref
+                      .read(appearancePreferencesProvider.notifier)
+                      .setShowFadedUnreadOnMutedChannels(value: value),
+                ),
               ),
             ],
           ),
@@ -246,19 +275,15 @@ class UserLookAndFeel extends ConsumerWidget {
             title: l10n.lookAndFeelActiveNowSectionTitle,
             description: l10n.lookAndFeelActiveNowSectionDescription,
             children: [
-              FluxerSwitchGroup(
-                children: [
-                  FluxerSwitchGroupItem(
-                    label: l10n.lookAndFeelShowActiveNowLabel,
-                    description: l10n.lookAndFeelShowActiveNowDescription,
-                    value: appearance.showActiveNow,
-                    onChanged: (value) => unawaited(
-                      ref
-                          .read(appearancePreferencesProvider.notifier)
-                          .setShowActiveNow(value: value),
-                    ),
-                  ),
-                ],
+              FluxerSwitchGroupItem(
+                label: l10n.lookAndFeelShowActiveNowLabel,
+                description: l10n.lookAndFeelShowActiveNowDescription,
+                value: appearance.showActiveNow,
+                onChanged: (value) => unawaited(
+                  ref
+                      .read(appearancePreferencesProvider.notifier)
+                      .setShowActiveNow(value: value),
+                ),
               ),
             ],
           ),
@@ -266,23 +291,49 @@ class UserLookAndFeel extends ConsumerWidget {
             title: l10n.lookAndFeelFavoritesSectionTitle,
             description: l10n.lookAndFeelFavoritesSectionDescription,
             children: [
-              FluxerSwitchGroup(
-                children: [
-                  FluxerSwitchGroupItem(
-                    label: l10n.lookAndFeelEnableFavoritesLabel,
-                    description: l10n.lookAndFeelEnableFavoritesDescription,
-                    value: appearance.showFavorites,
-                    onChanged: (value) => unawaited(
-                      ref
-                          .read(appearancePreferencesProvider.notifier)
-                          .setShowFavorites(value: value),
-                    ),
-                  ),
-                ],
+              FluxerSwitchGroupItem(
+                label: l10n.lookAndFeelEnableFavoritesLabel,
+                description: l10n.lookAndFeelEnableFavoritesDescription,
+                value: appearance.showFavorites,
+                onChanged: (value) => unawaited(
+                  ref
+                      .read(appearancePreferencesProvider.notifier)
+                      .setShowFavorites(value: value),
+                ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ChatFontPreview extends StatelessWidget {
+  const _ChatFontPreview({required this.sample, required this.fontSize});
+
+  final String sample;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final layout = context.layout;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(layout.s3),
+      decoration: BoxDecoration(
+        color: colors.backgroundSecondaryAlt,
+        borderRadius: layout.radiusMd,
+      ),
+      child: Text(
+        sample,
+        style: TextStyle(
+          fontSize: fontSize,
+          height: 1.375,
+          color: colors.textPrimary,
+        ),
       ),
     );
   }
