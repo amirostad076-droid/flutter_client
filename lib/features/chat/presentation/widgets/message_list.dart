@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_item.dart';
@@ -220,6 +221,9 @@ class _MessageListState extends ConsumerState<MessageList> {
     final currentUserId = ref.watch(currentUserIdProvider);
     final state = ref.watch(chatViewModelProvider);
     final messages = state.messages;
+    final chatFontSize = ref.watch(
+      themePreferenceProvider.select((s) => s.chatFontSize),
+    );
 
     if (messages.isEmpty) {
       _itemKeys.clear();
@@ -234,14 +238,13 @@ class _MessageListState extends ConsumerState<MessageList> {
       }
     }
 
+    final Widget body;
     if (state.isLoading) {
-      return Center(
+      body = Center(
         child: FluxerLoadingSpinner(color: context.colors.brandPrimary),
       );
-    }
-
-    if (messages.isEmpty) {
-      return Center(
+    } else if (messages.isEmpty) {
+      body = Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -269,84 +272,99 @@ class _MessageListState extends ConsumerState<MessageList> {
           ],
         ),
       );
-    }
+    } else {
+      // With reverse: true, index 0 is at the bottom
+      // (newest). Messages in state are oldest-first,
+      // so we read them from the end.
+      final itemCount = messages.length + (state.isLoadingMore ? 1 : 0);
 
-    // With reverse: true, index 0 is at the bottom
-    // (newest). Messages in state are oldest-first,
-    // so we read them from the end.
-    final itemCount = messages.length + (state.isLoadingMore ? 1 : 0);
+      body = ListView.builder(
+        controller: _scrollController,
+        reverse: true,
+        padding: const EdgeInsets.only(top: 8, bottom: 33),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          // Loading indicator at the very top
+          if (index >= messages.length) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Center(
+                child: FluxerLoadingSpinner(
+                  color: context.colors.brandPrimary,
+                ),
+              ),
+            );
+          }
 
-    return ListView.builder(
-      controller: _scrollController,
-      reverse: true,
-      padding: const EdgeInsets.only(top: 8, bottom: 33),
-      itemCount: itemCount,
-      itemBuilder: (context, index) {
-        // Loading indicator at the very top
-        if (index >= messages.length) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Center(
-              child: FluxerLoadingSpinner(color: context.colors.brandPrimary),
-            ),
-          );
-        }
+          final msgIndex = messages.length - 1 - index;
+          final msg = messages[msgIndex];
+          final prevMsg = msgIndex > 0 ? messages[msgIndex - 1] : null;
 
-        final msgIndex = messages.length - 1 - index;
-        final msg = messages[msgIndex];
-        final prevMsg = msgIndex > 0 ? messages[msgIndex - 1] : null;
+          final isNewDay =
+              prevMsg == null ||
+              !_isSameDay(msg.timestamp, prevMsg.timestamp);
 
-        final isNewDay =
-            prevMsg == null || !_isSameDay(msg.timestamp, prevMsg.timestamp);
+          if (msg.isSystemMessage) {
+            final systemWidget = SystemMessage(
+              key: ValueKey(msg.id),
+              message: msg,
+            );
 
-        if (msg.isSystemMessage) {
-          final systemWidget = SystemMessage(
-            key: ValueKey(msg.id),
+            if (isNewDay) {
+              return Column(
+                children: [
+                  _buildDateSeparator(context, msg.timestamp),
+                  systemWidget,
+                ],
+              );
+            }
+
+            return systemWidget;
+          }
+
+          final isGrouped = !isNewDay && _shouldGroup(msg, prevMsg);
+
+          final itemKey = _itemKeys.putIfAbsent(msg.id, GlobalKey.new);
+          final bubble = MessageItem(
+            key: itemKey,
             message: msg,
+            isGrouped: isGrouped,
+            currentUserId: currentUserId,
+            onReply: () =>
+                ref.read(chatViewModelProvider.notifier).startReply(msg),
+            onForward: () =>
+                ref.read(chatViewModelProvider.notifier).startForward(msg),
+            onReaction: (emoji, {String? emojiId, bool animated = false}) =>
+                ref
+                    .read(chatViewModelProvider.notifier)
+                    .toggleReaction(
+                      msg.id,
+                      emoji,
+                      emojiId: emojiId,
+                      animated: animated,
+                    ),
           );
 
           if (isNewDay) {
             return Column(
-              children: [
-                _buildDateSeparator(context, msg.timestamp),
-                systemWidget,
-              ],
+              children: [_buildDateSeparator(context, msg.timestamp), bubble],
             );
           }
 
-          return systemWidget;
-        }
+          return bubble;
+        },
+      );
+    }
 
-        final isGrouped = !isNewDay && _shouldGroup(msg, prevMsg);
+    final mediaQuery = MediaQuery.of(context);
+    final scaleRatio = chatFontSize / 16.0;
+    final combinedScaler = TextScaler.linear(
+      mediaQuery.textScaler.scale(1) * scaleRatio,
+    );
 
-        final itemKey = _itemKeys.putIfAbsent(msg.id, GlobalKey.new);
-        final bubble = MessageItem(
-          key: itemKey,
-          message: msg,
-          isGrouped: isGrouped,
-          currentUserId: currentUserId,
-          onReply: () =>
-              ref.read(chatViewModelProvider.notifier).startReply(msg),
-          onForward: () =>
-              ref.read(chatViewModelProvider.notifier).startForward(msg),
-          onReaction: (emoji, {String? emojiId, bool animated = false}) => ref
-              .read(chatViewModelProvider.notifier)
-              .toggleReaction(
-                msg.id,
-                emoji,
-                emojiId: emojiId,
-                animated: animated,
-              ),
-        );
-
-        if (isNewDay) {
-          return Column(
-            children: [_buildDateSeparator(context, msg.timestamp), bubble],
-          );
-        }
-
-        return bubble;
-      },
+    return MediaQuery(
+      data: mediaQuery.copyWith(textScaler: combinedScaler),
+      child: body,
     );
   }
 
