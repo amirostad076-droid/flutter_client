@@ -18,68 +18,72 @@ class ThemeSwatchButton extends StatelessWidget {
   final VoidCallback onTap;
   final IconData? centerIcon;
 
+  static const double _size = 56;
+  static const double _checkmarkSize = 20;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final onLightBackground = _estimateLuminance(backgroundColor) > 0.5;
     final contrastColor = onLightBackground ? Colors.black : Colors.white;
+    final borderColor = isSelected
+        ? colors.brandPrimary
+        : onLightBackground
+        ? colors.borderColor
+        : colors.textPrimary;
 
     return Semantics(
       label: label,
       selected: isSelected,
       button: true,
-      child: AspectRatio(
-        aspectRatio: 1.2,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
-            child: Stack(
-              children: [
-                Container(
+      child: SizedBox(
+        width: _size,
+        height: _size,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: Material(
+                color: backgroundColor,
+                shape: CircleBorder(
+                  side: BorderSide(color: borderColor, width: 2),
+                ),
+                child: InkWell(
+                  onTap: onTap,
+                  customBorder: const CircleBorder(),
+                  child: centerIcon == null
+                      ? const SizedBox.expand()
+                      : Center(
+                          child: PhosphorIcon(
+                            centerIcon!,
+                            size: 24,
+                            color: contrastColor,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+            if (isSelected)
+              Positioned(
+                top: -4,
+                right: -4,
+                child: Container(
+                  width: _checkmarkSize,
+                  height: _checkmarkSize,
                   decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected
-                          ? colors.brandPrimary
-                          : colors.borderColor,
-                      width: isSelected ? 2 : 1,
+                    color: colors.brandPrimary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: PhosphorIcon(
+                      PhosphorIconsBold.check,
+                      size: 12,
+                      color: colors.textOnBrandPrimary,
                     ),
                   ),
                 ),
-                if (centerIcon != null)
-                  Center(
-                    child: PhosphorIcon(
-                      centerIcon!,
-                      size: 28,
-                      color: contrastColor,
-                    ),
-                  ),
-                if (isSelected)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: colors.brandPrimary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: PhosphorIcon(
-                          PhosphorIconsBold.check,
-                          size: 12,
-                          color: colors.textOnBrandPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
+              ),
+          ],
         ),
       ),
     );
