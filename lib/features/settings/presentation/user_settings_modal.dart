@@ -22,6 +22,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_authorize
 import 'package:fluxer_app/features/settings/presentation/widgets/user_blocked_users.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_connections.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_linked_devices.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_look_and_feel.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_messages_media.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_privacy_dashboard.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.dart';
@@ -620,11 +621,7 @@ class _MobileSettingsContentBody extends ConsumerWidget {
           child: UserProfile(scrollController: scrollController),
         );
       case 'Look & Feel':
-        return UserAppearance(
-          isCompact: state.messageDisplayCompact,
-          onToggleCompact: () =>
-              ref.read(userSettingsViewModelProvider.notifier).toggleCompact(),
-        );
+        return UserLookAndFeel(scrollController: scrollController);
       case 'Security & Login':
         return UserSecurityLogin(scrollController: scrollController);
       case 'Privacy Dashboard':
