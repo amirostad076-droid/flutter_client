@@ -6,7 +6,6 @@ import 'package:fluxer_app/core/api/fluxer_client_properties.dart';
 import 'package:fluxer_app/core/api/retry_interceptor.dart';
 import 'package:fluxer_app/core/api/sudo_dialog.dart';
 import 'package:fluxer_app/core/api/sudo_interceptor.dart';
-import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_dart/export.dart';
@@ -17,8 +16,7 @@ part 'fluxer_client_provider.g.dart';
 
 // ignore: do_not_use_environment -- compile-time override for the API base URL
 const _kFluxerBaseUrl = String.fromEnvironment('FLUXER_BASE_URL');
-const _kDefaultStableBaseUrl = 'https://api.fluxer.app/v1';
-const _kDefaultCanaryBaseUrl = 'https://api.canary.fluxer.app/v1';
+const _kDefaultBaseUrl = 'https://api.fluxer.app/v1';
 
 @Riverpod(keepAlive: true)
 String fluxerBaseUrl(Ref ref) {
@@ -26,10 +24,8 @@ String fluxerBaseUrl(Ref ref) {
   if (configuredBaseUrl.isNotEmpty) {
     return configuredBaseUrl;
   }
-  if (AppBuildConfig.isCanary) {
-    return _kDefaultCanaryBaseUrl;
-  }
-  return _kDefaultStableBaseUrl;
+
+  return _kDefaultBaseUrl;
 }
 
 @Riverpod(keepAlive: true)
