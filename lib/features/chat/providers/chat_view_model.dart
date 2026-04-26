@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
@@ -267,12 +269,22 @@ class ChatViewModel extends _$ChatViewModel {
     final guildId = channelRow?.guildId ?? '';
     int? guildBits;
     if (guildId.isNotEmpty) {
+      final int effectiveBits =
+          await computeEffectiveGuildChannelPermissionBits(
+        ref: ref,
+        channelId: channelId,
+      );
+      final bool canSendMessages =
+          hasPermission(effectiveBits, Permission.sendMessages) ||
+          (channelRow != null &&
+              channelTypeFromInt(channelRow.type) == ChannelType.voice &&
+              hasPermission(effectiveBits, Permission.useTextInVoice));
+      if (!canSendMessages) {
+        return;
+      }
       guildBits = await ref
           .read(guildPermissionsProvider.notifier)
           .getPermissions(guildId);
-      if (!hasPermission(guildBits, Permission.sendMessages)) {
-        return;
-      }
     }
     final rateLimit = channelRow?.rateLimitPerUser ?? 0;
     if (rateLimit > 0) {

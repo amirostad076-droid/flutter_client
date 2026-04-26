@@ -1,14 +1,17 @@
+import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
-import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'channel_message_permissions_provider.g.dart';
 
-/// Effective flags for the message composer. Uses merged guild role bits only;
-/// channel permission overwrites from the API are not stored locally yet.
+/// Effective flags for the message composer from guild base bits, roles, and
+/// channel/category permission overwrites stored on local channel rows.
 class ChannelMessagePermissions {
   final bool canSendMessages;
   final bool canAttachFiles;
@@ -42,19 +45,28 @@ Future<ChannelMessagePermissions> channelMessagePermissions(
     return ChannelMessagePermissions.none;
   }
   final conversations = ref.watch(dmViewModelProvider).conversations;
+  if (findDmById(conversations, channelId) != null) {
+    return ChannelMessagePermissions.all;
+  }
   final channel = await ref.watch(channelByIdProvider(channelId).future);
   if (channel != null && channel.guildId.isNotEmpty) {
-    final bits = await ref
-        .read(guildPermissionsProvider.notifier)
-        .getPermissions(channel.guildId);
+    final String guildId = channel.guildId;
+    ref
+      ..watch(guildListViewModelProvider)
+      ..watch(guildMemberRowCountProvider(guildId));
+    final int bits = await computeEffectiveGuildChannelPermissionBits(
+      ref: ref,
+      channelId: channelId,
+    );
+    final bool canSendMessages =
+        hasPermission(bits, Permission.sendMessages) ||
+        (channel.type == ChannelType.voice &&
+            hasPermission(bits, Permission.useTextInVoice));
     return ChannelMessagePermissions(
-      canSendMessages: hasPermission(bits, Permission.sendMessages),
+      canSendMessages: canSendMessages,
       canAttachFiles: hasPermission(bits, Permission.attachFiles),
       canEmbedLinks: hasPermission(bits, Permission.embedLinks),
     );
   }
-  if (findDmById(conversations, channelId) != null) {
-    return ChannelMessagePermissions.all;
-  }
-  return ChannelMessagePermissions.all;
+  return ChannelMessagePermissions.none;
 }

@@ -21,17 +21,21 @@ class GuildPermissions extends _$GuildPermissions {
       return state[guildId]!;
     }
 
-    final permissions = await _computePermissions(guildId);
-    final newState = Map<String, int>.from(state);
-    newState[guildId] = permissions;
-    state = newState;
-    return permissions;
+    final ({int value, bool shouldCache}) outcome =
+        await _computePermissions(guildId);
+    if (outcome.shouldCache && outcome.value != 0) {
+      final Map<String, int> newState = Map<String, int>.from(state);
+      newState[guildId] = outcome.value;
+      state = newState;
+    }
+    return outcome.value;
   }
 
   Future<void> refreshPermissions(String guildId) async {
-    final permissions = await _computePermissions(guildId);
-    final newState = Map<String, int>.from(state);
-    newState[guildId] = permissions;
+    final ({int value, bool shouldCache}) outcome =
+        await _computePermissions(guildId);
+    final Map<String, int> newState = Map<String, int>.from(state);
+    newState[guildId] = outcome.value;
     state = newState;
   }
 
@@ -50,18 +54,22 @@ class GuildPermissions extends _$GuildPermissions {
     state = {};
   }
 
-  Future<int> _computePermissions(String guildId) async {
+  /// `shouldCache` is false when guild or membership is not loaded yet so we
+  /// do not persist a misleading 0 from lazy permission resolution.
+  Future<({int value, bool shouldCache})> _computePermissions(
+    String guildId,
+  ) async {
     final db = ref.read(fluxerDatabaseProvider);
-    final currentUserId = ref.read(userSettingsViewModelProvider).userId;
+    final String currentUserId = ref.read(userSettingsViewModelProvider).userId;
 
     final guilds = ref.read(guildListViewModelProvider).guilds;
     final Guild? guild = guilds.where((g) => g.id == guildId).firstOrNull;
     if (guild == null) {
-      return 0;
+      return (value: 0, shouldCache: false);
     }
 
     if (currentUserId == guild.ownerId) {
-      return allPermissions;
+      return (value: allPermissions, shouldCache: true);
     }
 
     final allRoles = await db.roleDao.getRoles(guildId);
@@ -71,7 +79,7 @@ class GuildPermissions extends _$GuildPermissions {
     );
 
     if (memberRow == null) {
-      return 0;
+      return (value: 0, shouldCache: false);
     }
 
     final memberRoleIds = memberRow.roleIdsJson.isNotEmpty
@@ -79,7 +87,7 @@ class GuildPermissions extends _$GuildPermissions {
         : <String>[];
 
     final everyoneRole = allRoles.where((r) => r.id == guildId).firstOrNull;
-    final everyonePermissions =
+    final int everyonePermissions =
         int.tryParse(everyoneRole?.permissions ?? '0') ?? 0;
 
     final memberRoles = allRoles
@@ -87,11 +95,12 @@ class GuildPermissions extends _$GuildPermissions {
         .map(MemberRole.fromRow)
         .toList();
 
-    return resolveGuildPermissions(
+    final int value = resolveGuildPermissions(
       guildOwnerId: guild.ownerId ?? '',
       currentUserId: currentUserId,
       everyonePermissions: everyonePermissions,
       memberRoles: memberRoles,
     );
+    return (value: value, shouldCache: true);
   }
 }

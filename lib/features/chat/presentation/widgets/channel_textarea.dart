@@ -77,8 +77,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final channelId = ref.read(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final permsAsync = ref.read(channelMessagePermissionsProvider(channelId));
-    final perms = permsAsync.value ?? ChannelMessagePermissions.all;
+    final AsyncValue<ChannelMessagePermissions> permsAsync = ref.read(
+      channelMessagePermissionsProvider(channelId),
+    );
+    final ChannelMessagePermissions perms = switch (permsAsync) {
+      AsyncData<ChannelMessagePermissions>(:final value) => value,
+      _ => ChannelMessagePermissions.none,
+    };
     if (!perms.canSendMessages) {
       return KeyEventResult.ignored;
     }
@@ -119,8 +124,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final permsAsync = ref.watch(channelMessagePermissionsProvider(channelId));
-    final perms = permsAsync.value ?? ChannelMessagePermissions.all;
+    final AsyncValue<ChannelMessagePermissions> permsAsync = ref.watch(
+      channelMessagePermissionsProvider(channelId),
+    );
+    final ChannelMessagePermissions perms = switch (permsAsync) {
+      AsyncData<ChannelMessagePermissions>(:final value) => value,
+      _ => ChannelMessagePermissions.none,
+    };
 
     return Column(
       mainAxisSize: MainAxisSize.min,

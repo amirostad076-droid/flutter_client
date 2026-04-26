@@ -50,6 +50,7 @@ class Channel {
   final String? parentId;
   final int position;
   final int rateLimitPerUser;
+  final String? permissionOverwritesJson;
 
   const Channel({
     required this.id,
@@ -61,6 +62,7 @@ class Channel {
     this.parentId,
     this.position = 0,
     this.rateLimitPerUser = 0,
+    this.permissionOverwritesJson,
   });
 
   factory Channel.fromRow(db.Channel row) {
@@ -74,6 +76,7 @@ class Channel {
       parentId: row.parentId,
       position: row.position,
       rateLimitPerUser: row.rateLimitPerUser,
+      permissionOverwritesJson: row.permissionOverwritesJson,
     );
   }
 
@@ -88,6 +91,7 @@ class Channel {
       parentId: Value(parentId),
       position: Value(position),
       rateLimitPerUser: Value(rateLimitPerUser),
+      permissionOverwritesJson: Value(permissionOverwritesJson),
     );
   }
 

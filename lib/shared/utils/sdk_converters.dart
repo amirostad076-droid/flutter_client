@@ -5,6 +5,21 @@ import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 
+String? encodePermissionOverwritesJson(List<ChannelOverwriteResponse>? list) {
+  if (list == null || list.isEmpty) {
+    return null;
+  }
+  return jsonEncode(<Map<String, Object?>>[
+    for (final ChannelOverwriteResponse o in list)
+      <String, Object?>{
+        'id': o.id,
+        'type': o.type.json ?? 0,
+        'allow': o.allow,
+        'deny': o.deny,
+      },
+  ]);
+}
+
 /// Converts SDK [GuildResponse] to a Drift companion for upserting.
 db.ServersCompanion guildFromSdk(
   GuildResponse sdk, {
@@ -36,6 +51,9 @@ db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String guildId) {
     position: Value(sdk.position ?? 0),
     lastMessageId: Value(sdk.lastMessageId),
     rateLimitPerUser: Value(sdk.rateLimitPerUser ?? 0),
+    permissionOverwritesJson: Value(
+      encodePermissionOverwritesJson(sdk.permissionOverwrites),
+    ),
   );
 }
 
