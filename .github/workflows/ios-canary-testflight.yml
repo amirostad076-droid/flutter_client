@@ -85,7 +85,7 @@ jobs:
       - name: Install provisioning profiles
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.CANARY_PROVISIONING_PROFILE_BASE64 }}
-          BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64: ${{ secrets.BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64 }}
+          CANARY_BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64: ${{ secrets.CANARY_BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64 }}
         run: |
           PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILES_DIR"
@@ -93,12 +93,12 @@ jobs:
             echo "::error::CANARY_PROVISIONING_PROFILE_BASE64 is not set. Add the base64-encoded App Store profile for the canary app."
             exit 1
           fi
-          echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILES_DIR/profile.mobileprovision"
-          if [ -n "$BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64" ]; then
-            echo "$BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILES_DIR/broadcast_extension.mobileprovision"
-          else
-            cp "$PROFILES_DIR/profile.mobileprovision" "$PROFILES_DIR/broadcast_extension.mobileprovision"
+          if [ -z "$CANARY_BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64" ]; then
+            echo "::error::CANARY_BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64 is not set. Add the base64-encoded App Store profile for com.fluxer.canary.BroadcastExtension."
+            exit 1
           fi
+          echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILES_DIR/profile.mobileprovision"
+          echo "$CANARY_BROADCAST_EXTENSION_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILES_DIR/broadcast_extension.mobileprovision"
           PROFILE_UUID=$(security cms -D -i "$PROFILES_DIR/profile.mobileprovision" | plutil -extract UUID raw -)
           PROFILE_NAME=$(security cms -D -i "$PROFILES_DIR/profile.mobileprovision" | plutil -extract Name raw -)
           PROFILE_TEAM_ID=$(security cms -D -i "$PROFILES_DIR/profile.mobileprovision" | plutil -extract TeamIdentifier.0 raw -)
