@@ -32,6 +32,30 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+String _userSettingsFooterText(AppRuntimeInfo info) {
+  final base =
+      'v${info.version} (${info.buildNumber})'
+      ' • ${info.environment.name}'
+      ' • ${_formatUserSettingsPushProviderLabel(info.pushProvider.name)}';
+  if (info.buildTimestamp.isEmpty) {
+    return base;
+  }
+  return '$base • ${info.buildTimestamp}';
+}
+
+String _formatUserSettingsPushProviderLabel(String providerName) {
+  switch (providerName) {
+    case 'firebaseMessaging':
+      return 'fcm';
+    case 'unifiedPush':
+      return 'unifiedpush';
+    case 'apple':
+      return 'apns';
+    default:
+      return providerName;
+  }
+}
+
 class UserSettingsModal extends ConsumerStatefulWidget {
   const UserSettingsModal({this.openProfileSection = false, super.key});
 
@@ -304,10 +328,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
   Widget _buildBuildInfoFooter() {
     final runtimeInfoAsync = ref.watch(appRuntimeInfoProvider);
     final text = runtimeInfoAsync.when(
-      data: (runtimeInfo) =>
-          'v${runtimeInfo.version} (${runtimeInfo.buildNumber})'
-          ' • ${runtimeInfo.environment.name}'
-          ' • ${_formatProviderLabel(runtimeInfo.pushProvider.name)}',
+      data: _userSettingsFooterText,
       loading: () => '',
       error: (_, _) => '',
     );
@@ -324,19 +345,6 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
         ),
       ),
     );
-  }
-
-  String _formatProviderLabel(String providerName) {
-    switch (providerName) {
-      case 'firebaseMessaging':
-        return 'fcm';
-      case 'unifiedPush':
-        return 'unifiedpush';
-      case 'apple':
-        return 'apns';
-      default:
-        return providerName;
-    }
   }
 }
 
@@ -651,10 +659,7 @@ class _MobileBuildInfoFooter extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final runtimeInfoAsync = ref.watch(appRuntimeInfoProvider);
     final text = runtimeInfoAsync.when(
-      data: (runtimeInfo) =>
-          'v${runtimeInfo.version} (${runtimeInfo.buildNumber})'
-          ' • ${runtimeInfo.environment.name}'
-          ' • ${_formatProviderLabel(runtimeInfo.pushProvider.name)}',
+      data: _userSettingsFooterText,
       loading: () => '',
       error: (_, _) => '',
     );
@@ -671,18 +676,5 @@ class _MobileBuildInfoFooter extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  static String _formatProviderLabel(String providerName) {
-    switch (providerName) {
-      case 'firebaseMessaging':
-        return 'fcm';
-      case 'unifiedPush':
-        return 'unifiedpush';
-      case 'apple':
-        return 'apns';
-      default:
-        return providerName;
-    }
   }
 }

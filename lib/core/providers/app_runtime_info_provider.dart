@@ -12,6 +12,7 @@ class AppRuntimeInfo {
     required this.buildNumber,
     required this.environment,
     required this.pushProvider,
+    required this.buildTimestamp,
   });
   final String appName;
   final String packageName;
@@ -19,6 +20,7 @@ class AppRuntimeInfo {
   final String buildNumber;
   final AppBuildEnvironment environment;
   final PushProviderKind pushProvider;
+  final String buildTimestamp;
 }
 
 final FutureProvider<AppRuntimeInfo> appRuntimeInfoProvider =
@@ -31,5 +33,6 @@ final FutureProvider<AppRuntimeInfo> appRuntimeInfoProvider =
         buildNumber: packageInfo.buildNumber,
         environment: AppBuildConfig.environment,
         pushProvider: AppBuildConfig.pushProvider,
+        buildTimestamp: AppBuildConfig.buildTimestamp,
       );
     });

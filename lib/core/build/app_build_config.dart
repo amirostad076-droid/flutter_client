@@ -18,6 +18,10 @@ class AppBuildConfig {
     'BLUESKY_ENABLED',
     defaultValue: true,
   );
+  // ignore: do_not_use_environment -- compile-time build flavor config
+  static const String _buildTimestampValue = String.fromEnvironment(
+    'BUILD_TIMESTAMP',
+  );
   static AppBuildEnvironment get environment {
     switch (_environmentValue) {
       case 'canary':
@@ -53,4 +57,5 @@ class AppBuildConfig {
   static bool get isFirebaseMessagingEnabled =>
       pushProvider == PushProviderKind.firebaseMessaging;
   static bool get isBlueskyEnabled => _blueskyEnabled;
+  static String get buildTimestamp => _buildTimestampValue;
 }
