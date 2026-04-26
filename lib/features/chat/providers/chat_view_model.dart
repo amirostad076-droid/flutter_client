@@ -264,18 +264,24 @@ class ChatViewModel extends _$ChatViewModel {
         .read(fluxerDatabaseProvider)
         .channelDao
         .getChannelById(channelId);
+    final guildId = channelRow?.guildId ?? '';
+    int? guildBits;
+    if (guildId.isNotEmpty) {
+      guildBits = await ref
+          .read(guildPermissionsProvider.notifier)
+          .getPermissions(guildId);
+      if (!hasPermission(guildBits, Permission.sendMessages)) {
+        return;
+      }
+    }
     final rateLimit = channelRow?.rateLimitPerUser ?? 0;
     if (rateLimit > 0) {
-      final guildId = channelRow?.guildId ?? '';
-      bool isImmune = false;
-      if (guildId.isNotEmpty) {
-        final bits = await ref
-            .read(guildPermissionsProvider.notifier)
-            .getPermissions(guildId);
+      var isImmune = false;
+      if (guildId.isNotEmpty && guildBits != null) {
         isImmune =
-            hasPermission(bits, Permission.bypassSlowmode) ||
-            hasPermission(bits, Permission.manageChannels) ||
-            hasPermission(bits, Permission.manageMessages);
+            hasPermission(guildBits, Permission.bypassSlowmode) ||
+            hasPermission(guildBits, Permission.manageChannels) ||
+            hasPermission(guildBits, Permission.manageMessages);
       }
       if (!isImmune) {
         final remaining = ref

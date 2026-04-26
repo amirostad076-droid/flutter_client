@@ -2185,6 +2185,10 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Slowmode is enabled, but you are immune.';
 
   @override
+  String get channelNoSendPermissionHint =>
+      'You do not have permission to send messages';
+
+  @override
   String get connectionsTitle => 'Connections';
 
   @override

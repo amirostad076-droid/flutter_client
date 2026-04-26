@@ -3730,6 +3730,12 @@ abstract class FluxerLocalizations {
   /// **'Slowmode is enabled, but you are immune.'**
   String get slowmodeTooltipImmune;
 
+  /// Placeholder text in the channel message input when the user lacks Send Messages permission.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to send messages'**
+  String get channelNoSendPermissionHint;
+
   /// Title of the Connections settings page.
   ///
   /// In en, this message translates to:

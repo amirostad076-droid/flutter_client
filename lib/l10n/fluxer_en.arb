@@ -2673,6 +2673,10 @@
   "@slowmodeTooltipImmune": {
     "description": "Tooltip shown on the slowmode indicator when slowmode is on but the current user bypasses it."
   },
+  "channelNoSendPermissionHint": "You do not have permission to send messages",
+  "@channelNoSendPermissionHint": {
+    "description": "Placeholder text in the channel message input when the user lacks Send Messages permission."
+  },
   "connectionsTitle": "Connections",
   "@connectionsTitle": {
     "description": "Title of the Connections settings page."

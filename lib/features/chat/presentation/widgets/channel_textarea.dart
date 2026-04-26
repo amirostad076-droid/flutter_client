@@ -10,14 +10,21 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart'
     show kSkinToneSurrogates, skinToneToName;
 import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
+import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_blocked_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+const double _kVoiceMicDeniedOpacity = 0.45;
+
+/// Visual weight for the message field when the user cannot send messages.
+const double _kMessageInputDisabledOpacity = 0.55;
 
 /// The chat input bar at the bottom of the chat area.
 class ChannelTextarea extends ConsumerStatefulWidget {
@@ -67,6 +74,14 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (HardwareKeyboard.instance.isShiftPressed) {
       return KeyEventResult.ignored;
     }
+    final channelId = ref.read(
+      chatViewModelProvider.select((s) => s.channelId),
+    );
+    final permsAsync = ref.read(channelMessagePermissionsProvider(channelId));
+    final perms = permsAsync.value ?? ChannelMessagePermissions.all;
+    if (!perms.canSendMessages) {
+      return KeyEventResult.ignored;
+    }
     unawaited(ref.read(chatViewModelProvider.notifier).sendMessage());
     return KeyEventResult.handled;
   }
@@ -101,6 +116,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final chatNotifier = ref.read(chatViewModelProvider.notifier);
     final replyTo = vm.replyingTo;
     final forwardFrom = vm.forwardingFrom;
+    final channelId = ref.watch(
+      chatViewModelProvider.select((s) => s.channelId),
+    );
+    final permsAsync = ref.watch(channelMessagePermissionsProvider(channelId));
+    final perms = permsAsync.value ?? ChannelMessagePermissions.all;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -155,11 +175,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             builder: (context, mode) {
               switch (mode) {
                 case LayoutMode.desktop:
-                  return _buildLargeLayout(context, chatNotifier);
+                  return _buildLargeLayout(context, chatNotifier, perms);
                 case LayoutMode.tablet:
-                  return _buildLargeLayout(context, chatNotifier);
+                  return _buildLargeLayout(context, chatNotifier, perms);
                 case LayoutMode.mobile:
-                  return _buildMobileLayout(context, chatNotifier);
+                  return _buildMobileLayout(context, chatNotifier, perms);
               }
             },
           ),
@@ -191,51 +211,67 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return 'Message';
   }
 
-  Widget _buildLargeLayout(BuildContext context, ChatViewModel chatNotifier) {
+  Widget _buildLargeLayout(
+    BuildContext context,
+    ChatViewModel chatNotifier,
+    ChannelMessagePermissions perms,
+  ) {
     final hasText = ref.watch(
       chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
     );
     return Row(
       children: [
-        FluxerButton.secondary(
-          icon: PhosphorIconsFill.plusCircle,
-          isSquare: true,
-          size: FluxerButtonSize.compact,
-          onPressed: () {},
-        ),
-        const SizedBox(width: 8),
+        if (perms.canAttachFiles) ...[
+          FluxerButton.secondary(
+            icon: PhosphorIconsFill.plusCircle,
+            isSquare: true,
+            size: FluxerButtonSize.compact,
+            onPressed: () {},
+          ),
+          const SizedBox(width: 8),
+        ],
         Expanded(
-          child: TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            style: context.textStyles.inputText,
-            minLines: 1,
-            maxLines: 5,
-            decoration: InputDecoration(
-              hintText: _resolveHintText(),
-              hintMaxLines: 1,
-              hintStyle: TextStyle(
-                color: context.colors.textTertiaryMuted,
-                fontSize: 16,
-                overflow: TextOverflow.ellipsis,
-              ),
-              filled: true,
-              fillColor: context.colors.backgroundTertiary,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
-                borderSide: BorderSide.none,
+          child: Opacity(
+            opacity: perms.canSendMessages
+                ? 1.0
+                : _kMessageInputDisabledOpacity,
+            child: TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              enabled: perms.canSendMessages,
+              style: context.textStyles.inputText,
+              minLines: 1,
+              maxLines: 5,
+              decoration: InputDecoration(
+                hintText: perms.canSendMessages
+                    ? _resolveHintText()
+                    : FluxerLocalizations.of(
+                        context,
+                      ).channelNoSendPermissionHint,
+                hintMaxLines: 1,
+                hintStyle: TextStyle(
+                  color: context.colors.textTertiaryMuted,
+                  fontSize: 16,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                filled: true,
+                fillColor: context.colors.backgroundTertiary,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
           ),
@@ -245,28 +281,30 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           IconButton(
             icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
             color: context.colors.interactiveNormal,
-            onPressed: () {},
+            onPressed: perms.canSendMessages ? () {} : null,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
-          IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
-            color: context.colors.interactiveNormal,
-            onPressed: () {},
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          ),
-          IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.image, size: 24),
-            color: context.colors.interactiveNormal,
-            onPressed: () {},
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          ),
+          if (perms.canEmbedLinks)
+            IconButton(
+              icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
+              color: context.colors.interactiveNormal,
+              onPressed: perms.canSendMessages ? () {} : null,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            ),
+          if (perms.canAttachFiles)
+            IconButton(
+              icon: const PhosphorIcon(PhosphorIconsFill.image, size: 24),
+              color: context.colors.interactiveNormal,
+              onPressed: perms.canSendMessages ? () {} : null,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            ),
           IconButton(
             icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
             color: context.colors.interactiveNormal,
-            onPressed: () {},
+            onPressed: perms.canSendMessages ? () {} : null,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
@@ -277,7 +315,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             child: IconButton(
               icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
               color: context.colors.interactiveNormal,
-              onPressed: () => _expressionPickerKey.currentState?.toggle(),
+              onPressed: perms.canSendMessages
+                  ? () => _expressionPickerKey.currentState?.toggle()
+                  : null,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
             ),
@@ -291,65 +331,89 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             thickness: 1,
           ),
         ),
-        _sendAndVoiceButton(context, chatNotifier, hasText: hasText),
+        _sendAndVoiceButton(
+          context,
+          chatNotifier,
+          perms: perms,
+          hasText: hasText,
+        ),
       ],
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, ChatViewModel chatNotifier) {
+  Widget _buildMobileLayout(
+    BuildContext context,
+    ChatViewModel chatNotifier,
+    ChannelMessagePermissions perms,
+  ) {
     final hasText = ref.watch(
       chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
     );
 
     return Row(
       children: [
-        FluxerButton.circle(
-          icon: PhosphorIconsBold.plus,
-          variant: FluxerButtonVariant.secondary,
-          size: FluxerButtonSize.small,
-          iconSize: 20,
-          onPressed: () {},
-        ),
-        const SizedBox(width: 8),
+        if (perms.canAttachFiles) ...[
+          FluxerButton.circle(
+            icon: PhosphorIconsBold.plus,
+            variant: FluxerButtonVariant.secondary,
+            size: FluxerButtonSize.small,
+            iconSize: 20,
+            onPressed: () {},
+          ),
+          const SizedBox(width: 8),
+        ],
         Expanded(
-          child: TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            style: context.textStyles.inputText,
-            minLines: 1,
-            maxLines: 6,
-            decoration: InputDecoration(
-              hintText: _resolveHintText(),
-              hintMaxLines: 1,
-              hintStyle: TextStyle(
-                color: context.colors.textTertiaryMuted,
-                fontSize: 16,
-                overflow: TextOverflow.ellipsis,
+          child: Opacity(
+            opacity: perms.canSendMessages
+                ? 1.0
+                : _kMessageInputDisabledOpacity,
+            child: TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              enabled: perms.canSendMessages,
+              style: context.textStyles.inputText,
+              minLines: 1,
+              maxLines: 6,
+              decoration: InputDecoration(
+                hintText: perms.canSendMessages
+                    ? _resolveHintText()
+                    : FluxerLocalizations.of(
+                        context,
+                      ).channelNoSendPermissionHint,
+                hintMaxLines: 1,
+                hintStyle: TextStyle(
+                  color: context.colors.textTertiaryMuted,
+                  fontSize: 16,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                filled: true,
+                fillColor: context.colors.backgroundTertiary,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                isDense: true,
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 7,
+                  ),
+                  child: _buildMobilePickerButton(context, perms),
+                ),
+                suffixIconConstraints: const BoxConstraints(),
               ),
-              filled: true,
-              fillColor: context.colors.backgroundTertiary,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
-                borderSide: BorderSide.none,
-              ),
-              isDense: true,
-              suffixIcon: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 7),
-                child: _buildMobilePickerButton(context),
-              ),
-              suffixIconConstraints: const BoxConstraints(),
             ),
           ),
         ),
@@ -359,6 +423,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           child: _sendAndVoiceButton(
             context,
             chatNotifier,
+            perms: perms,
             hasText: hasText,
             size: FluxerButtonSize.small,
           ),
@@ -397,28 +462,34 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return ':$name:';
   }
 
-  Widget _buildMobilePickerButton(BuildContext context) {
+  Widget _buildMobilePickerButton(
+    BuildContext context,
+    ChannelMessagePermissions perms,
+  ) {
     final isPanelOpen = ref.watch(expressionPanelProvider);
 
     return FluxerButton.ghost(
       icon: isPanelOpen ? PhosphorIconsFill.keyboard : PhosphorIconsFill.smiley,
       isSquare: true,
       size: FluxerButtonSize.compact,
-      onPressed: () {
-        if (isPanelOpen) {
-          ref.read(expressionPanelProvider.notifier).close();
-          _focusNode.requestFocus();
-        } else {
-          FocusScope.of(context).unfocus();
-          ref.read(expressionPanelProvider.notifier).open();
-        }
-      },
+      onPressed: !perms.canSendMessages
+          ? null
+          : () {
+              if (isPanelOpen) {
+                ref.read(expressionPanelProvider.notifier).close();
+                _focusNode.requestFocus();
+              } else {
+                FocusScope.of(context).unfocus();
+                ref.read(expressionPanelProvider.notifier).open();
+              }
+            },
     );
   }
 
   Widget _sendAndVoiceButton(
     BuildContext context,
     ChatViewModel chatNotifier, {
+    required ChannelMessagePermissions perms,
     required bool hasText,
     FluxerButtonSize size = FluxerButtonSize.compact,
   }) {
@@ -427,6 +498,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     final isBlocked =
         ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false;
+    final canPressSend =
+        perms.canSendMessages && !isBlocked;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) =>
@@ -437,15 +510,20 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               icon: PhosphorIconsBold.arrowUp,
               iconSize: 20,
               size: size,
-              onPressed: isBlocked ? null : chatNotifier.sendMessage,
+              onPressed: canPressSend ? chatNotifier.sendMessage : null,
             )
-          : FluxerButton.circle(
+          : Opacity(
               key: const ValueKey('voice'),
-              icon: PhosphorIconsFill.microphone,
-              variant: FluxerButtonVariant.secondary,
-              iconSize: 20,
-              size: size,
-              onPressed: () {},
+              opacity: perms.canSendMessages
+                  ? 1.0
+                  : _kVoiceMicDeniedOpacity,
+              child: FluxerButton.circle(
+                icon: PhosphorIconsFill.microphone,
+                variant: FluxerButtonVariant.secondary,
+                iconSize: 20,
+                size: size,
+                onPressed: perms.canSendMessages ? () {} : null,
+              ),
             ),
     );
   }
