@@ -30,9 +30,11 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_security_
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/utils/relative_time.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-String _userSettingsFooterText(AppRuntimeInfo info) {
+String _userSettingsFooterText(AppRuntimeInfo info, FluxerLocalizations l10n) {
   final base =
       'v${info.version} (${info.buildNumber})'
       ' • ${info.environment.name}'
@@ -40,7 +42,11 @@ String _userSettingsFooterText(AppRuntimeInfo info) {
   if (info.buildTimestamp.isEmpty) {
     return base;
   }
-  return '$base • ${info.buildTimestamp}';
+  final builtAt = DateTime.tryParse(info.buildTimestamp);
+  if (builtAt == null) {
+    return '$base • ${info.buildTimestamp}';
+  }
+  return '$base • ${relativeTime(builtAt, l10n)}';
 }
 
 String _formatUserSettingsPushProviderLabel(String providerName) {
@@ -328,7 +334,8 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
   Widget _buildBuildInfoFooter() {
     final runtimeInfoAsync = ref.watch(appRuntimeInfoProvider);
     final text = runtimeInfoAsync.when(
-      data: _userSettingsFooterText,
+      data: (AppRuntimeInfo info) =>
+          _userSettingsFooterText(info, FluxerLocalizations.of(context)),
       loading: () => '',
       error: (_, _) => '',
     );
@@ -659,7 +666,8 @@ class _MobileBuildInfoFooter extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final runtimeInfoAsync = ref.watch(appRuntimeInfoProvider);
     final text = runtimeInfoAsync.when(
-      data: _userSettingsFooterText,
+      data: (AppRuntimeInfo info) =>
+          _userSettingsFooterText(info, FluxerLocalizations.of(context)),
       loading: () => '',
       error: (_, _) => '',
     );
