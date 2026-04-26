@@ -176,7 +176,7 @@ platform :ios do
         signingCertificate: "Apple Distribution",
         provisioningProfiles: {
           "com.fluxer.canary" => runner_profile_uuid,
-          "com.fluxer.BroadcastExtension" => extension_profile_uuid
+          "com.fluxer.canary.BroadcastExtension" => extension_profile_uuid
         }
       },
       xcargs: [
