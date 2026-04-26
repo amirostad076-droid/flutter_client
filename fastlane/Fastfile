@@ -75,6 +75,106 @@ platform :ios do
         teamID: ENV.fetch("APPLE_TEAM_ID"),
         signingCertificate: "Apple Distribution",
         provisioningProfiles: {
+          "com.fluxer" => runner_profile_uuid,
+          "com.fluxer.BroadcastExtension" => extension_profile_uuid
+        }
+      },
+      xcargs: [
+        "DEVELOPMENT_TEAM=#{ENV.fetch("APPLE_TEAM_ID")}",
+        "FLUTTER_BUILD_NUMBER=#{flutter_build_number}",
+        "CODE_SIGN_STYLE=Manual",
+      ].join(" ")
+    )
+    maximum_attempts = 3
+    attempt_index = 1
+    begin
+      upload_to_testflight(
+        api_key: api_key,
+        ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+        skip_waiting_for_build_processing: true
+      )
+    rescue => err
+      if err.message.include?("The bundle version must be higher") || err.message.include?("-19232")
+        raise err
+      end
+      if attempt_index >= maximum_attempts
+        raise err
+      end
+      retry_delay_seconds = attempt_index * 30
+      UI.important("TestFlight upload failed on attempt #{attempt_index}/#{maximum_attempts}: #{err.message}")
+      UI.important("Retrying upload in #{retry_delay_seconds} seconds...")
+      sleep(retry_delay_seconds)
+      attempt_index += 1
+      retry
+    end
+  end
+
+  desc "Build canary archive and upload to TestFlight (com.fluxer.canary)"
+  lane :testflight_canary do
+    profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision")
+    extension_profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/broadcast_extension.mobileprovision")
+    runner_profile_uuid = fetchRequiredEnvironmentValue("PROFILE_UUID")
+    extension_profile_uuid = fetchOptionalEnvironmentValue("BROADCAST_EXTENSION_PROFILE_UUID", runner_profile_uuid)
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APPSTORE_KEY_ID"),
+      issuer_id: ENV.fetch("APPSTORE_ISSUER_ID"),
+      key_content: ENV.fetch("APPSTORE_PRIVATE_KEY")
+    )
+
+    app_identifier = "com.fluxer.canary"
+    latest_build_number = latest_testflight_build_number(
+      api_key: api_key,
+      app_identifier: app_identifier,
+      initial_build_number: 1
+    )
+    flutter_build_number = latest_build_number + 1
+
+    update_project_provisioning(
+      xcodeproj: "ios/Runner.xcodeproj",
+      profile: profile_path,
+      target_filter: "^Runner$",
+      build_configuration: "Release-canary",
+      code_signing_identity: "Apple Distribution"
+    )
+    update_project_provisioning(
+      xcodeproj: "ios/Runner.xcodeproj",
+      profile: extension_profile_path,
+      target_filter: "^BroadcastExtension$",
+      build_configuration: "Release-canary",
+      code_signing_identity: "Apple Distribution"
+    )
+    cocoapods(
+      podfile: "ios/Podfile",
+      clean_install: true
+    )
+
+    sh(
+      "flutter",
+      "build",
+      "ios",
+      "--release",
+      "--flavor",
+      "canary",
+      "--no-codesign",
+      "--build-number",
+      flutter_build_number.to_s,
+      "--dart-define-from-file=tool/dart_defines/canary.json",
+      "--dart-define=PUSH_PROVIDER=apns"
+    )
+    build_app(
+      workspace: "ios/Runner.xcworkspace",
+      scheme: "canary",
+      configuration: "Release-canary",
+      clean: true,
+      output_directory: "build/ios/ipa",
+      export_method: "app-store",
+      codesigning_identity: "Apple Distribution",
+      export_options: {
+        signingStyle: "manual",
+        teamID: ENV.fetch("APPLE_TEAM_ID"),
+        signingCertificate: "Apple Distribution",
+        provisioningProfiles: {
           "com.fluxer.canary" => runner_profile_uuid,
           "com.fluxer.canary.BroadcastExtension" => extension_profile_uuid
         }
