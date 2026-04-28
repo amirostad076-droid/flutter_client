@@ -4395,6 +4395,240 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'When enabled, you can favorite channels and they\'ll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.'**
   String get lookAndFeelEnableFavoritesDescription;
+
+  /// Section title for media display settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Media Display'**
+  String get messagesMediaDisplaySectionTitle;
+
+  /// Section description for media display settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how images, videos and other media are shown. All media is resized and converted. Extremely large files that cannot be compressed into a preview will not embed regardless of these settings.'**
+  String get messagesMediaDisplaySectionDescription;
+
+  /// Toggle label for inlining media when posted as links.
+  ///
+  /// In en, this message translates to:
+  /// **'When posted as links to chat'**
+  String get messagesMediaDisplayInlineEmbedLabel;
+
+  /// Toggle label for inlining media for direct uploads.
+  ///
+  /// In en, this message translates to:
+  /// **'For files uploaded directly to Fluxer'**
+  String get messagesMediaDisplayInlineAttachmentLabel;
+
+  /// Section title for link preview settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Link Previews'**
+  String get messagesMediaLinkPreviewsSectionTitle;
+
+  /// Section description for link preview settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how website links are previewed in chat'**
+  String get messagesMediaLinkPreviewsSectionDescription;
+
+  /// Toggle label for showing link embeds and previews.
+  ///
+  /// In en, this message translates to:
+  /// **'Show embeds and preview website links'**
+  String get messagesMediaLinkPreviewsToggleLabel;
+
+  /// Section title for reactions settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactions'**
+  String get messagesMediaReactionsSectionTitle;
+
+  /// Section description for reactions settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure emoji reactions on messages'**
+  String get messagesMediaReactionsSectionDescription;
+
+  /// Toggle label for displaying emoji reactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Display emoji reactions on messages'**
+  String get messagesMediaReactionsToggleLabel;
+
+  /// Section title for spoiler content settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Spoiler Content'**
+  String get messagesMediaSpoilersSectionTitle;
+
+  /// Section description for spoiler content settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how spoiler content is displayed'**
+  String get messagesMediaSpoilersSectionDescription;
+
+  /// Subsection label above the spoiler reveal radio group.
+  ///
+  /// In en, this message translates to:
+  /// **'Show spoiler content'**
+  String get messagesMediaSpoilersRadioLabel;
+
+  /// Spoiler reveal option — only show when tapped.
+  ///
+  /// In en, this message translates to:
+  /// **'On click'**
+  String get messagesMediaSpoilersOnClickName;
+
+  /// Spoiler reveal option description for on-click.
+  ///
+  /// In en, this message translates to:
+  /// **'Show spoiler content when clicked'**
+  String get messagesMediaSpoilersOnClickDescription;
+
+  /// Spoiler reveal option — auto-show in channels with Manage Messages.
+  ///
+  /// In en, this message translates to:
+  /// **'In channels I moderate'**
+  String get messagesMediaSpoilersIfModeratorName;
+
+  /// Spoiler reveal option description for moderator-only auto-show.
+  ///
+  /// In en, this message translates to:
+  /// **'Always show spoiler content in channels where you have the \"Manage Messages\" permission'**
+  String get messagesMediaSpoilersIfModeratorDescription;
+
+  /// Spoiler reveal option — always show spoilers.
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get messagesMediaSpoilersAlwaysName;
+
+  /// Spoiler reveal option description for always-show.
+  ///
+  /// In en, this message translates to:
+  /// **'Always show spoiler content'**
+  String get messagesMediaSpoilersAlwaysDescription;
+
+  /// Section title for media size preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Media Size Preferences'**
+  String get messagesMediaSizeSectionTitle;
+
+  /// Section description for media size preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize the maximum display size for embedded and attached media. Smaller sizes use less screen space, while larger sizes show more detail.'**
+  String get messagesMediaSizeSectionDescription;
+
+  /// Subsection label for embed media size.
+  ///
+  /// In en, this message translates to:
+  /// **'Media from links (embeds)'**
+  String get messagesMediaSizeEmbedLabel;
+
+  /// Subsection label for attachment media size.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded attachments'**
+  String get messagesMediaSizeAttachmentLabel;
+
+  /// Media size option — small.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact (400x300)'**
+  String get messagesMediaSizeCompactName;
+
+  /// Description for the small media size option.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller media size'**
+  String get messagesMediaSizeCompactDescription;
+
+  /// Media size option — large.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable (550x400)'**
+  String get messagesMediaSizeComfortableName;
+
+  /// Description for the large media size option.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger media size with more detail'**
+  String get messagesMediaSizeComfortableDescription;
+
+  /// Section title for GIF behavior.
+  ///
+  /// In en, this message translates to:
+  /// **'GIF Behavior'**
+  String get messagesMediaGifsSectionTitle;
+
+  /// Section description for GIF behavior.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how GIFs are inserted into chat'**
+  String get messagesMediaGifsSectionDescription;
+
+  /// Toggle label for auto-sending GIFs from picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically send GIFs when selected'**
+  String get messagesMediaGifsAutoSendLabel;
+
+  /// Section title for expression autocomplete settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Expression autocomplete (colon autocomplete)'**
+  String get messagesMediaAutocompleteSectionTitle;
+
+  /// Section description for expression autocomplete settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control what appears in the expression autocomplete when you type colon. Customize what suggestions show up to match your preferences.'**
+  String get messagesMediaAutocompleteSectionDescription;
+
+  /// Toggle label for default emojis in expression autocomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Show default emojis in expression autocomplete'**
+  String get messagesMediaAutocompleteDefaultEmojisLabel;
+
+  /// Toggle label for custom emojis in expression autocomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Show custom emojis in expression autocomplete'**
+  String get messagesMediaAutocompleteCustomEmojisLabel;
+
+  /// Toggle label for stickers in expression autocomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Show stickers in expression autocomplete'**
+  String get messagesMediaAutocompleteStickersLabel;
+
+  /// Toggle label for saved media in expression autocomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Show saved media in expression autocomplete'**
+  String get messagesMediaAutocompleteSavedMediaLabel;
+
+  /// Section title for message editing settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Message Editing'**
+  String get messagesMediaEditingSectionTitle;
+
+  /// Section description for message editing settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control what happens to your edit draft when you cancel.'**
+  String get messagesMediaEditingSectionDescription;
+
+  /// Toggle label for preserving edit drafts on cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preserve edit draft on cancel'**
+  String get messagesMediaEditingPreserveDraftLabel;
 }
 
 class _FluxerLocalizationsDelegate

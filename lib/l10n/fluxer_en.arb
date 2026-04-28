@@ -3122,5 +3122,163 @@
   "lookAndFeelEnableFavoritesDescription": "When enabled, you can favorite channels and they'll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.",
   "@lookAndFeelEnableFavoritesDescription": {
     "description": "Toggle description for the Enable Favorites switch."
+  },
+
+  "messagesMediaDisplaySectionTitle": "Media Display",
+  "@messagesMediaDisplaySectionTitle": {
+    "description": "Section title for media display settings."
+  },
+  "messagesMediaDisplaySectionDescription": "Control how images, videos and other media are shown. All media is resized and converted. Extremely large files that cannot be compressed into a preview will not embed regardless of these settings.",
+  "@messagesMediaDisplaySectionDescription": {
+    "description": "Section description for media display settings."
+  },
+  "messagesMediaDisplayInlineEmbedLabel": "When posted as links to chat",
+  "@messagesMediaDisplayInlineEmbedLabel": {
+    "description": "Toggle label for inlining media when posted as links."
+  },
+  "messagesMediaDisplayInlineAttachmentLabel": "For files uploaded directly to Fluxer",
+  "@messagesMediaDisplayInlineAttachmentLabel": {
+    "description": "Toggle label for inlining media for direct uploads."
+  },
+  "messagesMediaLinkPreviewsSectionTitle": "Link Previews",
+  "@messagesMediaLinkPreviewsSectionTitle": {
+    "description": "Section title for link preview settings."
+  },
+  "messagesMediaLinkPreviewsSectionDescription": "Control how website links are previewed in chat",
+  "@messagesMediaLinkPreviewsSectionDescription": {
+    "description": "Section description for link preview settings."
+  },
+  "messagesMediaLinkPreviewsToggleLabel": "Show embeds and preview website links",
+  "@messagesMediaLinkPreviewsToggleLabel": {
+    "description": "Toggle label for showing link embeds and previews."
+  },
+  "messagesMediaReactionsSectionTitle": "Reactions",
+  "@messagesMediaReactionsSectionTitle": {
+    "description": "Section title for reactions settings."
+  },
+  "messagesMediaReactionsSectionDescription": "Configure emoji reactions on messages",
+  "@messagesMediaReactionsSectionDescription": {
+    "description": "Section description for reactions settings."
+  },
+  "messagesMediaReactionsToggleLabel": "Display emoji reactions on messages",
+  "@messagesMediaReactionsToggleLabel": {
+    "description": "Toggle label for displaying emoji reactions."
+  },
+  "messagesMediaSpoilersSectionTitle": "Spoiler Content",
+  "@messagesMediaSpoilersSectionTitle": {
+    "description": "Section title for spoiler content settings."
+  },
+  "messagesMediaSpoilersSectionDescription": "Control how spoiler content is displayed",
+  "@messagesMediaSpoilersSectionDescription": {
+    "description": "Section description for spoiler content settings."
+  },
+  "messagesMediaSpoilersRadioLabel": "Show spoiler content",
+  "@messagesMediaSpoilersRadioLabel": {
+    "description": "Subsection label above the spoiler reveal radio group."
+  },
+  "messagesMediaSpoilersOnClickName": "On click",
+  "@messagesMediaSpoilersOnClickName": {
+    "description": "Spoiler reveal option — only show when tapped."
+  },
+  "messagesMediaSpoilersOnClickDescription": "Show spoiler content when clicked",
+  "@messagesMediaSpoilersOnClickDescription": {
+    "description": "Spoiler reveal option description for on-click."
+  },
+  "messagesMediaSpoilersIfModeratorName": "In channels I moderate",
+  "@messagesMediaSpoilersIfModeratorName": {
+    "description": "Spoiler reveal option — auto-show in channels with Manage Messages."
+  },
+  "messagesMediaSpoilersIfModeratorDescription": "Always show spoiler content in channels where you have the \"Manage Messages\" permission",
+  "@messagesMediaSpoilersIfModeratorDescription": {
+    "description": "Spoiler reveal option description for moderator-only auto-show."
+  },
+  "messagesMediaSpoilersAlwaysName": "Always",
+  "@messagesMediaSpoilersAlwaysName": {
+    "description": "Spoiler reveal option — always show spoilers."
+  },
+  "messagesMediaSpoilersAlwaysDescription": "Always show spoiler content",
+  "@messagesMediaSpoilersAlwaysDescription": {
+    "description": "Spoiler reveal option description for always-show."
+  },
+
+  "messagesMediaSizeSectionTitle": "Media Size Preferences",
+  "@messagesMediaSizeSectionTitle": {
+    "description": "Section title for media size preferences."
+  },
+  "messagesMediaSizeSectionDescription": "Customize the maximum display size for embedded and attached media. Smaller sizes use less screen space, while larger sizes show more detail.",
+  "@messagesMediaSizeSectionDescription": {
+    "description": "Section description for media size preferences."
+  },
+  "messagesMediaSizeEmbedLabel": "Media from links (embeds)",
+  "@messagesMediaSizeEmbedLabel": {
+    "description": "Subsection label for embed media size."
+  },
+  "messagesMediaSizeAttachmentLabel": "Uploaded attachments",
+  "@messagesMediaSizeAttachmentLabel": {
+    "description": "Subsection label for attachment media size."
+  },
+  "messagesMediaSizeCompactName": "Compact (400x300)",
+  "@messagesMediaSizeCompactName": {
+    "description": "Media size option — small."
+  },
+  "messagesMediaSizeCompactDescription": "Smaller media size",
+  "@messagesMediaSizeCompactDescription": {
+    "description": "Description for the small media size option."
+  },
+  "messagesMediaSizeComfortableName": "Comfortable (550x400)",
+  "@messagesMediaSizeComfortableName": {
+    "description": "Media size option — large."
+  },
+  "messagesMediaSizeComfortableDescription": "Larger media size with more detail",
+  "@messagesMediaSizeComfortableDescription": {
+    "description": "Description for the large media size option."
+  },
+  "messagesMediaGifsSectionTitle": "GIF Behavior",
+  "@messagesMediaGifsSectionTitle": {
+    "description": "Section title for GIF behavior."
+  },
+  "messagesMediaGifsSectionDescription": "Control how GIFs are inserted into chat",
+  "@messagesMediaGifsSectionDescription": {
+    "description": "Section description for GIF behavior."
+  },
+  "messagesMediaGifsAutoSendLabel": "Automatically send GIFs when selected",
+  "@messagesMediaGifsAutoSendLabel": {
+    "description": "Toggle label for auto-sending GIFs from picker."
+  },
+  "messagesMediaAutocompleteSectionTitle": "Expression autocomplete (colon autocomplete)",
+  "@messagesMediaAutocompleteSectionTitle": {
+    "description": "Section title for expression autocomplete settings."
+  },
+  "messagesMediaAutocompleteSectionDescription": "Control what appears in the expression autocomplete when you type colon. Customize what suggestions show up to match your preferences.",
+  "@messagesMediaAutocompleteSectionDescription": {
+    "description": "Section description for expression autocomplete settings."
+  },
+  "messagesMediaAutocompleteDefaultEmojisLabel": "Show default emojis in expression autocomplete",
+  "@messagesMediaAutocompleteDefaultEmojisLabel": {
+    "description": "Toggle label for default emojis in expression autocomplete."
+  },
+  "messagesMediaAutocompleteCustomEmojisLabel": "Show custom emojis in expression autocomplete",
+  "@messagesMediaAutocompleteCustomEmojisLabel": {
+    "description": "Toggle label for custom emojis in expression autocomplete."
+  },
+  "messagesMediaAutocompleteStickersLabel": "Show stickers in expression autocomplete",
+  "@messagesMediaAutocompleteStickersLabel": {
+    "description": "Toggle label for stickers in expression autocomplete."
+  },
+  "messagesMediaAutocompleteSavedMediaLabel": "Show saved media in expression autocomplete",
+  "@messagesMediaAutocompleteSavedMediaLabel": {
+    "description": "Toggle label for saved media in expression autocomplete."
+  },
+  "messagesMediaEditingSectionTitle": "Message Editing",
+  "@messagesMediaEditingSectionTitle": {
+    "description": "Section title for message editing settings."
+  },
+  "messagesMediaEditingSectionDescription": "Control what happens to your edit draft when you cancel.",
+  "@messagesMediaEditingSectionDescription": {
+    "description": "Section description for message editing settings."
+  },
+  "messagesMediaEditingPreserveDraftLabel": "Preserve edit draft on cancel",
+  "@messagesMediaEditingPreserveDraftLabel": {
+    "description": "Toggle label for preserving edit drafts on cancel."
   }
 }

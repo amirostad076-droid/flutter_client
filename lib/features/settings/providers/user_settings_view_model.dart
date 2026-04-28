@@ -42,6 +42,11 @@ class UserSettingsViewState {
   final bool messageDisplayCompact;
   final bool developerMode;
   final List<String> trustedDomains;
+  final bool inlineEmbedMedia;
+  final bool inlineAttachmentMedia;
+  final bool renderEmbeds;
+  final bool renderReactions;
+  final RenderSpoilers renderSpoilers;
 
   final int publicFlags;
 
@@ -123,6 +128,11 @@ class UserSettingsViewState {
     required this.messageDisplayCompact,
     required this.developerMode,
     required this.trustedDomains,
+    this.inlineEmbedMedia = true,
+    this.inlineAttachmentMedia = true,
+    this.renderEmbeds = true,
+    this.renderReactions = true,
+    this.renderSpoilers = RenderSpoilers.onClick,
     this.publicFlags = 0,
     this.bio,
     this.pronouns,
@@ -401,6 +411,11 @@ class UserSettingsViewState {
     bool? messageDisplayCompact,
     bool? developerMode,
     List<String>? trustedDomains,
+    bool? inlineEmbedMedia,
+    bool? inlineAttachmentMedia,
+    bool? renderEmbeds,
+    bool? renderReactions,
+    RenderSpoilers? renderSpoilers,
     int? publicFlags,
     Object? bio = _unset,
     Object? pronouns = _unset,
@@ -479,6 +494,12 @@ class UserSettingsViewState {
           messageDisplayCompact ?? this.messageDisplayCompact,
       developerMode: developerMode ?? this.developerMode,
       trustedDomains: trustedDomains ?? this.trustedDomains,
+      inlineEmbedMedia: inlineEmbedMedia ?? this.inlineEmbedMedia,
+      inlineAttachmentMedia:
+          inlineAttachmentMedia ?? this.inlineAttachmentMedia,
+      renderEmbeds: renderEmbeds ?? this.renderEmbeds,
+      renderReactions: renderReactions ?? this.renderReactions,
+      renderSpoilers: renderSpoilers ?? this.renderSpoilers,
       publicFlags: publicFlags ?? this.publicFlags,
       bio: bio == _unset ? this.bio : bio as String?,
       pronouns: pronouns == _unset ? this.pronouns : pronouns as String?,
@@ -658,6 +679,16 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
     );
   }
 
+  RenderSpoilers _parseRenderSpoilers(Object? value) {
+    if (value is int) {
+      final parsed = RenderSpoilers.fromJson(value);
+      return parsed == RenderSpoilers.$unknown
+          ? RenderSpoilers.onClick
+          : parsed;
+    }
+    return RenderSpoilers.onClick;
+  }
+
   void _watchUser(String userId) {
     final db = ref.read(fluxerDatabaseProvider);
     final subscription = db.userDao.watchUserById(userId).listen((user) {
@@ -698,6 +729,12 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       state = state.copyWith(
         developerMode: developerMode,
         trustedDomains: trustedDomains,
+        inlineEmbedMedia: data['inline_embed_media'] as bool? ?? true,
+        inlineAttachmentMedia:
+            data['inline_attachment_media'] as bool? ?? true,
+        renderEmbeds: data['render_embeds'] as bool? ?? true,
+        renderReactions: data['render_reactions'] as bool? ?? true,
+        renderSpoilers: _parseRenderSpoilers(data['render_spoilers']),
       );
     });
     ref.onDispose(subscription.cancel);
@@ -1249,5 +1286,76 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       body: UserSettingsUpdateRequest(trustedDomains: trustedDomains),
     );
     state = state.copyWith(trustedDomains: trustedDomains);
+  }
+
+  Future<void> setInlineEmbedMedia({required bool value}) async {
+    state = state.copyWith(inlineEmbedMedia: value);
+    try {
+      final client = ref.read(fluxerClientProvider);
+      await client.users.updateCurrentUserSettings(
+        body: UserSettingsUpdateRequest(inlineEmbedMedia: value),
+      );
+    } on Object catch (e, st) {
+      state = state.copyWith(inlineEmbedMedia: !value);
+      talker.error('Failed to update inlineEmbedMedia', e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> setInlineAttachmentMedia({required bool value}) async {
+    state = state.copyWith(inlineAttachmentMedia: value);
+    try {
+      final client = ref.read(fluxerClientProvider);
+      await client.users.updateCurrentUserSettings(
+        body: UserSettingsUpdateRequest(inlineAttachmentMedia: value),
+      );
+    } on Object catch (e, st) {
+      state = state.copyWith(inlineAttachmentMedia: !value);
+      talker.error('Failed to update inlineAttachmentMedia', e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> setRenderEmbeds({required bool value}) async {
+    state = state.copyWith(renderEmbeds: value);
+    try {
+      final client = ref.read(fluxerClientProvider);
+      await client.users.updateCurrentUserSettings(
+        body: UserSettingsUpdateRequest(renderEmbeds: value),
+      );
+    } on Object catch (e, st) {
+      state = state.copyWith(renderEmbeds: !value);
+      talker.error('Failed to update renderEmbeds', e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> setRenderReactions({required bool value}) async {
+    state = state.copyWith(renderReactions: value);
+    try {
+      final client = ref.read(fluxerClientProvider);
+      await client.users.updateCurrentUserSettings(
+        body: UserSettingsUpdateRequest(renderReactions: value),
+      );
+    } on Object catch (e, st) {
+      state = state.copyWith(renderReactions: !value);
+      talker.error('Failed to update renderReactions', e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> setRenderSpoilers(RenderSpoilers value) async {
+    final previous = state.renderSpoilers;
+    state = state.copyWith(renderSpoilers: value);
+    try {
+      final client = ref.read(fluxerClientProvider);
+      await client.users.updateCurrentUserSettings(
+        body: UserSettingsUpdateRequest(renderSpoilers: value),
+      );
+    } on Object catch (e, st) {
+      state = state.copyWith(renderSpoilers: previous);
+      talker.error('Failed to update renderSpoilers', e, st);
+      rethrow;
+    }
   }
 }

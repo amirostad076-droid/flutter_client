@@ -535,52 +535,34 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
       children: [
         FluxerSettingsSubsection(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const FluxerFieldLabel('Direct messages from friends'),
-                SizedBox(height: layout.s2),
-                FluxerRadioGroup<int>(
-                  value: state.effectiveFriendDmFilter,
-                  items: const [
-                    FluxerRadioItem(value: 0, label: 'Show'),
-                    FluxerRadioItem(value: 1, label: 'Blur'),
-                    FluxerRadioItem(value: 2, label: 'Block'),
-                  ],
-                  onChanged: vm.editFriendDmFilter,
-                ),
+            FluxerRadioGroup<int>(
+              label: 'Direct messages from friends',
+              value: state.effectiveFriendDmFilter,
+              items: const [
+                FluxerRadioItem(value: 0, label: 'Show'),
+                FluxerRadioItem(value: 1, label: 'Blur'),
+                FluxerRadioItem(value: 2, label: 'Block'),
               ],
+              onChanged: vm.editFriendDmFilter,
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const FluxerFieldLabel('Direct messages from others'),
-                SizedBox(height: layout.s2),
-                FluxerRadioGroup<int>(
-                  value: state.effectiveNonFriendDmFilter,
-                  items: const [
-                    FluxerRadioItem(value: 0, label: 'Show'),
-                    FluxerRadioItem(value: 1, label: 'Blur'),
-                    FluxerRadioItem(value: 2, label: 'Block'),
-                  ],
-                  onChanged: vm.editNonFriendDmFilter,
-                ),
+            FluxerRadioGroup<int>(
+              label: 'Direct messages from others',
+              value: state.effectiveNonFriendDmFilter,
+              items: const [
+                FluxerRadioItem(value: 0, label: 'Show'),
+                FluxerRadioItem(value: 1, label: 'Blur'),
+                FluxerRadioItem(value: 2, label: 'Block'),
               ],
+              onChanged: vm.editNonFriendDmFilter,
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const FluxerFieldLabel('Messages in community channels'),
-                SizedBox(height: layout.s2),
-                FluxerRadioGroup<int>(
-                  value: state.effectiveGuildFilter,
-                  items: const [
-                    FluxerRadioItem(value: 0, label: 'Show'),
-                    FluxerRadioItem(value: 1, label: 'Blur'),
-                  ],
-                  onChanged: vm.editGuildFilter,
-                ),
+            FluxerRadioGroup<int>(
+              label: 'Messages in community channels',
+              value: state.effectiveGuildFilter,
+              items: const [
+                FluxerRadioItem(value: 0, label: 'Show'),
+                FluxerRadioItem(value: 1, label: 'Blur'),
               ],
+              onChanged: vm.editGuildFilter,
             ),
             FluxerSwitchGroupItem(
               label: 'Blur media until safety scan completes',

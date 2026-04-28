@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
+import 'package:fluxer_app/features/ui/text/fluxer_field_label.dart';
 
 class FluxerRadioItem<T> {
   const FluxerRadioItem({
@@ -19,6 +20,7 @@ class FluxerRadioGroup<T> extends StatelessWidget {
     required this.value,
     required this.items,
     required this.onChanged,
+    this.label,
     this.direction = Axis.vertical,
     super.key,
   });
@@ -26,18 +28,33 @@ class FluxerRadioGroup<T> extends StatelessWidget {
   final T value;
   final List<FluxerRadioItem<T>> items;
   final ValueChanged<T> onChanged;
+  final String? label;
   final Axis direction;
 
   @override
   Widget build(BuildContext context) {
     final layout = context.layout;
 
-    return Flex(
+    final group = Flex(
       direction: direction,
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: layout.s1_5,
       children: [for (final item in items) _buildOption(context, item)],
+    );
+
+    if (label == null) {
+      return group;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FluxerFieldLabel(label!),
+        SizedBox(height: layout.s2),
+        group,
+      ],
     );
   }
 
@@ -154,6 +171,19 @@ Widget fluxerRadioGroupPreview() {
         label: 'High fidelity',
         description: 'Sharper media at the cost of bandwidth.',
       ),
+    ],
+    onChanged: (_) {},
+  );
+}
+
+@FluxerWidgetPreview(name: 'With label', group: 'FluxerRadioGroup')
+Widget fluxerRadioGroupLabeledPreview() {
+  return FluxerRadioGroup<String>(
+    label: 'Media from links (embeds)',
+    value: 'large',
+    items: const [
+      FluxerRadioItem(value: 'small', label: 'Compact'),
+      FluxerRadioItem(value: 'large', label: 'Comfortable'),
     ],
     onChanged: (_) {},
   );

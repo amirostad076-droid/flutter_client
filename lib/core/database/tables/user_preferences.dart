@@ -21,6 +21,22 @@ class UserPreferencesTable extends Table {
   BoolColumn get showFavorites => boolean().withDefault(const Constant(true))();
   BoolColumn get hideKeyboardHints =>
       boolean().withDefault(const Constant(false))();
+  TextColumn get embedMediaDimensionSize =>
+      text().withDefault(const Constant('large'))();
+  TextColumn get attachmentMediaDimensionSize =>
+      text().withDefault(const Constant('large'))();
+  BoolColumn get autoSendKlipyGifs =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get showDefaultEmojisInExpressionAutocomplete =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showCustomEmojisInExpressionAutocomplete =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showStickersInExpressionAutocomplete =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showMemesInExpressionAutocomplete =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get preserveEditDraft =>
+      boolean().withDefault(const Constant(false))();
 
   @override
   String get tableName => 'user_preferences';

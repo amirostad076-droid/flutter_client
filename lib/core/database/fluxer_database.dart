@@ -113,7 +113,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 29;
+  int get schemaVersion => 30;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -342,6 +342,40 @@ class FluxerDatabase extends _$FluxerDatabase {
         await m.addColumn(
           channels,
           channels.permissionOverwritesJson,
+        );
+      }
+      if (from < 30) {
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.embedMediaDimensionSize,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.attachmentMediaDimensionSize,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.autoSendKlipyGifs,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.showDefaultEmojisInExpressionAutocomplete,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.showCustomEmojisInExpressionAutocomplete,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.showStickersInExpressionAutocomplete,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.showMemesInExpressionAutocomplete,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.preserveEditDraft,
         );
       }
     },

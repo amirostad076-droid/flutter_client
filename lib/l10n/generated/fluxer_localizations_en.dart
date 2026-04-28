@@ -2566,4 +2566,144 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   @override
   String get lookAndFeelEnableFavoritesDescription =>
       'When enabled, you can favorite channels and they\'ll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.';
+
+  @override
+  String get messagesMediaDisplaySectionTitle => 'Media Display';
+
+  @override
+  String get messagesMediaDisplaySectionDescription =>
+      'Control how images, videos and other media are shown. All media is resized and converted. Extremely large files that cannot be compressed into a preview will not embed regardless of these settings.';
+
+  @override
+  String get messagesMediaDisplayInlineEmbedLabel =>
+      'When posted as links to chat';
+
+  @override
+  String get messagesMediaDisplayInlineAttachmentLabel =>
+      'For files uploaded directly to Fluxer';
+
+  @override
+  String get messagesMediaLinkPreviewsSectionTitle => 'Link Previews';
+
+  @override
+  String get messagesMediaLinkPreviewsSectionDescription =>
+      'Control how website links are previewed in chat';
+
+  @override
+  String get messagesMediaLinkPreviewsToggleLabel =>
+      'Show embeds and preview website links';
+
+  @override
+  String get messagesMediaReactionsSectionTitle => 'Reactions';
+
+  @override
+  String get messagesMediaReactionsSectionDescription =>
+      'Configure emoji reactions on messages';
+
+  @override
+  String get messagesMediaReactionsToggleLabel =>
+      'Display emoji reactions on messages';
+
+  @override
+  String get messagesMediaSpoilersSectionTitle => 'Spoiler Content';
+
+  @override
+  String get messagesMediaSpoilersSectionDescription =>
+      'Control how spoiler content is displayed';
+
+  @override
+  String get messagesMediaSpoilersRadioLabel => 'Show spoiler content';
+
+  @override
+  String get messagesMediaSpoilersOnClickName => 'On click';
+
+  @override
+  String get messagesMediaSpoilersOnClickDescription =>
+      'Show spoiler content when clicked';
+
+  @override
+  String get messagesMediaSpoilersIfModeratorName => 'In channels I moderate';
+
+  @override
+  String get messagesMediaSpoilersIfModeratorDescription =>
+      'Always show spoiler content in channels where you have the \"Manage Messages\" permission';
+
+  @override
+  String get messagesMediaSpoilersAlwaysName => 'Always';
+
+  @override
+  String get messagesMediaSpoilersAlwaysDescription =>
+      'Always show spoiler content';
+
+  @override
+  String get messagesMediaSizeSectionTitle => 'Media Size Preferences';
+
+  @override
+  String get messagesMediaSizeSectionDescription =>
+      'Customize the maximum display size for embedded and attached media. Smaller sizes use less screen space, while larger sizes show more detail.';
+
+  @override
+  String get messagesMediaSizeEmbedLabel => 'Media from links (embeds)';
+
+  @override
+  String get messagesMediaSizeAttachmentLabel => 'Uploaded attachments';
+
+  @override
+  String get messagesMediaSizeCompactName => 'Compact (400x300)';
+
+  @override
+  String get messagesMediaSizeCompactDescription => 'Smaller media size';
+
+  @override
+  String get messagesMediaSizeComfortableName => 'Comfortable (550x400)';
+
+  @override
+  String get messagesMediaSizeComfortableDescription =>
+      'Larger media size with more detail';
+
+  @override
+  String get messagesMediaGifsSectionTitle => 'GIF Behavior';
+
+  @override
+  String get messagesMediaGifsSectionDescription =>
+      'Control how GIFs are inserted into chat';
+
+  @override
+  String get messagesMediaGifsAutoSendLabel =>
+      'Automatically send GIFs when selected';
+
+  @override
+  String get messagesMediaAutocompleteSectionTitle =>
+      'Expression autocomplete (colon autocomplete)';
+
+  @override
+  String get messagesMediaAutocompleteSectionDescription =>
+      'Control what appears in the expression autocomplete when you type colon. Customize what suggestions show up to match your preferences.';
+
+  @override
+  String get messagesMediaAutocompleteDefaultEmojisLabel =>
+      'Show default emojis in expression autocomplete';
+
+  @override
+  String get messagesMediaAutocompleteCustomEmojisLabel =>
+      'Show custom emojis in expression autocomplete';
+
+  @override
+  String get messagesMediaAutocompleteStickersLabel =>
+      'Show stickers in expression autocomplete';
+
+  @override
+  String get messagesMediaAutocompleteSavedMediaLabel =>
+      'Show saved media in expression autocomplete';
+
+  @override
+  String get messagesMediaEditingSectionTitle => 'Message Editing';
+
+  @override
+  String get messagesMediaEditingSectionDescription =>
+      'Control what happens to your edit draft when you cancel.';
+
+  @override
+  String get messagesMediaEditingPreserveDraftLabel =>
+      'Preserve edit draft on cancel';
 }

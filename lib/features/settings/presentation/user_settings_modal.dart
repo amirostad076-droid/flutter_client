@@ -638,7 +638,7 @@ class _MobileSettingsContentBody extends ConsumerWidget {
       case 'Privacy Dashboard':
         return UserPrivacyDashboard(scrollController: scrollController);
       case 'Messages & Media':
-        return const UserMessagesMedia();
+        return UserMessagesMedia(scrollController: scrollController);
       case 'Authorized Apps':
         return UserAuthorizedApps(scrollController: scrollController);
       case 'Blocked Users':
