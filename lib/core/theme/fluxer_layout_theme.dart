@@ -30,6 +30,14 @@ class FluxerLayoutTheme extends ThemeExtension<FluxerLayoutTheme> {
     required this.guildListWidth,
     required this.mobileBottomNavHeight,
     required this.userAreaHeight,
+    required this.switchTrackWidth,
+    required this.switchTrackHeight,
+    required this.switchThumbSize,
+    required this.switchThumbInset,
+    required this.switchIconSize,
+    required this.settingsSwitchRowMinHeight,
+    required this.settingsSwitchGroupedRowMinHeight,
+    required this.touchTargetMin,
   });
 
   factory FluxerLayoutTheme.scaled({double scaleFactor = 1.0}) {
@@ -66,6 +74,14 @@ class FluxerLayoutTheme extends ThemeExtension<FluxerLayoutTheme> {
       guildListWidth: s(72),
       mobileBottomNavHeight: s(60),
       userAreaHeight: s(72),
+      switchTrackWidth: s(44),
+      switchTrackHeight: s(24),
+      switchThumbSize: s(20),
+      switchThumbInset: s(2),
+      switchIconSize: s(12),
+      settingsSwitchRowMinHeight: s(44),
+      settingsSwitchGroupedRowMinHeight: s(68),
+      touchTargetMin: s(44),
     );
   }
 
@@ -103,6 +119,20 @@ class FluxerLayoutTheme extends ThemeExtension<FluxerLayoutTheme> {
   final double guildListWidth;
   final double mobileBottomNavHeight;
   final double userAreaHeight;
+
+  // Switch dimensions
+  final double switchTrackWidth;
+  final double switchTrackHeight;
+  final double switchThumbSize;
+  final double switchThumbInset;
+  final double switchIconSize;
+
+  // Settings switch row dimensions
+  final double settingsSwitchRowMinHeight;
+  final double settingsSwitchGroupedRowMinHeight;
+
+  // Minimum interactive control size
+  final double touchTargetMin;
 
   @override
   FluxerLayoutTheme copyWith({double? scaleFactor}) {

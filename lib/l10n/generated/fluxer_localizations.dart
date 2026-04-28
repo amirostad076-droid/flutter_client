@@ -4396,6 +4396,108 @@ abstract class FluxerLocalizations {
   /// **'When enabled, you can favorite channels and they\'ll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.'**
   String get lookAndFeelEnableFavoritesDescription;
 
+  /// Top-level section title for message display settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get messagesMediaDisplayGroupTitle;
+
+  /// Top-level section description for message display settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how messages, media, and other content are displayed.'**
+  String get messagesMediaDisplayGroupDescription;
+
+  /// Top-level section title for media settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get messagesMediaMediaGroupTitle;
+
+  /// Top-level section description for media settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize media size preferences and buttons.'**
+  String get messagesMediaMediaGroupDescription;
+
+  /// Top-level section title for message input settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Input'**
+  String get messagesMediaInputGroupTitle;
+
+  /// Top-level section description for message input settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize message input settings.'**
+  String get messagesMediaInputGroupDescription;
+
+  /// Top-level section title for sidebar settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidebar'**
+  String get messagesMediaSidebarGroupTitle;
+
+  /// Top-level section description for sidebar settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure how the community sidebar is displayed.'**
+  String get messagesMediaSidebarGroupDescription;
+
+  /// Toggle label for hiding muted channels by default in new communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide muted channels by default'**
+  String get messagesMediaDefaultHideMutedChannelsLabel;
+
+  /// Toggle description for hiding muted channels by default in new communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically hide muted channels in the sidebar when you join new communities'**
+  String get messagesMediaDefaultHideMutedChannelsDescription;
+
+  /// Confirmation title when enabling default hidden muted channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide muted channels by default?'**
+  String get messagesMediaDefaultHideMutedChannelsEnableTitle;
+
+  /// Confirmation description when enabling default hidden muted channels.
+  ///
+  /// In en, this message translates to:
+  /// **'New communities you join will automatically have muted channels hidden. Would you also like to apply this setting to all your existing communities?'**
+  String get messagesMediaDefaultHideMutedChannelsEnableDescription;
+
+  /// Confirmation title when disabling default hidden muted channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop hiding muted channels by default?'**
+  String get messagesMediaDefaultHideMutedChannelsDisableTitle;
+
+  /// Confirmation description when disabling default hidden muted channels.
+  ///
+  /// In en, this message translates to:
+  /// **'New communities you join will no longer have muted channels hidden automatically. Would you also like to show muted channels in all your existing communities?'**
+  String get messagesMediaDefaultHideMutedChannelsDisableDescription;
+
+  /// Primary confirmation action when enabling default hidden muted channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to all communities'**
+  String get messagesMediaDefaultHideMutedChannelsApplyAllAction;
+
+  /// Primary confirmation action when disabling default hidden muted channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in all communities'**
+  String get messagesMediaDefaultHideMutedChannelsShowAllAction;
+
+  /// Secondary confirmation action to only affect new communities.
+  ///
+  /// In en, this message translates to:
+  /// **'New communities only'**
+  String get messagesMediaDefaultHideMutedChannelsNewOnlyAction;
+
   /// Section title for media display settings.
   ///
   /// In en, this message translates to:
@@ -4417,7 +4519,7 @@ abstract class FluxerLocalizations {
   /// Toggle label for inlining media for direct uploads.
   ///
   /// In en, this message translates to:
-  /// **'For files uploaded directly to Fluxer'**
+  /// **'When uploaded directly to Fluxer'**
   String get messagesMediaDisplayInlineAttachmentLabel;
 
   /// Section title for link preview settings.
@@ -4453,7 +4555,7 @@ abstract class FluxerLocalizations {
   /// Toggle label for displaying emoji reactions.
   ///
   /// In en, this message translates to:
-  /// **'Display emoji reactions on messages'**
+  /// **'Show emoji reactions on messages'**
   String get messagesMediaReactionsToggleLabel;
 
   /// Section title for spoiler content settings.

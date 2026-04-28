@@ -47,6 +47,7 @@ class UserSettingsViewState {
   final bool renderEmbeds;
   final bool renderReactions;
   final RenderSpoilers renderSpoilers;
+  final bool defaultHideMutedChannels;
 
   final int publicFlags;
 
@@ -133,6 +134,7 @@ class UserSettingsViewState {
     this.renderEmbeds = true,
     this.renderReactions = true,
     this.renderSpoilers = RenderSpoilers.onClick,
+    this.defaultHideMutedChannels = false,
     this.publicFlags = 0,
     this.bio,
     this.pronouns,
@@ -416,6 +418,7 @@ class UserSettingsViewState {
     bool? renderEmbeds,
     bool? renderReactions,
     RenderSpoilers? renderSpoilers,
+    bool? defaultHideMutedChannels,
     int? publicFlags,
     Object? bio = _unset,
     Object? pronouns = _unset,
@@ -500,6 +503,8 @@ class UserSettingsViewState {
       renderEmbeds: renderEmbeds ?? this.renderEmbeds,
       renderReactions: renderReactions ?? this.renderReactions,
       renderSpoilers: renderSpoilers ?? this.renderSpoilers,
+      defaultHideMutedChannels:
+          defaultHideMutedChannels ?? this.defaultHideMutedChannels,
       publicFlags: publicFlags ?? this.publicFlags,
       bio: bio == _unset ? this.bio : bio as String?,
       pronouns: pronouns == _unset ? this.pronouns : pronouns as String?,
@@ -730,11 +735,12 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         developerMode: developerMode,
         trustedDomains: trustedDomains,
         inlineEmbedMedia: data['inline_embed_media'] as bool? ?? true,
-        inlineAttachmentMedia:
-            data['inline_attachment_media'] as bool? ?? true,
+        inlineAttachmentMedia: data['inline_attachment_media'] as bool? ?? true,
         renderEmbeds: data['render_embeds'] as bool? ?? true,
         renderReactions: data['render_reactions'] as bool? ?? true,
         renderSpoilers: _parseRenderSpoilers(data['render_spoilers']),
+        defaultHideMutedChannels:
+            data['default_hide_muted_channels'] as bool? ?? false,
       );
     });
     ref.onDispose(subscription.cancel);
@@ -1276,7 +1282,7 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
     await _updateTrustedDomains([...current, domain]);
   }
 
-  Future<void> setTrustAllDomains(bool trustAll) async {
+  Future<void> setTrustAllDomains({required bool trustAll}) async {
     await _updateTrustedDomains(trustAll ? const ['*'] : const []);
   }
 
@@ -1356,6 +1362,70 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       state = state.copyWith(renderSpoilers: previous);
       talker.error('Failed to update renderSpoilers', e, st);
       rethrow;
+    }
+  }
+
+  Future<void> setDefaultHideMutedChannels({required bool value}) async {
+    state = state.copyWith(defaultHideMutedChannels: value);
+    try {
+      final client = ref.read(fluxerClientProvider);
+      await client.users.updateCurrentUserSettings(
+        body: UserSettingsUpdateRequest(defaultHideMutedChannels: value),
+      );
+    } on Object catch (e, st) {
+      state = state.copyWith(defaultHideMutedChannels: !value);
+      talker.error('Failed to update defaultHideMutedChannels', e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> applyDefaultHideMutedChannelsToExistingGuilds({
+    required bool value,
+  }) async {
+    final db = ref.read(fluxerDatabaseProvider);
+    final client = ref.read(fluxerClientProvider);
+    final guilds = await db.guildDao.getServers();
+
+    for (final guild in guilds) {
+      final existing = await db.userGuildSettingsDao.getByGuildId(guild.id);
+      final data = existing != null
+          ? jsonDecode(existing.data) as Map<String, dynamic>
+          : <String, dynamic>{};
+      data['hide_muted_channels'] = value;
+
+      await db.userGuildSettingsDao.upsert(
+        UserGuildSettingsTableCompanion(
+          guildId: Value(guild.id),
+          data: Value(jsonEncode(data)),
+        ),
+      );
+
+      unawaited(
+        _updateGuildHideMutedChannels(
+          client: client,
+          guildId: guild.id,
+          value: value,
+        ),
+      );
+    }
+  }
+
+  Future<void> _updateGuildHideMutedChannels({
+    required FluxerClient client,
+    required String guildId,
+    required bool value,
+  }) async {
+    try {
+      await client.users.updateGuildSettingsForUser(
+        guildId: guildId,
+        body: UserGuildSettingsUpdateRequest(hideMutedChannels: value),
+      );
+    } on Object catch (e, st) {
+      talker.error(
+        'Failed to update hideMutedChannels for guild $guildId',
+        e,
+        st,
+      );
     }
   }
 }

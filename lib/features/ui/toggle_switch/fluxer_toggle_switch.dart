@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/features/ui/toggle_switch/fluxer_switch_control.dart';
 
 /// A themed toggle switch with an optional tappable label on the left.
 ///
@@ -34,7 +35,7 @@ class FluxerToggleSwitch extends StatelessWidget {
 
     final hasContent = label != null || description != null || icon != null;
 
-    Widget buildLabelContent(BuildContext context, Set<WidgetState> states) {
+    Widget buildLabelContent(BuildContext context, Set<WidgetState> _) {
       final foreground = enabled ? colors.textPrimary : colors.textTertiary;
 
       return Padding(
@@ -83,21 +84,25 @@ class FluxerToggleSwitch extends StatelessWidget {
         container: true,
         toggled: value,
         enabled: enabled,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (hasContent)
-              Expanded(
-                child: FluxerTappable(
-                  enabled: enabled,
-                  minSize: const Size(44, 44),
-                  onTap: () => onChanged(!value),
-                  semanticLabel: label,
-                  builder: buildLabelContent,
-                ),
-              ),
-            Switch(value: value, onChanged: enabled ? onChanged : null),
-          ],
+        button: true,
+        label: label,
+        child: FluxerTappable(
+          enabled: enabled,
+          minSize: Size(layout.touchTargetMin, layout.touchTargetMin),
+          onTap: () => onChanged(!value),
+          semanticLabel: label,
+          builder: (context, states) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasContent) ...[
+                  Expanded(child: buildLabelContent(context, states)),
+                  SizedBox(width: layout.s4),
+                ],
+                FluxerSwitchControl(value: value, enabled: enabled),
+              ],
+            );
+          },
         ),
       ),
     );

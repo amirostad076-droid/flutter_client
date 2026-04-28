@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/checkbox/fluxer_checkbox.dart';
 import 'package:fluxer_app/features/ui/radio_group/fluxer_radio_group.dart';
+import 'package:fluxer_app/features/ui/toggle_switch/fluxer_switch_control.dart';
 import 'package:fluxer_app/features/ui/toggle_switch/fluxer_toggle_switch.dart';
 
 Widget buildTestApp(Widget child) {
@@ -140,7 +141,7 @@ void main() {
       );
 
       expect(find.text('Enable notifications'), findsOneWidget);
-      expect(find.byType(Switch), findsOneWidget);
+      expect(find.byType(FluxerSwitchControl), findsOneWidget);
 
       // Tap the label to toggle.
       await tester.tap(find.text('Enable notifications'));

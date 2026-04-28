@@ -114,6 +114,9 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     required this.controlButtonDangerHoverBg,
     // Switch
     required this.switchTrackInactive,
+    required this.switchThumb,
+    required this.switchThumbCheckedIcon,
+    required this.switchThumbUncheckedIcon,
     // Menu
     required this.menuDangerText,
     // Content Background
@@ -278,6 +281,9 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
 
   // Switch
   final Color switchTrackInactive;
+  final Color switchThumb;
+  final Color switchThumbCheckedIcon;
+  final Color switchThumbUncheckedIcon;
 
   // Menu
   final Color menuDangerText;
@@ -438,6 +444,9 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
     Color? controlButtonDangerHoverBg,
     // Switch
     Color? switchTrackInactive,
+    Color? switchThumb,
+    Color? switchThumbCheckedIcon,
+    Color? switchThumbUncheckedIcon,
     // Menu
     Color? menuDangerText,
     // Content Background
@@ -621,6 +630,11 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
           controlButtonDangerHoverBg ?? this.controlButtonDangerHoverBg,
       // Switch
       switchTrackInactive: switchTrackInactive ?? this.switchTrackInactive,
+      switchThumb: switchThumb ?? this.switchThumb,
+      switchThumbCheckedIcon:
+          switchThumbCheckedIcon ?? this.switchThumbCheckedIcon,
+      switchThumbUncheckedIcon:
+          switchThumbUncheckedIcon ?? this.switchThumbUncheckedIcon,
       // Menu
       menuDangerText: menuDangerText ?? this.menuDangerText,
       // Content Background
@@ -1051,6 +1065,17 @@ class FluxerColorTheme extends ThemeExtension<FluxerColorTheme> {
       switchTrackInactive: Color.lerp(
         switchTrackInactive,
         other.switchTrackInactive,
+        t,
+      )!,
+      switchThumb: Color.lerp(switchThumb, other.switchThumb, t)!,
+      switchThumbCheckedIcon: Color.lerp(
+        switchThumbCheckedIcon,
+        other.switchThumbCheckedIcon,
+        t,
+      )!,
+      switchThumbUncheckedIcon: Color.lerp(
+        switchThumbUncheckedIcon,
+        other.switchThumbUncheckedIcon,
         t,
       )!,
       // Menu

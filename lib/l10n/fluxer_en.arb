@@ -3124,6 +3124,75 @@
     "description": "Toggle description for the Enable Favorites switch."
   },
 
+  "messagesMediaDisplayGroupTitle": "Display",
+  "@messagesMediaDisplayGroupTitle": {
+    "description": "Top-level section title for message display settings."
+  },
+  "messagesMediaDisplayGroupDescription": "Control how messages, media, and other content are displayed.",
+  "@messagesMediaDisplayGroupDescription": {
+    "description": "Top-level section description for message display settings."
+  },
+  "messagesMediaMediaGroupTitle": "Media",
+  "@messagesMediaMediaGroupTitle": {
+    "description": "Top-level section title for media settings."
+  },
+  "messagesMediaMediaGroupDescription": "Customize media size preferences and buttons.",
+  "@messagesMediaMediaGroupDescription": {
+    "description": "Top-level section description for media settings."
+  },
+  "messagesMediaInputGroupTitle": "Input",
+  "@messagesMediaInputGroupTitle": {
+    "description": "Top-level section title for message input settings."
+  },
+  "messagesMediaInputGroupDescription": "Customize message input settings.",
+  "@messagesMediaInputGroupDescription": {
+    "description": "Top-level section description for message input settings."
+  },
+  "messagesMediaSidebarGroupTitle": "Sidebar",
+  "@messagesMediaSidebarGroupTitle": {
+    "description": "Top-level section title for sidebar settings."
+  },
+  "messagesMediaSidebarGroupDescription": "Configure how the community sidebar is displayed.",
+  "@messagesMediaSidebarGroupDescription": {
+    "description": "Top-level section description for sidebar settings."
+  },
+  "messagesMediaDefaultHideMutedChannelsLabel": "Hide muted channels by default",
+  "@messagesMediaDefaultHideMutedChannelsLabel": {
+    "description": "Toggle label for hiding muted channels by default in new communities."
+  },
+  "messagesMediaDefaultHideMutedChannelsDescription": "Automatically hide muted channels in the sidebar when you join new communities",
+  "@messagesMediaDefaultHideMutedChannelsDescription": {
+    "description": "Toggle description for hiding muted channels by default in new communities."
+  },
+  "messagesMediaDefaultHideMutedChannelsEnableTitle": "Hide muted channels by default?",
+  "@messagesMediaDefaultHideMutedChannelsEnableTitle": {
+    "description": "Confirmation title when enabling default hidden muted channels."
+  },
+  "messagesMediaDefaultHideMutedChannelsEnableDescription": "New communities you join will automatically have muted channels hidden. Would you also like to apply this setting to all your existing communities?",
+  "@messagesMediaDefaultHideMutedChannelsEnableDescription": {
+    "description": "Confirmation description when enabling default hidden muted channels."
+  },
+  "messagesMediaDefaultHideMutedChannelsDisableTitle": "Stop hiding muted channels by default?",
+  "@messagesMediaDefaultHideMutedChannelsDisableTitle": {
+    "description": "Confirmation title when disabling default hidden muted channels."
+  },
+  "messagesMediaDefaultHideMutedChannelsDisableDescription": "New communities you join will no longer have muted channels hidden automatically. Would you also like to show muted channels in all your existing communities?",
+  "@messagesMediaDefaultHideMutedChannelsDisableDescription": {
+    "description": "Confirmation description when disabling default hidden muted channels."
+  },
+  "messagesMediaDefaultHideMutedChannelsApplyAllAction": "Apply to all communities",
+  "@messagesMediaDefaultHideMutedChannelsApplyAllAction": {
+    "description": "Primary confirmation action when enabling default hidden muted channels."
+  },
+  "messagesMediaDefaultHideMutedChannelsShowAllAction": "Show in all communities",
+  "@messagesMediaDefaultHideMutedChannelsShowAllAction": {
+    "description": "Primary confirmation action when disabling default hidden muted channels."
+  },
+  "messagesMediaDefaultHideMutedChannelsNewOnlyAction": "New communities only",
+  "@messagesMediaDefaultHideMutedChannelsNewOnlyAction": {
+    "description": "Secondary confirmation action to only affect new communities."
+  },
+
   "messagesMediaDisplaySectionTitle": "Media Display",
   "@messagesMediaDisplaySectionTitle": {
     "description": "Section title for media display settings."
@@ -3136,7 +3205,7 @@
   "@messagesMediaDisplayInlineEmbedLabel": {
     "description": "Toggle label for inlining media when posted as links."
   },
-  "messagesMediaDisplayInlineAttachmentLabel": "For files uploaded directly to Fluxer",
+  "messagesMediaDisplayInlineAttachmentLabel": "When uploaded directly to Fluxer",
   "@messagesMediaDisplayInlineAttachmentLabel": {
     "description": "Toggle label for inlining media for direct uploads."
   },
@@ -3160,7 +3229,7 @@
   "@messagesMediaReactionsSectionDescription": {
     "description": "Section description for reactions settings."
   },
-  "messagesMediaReactionsToggleLabel": "Display emoji reactions on messages",
+  "messagesMediaReactionsToggleLabel": "Show emoji reactions on messages",
   "@messagesMediaReactionsToggleLabel": {
     "description": "Toggle label for displaying emoji reactions."
   },

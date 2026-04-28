@@ -9,7 +9,7 @@ enum MediaDimensionSize { small, large }
 
 class ChatPreferencesState {
   const ChatPreferencesState({
-    this.embedMediaDimensionSize = MediaDimensionSize.large,
+    this.embedMediaDimensionSize = MediaDimensionSize.small,
     this.attachmentMediaDimensionSize = MediaDimensionSize.large,
     this.autoSendKlipyGifs = false,
     this.showDefaultEmojisInExpressionAutocomplete = true,
@@ -76,7 +76,7 @@ class ChatPreferences extends _$ChatPreferences {
       state = ChatPreferencesState(
         embedMediaDimensionSize: MediaDimensionSize.values.firstWhere(
           (m) => m.name == prefs.embedMediaDimensionSize,
-          orElse: () => MediaDimensionSize.large,
+          orElse: () => MediaDimensionSize.small,
         ),
         attachmentMediaDimensionSize: MediaDimensionSize.values.firstWhere(
           (m) => m.name == prefs.attachmentMediaDimensionSize,

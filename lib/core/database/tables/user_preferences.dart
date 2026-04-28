@@ -22,7 +22,7 @@ class UserPreferencesTable extends Table {
   BoolColumn get hideKeyboardHints =>
       boolean().withDefault(const Constant(false))();
   TextColumn get embedMediaDimensionSize =>
-      text().withDefault(const Constant('large'))();
+      text().withDefault(const Constant('small'))();
   TextColumn get attachmentMediaDimensionSize =>
       text().withDefault(const Constant('large'))();
   BoolColumn get autoSendKlipyGifs =>

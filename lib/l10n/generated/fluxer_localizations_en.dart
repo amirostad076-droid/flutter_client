@@ -2568,6 +2568,70 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'When enabled, you can favorite channels and they\'ll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.';
 
   @override
+  String get messagesMediaDisplayGroupTitle => 'Display';
+
+  @override
+  String get messagesMediaDisplayGroupDescription =>
+      'Control how messages, media, and other content are displayed.';
+
+  @override
+  String get messagesMediaMediaGroupTitle => 'Media';
+
+  @override
+  String get messagesMediaMediaGroupDescription =>
+      'Customize media size preferences and buttons.';
+
+  @override
+  String get messagesMediaInputGroupTitle => 'Input';
+
+  @override
+  String get messagesMediaInputGroupDescription =>
+      'Customize message input settings.';
+
+  @override
+  String get messagesMediaSidebarGroupTitle => 'Sidebar';
+
+  @override
+  String get messagesMediaSidebarGroupDescription =>
+      'Configure how the community sidebar is displayed.';
+
+  @override
+  String get messagesMediaDefaultHideMutedChannelsLabel =>
+      'Hide muted channels by default';
+
+  @override
+  String get messagesMediaDefaultHideMutedChannelsDescription =>
+      'Automatically hide muted channels in the sidebar when you join new communities';
+
+  @override
+  String get messagesMediaDefaultHideMutedChannelsEnableTitle =>
+      'Hide muted channels by default?';
+
+  @override
+  String get messagesMediaDefaultHideMutedChannelsEnableDescription =>
+      'New communities you join will automatically have muted channels hidden. Would you also like to apply this setting to all your existing communities?';
+
+  @override
+  String get messagesMediaDefaultHideMutedChannelsDisableTitle =>
+      'Stop hiding muted channels by default?';
+
+  @override
+  String get messagesMediaDefaultHideMutedChannelsDisableDescription =>
+      'New communities you join will no longer have muted channels hidden automatically. Would you also like to show muted channels in all your existing communities?';
+
+  @override
+  String get messagesMediaDefaultHideMutedChannelsApplyAllAction =>
+      'Apply to all communities';
+
+  @override
+  String get messagesMediaDefaultHideMutedChannelsShowAllAction =>
+      'Show in all communities';
+
+  @override
+  String get messagesMediaDefaultHideMutedChannelsNewOnlyAction =>
+      'New communities only';
+
+  @override
   String get messagesMediaDisplaySectionTitle => 'Media Display';
 
   @override
@@ -2580,7 +2644,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get messagesMediaDisplayInlineAttachmentLabel =>
-      'For files uploaded directly to Fluxer';
+      'When uploaded directly to Fluxer';
 
   @override
   String get messagesMediaLinkPreviewsSectionTitle => 'Link Previews';
@@ -2602,7 +2666,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get messagesMediaReactionsToggleLabel =>
-      'Display emoji reactions on messages';
+      'Show emoji reactions on messages';
 
   @override
   String get messagesMediaSpoilersSectionTitle => 'Spoiler Content';

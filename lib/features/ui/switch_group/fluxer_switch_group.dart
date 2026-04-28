@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/features/ui/toggle_switch/fluxer_switch_control.dart';
 
 class FluxerSwitchGroup extends StatelessWidget {
   const FluxerSwitchGroup({required this.children, super.key});
@@ -110,7 +111,7 @@ class FluxerSwitchGroupItem extends StatelessWidget {
                 ),
               ),
               SizedBox(width: layout.s4),
-              Switch(value: value, onChanged: enabled ? onChanged : null),
+              FluxerSwitchControl(value: value, enabled: enabled),
             ],
           ),
         );
@@ -176,10 +177,136 @@ class FluxerSwitchGroupCustomItem extends StatelessWidget {
               extraContent!,
               SizedBox(width: layout.s2),
             ],
-            Switch(value: value, onChanged: enabled ? onChanged : null),
+            FluxerTappable(
+              enabled: enabled,
+              minSize: Size(layout.touchTargetMin, layout.touchTargetMin),
+              onTap: () => onChanged(!value),
+              semanticLabel: label,
+              builder: (context, states) =>
+                  FluxerSwitchControl(value: value, enabled: enabled),
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class FluxerSettingsSwitchGroup extends StatelessWidget {
+  const FluxerSettingsSwitchGroup({required this.children, super.key});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    if (children.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(mainAxisSize: MainAxisSize.min, children: children);
+  }
+}
+
+class FluxerSettingsSwitchItem extends StatelessWidget {
+  const FluxerSettingsSwitchItem({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.description,
+    this.enabled = true,
+    this.shortcut,
+    super.key,
+  }) : grouped = false;
+
+  const FluxerSettingsSwitchItem.grouped({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.description,
+    this.enabled = true,
+    this.shortcut,
+    super.key,
+  }) : grouped = true;
+
+  final String label;
+  final String? description;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final bool enabled;
+  final Widget? shortcut;
+  final bool grouped;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+    final layout = context.layout;
+    final minHeight = grouped
+        ? layout.settingsSwitchGroupedRowMinHeight
+        : layout.settingsSwitchRowMinHeight;
+
+    return FluxerTappable(
+      enabled: enabled,
+      minSize: Size(layout.touchTargetMin, minHeight),
+      onTap: () => onChanged(!value),
+      semanticLabel: label,
+      builder: (context, states) {
+        final isPressed = states.contains(WidgetState.pressed);
+
+        return AnimatedContainer(
+          duration: context.motion.fast,
+          curve: context.motion.curve,
+          color: isPressed
+              ? colors.backgroundModifierHover.withValues(alpha: 0.45)
+              : Colors.transparent,
+          constraints: BoxConstraints(minHeight: minHeight),
+          padding: EdgeInsets.symmetric(vertical: layout.s1),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            label,
+                            style: textStyles.bodySmall.copyWith(
+                              color: enabled
+                                  ? colors.textPrimary
+                                  : colors.textTertiary,
+                              fontWeight: FontWeight.w500,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                        if (shortcut != null) ...[
+                          SizedBox(width: layout.s2),
+                          shortcut!,
+                        ],
+                      ],
+                    ),
+                    if (description != null) ...[
+                      SizedBox(height: layout.s1),
+                      Text(
+                        description!,
+                        style: textStyles.bodySmall.copyWith(
+                          color: colors.textPrimaryMuted,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              SizedBox(width: layout.s4),
+              FluxerSwitchControl(value: value, enabled: enabled),
+            ],
+          ),
+        );
+      },
     );
   }
 }

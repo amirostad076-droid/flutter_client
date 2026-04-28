@@ -279,7 +279,7 @@ ThemeData buildFluxerTheme({
     // Switches — web: brand-primary when on, rgb(107,114,128) when off,
     // white thumb in both states.
     switchTheme: SwitchThemeData(
-      thumbColor: WidgetStateProperty.all(Colors.white),
+      thumbColor: WidgetStateProperty.all(colorTheme.switchThumb),
       trackColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return colorTheme.brandPrimary;

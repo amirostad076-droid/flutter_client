@@ -53,5 +53,6 @@ export 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
 export 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 export 'package:fluxer_app/features/ui/toast/fluxer_toast_overlay.dart';
 export 'package:fluxer_app/features/ui/toast/toast_provider.dart';
+export 'package:fluxer_app/features/ui/toggle_switch/fluxer_switch_control.dart';
 export 'package:fluxer_app/features/ui/toggle_switch/fluxer_toggle_switch.dart';
 export 'package:fluxer_app/features/ui/tooltip/fluxer_tooltip.dart';

@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/features/ui/toggle_switch/fluxer_switch_control.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class FluxerSettingsHeader extends StatelessWidget {
@@ -332,10 +333,10 @@ Widget fluxerSettingsHeaderPreview() {
 Widget fluxerSettingsGroupPreview() {
   return FluxerSettingsGroup(
     children: [
-      FluxerSettingsRow(
+      const FluxerSettingsRow(
         title: 'Push notifications',
         description: 'Alerts on this device.',
-        trailing: Switch(value: true, onChanged: (_) {}),
+        trailing: FluxerSwitchControl(value: true),
       ),
       FluxerSettingsRow(
         title: 'Email digest',

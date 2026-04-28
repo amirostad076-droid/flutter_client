@@ -391,6 +391,9 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
 
     // Switch
     switchTrackInactive: toneDirect(hue: 220, saturation: 9, lightness: 46),
+    switchThumb: Colors.white,
+    switchThumbCheckedIcon: brandPrimary,
+    switchThumbUncheckedIcon: darkText['textTertiary']!,
 
     // Menu
     menuDangerText: toneDirect(hue: 350, saturation: 90, lightness: 65),

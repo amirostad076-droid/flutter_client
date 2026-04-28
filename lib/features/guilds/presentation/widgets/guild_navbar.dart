@@ -3663,37 +3663,11 @@ class _PrivacySwitchRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-    final textStyles = context.textStyles;
-
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () => onChanged(!value),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: textStyles.username.copyWith(
-                    color: colors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  description,
-                  style: textStyles.bodySmall.copyWith(
-                    color: colors.textTertiary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Switch(value: value, onChanged: onChanged),
-      ],
+    return FluxerToggleSwitch(
+      label: label,
+      description: description,
+      value: value,
+      onChanged: onChanged,
     );
   }
 }
