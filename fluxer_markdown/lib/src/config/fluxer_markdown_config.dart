@@ -75,6 +75,7 @@ class FluxerMarkdownConfig {
     this.blockquoteTextColor,
     this.inlineCodeBackgroundColor,
     this.inlineCodeTextColor,
+    this.spoilerBackgroundColor,
     this.internalLinkPattern,
     this.userMentionBuilder,
     this.channelMentionBuilder,
@@ -97,6 +98,7 @@ class FluxerMarkdownConfig {
   final Color? blockquoteTextColor;
   final Color? inlineCodeBackgroundColor;
   final Color? inlineCodeTextColor;
+  final Color? spoilerBackgroundColor;
   final RegExp? internalLinkPattern;
   final FluxerMentionBuilder? userMentionBuilder;
   final FluxerMentionBuilder? channelMentionBuilder;

@@ -439,7 +439,7 @@ FluxerColorTheme buildCoalColorTheme({double saturationFactor = 1.0}) {
     embedBackground: backgroundSecondaryAlt,
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,
-    spoilerBackground: toneDirect(hue: 220, saturation: 13, lightness: 8),
+    spoilerBackground: const Color(0x33000000),
     spoilerOverlayHoverColor: const Color(0x4D000000),
     focusPrimary: const Color(0xFF00B0F4),
     interactiveActive: toneDirect(

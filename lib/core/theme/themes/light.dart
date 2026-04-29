@@ -444,7 +444,7 @@ FluxerColorTheme buildLightColorTheme({double saturationFactor = 1.0}) {
     embedBackground: backgroundSecondaryAlt,
     embedBorder: borderColorVal,
     mentionBackground: backgroundModifierAccentVal,
-    spoilerBackground: toneDirect(hue: 220, saturation: 10, lightness: 85),
+    spoilerBackground: const Color(0x1A000000),
     spoilerOverlayHoverColor: const Color(0x26000000),
     focusPrimary: const Color(0xFF00B0F4),
     interactiveActive: toneDirect(

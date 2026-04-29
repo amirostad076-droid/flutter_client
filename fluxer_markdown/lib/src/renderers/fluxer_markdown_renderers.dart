@@ -484,6 +484,7 @@ class _MarkdownInlineRenderer {
           alignment: PlaceholderAlignment.middle,
           child: _FluxerSpoilerSpan(
             initiallyRevealed: config.spoilersInitiallyRevealed,
+            spoilerBackgroundColor: config.spoilerBackgroundColor,
             spoilerSyncController: config.spoilerSyncController,
             syncKeys: _collectSpoilerSyncKeys(
               node,
@@ -697,11 +698,13 @@ class _FluxerSpoilerSpan extends StatefulWidget {
     required this.child,
     required this.initiallyRevealed,
     required this.syncKeys,
+    this.spoilerBackgroundColor,
     this.spoilerSyncController,
   });
 
   final Widget child;
   final bool initiallyRevealed;
+  final Color? spoilerBackgroundColor;
   final FluxerSpoilerSyncController? spoilerSyncController;
   final List<String> syncKeys;
 
@@ -784,7 +787,9 @@ class _FluxerSpoilerSpanState extends State<_FluxerSpoilerSpan>
 
   @override
   Widget build(BuildContext context) {
-    final fill = Theme.of(context).colorScheme.outlineVariant;
+    final fill =
+        widget.spoilerBackgroundColor ??
+        Theme.of(context).colorScheme.outlineVariant;
     return GestureDetector(
       onTap: _reveal,
       child: ClipRRect(

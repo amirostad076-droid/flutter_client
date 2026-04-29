@@ -42,6 +42,7 @@ FluxerMarkdownConfig createFluxerMarkdownConfig({
     blockquoteTextColor: context?.colors.textSecondary,
     inlineCodeBackgroundColor: context?.colors.bgCodeBlock,
     inlineCodeTextColor: context?.colors.textSecondary,
+    spoilerBackgroundColor: context?.colors.spoilerBackground,
     internalLinkPattern: _internalLinkPattern,
     userMentionBuilder: (context, id, style) {
       return UserMention(userId: id, channelId: channelId, baseStyle: style);
