@@ -149,29 +149,61 @@ class GuildSidebar extends ConsumerWidget {
     List<ChannelCategory> categories,
     String? selectedId,
     Set<String> collapsed,
-  ) => ListView.builder(
-    padding: const EdgeInsets.only(top: 12),
-    itemCount: categories.length,
-    itemBuilder: (context, index) {
-      final category = categories[index];
-      final isCollapsed = collapsed.contains(category.id);
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildCategoryHeader(context, ref, category, isCollapsed),
-          if (!isCollapsed)
-            ...category.channels.map(
-              (channel) => _buildChannelTile(
-                context,
-                ref,
-                channel,
-                channel.id == selectedId,
+  ) {
+    final guildId = ref.watch(activeGuildIdProvider);
+    final muteState = guildId != null
+        ? ref.watch(guildMuteProvider(guildId)).value
+        : null;
+    final hideMutedChannels = muteState?.hideMutedChannels ?? false;
+    final guildMuted = muteState?.isMuted ?? false;
+    final mutedSet = guildId != null
+        ? ref.watch(mutedChannelIdsProvider(guildId)).value ?? const <String>{}
+        : const <String>{};
+    final visibleCategories = hideMutedChannels
+        ? categories
+              .map(
+                (category) => ChannelCategory(
+                  id: category.id,
+                  name: category.name,
+                  channels: category.channels
+                      .where(
+                        (channel) =>
+                            channel.id == selectedId ||
+                            !_isChannelMuted(channel, mutedSet, guildMuted),
+                      )
+                      .toList(),
+                ),
+              )
+              .where((category) => category.channels.isNotEmpty)
+              .toList()
+        : categories;
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 12),
+      itemCount: visibleCategories.length,
+      itemBuilder: (context, index) {
+        final category = visibleCategories[index];
+        final isCollapsed = collapsed.contains(category.id);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildCategoryHeader(context, ref, category, isCollapsed),
+            if (!isCollapsed)
+              ...category.channels.map(
+                (channel) => _buildChannelTile(
+                  context,
+                  ref,
+                  channel,
+                  channel.id == selectedId,
+                  mutedSet: mutedSet,
+                  guildMuted: guildMuted,
+                ),
               ),
-            ),
-        ],
-      );
-    },
-  );
+          ],
+        );
+      },
+    );
+  }
 
   Widget _buildCategoryHeader(
     BuildContext context,
@@ -210,24 +242,31 @@ class GuildSidebar extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     Channel channel,
-    bool isSelected,
-  ) {
+    bool isSelected, {
+    Set<String>? mutedSet,
+    bool? guildMuted,
+  }) {
     final unreadAsync = ref.watch(channelUnreadProvider(channel.id));
     final unread = unreadAsync.value;
     final hasUnread = unread?.hasUnread ?? false;
     final mentionCount = unread?.mentionCount ?? 0;
     final currentUserId = ref.watch(currentUserIdProvider);
     final guildId = ref.watch(activeGuildIdProvider);
-    final mutedSet = guildId != null
-        ? ref.watch(mutedChannelIdsProvider(guildId)).value ?? const <String>{}
-        : const <String>{};
-    final guildMuted =
-        guildId != null &&
-        (ref.watch(guildMuteProvider(guildId)).value?.isMuted ?? false);
-    final isMuted =
-        guildMuted ||
-        mutedSet.contains(channel.id) ||
-        (channel.parentId != null && mutedSet.contains(channel.parentId));
+    final effectiveMutedSet =
+        mutedSet ??
+        (guildId != null
+            ? ref.watch(mutedChannelIdsProvider(guildId)).value ??
+                  const <String>{}
+            : const <String>{});
+    final effectiveGuildMuted =
+        guildMuted ??
+        (guildId != null &&
+            (ref.watch(guildMuteProvider(guildId)).value?.isMuted ?? false));
+    final isMuted = _isChannelMuted(
+      channel,
+      effectiveMutedSet,
+      effectiveGuildMuted,
+    );
     final showFadedUnread = ref.watch(
       appearancePreferencesProvider.select(
         (s) => s.showFadedUnreadOnMutedChannels,
@@ -271,7 +310,10 @@ class GuildSidebar extends ConsumerWidget {
               RoutePaths.guildChannel(guildId, channel.id),
             );
           }
-          OverlappingPanels.of(context)?.moveToState(RevealSide.main);
+          unawaited(
+            OverlappingPanels.of(context)?.moveToState(RevealSide.main) ??
+                Future<void>.value(),
+          );
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
@@ -315,4 +357,10 @@ class GuildSidebar extends ConsumerWidget {
       ),
     );
   }
+}
+
+bool _isChannelMuted(Channel channel, Set<String> mutedSet, bool guildMuted) {
+  return guildMuted ||
+      mutedSet.contains(channel.id) ||
+      (channel.parentId != null && mutedSet.contains(channel.parentId));
 }
