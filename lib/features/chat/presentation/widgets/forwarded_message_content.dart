@@ -7,13 +7,17 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachment_file_label.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachment_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_link.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_rich.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_video.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
+import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -21,14 +25,27 @@ class ForwardedMessageContent extends ConsumerWidget {
   const ForwardedMessageContent({
     required this.message,
     required this.snapshot,
+    required this.renderEmbeds,
+    required this.inlineAttachmentMedia,
+    required this.revealSpoilers,
+    required this.chatPreferences,
     super.key,
   });
 
   final Message message;
   final MessageSnapshot snapshot;
+  final bool renderEmbeds;
+  final bool inlineAttachmentMedia;
+  final bool revealSpoilers;
+  final ChatPreferencesState chatPreferences;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final spoileredUrls = extractSpoileredUrls(snapshot.content);
+    final attachmentSize = snapshot.hasCompactAttachments
+        ? MediaDimensionSize.small
+        : chatPreferences.attachmentMediaDimensionSize;
+
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: IntrinsicHeight(
@@ -60,22 +77,33 @@ class ForwardedMessageContent extends ConsumerWidget {
                             fontSize: 13,
                             color: context.colors.textChat,
                           ),
+                          revealSpoilers: revealSpoilers,
                         ),
                       ),
                     ...snapshot.attachments.map(
                       (attachment) => Padding(
                         padding: const EdgeInsets.only(top: 4),
-                        child: attachment.isImage
-                            ? AttachmentImage(attachment: attachment)
-                            : _ForwardedAttachmentLabel(attachment: attachment),
+                        child: _ForwardedAttachment(
+                          attachment: attachment,
+                          inlineAttachmentMedia: inlineAttachmentMedia,
+                          dimensionSize: attachmentSize,
+                          revealSpoilers: revealSpoilers,
+                        ),
                       ),
                     ),
-                    ...snapshot.embeds.map(
-                      (embed) => Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: _ForwardedEmbed(embed: embed),
+                    if (renderEmbeds)
+                      ...snapshot.embeds.map(
+                        (embed) => Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: _ForwardedEmbed(
+                            embed: embed,
+                            dimensionSize:
+                                chatPreferences.embedMediaDimensionSize,
+                            revealSpoilers: revealSpoilers,
+                            isSpoiler: isEmbedSpoilered(embed, spoileredUrls),
+                          ),
+                        ),
                       ),
-                    ),
                     if (message.messageReference != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
@@ -121,33 +149,82 @@ class _ForwardedHeader extends StatelessWidget {
   }
 }
 
-class _ForwardedEmbed extends StatelessWidget {
-  const _ForwardedEmbed({required this.embed});
+class _ForwardedAttachment extends StatelessWidget {
+  const _ForwardedAttachment({
+    required this.attachment,
+    required this.inlineAttachmentMedia,
+    required this.dimensionSize,
+    required this.revealSpoilers,
+  });
 
-  final Embed embed;
+  final Attachment attachment;
+  final bool inlineAttachmentMedia;
+  final MediaDimensionSize dimensionSize;
+  final bool revealSpoilers;
 
   @override
   Widget build(BuildContext context) {
-    return switch (embed.type) {
-      EmbedType.rich => EmbedRich(embed: embed),
-      EmbedType.image || EmbedType.gifv => EmbedImage(embed: embed),
-      EmbedType.link => EmbedLink(embed: embed),
-      EmbedType.video => EmbedVideo(embed: embed),
-    };
+    if (attachment.isImage &&
+        inlineAttachmentMedia &&
+        attachment.url.isNotEmpty) {
+      return AttachmentImage(
+        attachment: attachment,
+        dimensionSize: dimensionSize,
+        revealSpoiler: revealSpoilers,
+      );
+    }
+
+    return SpoilerOverlay(
+      isSpoiler: attachment.isSpoiler,
+      initiallyRevealed: revealSpoilers,
+      child: AttachmentFileLabel(attachment: attachment),
+    );
   }
 }
 
-class _ForwardedAttachmentLabel extends StatelessWidget {
-  const _ForwardedAttachmentLabel({required this.attachment});
+class _ForwardedEmbed extends StatelessWidget {
+  const _ForwardedEmbed({
+    required this.embed,
+    required this.dimensionSize,
+    required this.revealSpoilers,
+    required this.isSpoiler,
+  });
 
-  final Attachment attachment;
+  final Embed embed;
+  final MediaDimensionSize dimensionSize;
+  final bool revealSpoilers;
+  final bool isSpoiler;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      attachment.filename,
-      style: TextStyle(fontSize: 13, color: context.colors.textPrimaryMuted),
-      overflow: TextOverflow.ellipsis,
+    final child = switch (embed.type) {
+      EmbedType.rich => EmbedRich(
+        embed: embed,
+        dimensionSize: dimensionSize,
+        revealSpoilers: revealSpoilers,
+      ),
+      EmbedType.image || EmbedType.gifv => EmbedImage(
+        embed: embed,
+        dimensionSize: dimensionSize,
+        isSpoiler: isSpoiler,
+        revealSpoiler: revealSpoilers,
+      ),
+      EmbedType.link => EmbedLink(
+        embed: embed,
+        dimensionSize: dimensionSize,
+        revealSpoilers: revealSpoilers,
+      ),
+      EmbedType.video => EmbedVideo(embed: embed, dimensionSize: dimensionSize),
+    };
+
+    if (embed.type == EmbedType.image || embed.type == EmbedType.gifv) {
+      return child;
+    }
+
+    return SpoilerOverlay(
+      isSpoiler: isSpoiler,
+      initiallyRevealed: revealSpoilers,
+      child: child,
     );
   }
 }

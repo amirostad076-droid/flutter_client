@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_shared.dart';
+import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
+import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:media_kit/media_kit.dart';
@@ -14,8 +16,13 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 /// A video embed
 class EmbedVideo extends StatelessWidget {
   final Embed embed;
+  final MediaDimensionSize dimensionSize;
 
-  const EmbedVideo({required this.embed, super.key});
+  const EmbedVideo({
+    required this.embed,
+    this.dimensionSize = MediaDimensionSize.small,
+    super.key,
+  });
 
   bool get _hasHeader =>
       embed.providerName != null || embed.author != null || embed.title != null;
@@ -26,9 +33,11 @@ class EmbedVideo extends StatelessWidget {
         ? Color(0xFF000000 | (embed.color! & 0xFFFFFF))
         : context.colors.backgroundSecondaryAlt;
 
+    final dimensions = mediaDimensionsForSize(dimensionSize);
+
     return Container(
       margin: const EdgeInsets.only(top: 4),
-      constraints: const BoxConstraints(maxWidth: 440),
+      constraints: BoxConstraints(maxWidth: dimensions.maxWidth),
       decoration: BoxDecoration(
         color: context.colors.embedBackground,
         border: Border(left: BorderSide(color: sideColor, width: 4)),

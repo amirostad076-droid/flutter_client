@@ -4,13 +4,22 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_shared.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
+import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
+import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 
 /// A link preview card.
 class EmbedLink extends StatelessWidget {
   final Embed embed;
+  final MediaDimensionSize dimensionSize;
+  final bool revealSpoilers;
 
-  const EmbedLink({required this.embed, super.key});
+  const EmbedLink({
+    required this.embed,
+    this.dimensionSize = MediaDimensionSize.small,
+    this.revealSpoilers = false,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +27,11 @@ class EmbedLink extends StatelessWidget {
         ? Color(0xFF000000 | (embed.color! & 0xFFFFFF))
         : context.colors.backgroundSecondaryAlt;
 
+    final dimensions = mediaDimensionsForSize(dimensionSize);
+
     return Container(
       margin: const EdgeInsets.only(top: 4),
-      constraints: const BoxConstraints(maxWidth: 440),
+      constraints: BoxConstraints(maxWidth: dimensions.maxWidth),
       decoration: BoxDecoration(
         color: context.colors.embedBackground,
         border: Border(left: BorderSide(color: sideColor, width: 4)),
@@ -57,6 +68,7 @@ class EmbedLink extends StatelessWidget {
                   baseStyle: context.textStyles.embedDescription,
                   markdownContext:
                       FluxerMarkdownContext.restrictedEmbedDescription,
+                  revealSpoilers: revealSpoilers,
                 ),
               ),
             if (embed.thumbnail != null)

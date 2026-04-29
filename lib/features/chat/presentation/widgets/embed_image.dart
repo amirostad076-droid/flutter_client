@@ -3,12 +3,24 @@ import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
+import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
+import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 
 /// An inline image / gifv embed
 class EmbedImage extends StatelessWidget {
   final Embed embed;
+  final MediaDimensionSize dimensionSize;
+  final bool isSpoiler;
+  final bool revealSpoiler;
 
-  const EmbedImage({required this.embed, super.key});
+  const EmbedImage({
+    required this.embed,
+    this.dimensionSize = MediaDimensionSize.small,
+    this.isSpoiler = false,
+    this.revealSpoiler = false,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,30 +29,34 @@ class EmbedImage extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    const maxW = 400.0;
-    final w = media.width?.toDouble();
-    final h = media.height?.toDouble();
-    double? displayW;
-    double? displayH;
-    if (w != null && h != null && w > 0) {
-      displayW = w.clamp(0, maxW);
-      displayH = h * (displayW / w);
-    }
+    final dimensions = mediaDimensionsForSize(dimensionSize);
+    final displaySize = constrainMediaSize(
+      dimensions: dimensions,
+      width: media.width,
+      height: media.height,
+    );
 
     return Container(
       margin: const EdgeInsets.only(top: 4),
-      constraints: const BoxConstraints(maxWidth: maxW),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: CachedNetworkImage(
-          imageUrl: media.proxyUrl ?? media.url,
-          width: displayW,
-          height: displayH,
-          fit: BoxFit.cover,
-          errorBuilder: (_, e, s) => Container(
-            width: displayW ?? maxW,
-            height: displayH ?? 200,
-            color: context.colors.backgroundSecondaryAlt,
+      constraints: BoxConstraints(
+        maxWidth: dimensions.maxWidth,
+        maxHeight: dimensions.maxHeight,
+      ),
+      child: SpoilerOverlay(
+        isSpoiler: isSpoiler,
+        initiallyRevealed: revealSpoiler,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: CachedNetworkImage(
+            imageUrl: media.proxyUrl ?? media.url,
+            width: displaySize?.width,
+            height: displaySize?.height,
+            fit: BoxFit.cover,
+            errorBuilder: (_, e, s) => Container(
+              width: displaySize?.width ?? dimensions.maxWidth,
+              height: displaySize?.height ?? 200,
+              color: context.colors.backgroundSecondaryAlt,
+            ),
           ),
         ),
       ),

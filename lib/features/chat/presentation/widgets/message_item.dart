@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachment_file_label.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachment_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_invite.dart';
@@ -24,11 +25,17 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_context_menu.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/swipe_to_reply.dart';
+import 'package:fluxer_app/features/chat/providers/spoiler_reveal_provider.dart';
+import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Mention highlight color matching web app's
@@ -207,6 +214,25 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     final isTouch =
         layoutModeOf(MediaQuery.sizeOf(context).width) != LayoutMode.desktop;
     final guildId = ref.watch(activeGuildIdProvider);
+    final renderEmbeds = ref.watch(
+      userSettingsViewModelProvider.select((s) => s.renderEmbeds),
+    );
+    final renderReactions = ref.watch(
+      userSettingsViewModelProvider.select((s) => s.renderReactions),
+    );
+    final inlineAttachmentMedia = ref.watch(
+      userSettingsViewModelProvider.select((s) => s.inlineAttachmentMedia),
+    );
+    final renderSpoilers = ref.watch(
+      userSettingsViewModelProvider.select((s) => s.renderSpoilers),
+    );
+    final revealSpoilers = switch (renderSpoilers) {
+      RenderSpoilers.always => true,
+      RenderSpoilers.ifModerator =>
+        ref.watch(spoilerAutoRevealProvider(msg.channelId)).value ?? false,
+      RenderSpoilers.onClick || RenderSpoilers.$unknown => false,
+    };
+    final chatPreferences = ref.watch(chatPreferencesProvider);
     Color? authorRoleColor;
     if (guildId != null) {
       authorRoleColor = ref
@@ -260,9 +286,28 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                       child: ForwardIndicator(source: msg.forwardedFrom!),
                     ),
                   if (isGrouped)
-                    _buildGroupedRow(context, msg, isMobile)
+                    _buildGroupedRow(
+                      context,
+                      msg,
+                      isMobile,
+                      renderEmbeds: renderEmbeds,
+                      renderReactions: renderReactions,
+                      inlineAttachmentMedia: inlineAttachmentMedia,
+                      revealSpoilers: revealSpoilers,
+                      chatPreferences: chatPreferences,
+                    )
                   else
-                    _buildMainRow(context, msg, authorRoleColor, isMobile),
+                    _buildMainRow(
+                      context,
+                      msg,
+                      authorRoleColor,
+                      isMobile,
+                      renderEmbeds: renderEmbeds,
+                      renderReactions: renderReactions,
+                      inlineAttachmentMedia: inlineAttachmentMedia,
+                      revealSpoilers: revealSpoilers,
+                      chatPreferences: chatPreferences,
+                    ),
                 ],
               ),
               if ((_isHovered || _isReactionPickerOpen) && !isMobile)
@@ -321,75 +366,127 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   List<Widget> _buildMessageContent(
     BuildContext context,
     Message msg,
-    bool isMobile,
-  ) => [
-    if (msg.content.isNotEmpty && !msg.shouldHideContent)
-      MessageMarkdown(
-        data: msg.content,
-        selectable: !isMobile,
-        channelId: msg.channelId,
-      ),
-    if (msg.hasForwardSnapshots)
-      ForwardedMessageContent(
-        message: msg,
-        snapshot: msg.messageSnapshots.first,
-      ),
-    ...msg.invites.map(
-      (code) => Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: EmbedInvite(code: code),
-      ),
-    ),
-    ...msg.themes.map(
-      (_) =>
-          const Padding(padding: EdgeInsets.only(top: 4), child: EmbedTheme()),
-    ),
-    ...msg.embeds.map(_buildEmbed),
-    ...msg.attachments.map(_buildAttachment),
-    if (msg.reactions.isNotEmpty)
-      Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: msg.reactions
-              .map((r) => _buildReaction(context, r))
-              .toList(),
+    bool isMobile, {
+    required bool renderEmbeds,
+    required bool renderReactions,
+    required bool inlineAttachmentMedia,
+    required bool revealSpoilers,
+    required ChatPreferencesState chatPreferences,
+  }) {
+    final spoileredUrls = extractSpoileredUrls(msg.content);
+    final attachmentSize = msg.hasCompactAttachments
+        ? MediaDimensionSize.small
+        : chatPreferences.attachmentMediaDimensionSize;
+
+    return [
+      if (msg.content.isNotEmpty &&
+          !msg.shouldHideContent(renderEmbeds: renderEmbeds))
+        MessageMarkdown(
+          data: msg.content,
+          selectable: !isMobile,
+          channelId: msg.channelId,
+          revealSpoilers: revealSpoilers,
+        ),
+      if (msg.hasForwardSnapshots)
+        ForwardedMessageContent(
+          message: msg,
+          snapshot: msg.messageSnapshots.first,
+          renderEmbeds: renderEmbeds,
+          inlineAttachmentMedia: inlineAttachmentMedia,
+          revealSpoilers: revealSpoilers,
+          chatPreferences: chatPreferences,
+        ),
+      ...msg.invites.map(
+        (code) => Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: EmbedInvite(code: code),
         ),
       ),
-  ];
+      ...msg.themes.map(
+        (_) => const Padding(
+          padding: EdgeInsets.only(top: 4),
+          child: EmbedTheme(),
+        ),
+      ),
+      if (renderEmbeds && !msg.suppressEmbeds)
+        ...msg.embeds.map(
+          (embed) => _buildEmbed(
+            embed,
+            isSpoiler: isEmbedSpoilered(embed, spoileredUrls),
+            revealSpoilers: revealSpoilers,
+            dimensionSize: chatPreferences.embedMediaDimensionSize,
+          ),
+        ),
+      ...msg.attachments.map(
+        (attachment) => _buildAttachment(
+          attachment,
+          inlineAttachmentMedia: inlineAttachmentMedia,
+          dimensionSize: attachmentSize,
+          revealSpoilers: revealSpoilers,
+        ),
+      ),
+      if (renderReactions && msg.reactions.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: msg.reactions
+                .map((r) => _buildReaction(context, r))
+                .toList(),
+          ),
+        ),
+    ];
+  }
 
   /// Grouped message row: hover-reveal short timestamp
   /// in the left column, content on the right.
-  Widget _buildGroupedRow(BuildContext context, Message msg, bool isMobile) =>
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: _kAvatarColumnWidth,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: AnimatedOpacity(
-                opacity: _isHovered ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 100),
-                child: Text(
-                  _formatShortTimestamp(msg.timestamp.toLocal()),
-                  style: TextStyle(
-                    color: context.colors.textTertiaryMuted,
-                    fontSize: 10,
-                  ),
-                ),
+  Widget _buildGroupedRow(
+    BuildContext context,
+    Message msg,
+    bool isMobile, {
+    required bool renderEmbeds,
+    required bool renderReactions,
+    required bool inlineAttachmentMedia,
+    required bool revealSpoilers,
+    required ChatPreferencesState chatPreferences,
+  }) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      SizedBox(
+        width: _kAvatarColumnWidth,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: AnimatedOpacity(
+            opacity: _isHovered ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 100),
+            child: Text(
+              _formatShortTimestamp(msg.timestamp.toLocal()),
+              style: TextStyle(
+                color: context.colors.textTertiaryMuted,
+                fontSize: 10,
               ),
             ),
           ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: _buildMessageContent(context, msg, isMobile),
-            ),
+        ),
+      ),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: _buildMessageContent(
+            context,
+            msg,
+            isMobile,
+            renderEmbeds: renderEmbeds,
+            renderReactions: renderReactions,
+            inlineAttachmentMedia: inlineAttachmentMedia,
+            revealSpoilers: revealSpoilers,
+            chatPreferences: chatPreferences,
           ),
-        ],
-      );
+        ),
+      ),
+    ],
+  );
 
   String _formatShortTimestamp(DateTime dt) {
     final h = dt.hour.toString().padLeft(2, '0');
@@ -403,8 +500,13 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     BuildContext context,
     Message msg,
     Color? roleColor,
-    bool isMobile,
-  ) => Row(
+    bool isMobile, {
+    required bool renderEmbeds,
+    required bool renderReactions,
+    required bool inlineAttachmentMedia,
+    required bool revealSpoilers,
+    required ChatPreferencesState chatPreferences,
+  }) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Padding(
@@ -458,29 +560,85 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               ],
             ),
             const SizedBox(height: 2),
-            ..._buildMessageContent(context, msg, isMobile),
+            ..._buildMessageContent(
+              context,
+              msg,
+              isMobile,
+              renderEmbeds: renderEmbeds,
+              renderReactions: renderReactions,
+              inlineAttachmentMedia: inlineAttachmentMedia,
+              revealSpoilers: revealSpoilers,
+              chatPreferences: chatPreferences,
+            ),
           ],
         ),
       ),
     ],
   );
 
-  Widget _buildEmbed(Embed embed) => Padding(
-    padding: const EdgeInsets.only(top: 2),
-    child: switch (embed.type) {
-      EmbedType.rich => EmbedRich(embed: embed),
-      EmbedType.image || EmbedType.gifv => EmbedImage(embed: embed),
-      EmbedType.link => EmbedLink(embed: embed),
-      EmbedType.video => EmbedVideo(embed: embed),
-    },
-  );
-  Widget _buildAttachment(Attachment attachment) => Padding(
-    padding: const EdgeInsets.only(top: 2),
-    // TODO: Add other attachment support
-    child: attachment.isImage
-        ? AttachmentImage(attachment: attachment)
-        : const SizedBox.shrink(),
-  );
+  Widget _buildEmbed(
+    Embed embed, {
+    required bool isSpoiler,
+    required bool revealSpoilers,
+    required MediaDimensionSize dimensionSize,
+  }) {
+    final child = switch (embed.type) {
+      EmbedType.rich => EmbedRich(
+        embed: embed,
+        dimensionSize: dimensionSize,
+        revealSpoilers: revealSpoilers,
+      ),
+      EmbedType.image || EmbedType.gifv => EmbedImage(
+        embed: embed,
+        dimensionSize: dimensionSize,
+        isSpoiler: isSpoiler,
+        revealSpoiler: revealSpoilers,
+      ),
+      EmbedType.link => EmbedLink(
+        embed: embed,
+        dimensionSize: dimensionSize,
+        revealSpoilers: revealSpoilers,
+      ),
+      EmbedType.video => EmbedVideo(embed: embed, dimensionSize: dimensionSize),
+    };
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: embed.type == EmbedType.image || embed.type == EmbedType.gifv
+          ? child
+          : SpoilerOverlay(
+              isSpoiler: isSpoiler,
+              initiallyRevealed: revealSpoilers,
+              child: child,
+            ),
+    );
+  }
+
+  Widget _buildAttachment(
+    Attachment attachment, {
+    required bool inlineAttachmentMedia,
+    required MediaDimensionSize dimensionSize,
+    required bool revealSpoilers,
+  }) {
+    Widget child;
+    if (attachment.isImage &&
+        inlineAttachmentMedia &&
+        attachment.url.isNotEmpty) {
+      child = AttachmentImage(
+        attachment: attachment,
+        dimensionSize: dimensionSize,
+        revealSpoiler: revealSpoilers,
+      );
+    } else {
+      child = SpoilerOverlay(
+        isSpoiler: attachment.isSpoiler,
+        initiallyRevealed: revealSpoilers,
+        child: AttachmentFileLabel(attachment: attachment),
+      );
+    }
+
+    return Padding(padding: const EdgeInsets.only(top: 2), child: child);
+  }
 
   Widget _buildReaction(BuildContext context, Reaction reaction) =>
       GestureDetector(

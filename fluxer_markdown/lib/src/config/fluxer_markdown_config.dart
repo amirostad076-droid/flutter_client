@@ -56,6 +56,7 @@ class FluxerMarkdownConfig {
     this.linkWidgetBuilder,
     this.onTapLink,
     this.alertBuilder,
+    this.spoilersInitiallyRevealed = false,
   });
 
   final FluxerShortcodeResolver resolveEmojiShortcode;
@@ -75,4 +76,5 @@ class FluxerMarkdownConfig {
   final FluxerLinkWidgetBuilder? linkWidgetBuilder;
   final FluxerLinkTapHandler? onTapLink;
   final FluxerAlertBuilder? alertBuilder;
+  final bool spoilersInitiallyRevealed;
 }

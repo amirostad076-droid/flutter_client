@@ -10,6 +10,7 @@ class MessageMarkdown extends StatelessWidget {
     this.selectable = false,
     this.channelId,
     this.markdownContext = FluxerMarkdownContext.standardWithJumbo,
+    this.revealSpoilers = false,
     super.key,
   });
 
@@ -18,6 +19,7 @@ class MessageMarkdown extends StatelessWidget {
   final bool selectable;
   final String? channelId;
   final FluxerMarkdownContext markdownContext;
+  final bool revealSpoilers;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +28,7 @@ class MessageMarkdown extends StatelessWidget {
       config: createFluxerMarkdownConfig(
         context: context,
         channelId: channelId,
+        revealSpoilers: revealSpoilers,
       ),
       baseStyle: baseStyle ?? context.textStyles.messageText,
       selectable: selectable,

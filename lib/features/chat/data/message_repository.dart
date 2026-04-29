@@ -159,6 +159,7 @@ class MessageRepository {
             isPinned: (map['pinned'] as bool?) ?? false,
             isMentioned: _isMentionedFromJson(map),
             type: (map['type'] as int?) ?? 0,
+            flags: (map['flags'] as int?) ?? 0,
           ),
         );
 

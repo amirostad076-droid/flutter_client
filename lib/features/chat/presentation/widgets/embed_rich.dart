@@ -4,13 +4,22 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_shared.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
+import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
+import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 
 /// A rich embed card
 class EmbedRich extends StatelessWidget {
   final Embed embed;
+  final MediaDimensionSize dimensionSize;
+  final bool revealSpoilers;
 
-  const EmbedRich({required this.embed, super.key});
+  const EmbedRich({
+    required this.embed,
+    this.dimensionSize = MediaDimensionSize.small,
+    this.revealSpoilers = false,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -68,17 +77,24 @@ class EmbedRich extends StatelessWidget {
                         baseStyle: context.textStyles.embedDescription,
                         markdownContext:
                             FluxerMarkdownContext.restrictedEmbedDescription,
+                        revealSpoilers: revealSpoilers,
                       ),
                     ),
                   if (embed.fields.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6),
-                      child: _EmbedFields(fields: embed.fields),
+                      child: _EmbedFields(
+                        fields: embed.fields,
+                        revealSpoilers: revealSpoilers,
+                      ),
                     ),
                   if (embed.image != null && !hasThumbnail)
                     Padding(
                       padding: const EdgeInsets.only(top: 4, bottom: 4),
-                      child: _EmbedMediaImage(media: embed.image!),
+                      child: _EmbedMediaImage(
+                        media: embed.image!,
+                        dimensionSize: dimensionSize,
+                      ),
                     ),
                   if (embed.footer != null)
                     Padding(
@@ -113,8 +129,9 @@ class EmbedRich extends StatelessWidget {
 
 class _EmbedFields extends StatelessWidget {
   final List<EmbedField> fields;
+  final bool revealSpoilers;
 
-  const _EmbedFields({required this.fields});
+  const _EmbedFields({required this.fields, required this.revealSpoilers});
 
   @override
   Widget build(BuildContext context) {
@@ -145,12 +162,19 @@ class _EmbedFields extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: rows.map((row) {
         if (row.length == 1 && !row[0].isInline) {
-          return _EmbedFieldTile(field: row[0]);
+          return _EmbedFieldTile(field: row[0], revealSpoilers: revealSpoilers);
         }
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: row
-              .map((f) => Expanded(child: _EmbedFieldTile(field: f)))
+              .map(
+                (f) => Expanded(
+                  child: _EmbedFieldTile(
+                    field: f,
+                    revealSpoilers: revealSpoilers,
+                  ),
+                ),
+              )
               .toList(),
         );
       }).toList(),
@@ -160,8 +184,9 @@ class _EmbedFields extends StatelessWidget {
 
 class _EmbedFieldTile extends StatelessWidget {
   final EmbedField field;
+  final bool revealSpoilers;
 
-  const _EmbedFieldTile({required this.field});
+  const _EmbedFieldTile({required this.field, required this.revealSpoilers});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -182,6 +207,7 @@ class _EmbedFieldTile extends StatelessWidget {
           data: field.value,
           baseStyle: TextStyle(color: context.colors.textChat, fontSize: 13),
           markdownContext: FluxerMarkdownContext.restrictedEmbedDescription,
+          revealSpoilers: revealSpoilers,
         ),
       ],
     ),
@@ -190,29 +216,33 @@ class _EmbedFieldTile extends StatelessWidget {
 
 class _EmbedMediaImage extends StatelessWidget {
   final EmbedMedia media;
+  final MediaDimensionSize dimensionSize;
 
-  const _EmbedMediaImage({required this.media});
+  const _EmbedMediaImage({required this.media, required this.dimensionSize});
 
   @override
   Widget build(BuildContext context) {
-    const maxW = 400.0;
-    final w = media.width?.toDouble();
-    final h = media.height?.toDouble();
-    double? displayW;
-    double? displayH;
-    if (w != null && h != null && w > 0) {
-      displayW = w.clamp(0, maxW);
-      displayH = h * (displayW / w);
-    }
+    final dimensions = mediaDimensionsForSize(dimensionSize);
+    final displaySize = constrainMediaSize(
+      dimensions: dimensions,
+      width: media.width,
+      height: media.height,
+    );
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(4),
-      child: CachedNetworkImage(
-        imageUrl: media.proxyUrl ?? media.url,
-        width: displayW,
-        height: displayH,
-        fit: BoxFit.cover,
-        errorBuilder: (_, e, s) => const SizedBox.shrink(),
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: dimensions.maxWidth,
+        maxHeight: dimensions.maxHeight,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: CachedNetworkImage(
+          imageUrl: media.proxyUrl ?? media.url,
+          width: displaySize?.width,
+          height: displaySize?.height,
+          fit: BoxFit.cover,
+          errorBuilder: (_, e, s) => const SizedBox.shrink(),
+        ),
       ),
     );
   }

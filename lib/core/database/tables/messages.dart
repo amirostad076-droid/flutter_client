@@ -23,6 +23,7 @@ class Messages extends Table {
   BoolColumn get pinned => boolean().withDefault(const Constant(false))();
   BoolColumn get isMentioned => boolean().withDefault(const Constant(false))();
   IntColumn get type => integer().withDefault(const Constant(0))();
+  IntColumn get flags => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {id};

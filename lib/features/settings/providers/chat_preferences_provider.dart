@@ -11,7 +11,7 @@ class ChatPreferencesState {
   const ChatPreferencesState({
     this.embedMediaDimensionSize = MediaDimensionSize.small,
     this.attachmentMediaDimensionSize = MediaDimensionSize.large,
-    this.autoSendKlipyGifs = false,
+    this.autoSendKlipyGifs = true,
     this.showDefaultEmojisInExpressionAutocomplete = true,
     this.showCustomEmojisInExpressionAutocomplete = true,
     this.showStickersInExpressionAutocomplete = true,

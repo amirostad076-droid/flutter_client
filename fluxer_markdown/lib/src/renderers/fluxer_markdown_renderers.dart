@@ -477,6 +477,7 @@ class _MarkdownInlineRenderer {
         return WidgetSpan(
           alignment: PlaceholderAlignment.middle,
           child: _FluxerSpoilerSpan(
+            initiallyRevealed: config.spoilersInitiallyRevealed,
             child: RichText(
               text: TextSpan(
                 style: effectiveStyle,
@@ -635,9 +636,13 @@ bool _isInlineOnlyTag(String tag) {
 }
 
 class _FluxerSpoilerSpan extends StatefulWidget {
-  const _FluxerSpoilerSpan({required this.child});
+  const _FluxerSpoilerSpan({
+    required this.child,
+    required this.initiallyRevealed,
+  });
 
   final Widget child;
+  final bool initiallyRevealed;
 
   @override
   State<_FluxerSpoilerSpan> createState() => _FluxerSpoilerSpanState();
@@ -649,13 +654,27 @@ class _FluxerSpoilerSpanState extends State<_FluxerSpoilerSpan>
 
   late final AnimationController _controller;
   late final Animation<double> _opacity;
-  var _isRevealed = false;
+  late bool _isRevealed;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: _kDuration);
+    _isRevealed = widget.initiallyRevealed;
+    _controller = AnimationController(
+      vsync: this,
+      duration: _kDuration,
+      value: _isRevealed ? 1 : 0,
+    );
     _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+  }
+
+  @override
+  void didUpdateWidget(covariant _FluxerSpoilerSpan oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initiallyRevealed != widget.initiallyRevealed) {
+      setState(() => _isRevealed = widget.initiallyRevealed);
+      unawaited(_isRevealed ? _controller.forward() : _controller.reverse());
+    }
   }
 
   @override

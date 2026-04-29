@@ -7,6 +7,10 @@ import 'package:fluxer_dart/export.dart';
 
 enum EmbedType { rich, image, gifv, link, video }
 
+const int messageFlagSuppressEmbeds = 1 << 2;
+const int messageFlagCompactAttachments = 1 << 17;
+const int attachmentFlagIsSpoiler = 1 << 3;
+
 class EmbedAuthor {
   final String name;
   final String? url;
@@ -240,6 +244,7 @@ class Attachment {
   final int? size;
   final int? width;
   final int? height;
+  final int flags;
   final bool? nsfw;
   final bool? expired;
   final DateTime? expiresAt;
@@ -256,6 +261,7 @@ class Attachment {
     this.size,
     this.width,
     this.height,
+    this.flags = 0,
   });
 
   factory Attachment.fromSdk(MessageAttachmentResponse sdk) {
@@ -268,6 +274,7 @@ class Attachment {
       height: sdk.height,
       contentType: sdk.contentType,
       placeholder: sdk.placeholder,
+      flags: sdk.flags,
       nsfw: sdk.nsfw,
       expired: sdk.expired,
       expiresAt: DateTime.tryParse(sdk.expiresAt ?? ''),
@@ -284,6 +291,7 @@ class Attachment {
       height: json['height'] as int?,
       contentType: json['content_type'] as String?,
       placeholder: json['placeholder'] as String?,
+      flags: json['flags'] as int? ?? 0,
       nsfw: json['nsfw'] as bool?,
       expired: json['expired'] as bool?,
       expiresAt: DateTime.tryParse((json['expires_at'] as String?) ?? ''),
@@ -299,6 +307,7 @@ class Attachment {
     'height': height,
     'content_type': contentType,
     'placeholder': placeholder,
+    'flags': flags,
     'nsfw': nsfw,
     'expired': expired,
     'expires_at': expiresAt?.toIso8601String(),
@@ -308,6 +317,17 @@ class Attachment {
     final ext = filename.split('.').last.toLowerCase();
     return ['png', 'jpg', 'jpeg', 'gif', 'webp'].contains(ext);
   }
+
+  bool get isVideo {
+    if (contentType?.startsWith('video/') ?? false) {
+      return true;
+    }
+    final ext = filename.split('.').last.toLowerCase();
+    return ['mp4', 'webm', 'mov', 'm4v', 'mkv'].contains(ext);
+  }
+
+  bool get isPreviewMedia => isImage || isVideo;
+  bool get isSpoiler => (flags & attachmentFlagIsSpoiler) != 0;
 }
 
 class Reaction {
@@ -411,6 +431,7 @@ class MessageSnapshot {
   final List<String> mentionRoles;
   final List<Embed> embeds;
   final List<Attachment> attachments;
+  final int flags;
 
   const MessageSnapshot({
     required this.timestamp,
@@ -420,6 +441,7 @@ class MessageSnapshot {
     this.mentionRoles = const [],
     this.embeds = const [],
     this.attachments = const [],
+    this.flags = 0,
   });
 
   factory MessageSnapshot.fromSdk(MessageSnapshotResponse sdk) {
@@ -432,6 +454,7 @@ class MessageSnapshot {
       embeds: sdk.embeds?.map(Embed.fromSdk).toList() ?? const [],
       attachments:
           sdk.attachments?.map(Attachment.fromSdk).toList() ?? const [],
+      flags: sdk.flags,
     );
   }
 
@@ -464,6 +487,7 @@ class MessageSnapshot {
               ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      flags: json['flags'] as int? ?? 0,
     );
   }
 
@@ -475,7 +499,11 @@ class MessageSnapshot {
     'mention_roles': mentionRoles,
     'embeds': embeds.map((e) => e.toJson()).toList(),
     'attachments': attachments.map((a) => a.toJson()).toList(),
+    'flags': flags,
   };
+
+  bool get hasCompactAttachments =>
+      (flags & messageFlagCompactAttachments) != 0;
 }
 
 class Message {
@@ -499,6 +527,7 @@ class Message {
   final bool isPinned;
   final bool isMentioned;
   final int type;
+  final int flags;
 
   const Message({
     required this.id,
@@ -521,6 +550,7 @@ class Message {
     this.isPinned = false,
     this.isMentioned = false,
     this.type = 0,
+    this.flags = 0,
   });
 
   factory Message.fromSdk(MessageResponseSchema sdk, {String? currentUserId}) {
@@ -554,6 +584,7 @@ class Message {
       isPinned: sdk.pinned,
       isMentioned: isMentioned,
       type: sdk.type.json ?? 0,
+      flags: sdk.flags,
     );
   }
 
@@ -585,6 +616,7 @@ class Message {
       isPinned: row.pinned,
       isMentioned: row.isMentioned,
       type: row.type,
+      flags: row.flags,
     );
   }
 
@@ -617,6 +649,7 @@ class Message {
       ),
       isMentioned: Value(isMentioned),
       type: Value(type),
+      flags: Value(flags),
     );
   }
 
@@ -631,8 +664,12 @@ class Message {
   bool get hasAttachments => attachments.isNotEmpty;
   bool get isReply => replyToId != null;
   bool get hasForwardSnapshots => messageSnapshots.isNotEmpty;
-  bool get shouldHideContent {
-    if (embeds.isEmpty) {
+  bool get suppressEmbeds => (flags & messageFlagSuppressEmbeds) != 0;
+  bool get hasCompactAttachments =>
+      (flags & messageFlagCompactAttachments) != 0;
+
+  bool shouldHideContent({required bool renderEmbeds}) {
+    if (!renderEmbeds || suppressEmbeds || embeds.isEmpty) {
       return false;
     }
     final allMedia = embeds.every(

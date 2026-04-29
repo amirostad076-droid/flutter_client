@@ -271,9 +271,9 @@ class ChatViewModel extends _$ChatViewModel {
     if (guildId.isNotEmpty) {
       final int effectiveBits =
           await computeEffectiveGuildChannelPermissionBits(
-        ref: ref,
-        channelId: channelId,
-      );
+            ref: ref,
+            channelId: channelId,
+          );
       final bool canSendMessages =
           hasPermission(effectiveBits, Permission.sendMessages) ||
           (channelRow != null &&
@@ -320,7 +320,7 @@ class ChatViewModel extends _$ChatViewModel {
         content: text,
         replyToId: replyToId,
       );
-      // TODO: Handle sending message states (pending/sent/failed) so the
+      // TODO(chat): Handle sending message states (pending/sent/failed) so the
       // UI can show an optimistic echo before the server/realtime round-trip.
       ref.read(slowmodeTrackerProvider.notifier).recordSend(state.channelId);
       final alreadyPresent = state.messages.any((m) => m.id == sent.id);
@@ -446,6 +446,7 @@ class ChatViewModel extends _$ChatViewModel {
       isPinned: msg.isPinned,
       isMentioned: msg.isMentioned,
       type: msg.type,
+      flags: msg.flags,
     );
     state = state.copyWith(messages: updatedMessages);
 

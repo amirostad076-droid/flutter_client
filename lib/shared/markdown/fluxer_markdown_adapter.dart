@@ -18,6 +18,7 @@ final _internalLinkPattern = RegExp(
 FluxerMarkdownConfig createFluxerMarkdownConfig({
   BuildContext? context,
   String? channelId,
+  bool revealSpoilers = false,
 }) {
   return FluxerMarkdownConfig(
     resolveEmojiShortcode: EmojiRegistry.resolveSync,
@@ -73,6 +74,7 @@ FluxerMarkdownConfig createFluxerMarkdownConfig({
 
       await handleExternalLinkTap(context, href);
     },
+    spoilersInitiallyRevealed: revealSpoilers,
     alertBuilder: (context, type, body, baseStyle) {
       return MessageAlert(
         type: switch (type) {

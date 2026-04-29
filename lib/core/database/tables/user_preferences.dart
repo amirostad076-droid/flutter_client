@@ -26,7 +26,7 @@ class UserPreferencesTable extends Table {
   TextColumn get attachmentMediaDimensionSize =>
       text().withDefault(const Constant('large'))();
   BoolColumn get autoSendKlipyGifs =>
-      boolean().withDefault(const Constant(false))();
+      boolean().withDefault(const Constant(true))();
   BoolColumn get showDefaultEmojisInExpressionAutocomplete =>
       boolean().withDefault(const Constant(true))();
   BoolColumn get showCustomEmojisInExpressionAutocomplete =>
