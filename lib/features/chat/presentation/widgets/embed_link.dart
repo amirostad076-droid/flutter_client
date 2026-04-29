@@ -13,11 +13,13 @@ class EmbedLink extends StatelessWidget {
   final Embed embed;
   final MediaDimensionSize dimensionSize;
   final bool revealSpoilers;
+  final FluxerSpoilerSyncController? spoilerSyncController;
 
   const EmbedLink({
     required this.embed,
     this.dimensionSize = MediaDimensionSize.small,
     this.revealSpoilers = false,
+    this.spoilerSyncController,
     super.key,
   });
 
@@ -69,6 +71,7 @@ class EmbedLink extends StatelessWidget {
                   markdownContext:
                       FluxerMarkdownContext.restrictedEmbedDescription,
                   revealSpoilers: revealSpoilers,
+                  spoilerSyncController: spoilerSyncController,
                 ),
               ),
             if (embed.thumbnail != null)

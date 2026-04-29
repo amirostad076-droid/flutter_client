@@ -15,10 +15,22 @@ final _internalLinkPattern = RegExp(
   r'(?:@me|\d{15,21})/\d{15,21}(?:/\d{15,21})?',
 );
 
+String? _normalizeSpoilerSyncUrl(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+    return null;
+  }
+  final normalized = uri.toString();
+  return normalized.endsWith('/')
+      ? normalized.substring(0, normalized.length - 1)
+      : normalized;
+}
+
 FluxerMarkdownConfig createFluxerMarkdownConfig({
   BuildContext? context,
   String? channelId,
   bool revealSpoilers = false,
+  FluxerSpoilerSyncController? spoilerSyncController,
 }) {
   return FluxerMarkdownConfig(
     resolveEmojiShortcode: EmojiRegistry.resolveSync,
@@ -75,6 +87,8 @@ FluxerMarkdownConfig createFluxerMarkdownConfig({
       await handleExternalLinkTap(context, href);
     },
     spoilersInitiallyRevealed: revealSpoilers,
+    spoilerSyncController: spoilerSyncController,
+    spoilerSyncKeyNormalizer: _normalizeSpoilerSyncUrl,
     alertBuilder: (context, type, body, baseStyle) {
       return MessageAlert(
         type: switch (type) {

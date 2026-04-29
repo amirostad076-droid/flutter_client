@@ -13,11 +13,13 @@ class EmbedRich extends StatelessWidget {
   final Embed embed;
   final MediaDimensionSize dimensionSize;
   final bool revealSpoilers;
+  final FluxerSpoilerSyncController? spoilerSyncController;
 
   const EmbedRich({
     required this.embed,
     this.dimensionSize = MediaDimensionSize.small,
     this.revealSpoilers = false,
+    this.spoilerSyncController,
     super.key,
   });
 
@@ -78,6 +80,7 @@ class EmbedRich extends StatelessWidget {
                         markdownContext:
                             FluxerMarkdownContext.restrictedEmbedDescription,
                         revealSpoilers: revealSpoilers,
+                        spoilerSyncController: spoilerSyncController,
                       ),
                     ),
                   if (embed.fields.isNotEmpty)
@@ -86,6 +89,7 @@ class EmbedRich extends StatelessWidget {
                       child: _EmbedFields(
                         fields: embed.fields,
                         revealSpoilers: revealSpoilers,
+                        spoilerSyncController: spoilerSyncController,
                       ),
                     ),
                   if (embed.image != null && !hasThumbnail)
@@ -130,8 +134,13 @@ class EmbedRich extends StatelessWidget {
 class _EmbedFields extends StatelessWidget {
   final List<EmbedField> fields;
   final bool revealSpoilers;
+  final FluxerSpoilerSyncController? spoilerSyncController;
 
-  const _EmbedFields({required this.fields, required this.revealSpoilers});
+  const _EmbedFields({
+    required this.fields,
+    required this.revealSpoilers,
+    this.spoilerSyncController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +171,11 @@ class _EmbedFields extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: rows.map((row) {
         if (row.length == 1 && !row[0].isInline) {
-          return _EmbedFieldTile(field: row[0], revealSpoilers: revealSpoilers);
+          return _EmbedFieldTile(
+            field: row[0],
+            revealSpoilers: revealSpoilers,
+            spoilerSyncController: spoilerSyncController,
+          );
         }
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,6 +185,7 @@ class _EmbedFields extends StatelessWidget {
                   child: _EmbedFieldTile(
                     field: f,
                     revealSpoilers: revealSpoilers,
+                    spoilerSyncController: spoilerSyncController,
                   ),
                 ),
               )
@@ -185,8 +199,13 @@ class _EmbedFields extends StatelessWidget {
 class _EmbedFieldTile extends StatelessWidget {
   final EmbedField field;
   final bool revealSpoilers;
+  final FluxerSpoilerSyncController? spoilerSyncController;
 
-  const _EmbedFieldTile({required this.field, required this.revealSpoilers});
+  const _EmbedFieldTile({
+    required this.field,
+    required this.revealSpoilers,
+    this.spoilerSyncController,
+  });
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -208,6 +227,7 @@ class _EmbedFieldTile extends StatelessWidget {
           baseStyle: TextStyle(color: context.colors.textChat, fontSize: 13),
           markdownContext: FluxerMarkdownContext.restrictedEmbedDescription,
           revealSpoilers: revealSpoilers,
+          spoilerSyncController: spoilerSyncController,
         ),
       ],
     ),

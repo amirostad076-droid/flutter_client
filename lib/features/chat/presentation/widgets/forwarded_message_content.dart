@@ -18,6 +18,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.da
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -29,6 +30,7 @@ class ForwardedMessageContent extends ConsumerWidget {
     required this.inlineAttachmentMedia,
     required this.revealSpoilers,
     required this.chatPreferences,
+    required this.spoilerSyncController,
     super.key,
   });
 
@@ -38,6 +40,7 @@ class ForwardedMessageContent extends ConsumerWidget {
   final bool inlineAttachmentMedia;
   final bool revealSpoilers;
   final ChatPreferencesState chatPreferences;
+  final FluxerSpoilerSyncController spoilerSyncController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,6 +81,7 @@ class ForwardedMessageContent extends ConsumerWidget {
                             color: context.colors.textChat,
                           ),
                           revealSpoilers: revealSpoilers,
+                          spoilerSyncController: spoilerSyncController,
                         ),
                       ),
                     ...snapshot.attachments.map(
@@ -92,18 +96,24 @@ class ForwardedMessageContent extends ConsumerWidget {
                       ),
                     ),
                     if (renderEmbeds)
-                      ...snapshot.embeds.map(
-                        (embed) => Padding(
+                      ...snapshot.embeds.map((embed) {
+                        final spoilerSyncKeys = spoilerSyncKeysForEmbed(
+                          embed,
+                          spoileredUrls,
+                        );
+                        return Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: _ForwardedEmbed(
                             embed: embed,
                             dimensionSize:
                                 chatPreferences.embedMediaDimensionSize,
                             revealSpoilers: revealSpoilers,
-                            isSpoiler: isEmbedSpoilered(embed, spoileredUrls),
+                            isSpoiler: spoilerSyncKeys.isNotEmpty,
+                            spoilerSyncKeys: spoilerSyncKeys,
+                            spoilerSyncController: spoilerSyncController,
                           ),
-                        ),
-                      ),
+                        );
+                      }),
                     if (message.messageReference != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
@@ -188,12 +198,16 @@ class _ForwardedEmbed extends StatelessWidget {
     required this.dimensionSize,
     required this.revealSpoilers,
     required this.isSpoiler,
+    required this.spoilerSyncKeys,
+    required this.spoilerSyncController,
   });
 
   final Embed embed;
   final MediaDimensionSize dimensionSize;
   final bool revealSpoilers;
   final bool isSpoiler;
+  final List<String> spoilerSyncKeys;
+  final FluxerSpoilerSyncController spoilerSyncController;
 
   @override
   Widget build(BuildContext context) {
@@ -202,17 +216,21 @@ class _ForwardedEmbed extends StatelessWidget {
         embed: embed,
         dimensionSize: dimensionSize,
         revealSpoilers: revealSpoilers,
+        spoilerSyncController: spoilerSyncController,
       ),
       EmbedType.image || EmbedType.gifv => EmbedImage(
         embed: embed,
         dimensionSize: dimensionSize,
         isSpoiler: isSpoiler,
         revealSpoiler: revealSpoilers,
+        spoilerSyncController: spoilerSyncController,
+        spoilerSyncKeys: spoilerSyncKeys,
       ),
       EmbedType.link => EmbedLink(
         embed: embed,
         dimensionSize: dimensionSize,
         revealSpoilers: revealSpoilers,
+        spoilerSyncController: spoilerSyncController,
       ),
       EmbedType.video => EmbedVideo(embed: embed, dimensionSize: dimensionSize),
     };
@@ -224,6 +242,8 @@ class _ForwardedEmbed extends StatelessWidget {
     return SpoilerOverlay(
       isSpoiler: isSpoiler,
       initiallyRevealed: revealSpoilers,
+      spoilerSyncController: spoilerSyncController,
+      syncKeys: spoilerSyncKeys,
       child: child,
     );
   }

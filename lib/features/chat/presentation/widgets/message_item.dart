@@ -36,6 +36,7 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
 import 'package:fluxer_dart/export.dart';
+import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Mention highlight color matching web app's
@@ -99,7 +100,14 @@ class MessageItem extends ConsumerStatefulWidget {
 class _MessageItemState extends ConsumerState<MessageItem> {
   var _isHovered = false;
   final _reactionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
+  final _spoilerSyncController = FluxerSpoilerSyncController();
   var _isReactionPickerOpen = false;
+
+  @override
+  void dispose() {
+    _spoilerSyncController.dispose();
+    super.dispose();
+  }
 
   void _addReactionFromPicker(FluxerSelectedEmoji emoji) {
     if (emoji.isCustom) {
@@ -386,6 +394,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           selectable: !isMobile,
           channelId: msg.channelId,
           revealSpoilers: revealSpoilers,
+          spoilerSyncController: _spoilerSyncController,
         ),
       if (msg.hasForwardSnapshots)
         ForwardedMessageContent(
@@ -395,6 +404,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           inlineAttachmentMedia: inlineAttachmentMedia,
           revealSpoilers: revealSpoilers,
           chatPreferences: chatPreferences,
+          spoilerSyncController: _spoilerSyncController,
         ),
       ...msg.invites.map(
         (code) => Padding(
@@ -409,14 +419,16 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         ),
       ),
       if (renderEmbeds && !msg.suppressEmbeds)
-        ...msg.embeds.map(
-          (embed) => _buildEmbed(
+        ...msg.embeds.map((embed) {
+          final spoilerSyncKeys = spoilerSyncKeysForEmbed(embed, spoileredUrls);
+          return _buildEmbed(
             embed,
-            isSpoiler: isEmbedSpoilered(embed, spoileredUrls),
+            isSpoiler: spoilerSyncKeys.isNotEmpty,
+            spoilerSyncKeys: spoilerSyncKeys,
             revealSpoilers: revealSpoilers,
             dimensionSize: chatPreferences.embedMediaDimensionSize,
-          ),
-        ),
+          );
+        }),
       ...msg.attachments.map(
         (attachment) => _buildAttachment(
           attachment,
@@ -579,6 +591,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   Widget _buildEmbed(
     Embed embed, {
     required bool isSpoiler,
+    required List<String> spoilerSyncKeys,
     required bool revealSpoilers,
     required MediaDimensionSize dimensionSize,
   }) {
@@ -587,17 +600,21 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         embed: embed,
         dimensionSize: dimensionSize,
         revealSpoilers: revealSpoilers,
+        spoilerSyncController: _spoilerSyncController,
       ),
       EmbedType.image || EmbedType.gifv => EmbedImage(
         embed: embed,
         dimensionSize: dimensionSize,
         isSpoiler: isSpoiler,
         revealSpoiler: revealSpoilers,
+        spoilerSyncController: _spoilerSyncController,
+        spoilerSyncKeys: spoilerSyncKeys,
       ),
       EmbedType.link => EmbedLink(
         embed: embed,
         dimensionSize: dimensionSize,
         revealSpoilers: revealSpoilers,
+        spoilerSyncController: _spoilerSyncController,
       ),
       EmbedType.video => EmbedVideo(embed: embed, dimensionSize: dimensionSize),
     };
@@ -609,6 +626,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           : SpoilerOverlay(
               isSpoiler: isSpoiler,
               initiallyRevealed: revealSpoilers,
+              spoilerSyncController: _spoilerSyncController,
+              syncKeys: spoilerSyncKeys,
               child: child,
             ),
     );

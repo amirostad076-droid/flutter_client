@@ -34,9 +34,9 @@ String? normalizeSpoilerUrl(String url) {
       : normalized;
 }
 
-bool isEmbedSpoilered(Embed embed, Set<String> spoileredUrls) {
+List<String> spoilerSyncKeysForEmbed(Embed embed, Set<String> spoileredUrls) {
   if (spoileredUrls.isEmpty) {
-    return false;
+    return const [];
   }
 
   final candidates = <String?>[
@@ -48,6 +48,7 @@ bool isEmbedSpoilered(Embed embed, Set<String> spoileredUrls) {
     embed.video?.url,
     embed.video?.proxyUrl,
   ];
+  final keys = <String>{};
 
   for (final candidate in candidates) {
     if (candidate == null) {
@@ -55,9 +56,13 @@ bool isEmbedSpoilered(Embed embed, Set<String> spoileredUrls) {
     }
     final normalized = normalizeSpoilerUrl(candidate);
     if (normalized != null && spoileredUrls.contains(normalized)) {
-      return true;
+      keys.add(normalized);
     }
   }
 
-  return false;
+  return List<String>.unmodifiable(keys);
+}
+
+bool isEmbedSpoilered(Embed embed, Set<String> spoileredUrls) {
+  return spoilerSyncKeysForEmbed(embed, spoileredUrls).isNotEmpty;
 }

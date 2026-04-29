@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
@@ -20,6 +21,11 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const double _kBlockSpacing = 4;
+
+final RegExp _spoilerSyncUrlPattern = RegExp(
+  r'''https?:\/\/[^\s<>"']+''',
+  caseSensitive: false,
+);
 
 Widget defaultFluxerAlertBuilder(
   BuildContext context,
@@ -478,6 +484,11 @@ class _MarkdownInlineRenderer {
           alignment: PlaceholderAlignment.middle,
           child: _FluxerSpoilerSpan(
             initiallyRevealed: config.spoilersInitiallyRevealed,
+            spoilerSyncController: config.spoilerSyncController,
+            syncKeys: _collectSpoilerSyncKeys(
+              node,
+              config.spoilerSyncKeyNormalizer,
+            ),
             child: RichText(
               text: TextSpan(
                 style: effectiveStyle,
@@ -635,14 +646,64 @@ bool _isInlineOnlyTag(String tag) {
   };
 }
 
+List<String> _collectSpoilerSyncKeys(
+  md.Element spoiler,
+  FluxerSpoilerSyncKeyNormalizer? normalize,
+) {
+  if (normalize == null) {
+    return const [];
+  }
+
+  final keys = <String>{};
+
+  void addCandidate(String raw) {
+    final normalized = normalize(raw);
+    if (normalized != null && normalized.isNotEmpty) {
+      keys.add(normalized);
+    }
+  }
+
+  void visit(md.Node node) {
+    if (node is md.Text) {
+      for (final match in _spoilerSyncUrlPattern.allMatches(node.text)) {
+        addCandidate(match.group(0) ?? '');
+      }
+      return;
+    }
+
+    if (node is! md.Element) {
+      return;
+    }
+
+    final href = node.attributes['href'];
+    if (href != null && href.isNotEmpty) {
+      addCandidate(href);
+    }
+
+    for (final child in node.children ?? const <md.Node>[]) {
+      visit(child);
+    }
+  }
+
+  for (final child in spoiler.children ?? const <md.Node>[]) {
+    visit(child);
+  }
+
+  return List<String>.unmodifiable(keys);
+}
+
 class _FluxerSpoilerSpan extends StatefulWidget {
   const _FluxerSpoilerSpan({
     required this.child,
     required this.initiallyRevealed,
+    required this.syncKeys,
+    this.spoilerSyncController,
   });
 
   final Widget child;
   final bool initiallyRevealed;
+  final FluxerSpoilerSyncController? spoilerSyncController;
+  final List<String> syncKeys;
 
   @override
   State<_FluxerSpoilerSpan> createState() => _FluxerSpoilerSpanState();
@@ -655,11 +716,19 @@ class _FluxerSpoilerSpanState extends State<_FluxerSpoilerSpan>
   late final AnimationController _controller;
   late final Animation<double> _opacity;
   late bool _isRevealed;
+  var _manuallyRevealed = false;
+
+  bool get _sharedRevealed =>
+      widget.spoilerSyncController?.isRevealed(widget.syncKeys) ?? false;
+
+  bool get _shouldReveal =>
+      widget.initiallyRevealed || _manuallyRevealed || _sharedRevealed;
 
   @override
   void initState() {
     super.initState();
-    _isRevealed = widget.initiallyRevealed;
+    _isRevealed = _shouldReveal;
+    widget.spoilerSyncController?.addListener(_handleSyncChanged);
     _controller = AnimationController(
       vsync: this,
       duration: _kDuration,
@@ -671,28 +740,53 @@ class _FluxerSpoilerSpanState extends State<_FluxerSpoilerSpan>
   @override
   void didUpdateWidget(covariant _FluxerSpoilerSpan oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.initiallyRevealed != widget.initiallyRevealed) {
-      setState(() => _isRevealed = widget.initiallyRevealed);
-      unawaited(_isRevealed ? _controller.forward() : _controller.reverse());
+    if (oldWidget.spoilerSyncController != widget.spoilerSyncController) {
+      oldWidget.spoilerSyncController?.removeListener(_handleSyncChanged);
+      widget.spoilerSyncController?.addListener(_handleSyncChanged);
     }
+    if (!listEquals(oldWidget.syncKeys, widget.syncKeys)) {
+      _manuallyRevealed = false;
+    }
+    _applyRevealState();
   }
 
   @override
   void dispose() {
+    widget.spoilerSyncController?.removeListener(_handleSyncChanged);
     _controller.dispose();
     super.dispose();
   }
 
-  void _toggle() {
-    setState(() => _isRevealed = !_isRevealed);
+  void _handleSyncChanged() {
+    _applyRevealState();
+  }
+
+  void _applyRevealState() {
+    final shouldReveal = _shouldReveal;
+    if (_isRevealed == shouldReveal) {
+      return;
+    }
+    setState(() => _isRevealed = shouldReveal);
     unawaited(_isRevealed ? _controller.forward() : _controller.reverse());
+  }
+
+  void _reveal() {
+    if (_isRevealed) {
+      return;
+    }
+    setState(() {
+      _manuallyRevealed = true;
+      _isRevealed = true;
+    });
+    widget.spoilerSyncController?.reveal(widget.syncKeys);
+    unawaited(_controller.forward());
   }
 
   @override
   Widget build(BuildContext context) {
     final fill = Theme.of(context).colorScheme.outlineVariant;
     return GestureDetector(
-      onTap: _toggle,
+      onTap: _reveal,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(4),
         child: Stack(

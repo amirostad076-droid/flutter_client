@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 enum FluxerAlertType { note, tip, important, warning, caution }
 
@@ -36,6 +36,33 @@ typedef FluxerAlertBuilder =
       Widget body,
       TextStyle baseStyle,
     );
+typedef FluxerSpoilerSyncKeyNormalizer = String? Function(String raw);
+
+class FluxerSpoilerSyncController extends ChangeNotifier {
+  final Set<String> _revealedKeys = <String>{};
+
+  bool isRevealed(Iterable<String> keys) {
+    for (final key in keys) {
+      if (_revealedKeys.contains(key)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void reveal(Iterable<String> keys) {
+    var changed = false;
+    for (final key in keys) {
+      if (key.isEmpty) {
+        continue;
+      }
+      changed = _revealedKeys.add(key) || changed;
+    }
+    if (changed) {
+      notifyListeners();
+    }
+  }
+}
 
 class FluxerMarkdownConfig {
   const FluxerMarkdownConfig({
@@ -57,6 +84,8 @@ class FluxerMarkdownConfig {
     this.onTapLink,
     this.alertBuilder,
     this.spoilersInitiallyRevealed = false,
+    this.spoilerSyncController,
+    this.spoilerSyncKeyNormalizer,
   });
 
   final FluxerShortcodeResolver resolveEmojiShortcode;
@@ -77,4 +106,6 @@ class FluxerMarkdownConfig {
   final FluxerLinkTapHandler? onTapLink;
   final FluxerAlertBuilder? alertBuilder;
   final bool spoilersInitiallyRevealed;
+  final FluxerSpoilerSyncController? spoilerSyncController;
+  final FluxerSpoilerSyncKeyNormalizer? spoilerSyncKeyNormalizer;
 }

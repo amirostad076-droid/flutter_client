@@ -6,6 +6,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_markdown/fluxer_markdown.dart';
 
 /// An inline image / gifv embed
 class EmbedImage extends StatelessWidget {
@@ -13,12 +14,16 @@ class EmbedImage extends StatelessWidget {
   final MediaDimensionSize dimensionSize;
   final bool isSpoiler;
   final bool revealSpoiler;
+  final FluxerSpoilerSyncController? spoilerSyncController;
+  final List<String> spoilerSyncKeys;
 
   const EmbedImage({
     required this.embed,
     this.dimensionSize = MediaDimensionSize.small,
     this.isSpoiler = false,
     this.revealSpoiler = false,
+    this.spoilerSyncController,
+    this.spoilerSyncKeys = const [],
     super.key,
   });
 
@@ -45,6 +50,8 @@ class EmbedImage extends StatelessWidget {
       child: SpoilerOverlay(
         isSpoiler: isSpoiler,
         initiallyRevealed: revealSpoiler,
+        spoilerSyncController: spoilerSyncController,
+        syncKeys: spoilerSyncKeys,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: CachedNetworkImage(
