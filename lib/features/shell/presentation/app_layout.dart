@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/guild_sidebar.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_list.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/presentation/widgets/guild_navbar.dart';
@@ -19,6 +20,7 @@ import 'package:fluxer_app/features/settings/providers/user_settings_view_model.
 import 'package:fluxer_app/features/shell/presentation/overlapping_panels.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/user_area.dart';
+import 'package:fluxer_app/features/shell/utils/mobile_scaffold_resize_policy.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -190,9 +192,28 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     );
 
     if (!showBottomNav) {
+      final isPanelOpen = ref.watch(expressionPanelProvider);
+      final shouldResizeForKeyboard =
+          mobileChannelScaffoldShouldResizeForKeyboard(
+            isChatRoute: true,
+            isExpressionPanelOpen: isPanelOpen,
+          );
+      final shouldRemoveKeyboardInset =
+          mobileChannelScaffoldShouldRemoveKeyboardInset(
+            isChatRoute: true,
+            isExpressionPanelOpen: isPanelOpen,
+          );
+      final body = shouldRemoveKeyboardInset
+          ? MediaQuery.removeViewInsets(
+              context: context,
+              removeBottom: true,
+              child: mainContent,
+            )
+          : mainContent;
       return Scaffold(
         backgroundColor: context.colors.backgroundPrimary,
-        body: mainContent,
+        resizeToAvoidBottomInset: shouldResizeForKeyboard,
+        body: body,
       );
     }
 
@@ -215,8 +236,10 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     if (panelState == null) {
       return;
     }
-    panelState.moveToState(
-      _isRootRoute(location) ? RevealSide.left : RevealSide.main,
+    unawaited(
+      panelState.moveToState(
+        _isRootRoute(location) ? RevealSide.left : RevealSide.main,
+      ),
     );
   }
 

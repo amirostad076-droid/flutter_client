@@ -6,6 +6,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/channel_chat_conte
 import 'package:fluxer_app/features/chat/presentation/widgets/channel_header.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/inline_expression_panel.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
+import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/features/members/presentation/widgets/channel_members.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 
@@ -43,6 +44,9 @@ class ChannelLayout extends ConsumerWidget {
             final showMemberList =
                 isMemberListVisible &&
                 constraints.maxWidth >= _minWidthForMemberList;
+            final panelBottomOffset = inlineExpressionPanelBottomOffset(
+              keyboardInset: MediaQuery.viewInsetsOf(context).bottom,
+            );
 
             return Stack(
               children: [
@@ -70,7 +74,7 @@ class ChannelLayout extends ConsumerWidget {
                   Positioned(
                     left: 0,
                     right: 0,
-                    bottom: 0,
+                    bottom: panelBottomOffset,
                     child: InlineExpressionPanel(
                       onClose: () =>
                           ref.read(expressionPanelProvider.notifier).close(),

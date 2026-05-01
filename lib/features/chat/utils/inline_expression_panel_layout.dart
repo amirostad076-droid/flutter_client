@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 const double kInlineExpressionPanelCollapsedHeight = 350;
 
+double inlineExpressionPanelBottomOffset({required double keyboardInset}) =>
+    keyboardInset;
+
 double inlineExpressionPanelMaxHeight({
   required double availableHeight,
   required double screenHeight,

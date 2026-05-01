@@ -41,4 +41,9 @@ void main() {
       448,
     );
   });
+
+  test('anchors the panel above an open keyboard', () {
+    expect(inlineExpressionPanelBottomOffset(keyboardInset: 320), 320);
+    expect(inlineExpressionPanelBottomOffset(keyboardInset: 0), 0);
+  });
 }

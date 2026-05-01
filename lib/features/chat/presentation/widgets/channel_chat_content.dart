@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/slowmode_indicator
 import 'package:fluxer_app/features/chat/presentation/widgets/typing_indicator_bar.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
+import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 
 /// Composite chat view that assembles the top bar, message list,
@@ -62,6 +63,9 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
   Widget build(BuildContext context) {
     final isMobile = isMobileLayout(context);
     final isPanelOpen = ref.watch(expressionPanelProvider);
+    final panelBottomOffset = inlineExpressionPanelBottomOffset(
+      keyboardInset: MediaQuery.viewInsetsOf(context).bottom,
+    );
 
     return ColoredBox(
       color: context.colors.chatBackground,
@@ -100,7 +104,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
               Positioned(
                 left: 0,
                 right: 0,
-                bottom: 0,
+                bottom: panelBottomOffset,
                 child: InlineExpressionPanel(
                   onClose: () =>
                       ref.read(expressionPanelProvider.notifier).close(),
