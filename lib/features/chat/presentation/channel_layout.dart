@@ -79,6 +79,11 @@ class ChannelLayout extends ConsumerWidget {
                             .read(pendingEmojiInsertProvider.notifier)
                             .emit(name, surrogates);
                       },
+                      onGifSelect: (selection) {
+                        ref
+                            .read(pendingGifSelectionProvider.notifier)
+                            .emit(selection);
+                      },
                     ),
                   ),
               ],

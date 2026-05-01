@@ -947,6 +947,42 @@
   "@emojiTabEmojis": {
     "description": "Emojis tab."
   },
+  "gifPickerSearch": "Search GIFs",
+  "@gifPickerSearch": {
+    "description": "Generic GIF picker search placeholder while provider configuration loads."
+  },
+  "gifPickerSearchKlipy": "Search KLIPY",
+  "@gifPickerSearchKlipy": {
+    "description": "GIF picker search placeholder for KLIPY."
+  },
+  "gifPickerSearchTenor": "Search Tenor",
+  "@gifPickerSearchTenor": {
+    "description": "GIF picker search placeholder for Tenor."
+  },
+  "gifPickerPoweredByKlipy": "KLIPY",
+  "@gifPickerPoweredByKlipy": {
+    "description": "Short powered-by KLIPY label in the GIF picker search field."
+  },
+  "gifPickerTrending": "Trending GIFs",
+  "@gifPickerTrending": {
+    "description": "Trending GIFs category and view title."
+  },
+  "gifPickerNoResultsTitle": "No Search Results",
+  "@gifPickerNoResultsTitle": {
+    "description": "GIF picker empty search title."
+  },
+  "gifPickerNoResultsDescription": "Try another search term",
+  "@gifPickerNoResultsDescription": {
+    "description": "GIF picker empty search description."
+  },
+  "gifPickerLoadFailedTitle": "Couldn't load GIFs",
+  "@gifPickerLoadFailedTitle": {
+    "description": "GIF picker load failure title."
+  },
+  "gifPickerLoadFailedBody": "Check your connection and try again.",
+  "@gifPickerLoadFailedBody": {
+    "description": "GIF picker load failure description."
+  },
   "emojiCategoryPeople": "People",
   "@emojiCategoryPeople": {
     "description": "People & smileys category."

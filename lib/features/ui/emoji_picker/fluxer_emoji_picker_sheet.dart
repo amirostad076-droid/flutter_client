@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/emoji_picker/fluxer_selected_emoji.dart';
@@ -10,6 +11,7 @@ class FluxerEmojiPickerSheet {
   static Future<void> show(
     BuildContext context, {
     ValueChanged<FluxerSelectedEmoji>? onEmojiSelected,
+    ValueChanged<FluxerSelectedGif>? onGifSelected,
     String? title,
     double? maxHeight,
     List<ExpressionPickerTab> visibleTabs = const [
@@ -30,6 +32,7 @@ class FluxerEmojiPickerSheet {
           initialTab: initialTab,
           onClose: close,
           onEmojiSelected: onEmojiSelected,
+          onGifSelected: onGifSelected,
         );
       },
     );
@@ -42,12 +45,14 @@ class _SheetContent extends StatefulWidget {
     required this.initialTab,
     required this.onClose,
     this.onEmojiSelected,
+    this.onGifSelected,
   });
 
   final List<ExpressionPickerTab> visibleTabs;
   final ExpressionPickerTab initialTab;
   final VoidCallback onClose;
   final ValueChanged<FluxerSelectedEmoji>? onEmojiSelected;
+  final ValueChanged<FluxerSelectedGif>? onGifSelected;
 
   @override
   State<_SheetContent> createState() => _SheetContentState();
@@ -83,6 +88,7 @@ class _SheetContentState extends State<_SheetContent> {
             );
             widget.onClose();
           },
+          onGifSelect: widget.onGifSelected,
           visibleTabs: widget.visibleTabs,
           initialTab: _selectedTab,
           showTabs: false,

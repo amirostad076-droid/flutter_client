@@ -60,7 +60,7 @@ class PickerSearchInput extends StatelessWidget {
                   controller: controller,
                   onSubmitted: onSubmitted,
                   maxLength: maxLength,
-                  maxLengthEnforcement: MaxLengthEnforcement.none,
+                  maxLengthEnforcement: MaxLengthEnforcement.enforced,
                   style: TextStyle(
                     fontSize: 16,
                     color: colors.textPrimary,

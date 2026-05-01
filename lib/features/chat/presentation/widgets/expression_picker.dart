@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_picker_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/gif_picker_content.dart';
 import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -37,6 +39,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
     this.hoveredEmojiName,
     this.onHoveredEmojiChanged,
     this.onEmojiSelect,
+    this.onGifSelect,
     super.key,
   });
 
@@ -54,6 +57,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
   final String? hoveredEmojiName;
   final ValueChanged<String?>? onHoveredEmojiChanged;
   final void Function(String name, String surrogates)? onEmojiSelect;
+  final ValueChanged<FluxerSelectedGif>? onGifSelect;
 
   @override
   ConsumerState<ExpressionPicker> createState() => _ExpressionPickerState();
@@ -189,6 +193,12 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
         skinTone: widget.skinTone ?? skinTone,
         onHoveredEmojiChanged: _onHoveredChanged,
         onSelect: widget.onEmojiSelect,
+      );
+    }
+    if (_selectedTab == ExpressionPickerTab.gifs) {
+      return GifPickerContent(
+        onClose: widget.onClose,
+        onGifSelect: widget.onGifSelect,
       );
     }
     return Center(

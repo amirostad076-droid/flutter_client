@@ -109,6 +109,11 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                         .read(pendingEmojiInsertProvider.notifier)
                         .emit(name, surrogates);
                   },
+                  onGifSelect: (selection) {
+                    ref
+                        .read(pendingGifSelectionProvider.notifier)
+                        .emit(selection);
+                  },
                 ),
               ),
           ],

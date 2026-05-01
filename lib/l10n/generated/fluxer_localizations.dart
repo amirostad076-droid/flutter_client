@@ -1420,6 +1420,60 @@ abstract class FluxerLocalizations {
   /// **'Emojis'**
   String get emojiTabEmojis;
 
+  /// Generic GIF picker search placeholder while provider configuration loads.
+  ///
+  /// In en, this message translates to:
+  /// **'Search GIFs'**
+  String get gifPickerSearch;
+
+  /// GIF picker search placeholder for KLIPY.
+  ///
+  /// In en, this message translates to:
+  /// **'Search KLIPY'**
+  String get gifPickerSearchKlipy;
+
+  /// GIF picker search placeholder for Tenor.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Tenor'**
+  String get gifPickerSearchTenor;
+
+  /// Short powered-by KLIPY label in the GIF picker search field.
+  ///
+  /// In en, this message translates to:
+  /// **'KLIPY'**
+  String get gifPickerPoweredByKlipy;
+
+  /// Trending GIFs category and view title.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending GIFs'**
+  String get gifPickerTrending;
+
+  /// GIF picker empty search title.
+  ///
+  /// In en, this message translates to:
+  /// **'No Search Results'**
+  String get gifPickerNoResultsTitle;
+
+  /// GIF picker empty search description.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another search term'**
+  String get gifPickerNoResultsDescription;
+
+  /// GIF picker load failure title.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load GIFs'**
+  String get gifPickerLoadFailedTitle;
+
+  /// GIF picker load failure description.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get gifPickerLoadFailedBody;
+
   /// People & smileys category.
   ///
   /// In en, this message translates to:

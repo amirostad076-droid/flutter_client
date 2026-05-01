@@ -7,8 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart'
     show kSkinToneSurrogates, skinToneToName;
+import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
@@ -38,6 +40,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
   final _expressionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
+  final _gifPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
 
   bool get _isDesktop =>
       !kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows);
@@ -115,7 +118,14 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           ref.read(pendingEmojiInsertProvider.notifier).consume();
           _insertEmoji(pending.name, pending.surrogates);
         },
-      );
+      )
+      ..listen<FluxerSelectedGif?>(pendingGifSelectionProvider, (_, pending) {
+        if (pending == null) {
+          return;
+        }
+        ref.read(pendingGifSelectionProvider.notifier).consume();
+        _handleGifSelection(pending);
+      });
 
     final vm = ref.watch(chatViewModelProvider);
     final chatNotifier = ref.read(chatViewModelProvider.notifier);
@@ -296,12 +306,21 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
           if (perms.canEmbedLinks)
-            IconButton(
-              icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
-              color: context.colors.interactiveNormal,
-              onPressed: perms.canSendMessages ? () {} : null,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            FluxerEmojiPickerPopout(
+              key: _gifPickerKey,
+              initialTab: ExpressionPickerTab.gifs,
+              onEmojiSelected: (emoji) =>
+                  _insertEmoji(emoji.name, emoji.surrogates),
+              onGifSelected: _handleGifSelection,
+              child: IconButton(
+                icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
+                color: context.colors.interactiveNormal,
+                onPressed: perms.canSendMessages
+                    ? () => _gifPickerKey.currentState?.toggle()
+                    : null,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
             ),
           if (perms.canAttachFiles)
             IconButton(
@@ -322,6 +341,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             key: _expressionPickerKey,
             onEmojiSelected: (emoji) =>
                 _insertEmoji(emoji.name, emoji.surrogates),
+            onGifSelected: _handleGifSelection,
             child: IconButton(
               icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
               color: context.colors.interactiveNormal,
@@ -442,6 +462,61 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
   }
 
+  void _handleGifSelection(FluxerSelectedGif selection) {
+    if (selection.autoSend) {
+      unawaited(
+        ref
+            .read(chatViewModelProvider.notifier)
+            .sendStandaloneMessage(selection.url),
+      );
+      return;
+    }
+
+    _insertGifUrl(selection.url);
+    _focusNode.requestFocus();
+  }
+
+  void _insertGifUrl(String url) {
+    final text = _controller.text;
+    final selection = _controller.selection;
+    final start = selection.isValid
+        ? _clampOffset(selection.start, text.length)
+        : text.length;
+    final end = selection.isValid
+        ? _clampOffset(selection.end, text.length)
+        : text.length;
+    final selectionStart = start < end ? start : end;
+    final selectionEnd = start < end ? end : start;
+    final needsLeadingSpace =
+        selectionStart > 0 &&
+        !_isWhitespace(text.substring(selectionStart - 1, selectionStart));
+    final needsTrailingSpace =
+        selectionEnd >= text.length ||
+        !_isWhitespace(text.substring(selectionEnd, selectionEnd + 1));
+    final insertText =
+        '${needsLeadingSpace ? ' ' : ''}$url'
+        '${needsTrailingSpace ? ' ' : ''}';
+    final newText = text.replaceRange(selectionStart, selectionEnd, insertText);
+    _controller.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(
+        offset: selectionStart + insertText.length,
+      ),
+    );
+  }
+
+  bool _isWhitespace(String text) => text.trim().isEmpty;
+
+  int _clampOffset(int value, int max) {
+    if (value < 0) {
+      return 0;
+    }
+    if (value > max) {
+      return max;
+    }
+    return value;
+  }
+
   void _insertEmoji(String name, String surrogates) {
     final String token;
     if (surrogates.startsWith('<')) {
@@ -508,8 +583,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     final isBlocked =
         ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false;
-    final canPressSend =
-        perms.canSendMessages && !isBlocked;
+    final canPressSend = perms.canSendMessages && !isBlocked;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) =>
@@ -524,9 +598,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             )
           : Opacity(
               key: const ValueKey('voice'),
-              opacity: perms.canSendMessages
-                  ? 1.0
-                  : _kVoiceMicDeniedOpacity,
+              opacity: perms.canSendMessages ? 1.0 : _kVoiceMicDeniedOpacity,
               child: FluxerButton.circle(
                 icon: PhosphorIconsFill.microphone,
                 variant: FluxerButtonVariant.secondary,

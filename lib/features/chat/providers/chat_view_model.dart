@@ -256,8 +256,16 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  Future<void> sendMessage() async {
-    final text = state.messageText.trim();
+  Future<void> sendMessage() =>
+      _sendContent(state.messageText.trim(), clearMessageText: true);
+
+  Future<void> sendStandaloneMessage(String content) =>
+      _sendContent(content.trim(), clearMessageText: false);
+
+  Future<void> _sendContent(
+    String text, {
+    required bool clearMessageText,
+  }) async {
     if (text.isEmpty) {
       return;
     }
@@ -310,19 +318,22 @@ class ChatViewModel extends _$ChatViewModel {
     state = state.copyWith(
       replyingTo: null,
       forwardingFrom: null,
-      messageText: '',
+      messageText: clearMessageText ? '' : state.messageText,
     );
 
     try {
       final repo = ref.read(messageRepositoryProvider);
       final sent = await repo.sendMessage(
-        channelId: state.channelId,
+        channelId: channelId,
         content: text,
         replyToId: replyToId,
       );
       // TODO(chat): Handle sending message states (pending/sent/failed) so the
       // UI can show an optimistic echo before the server/realtime round-trip.
-      ref.read(slowmodeTrackerProvider.notifier).recordSend(state.channelId);
+      ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);
+      if (state.channelId != channelId) {
+        return;
+      }
       final alreadyPresent = state.messages.any((m) => m.id == sent.id);
       final nextMessages = alreadyPresent
           ? _replaceById(state.messages, sent) ?? state.messages

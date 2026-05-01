@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
@@ -18,11 +19,13 @@ class InlineExpressionPanel extends StatefulWidget {
   const InlineExpressionPanel({
     required this.onClose,
     this.onEmojiSelect,
+    this.onGifSelect,
     super.key,
   });
 
   final VoidCallback onClose;
   final void Function(String name, String surrogates)? onEmojiSelect;
+  final ValueChanged<FluxerSelectedGif>? onGifSelect;
 
   @override
   State<InlineExpressionPanel> createState() => _InlineExpressionPanelState();
@@ -216,6 +219,7 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
                         _animateToHeight(kCollapsedPanelHeight);
                       }
                     },
+                    onGifSelect: widget.onGifSelect,
                   ),
                 ),
               ),
@@ -247,10 +251,15 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
 }
 
 class _ExpressionPanelContent extends ConsumerStatefulWidget {
-  const _ExpressionPanelContent({required this.onClose, this.onEmojiSelect});
+  const _ExpressionPanelContent({
+    required this.onClose,
+    this.onEmojiSelect,
+    this.onGifSelect,
+  });
 
   final VoidCallback onClose;
   final void Function(String name, String surrogates)? onEmojiSelect;
+  final ValueChanged<FluxerSelectedGif>? onGifSelect;
 
   @override
   ConsumerState<_ExpressionPanelContent> createState() =>
@@ -309,6 +318,7 @@ class _ExpressionPanelContentState
           child: ExpressionPicker(
             onClose: widget.onClose,
             onEmojiSelect: widget.onEmojiSelect,
+            onGifSelect: widget.onGifSelect,
             initialTab: _selectedTab,
             showTabs: false,
             searchController: _searchController,

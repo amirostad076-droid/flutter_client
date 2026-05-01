@@ -732,6 +732,33 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get emojiTabEmojis => 'Emojis';
 
   @override
+  String get gifPickerSearch => 'Search GIFs';
+
+  @override
+  String get gifPickerSearchKlipy => 'Search KLIPY';
+
+  @override
+  String get gifPickerSearchTenor => 'Search Tenor';
+
+  @override
+  String get gifPickerPoweredByKlipy => 'KLIPY';
+
+  @override
+  String get gifPickerTrending => 'Trending GIFs';
+
+  @override
+  String get gifPickerNoResultsTitle => 'No Search Results';
+
+  @override
+  String get gifPickerNoResultsDescription => 'Try another search term';
+
+  @override
+  String get gifPickerLoadFailedTitle => 'Couldn\'t load GIFs';
+
+  @override
+  String get gifPickerLoadFailedBody => 'Check your connection and try again.';
+
+  @override
   String get emojiCategoryPeople => 'People';
 
   @override
