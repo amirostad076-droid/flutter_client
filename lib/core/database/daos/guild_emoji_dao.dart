@@ -21,6 +21,15 @@ class GuildEmojiDao extends DatabaseAccessor<FluxerDatabase>
             ]))
           .watch();
 
+  Stream<List<GuildEmoji>> watchAll() =>
+      (select(guildEmojis)..orderBy([
+            (_) => OrderingTerm(
+              expression: const CustomExpression<int>('rowid'),
+              mode: OrderingMode.desc,
+            ),
+          ]))
+          .watch();
+
   Future<List<GuildEmoji>> getAll() => select(guildEmojis).get();
 
   Future<List<GuildEmoji>> getByGuild(String guildId) =>

@@ -1,7 +1,9 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/emoji_utils.dart';
+import 'package:riverpod/riverpod.dart' as rp;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'emoji_picker_provider.g.dart';
@@ -69,12 +71,70 @@ Future<List<EmojiEntry>> frecentEmojis(Ref ref) async {
   return result;
 }
 
+final allGuildEmojisForPickerProvider =
+    rp.StreamProvider<List<GuildEmojiEntry>>((ref) {
+      final db = ref.watch(fluxerDatabaseProvider);
+      return db.guildEmojiDao.watchAll().map(
+        (rows) => rows.map(GuildEmojiEntry.fromRow).toList(),
+      );
+    });
+
 @Riverpod(keepAlive: true)
 Stream<List<GuildEmojiEntry>> guildEmojisForPicker(Ref ref, String guildId) {
   final db = ref.watch(fluxerDatabaseProvider);
   return db.guildEmojiDao
       .watchByGuild(guildId)
       .map((rows) => rows.map(GuildEmojiEntry.fromRow).toList());
+}
+
+Map<Guild, List<GuildEmojiEntry>> guildEmojiEntriesForPicker({
+  required List<Guild> guilds,
+  required List<GuildEmojiEntry> emojis,
+  required String? activeGuildId,
+  required bool isPremium,
+}) {
+  final targetGuilds = isPremium
+      ? guilds
+      : guilds.where((guild) => guild.id == activeGuildId).toList();
+  return _groupEmojiEntriesByGuild(guilds: targetGuilds, emojis: emojis);
+}
+
+List<GuildEmojiEntry> lockedGuildEmojiEntriesForUpsell({
+  required List<Guild> guilds,
+  required List<GuildEmojiEntry> emojis,
+  required String? activeGuildId,
+  required bool isPremium,
+}) {
+  if (isPremium) {
+    return const <GuildEmojiEntry>[];
+  }
+
+  final lockedGuildIds = guilds
+      .where((guild) => guild.id != activeGuildId)
+      .map((guild) => guild.id)
+      .toSet();
+  return emojis
+      .where((emoji) => lockedGuildIds.contains(emoji.guildId))
+      .toList(growable: false);
+}
+
+Map<Guild, List<GuildEmojiEntry>> _groupEmojiEntriesByGuild({
+  required List<Guild> guilds,
+  required List<GuildEmojiEntry> emojis,
+}) {
+  final emojisByGuildId = <String, List<GuildEmojiEntry>>{};
+  for (final emoji in emojis) {
+    (emojisByGuildId[emoji.guildId] ??= <GuildEmojiEntry>[]).add(emoji);
+  }
+
+  final result = <Guild, List<GuildEmojiEntry>>{};
+  for (final guild in guilds) {
+    final guildEmojis = emojisByGuildId[guild.id];
+    if (guildEmojis != null && guildEmojis.isNotEmpty) {
+      result[guild] = guildEmojis;
+    }
+  }
+  return result;
 }
 
 @Riverpod(keepAlive: true)

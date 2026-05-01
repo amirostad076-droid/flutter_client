@@ -11,6 +11,7 @@ import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/plutonium_upsell_banner.dart';
 import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/chat/utils/emoji_picker_rendering_policy.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -71,13 +72,31 @@ class EmojiPickerContent extends ConsumerStatefulWidget {
   ConsumerState<EmojiPickerContent> createState() => _EmojiPickerContentState();
 }
 
+class _EmojiPickerData {
+  const _EmojiPickerData({
+    required this.guilds,
+    required this.activeGuildId,
+    required this.isPremium,
+    required this.allGuildEmojis,
+    required this.frecent,
+    required this.guildEmojisByGuild,
+  });
+
+  final List<Guild> guilds;
+  final String? activeGuildId;
+  final bool isPremium;
+  final List<GuildEmojiEntry> allGuildEmojis;
+  final List<EmojiEntry> frecent;
+  final Map<Guild, List<GuildEmojiEntry>> guildEmojisByGuild;
+}
+
 class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   final _scrollController = ScrollController();
-  final _prefetchedCustomEmojiKeys = <String>{};
   String? _hoveredEmojiName;
   final _collapsedCategories = <String>{};
 
   GuildEmojiEntry? _hoveredCustomEmoji;
+  var _isFirstFrameSettled = false;
 
   late final int _upsellPreviewSeed;
 
@@ -86,6 +105,11 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     super.initState();
     _upsellPreviewSeed = Random().nextInt(0x7fffffff);
     _preloadSkinToneSpriteSheet();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() => _isFirstFrameSettled = true);
+      }
+    });
   }
 
   @override
@@ -97,10 +121,10 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   }
 
   void _preloadSkinToneSpriteSheet() {
-    if (widget.skinTone.isEmpty) {
-      return;
+    unawaited(EmojiSpriteSheet.preload());
+    if (widget.skinTone.isNotEmpty) {
+      unawaited(EmojiSpriteSheet.preload(skinTone: widget.skinTone));
     }
-    unawaited(EmojiSpriteSheet.preload(skinTone: widget.skinTone));
   }
 
   @override
@@ -145,26 +169,28 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     widget.onSelect?.call(emoji.name, emoji.markdown);
   }
 
-  bool get _isPremium => ref.watch(currentUserPremiumTypeProvider) > 0;
-
-  Map<Guild, List<GuildEmojiEntry>> _getGuildEmojisByGuild() {
+  _EmojiPickerData _watchPickerData() {
     final guilds = ref.watch(guildListViewModelProvider).guilds;
     final activeGuildId = ref.watch(activeGuildIdProvider);
-    final isPremium = _isPremium;
+    final isPremium = ref.watch(currentUserPremiumTypeProvider) > 0;
+    final allGuildEmojis =
+        ref.watch(allGuildEmojisForPickerProvider).value ?? const [];
+    final frecent = ref.watch(frecentEmojisProvider).value ?? const [];
+    final guildEmojisByGuild = guildEmojiEntriesForPicker(
+      guilds: guilds,
+      emojis: allGuildEmojis,
+      activeGuildId: activeGuildId,
+      isPremium: isPremium,
+    );
 
-    final targetGuilds = isPremium
-        ? guilds
-        : guilds.where((g) => g.id == activeGuildId).toList();
-
-    final result = <Guild, List<GuildEmojiEntry>>{};
-    for (final guild in targetGuilds) {
-      final emojis =
-          ref.watch(guildEmojisForPickerProvider(guild.id)).value ?? const [];
-      if (emojis.isNotEmpty) {
-        result[guild] = emojis;
-      }
-    }
-    return result;
+    return _EmojiPickerData(
+      guilds: guilds,
+      activeGuildId: activeGuildId,
+      isPremium: isPremium,
+      allGuildEmojis: allGuildEmojis,
+      frecent: frecent,
+      guildEmojisByGuild: guildEmojisByGuild,
+    );
   }
 
   Map<Guild, List<GuildEmojiEntry>> _readGuildEmojisByGuild() {
@@ -172,23 +198,14 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     final activeGuildId = ref.read(activeGuildIdProvider);
     final isPremium = ref.read(currentUserPremiumTypeProvider) > 0;
 
-    final targetGuilds = isPremium
-        ? guilds
-        : guilds.where((g) => g.id == activeGuildId).toList();
-
-    final result = <Guild, List<GuildEmojiEntry>>{};
-    for (final guild in targetGuilds) {
-      final emojis =
-          ref.read(guildEmojisForPickerProvider(guild.id)).value ?? const [];
-      if (emojis.isNotEmpty) {
-        result[guild] = emojis;
-      }
-    }
-    return result;
+    final emojis = ref.read(allGuildEmojisForPickerProvider).value ?? const [];
+    return guildEmojiEntriesForPicker(
+      guilds: guilds,
+      emojis: emojis,
+      activeGuildId: activeGuildId,
+      isPremium: isPremium,
+    );
   }
-
-  List<GuildEmojiEntry> _getGuildEmojis() =>
-      _getGuildEmojisByGuild().values.expand((e) => e).toList();
 
   void _scrollToCategory(String category) {
     final categories = EmojiRegistry.categories;
@@ -260,23 +277,24 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final data = _watchPickerData();
 
     if (widget.isMobile) {
       return Column(
         children: [
-          Expanded(child: _buildEmojiGrid(context, colors)),
-          _buildMobileCategoryBar(context, colors),
+          Expanded(child: _buildEmojiGrid(context, colors, data)),
+          _buildMobileCategoryBar(context, colors, data),
         ],
       );
     }
 
     return Row(
       children: [
-        _buildDesktopCategorySidebar(context, colors),
+        _buildDesktopCategorySidebar(context, colors, data),
         Expanded(
           child: Column(
             children: [
-              Expanded(child: _buildEmojiGrid(context, colors)),
+              Expanded(child: _buildEmojiGrid(context, colors, data)),
               _buildInspector(context, colors),
             ],
           ),
@@ -285,23 +303,19 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     );
   }
 
-  Widget _buildUpsellBanner(BuildContext context) {
-    if (_isPremium) {
-      return const SizedBox.shrink();
-    }
-    final allGuilds = ref.watch(guildListViewModelProvider).guilds;
-    final activeGuildId = ref.watch(activeGuildIdProvider);
-    final lockedGuilds = allGuilds.where((g) => g.id != activeGuildId).toList();
+  Widget _buildUpsellBanner(BuildContext context, _EmojiPickerData data) {
+    final lockedGuilds = data.guilds
+        .where((guild) => guild.id != data.activeGuildId)
+        .toList();
     if (lockedGuilds.isEmpty) {
       return const SizedBox.shrink();
     }
-    final allLockedEmojis = lockedGuilds
-        .expand<GuildEmojiEntry>(
-          (g) =>
-              ref.watch(guildEmojisForPickerProvider(g.id)).value ??
-              const <GuildEmojiEntry>[],
-        )
-        .toList();
+    final allLockedEmojis = lockedGuildEmojiEntriesForUpsell(
+      guilds: data.guilds,
+      emojis: data.allGuildEmojis,
+      activeGuildId: data.activeGuildId,
+      isPremium: data.isPremium,
+    );
     if (allLockedEmojis.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -317,21 +331,28 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     );
   }
 
-  Widget _buildEmojiGrid(BuildContext context, FluxerColorTheme colors) {
+  Widget _buildEmojiGrid(
+    BuildContext context,
+    FluxerColorTheme colors,
+    _EmojiPickerData data,
+  ) {
     if (widget.searchQuery.isNotEmpty) {
-      return _buildSearchResults(context, colors);
+      return _buildSearchResults(context, colors, data);
     }
-    return _buildCategoryGrid(context, colors);
+    return _buildCategoryGrid(context, colors, data);
   }
 
-  Widget _buildSearchResults(BuildContext context, FluxerColorTheme colors) {
+  Widget _buildSearchResults(
+    BuildContext context,
+    FluxerColorTheme colors,
+    _EmojiPickerData data,
+  ) {
     final unicodeResults = EmojiRegistry.search(widget.searchQuery);
-    final guildEmojis = _getGuildEmojis();
+    final guildEmojis = data.guildEmojisByGuild.values.expand((e) => e);
     final query = widget.searchQuery.toLowerCase();
     final customResults = guildEmojis
         .where((e) => e.name.toLowerCase().contains(query))
         .toList();
-    _scheduleCustomEmojiPrefetch(context, customResults);
 
     if (unicodeResults.isEmpty && customResults.isEmpty) {
       return Center(
@@ -359,6 +380,8 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     final totalCount = customResults.length + unicodeResults.length;
     return GridView.builder(
       controller: _scrollController,
+      cacheExtent: emojiPickerCacheExtent(rowHeight: _kCellSize),
+      addAutomaticKeepAlives: false,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: _columns,
@@ -377,28 +400,31 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     );
   }
 
-  Widget _buildCategoryGrid(BuildContext context, FluxerColorTheme colors) {
+  Widget _buildCategoryGrid(
+    BuildContext context,
+    FluxerColorTheme colors,
+    _EmojiPickerData data,
+  ) {
     final categories = EmojiRegistry.categories;
-    final frecent = ref.watch(frecentEmojisProvider).value ?? [];
-    final guildEmojisByGuild = _getGuildEmojisByGuild();
-    final hasFrecent = frecent.isNotEmpty;
-    final guildEntries = guildEmojisByGuild.entries.toList();
-    _scheduleCustomEmojiPrefetch(
-      context,
-      guildEntries.expand((entry) => entry.value).toList(),
+    final hasFrecent = data.frecent.isNotEmpty;
+    final guildEntries = data.guildEmojisByGuild.entries.toList();
+    final shouldBuildUpsell = emojiPickerShouldBuildUpsell(
+      isPremium: data.isPremium,
+      hasSearchQuery: widget.searchQuery.isNotEmpty,
+      isFirstFrameSettled: _isFirstFrameSettled,
     );
-    final upsell = _buildUpsellBanner(context);
-    final hasUpsell = !_isPremium;
 
     return CustomScrollView(
       controller: _scrollController,
-      cacheExtent: _kCellSize * _columns * 6,
+      cacheExtent: emojiPickerCacheExtent(rowHeight: _kCellSize),
       slivers: [
         const SliverToBoxAdapter(child: SizedBox(height: 4)),
-        if (hasUpsell)
+        if (shouldBuildUpsell)
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            sliver: SliverToBoxAdapter(child: upsell),
+            sliver: SliverToBoxAdapter(
+              child: _buildUpsellBanner(context, data),
+            ),
           ),
         if (hasFrecent) ...[
           SliverPadding(
@@ -410,7 +436,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
           if (!_collapsedCategories.contains('frequently-used'))
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              sliver: _buildUnicodeEmojiGridSliver(frecent, colors),
+              sliver: _buildUnicodeEmojiGridSliver(data.frecent, colors),
             ),
         ],
         for (final entry in guildEntries) ...[
@@ -454,38 +480,6 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     );
   }
 
-  void _scheduleCustomEmojiPrefetch(
-    BuildContext context,
-    List<GuildEmojiEntry> emojis,
-  ) {
-    if (emojis.isEmpty) {
-      return;
-    }
-
-    final candidates = emojis.take(96).toList(growable: false);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-
-      for (final emoji in candidates) {
-        final cacheKey = emoji.cacheKeyForSize(_kCustomEmojiRequestSize);
-        if (!_prefetchedCustomEmojiKeys.add(cacheKey)) {
-          continue;
-        }
-        unawaited(
-          precacheImage(
-            CachedNetworkImageProvider(
-              emoji.urlForSize(_kCustomEmojiRequestSize),
-              cacheKey: cacheKey,
-            ),
-            context,
-          ),
-        );
-      }
-    });
-  }
-
   SliverGrid _buildUnicodeEmojiGridSliver(
     List<EmojiEntry> emojis,
     FluxerColorTheme colors,
@@ -495,9 +489,11 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
         crossAxisCount: _columns,
         mainAxisExtent: _kCellSize,
       ),
-      delegate: SliverChildBuilderDelegate((context, index) {
-        return _buildEmojiCell(emojis[index], colors);
-      }, childCount: emojis.length),
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => _buildEmojiCell(emojis[index], colors),
+        childCount: emojis.length,
+        addAutomaticKeepAlives: false,
+      ),
     );
   }
 
@@ -510,9 +506,11 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
         crossAxisCount: _columns,
         mainAxisExtent: _kCellSize,
       ),
-      delegate: SliverChildBuilderDelegate((context, index) {
-        return _buildCustomEmojiCell(emojis[index], colors);
-      }, childCount: emojis.length),
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => _buildCustomEmojiCell(emojis[index], colors),
+        childCount: emojis.length,
+        addAutomaticKeepAlives: false,
+      ),
     );
   }
 
@@ -568,68 +566,76 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
 
   Widget _buildEmojiCell(EmojiEntry emoji, FluxerColorTheme colors) {
     final hasTone = widget.skinTone.isNotEmpty && emoji.hasDiversity;
+    final usesHover = emojiPickerUsesHoverTracking(isMobile: widget.isMobile);
+    final content = Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color:
+            usesHover &&
+                _hoveredEmojiName == emoji.primaryName &&
+                _hoveredCustomEmoji == null
+            ? colors.backgroundModifierSelected
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: hasTone
+          ? SpriteEmoji(
+              index: emoji.spriteIndex,
+              diversityIndex: emoji.diversityIndex,
+              size: _kEmojiSize,
+              skinTone: widget.skinTone,
+            )
+          : SpriteEmoji(index: emoji.spriteIndex, size: _kEmojiSize),
+    );
 
     return GestureDetector(
       onTap: () => _onEmojiSelected(emoji),
-      child: MouseRegion(
-        onEnter: (_) => _setHoveredEmoji(emoji.primaryName),
-        onExit: (_) => _setHoveredEmoji(null),
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color:
-                _hoveredEmojiName == emoji.primaryName &&
-                    _hoveredCustomEmoji == null
-                ? colors.backgroundModifierSelected
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: hasTone
-              ? SpriteEmoji(
-                  index: emoji.spriteIndex,
-                  diversityIndex: emoji.diversityIndex,
-                  size: _kEmojiSize,
-                  skinTone: widget.skinTone,
-                )
-              : SpriteEmoji(index: emoji.spriteIndex, size: _kEmojiSize),
-        ),
-      ),
+      child: usesHover
+          ? MouseRegion(
+              onEnter: (_) => _setHoveredEmoji(emoji.primaryName),
+              onExit: (_) => _setHoveredEmoji(null),
+              child: content,
+            )
+          : content,
     );
   }
 
-  Widget _buildCustomEmojiCell(
-    GuildEmojiEntry emoji,
-    FluxerColorTheme colors,
-  ) => GestureDetector(
-    onTap: () => _onCustomEmojiSelected(emoji),
-    child: MouseRegion(
-      onEnter: (_) => _setHoveredEmoji(emoji.name, customEmoji: emoji),
-      onExit: (_) => _setHoveredEmoji(null),
-      child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: _hoveredCustomEmoji?.id == emoji.id
-              ? colors.backgroundModifierSelected
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: _RetryEmojiImage(
-          key: ValueKey(emoji.id),
-          emojiId: emoji.id,
-          animated: emoji.animated,
-          baseRequestSize: _kCustomEmojiRequestSize,
-          size: _kEmojiSize,
-        ),
+  Widget _buildCustomEmojiCell(GuildEmojiEntry emoji, FluxerColorTheme colors) {
+    final usesHover = emojiPickerUsesHoverTracking(isMobile: widget.isMobile);
+    final content = Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: usesHover && _hoveredCustomEmoji?.id == emoji.id
+            ? colors.backgroundModifierSelected
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(6),
       ),
-    ),
-  );
+      child: _RetryEmojiImage(
+        key: ValueKey(emoji.id),
+        emojiId: emoji.id,
+        animated: emoji.animated,
+        baseRequestSize: _kCustomEmojiRequestSize,
+        size: _kEmojiSize,
+      ),
+    );
+
+    return GestureDetector(
+      onTap: () => _onCustomEmojiSelected(emoji),
+      child: usesHover
+          ? MouseRegion(
+              onEnter: (_) => _setHoveredEmoji(emoji.name, customEmoji: emoji),
+              onExit: (_) => _setHoveredEmoji(null),
+              child: content,
+            )
+          : content,
+    );
+  }
 
   Widget _buildDesktopCategorySidebar(
     BuildContext context,
     FluxerColorTheme colors,
+    _EmojiPickerData data,
   ) {
-    final frecent = ref.watch(frecentEmojisProvider).value ?? [];
-    final guildEmojisByGuild = _getGuildEmojisByGuild();
     final l10n = FluxerLocalizations.of(context);
 
     return Container(
@@ -643,13 +649,13 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
-          if (frecent.isNotEmpty)
+          if (data.frecent.isNotEmpty)
             _CategoryButton(
               icon: PhosphorIconsFill.clock,
               tooltip: l10n.emojiFrequentlyUsed,
               onTap: () => _scrollToCategory('frequently-used'),
             ),
-          ...guildEmojisByGuild.keys.map(
+          ...data.guildEmojisByGuild.keys.map(
             (guild) => _GuildCategoryButton(
               guild: guild,
               onTap: () => _scrollToCategory('guild-${guild.id}'),
@@ -674,9 +680,8 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   Widget _buildMobileCategoryBar(
     BuildContext context,
     FluxerColorTheme colors,
+    _EmojiPickerData data,
   ) {
-    final frecent = ref.watch(frecentEmojisProvider).value ?? [];
-    final guildEmojisByGuild = _getGuildEmojisByGuild();
     final l10n = FluxerLocalizations.of(context);
 
     return Container(
@@ -688,13 +693,13 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         children: [
-          if (frecent.isNotEmpty)
+          if (data.frecent.isNotEmpty)
             _CategoryButton(
               icon: PhosphorIconsFill.clock,
               tooltip: l10n.emojiFrequentlyUsed,
               onTap: () => _scrollToCategory('frequently-used'),
             ),
-          ...guildEmojisByGuild.keys.map(
+          ...data.guildEmojisByGuild.keys.map(
             (guild) => _GuildCategoryButton(
               guild: guild,
               onTap: () => _scrollToCategory('guild-${guild.id}'),
