@@ -89,6 +89,7 @@ class _SheetContentState extends State<_SheetContent> {
             widget.onClose();
           },
           onGifSelect: widget.onGifSelected,
+          onTabChanged: (tab) => setState(() => _selectedTab = tab),
           visibleTabs: widget.visibleTabs,
           initialTab: _selectedTab,
           showTabs: false,

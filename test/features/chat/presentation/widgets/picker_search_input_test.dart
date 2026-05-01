@@ -19,6 +19,31 @@ Widget buildTestApp(Widget child) {
 }
 
 void main() {
+  testWidgets('applies horizontal padding to both sides', (tester) async {
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      buildTestApp(
+        PickerSearchInput(
+          controller: controller,
+          hintText: 'Search GIFs',
+          horizontalPadding: 20,
+        ),
+      ),
+    );
+
+    final hasSymmetricPadding = tester
+        .widgetList<Padding>(find.byType(Padding))
+        .any(
+          (padding) =>
+              padding.padding ==
+              const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 12),
+        );
+
+    expect(hasSymmetricPadding, isTrue);
+  });
+
   testWidgets('enforces the configured max length', (tester) async {
     final controller = TextEditingController();
     addTearDown(controller.dispose);

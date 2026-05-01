@@ -319,6 +319,7 @@ class _ExpressionPanelContentState
             onClose: widget.onClose,
             onEmojiSelect: widget.onEmojiSelect,
             onGifSelect: widget.onGifSelect,
+            onTabChanged: (tab) => setState(() => _selectedTab = tab),
             initialTab: _selectedTab,
             showTabs: false,
             searchController: _searchController,

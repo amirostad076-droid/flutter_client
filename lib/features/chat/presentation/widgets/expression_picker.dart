@@ -38,6 +38,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
     this.skinTone,
     this.hoveredEmojiName,
     this.onHoveredEmojiChanged,
+    this.onTabChanged,
     this.onEmojiSelect,
     this.onGifSelect,
     super.key,
@@ -56,6 +57,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
   final String? skinTone;
   final String? hoveredEmojiName;
   final ValueChanged<String?>? onHoveredEmojiChanged;
+  final ValueChanged<ExpressionPickerTab>? onTabChanged;
   final void Function(String name, String surrogates)? onEmojiSelect;
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
 
@@ -109,6 +111,14 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
   String _tabLabel(ExpressionPickerTab tab) =>
       expressionTabLabel(tab, FluxerLocalizations.of(context));
 
+  void _selectTab(ExpressionPickerTab tab) {
+    if (_selectedTab == tab) {
+      return;
+    }
+    setState(() => _selectedTab = tab);
+    widget.onTabChanged?.call(tab);
+  }
+
   void _onHoveredChanged(String? name) {
     if (widget.onHoveredEmojiChanged != null) {
       widget.onHoveredEmojiChanged!(name);
@@ -151,7 +161,7 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
           return Padding(
             padding: const EdgeInsets.only(right: 4),
             child: GestureDetector(
-              onTap: () => setState(() => _selectedTab = tab),
+              onTap: () => _selectTab(tab),
               child: Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: layout.s2,
@@ -198,6 +208,9 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
     if (_selectedTab == ExpressionPickerTab.gifs) {
       return GifPickerContent(
         onClose: widget.onClose,
+        onFavoritesTap: widget.visibleTabs.contains(ExpressionPickerTab.memes)
+            ? () => _selectTab(ExpressionPickerTab.memes)
+            : null,
         onGifSelect: widget.onGifSelect,
       );
     }

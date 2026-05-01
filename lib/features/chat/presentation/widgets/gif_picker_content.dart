@@ -12,7 +12,6 @@ import 'package:fluxer_app/features/chat/utils/gif_preview_playback_policy.dart'
 import 'package:fluxer_app/features/chat/utils/gif_preview_player_config.dart';
 import 'package:fluxer_app/features/chat/utils/klipy_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
-import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart' as sdk;
@@ -29,6 +28,7 @@ const _kCategoryGridCacheExtent = 96.0;
 const double _kCategoryTileAspectRatio = 200 / 96;
 const _kCategoryPreviewResumeDelay = Duration(milliseconds: 180);
 const _kGifVideoResumeDelay = Duration(milliseconds: 220);
+const _kSkeletonTileCount = 12;
 const _kMaxActiveGifVideos = 6;
 const _kGifPreviewPlaybackPolicy = GifPreviewPlaybackPolicy(
   maxActiveVideos: _kMaxActiveGifVideos,
@@ -40,9 +40,15 @@ const _kGifVideoHttpHeaders = <String, String>{
 enum _GifPickerView { landing, trending }
 
 class GifPickerContent extends ConsumerStatefulWidget {
-  const GifPickerContent({required this.onClose, this.onGifSelect, super.key});
+  const GifPickerContent({
+    required this.onClose,
+    this.onFavoritesTap,
+    this.onGifSelect,
+    super.key,
+  });
 
   final VoidCallback onClose;
+  final VoidCallback? onFavoritesTap;
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
 
   @override
@@ -145,11 +151,15 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
     final locale = gifLocaleFromFlutterLocale(Localizations.localeOf(context));
     final provider = ref.watch(activeGifProviderProvider).value;
 
-    return Column(
-      children: [
-        _buildHeader(context, provider),
-        Expanded(child: _buildBody(context, locale)),
-      ],
+    return ColoredBox(
+      key: const ValueKey<String>('gif-picker-content-surface'),
+      color: context.colors.backgroundPrimary,
+      child: Column(
+        children: [
+          _buildHeader(context, provider),
+          Expanded(child: _buildBody(context, locale)),
+        ],
+      ),
     );
   }
 
@@ -205,6 +215,7 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
       rightCustomElement: provider == GifProviderKind.klipy
           ? _PoweredByKlipyLabel()
           : null,
+      horizontalPadding: layout.s4,
       onSubmitted: _flushSearch,
     );
   }
@@ -260,6 +271,7 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
     return featured.when(
       data: (data) => _FeaturedGifLanding(
         featured: data,
+        onFavoritesTap: widget.onFavoritesTap,
         onTrendingTap: _showTrending,
         onCategoryTap: _setSearchTerm,
         onGifTap: (gif) => _selectGif(gif, locale),
@@ -328,9 +340,11 @@ class _FeaturedGifLanding extends StatelessWidget {
     required this.onTrendingTap,
     required this.onCategoryTap,
     required this.onGifTap,
+    this.onFavoritesTap,
   });
 
   final GifPickerFeatured featured;
+  final VoidCallback? onFavoritesTap;
   final VoidCallback onTrendingTap;
   final ValueChanged<String> onCategoryTap;
   final ValueChanged<GifPickerGif> onGifTap;
@@ -339,6 +353,15 @@ class _FeaturedGifLanding extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = FluxerLocalizations.of(context);
     final categories = <_GifCategoryData>[
+      if (onFavoritesTap != null)
+        _GifCategoryData(
+          title: l10n.gifPickerFavorites,
+          previewUrl: '',
+          sourceUrl: '',
+          icon: PhosphorIconsFill.star,
+          overlayColor: const Color.fromRGBO(76, 70, 218, 0.6),
+          onTap: onFavoritesTap!,
+        ),
       _GifCategoryData(
         title: l10n.gifPickerTrending,
         previewUrl: _bestPreviewUrl(
@@ -362,7 +385,9 @@ class _FeaturedGifLanding extends StatelessWidget {
       ),
     ];
 
-    if (categories.length == 1 && featured.gifs.isNotEmpty) {
+    if (categories.length == 1 &&
+        onFavoritesTap == null &&
+        featured.gifs.isNotEmpty) {
       return _GifGrid(gifs: featured.gifs, onGifTap: onGifTap);
     }
 
@@ -557,6 +582,7 @@ class _CategoryGridState extends State<_CategoryGrid> {
                   isVisible: true,
                   icon: category.icon,
                   isCategory: true,
+                  categoryOverlayColor: category.overlayColor,
                   enableVideoPlayback: false,
                   onTap: category.onTap,
                 ),
@@ -575,6 +601,7 @@ class _VirtualMasonryGrid extends StatefulWidget {
     required this.aspectRatioFor,
     required this.itemKeyFor,
     required this.itemBuilder,
+    super.key,
   });
 
   final List<Object> items;
@@ -886,6 +913,7 @@ class _GifCategoryData {
     required this.sourceUrl,
     required this.onTap,
     this.icon,
+    this.overlayColor,
   });
 
   final String title;
@@ -893,6 +921,7 @@ class _GifCategoryData {
   final String sourceUrl;
   final VoidCallback onTap;
   final IconData? icon;
+  final Color? overlayColor;
 }
 
 class _GifTile extends StatefulWidget {
@@ -904,6 +933,7 @@ class _GifTile extends StatefulWidget {
     required this.onTap,
     this.icon,
     this.isCategory = false,
+    this.categoryOverlayColor,
     this.enableVideoPlayback = true,
     this.allowVideoPlayback = true,
   });
@@ -915,6 +945,7 @@ class _GifTile extends StatefulWidget {
   final VoidCallback onTap;
   final IconData? icon;
   final bool isCategory;
+  final Color? categoryOverlayColor;
   final bool enableVideoPlayback;
   final bool allowVideoPlayback;
 
@@ -1050,14 +1081,18 @@ class _GifTileState extends State<_GifTile> {
       semanticLabel: widget.title,
       builder: (context, states) {
         final isHovered = states.contains(WidgetState.hovered);
-        final overlayColor = widget.isCategory
-            ? (isLight
-                  ? const Color.fromRGBO(255, 255, 255, 0.56)
-                  : const Color.fromRGBO(0, 0, 0, 0.68))
-            : (isLight
-                  ? const Color.fromRGBO(255, 255, 255, 0.16)
-                  : const Color.fromRGBO(0, 0, 0, 0.18));
-        final textColor = widget.isCategory && isLight
+        final overlayColor =
+            widget.categoryOverlayColor ??
+            (widget.isCategory
+                ? (isLight
+                      ? const Color.fromRGBO(255, 255, 255, 0.56)
+                      : const Color.fromRGBO(0, 0, 0, 0.68))
+                : (isLight
+                      ? const Color.fromRGBO(255, 255, 255, 0.16)
+                      : const Color.fromRGBO(0, 0, 0, 0.18)));
+        final textColor = widget.categoryOverlayColor != null
+            ? Colors.white
+            : widget.isCategory && isLight
             ? colors.textPrimary
             : Colors.white;
 
@@ -1273,8 +1308,48 @@ class _GifLoadingState extends StatelessWidget {
   const _GifLoadingState();
 
   @override
-  Widget build(BuildContext context) =>
-      Center(child: FluxerLoadingSpinner(color: context.colors.textSecondary));
+  Widget build(BuildContext context) => const _GifSkeletonGrid();
+}
+
+class _GifSkeletonGrid extends StatelessWidget {
+  const _GifSkeletonGrid();
+
+  @override
+  Widget build(BuildContext context) => _VirtualMasonryGrid(
+    key: const ValueKey<String>('gif-picker-skeleton-grid'),
+    items: List<Object>.generate(_kSkeletonTileCount, _GifSkeletonItem.new),
+    aspectRatioFor: (_) => 1,
+    itemKeyFor: (item) => 'gif-skeleton-${(item as _GifSkeletonItem).index}',
+    itemBuilder:
+        (context, item, {required isVisible, required isVideoPlaybackAllowed}) {
+          return _GifSkeletonTile(index: (item as _GifSkeletonItem).index);
+        },
+  );
+}
+
+class _GifSkeletonItem {
+  const _GifSkeletonItem(this.index);
+
+  final int index;
+}
+
+class _GifSkeletonTile extends StatelessWidget {
+  const _GifSkeletonTile({required this.index});
+
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final layout = context.layout;
+    return DecoratedBox(
+      key: ValueKey<String>('gif-picker-skeleton-tile-$index'),
+      decoration: BoxDecoration(
+        color: colors.backgroundModifierAccent,
+        borderRadius: layout.radiusSm,
+      ),
+    );
+  }
 }
 
 class _GifEmptyState extends StatelessWidget {

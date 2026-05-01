@@ -963,6 +963,10 @@
   "@gifPickerPoweredByKlipy": {
     "description": "Short powered-by KLIPY label in the GIF picker search field."
   },
+  "gifPickerFavorites": "Favorites",
+  "@gifPickerFavorites": {
+    "description": "Favorites category tile in the GIF picker."
+  },
   "gifPickerTrending": "Trending GIFs",
   "@gifPickerTrending": {
     "description": "Trending GIFs category and view title."

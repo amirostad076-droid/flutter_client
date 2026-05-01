@@ -12,6 +12,7 @@ class PickerSearchInput extends StatelessWidget {
     this.onBackButtonClick,
     this.rightCustomElement,
     this.horizontalPadding = 12,
+    this.rightPadding,
     this.maxLength = 100,
     this.onSubmitted,
     super.key,
@@ -23,6 +24,7 @@ class PickerSearchInput extends StatelessWidget {
   final VoidCallback? onBackButtonClick;
   final Widget? rightCustomElement;
   final double horizontalPadding;
+  final double? rightPadding;
   final int maxLength;
   final ValueChanged<String>? onSubmitted;
 
@@ -32,7 +34,12 @@ class PickerSearchInput extends StatelessWidget {
     final searchInputFillColor = _resolveSearchInputFillColor(context, colors);
 
     return Padding(
-      padding: EdgeInsets.only(left: horizontalPadding, top: 12, bottom: 12),
+      padding: EdgeInsets.only(
+        left: horizontalPadding,
+        right: rightPadding ?? horizontalPadding,
+        top: 12,
+        bottom: 12,
+      ),
       child: Row(
         children: [
           if (showBackButton && onBackButtonClick != null) ...[

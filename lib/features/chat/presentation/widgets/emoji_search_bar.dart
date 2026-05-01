@@ -54,6 +54,7 @@ class EmojiSearchBar extends StatelessWidget {
               controller: controller,
               hintText: hintText,
               horizontalPadding: horizontalPadding,
+              rightPadding: 0,
             ),
           ),
           const SizedBox(width: 8),

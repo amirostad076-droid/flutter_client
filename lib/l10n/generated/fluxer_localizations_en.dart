@@ -744,6 +744,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get gifPickerPoweredByKlipy => 'KLIPY';
 
   @override
+  String get gifPickerFavorites => 'Favorites';
+
+  @override
   String get gifPickerTrending => 'Trending GIFs';
 
   @override

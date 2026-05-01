@@ -1444,6 +1444,12 @@ abstract class FluxerLocalizations {
   /// **'KLIPY'**
   String get gifPickerPoweredByKlipy;
 
+  /// Favorites category tile in the GIF picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get gifPickerFavorites;
+
   /// Trending GIFs category and view title.
   ///
   /// In en, this message translates to:
