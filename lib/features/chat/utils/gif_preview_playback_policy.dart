@@ -1,4 +1,3 @@
-/// A laid-out GIF picker preview that may be eligible for video playback.
 class GifPreviewPlaybackCandidate {
   const GifPreviewPlaybackCandidate({
     required this.index,
@@ -13,7 +12,6 @@ class GifPreviewPlaybackCandidate {
   final double left;
 }
 
-/// Selects the GIF previews that may own native video decoders.
 class GifPreviewPlaybackPolicy {
   const GifPreviewPlaybackPolicy({required this.maxActiveVideos});
 
