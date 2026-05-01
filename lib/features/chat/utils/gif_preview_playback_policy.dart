@@ -1,3 +1,13 @@
+const int kMaxActiveGifVideos = 6;
+
+const gifVideoPreviewPlaybackPolicy = GifPreviewPlaybackPolicy(
+  maxActiveVideos: kMaxActiveGifVideos,
+);
+
+const gifAnimatedImagePreviewPlaybackPolicy = GifPreviewPlaybackPolicy(
+  suppressWhileScrolling: false,
+);
+
 class GifPreviewPlaybackCandidate {
   const GifPreviewPlaybackCandidate({
     required this.index,
@@ -13,9 +23,13 @@ class GifPreviewPlaybackCandidate {
 }
 
 class GifPreviewPlaybackPolicy {
-  const GifPreviewPlaybackPolicy({required this.maxActiveVideos});
+  const GifPreviewPlaybackPolicy({
+    this.maxActiveVideos,
+    this.suppressWhileScrolling = true,
+  });
 
-  final int maxActiveVideos;
+  final int? maxActiveVideos;
+  final bool suppressWhileScrolling;
 
   Set<int> allowedVideoIndexes({
     required Iterable<GifPreviewPlaybackCandidate> candidates,
@@ -23,7 +37,9 @@ class GifPreviewPlaybackPolicy {
     required double viewportBottom,
     required bool isScrollActive,
   }) {
-    if (isScrollActive || maxActiveVideos <= 0) {
+    final configuredLimit = maxActiveVideos;
+    if ((configuredLimit != null && configuredLimit <= 0) ||
+        (suppressWhileScrolling && isScrollActive)) {
       return <int>{};
     }
 
@@ -37,8 +53,9 @@ class GifPreviewPlaybackPolicy {
             .toList()
           ..sort(_compareCandidatesByPaintOrder);
 
+    final limit = configuredLimit ?? visibleCandidates.length;
     return visibleCandidates
-        .take(maxActiveVideos)
+        .take(limit)
         .map((candidate) => candidate.index)
         .toSet();
   }

@@ -79,5 +79,37 @@ void main() {
         <int>{4},
       );
     });
+
+    test('auto-caps animated image playback to visible previews', () {
+      final webpCandidates = List<GifPreviewPlaybackCandidate>.generate(
+        12,
+        (index) => GifPreviewPlaybackCandidate(
+          index: index,
+          top: index * 10,
+          bottom: index * 10 + 8,
+          left: 0,
+        ),
+      );
+      final expectedIndexes = {for (var i = 0; i < 12; i++) i};
+
+      expect(
+        gifAnimatedImagePreviewPlaybackPolicy.allowedVideoIndexes(
+          candidates: webpCandidates,
+          viewportTop: 0,
+          viewportBottom: 200,
+          isScrollActive: false,
+        ),
+        expectedIndexes,
+      );
+      expect(
+        gifAnimatedImagePreviewPlaybackPolicy.allowedVideoIndexes(
+          candidates: webpCandidates,
+          viewportTop: 0,
+          viewportBottom: 200,
+          isScrollActive: true,
+        ),
+        expectedIndexes,
+      );
+    });
   });
 }

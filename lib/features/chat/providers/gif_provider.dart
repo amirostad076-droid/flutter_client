@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/utils/bounded_lru_cache.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
+import 'package:fluxer_app/features/chat/utils/gif_media_selection.dart';
 import 'package:fluxer_dart/export.dart' as sdk;
 import 'package:riverpod/misc.dart';
 
@@ -271,20 +272,20 @@ class GifRepository {
       )
       .toList();
 
-  List<GifPickerGif> _mapTenorGifs(List<sdk.TenorGifResponse> gifs) => gifs
-      .map(
-        (gif) => GifPickerGif(
+  List<GifPickerGif> _mapTenorGifs(List<sdk.TenorGifResponse> gifs) =>
+      gifs.map((gif) {
+        final previewMedia = tenorPreviewMediaForPicker(gif);
+        return GifPickerGif(
           provider: GifProviderKind.tenor,
           id: gif.id,
           title: gif.title,
           url: gif.url,
-          src: gif.src,
-          proxySrc: gif.proxySrc,
-          width: gif.width,
-          height: gif.height,
-        ),
-      )
-      .toList();
+          src: previewMedia.src,
+          proxySrc: previewMedia.proxySrc,
+          width: previewMedia.width > 0 ? previewMedia.width : gif.width,
+          height: previewMedia.height > 0 ? previewMedia.height : gif.height,
+        );
+      }).toList();
 
   GifProviderKind _providerFromWellKnown(
     sdk.WellKnownFluxerResponseGifProviderProvider provider,

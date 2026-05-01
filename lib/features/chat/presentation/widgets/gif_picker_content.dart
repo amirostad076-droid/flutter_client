@@ -8,6 +8,8 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/picker_search_input.dart';
 import 'package:fluxer_app/features/chat/providers/gif_provider.dart';
+import 'package:fluxer_app/features/chat/utils/gif_category_grid_layout.dart';
+import 'package:fluxer_app/features/chat/utils/gif_preview_media_policy.dart';
 import 'package:fluxer_app/features/chat/utils/gif_preview_playback_policy.dart';
 import 'package:fluxer_app/features/chat/utils/gif_preview_player_config.dart';
 import 'package:fluxer_app/features/chat/utils/klipy_utils.dart';
@@ -24,15 +26,9 @@ const _kMaxSearchLength = 100;
 const _kMasonryMinColumnWidth = 227.0;
 const _kMasonryHorizontalPadding = 10.0;
 const _kMasonryCacheExtent = 700.0;
-const _kCategoryGridCacheExtent = 96.0;
 const double _kCategoryTileAspectRatio = 200 / 96;
-const _kCategoryPreviewResumeDelay = Duration(milliseconds: 180);
 const _kGifVideoResumeDelay = Duration(milliseconds: 220);
 const _kSkeletonTileCount = 12;
-const _kMaxActiveGifVideos = 6;
-const _kGifPreviewPlaybackPolicy = GifPreviewPlaybackPolicy(
-  maxActiveVideos: _kMaxActiveGifVideos,
-);
 const _kGifVideoHttpHeaders = <String, String>{
   'Accept': 'video/webm,video/mp4,video/*,*/*',
 };
@@ -472,7 +468,13 @@ class _GifGrid extends StatelessWidget {
       return '${gif.provider.name}:${gif.id}:${gif.url}';
     },
     itemBuilder:
-        (context, item, {required isVisible, required isVideoPlaybackAllowed}) {
+        (
+          context,
+          item, {
+          required isVisible,
+          required isVideoPlaybackAllowed,
+          required isAnimatedImagePlaybackAllowed,
+        }) {
           final gif = item as GifPickerGif;
           final title = gif.title.trim().isEmpty
               ? parseKlipyTitleFromUrl(gif.url)
@@ -483,6 +485,7 @@ class _GifGrid extends StatelessWidget {
             sourceUrl: gif.src,
             isVisible: isVisible,
             allowVideoPlayback: isVideoPlaybackAllowed,
+            allowAnimatedImagePlayback: isAnimatedImagePlaybackAllowed,
             onTap: () => onGifTap(gif),
           );
         },
@@ -499,41 +502,33 @@ class _CategoryGrid extends StatefulWidget {
 }
 
 class _CategoryGridState extends State<_CategoryGrid> {
-  Timer? _previewResumeTimer;
-  var _loadPreviews = true;
+  final _scrollController = ScrollController();
+  var _scrollUpdateScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scheduleScrollUpdate);
+  }
 
   @override
   void dispose() {
-    _previewResumeTimer?.cancel();
+    _scrollController
+      ..removeListener(_scheduleScrollUpdate)
+      ..dispose();
     super.dispose();
   }
 
-  bool _handleScrollNotification(ScrollNotification notification) {
-    if (notification is ScrollStartNotification ||
-        notification is ScrollUpdateNotification ||
-        notification is OverscrollNotification) {
-      _suspendPreviews();
-      _schedulePreviewResume();
-    } else if (notification is ScrollEndNotification) {
-      _schedulePreviewResume();
-    }
-
-    return false;
-  }
-
-  void _suspendPreviews() {
-    if (!_loadPreviews) {
+  void _scheduleScrollUpdate() {
+    if (_scrollUpdateScheduled) {
       return;
     }
 
-    setState(() => _loadPreviews = false);
-  }
-
-  void _schedulePreviewResume() {
-    _previewResumeTimer?.cancel();
-    _previewResumeTimer = Timer(_kCategoryPreviewResumeDelay, () {
-      if (mounted && !_loadPreviews) {
-        setState(() => _loadPreviews = true);
+    _scrollUpdateScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollUpdateScheduled = false;
+      if (mounted) {
+        setState(() {});
       }
     });
   }
@@ -543,55 +538,160 @@ class _CategoryGridState extends State<_CategoryGrid> {
     final layout = context.layout;
     final gap = layout.s2;
 
-    return NotificationListener<ScrollNotification>(
-      onNotification: _handleScrollNotification,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          if (width <= 0) {
-            return const SizedBox.shrink();
-          }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        if (width <= 0) {
+          return const SizedBox.shrink();
+        }
 
-          return GridView.builder(
-            padding: const EdgeInsets.fromLTRB(
-              _kMasonryHorizontalPadding,
-              0,
-              _kMasonryHorizontalPadding,
-              _kMasonryHorizontalPadding,
+        final columnCount = _masonryColumnCountForWidth(width);
+        final tileWidth =
+            (width -
+                (_kMasonryHorizontalPadding * 2) -
+                gap * (columnCount - 1)) /
+            columnCount;
+        final tileHeight = tileWidth / _kCategoryTileAspectRatio;
+        final viewportHeight = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : MediaQuery.sizeOf(context).height;
+        final scrollOffset = _scrollController.hasClients
+            ? _scrollController.offset
+            : 0.0;
+        final visibleIndexes = visibleGifCategoryIndexes(
+          itemCount: widget.categories.length,
+          columnCount: columnCount,
+          tileHeight: tileHeight,
+          gap: gap,
+          scrollOffset: scrollOffset,
+          viewportHeight: viewportHeight,
+        );
+        final animatedImagePlaybackIndexes = _allowedCategoryPreviewIndexes(
+          tileWidth: tileWidth,
+          tileHeight: tileHeight,
+          columnCount: columnCount,
+          gap: gap,
+          scrollOffset: scrollOffset,
+          viewportHeight: viewportHeight,
+        );
+        final contentHeight = gifCategoryGridContentHeight(
+          itemCount: widget.categories.length,
+          columnCount: columnCount,
+          tileHeight: tileHeight,
+          gap: gap,
+          bottomPadding: _kMasonryHorizontalPadding,
+        );
+
+        return SingleChildScrollView(
+          controller: _scrollController,
+          child: SizedBox(
+            height: contentHeight,
+            child: Stack(
+              children: [
+                for (final index in visibleIndexes)
+                  _buildPositionedCategoryTile(
+                    index: index,
+                    tileWidth: tileWidth,
+                    tileHeight: tileHeight,
+                    columnCount: columnCount,
+                    gap: gap,
+                    allowAnimatedImagePlayback: animatedImagePlaybackIndexes
+                        .contains(index),
+                  ),
+              ],
             ),
-            cacheExtent: _kCategoryGridCacheExtent,
-            addAutomaticKeepAlives: false,
-            addRepaintBoundaries: false,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: _masonryColumnCountForWidth(width),
-              mainAxisSpacing: gap,
-              crossAxisSpacing: gap,
-              childAspectRatio: _kCategoryTileAspectRatio,
-            ),
-            itemCount: widget.categories.length,
-            itemBuilder: (context, index) {
-              final category = widget.categories[index];
-              return RepaintBoundary(
-                key: ValueKey<String>(
-                  '${category.title}:${category.previewUrl}',
-                ),
-                child: _GifTile(
-                  title: category.title,
-                  previewUrl: _loadPreviews ? category.previewUrl : '',
-                  sourceUrl: _loadPreviews ? category.sourceUrl : '',
-                  isVisible: true,
-                  icon: category.icon,
-                  isCategory: true,
-                  categoryOverlayColor: category.overlayColor,
-                  enableVideoPlayback: false,
-                  onTap: category.onTap,
-                ),
-              );
-            },
-          );
-        },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPositionedCategoryTile({
+    required int index,
+    required double tileWidth,
+    required double tileHeight,
+    required int columnCount,
+    required double gap,
+    required bool allowAnimatedImagePlayback,
+  }) {
+    final category = widget.categories[index];
+    final row = index ~/ columnCount;
+    final column = index % columnCount;
+    final top = row * (tileHeight + gap);
+    final left = _kMasonryHorizontalPadding + column * (tileWidth + gap);
+
+    return Positioned(
+      key: ValueKey<String>('${category.title}:${category.previewUrl}'),
+      left: left,
+      top: top,
+      width: tileWidth,
+      height: tileHeight,
+      child: RepaintBoundary(
+        child: _GifTile(
+          title: category.title,
+          previewUrl: category.previewUrl,
+          sourceUrl: category.sourceUrl,
+          isVisible: true,
+          icon: category.icon,
+          isCategory: true,
+          categoryOverlayColor: category.overlayColor,
+          enableVideoPlayback: false,
+          allowAnimatedImagePlayback: allowAnimatedImagePlayback,
+          onTap: category.onTap,
+        ),
       ),
     );
+  }
+
+  Set<int> _allowedCategoryPreviewIndexes({
+    required double tileWidth,
+    required double tileHeight,
+    required int columnCount,
+    required double gap,
+    required double scrollOffset,
+    required double viewportHeight,
+  }) {
+    final rowStride = tileHeight + gap;
+    final viewportBottom = scrollOffset + viewportHeight;
+
+    return gifAnimatedImagePreviewPlaybackPolicy.allowedVideoIndexes(
+      candidates: _categoryPreviewCandidates(
+        tileWidth: tileWidth,
+        tileHeight: tileHeight,
+        rowStride: rowStride,
+        columnCount: columnCount,
+        gap: gap,
+      ),
+      viewportTop: scrollOffset,
+      viewportBottom: viewportBottom,
+      isScrollActive: false,
+    );
+  }
+
+  Iterable<GifPreviewPlaybackCandidate> _categoryPreviewCandidates({
+    required double tileWidth,
+    required double tileHeight,
+    required double rowStride,
+    required int columnCount,
+    required double gap,
+  }) sync* {
+    for (var index = 0; index < widget.categories.length; index++) {
+      final category = widget.categories[index];
+      if (!isAnimatedImagePreviewUrl(category.previewUrl) &&
+          !isAnimatedImagePreviewUrl(category.sourceUrl)) {
+        continue;
+      }
+      final row = index ~/ columnCount;
+      final column = index % columnCount;
+      final top = row * rowStride;
+      final left = _kMasonryHorizontalPadding + column * (tileWidth + gap);
+      yield GifPreviewPlaybackCandidate(
+        index: index,
+        top: top,
+        bottom: top + tileHeight,
+        left: left,
+      );
+    }
   }
 }
 
@@ -612,6 +712,7 @@ class _VirtualMasonryGrid extends StatefulWidget {
     Object item, {
     required bool isVisible,
     required bool isVideoPlaybackAllowed,
+    required bool isAnimatedImagePlaybackAllowed,
   })
   itemBuilder;
 
@@ -755,10 +856,16 @@ class _VirtualMasonryGridState extends State<_VirtualMasonryGrid> {
                   position.top <= visibleBottom,
             )
             .toList(growable: false);
+        final viewportBottom = scrollOffset + viewportHeight;
         final videoPlaybackIndexes = _allowedVideoIndexes(
           positions: positions,
           viewportTop: scrollOffset,
-          viewportBottom: scrollOffset + viewportHeight,
+          viewportBottom: viewportBottom,
+        );
+        final animatedImagePlaybackIndexes = _allowedAnimatedImageIndexes(
+          positions: positions,
+          viewportTop: scrollOffset,
+          viewportBottom: viewportBottom,
         );
 
         return SingleChildScrollView(
@@ -781,10 +888,12 @@ class _VirtualMasonryGridState extends State<_VirtualMasonryGrid> {
                       widget.items[position.index],
                       isVisible:
                           position.bottom >= scrollOffset &&
-                          position.top <= scrollOffset + viewportHeight,
+                          position.top <= viewportBottom,
                       isVideoPlaybackAllowed: videoPlaybackIndexes.contains(
                         position.index,
                       ),
+                      isAnimatedImagePlaybackAllowed:
+                          animatedImagePlaybackIndexes.contains(position.index),
                     ),
                   ),
               ],
@@ -799,19 +908,46 @@ class _VirtualMasonryGridState extends State<_VirtualMasonryGrid> {
     required List<_MasonryPosition> positions,
     required double viewportTop,
     required double viewportBottom,
-  }) => _kGifPreviewPlaybackPolicy.allowedVideoIndexes(
-    candidates: positions.map(
-      (position) => GifPreviewPlaybackCandidate(
-        index: position.index,
-        top: position.top,
-        bottom: position.bottom,
-        left: position.left,
-      ),
-    ),
+  }) => gifVideoPreviewPlaybackPolicy.allowedVideoIndexes(
+    candidates: _playbackCandidatesForPositions(positions),
     viewportTop: viewportTop,
     viewportBottom: viewportBottom,
     isScrollActive: _isScrollActive,
   );
+
+  Set<int> _allowedAnimatedImageIndexes({
+    required List<_MasonryPosition> positions,
+    required double viewportTop,
+    required double viewportBottom,
+  }) => gifAnimatedImagePreviewPlaybackPolicy.allowedVideoIndexes(
+    candidates: _playbackCandidatesForPositions(positions).where((candidate) {
+      final item = widget.items[candidate.index];
+      return _isAnimatedImagePlaybackCandidate(item);
+    }),
+    viewportTop: viewportTop,
+    viewportBottom: viewportBottom,
+    isScrollActive: _isScrollActive,
+  );
+
+  Iterable<GifPreviewPlaybackCandidate> _playbackCandidatesForPositions(
+    List<_MasonryPosition> positions,
+  ) => positions.map(
+    (position) => GifPreviewPlaybackCandidate(
+      index: position.index,
+      top: position.top,
+      bottom: position.bottom,
+      left: position.left,
+    ),
+  );
+
+  bool _isAnimatedImagePlaybackCandidate(Object item) {
+    if (item is! GifPickerGif) {
+      return false;
+    }
+    final previewUrl = item.proxySrc.isNotEmpty ? item.proxySrc : item.src;
+    return isAnimatedImagePreviewUrl(previewUrl) ||
+        isAnimatedImagePreviewUrl(item.src);
+  }
 
   List<_MasonryPosition> _positionsForLayout({
     required double columnWidth,
@@ -936,6 +1072,7 @@ class _GifTile extends StatefulWidget {
     this.categoryOverlayColor,
     this.enableVideoPlayback = true,
     this.allowVideoPlayback = true,
+    this.allowAnimatedImagePlayback = true,
   });
 
   final String title;
@@ -948,6 +1085,7 @@ class _GifTile extends StatefulWidget {
   final Color? categoryOverlayColor;
   final bool enableVideoPlayback;
   final bool allowVideoPlayback;
+  final bool allowAnimatedImagePlayback;
 
   @override
   State<_GifTile> createState() => _GifTileState();
@@ -1114,6 +1252,7 @@ class _GifTileState extends State<_GifTile> {
                 _GifMediaPreview(
                   url: widget.previewUrl,
                   sourceUrl: widget.sourceUrl,
+                  allowAnimatedImagePlayback: widget.allowAnimatedImagePlayback,
                   videoController: _controller,
                 ),
                 ColoredBox(color: overlayColor),
@@ -1172,11 +1311,13 @@ class _GifMediaPreview extends StatelessWidget {
   const _GifMediaPreview({
     required this.url,
     required this.sourceUrl,
+    required this.allowAnimatedImagePlayback,
     this.videoController,
   });
 
   final String url;
   final String sourceUrl;
+  final bool allowAnimatedImagePlayback;
   final mkv.VideoController? videoController;
 
   @override
@@ -1194,7 +1335,12 @@ class _GifMediaPreview extends StatelessWidget {
     final imageUrl = url.isNotEmpty ? url : sourceUrl;
     if (imageUrl.isEmpty ||
         isVideoSourceUrl(sourceUrl) ||
-        isVideoSourceUrl(imageUrl)) {
+        isVideoSourceUrl(imageUrl) ||
+        !gifPreviewShouldLoadImage(
+          previewUrl: url,
+          sourceUrl: sourceUrl,
+          isAnimatedImagePlaybackAllowed: allowAnimatedImagePlayback,
+        )) {
       return const _GifMediaPlaceholder();
     }
     return _CachedGifPreview(url: imageUrl);
@@ -1321,7 +1467,13 @@ class _GifSkeletonGrid extends StatelessWidget {
     aspectRatioFor: (_) => 1,
     itemKeyFor: (item) => 'gif-skeleton-${(item as _GifSkeletonItem).index}',
     itemBuilder:
-        (context, item, {required isVisible, required isVideoPlaybackAllowed}) {
+        (
+          context,
+          item, {
+          required isVisible,
+          required isVideoPlaybackAllowed,
+          required isAnimatedImagePlaybackAllowed,
+        }) {
           return _GifSkeletonTile(index: (item as _GifSkeletonItem).index);
         },
   );
