@@ -8,9 +8,11 @@ import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/chat/utils/inline_expression_panel_drag.dart';
+import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
-const kCollapsedPanelHeight = 350.0;
+const double kCollapsedPanelHeight = kInlineExpressionPanelCollapsedHeight;
 
 const _kDragHandleHeight = 28.0;
 const _kExpandedFraction = 0.85;
@@ -38,6 +40,7 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
   bool _isExpanded = false;
 
   bool _isDraggingViaScroll = false;
+  bool _heightUpdateScheduled = false;
 
   late final AnimationController _entryController;
   late final Animation<double> _entrySlide;
@@ -59,12 +62,6 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _expandedHeight = MediaQuery.sizeOf(context).height * _kExpandedFraction;
-  }
-
-  @override
   void dispose() {
     _entryController.dispose();
     _snapController?.dispose();
@@ -73,12 +70,14 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     _snapController?.stop();
-    setState(() {
-      _panelHeight = (_panelHeight - details.delta.dy).clamp(
-        kCollapsedPanelHeight * 0.5,
-        _expandedHeight,
-      );
-    });
+    _setPanelHeight(
+      inlineExpressionPanelHeightAfterDrag(
+        currentHeight: _panelHeight,
+        deltaDy: details.delta.dy,
+        minHeight: kCollapsedPanelHeight * 0.5,
+        maxHeight: _expandedHeight,
+      ),
+    );
   }
 
   void _onVerticalDragEnd(DragEndDetails details) {
@@ -91,12 +90,9 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
       if (delta > 0) {
         _isDraggingViaScroll = true;
         _snapController?.stop();
-        setState(() {
-          _panelHeight = (_panelHeight + delta).clamp(
-            kCollapsedPanelHeight,
-            _expandedHeight,
-          );
-        });
+        _setPanelHeight(
+          (_panelHeight + delta).clamp(kCollapsedPanelHeight, _expandedHeight),
+        );
         return true;
       }
     }
@@ -106,12 +102,9 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
       if (delta < 0) {
         _isDraggingViaScroll = true;
         _snapController?.stop();
-        setState(() {
-          _panelHeight = (_panelHeight + delta).clamp(
-            kCollapsedPanelHeight,
-            _expandedHeight,
-          );
-        });
+        _setPanelHeight(
+          (_panelHeight + delta).clamp(kCollapsedPanelHeight, _expandedHeight),
+        );
         return true;
       }
     }
@@ -121,12 +114,9 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
         notification is ScrollUpdateNotification) {
       final delta = notification.scrollDelta ?? 0;
       if (delta < 0) {
-        setState(() {
-          _panelHeight = (_panelHeight + delta).clamp(
-            kCollapsedPanelHeight,
-            _expandedHeight,
-          );
-        });
+        _setPanelHeight(
+          (_panelHeight + delta).clamp(kCollapsedPanelHeight, _expandedHeight),
+        );
         return true;
       }
     }
@@ -138,6 +128,24 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
     }
 
     return false;
+  }
+
+  void _setPanelHeight(double height) {
+    if (_panelHeight == height) {
+      return;
+    }
+    _panelHeight = height;
+    if (_heightUpdateScheduled) {
+      return;
+    }
+
+    _heightUpdateScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _heightUpdateScheduled = false;
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   void _snapFromVelocity(double velocity) {
@@ -165,13 +173,14 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
   }
 
   void _animateToHeight(double target) {
+    final clampedTarget = target.clamp(0, _expandedHeight).toDouble();
     _snapController?.dispose();
     _snapController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
     _snapAnimation =
-        Tween(begin: _panelHeight, end: target).animate(
+        Tween(begin: _panelHeight, end: clampedTarget).animate(
           CurvedAnimation(parent: _snapController!, curve: Curves.easeOutCubic),
         )..addListener(() {
           setState(() {
@@ -186,47 +195,71 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return SlideTransition(
-      position: _entrySlide.drive(
-        Tween(begin: const Offset(0, 1), end: Offset.zero),
-      ),
-      child: SizedBox(
-        height: _panelHeight,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: colors.backgroundSecondary,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color.fromRGBO(0, 0, 0, 0.15),
-                blurRadius: 12,
-                offset: Offset(0, -2),
-              ),
-            ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final mediaQuery = MediaQuery.of(context);
+        final expandedHeight = inlineExpressionPanelExpandedHeight(
+          availableHeight: constraints.maxHeight,
+          screenHeight: mediaQuery.size.height,
+          keyboardInset: mediaQuery.viewInsets.bottom,
+          topPadding: mediaQuery.viewPadding.top,
+          topMargin: context.layout.s2,
+          expandedFraction: _kExpandedFraction,
+        );
+        _expandedHeight = expandedHeight;
+        final panelHeight = _panelHeight.clamp(0, expandedHeight).toDouble();
+
+        return SlideTransition(
+          position: _entrySlide.drive(
+            Tween(begin: const Offset(0, 1), end: Offset.zero),
           ),
-          child: Column(
-            children: [
-              _buildDragHandle(colors),
-              Expanded(
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: _onScrollNotification,
-                  child: _ExpressionPanelContent(
-                    onClose: widget.onClose,
-                    onEmojiSelect: (name, surrogates) {
-                      widget.onEmojiSelect?.call(name, surrogates);
-                      // Snap back to collapsed after selection if expanded
-                      if (_isExpanded) {
-                        _animateToHeight(kCollapsedPanelHeight);
-                      }
-                    },
-                    onGifSelect: widget.onGifSelect,
+          child: SizedBox(
+            height: panelHeight,
+            child: GestureDetector(
+              onVerticalDragUpdate: _onVerticalDragUpdate,
+              onVerticalDragEnd: _onVerticalDragEnd,
+              behavior: HitTestBehavior.translucent,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.backgroundSecondary,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
                   ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color.fromRGBO(0, 0, 0, 0.15),
+                      blurRadius: 12,
+                      offset: Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _buildDragHandle(colors),
+                    Expanded(
+                      child: NotificationListener<ScrollNotification>(
+                        onNotification: _onScrollNotification,
+                        child: RepaintBoundary(
+                          child: _ExpressionPanelContent(
+                            onClose: widget.onClose,
+                            onEmojiSelect: (name, surrogates) {
+                              widget.onEmojiSelect?.call(name, surrogates);
+                              if (_isExpanded) {
+                                _animateToHeight(kCollapsedPanelHeight);
+                              }
+                            },
+                            onGifSelect: widget.onGifSelect,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -271,7 +304,6 @@ class _ExpressionPanelContentState
   ExpressionPickerTab _selectedTab = ExpressionPickerTab.emojis;
   final _searchController = TextEditingController();
   String _searchQuery = '';
-  String? _hoveredEmojiName;
 
   static const List<ExpressionPickerTab> _kVisibleTabs = [
     ExpressionPickerTab.gifs,
@@ -307,7 +339,6 @@ class _ExpressionPanelContentState
         if (_selectedTab == ExpressionPickerTab.emojis)
           EmojiSearchBar(
             controller: _searchController,
-            hoveredEmojiName: _hoveredEmojiName,
             skinTone: skinTone,
             onSkinToneChanged: (t) =>
                 unawaited(ref.read(emojiSkinToneProvider.notifier).set(t)),
@@ -325,9 +356,6 @@ class _ExpressionPanelContentState
             searchController: _searchController,
             searchQuery: _searchQuery,
             skinTone: skinTone,
-            hoveredEmojiName: _hoveredEmojiName,
-            onHoveredEmojiChanged: (name) =>
-                setState(() => _hoveredEmojiName = name),
           ),
         ),
       ],
