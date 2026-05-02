@@ -478,6 +478,24 @@ class GatewayEventHandler {
                   .toList(),
             );
           }
+
+          if (guildData.stickers.isNotEmpty) {
+            await database.guildStickerDao.replaceForGuild(
+              guildId,
+              guildData.stickers
+                  .map(
+                    (s) => db.GuildStickersCompanion.insert(
+                      id: s.id,
+                      guildId: guildId,
+                      name: s.name,
+                      description: Value(s.description),
+                      tagsJson: Value(jsonEncode(s.tags)),
+                      animated: Value(s.animated),
+                    ),
+                  )
+                  .toList(),
+            );
+          }
         }
       }
 
