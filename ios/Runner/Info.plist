@@ -45,10 +45,10 @@
 	<string>Leave voice messages, audio, and video calls.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Share photos from your library in a chat.</string>
-	<key>RTCScreenSharingExtension</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER).BroadcastExtension</string>
 	<key>RTCAppGroupIdentifier</key>
 	<string>group.com.fluxer</string>
+	<key>RTCScreenSharingExtension</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER).BroadcastExtension</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -77,6 +77,7 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 		<string>audio</string>
+		<string>voip</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
