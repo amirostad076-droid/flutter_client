@@ -128,6 +128,52 @@ void main() {
     expect(find.byType(mkv.Video), findsNothing);
     expect(find.text(filename), findsNothing);
   });
+
+  testWidgets(
+    'short favorite grids emit scroll notifications for panel drags',
+    (tester) async {
+      var sawOverscroll = false;
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: [
+            favoriteMemesProvider.overrideWith(
+              (ref) => Stream.value([
+                _meme(
+                  id: '1',
+                  filename: 'favorite.png',
+                  contentType: 'image/png',
+                ),
+              ]),
+            ),
+          ],
+          child: SizedBox(
+            width: 260,
+            height: 320,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                sawOverscroll =
+                    sawOverscroll ||
+                    notification is OverscrollNotification &&
+                        notification.overscroll > 0;
+                return false;
+              },
+              child: const FavoriteMediaPickerContent(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.drag(
+        find.byType(FavoriteMediaPickerContent),
+        const Offset(0, -80),
+      );
+      await tester.pump();
+
+      expect(sawOverscroll, isTrue);
+    },
+  );
 }
 
 Widget _buildTestApp({

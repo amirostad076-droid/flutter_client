@@ -100,7 +100,29 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
         _isDraggingViaScroll = true;
         _snapController?.stop();
         _setPanelHeight(
-          (_panelHeight + delta).clamp(kCollapsedPanelHeight, _expandedHeight),
+          inlineExpressionPanelHeightAfterScrollExpansion(
+            currentHeight: _panelHeight,
+            scrollDelta: delta,
+            minHeight: kCollapsedPanelHeight,
+            maxHeight: _expandedHeight,
+          ),
+        );
+        return true;
+      }
+    }
+
+    if (!_isExpanded && notification is OverscrollNotification) {
+      final delta = notification.overscroll;
+      if (delta > 0) {
+        _isDraggingViaScroll = true;
+        _snapController?.stop();
+        _setPanelHeight(
+          inlineExpressionPanelHeightAfterScrollExpansion(
+            currentHeight: _panelHeight,
+            scrollDelta: delta,
+            minHeight: kCollapsedPanelHeight,
+            maxHeight: _expandedHeight,
+          ),
         );
         return true;
       }
@@ -112,7 +134,12 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
         _isDraggingViaScroll = true;
         _snapController?.stop();
         _setPanelHeight(
-          (_panelHeight + delta).clamp(kCollapsedPanelHeight, _expandedHeight),
+          inlineExpressionPanelHeightAfterScrollExpansion(
+            currentHeight: _panelHeight,
+            scrollDelta: delta,
+            minHeight: kCollapsedPanelHeight,
+            maxHeight: _expandedHeight,
+          ),
         );
         return true;
       }
@@ -124,7 +151,12 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
       final delta = notification.scrollDelta ?? 0;
       if (delta < 0) {
         _setPanelHeight(
-          (_panelHeight + delta).clamp(kCollapsedPanelHeight, _expandedHeight),
+          inlineExpressionPanelHeightAfterScrollExpansion(
+            currentHeight: _panelHeight,
+            scrollDelta: delta,
+            minHeight: kCollapsedPanelHeight,
+            maxHeight: _expandedHeight,
+          ),
         );
         return true;
       }

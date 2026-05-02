@@ -46,4 +46,28 @@ void main() {
       700,
     );
   });
+
+  test('positive scroll overscroll grows a collapsed panel', () {
+    expect(
+      inlineExpressionPanelHeightAfterScrollExpansion(
+        currentHeight: 350,
+        scrollDelta: 80,
+        minHeight: 350,
+        maxHeight: 700,
+      ),
+      430,
+    );
+  });
+
+  test('scroll expansion is clamped to the available range', () {
+    expect(
+      inlineExpressionPanelHeightAfterScrollExpansion(
+        currentHeight: 680,
+        scrollDelta: 80,
+        minHeight: 350,
+        maxHeight: 700,
+      ),
+      700,
+    );
+  });
 }

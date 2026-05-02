@@ -268,6 +268,7 @@ class _FavoriteMediaMasonryGrid extends StatelessWidget {
       }
 
       return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(
           _kGridHorizontalPadding,
           0,
