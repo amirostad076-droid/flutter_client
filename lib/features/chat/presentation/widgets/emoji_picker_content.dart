@@ -448,6 +448,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
                 'guild-${entry.key.id}',
                 colors,
                 labelOverride: entry.key.name,
+                guild: entry.key,
               ),
             ),
           ),
@@ -518,6 +519,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     String category,
     FluxerColorTheme colors, {
     String? labelOverride,
+    Guild? guild,
   }) {
     final l10n = FluxerLocalizations.of(context);
     final isCollapsed = _collapsedCategories.contains(category);
@@ -526,6 +528,15 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
         (category == 'frequently-used'
             ? l10n.emojiFrequentlyUsed
             : _categoryLabel(category, l10n));
+    final leadingIcon = guild != null
+        ? _GuildIcon(guild: guild, size: 16)
+        : category == 'frequently-used'
+        ? PhosphorIcon(
+            PhosphorIconsFill.clock,
+            size: 16,
+            color: colors.textPrimaryMuted,
+          )
+        : null;
 
     return GestureDetector(
       onTap: () => setState(() {
@@ -540,6 +551,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(
           children: [
+            if (leadingIcon != null) ...[leadingIcon, const SizedBox(width: 8)],
             Text(
               label,
               style: TextStyle(
@@ -842,45 +854,60 @@ class _GuildCategoryButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(6),
+    child: SizedBox(
+      width: 36,
+      height: 36,
+      child: Center(child: _GuildIcon(guild: guild, size: 24)),
+    ),
+  );
+}
+
+class _GuildIcon extends StatelessWidget {
+  const _GuildIcon({required this.guild, required this.size});
+
+  final Guild guild;
+  final double size;
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final iconUrl = guild.iconUrl;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: SizedBox(
-        width: 36,
-        height: 36,
-        child: Center(
-          child: iconUrl != null
-              ? ClipOval(
-                  child: CachedNetworkImage(
-                    imageUrl: iconUrl,
-                    width: 24,
-                    height: 24,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        _GuildInitial(name: guild.name, colors: colors),
-                  ),
-                )
-              : _GuildInitial(name: guild.name, colors: colors),
-        ),
+    if (iconUrl == null) {
+      return _GuildInitial(name: guild.name, colors: colors, size: size);
+    }
+
+    return ClipOval(
+      child: CachedNetworkImage(
+        imageUrl: iconUrl,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) =>
+            _GuildInitial(name: guild.name, colors: colors, size: size),
       ),
     );
   }
 }
 
 class _GuildInitial extends StatelessWidget {
-  const _GuildInitial({required this.name, required this.colors});
+  const _GuildInitial({
+    required this.name,
+    required this.colors,
+    required this.size,
+  });
 
   final String name;
   final FluxerColorTheme colors;
+  final double size;
 
   @override
   Widget build(BuildContext context) => Container(
-    width: 24,
-    height: 24,
+    width: size,
+    height: size,
     decoration: BoxDecoration(
       color: colors.backgroundSecondary,
       shape: BoxShape.circle,
@@ -889,7 +916,7 @@ class _GuildInitial extends StatelessWidget {
     child: Text(
       name.isNotEmpty ? name[0].toUpperCase() : '?',
       style: TextStyle(
-        fontSize: 11,
+        fontSize: size <= 16 ? 8 : 11,
         fontWeight: FontWeight.w600,
         color: colors.textPrimaryMuted,
       ),

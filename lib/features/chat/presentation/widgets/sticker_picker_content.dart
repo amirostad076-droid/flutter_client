@@ -16,9 +16,14 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kDesktopStickerColumns = 4;
-const _kMobileStickerColumns = 3;
-const _kStickerCellHeight = 92.0;
-const _kStickerImageSize = 76.0;
+const _kMobileStickerColumns = 5;
+const _kDesktopStickerCellHeight = 92.0;
+const _kMobileStickerCellHeight = 72.0;
+const _kDesktopStickerImageSize = 76.0;
+const _kMobileStickerImageSize = 64.0;
+const _kStickerGridGap = 8.0;
+const _kCategoryHeaderHeight = 32.0;
+const _kCategoryGap = 8.0;
 const _kStickerRequestSize = 160;
 
 typedef OnStickerSelect = void Function(StickerEntry sticker);
@@ -70,6 +75,23 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
 
   int get _columns =>
       widget.isMobile ? _kMobileStickerColumns : _kDesktopStickerColumns;
+
+  double get _cellHeight =>
+      widget.isMobile ? _kMobileStickerCellHeight : _kDesktopStickerCellHeight;
+
+  double get _imageSize =>
+      widget.isMobile ? _kMobileStickerImageSize : _kDesktopStickerImageSize;
+
+  EdgeInsets get _gridPadding =>
+      EdgeInsets.symmetric(horizontal: widget.isMobile ? 12 : 8);
+
+  double _gridHeightForItemCount(int itemCount) {
+    if (itemCount == 0) {
+      return 0;
+    }
+    final rows = (itemCount / _columns).ceil();
+    return rows * _cellHeight + (rows - 1) * _kStickerGridGap;
+  }
 
   _StickerPickerData _watchPickerData() {
     final guilds = ref.watch(guildListViewModelProvider).guilds;
@@ -126,13 +148,13 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
       return;
     }
 
-    double offset = 4;
+    var offset = 0.0;
     if (frecent.isNotEmpty) {
-      offset += 26;
+      offset += _kCategoryHeaderHeight;
       if (!_collapsedCategories.contains('frequently-used')) {
-        offset += (frecent.length / _columns).ceil() * _kStickerCellHeight;
+        offset += _gridHeightForItemCount(frecent.length);
       }
-      offset += 12;
+      offset += _kCategoryGap;
     }
 
     for (final entry in stickersByGuild.entries) {
@@ -147,9 +169,9 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
         );
         return;
       }
-      offset += 12 + 26;
+      offset += _kCategoryGap + _kCategoryHeaderHeight;
       if (!_collapsedCategories.contains(key)) {
-        offset += (entry.value.length / _columns).ceil() * _kStickerCellHeight;
+        offset += _gridHeightForItemCount(entry.value.length);
       }
     }
   }
@@ -180,7 +202,8 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
         PickerSearchInput(
           controller: _searchController,
           hintText: _hoveredSticker?.name ?? 'Find the perfect sticker',
-          horizontalPadding: widget.isMobile ? 16 : 12,
+          topPadding: widget.isMobile ? 8 : 12,
+          bottomPadding: widget.isMobile ? 4 : 12,
         ),
         Expanded(child: _buildBody(context, colors, data)),
       ],
@@ -256,10 +279,12 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
 
     return GridView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: _gridPadding.copyWith(top: 0, bottom: 4),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: _columns,
-        mainAxisExtent: _kStickerCellHeight,
+        mainAxisExtent: _cellHeight,
+        crossAxisSpacing: _kStickerGridGap,
+        mainAxisSpacing: _kStickerGridGap,
       ),
       itemCount: stickers.length,
       itemBuilder: (context, index) =>
@@ -277,35 +302,36 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        const SliverToBoxAdapter(child: SizedBox(height: 4)),
+        const SliverToBoxAdapter(child: SizedBox.shrink()),
         if (data.frecent.isNotEmpty) ...[
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: _gridPadding,
             sliver: SliverToBoxAdapter(
               child: _buildCategoryHeader('frequently-used', colors),
             ),
           ),
           if (!_collapsedCategories.contains('frequently-used'))
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: _gridPadding,
               sliver: _buildStickerGridSliver(data.frecent, colors),
             ),
         ],
         for (final entry in guildEntries) ...[
-          const SliverToBoxAdapter(child: SizedBox(height: 12)),
+          const SliverToBoxAdapter(child: SizedBox(height: _kCategoryGap)),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: _gridPadding,
             sliver: SliverToBoxAdapter(
               child: _buildCategoryHeader(
                 'guild-${entry.key.id}',
                 colors,
                 labelOverride: entry.key.name,
+                guild: entry.key,
               ),
             ),
           ),
           if (!_collapsedCategories.contains('guild-${entry.key.id}'))
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: _gridPadding,
               sliver: _buildStickerGridSliver(entry.value, colors),
             ),
         ],
@@ -320,7 +346,9 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
   ) => SliverGrid(
     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
       crossAxisCount: _columns,
-      mainAxisExtent: _kStickerCellHeight,
+      mainAxisExtent: _cellHeight,
+      crossAxisSpacing: _kStickerGridGap,
+      mainAxisSpacing: _kStickerGridGap,
     ),
     delegate: SliverChildBuilderDelegate(
       (context, index) => _buildStickerCell(stickers[index], colors),
@@ -333,10 +361,20 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
     String category,
     FluxerColorTheme colors, {
     String? labelOverride,
+    Guild? guild,
   }) {
     final isCollapsed = _collapsedCategories.contains(category);
     final label =
         labelOverride ?? FluxerLocalizations.of(context).emojiFrequentlyUsed;
+    final leadingIcon = guild != null
+        ? _StickerGuildIcon(guild: guild, size: 16)
+        : category == 'frequently-used'
+        ? PhosphorIcon(
+            PhosphorIconsFill.clock,
+            size: 16,
+            color: colors.textPrimaryMuted,
+          )
+        : null;
 
     return GestureDetector(
       onTap: () => setState(() {
@@ -347,10 +385,11 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
         }
       }),
       behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: SizedBox(
+        height: _kCategoryHeaderHeight,
         child: Row(
           children: [
+            if (leadingIcon != null) ...[leadingIcon, const SizedBox(width: 8)],
             Text(
               label,
               style: TextStyle(
@@ -388,17 +427,14 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
       child: CachedNetworkImage(
         imageUrl: sticker.urlForSize(_kStickerRequestSize),
         cacheKey: sticker.cacheKeyForSize(_kStickerRequestSize),
-        width: _kStickerImageSize,
-        height: _kStickerImageSize,
-        memCacheWidth: _kStickerImageSize.toInt(),
-        memCacheHeight: _kStickerImageSize.toInt(),
+        width: _imageSize,
+        height: _imageSize,
+        memCacheWidth: _imageSize.toInt(),
+        memCacheHeight: _imageSize.toInt(),
         fadeInDuration: Duration.zero,
         fadeOutDuration: Duration.zero,
         fit: BoxFit.contain,
-        placeholder: (_, _) => const SizedBox(
-          width: _kStickerImageSize,
-          height: _kStickerImageSize,
-        ),
+        placeholder: (_, _) => SizedBox(width: _imageSize, height: _imageSize),
         errorBuilder: (_, _, _) => Icon(
           PhosphorIconsDuotone.sticker,
           size: 36,
@@ -540,45 +576,60 @@ class _StickerGuildCategoryButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(6),
+    child: SizedBox(
+      width: 36,
+      height: 36,
+      child: Center(child: _StickerGuildIcon(guild: guild, size: 24)),
+    ),
+  );
+}
+
+class _StickerGuildIcon extends StatelessWidget {
+  const _StickerGuildIcon({required this.guild, required this.size});
+
+  final Guild guild;
+  final double size;
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final iconUrl = guild.iconUrl;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: SizedBox(
-        width: 36,
-        height: 36,
-        child: Center(
-          child: iconUrl != null
-              ? ClipOval(
-                  child: CachedNetworkImage(
-                    imageUrl: iconUrl,
-                    width: 24,
-                    height: 24,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        _StickerGuildInitial(name: guild.name, colors: colors),
-                  ),
-                )
-              : _StickerGuildInitial(name: guild.name, colors: colors),
-        ),
+    if (iconUrl == null) {
+      return _StickerGuildInitial(name: guild.name, colors: colors, size: size);
+    }
+
+    return ClipOval(
+      child: CachedNetworkImage(
+        imageUrl: iconUrl,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) =>
+            _StickerGuildInitial(name: guild.name, colors: colors, size: size),
       ),
     );
   }
 }
 
 class _StickerGuildInitial extends StatelessWidget {
-  const _StickerGuildInitial({required this.name, required this.colors});
+  const _StickerGuildInitial({
+    required this.name,
+    required this.colors,
+    required this.size,
+  });
 
   final String name;
   final FluxerColorTheme colors;
+  final double size;
 
   @override
   Widget build(BuildContext context) => Container(
-    width: 24,
-    height: 24,
+    width: size,
+    height: size,
     decoration: BoxDecoration(
       color: colors.backgroundSecondary,
       shape: BoxShape.circle,
@@ -587,7 +638,7 @@ class _StickerGuildInitial extends StatelessWidget {
     child: Text(
       name.isNotEmpty ? name[0].toUpperCase() : '?',
       style: TextStyle(
-        fontSize: 11,
+        fontSize: size <= 16 ? 8 : 11,
         fontWeight: FontWeight.w600,
         color: colors.textPrimaryMuted,
       ),

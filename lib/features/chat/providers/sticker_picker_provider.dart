@@ -150,8 +150,21 @@ Map<Guild, List<StickerEntry>> _groupStickerEntriesByGuild({
   for (final guild in guilds) {
     final guildStickers = stickersByGuildId[guild.id];
     if (guildStickers != null && guildStickers.isNotEmpty) {
-      result[guild] = guildStickers;
+      result[guild] = [...guildStickers]..sort(_compareStickerByNewestFirst);
     }
   }
   return result;
+}
+
+int _compareStickerByNewestFirst(StickerEntry a, StickerEntry b) =>
+    _compareSnowflakeStrings(b.id, a.id);
+
+int _compareSnowflakeStrings(String a, String b) {
+  if (a == b) {
+    return 0;
+  }
+  if (a.length != b.length) {
+    return a.length.compareTo(b.length);
+  }
+  return a.compareTo(b);
 }

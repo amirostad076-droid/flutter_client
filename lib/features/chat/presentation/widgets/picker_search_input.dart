@@ -13,6 +13,8 @@ class PickerSearchInput extends StatelessWidget {
     this.rightCustomElement,
     this.horizontalPadding = 12,
     this.rightPadding,
+    this.topPadding = 12,
+    this.bottomPadding = 12,
     this.maxLength = 100,
     this.onSubmitted,
     super.key,
@@ -25,6 +27,8 @@ class PickerSearchInput extends StatelessWidget {
   final Widget? rightCustomElement;
   final double horizontalPadding;
   final double? rightPadding;
+  final double topPadding;
+  final double bottomPadding;
   final int maxLength;
   final ValueChanged<String>? onSubmitted;
 
@@ -37,8 +41,8 @@ class PickerSearchInput extends StatelessWidget {
       padding: EdgeInsets.only(
         left: horizontalPadding,
         right: rightPadding ?? horizontalPadding,
-        top: 12,
-        bottom: 12,
+        top: topPadding,
+        bottom: bottomPadding,
       ),
       child: Row(
         children: [

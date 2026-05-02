@@ -91,6 +91,49 @@ void main() {
       expect(result[guilds.last]!.map((sticker) => sticker.id), ['b']);
     });
 
+    test('sorts stickers within guilds by newest snowflake first', () {
+      const guild = Guild(id: '1', name: 'One');
+      const unordered = <StickerEntry>[
+        StickerEntry(
+          id: '100',
+          guildId: '1',
+          name: 'oldest',
+          description: '',
+          tags: [],
+          animated: false,
+        ),
+        StickerEntry(
+          id: '300',
+          guildId: '1',
+          name: 'newest',
+          description: '',
+          tags: [],
+          animated: false,
+        ),
+        StickerEntry(
+          id: '200',
+          guildId: '1',
+          name: 'middle',
+          description: '',
+          tags: [],
+          animated: false,
+        ),
+      ];
+
+      final result = guildStickerEntriesForPicker(
+        guilds: const [guild],
+        stickers: unordered,
+        activeGuildId: '1',
+        isPremium: true,
+      );
+
+      expect(result[guild]!.map((sticker) => sticker.id), [
+        '300',
+        '200',
+        '100',
+      ]);
+    });
+
     test(
       'lockedGuildStickerEntriesForUpsell returns non-active guild stickers',
       () {
