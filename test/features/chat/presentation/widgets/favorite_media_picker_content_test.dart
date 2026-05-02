@@ -9,6 +9,7 @@ import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/favorite_media_picker_content.dart';
 import 'package:fluxer_app/features/chat/providers/favorite_media_provider.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart' as mkv;
 import 'package:riverpod/src/framework.dart' show Override;
 
 void main() {
@@ -67,6 +68,36 @@ void main() {
       expect(find.text(filename), findsNothing);
     },
   );
+
+  testWidgets('gifv WebP saved media uses image rendering', (tester) async {
+    const filename = 'animated-favorite.webp';
+
+    await tester.pumpWidget(
+      _buildTestApp(
+        overrides: [
+          favoriteMemesProvider.overrideWith(
+            (ref) => Stream.value([
+              _meme(
+                id: '1',
+                filename: filename,
+                contentType: 'image/webp',
+                isGifv: true,
+              ),
+            ]),
+          ),
+        ],
+        child: const SizedBox(
+          width: 260,
+          height: 320,
+          child: FavoriteMediaPickerContent(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(mkv.Video), findsNothing);
+    expect(find.text(filename), findsNothing);
+  });
 }
 
 Widget _buildTestApp({
@@ -91,6 +122,7 @@ FavoriteMeme _meme({
   required String id,
   required String filename,
   required String contentType,
+  bool isGifv = false,
 }) => FavoriteMeme(
   id: id,
   userId: 'user-1',
@@ -105,7 +137,7 @@ FavoriteMeme _meme({
   width: 320,
   height: 180,
   duration: null,
-  isGifv: false,
+  isGifv: isGifv,
   url: 'https://cdn.example/$filename',
   klipySlug: null,
   tenorSlugId: null,

@@ -43,6 +43,19 @@ void main() {
 
     expect(meme.shareUrl, 'https://tenor.com/view/funny-cat-123');
   });
+
+  test('FavoriteMeme keeps gifv WebP media on the image render path', () {
+    final meme = FavoriteMeme.fromJson({
+      ..._memeJson(),
+      'filename': 'wave-cat.webp',
+      'content_type': 'image/webp',
+      'is_gifv': true,
+      'url': 'https://cdn.example/wave-cat.webp',
+    });
+
+    expect(meme.mediaType, FavoriteMemeMediaType.gif);
+    expect(meme.isVideoLike, isFalse);
+  });
 }
 
 Map<String, Object?> _memeJson() => {
