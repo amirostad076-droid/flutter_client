@@ -14,6 +14,7 @@ const _kGridGap = 8.0;
 const _kGridHorizontalPadding = 10.0;
 const _kMaxColumnWidth = 227.0;
 const _kMinTileHeight = 96.0;
+const _kMinNonImageTileHeight = 128.0;
 const _kMaxTileHeight = 320.0;
 
 typedef OnFavoriteMemeSelect = void Function(FavoriteMemeSelection selection);
@@ -579,8 +580,17 @@ class _FavoriteMediaEmptyState extends StatelessWidget {
   }
 }
 
-double _tileHeight(double columnWidth, FavoriteMeme meme) =>
-    (columnWidth / meme.aspectRatio).clamp(_kMinTileHeight, _kMaxTileHeight);
+double _tileHeight(double columnWidth, FavoriteMeme meme) {
+  final minHeight = switch (meme.mediaType) {
+    FavoriteMemeMediaType.image => _kMinTileHeight,
+    FavoriteMemeMediaType.gif when !meme.isVideoLike => _kMinTileHeight,
+    FavoriteMemeMediaType.gif ||
+    FavoriteMemeMediaType.video ||
+    FavoriteMemeMediaType.audio ||
+    FavoriteMemeMediaType.unknown => _kMinNonImageTileHeight,
+  };
+  return (columnWidth / meme.aspectRatio).clamp(minHeight, _kMaxTileHeight);
+}
 
 String _formatDuration(double seconds) {
   final totalSeconds = seconds.round();
