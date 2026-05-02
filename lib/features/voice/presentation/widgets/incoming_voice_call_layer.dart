@@ -8,41 +8,12 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/incoming_voice_call_sheet.dart';
+import 'package:fluxer_app/features/voice/providers/pending_incoming_voice_calls_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_connection_actions.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart';
-
-/// Channel ids where this user still has a pending incoming ring presentation.
-final Provider<List<String>> pendingIncomingVoiceChannelIdsProvider =
-    Provider<List<String>>((Ref ref) {
-      final String? uid = ref.watch(currentUserIdProvider);
-      if (uid == null) {
-        return const <String>[];
-      }
-      final VoiceSessionState voice = ref.watch(voiceSessionProvider);
-      final Map<String, CallState> calls = ref.watch(activeCallsProvider);
-      final Set<String> initiatorChannels = ref.watch(
-        outgoingVoiceCallInitiatorProvider,
-      );
-      final List<String> out = <String>[];
-      for (final MapEntry<String, CallState> e in calls.entries) {
-        final String channelId = e.key;
-        if (!e.value.pendingRingUserIds.contains(uid)) {
-          continue;
-        }
-        if (voice.isConnected && voice.channelId == channelId) {
-          continue;
-        }
-        if (initiatorChannels.contains(channelId)) {
-          continue;
-        }
-        out.add(channelId);
-      }
-      out.sort();
-      return out;
-    });
 
 /// Presents ringing calls in a Fluxer draggable bottom sheet like fluxer-web
 /// IncomingCallUI on mobile.

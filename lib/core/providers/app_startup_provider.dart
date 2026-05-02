@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_handler.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
@@ -101,7 +102,9 @@ class AppStartup extends _$AppStartup {
       ..read(gatewayConnectBindingProvider)
       ..read(gatewayEventListenerProvider)
       ..read(gatewayStateListenerProvider)
-      ..read(connectivityListenerProvider);
+      ..read(connectivityListenerProvider)
+      ..read(fluxerSfxIncomingRingBindingProvider)
+      ..read(fluxerMessageSfxBindingProvider);
 
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
 

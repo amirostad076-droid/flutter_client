@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
+import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
@@ -46,6 +48,9 @@ class VoiceSession extends _$VoiceSession {
   bool _startWithVideoAfterConnect = false;
   DateTime? _lastCameraOrientationRefresh;
   LocalParticipant? _observedLocalParticipant;
+  EventsListener<RoomEvent>? _roomSfxListener;
+  String? _voiceMovePreviousChannelId;
+  bool _intentionalLiveKitTeardown = false;
 
   @override
   VoiceSessionState build() {
@@ -153,6 +158,12 @@ class VoiceSession extends _$VoiceSession {
     _lastConnectRequestAt = now;
     _startWithVideoAfterConnect = initialSelfVideo;
     _connectGeneration++;
+    _voiceMovePreviousChannelId =
+        state.isConnected &&
+            state.channelId != null &&
+            state.channelId != channelId
+        ? state.channelId
+        : null;
     _expectedGuildId = _normalizeVoiceGuildId(guildId);
     _expectedChannelId = channelId;
     _pendingRingAfterConnect = startOutgoingCall;
@@ -208,6 +219,7 @@ class VoiceSession extends _$VoiceSession {
       _pendingRingSilently = false;
       _outboundRingRecipients = null;
       _startWithVideoAfterConnect = false;
+      _voiceMovePreviousChannelId = null;
       _clearOutgoingCallInitiator(channelId);
       state = state.copyWith(
         isConnecting: false,
@@ -314,9 +326,18 @@ class VoiceSession extends _$VoiceSession {
     required String resolvedChannelId,
     required int attempt,
   }) async {
+    final String? moveFromChannelId = _voiceMovePreviousChannelId;
+    _voiceMovePreviousChannelId = null;
     await _disconnectRoomOnly();
     if (attempt != _connectGeneration) {
       return;
+    }
+    if (moveFromChannelId != null &&
+        moveFromChannelId.isNotEmpty &&
+        moveFromChannelId != resolvedChannelId) {
+      unawaited(
+        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.userMove),
+      );
     }
     final Room room = Room(
       roomOptions: const RoomOptions(
@@ -349,6 +370,7 @@ class VoiceSession extends _$VoiceSession {
           '[Voice] LiveKit connect superseded after room.connect '
           '(attempt=$attempt, generation=$_connectGeneration).',
         );
+        _detachRoomSfxListener();
         _detachLocalParticipantListener();
         unawaited(room.disconnect());
         if (identical(state.liveKitRoom, room)) {
@@ -358,11 +380,13 @@ class VoiceSession extends _$VoiceSession {
       }
       await room.localParticipant?.setMicrophoneEnabled(true);
       _attachLocalParticipantListener(room.localParticipant);
+      _attachRoomSfxListener(room);
       if (attempt != _connectGeneration) {
         talker.warning(
           '[Voice] LiveKit connect superseded after mic/listener setup '
           '(attempt=$attempt, generation=$_connectGeneration).',
         );
+        _detachRoomSfxListener();
         _detachLocalParticipantListener();
         unawaited(room.disconnect());
         if (identical(state.liveKitRoom, room)) {
@@ -379,6 +403,7 @@ class VoiceSession extends _$VoiceSession {
         guildId: resolvedGuildId,
         activeConnectionId: event.connectionId,
       );
+      unawaited(ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.userJoin));
       if (_pendingRingAfterConnect) {
         unawaited(
           _ringAfterConnect(resolvedChannelId, silently: _pendingRingSilently),
@@ -395,6 +420,7 @@ class VoiceSession extends _$VoiceSession {
           '[Voice] LiveKit connect superseded after joining session '
           '(attempt=$attempt, generation=$_connectGeneration).',
         );
+        _detachRoomSfxListener();
         _detachLocalParticipantListener();
         unawaited(room.disconnect());
         if (identical(state.liveKitRoom, room)) {
@@ -404,6 +430,7 @@ class VoiceSession extends _$VoiceSession {
       }
     } on Object catch (e) {
       talker.error('[Voice] LiveKit connect failed: $e');
+      _detachRoomSfxListener();
       _detachLocalParticipantListener();
       if (attempt == _connectGeneration) {
         _startWithVideoAfterConnect = false;
@@ -486,6 +513,9 @@ class VoiceSession extends _$VoiceSession {
         selfDeaf: vs?.selfDeaf ?? false,
         selfVideo: true,
       );
+      unawaited(
+        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.cameraOn),
+      );
     } finally {
       _togglingVideo = false;
     }
@@ -494,6 +524,9 @@ class VoiceSession extends _$VoiceSession {
   Future<void> leaveVoice({bool endCall = true}) async {
     _cancelConnectWatchdog();
     _startWithVideoAfterConnect = false;
+    unawaited(
+      ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.voiceDisconnect),
+    );
     ref.read(voiceScreenShareWatchTileProvider.notifier).setActiveTileId(null);
     final String? channelId = state.channelId;
     final String? guildId = state.guildId;
@@ -523,20 +556,26 @@ class VoiceSession extends _$VoiceSession {
     String? guildId,
     String? connectionId,
   }) async {
+    _intentionalLiveKitTeardown = true;
+    _detachRoomSfxListener();
     _detachLocalParticipantListener();
     final VoiceSessionState sessionState = state;
     final Room? roomToDisconnect = sessionState.liveKitRoom;
-    if (roomToDisconnect != null) {
-      _sendVoiceDisconnectState(
-        guildId: guildId ?? sessionState.guildId,
-        connectionId: connectionId ?? sessionState.activeConnectionId,
-      );
-      state = state.copyWith(clearRoom: true);
-      try {
-        await roomToDisconnect.disconnect();
-      } on Object catch (e) {
-        talker.warning('[Voice] failed to disconnect: $e');
-      }
+    if (roomToDisconnect == null) {
+      _intentionalLiveKitTeardown = false;
+      return;
+    }
+    _sendVoiceDisconnectState(
+      guildId: guildId ?? sessionState.guildId,
+      connectionId: connectionId ?? sessionState.activeConnectionId,
+    );
+    state = state.copyWith(clearRoom: true);
+    try {
+      await roomToDisconnect.disconnect();
+    } on Object catch (e) {
+      talker.warning('[Voice] failed to disconnect: $e');
+    } finally {
+      _intentionalLiveKitTeardown = false;
     }
   }
 
@@ -612,6 +651,11 @@ class VoiceSession extends _$VoiceSession {
       selfDeaf: nextDeaf,
       selfVideo: vs?.selfVideo ?? false,
     );
+    unawaited(
+      ref.read(fluxerSfxProvider).playOneShot(
+        nextMute ? FluxerSfxClip.mute : FluxerSfxClip.unmute,
+      ),
+    );
   }
 
   Future<void> toggleSelfDeafen() async {
@@ -627,11 +671,17 @@ class VoiceSession extends _$VoiceSession {
         selfDeaf: false,
         selfVideo: vs?.selfVideo ?? false,
       );
+      unawaited(
+        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.undeaf),
+      );
     } else {
       await _applySelfVoiceState(
         selfMute: true,
         selfDeaf: true,
         selfVideo: vs?.selfVideo ?? false,
+      );
+      unawaited(
+        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.deaf),
       );
     }
   }
@@ -671,6 +721,11 @@ class VoiceSession extends _$VoiceSession {
         selfMute: vs?.selfMute ?? false,
         selfDeaf: vs?.selfDeaf ?? false,
         selfVideo: nextVideo,
+      );
+      unawaited(
+        ref.read(fluxerSfxProvider).playOneShot(
+          nextVideo ? FluxerSfxClip.cameraOn : FluxerSfxClip.cameraOff,
+        ),
       );
     } finally {
       _togglingVideo = false;
@@ -712,6 +767,12 @@ class VoiceSession extends _$VoiceSession {
       if (nextSelfStream &&
           !_hasPublishedLocalScreenShareVideo(requireTrack: true)) {
         state = state.copyWith(errorMessage: kVoiceSessionErrorScreenShareToggle);
+      } else {
+        unawaited(
+          ref.read(fluxerSfxProvider).playOneShot(
+            nextSelfStream ? FluxerSfxClip.streamStart : FluxerSfxClip.streamStop,
+          ),
+        );
       }
     } finally {
       _togglingScreenShare = false;
@@ -860,6 +921,61 @@ class VoiceSession extends _$VoiceSession {
     }
     participant.removeListener(_handleLocalParticipantChanged);
     _observedLocalParticipant = null;
+  }
+
+  void _attachRoomSfxListener(Room room) {
+    _detachRoomSfxListener();
+    final EventsListener<RoomEvent> listener = room.createListener();
+    _roomSfxListener = listener;
+    final String? selfIdentity = room.localParticipant?.identity;
+    listener.on<ParticipantConnectedEvent>((
+      ParticipantConnectedEvent evt,
+    ) async {
+      if (_intentionalLiveKitTeardown) {
+        return;
+      }
+      if (selfIdentity != null &&
+          evt.participant.identity == selfIdentity) {
+        return;
+      }
+      final bool isUserParticipant =
+          evt.participant.identity.startsWith('user_');
+      unawaited(
+        ref.read(fluxerSfxProvider).playOneShot(
+          isUserParticipant
+              ? FluxerSfxClip.userJoin
+              : FluxerSfxClip.viewerJoin,
+        ),
+      );
+    });
+    listener.on<ParticipantDisconnectedEvent>((
+      ParticipantDisconnectedEvent evt,
+    ) async {
+      if (_intentionalLiveKitTeardown) {
+        return;
+      }
+      if (selfIdentity != null &&
+          evt.participant.identity == selfIdentity) {
+        return;
+      }
+      final bool isUserParticipant =
+          evt.participant.identity.startsWith('user_');
+      unawaited(
+        ref.read(fluxerSfxProvider).playOneShot(
+          isUserParticipant
+              ? FluxerSfxClip.userLeave
+              : FluxerSfxClip.viewerLeave,
+        ),
+      );
+    });
+  }
+
+  void _detachRoomSfxListener() {
+    final EventsListener<RoomEvent>? listener = _roomSfxListener;
+    _roomSfxListener = null;
+    if (listener != null) {
+      unawaited(listener.dispose());
+    }
   }
 
   void updateViewerStreamKeys(List<String> viewerStreamKeys) {

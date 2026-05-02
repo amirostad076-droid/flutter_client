@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
@@ -73,7 +74,9 @@ class FluxerApp extends ConsumerWidget {
       themeMode: themeMode,
       routerConfig: router,
       builder: (context, child) {
-        final Widget layered = IncomingVoiceCallLayer(child: child!);
+        final Widget layered = AppUiLifecycleObserver(
+          child: IncomingVoiceCallLayer(child: child!),
+        );
         if (!_isDesktopPlatform) {
           return FluxerToastOverlay(child: layered);
         }

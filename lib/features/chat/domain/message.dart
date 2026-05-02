@@ -8,6 +8,7 @@ import 'package:fluxer_dart/export.dart';
 enum EmbedType { rich, image, gifv, link, video }
 
 const int messageFlagSuppressEmbeds = 1 << 2;
+const int messageFlagSuppressNotifications = 1 << 12;
 const int messageFlagCompactAttachments = 1 << 17;
 const int attachmentFlagIsSpoiler = 1 << 3;
 
