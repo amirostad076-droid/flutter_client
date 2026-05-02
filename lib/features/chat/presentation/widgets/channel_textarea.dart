@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart'
     show kSkinToneSurrogates, skinToneToName;
@@ -42,6 +43,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   final _focusNode = FocusNode();
   final _expressionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _gifPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
+  final _mediaPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _stickerPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
 
   bool get _isDesktop =>
@@ -134,6 +136,16 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         }
         ref.read(pendingStickerSelectionProvider.notifier).consume();
         _handleStickerSelection(pending);
+      })
+      ..listen<FavoriteMemeSelection?>(pendingFavoriteMemeSelectionProvider, (
+        _,
+        pending,
+      ) {
+        if (pending == null) {
+          return;
+        }
+        ref.read(pendingFavoriteMemeSelectionProvider.notifier).consume();
+        _handleFavoriteMemeSelection(pending);
       });
 
     final vm = ref.watch(chatViewModelProvider);
@@ -325,6 +337,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 _handleStickerSelection(sticker);
                 _gifPickerKey.currentState?.close();
               },
+              onFavoriteMemeSelected: (selection) {
+                _handleFavoriteMemeSelection(selection);
+                if (selection.autoSend) {
+                  _gifPickerKey.currentState?.close();
+                }
+              },
               child: IconButton(
                 icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
                 color: context.colors.interactiveNormal,
@@ -336,12 +354,31 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               ),
             ),
           if (perms.canAttachFiles)
-            IconButton(
-              icon: const PhosphorIcon(PhosphorIconsFill.image, size: 24),
-              color: context.colors.interactiveNormal,
-              onPressed: perms.canSendMessages ? () {} : null,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            FluxerEmojiPickerPopout(
+              key: _mediaPickerKey,
+              initialTab: ExpressionPickerTab.memes,
+              onEmojiSelected: (emoji) =>
+                  _insertEmoji(emoji.name, emoji.surrogates),
+              onGifSelected: _handleGifSelection,
+              onStickerSelected: (sticker) {
+                _handleStickerSelection(sticker);
+                _mediaPickerKey.currentState?.close();
+              },
+              onFavoriteMemeSelected: (selection) {
+                _handleFavoriteMemeSelection(selection);
+                if (selection.autoSend) {
+                  _mediaPickerKey.currentState?.close();
+                }
+              },
+              child: IconButton(
+                icon: const PhosphorIcon(PhosphorIconsFill.image, size: 24),
+                color: context.colors.interactiveNormal,
+                onPressed: perms.canSendMessages
+                    ? () => _mediaPickerKey.currentState?.toggle()
+                    : null,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
             ),
           FluxerEmojiPickerPopout(
             key: _stickerPickerKey,
@@ -352,6 +389,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             onStickerSelected: (sticker) {
               _handleStickerSelection(sticker);
               _stickerPickerKey.currentState?.close();
+            },
+            onFavoriteMemeSelected: (selection) {
+              _handleFavoriteMemeSelection(selection);
+              if (selection.autoSend) {
+                _stickerPickerKey.currentState?.close();
+              }
             },
             child: IconButton(
               icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
@@ -371,6 +414,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             onStickerSelected: (sticker) {
               _handleStickerSelection(sticker);
               _expressionPickerKey.currentState?.close();
+            },
+            onFavoriteMemeSelected: (selection) {
+              _handleFavoriteMemeSelection(selection);
+              if (selection.autoSend) {
+                _expressionPickerKey.currentState?.close();
+              }
             },
             child: IconButton(
               icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
@@ -512,6 +561,52 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     ref.read(expressionPanelProvider.notifier).close();
     _focusNode.requestFocus();
+  }
+
+  void _handleFavoriteMemeSelection(FavoriteMemeSelection selection) {
+    unawaited(_processFavoriteMemeSelection(selection));
+  }
+
+  Future<void> _processFavoriteMemeSelection(
+    FavoriteMemeSelection selection,
+  ) async {
+    final meme = selection.meme;
+    if (!selection.autoSend) {
+      _insertGifUrl(meme.shareUrl);
+      _focusNode.requestFocus();
+      return;
+    }
+
+    final perms = await _currentPermissions();
+    if (_hasProviderShareUrl(meme)) {
+      await ref
+          .read(chatViewModelProvider.notifier)
+          .sendStandaloneMessage(meme.shareUrl);
+    } else if (perms.canAttachFiles && perms.canEmbedLinks) {
+      await ref
+          .read(chatViewModelProvider.notifier)
+          .sendFavoriteMemeMessage(meme);
+    } else {
+      _insertGifUrl(meme.url);
+    }
+
+    ref.read(expressionPanelProvider.notifier).close();
+    _focusNode.requestFocus();
+  }
+
+  bool _hasProviderShareUrl(FavoriteMeme meme) =>
+      (meme.klipySlug?.trim().isNotEmpty ?? false) ||
+      (meme.tenorSlugId?.trim().isNotEmpty ?? false);
+
+  Future<ChannelMessagePermissions> _currentPermissions() async {
+    final channelId = ref.read(
+      chatViewModelProvider.select((state) => state.channelId),
+    );
+    final perms = ref.read(channelMessagePermissionsProvider(channelId));
+    return switch (perms) {
+      AsyncData<ChannelMessagePermissions>(:final value) => value,
+      _ => ChannelMessagePermissions.none,
+    };
   }
 
   void _insertGifUrl(String url) {

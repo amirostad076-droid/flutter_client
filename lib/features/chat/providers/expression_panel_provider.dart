@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -56,6 +57,23 @@ class PendingStickerSelection extends Notifier<StickerEntry?> {
   // Sticker selections are transient events, matching GIF selections.
   // ignore: use_setters_to_change_properties
   void emit(StickerEntry selection) => state = selection;
+
+  void consume() => state = null;
+}
+
+final NotifierProvider<PendingFavoriteMemeSelection, FavoriteMemeSelection?>
+pendingFavoriteMemeSelectionProvider =
+    NotifierProvider<PendingFavoriteMemeSelection, FavoriteMemeSelection?>(
+      PendingFavoriteMemeSelection.new,
+    );
+
+class PendingFavoriteMemeSelection extends Notifier<FavoriteMemeSelection?> {
+  @override
+  FavoriteMemeSelection? build() => null;
+
+  // Saved media selections are transient events, matching GIF selections.
+  // ignore: use_setters_to_change_properties
+  void emit(FavoriteMemeSelection selection) => state = selection;
 
   void consume() => state = null;
 }

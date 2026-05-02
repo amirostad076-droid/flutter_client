@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_picker_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/favorite_media_picker_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/gif_picker_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/sticker_picker_content.dart';
 import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
@@ -44,6 +46,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
     this.onEmojiSelect,
     this.onGifSelect,
     this.onStickerSelect,
+    this.onFavoriteMemeSelect,
     this.contentSearchHorizontalPadding,
     this.contentSearchTopPadding,
     this.contentSearchBottomPadding,
@@ -67,6 +70,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
   final void Function(String name, String surrogates)? onEmojiSelect;
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
   final ValueChanged<StickerEntry>? onStickerSelect;
+  final ValueChanged<FavoriteMemeSelection>? onFavoriteMemeSelect;
   final double? contentSearchHorizontalPadding;
   final double? contentSearchTopPadding;
   final double? contentSearchBottomPadding;
@@ -236,11 +240,11 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
         searchBottomPadding: widget.contentSearchBottomPadding,
       );
     }
-    return Center(
-      child: Text(
-        _tabLabel(_selectedTab),
-        style: TextStyle(color: colors.textTertiaryMuted, fontSize: 14),
-      ),
+    return FavoriteMediaPickerContent(
+      onSelect: widget.onFavoriteMemeSelect,
+      searchHorizontalPadding: widget.contentSearchHorizontalPadding,
+      searchTopPadding: widget.contentSearchTopPadding,
+      searchBottomPadding: widget.contentSearchBottomPadding,
     );
   }
 }

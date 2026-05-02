@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
@@ -302,6 +303,9 @@ class ChatViewModel extends _$ChatViewModel {
     stickerIds: [sticker.id],
   );
 
+  Future<void> sendFavoriteMemeMessage(FavoriteMeme meme) =>
+      _sendContent('', clearMessageText: true, favoriteMemeId: meme.id);
+
   Future<void> sendStandaloneMessage(String content) =>
       _sendContent(content.trim(), clearMessageText: false);
 
@@ -309,8 +313,9 @@ class ChatViewModel extends _$ChatViewModel {
     String text, {
     required bool clearMessageText,
     List<String> stickerIds = const [],
+    String? favoriteMemeId,
   }) async {
-    if (text.isEmpty && stickerIds.isEmpty) {
+    if (text.isEmpty && stickerIds.isEmpty && favoriteMemeId == null) {
       return;
     }
     final channelId = state.channelId;
@@ -372,6 +377,7 @@ class ChatViewModel extends _$ChatViewModel {
         content: text,
         replyToId: replyToId,
         stickerIds: stickerIds,
+        favoriteMemeId: favoriteMemeId,
       );
       // TODO(chat): Handle sending message states (pending/sent/failed) so the
       // UI can show an optimistic echo before the server/realtime round-trip.

@@ -106,6 +106,11 @@ class ChannelLayout extends ConsumerWidget {
                             .read(pendingStickerSelectionProvider.notifier)
                             .emit(selection);
                       },
+                      onFavoriteMemeSelect: (selection) {
+                        ref
+                            .read(pendingFavoriteMemeSelectionProvider.notifier)
+                            .emit(selection);
+                      },
                     ),
                   ),
               ],

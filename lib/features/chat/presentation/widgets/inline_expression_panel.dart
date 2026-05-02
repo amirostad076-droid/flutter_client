@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
@@ -27,6 +28,7 @@ class InlineExpressionPanel extends StatefulWidget {
     this.onEmojiSelect,
     this.onGifSelect,
     this.onStickerSelect,
+    this.onFavoriteMemeSelect,
     super.key,
   });
 
@@ -34,6 +36,7 @@ class InlineExpressionPanel extends StatefulWidget {
   final void Function(String name, String surrogates)? onEmojiSelect;
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
   final ValueChanged<StickerEntry>? onStickerSelect;
+  final ValueChanged<FavoriteMemeSelection>? onFavoriteMemeSelect;
 
   @override
   State<InlineExpressionPanel> createState() => _InlineExpressionPanelState();
@@ -256,6 +259,7 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
                             },
                             onGifSelect: widget.onGifSelect,
                             onStickerSelect: widget.onStickerSelect,
+                            onFavoriteMemeSelect: widget.onFavoriteMemeSelect,
                           ),
                         ),
                       ),
@@ -296,12 +300,14 @@ class _ExpressionPanelContent extends ConsumerStatefulWidget {
     this.onEmojiSelect,
     this.onGifSelect,
     this.onStickerSelect,
+    this.onFavoriteMemeSelect,
   });
 
   final VoidCallback onClose;
   final void Function(String name, String surrogates)? onEmojiSelect;
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
   final ValueChanged<StickerEntry>? onStickerSelect;
+  final ValueChanged<FavoriteMemeSelection>? onFavoriteMemeSelect;
 
   @override
   ConsumerState<_ExpressionPanelContent> createState() =>
@@ -359,6 +365,7 @@ class _ExpressionPanelContentState
             onEmojiSelect: widget.onEmojiSelect,
             onGifSelect: widget.onGifSelect,
             onStickerSelect: widget.onStickerSelect,
+            onFavoriteMemeSelect: widget.onFavoriteMemeSelect,
             onTabChanged: (tab) => setState(() => _selectedTab = tab),
             initialTab: _selectedTab,
             showTabs: false,

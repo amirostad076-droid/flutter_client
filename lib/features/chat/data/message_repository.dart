@@ -7,6 +7,31 @@ import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 
+const int kMessageFlagCompactAttachments = 1 << 17;
+
+Map<String, dynamic> buildMessageCreateBody({
+  required String content,
+  String? replyToId,
+  List<String> stickerIds = const [],
+  String? favoriteMemeId,
+}) {
+  final body = <String, dynamic>{};
+  if (content.isNotEmpty) {
+    body['content'] = content;
+  }
+  if (replyToId != null) {
+    body['message_reference'] = <String, dynamic>{'message_id': replyToId};
+  }
+  if (stickerIds.isNotEmpty) {
+    body['sticker_ids'] = stickerIds;
+  }
+  if (favoriteMemeId != null) {
+    body['favorite_meme_id'] = favoriteMemeId;
+    body['flags'] = kMessageFlagCompactAttachments;
+  }
+  return body;
+}
+
 class MessageRepository {
   final FluxerClient _client;
   final Dio _dio;
@@ -247,18 +272,15 @@ class MessageRepository {
     required String content,
     String? replyToId,
     List<String> stickerIds = const [],
+    String? favoriteMemeId,
   }) async {
     try {
-      final body = <String, dynamic>{};
-      if (content.isNotEmpty) {
-        body['content'] = content;
-      }
-      if (replyToId != null) {
-        body['message_reference'] = <String, dynamic>{'message_id': replyToId};
-      }
-      if (stickerIds.isNotEmpty) {
-        body['sticker_ids'] = stickerIds;
-      }
+      final body = buildMessageCreateBody(
+        content: content,
+        replyToId: replyToId,
+        stickerIds: stickerIds,
+        favoriteMemeId: favoriteMemeId,
+      );
 
       final response = await _dio.post<Map<String, dynamic>>(
         '/channels/$channelId/messages',

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
@@ -14,6 +15,7 @@ class FluxerEmojiPickerPopout extends StatefulWidget {
     this.onEmojiSelected,
     this.onGifSelected,
     this.onStickerSelected,
+    this.onFavoriteMemeSelected,
     this.closeOnEmojiSelect = false,
     this.visibleTabs = const [
       ExpressionPickerTab.gifs,
@@ -30,6 +32,7 @@ class FluxerEmojiPickerPopout extends StatefulWidget {
   final ValueChanged<FluxerSelectedEmoji>? onEmojiSelected;
   final ValueChanged<FluxerSelectedGif>? onGifSelected;
   final ValueChanged<StickerEntry>? onStickerSelected;
+  final ValueChanged<FavoriteMemeSelection>? onFavoriteMemeSelected;
   final bool closeOnEmojiSelect;
   final List<ExpressionPickerTab> visibleTabs;
   final ExpressionPickerTab initialTab;
@@ -167,6 +170,7 @@ class FluxerEmojiPickerPopoutState extends State<FluxerEmojiPickerPopout>
                       onEmojiSelect: _handleEmojiSelect,
                       onGifSelect: widget.onGifSelected,
                       onStickerSelect: widget.onStickerSelected,
+                      onFavoriteMemeSelect: widget.onFavoriteMemeSelected,
                       visibleTabs: widget.visibleTabs,
                       initialTab: widget.initialTab,
                     ),

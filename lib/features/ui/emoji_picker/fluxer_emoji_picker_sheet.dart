@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
@@ -14,6 +15,7 @@ class FluxerEmojiPickerSheet {
     ValueChanged<FluxerSelectedEmoji>? onEmojiSelected,
     ValueChanged<FluxerSelectedGif>? onGifSelected,
     ValueChanged<StickerEntry>? onStickerSelected,
+    ValueChanged<FavoriteMemeSelection>? onFavoriteMemeSelected,
     String? title,
     double? maxHeight,
     List<ExpressionPickerTab> visibleTabs = const [
@@ -36,6 +38,7 @@ class FluxerEmojiPickerSheet {
           onEmojiSelected: onEmojiSelected,
           onGifSelected: onGifSelected,
           onStickerSelected: onStickerSelected,
+          onFavoriteMemeSelected: onFavoriteMemeSelected,
         );
       },
     );
@@ -50,6 +53,7 @@ class _SheetContent extends StatefulWidget {
     this.onEmojiSelected,
     this.onGifSelected,
     this.onStickerSelected,
+    this.onFavoriteMemeSelected,
   });
 
   final List<ExpressionPickerTab> visibleTabs;
@@ -58,6 +62,7 @@ class _SheetContent extends StatefulWidget {
   final ValueChanged<FluxerSelectedEmoji>? onEmojiSelected;
   final ValueChanged<FluxerSelectedGif>? onGifSelected;
   final ValueChanged<StickerEntry>? onStickerSelected;
+  final ValueChanged<FavoriteMemeSelection>? onFavoriteMemeSelected;
 
   @override
   State<_SheetContent> createState() => _SheetContentState();
@@ -94,6 +99,12 @@ class _SheetContentState extends State<_SheetContent> {
             widget.onClose();
           },
           onGifSelect: widget.onGifSelected,
+          onFavoriteMemeSelect: (selection) {
+            widget.onFavoriteMemeSelected?.call(selection);
+            if (selection.autoSend) {
+              widget.onClose();
+            }
+          },
           onStickerSelect: (sticker) {
             widget.onStickerSelected?.call(sticker);
             widget.onClose();
