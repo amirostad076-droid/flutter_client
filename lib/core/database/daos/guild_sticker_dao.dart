@@ -10,6 +10,10 @@ class GuildStickerDao extends DatabaseAccessor<FluxerDatabase>
     with _$GuildStickerDaoMixin {
   GuildStickerDao(super.attachedDatabase);
 
+  Stream<List<GuildSticker>> watchAll() => select(guildStickers).watch();
+
+  Future<List<GuildSticker>> getAll() => select(guildStickers).get();
+
   Stream<List<GuildSticker>> watchByGuild(String guildId) =>
       (select(guildStickers)..where((s) => s.guildId.equals(guildId))).watch();
 

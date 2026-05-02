@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
+import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'expression_panel_provider.g.dart';
@@ -38,6 +39,23 @@ class PendingGifSelection extends Notifier<FluxerSelectedGif?> {
   // GIF selections are transient events, matching PendingEmojiInsert above.
   // ignore: use_setters_to_change_properties
   void emit(FluxerSelectedGif selection) => state = selection;
+
+  void consume() => state = null;
+}
+
+final NotifierProvider<PendingStickerSelection, StickerEntry?>
+pendingStickerSelectionProvider =
+    NotifierProvider<PendingStickerSelection, StickerEntry?>(
+      PendingStickerSelection.new,
+    );
+
+class PendingStickerSelection extends Notifier<StickerEntry?> {
+  @override
+  StickerEntry? build() => null;
+
+  // Sticker selections are transient events, matching GIF selections.
+  // ignore: use_setters_to_change_properties
+  void emit(StickerEntry selection) => state = selection;
 
   void consume() => state = null;
 }

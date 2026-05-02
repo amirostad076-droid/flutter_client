@@ -14,6 +14,7 @@ class Messages extends Table {
   DateTimeColumn get editedTimestamp => dateTime().nullable()();
   TextColumn get embedsJson => text().withDefault(const Constant('[]'))();
   TextColumn get attachmentsJson => text().withDefault(const Constant('[]'))();
+  TextColumn get stickersJson => text().withDefault(const Constant('[]'))();
   TextColumn get reactionsJson => text().withDefault(const Constant('[]'))();
   TextColumn get replyToId => text().nullable()();
   TextColumn get forwardedFrom => text().nullable()();

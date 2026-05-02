@@ -139,6 +139,13 @@ class MessageRepository {
                     ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
                     .toList() ??
                 const [],
+            stickers:
+                (map['stickers'] as List<dynamic>?)
+                    ?.map(
+                      (e) => MessageSticker.fromJson(e as Map<String, dynamic>),
+                    )
+                    .toList() ??
+                const [],
             replyToId:
                 (map['message_reference']
                         as Map<String, dynamic>?)?['message_id']
@@ -239,11 +246,18 @@ class MessageRepository {
     required String channelId,
     required String content,
     String? replyToId,
+    List<String> stickerIds = const [],
   }) async {
     try {
-      final body = <String, dynamic>{'content': content};
+      final body = <String, dynamic>{};
+      if (content.isNotEmpty) {
+        body['content'] = content;
+      }
       if (replyToId != null) {
         body['message_reference'] = <String, dynamic>{'message_id': replyToId};
+      }
+      if (stickerIds.isNotEmpty) {
+        body['sticker_ids'] = stickerIds;
       }
 
       final response = await _dio.post<Map<String, dynamic>>(

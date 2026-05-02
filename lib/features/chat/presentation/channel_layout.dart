@@ -101,6 +101,11 @@ class ChannelLayout extends ConsumerWidget {
                             .read(pendingGifSelectionProvider.notifier)
                             .emit(selection);
                       },
+                      onStickerSelect: (selection) {
+                        ref
+                            .read(pendingStickerSelectionProvider.notifier)
+                            .emit(selection);
+                      },
                     ),
                   ),
               ],

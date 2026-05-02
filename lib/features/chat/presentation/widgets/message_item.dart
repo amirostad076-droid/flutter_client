@@ -63,6 +63,9 @@ const _kReplyBottomGap = 4.0;
 /// and the reply content.
 const _kReplyLineEndGap = 6.0;
 
+const _kMessageStickerSize = 160.0;
+const _kMessageStickerRequestSize = 320;
+
 /// A single message row -- avatar, username, timestamp,
 /// content, embeds, reactions, and action buttons on hover.
 ///
@@ -437,6 +440,15 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           revealSpoilers: revealSpoilers,
         ),
       ),
+      if (msg.hasStickers)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: msg.stickers.map(_buildSticker).toList(),
+          ),
+        ),
       if (renderReactions && msg.reactions.isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: 4),
@@ -632,6 +644,37 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             ),
     );
   }
+
+  Widget _buildSticker(MessageSticker sticker) => Semantics(
+    label: sticker.name,
+    image: true,
+    child: CachedNetworkImage(
+      imageUrl: sticker.urlForSize(_kMessageStickerRequestSize),
+      cacheKey: sticker.cacheKeyForSize(_kMessageStickerRequestSize),
+      width: _kMessageStickerSize,
+      height: _kMessageStickerSize,
+      memCacheWidth: _kMessageStickerSize.toInt(),
+      memCacheHeight: _kMessageStickerSize.toInt(),
+      fadeInDuration: Duration.zero,
+      fadeOutDuration: Duration.zero,
+      fit: BoxFit.contain,
+      placeholder: (_, _) => const SizedBox(
+        width: _kMessageStickerSize,
+        height: _kMessageStickerSize,
+      ),
+      errorBuilder: (_, _, _) => SizedBox(
+        width: _kMessageStickerSize,
+        height: _kMessageStickerSize,
+        child: Center(
+          child: PhosphorIcon(
+            PhosphorIconsDuotone.sticker,
+            size: 48,
+            color: context.colors.textTertiaryMuted,
+          ),
+        ),
+      ),
+    ),
+  );
 
   Widget _buildAttachment(
     Attachment attachment, {

@@ -8,6 +8,7 @@ import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_drag.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -22,12 +23,14 @@ class InlineExpressionPanel extends StatefulWidget {
     required this.onClose,
     this.onEmojiSelect,
     this.onGifSelect,
+    this.onStickerSelect,
     super.key,
   });
 
   final VoidCallback onClose;
   final void Function(String name, String surrogates)? onEmojiSelect;
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
+  final ValueChanged<StickerEntry>? onStickerSelect;
 
   @override
   State<InlineExpressionPanel> createState() => _InlineExpressionPanelState();
@@ -249,6 +252,7 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
                               }
                             },
                             onGifSelect: widget.onGifSelect,
+                            onStickerSelect: widget.onStickerSelect,
                           ),
                         ),
                       ),
@@ -288,11 +292,13 @@ class _ExpressionPanelContent extends ConsumerStatefulWidget {
     required this.onClose,
     this.onEmojiSelect,
     this.onGifSelect,
+    this.onStickerSelect,
   });
 
   final VoidCallback onClose;
   final void Function(String name, String surrogates)? onEmojiSelect;
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
+  final ValueChanged<StickerEntry>? onStickerSelect;
 
   @override
   ConsumerState<_ExpressionPanelContent> createState() =>
@@ -350,6 +356,7 @@ class _ExpressionPanelContentState
             onClose: widget.onClose,
             onEmojiSelect: widget.onEmojiSelect,
             onGifSelect: widget.onGifSelect,
+            onStickerSelect: widget.onStickerSelect,
             onTabChanged: (tab) => setState(() => _selectedTab = tab),
             initialTab: _selectedTab,
             showTabs: false,

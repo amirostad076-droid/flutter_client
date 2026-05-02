@@ -124,6 +124,11 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                         .read(pendingGifSelectionProvider.notifier)
                         .emit(selection);
                   },
+                  onStickerSelect: (selection) {
+                    ref
+                        .read(pendingStickerSelectionProvider.notifier)
+                        .emit(selection);
+                  },
                 ),
               ),
           ],

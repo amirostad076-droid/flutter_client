@@ -16,6 +16,7 @@ import 'package:fluxer_app/features/chat/providers/channel_message_permissions_p
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_blocked_provider.dart';
+import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -41,6 +42,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   final _focusNode = FocusNode();
   final _expressionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _gifPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
+  final _stickerPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
 
   bool get _isDesktop =>
       !kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows);
@@ -125,6 +127,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         }
         ref.read(pendingGifSelectionProvider.notifier).consume();
         _handleGifSelection(pending);
+      })
+      ..listen<StickerEntry?>(pendingStickerSelectionProvider, (_, pending) {
+        if (pending == null) {
+          return;
+        }
+        ref.read(pendingStickerSelectionProvider.notifier).consume();
+        _handleStickerSelection(pending);
       });
 
     final vm = ref.watch(chatViewModelProvider);
@@ -312,6 +321,10 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               onEmojiSelected: (emoji) =>
                   _insertEmoji(emoji.name, emoji.surrogates),
               onGifSelected: _handleGifSelection,
+              onStickerSelected: (sticker) {
+                _handleStickerSelection(sticker);
+                _gifPickerKey.currentState?.close();
+              },
               child: IconButton(
                 icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
                 color: context.colors.interactiveNormal,
@@ -330,18 +343,35 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
             ),
-          IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
-            color: context.colors.interactiveNormal,
-            onPressed: perms.canSendMessages ? () {} : null,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          FluxerEmojiPickerPopout(
+            key: _stickerPickerKey,
+            initialTab: ExpressionPickerTab.stickers,
+            onEmojiSelected: (emoji) =>
+                _insertEmoji(emoji.name, emoji.surrogates),
+            onGifSelected: _handleGifSelection,
+            onStickerSelected: (sticker) {
+              _handleStickerSelection(sticker);
+              _stickerPickerKey.currentState?.close();
+            },
+            child: IconButton(
+              icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
+              color: context.colors.interactiveNormal,
+              onPressed: perms.canSendMessages
+                  ? () => _stickerPickerKey.currentState?.toggle()
+                  : null,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            ),
           ),
           FluxerEmojiPickerPopout(
             key: _expressionPickerKey,
             onEmojiSelected: (emoji) =>
                 _insertEmoji(emoji.name, emoji.surrogates),
             onGifSelected: _handleGifSelection,
+            onStickerSelected: (sticker) {
+              _handleStickerSelection(sticker);
+              _expressionPickerKey.currentState?.close();
+            },
             child: IconButton(
               icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
               color: context.colors.interactiveNormal,
@@ -473,6 +503,14 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     }
 
     _insertGifUrl(selection.url);
+    _focusNode.requestFocus();
+  }
+
+  void _handleStickerSelection(StickerEntry sticker) {
+    unawaited(
+      ref.read(chatViewModelProvider.notifier).sendStickerMessage(sticker),
+    );
+    ref.read(expressionPanelProvider.notifier).close();
     _focusNode.requestFocus();
   }
 

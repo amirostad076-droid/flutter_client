@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
+import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/emoji_picker/fluxer_selected_emoji.dart';
 
@@ -12,6 +13,7 @@ class FluxerEmojiPickerSheet {
     BuildContext context, {
     ValueChanged<FluxerSelectedEmoji>? onEmojiSelected,
     ValueChanged<FluxerSelectedGif>? onGifSelected,
+    ValueChanged<StickerEntry>? onStickerSelected,
     String? title,
     double? maxHeight,
     List<ExpressionPickerTab> visibleTabs = const [
@@ -33,6 +35,7 @@ class FluxerEmojiPickerSheet {
           onClose: close,
           onEmojiSelected: onEmojiSelected,
           onGifSelected: onGifSelected,
+          onStickerSelected: onStickerSelected,
         );
       },
     );
@@ -46,6 +49,7 @@ class _SheetContent extends StatefulWidget {
     required this.onClose,
     this.onEmojiSelected,
     this.onGifSelected,
+    this.onStickerSelected,
   });
 
   final List<ExpressionPickerTab> visibleTabs;
@@ -53,6 +57,7 @@ class _SheetContent extends StatefulWidget {
   final VoidCallback onClose;
   final ValueChanged<FluxerSelectedEmoji>? onEmojiSelected;
   final ValueChanged<FluxerSelectedGif>? onGifSelected;
+  final ValueChanged<StickerEntry>? onStickerSelected;
 
   @override
   State<_SheetContent> createState() => _SheetContentState();
@@ -89,6 +94,10 @@ class _SheetContentState extends State<_SheetContent> {
             widget.onClose();
           },
           onGifSelect: widget.onGifSelected,
+          onStickerSelect: (sticker) {
+            widget.onStickerSelected?.call(sticker);
+            widget.onClose();
+          },
           onTabChanged: (tab) => setState(() => _selectedTab = tab),
           visibleTabs: widget.visibleTabs,
           initialTab: _selectedTab,

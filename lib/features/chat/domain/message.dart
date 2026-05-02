@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/shared/utils/sticker_utils.dart';
 import 'package:fluxer_dart/export.dart';
 
 enum EmbedType { rich, image, gifv, link, video }
@@ -331,6 +332,41 @@ class Attachment {
   bool get isSpoiler => (flags & attachmentFlagIsSpoiler) != 0;
 }
 
+class MessageSticker {
+  const MessageSticker({
+    required this.id,
+    required this.name,
+    required this.animated,
+  });
+
+  factory MessageSticker.fromSdk(MessageStickerResponse sdk) =>
+      MessageSticker(id: sdk.id, name: sdk.name, animated: sdk.animated);
+
+  factory MessageSticker.fromJson(Map<String, dynamic> json) => MessageSticker(
+    id: json['id'] as String? ?? '',
+    name: json['name'] as String? ?? '',
+    animated: json['animated'] as bool? ?? false,
+  );
+
+  final String id;
+  final String name;
+  final bool animated;
+
+  String get url => urlForSize(320);
+
+  String urlForSize(int size) =>
+      getStickerUrl(id: id, animated: animated, size: size);
+
+  String cacheKeyForSize(int size) =>
+      'message_sticker_${id}_${animated ? 'a' : 's'}_$size';
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'animated': animated,
+  };
+}
+
 class Reaction {
   final String emoji;
   final String? emojiId;
@@ -432,6 +468,7 @@ class MessageSnapshot {
   final List<String> mentionRoles;
   final List<Embed> embeds;
   final List<Attachment> attachments;
+  final List<MessageSticker> stickers;
   final int flags;
 
   const MessageSnapshot({
@@ -442,6 +479,7 @@ class MessageSnapshot {
     this.mentionRoles = const [],
     this.embeds = const [],
     this.attachments = const [],
+    this.stickers = const [],
     this.flags = 0,
   });
 
@@ -455,6 +493,7 @@ class MessageSnapshot {
       embeds: sdk.embeds?.map(Embed.fromSdk).toList() ?? const [],
       attachments:
           sdk.attachments?.map(Attachment.fromSdk).toList() ?? const [],
+      stickers: sdk.stickers?.map(MessageSticker.fromSdk).toList() ?? const [],
       flags: sdk.flags,
     );
   }
@@ -488,6 +527,11 @@ class MessageSnapshot {
               ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      stickers:
+          (json['stickers'] as List<dynamic>?)
+              ?.map((e) => MessageSticker.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       flags: json['flags'] as int? ?? 0,
     );
   }
@@ -500,6 +544,7 @@ class MessageSnapshot {
     'mention_roles': mentionRoles,
     'embeds': embeds.map((e) => e.toJson()).toList(),
     'attachments': attachments.map((a) => a.toJson()).toList(),
+    'stickers': stickers.map((s) => s.toJson()).toList(),
     'flags': flags,
   };
 
@@ -520,6 +565,7 @@ class Message {
   final DateTime? editedTimestamp;
   final List<Embed> embeds;
   final List<Attachment> attachments;
+  final List<MessageSticker> stickers;
   final List<Reaction> reactions;
   final String? replyToId;
   final String? forwardedFrom;
@@ -543,6 +589,7 @@ class Message {
     this.editedTimestamp,
     this.embeds = const [],
     this.attachments = const [],
+    this.stickers = const [],
     this.reactions = const [],
     this.replyToId,
     this.forwardedFrom,
@@ -574,6 +621,7 @@ class Message {
       embeds: sdk.embeds?.map(Embed.fromSdk).toList() ?? const [],
       attachments:
           sdk.attachments?.map(Attachment.fromSdk).toList() ?? const [],
+      stickers: sdk.stickers?.map(MessageSticker.fromSdk).toList() ?? const [],
       reactions: sdk.reactions?.map(Reaction.fromSdk).toList() ?? const [],
       replyToId: sdk.referencedMessage?.id,
       messageReference: sdk.messageReference != null
@@ -602,6 +650,7 @@ class Message {
       editedTimestamp: row.editedTimestamp,
       embeds: _decodeList(row.embedsJson, Embed.fromJson),
       attachments: _decodeList(row.attachmentsJson, Attachment.fromJson),
+      stickers: _decodeList(row.stickersJson, MessageSticker.fromJson),
       reactions: _decodeList(row.reactionsJson, Reaction.fromJson),
       replyToId: row.replyToId,
       forwardedFrom: row.forwardedFrom,
@@ -635,6 +684,7 @@ class Message {
       attachmentsJson: Value(
         jsonEncode(attachments.map((a) => a.toJson()).toList()),
       ),
+      stickersJson: Value(jsonEncode(stickers.map((s) => s.toJson()).toList())),
       reactionsJson: Value(
         jsonEncode(reactions.map((r) => r.toJson()).toList()),
       ),
@@ -663,6 +713,7 @@ class Message {
 
   bool get hasEmbeds => embeds.isNotEmpty;
   bool get hasAttachments => attachments.isNotEmpty;
+  bool get hasStickers => stickers.isNotEmpty;
   bool get isReply => replyToId != null;
   bool get hasForwardSnapshots => messageSnapshots.isNotEmpty;
   bool get suppressEmbeds => (flags & messageFlagSuppressEmbeds) != 0;

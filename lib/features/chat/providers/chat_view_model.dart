@@ -11,6 +11,7 @@ import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
+import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_dart/export.dart';
@@ -295,14 +296,21 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> sendMessage() =>
       _sendContent(state.messageText.trim(), clearMessageText: true);
 
+  Future<void> sendStickerMessage(StickerEntry sticker) => _sendContent(
+    state.messageText.trim(),
+    clearMessageText: true,
+    stickerIds: [sticker.id],
+  );
+
   Future<void> sendStandaloneMessage(String content) =>
       _sendContent(content.trim(), clearMessageText: false);
 
   Future<void> _sendContent(
     String text, {
     required bool clearMessageText,
+    List<String> stickerIds = const [],
   }) async {
-    if (text.isEmpty) {
+    if (text.isEmpty && stickerIds.isEmpty) {
       return;
     }
     final channelId = state.channelId;
@@ -363,6 +371,7 @@ class ChatViewModel extends _$ChatViewModel {
         channelId: channelId,
         content: text,
         replyToId: replyToId,
+        stickerIds: stickerIds,
       );
       // TODO(chat): Handle sending message states (pending/sent/failed) so the
       // UI can show an optimistic echo before the server/realtime round-trip.
@@ -487,6 +496,7 @@ class ChatViewModel extends _$ChatViewModel {
       editedTimestamp: msg.editedTimestamp,
       embeds: msg.embeds,
       attachments: msg.attachments,
+      stickers: msg.stickers,
       reactions: updatedReactions,
       replyToId: msg.replyToId,
       forwardedFrom: msg.forwardedFrom,

@@ -8,7 +8,9 @@ import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_picker_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/gif_picker_content.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/sticker_picker_content.dart';
 import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
@@ -41,6 +43,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
     this.onTabChanged,
     this.onEmojiSelect,
     this.onGifSelect,
+    this.onStickerSelect,
     super.key,
   });
 
@@ -60,6 +63,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
   final ValueChanged<ExpressionPickerTab>? onTabChanged;
   final void Function(String name, String surrogates)? onEmojiSelect;
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
+  final ValueChanged<StickerEntry>? onStickerSelect;
 
   @override
   ConsumerState<ExpressionPicker> createState() => _ExpressionPickerState();
@@ -212,6 +216,12 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
             ? () => _selectTab(ExpressionPickerTab.memes)
             : null,
         onGifSelect: widget.onGifSelect,
+      );
+    }
+    if (_selectedTab == ExpressionPickerTab.stickers) {
+      return StickerPickerContent(
+        isMobile: isMobileLayout(context),
+        onSelect: widget.onStickerSelect,
       );
     }
     return Center(
