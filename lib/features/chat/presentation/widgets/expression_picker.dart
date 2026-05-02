@@ -44,6 +44,9 @@ class ExpressionPicker extends ConsumerStatefulWidget {
     this.onEmojiSelect,
     this.onGifSelect,
     this.onStickerSelect,
+    this.contentSearchHorizontalPadding,
+    this.contentSearchTopPadding,
+    this.contentSearchBottomPadding,
     super.key,
   });
 
@@ -64,6 +67,9 @@ class ExpressionPicker extends ConsumerStatefulWidget {
   final void Function(String name, String surrogates)? onEmojiSelect;
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
   final ValueChanged<StickerEntry>? onStickerSelect;
+  final double? contentSearchHorizontalPadding;
+  final double? contentSearchTopPadding;
+  final double? contentSearchBottomPadding;
 
   @override
   ConsumerState<ExpressionPicker> createState() => _ExpressionPickerState();
@@ -216,12 +222,18 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
             ? () => _selectTab(ExpressionPickerTab.memes)
             : null,
         onGifSelect: widget.onGifSelect,
+        searchHorizontalPadding: widget.contentSearchHorizontalPadding,
+        searchTopPadding: widget.contentSearchTopPadding,
+        searchBottomPadding: widget.contentSearchBottomPadding,
       );
     }
     if (_selectedTab == ExpressionPickerTab.stickers) {
       return StickerPickerContent(
         isMobile: isMobileLayout(context),
         onSelect: widget.onStickerSelect,
+        searchHorizontalPadding: widget.contentSearchHorizontalPadding,
+        searchTopPadding: widget.contentSearchTopPadding,
+        searchBottomPadding: widget.contentSearchBottomPadding,
       );
     }
     return Center(

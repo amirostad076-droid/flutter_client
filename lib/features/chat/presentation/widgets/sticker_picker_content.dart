@@ -29,10 +29,20 @@ const _kStickerRequestSize = 160;
 typedef OnStickerSelect = void Function(StickerEntry sticker);
 
 class StickerPickerContent extends ConsumerStatefulWidget {
-  const StickerPickerContent({this.onSelect, this.isMobile = false, super.key});
+  const StickerPickerContent({
+    this.onSelect,
+    this.isMobile = false,
+    this.searchHorizontalPadding,
+    this.searchTopPadding,
+    this.searchBottomPadding,
+    super.key,
+  });
 
   final OnStickerSelect? onSelect;
   final bool isMobile;
+  final double? searchHorizontalPadding;
+  final double? searchTopPadding;
+  final double? searchBottomPadding;
 
   @override
   ConsumerState<StickerPickerContent> createState() =>
@@ -202,8 +212,10 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
         PickerSearchInput(
           controller: _searchController,
           hintText: _hoveredSticker?.name ?? 'Find the perfect sticker',
-          topPadding: widget.isMobile ? 8 : 12,
-          bottomPadding: widget.isMobile ? 4 : 12,
+          horizontalPadding: widget.searchHorizontalPadding ?? 12,
+          topPadding: widget.searchTopPadding ?? (widget.isMobile ? 8 : 12),
+          bottomPadding:
+              widget.searchBottomPadding ?? (widget.isMobile ? 4 : 12),
         ),
         Expanded(child: _buildBody(context, colors, data)),
       ],

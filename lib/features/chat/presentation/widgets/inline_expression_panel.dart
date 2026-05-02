@@ -17,6 +17,9 @@ const double kCollapsedPanelHeight = kInlineExpressionPanelCollapsedHeight;
 
 const _kDragHandleHeight = 28.0;
 const _kExpandedFraction = 0.85;
+const _kInlineSearchHorizontalPadding = 16.0;
+const _kInlineSearchTopPadding = 8.0;
+const _kInlineSearchBottomPadding = 4.0;
 
 class InlineExpressionPanel extends StatefulWidget {
   const InlineExpressionPanel({
@@ -348,9 +351,8 @@ class _ExpressionPanelContentState
             skinTone: skinTone,
             onSkinToneChanged: (t) =>
                 unawaited(ref.read(emojiSkinToneProvider.notifier).set(t)),
-            horizontalPadding: 16,
+            horizontalPadding: _kInlineSearchHorizontalPadding,
           ),
-        const SizedBox(height: 4),
         Expanded(
           child: ExpressionPicker(
             onClose: widget.onClose,
@@ -363,6 +365,9 @@ class _ExpressionPanelContentState
             searchController: _searchController,
             searchQuery: _searchQuery,
             skinTone: skinTone,
+            contentSearchHorizontalPadding: _kInlineSearchHorizontalPadding,
+            contentSearchTopPadding: _kInlineSearchTopPadding,
+            contentSearchBottomPadding: _kInlineSearchBottomPadding,
           ),
         ),
       ],

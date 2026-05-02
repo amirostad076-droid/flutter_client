@@ -40,12 +40,18 @@ class GifPickerContent extends ConsumerStatefulWidget {
     required this.onClose,
     this.onFavoritesTap,
     this.onGifSelect,
+    this.searchHorizontalPadding,
+    this.searchTopPadding,
+    this.searchBottomPadding,
     super.key,
   });
 
   final VoidCallback onClose;
   final VoidCallback? onFavoritesTap;
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
+  final double? searchHorizontalPadding;
+  final double? searchTopPadding;
+  final double? searchBottomPadding;
 
   @override
   ConsumerState<GifPickerContent> createState() => _GifPickerContentState();
@@ -211,7 +217,9 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
       rightCustomElement: provider == GifProviderKind.klipy
           ? _PoweredByKlipyLabel()
           : null,
-      horizontalPadding: layout.s4,
+      horizontalPadding: widget.searchHorizontalPadding ?? layout.s4,
+      topPadding: widget.searchTopPadding ?? layout.s3,
+      bottomPadding: widget.searchBottomPadding ?? layout.s3,
       onSubmitted: _flushSearch,
     );
   }
