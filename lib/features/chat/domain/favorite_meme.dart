@@ -118,10 +118,7 @@ class FavoriteMeme {
     return FavoriteMemeMediaType.unknown;
   }
 
-  bool get isVideoLike {
-    final normalized = contentType.toLowerCase();
-    return normalized.startsWith('video/') || normalized.contains('gif');
-  }
+  bool get isVideoLike => contentType.toLowerCase().startsWith('video/');
 
   double get aspectRatio {
     final w = width;

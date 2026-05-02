@@ -98,6 +98,36 @@ void main() {
     expect(find.byType(mkv.Video), findsNothing);
     expect(find.text(filename), findsNothing);
   });
+
+  testWidgets('image GIF saved media uses image rendering', (tester) async {
+    const filename = 'animated-favorite.gif';
+
+    await tester.pumpWidget(
+      _buildTestApp(
+        overrides: [
+          favoriteMemesProvider.overrideWith(
+            (ref) => Stream.value([
+              _meme(
+                id: '1',
+                filename: filename,
+                contentType: 'image/gif',
+                isGifv: true,
+              ),
+            ]),
+          ),
+        ],
+        child: const SizedBox(
+          width: 260,
+          height: 320,
+          child: FavoriteMediaPickerContent(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(mkv.Video), findsNothing);
+    expect(find.text(filename), findsNothing);
+  });
 }
 
 Widget _buildTestApp({

@@ -56,6 +56,19 @@ void main() {
     expect(meme.mediaType, FavoriteMemeMediaType.gif);
     expect(meme.isVideoLike, isFalse);
   });
+
+  test('FavoriteMeme keeps image GIF media on the image render path', () {
+    final meme = FavoriteMeme.fromJson({
+      ..._memeJson(),
+      'filename': 'wave-cat.gif',
+      'content_type': 'image/gif',
+      'is_gifv': true,
+      'url': 'https://cdn.example/wave-cat.gif',
+    });
+
+    expect(meme.mediaType, FavoriteMemeMediaType.gif);
+    expect(meme.isVideoLike, isFalse);
+  });
 }
 
 Map<String, Object?> _memeJson() => {
