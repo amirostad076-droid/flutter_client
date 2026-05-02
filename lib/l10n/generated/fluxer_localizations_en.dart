@@ -561,6 +561,37 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get dmVoiceCall => 'Start Voice Call';
 
   @override
+  String get incomingVoiceCallTitle => 'Incoming voice call';
+
+  @override
+  String get incomingVoiceCallAccept => 'Accept';
+
+  @override
+  String get incomingVoiceCallDecline => 'Reject';
+
+  @override
+  String get incomingVoiceCallLabel => 'Incoming call';
+
+  @override
+  String get incomingVoiceCallIgnore => 'Ignore';
+
+  @override
+  String get directVoiceCallNotEligible =>
+      'This call can\'t be started right now. Try again in a moment.';
+
+  @override
+  String get voiceJoinCallFailed =>
+      'Couldn\'t connect to this call. Check your connection and try again.';
+
+  @override
+  String get voiceJoinIncomingCallFailed =>
+      'Couldn\'t join this call. Check your connection and try again.';
+
+  @override
+  String get incomingVoiceRingingUpdateFailed =>
+      'Couldn\'t update this call on the server. Check your connection and try again.';
+
+  @override
   String get dmAddNote => 'Add Note';
 
   @override
@@ -2800,4 +2831,164 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   @override
   String get messagesMediaEditingPreserveDraftLabel =>
       'Preserve edit draft on cancel';
+
+  @override
+  String get voiceConnectionConfirmTitle => 'Voice Connection Confirmation';
+
+  @override
+  String voiceConnectionConfirmDescription(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'You\'re already connected to this voice channel from $count other devices. What would you like to do?',
+      one:
+          'You\'re already connected to this voice channel from 1 other device. What would you like to do?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get voiceConnectionConfirmSwitch => 'Switch to This Device';
+
+  @override
+  String get voiceConnectionConfirmJustJoin =>
+      'Just Join (Keep Other Connections)';
+
+  @override
+  String get voiceConnectionConfirmDoNothing =>
+      'Do nothing, I don\'t want to join';
+
+  @override
+  String get voiceChannelEmptyDescription =>
+      'This is a voice channel. Connect to start talking!';
+
+  @override
+  String get voiceChannelJoin => 'Join Voice Channel';
+
+  @override
+  String get voiceChannelJoinConnect => 'Connect to Voice';
+
+  @override
+  String get voiceChannelStatusConnecting => 'Connecting…';
+
+  @override
+  String get voiceChannelStatusConnected => 'Connected';
+
+  @override
+  String get voiceChannelStatusError => 'Error';
+
+  @override
+  String get voiceParticipantTooltipMobileDevice => 'Mobile device';
+
+  @override
+  String get voiceParticipantTooltipDesktopDevice => 'Desktop device';
+
+  @override
+  String get voiceParticipantTooltipCommunityMuted => 'Community muted';
+
+  @override
+  String get voiceParticipantTooltipMuted => 'Muted';
+
+  @override
+  String get voiceParticipantTooltipCommunityDeafened => 'Community deafened';
+
+  @override
+  String get voiceParticipantTooltipDeafened => 'Deafened';
+
+  @override
+  String voiceParticipantTooltipConnection(String connectionId) {
+    return 'Connection: $connectionId';
+  }
+
+  @override
+  String voiceChannelParticipantCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count participants',
+      one: '1 participant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get voiceChannelLeave => 'Leave';
+
+  @override
+  String get voiceControlMute => 'Mute';
+
+  @override
+  String get voiceControlUnmute => 'Unmute';
+
+  @override
+  String get voiceControlDeafen => 'Deafen';
+
+  @override
+  String get voiceControlUndeafen => 'Undeafen';
+
+  @override
+  String get voiceControlVideo => 'Video';
+
+  @override
+  String get voiceControlScreenShare => 'Screen share';
+
+  @override
+  String get voiceControlMore => 'More';
+
+  @override
+  String get voiceControlDisconnect => 'Disconnect';
+
+  @override
+  String get voiceCameraPermissionRequired =>
+      'Camera permission is required for video.';
+
+  @override
+  String get voiceWatchStream => 'Watch Stream';
+
+  @override
+  String get voiceStopWatching => 'Stop Watching';
+
+  @override
+  String get voiceStopWatchingCurrentStreamTooltip =>
+      'Stop watching the current stream';
+
+  @override
+  String get voiceLiveBadge => 'Live';
+
+  @override
+  String get dmVoiceViewCall => 'View call';
+
+  @override
+  String get dmVoiceCallFullScreen => 'Full screen';
+
+  @override
+  String get dmVoiceCallFullScreenTooltip => 'Open call in full screen';
+
+  @override
+  String get dmVoiceStripStatusConnecting => 'Connecting…';
+
+  @override
+  String get dmVoiceStripStatusInCall => 'In call';
+
+  @override
+  String get dmVoiceEmbeddedFallbackTitle => 'Voice call';
+
+  @override
+  String get dmVoiceCallBarConnecting => 'Connecting…';
+
+  @override
+  String get dmVoiceCallBarDirectPrimary => 'Direct call';
+
+  @override
+  String get dmVoiceCallBarGroupPrimary => 'Group call';
+
+  @override
+  String get dmVoiceCallBarIssueFallback => 'Voice issue';
+
+  @override
+  String get dmVoiceFullscreenTitle => 'Voice';
+
+  @override
+  String get voiceCallBarGuildConnectedFallback => 'Voice connected';
 }

@@ -712,6 +712,42 @@
   "@dmVoiceCall": {
     "description": "DM context menu action to start a voice call."
   },
+  "incomingVoiceCallTitle": "Incoming voice call",
+  "@incomingVoiceCallTitle": {
+    "description": "Title shown on the overlay when receiving a ringing voice call."
+  },
+  "incomingVoiceCallAccept": "Accept",
+  "@incomingVoiceCallAccept": {
+    "description": "Button to answer an incoming ringing voice call."
+  },
+  "incomingVoiceCallDecline": "Reject",
+  "@incomingVoiceCallDecline": {
+    "description": "Primary reject action on an incoming call (parity with web “Reject”)."
+  },
+  "incomingVoiceCallLabel": "Incoming call",
+  "@incomingVoiceCallLabel": {
+    "description": "Short label above the avatar in the incoming call bottom sheet (web mobile parity)."
+  },
+  "incomingVoiceCallIgnore": "Ignore",
+  "@incomingVoiceCallIgnore": {
+    "description": "Button to ignore ringing for the current account without rejecting for others."
+  },
+  "directVoiceCallNotEligible": "This call can't be started right now. Try again in a moment.",
+  "@directVoiceCallNotEligible": {
+    "description": "Shown when the server reports outbound DM voice call isn't allowed (not ringable)."
+  },
+  "voiceJoinCallFailed": "Couldn't connect to this call. Check your connection and try again.",
+  "@voiceJoinCallFailed": {
+    "description": "Snack when joining voice fails unexpectedly during outbound call start."
+  },
+  "voiceJoinIncomingCallFailed": "Couldn't join this call. Check your connection and try again.",
+  "@voiceJoinIncomingCallFailed": {
+    "description": "Snack when accepting an incoming ringing voice call fails to connect."
+  },
+  "incomingVoiceRingingUpdateFailed": "Couldn't update this call on the server. Check your connection and try again.",
+  "@incomingVoiceRingingUpdateFailed": {
+    "description": "Snack when decline or ignore fails to notify the server about ringing."
+  },
   "dmAddNote": "Add Note",
   "@dmAddNote": {
     "description": "DM context menu action to add a note about the user."
@@ -3389,5 +3425,200 @@
   "messagesMediaEditingPreserveDraftLabel": "Preserve edit draft on cancel",
   "@messagesMediaEditingPreserveDraftLabel": {
     "description": "Toggle label for preserving edit drafts on cancel."
+  },
+  "voiceConnectionConfirmTitle": "Voice Connection Confirmation",
+  "@voiceConnectionConfirmTitle": {
+    "description": "Title of the multi-device voice join confirmation dialog."
+  },
+  "voiceConnectionConfirmDescription": "{count, plural, =1{You're already connected to this voice channel from 1 other device. What would you like to do?} other{You're already connected to this voice channel from {count} other devices. What would you like to do?}}",
+  "@voiceConnectionConfirmDescription": {
+    "description": "Body of the multi-device voice join confirmation; count is the number of other device connections.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceConnectionConfirmSwitch": "Switch to This Device",
+  "@voiceConnectionConfirmSwitch": {
+    "description": "Primary action: disconnect other devices and use this one."
+  },
+  "voiceConnectionConfirmJustJoin": "Just Join (Keep Other Connections)",
+  "@voiceConnectionConfirmJustJoin": {
+    "description": "Secondary action: add this device without ending other sessions."
+  },
+  "voiceConnectionConfirmDoNothing": "Do nothing, I don't want to join",
+  "@voiceConnectionConfirmDoNothing": {
+    "description": "Dismiss the dialog without joining voice."
+  },
+  "voiceChannelEmptyDescription": "This is a voice channel. Connect to start talking!",
+  "@voiceChannelEmptyDescription": {
+    "description": "Empty state body when viewing a guild voice channel while not in the call."
+  },
+  "voiceChannelJoin": "Join Voice Channel",
+  "@voiceChannelJoin": {
+    "description": "Primary action to connect to a voice channel from the empty state."
+  },
+  "voiceChannelJoinConnect": "Connect to Voice",
+  "@voiceChannelJoinConnect": {
+    "description": "Primary action in the mobile bottom sheet before joining a voice channel from the channel list."
+  },
+  "voiceChannelStatusConnecting": "Connecting…",
+  "@voiceChannelStatusConnecting": {
+    "description": "Status in the in-page voice view while LiveKit is connecting."
+  },
+  "voiceChannelStatusConnected": "Connected",
+  "@voiceChannelStatusConnected": {
+    "description": "Status in the in-page voice view when the voice session is active."
+  },
+  "voiceChannelStatusError": "Error",
+  "@voiceChannelStatusError": {
+    "description": "Short label in the channel header when the voice session reports an error."
+  },
+  "voiceParticipantTooltipMobileDevice": "Mobile device",
+  "@voiceParticipantTooltipMobileDevice": {
+    "description": "Tooltip on the device icon in the voice participant nameplate when the connection is mobile."
+  },
+  "voiceParticipantTooltipDesktopDevice": "Desktop device",
+  "@voiceParticipantTooltipDesktopDevice": {
+    "description": "Tooltip on the device icon in the voice participant nameplate when the connection is desktop."
+  },
+  "voiceParticipantTooltipCommunityMuted": "Community muted",
+  "@voiceParticipantTooltipCommunityMuted": {
+    "description": "Tooltip when the participant is muted by the community (server-side)."
+  },
+  "voiceParticipantTooltipMuted": "Muted",
+  "@voiceParticipantTooltipMuted": {
+    "description": "Tooltip when the participant is self-muted."
+  },
+  "voiceParticipantTooltipCommunityDeafened": "Community deafened",
+  "@voiceParticipantTooltipCommunityDeafened": {
+    "description": "Tooltip when the participant is deafened by the community (server-side)."
+  },
+  "voiceParticipantTooltipDeafened": "Deafened",
+  "@voiceParticipantTooltipDeafened": {
+    "description": "Tooltip when the participant is self-deafened."
+  },
+  "voiceParticipantTooltipConnection": "Connection: {connectionId}",
+  "@voiceParticipantTooltipConnection": {
+    "description": "Tooltip for the short connection id shown in the participant nameplate.",
+    "placeholders": {
+      "connectionId": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceChannelParticipantCount": "{count, plural, =1{1 participant} other{{count} participants}}",
+  "@voiceChannelParticipantCount": {
+    "description": "Participant count label in the guild voice channel in-call view.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceChannelLeave": "Leave",
+  "@voiceChannelLeave": {
+    "description": "Button to leave the voice call from the in-page voice view."
+  },
+  "voiceControlMute": "Mute",
+  "@voiceControlMute": {
+    "description": "Tooltip: mute the microphone in the voice call control bar."
+  },
+  "voiceControlUnmute": "Unmute",
+  "@voiceControlUnmute": {
+    "description": "Tooltip: unmute the microphone in the voice call control bar."
+  },
+  "voiceControlDeafen": "Deafen",
+  "@voiceControlDeafen": {
+    "description": "Tooltip: deafen (mute + disable incoming audio) in the voice call control bar."
+  },
+  "voiceControlUndeafen": "Undeafen",
+  "@voiceControlUndeafen": {
+    "description": "Tooltip: undeafen in the voice call control bar."
+  },
+  "voiceControlVideo": "Video",
+  "@voiceControlVideo": {
+    "description": "Tooltip: camera in the voice call control bar (when supported)."
+  },
+  "voiceControlScreenShare": "Screen share",
+  "@voiceControlScreenShare": {
+    "description": "Tooltip: share screen in the voice call control bar (when supported)."
+  },
+  "voiceControlMore": "More",
+  "@voiceControlMore": {
+    "description": "Tooltip: more voice actions in the voice call control bar."
+  },
+  "voiceControlDisconnect": "Disconnect",
+  "@voiceControlDisconnect": {
+    "description": "Tooltip: leave the voice call in the voice call control bar."
+  },
+  "voiceCameraPermissionRequired": "Camera permission is required for video.",
+  "@voiceCameraPermissionRequired": {
+    "description": "Error when the user enables video but camera access is denied."
+  },
+  "voiceWatchStream": "Watch Stream",
+  "@voiceWatchStream": {
+    "description": "Primary button on a screen-share tile to subscribe to the remote stream."
+  },
+  "voiceStopWatching": "Stop Watching",
+  "@voiceStopWatching": {
+    "description": "Control-bar action to unsubscribe from the focused screen-share stream."
+  },
+  "voiceStopWatchingCurrentStreamTooltip": "Stop watching the current stream",
+  "@voiceStopWatchingCurrentStreamTooltip": {
+    "description": "Tooltip for the Stop Watching control in the voice bar."
+  },
+  "voiceLiveBadge": "Live",
+  "@voiceLiveBadge": {
+    "description": "Compact LIVE indicator on a screen-share tile (shown uppercase)."
+  },
+  "dmVoiceViewCall": "View call",
+  "@dmVoiceViewCall": {
+    "description": "Primary action on the DM voice banner to open the full-screen DM call UI."
+  },
+  "dmVoiceCallFullScreen": "Full screen",
+  "@dmVoiceCallFullScreen": {
+    "description": "Button label to expand the DM call from the embedded desktop panel."
+  },
+  "dmVoiceCallFullScreenTooltip": "Open call in full screen",
+  "@dmVoiceCallFullScreenTooltip": {
+    "description": "Tooltip for expanding the DM voice call."
+  },
+  "dmVoiceStripStatusConnecting": "Connecting…",
+  "@dmVoiceStripStatusConnecting": {
+    "description": "Banner status while the DM voice session is establishing."
+  },
+  "dmVoiceStripStatusInCall": "In call",
+  "@dmVoiceStripStatusInCall": {
+    "description": "Banner status when connected to DM voice."
+  },
+  "dmVoiceEmbeddedFallbackTitle": "Voice call",
+  "@dmVoiceEmbeddedFallbackTitle": {
+    "description": "Title on the DM embedded voice panel when conversation name is unknown."
+  },
+  "dmVoiceCallBarConnecting": "Connecting…",
+  "@dmVoiceCallBarConnecting": {
+    "description": "Primary bar line during private-call connection."
+  },
+  "dmVoiceCallBarDirectPrimary": "Direct call",
+  "@dmVoiceCallBarDirectPrimary": {
+    "description": "Primary bar title for connected 1:1 DM voice."
+  },
+  "dmVoiceCallBarGroupPrimary": "Group call",
+  "@dmVoiceCallBarGroupPrimary": {
+    "description": "Primary bar title for connected group DM voice."
+  },
+  "dmVoiceCallBarIssueFallback": "Voice issue",
+  "@dmVoiceCallBarIssueFallback": {
+    "description": "Fallback bar title when a voice error has no guild name."
+  },
+  "dmVoiceFullscreenTitle": "Voice",
+  "@dmVoiceFullscreenTitle": {
+    "description": "Fallback AppBar title for the fullscreen DM voice page."
+  },
+  "voiceCallBarGuildConnectedFallback": "Voice connected",
+  "@voiceCallBarGuildConnectedFallback": {
+    "description": "Primary line on the compact voice bar when in a guild call but guild name is not loaded."
   }
 }

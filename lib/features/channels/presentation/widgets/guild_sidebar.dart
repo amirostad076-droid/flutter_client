@@ -18,7 +18,13 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/overlapping_panels.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_join_bottom_sheet.dart'
+    show VoiceChannelJoinOutcome, showVoiceChannelJoinBottomSheet;
+import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
+import 'package:fluxer_app/features/voice/utils/voice_connection_actions.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -294,7 +300,7 @@ class GuildSidebar extends ConsumerWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
+        onTap: () async {
           if (channel.type == ChannelType.link) {
             final channelUrl = channel.url;
             if (channelUrl != null && channelUrl.isNotEmpty) {
@@ -303,12 +309,60 @@ class GuildSidebar extends ConsumerWidget {
             return;
           }
 
-          final guildId = ref.read(activeGuildIdProvider);
+          final String? guildId = ref.read(activeGuildIdProvider);
           if (guildId != null) {
+            final VoiceSessionState voiceSession = ref.read(voiceSessionProvider);
+            final bool isInCurrentVoiceChannel =
+                channel.type == ChannelType.voice &&
+                voiceSession.isInVoice &&
+                voiceSession.guildId == guildId &&
+                voiceSession.channelId == channel.id;
+            if (channel.type == ChannelType.voice && isMobileLayout(context)) {
+              if (isInCurrentVoiceChannel) {
+                navigateToContent(
+                  context,
+                  RoutePaths.guildChannel(guildId, channel.id),
+                );
+                return;
+              }
+              final VoiceChannelJoinOutcome? joinOutcome =
+                  await showVoiceChannelJoinBottomSheet(
+                context,
+                channelName: channel.name,
+              );
+              if (!context.mounted || joinOutcome == null) {
+                return;
+              }
+              navigateToContent(
+                context,
+                RoutePaths.guildChannel(guildId, channel.id),
+              );
+              unawaited(
+                joinVoiceChannelWithConfirmation(
+                  ref: ref,
+                  context: context,
+                  guildId: guildId,
+                  channelId: channel.id,
+                  initialSelfMute: joinOutcome.initialSelfMute,
+                  initialSelfDeaf: joinOutcome.initialSelfDeaf,
+                ),
+              );
+              return;
+            }
             navigateToContent(
               context,
               RoutePaths.guildChannel(guildId, channel.id),
             );
+            if (channel.type == ChannelType.voice && !isInCurrentVoiceChannel) {
+              unawaited(
+                joinVoiceChannelWithConfirmation(
+                  ref: ref,
+                  context: context,
+                  guildId: guildId,
+                  channelId: channel.id,
+                ),
+              );
+            }
           }
           unawaited(
             OverlappingPanels.of(context)?.moveToState(RevealSide.main) ??

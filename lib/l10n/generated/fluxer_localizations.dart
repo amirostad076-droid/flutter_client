@@ -1090,6 +1090,60 @@ abstract class FluxerLocalizations {
   /// **'Start Voice Call'**
   String get dmVoiceCall;
 
+  /// Title shown on the overlay when receiving a ringing voice call.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming voice call'**
+  String get incomingVoiceCallTitle;
+
+  /// Button to answer an incoming ringing voice call.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get incomingVoiceCallAccept;
+
+  /// Primary reject action on an incoming call (parity with web “Reject”).
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get incomingVoiceCallDecline;
+
+  /// Short label above the avatar in the incoming call bottom sheet (web mobile parity).
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming call'**
+  String get incomingVoiceCallLabel;
+
+  /// Button to ignore ringing for the current account without rejecting for others.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore'**
+  String get incomingVoiceCallIgnore;
+
+  /// Shown when the server reports outbound DM voice call isn't allowed (not ringable).
+  ///
+  /// In en, this message translates to:
+  /// **'This call can\'t be started right now. Try again in a moment.'**
+  String get directVoiceCallNotEligible;
+
+  /// Snack when joining voice fails unexpectedly during outbound call start.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t connect to this call. Check your connection and try again.'**
+  String get voiceJoinCallFailed;
+
+  /// Snack when accepting an incoming ringing voice call fails to connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t join this call. Check your connection and try again.'**
+  String get voiceJoinIncomingCallFailed;
+
+  /// Snack when decline or ignore fails to notify the server about ringing.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update this call on the server. Check your connection and try again.'**
+  String get incomingVoiceRingingUpdateFailed;
+
   /// DM context menu action to add a note about the user.
   ///
   /// In en, this message translates to:
@@ -4791,6 +4845,276 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Preserve edit draft on cancel'**
   String get messagesMediaEditingPreserveDraftLabel;
+
+  /// Title of the multi-device voice join confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Connection Confirmation'**
+  String get voiceConnectionConfirmTitle;
+
+  /// Body of the multi-device voice join confirmation; count is the number of other device connections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{You\'re already connected to this voice channel from 1 other device. What would you like to do?} other{You\'re already connected to this voice channel from {count} other devices. What would you like to do?}}'**
+  String voiceConnectionConfirmDescription(int count);
+
+  /// Primary action: disconnect other devices and use this one.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to This Device'**
+  String get voiceConnectionConfirmSwitch;
+
+  /// Secondary action: add this device without ending other sessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Just Join (Keep Other Connections)'**
+  String get voiceConnectionConfirmJustJoin;
+
+  /// Dismiss the dialog without joining voice.
+  ///
+  /// In en, this message translates to:
+  /// **'Do nothing, I don\'t want to join'**
+  String get voiceConnectionConfirmDoNothing;
+
+  /// Empty state body when viewing a guild voice channel while not in the call.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a voice channel. Connect to start talking!'**
+  String get voiceChannelEmptyDescription;
+
+  /// Primary action to connect to a voice channel from the empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Voice Channel'**
+  String get voiceChannelJoin;
+
+  /// Primary action in the mobile bottom sheet before joining a voice channel from the channel list.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to Voice'**
+  String get voiceChannelJoinConnect;
+
+  /// Status in the in-page voice view while LiveKit is connecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get voiceChannelStatusConnecting;
+
+  /// Status in the in-page voice view when the voice session is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get voiceChannelStatusConnected;
+
+  /// Short label in the channel header when the voice session reports an error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get voiceChannelStatusError;
+
+  /// Tooltip on the device icon in the voice participant nameplate when the connection is mobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile device'**
+  String get voiceParticipantTooltipMobileDevice;
+
+  /// Tooltip on the device icon in the voice participant nameplate when the connection is desktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop device'**
+  String get voiceParticipantTooltipDesktopDevice;
+
+  /// Tooltip when the participant is muted by the community (server-side).
+  ///
+  /// In en, this message translates to:
+  /// **'Community muted'**
+  String get voiceParticipantTooltipCommunityMuted;
+
+  /// Tooltip when the participant is self-muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted'**
+  String get voiceParticipantTooltipMuted;
+
+  /// Tooltip when the participant is deafened by the community (server-side).
+  ///
+  /// In en, this message translates to:
+  /// **'Community deafened'**
+  String get voiceParticipantTooltipCommunityDeafened;
+
+  /// Tooltip when the participant is self-deafened.
+  ///
+  /// In en, this message translates to:
+  /// **'Deafened'**
+  String get voiceParticipantTooltipDeafened;
+
+  /// Tooltip for the short connection id shown in the participant nameplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection: {connectionId}'**
+  String voiceParticipantTooltipConnection(String connectionId);
+
+  /// Participant count label in the guild voice channel in-call view.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 participant} other{{count} participants}}'**
+  String voiceChannelParticipantCount(int count);
+
+  /// Button to leave the voice call from the in-page voice view.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get voiceChannelLeave;
+
+  /// Tooltip: mute the microphone in the voice call control bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get voiceControlMute;
+
+  /// Tooltip: unmute the microphone in the voice call control bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get voiceControlUnmute;
+
+  /// Tooltip: deafen (mute + disable incoming audio) in the voice call control bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Deafen'**
+  String get voiceControlDeafen;
+
+  /// Tooltip: undeafen in the voice call control bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Undeafen'**
+  String get voiceControlUndeafen;
+
+  /// Tooltip: camera in the voice call control bar (when supported).
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get voiceControlVideo;
+
+  /// Tooltip: share screen in the voice call control bar (when supported).
+  ///
+  /// In en, this message translates to:
+  /// **'Screen share'**
+  String get voiceControlScreenShare;
+
+  /// Tooltip: more voice actions in the voice call control bar.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get voiceControlMore;
+
+  /// Tooltip: leave the voice call in the voice call control bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get voiceControlDisconnect;
+
+  /// Error when the user enables video but camera access is denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission is required for video.'**
+  String get voiceCameraPermissionRequired;
+
+  /// Primary button on a screen-share tile to subscribe to the remote stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Stream'**
+  String get voiceWatchStream;
+
+  /// Control-bar action to unsubscribe from the focused screen-share stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop Watching'**
+  String get voiceStopWatching;
+
+  /// Tooltip for the Stop Watching control in the voice bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop watching the current stream'**
+  String get voiceStopWatchingCurrentStreamTooltip;
+
+  /// Compact LIVE indicator on a screen-share tile (shown uppercase).
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get voiceLiveBadge;
+
+  /// Primary action on the DM voice banner to open the full-screen DM call UI.
+  ///
+  /// In en, this message translates to:
+  /// **'View call'**
+  String get dmVoiceViewCall;
+
+  /// Button label to expand the DM call from the embedded desktop panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen'**
+  String get dmVoiceCallFullScreen;
+
+  /// Tooltip for expanding the DM voice call.
+  ///
+  /// In en, this message translates to:
+  /// **'Open call in full screen'**
+  String get dmVoiceCallFullScreenTooltip;
+
+  /// Banner status while the DM voice session is establishing.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get dmVoiceStripStatusConnecting;
+
+  /// Banner status when connected to DM voice.
+  ///
+  /// In en, this message translates to:
+  /// **'In call'**
+  String get dmVoiceStripStatusInCall;
+
+  /// Title on the DM embedded voice panel when conversation name is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice call'**
+  String get dmVoiceEmbeddedFallbackTitle;
+
+  /// Primary bar line during private-call connection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get dmVoiceCallBarConnecting;
+
+  /// Primary bar title for connected 1:1 DM voice.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct call'**
+  String get dmVoiceCallBarDirectPrimary;
+
+  /// Primary bar title for connected group DM voice.
+  ///
+  /// In en, this message translates to:
+  /// **'Group call'**
+  String get dmVoiceCallBarGroupPrimary;
+
+  /// Fallback bar title when a voice error has no guild name.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice issue'**
+  String get dmVoiceCallBarIssueFallback;
+
+  /// Fallback AppBar title for the fullscreen DM voice page.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get dmVoiceFullscreenTitle;
+
+  /// Primary line on the compact voice bar when in a guild call but guild name is not loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice connected'**
+  String get voiceCallBarGuildConnectedFallback;
 }
 
 class _FluxerLocalizationsDelegate

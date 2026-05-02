@@ -24,6 +24,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart'
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/features/voice/utils/call_actions.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
 import 'package:go_router/go_router.dart';
@@ -1011,8 +1012,34 @@ class _DMListState extends ConsumerState<DMList> {
         // TODO(fluxer_app): navigate to user profile sheet
         break;
       case _DmAction.voiceCall:
-        // TODO(fluxer_app): initiate voice call
-        break;
+        unawaited(() async {
+          final String? selfId = ref.read(currentUserIdProvider);
+          final List<String> ringTargets = convo.remoteRecipientIds
+              .where((String id) => selfId == null || id != selfId)
+              .toList();
+          final StartDirectVoiceCallResult r = await startDirectVoiceCall(
+            ref,
+            context,
+            convo.id,
+            outboundRingRecipients: ringTargets.isEmpty ? null : ringTargets,
+          );
+          if (!context.mounted) {
+            return;
+          }
+          if (!r.ok && !r.microphoneDenied && !r.cameraDenied) {
+            final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+            final String? snackMessage = r.notEligible
+                ? l10n.directVoiceCallNotEligible
+                : r.joinAttemptFailed
+                ? l10n.voiceJoinCallFailed
+                : null;
+            if (snackMessage != null) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(snackMessage)));
+            }
+          }
+        }());
       case _DmAction.addNote:
         // TODO(fluxer_app): open add note sheet
         break;

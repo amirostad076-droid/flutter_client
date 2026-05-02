@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
-import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/auth/providers/current_auth_session_provider.dart';
@@ -16,42 +14,33 @@ import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.da
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/settings/providers/connections_view_model.dart';
+import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+export 'gateway_connection_provider.dart';
+
 part 'gateway_provider.g.dart';
 
+/// Connects whenever [gatewayConnectionProvider] builds a new
+/// [GatewayConnection] (e.g. token or Dio churn). Startup alone is not enough
+/// because only that first instance received [GatewayConnection.connect].
+///
+/// Rotating sockets must clear [gatewayReadyProvider] until the next READY so
+/// navigation and voice do not assume an active session on a disconnected
+/// socket.
 @Riverpod(keepAlive: true)
-GatewayConnection gatewayConnection(Ref ref) {
-  final dio = ref.watch(fluxerDioProvider);
-  final token = ref.watch(fluxerAuthTokenProvider);
-
-  if (token == null || token.isEmpty) {
-    throw StateError('Cannot create gateway connection without auth token');
-  }
-
-  final isDesktop = Platform.isLinux || Platform.isMacOS || Platform.isWindows;
-
-  final activeGuildId = ref.read(activeGuildIdProvider);
-
-  final connection = GatewayConnection(
-    token: token,
-    dio: dio,
-    initialGuildId: activeGuildId,
-    properties: GatewayIdentifyProperties(
-      os: Platform.operatingSystem,
-      browser: 'fluxer_app',
-      device: Platform.operatingSystem,
-      osVersion: Platform.operatingSystemVersion,
-      locale: Platform.localeName,
-      browserVersion: '1.0.0',
-      desktopAppVersion: isDesktop ? '1.0.0' : null,
-      desktopOs: isDesktop ? Platform.operatingSystem : null,
-    ),
+void gatewayConnectBinding(Ref ref) {
+  ref.listen<GatewayConnection>(
+    gatewayConnectionProvider,
+    (GatewayConnection? previous, GatewayConnection next) {
+      if (previous != null) {
+        ref.read(gatewayReadyProvider.notifier).reset();
+      }
+      unawaited(next.connect());
+    },
+    fireImmediately: true,
   );
-
-  ref.onDispose(connection.dispose);
-  return connection;
 }
 
 @Riverpod(keepAlive: true)
@@ -82,6 +71,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     onVoiceStatesBulk: (states) {
       ref.read(voiceStatesMapProvider.notifier).updateBulk(states);
     },
+    onVoiceServerUpdate: (event) {
+      ref.read(voiceSessionProvider.notifier).handleVoiceServerUpdate(event);
+    },
     onCallCreate: (event) {
       ref
           .read(activeCallsProvider.notifier)
@@ -106,6 +98,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     },
     onCallDelete: (channelId) {
       ref.read(activeCallsProvider.notifier).deleteCall(channelId);
+      ref
+          .read(outgoingVoiceCallInitiatorProvider.notifier)
+          .clearChannel(channelId);
     },
     onInviteCreate: (data) {
       ref.read(inviteCacheProvider.notifier).addInvite(data);
