@@ -8,9 +8,11 @@ import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/favorite_media_picker_content.dart';
 import 'package:fluxer_app/features/chat/providers/favorite_media_provider.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:riverpod/src/framework.dart' show Override;
 
 void main() {
+  setUpAll(MediaKit.ensureInitialized);
   testWidgets('video-like saved media tiles fit in narrow columns', (
     tester,
   ) async {
@@ -38,6 +40,33 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'video-like saved media tiles render media instead of filename fallback',
+    (tester) async {
+      const filename = 'animated-favorite.gif';
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: [
+            favoriteMemesProvider.overrideWith(
+              (ref) => Stream.value([
+                _meme(id: '1', filename: filename, contentType: 'video/mp4'),
+              ]),
+            ),
+          ],
+          child: const SizedBox(
+            width: 260,
+            height: 320,
+            child: FavoriteMediaPickerContent(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text(filename), findsNothing);
+    },
+  );
 }
 
 Widget _buildTestApp({

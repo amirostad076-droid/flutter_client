@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
@@ -8,6 +9,9 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/picker_search_input.dart';
 import 'package:fluxer_app/features/chat/providers/favorite_media_provider.dart';
+import 'package:fluxer_app/features/chat/utils/gif_preview_player_config.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart' as mkv;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kGridGap = 8.0;
@@ -16,6 +20,9 @@ const _kMaxColumnWidth = 227.0;
 const _kMinTileHeight = 96.0;
 const _kMinNonImageTileHeight = 128.0;
 const _kMaxTileHeight = 320.0;
+const _kFavoriteMediaVideoHttpHeaders = <String, String>{
+  'Accept': 'video/webm,video/mp4,video/*,*/*',
+};
 
 typedef OnFavoriteMemeSelect = void Function(FavoriteMemeSelection selection);
 
@@ -390,15 +397,96 @@ class _FavoriteMediaPreview extends StatelessWidget {
 
     return switch (meme.mediaType) {
       FavoriteMemeMediaType.audio => _AudioPreview(meme: meme),
-      FavoriteMemeMediaType.video || FavoriteMemeMediaType.gif => _IconPreview(
-        icon: meme.mediaType == FavoriteMemeMediaType.gif
-            ? PhosphorIconsFill.gif
-            : PhosphorIconsFill.videoCamera,
-        label: meme.filename,
-      ),
+      FavoriteMemeMediaType.video ||
+      FavoriteMemeMediaType.gif => _FavoriteMediaVideoPreview(url: meme.url),
       FavoriteMemeMediaType.image || FavoriteMemeMediaType.unknown =>
         _IconPreview(icon: PhosphorIconsFill.file, label: meme.filename),
     };
+  }
+}
+
+class _FavoriteMediaVideoPreview extends StatefulWidget {
+  const _FavoriteMediaVideoPreview({required this.url});
+
+  final String url;
+
+  @override
+  State<_FavoriteMediaVideoPreview> createState() =>
+      _FavoriteMediaVideoPreviewState();
+}
+
+class _FavoriteMediaVideoPreviewState
+    extends State<_FavoriteMediaVideoPreview> {
+  late Player _player;
+  late mkv.VideoController _controller;
+  bool _failed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _createPlayer();
+    unawaited(_openPlayer(_player, widget.url));
+  }
+
+  @override
+  void didUpdateWidget(_FavoriteMediaVideoPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url == widget.url) {
+      return;
+    }
+    _disposePlayer();
+    _failed = false;
+    _createPlayer();
+    unawaited(_openPlayer(_player, widget.url));
+  }
+
+  @override
+  void dispose() {
+    _disposePlayer();
+    super.dispose();
+  }
+
+  void _createPlayer() {
+    _player = Player(configuration: gifPreviewPlayerConfiguration);
+    _controller = mkv.VideoController(
+      _player,
+      configuration: gifPreviewVideoControllerConfiguration(),
+    );
+  }
+
+  Future<void> _openPlayer(Player player, String url) async {
+    try {
+      await player.setPlaylistMode(PlaylistMode.loop);
+      await player.open(
+        Media(url, httpHeaders: _kFavoriteMediaVideoHttpHeaders),
+      );
+      if (!mounted || _player != player) {
+        return;
+      }
+      await player.play();
+    } on Object {
+      if (mounted && _player == player) {
+        setState(() => _failed = true);
+      }
+    }
+  }
+
+  void _disposePlayer() {
+    unawaited(_player.dispose());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_failed) {
+      return const _PreviewPlaceholder();
+    }
+    return mkv.Video(
+      controller: _controller,
+      fit: BoxFit.cover,
+      fill: Colors.transparent,
+      controls: null,
+      wakelock: false,
+    );
   }
 }
 
