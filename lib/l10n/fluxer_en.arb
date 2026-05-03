@@ -3620,5 +3620,93 @@
   "voiceCallBarGuildConnectedFallback": "Voice connected",
   "@voiceCallBarGuildConnectedFallback": {
     "description": "Primary line on the compact voice bar when in a guild call but guild name is not loaded."
+  },
+  "notificationsPageTitle": "Notifications",
+  "@notificationsPageTitle": {
+    "description": "Title on the Notifications tab header."
+  },
+  "notificationsFilterUnreads": "Unreads",
+  "@notificationsFilterUnreads": {
+    "description": "Notifications tab segment: unread channel list."
+  },
+  "notificationsFilterMentions": "Mentions",
+  "@notificationsFilterMentions": {
+    "description": "Notifications tab segment: recent mentions."
+  },
+  "notificationsBookmarksTooltip": "Bookmarks",
+  "@notificationsBookmarksTooltip": {
+    "description": "Tooltip for bookmarks icon from notifications tab."
+  },
+  "notificationsMentionFilterTooltip": "Filter mentions",
+  "@notificationsMentionFilterTooltip": {
+    "description": "Tooltip for recent-mentions filter control."
+  },
+  "notificationsMentionFiltersTitle": "Mention filters",
+  "@notificationsMentionFiltersTitle": {
+    "description": "Title for mention filter bottom sheet."
+  },
+  "notificationsMentionIncludeEveryone": "Include @everyone and @here mentions",
+  "@notificationsMentionIncludeEveryone": {
+    "description": "Checkbox label for everybody mentions in mentions filter."
+  },
+  "notificationsMentionIncludeRoles": "Include role mentions",
+  "@notificationsMentionIncludeRoles": {
+    "description": "Checkbox label for role mentions in mentions filter."
+  },
+  "notificationsMentionIncludeGuilds": "Include all community mentions",
+  "@notificationsMentionIncludeGuilds": {
+    "description": "Checkbox label for all guild/community mentions filter."
+  },
+  "notificationsNoUnreadTitle": "No Unread Messages",
+  "@notificationsNoUnreadTitle": {
+    "description": "Empty-state title when there are no unreads."
+  },
+  "notificationsNoUnreadBody": "You're all caught up.",
+  "@notificationsNoUnreadBody": {
+    "description": "Empty-state body when there are no unreads."
+  },
+  "notificationsNoMentionsTitle": "No Recent Mentions",
+  "@notificationsNoMentionsTitle": {
+    "description": "Empty-state title when there are no recent mentions."
+  },
+  "notificationsNoMentionsBody": "All @mentions of you will appear here for 7 days.",
+  "@notificationsNoMentionsBody": {
+    "description": "Empty-state body for mentions tab."
+  },
+  "notificationsMentionsEndTitle": "You've reached the end",
+  "@notificationsMentionsEndTitle": {
+    "description": "Footer title when mentions pagination is exhausted."
+  },
+  "notificationsMentionsEndBody": "You've seen all your recent mentions. Don't fret, more will appear here soon.",
+  "@notificationsMentionsEndBody": {
+    "description": "Footer body when mentions pagination is exhausted."
+  },
+  "notificationsJump": "Jump",
+  "@notificationsJump": {
+    "description": "Button to navigate to channel message."
+  },
+  "notificationsRemoveMentionTooltip": "Remove mention",
+  "@notificationsRemoveMentionTooltip": {
+    "description": "Tooltip to dismiss a mention from the feed."
+  },
+  "notificationsViewAllUnread": "View all unread",
+  "@notificationsViewAllUnread": {
+    "description": "Button to open unread channel location."
+  },
+  "notificationsMarkAsRead": "Mark as read",
+  "@notificationsMarkAsRead": {
+    "description": "Mark inbox channel unread as read."
+  },
+  "notificationsExpand": "Expand",
+  "@notificationsExpand": {
+    "description": "Expand collapsed unread inbox card."
+  },
+  "notificationsCollapse": "Collapse",
+  "@notificationsCollapse": {
+    "description": "Collapse unread inbox card preview."
+  },
+  "notificationsMessageUnavailable": "This message couldn't be loaded.",
+  "@notificationsMessageUnavailable": {
+    "description": "Shown when an inbox mention row has no backing message row."
   }
 }

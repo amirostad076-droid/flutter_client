@@ -101,6 +101,7 @@ class FluxerSelect<T> extends StatelessWidget {
               ),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 if (selectedItem?.leading case final leading?) ...[
                   SizedBox(
@@ -110,7 +111,7 @@ class FluxerSelect<T> extends StatelessWidget {
                   ),
                   SizedBox(width: layout.s2),
                 ],
-                Expanded(
+                Flexible(
                   child: Text(
                     selectedItem?.label ?? hint ?? '',
                     style: selectedItem != null
@@ -121,6 +122,7 @@ class FluxerSelect<T> extends StatelessWidget {
                             color: colors.textTertiary,
                           ),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
                 SizedBox(width: layout.s2),
@@ -153,22 +155,58 @@ class FluxerSelect<T> extends StatelessWidget {
     );
   }
 
-  Future<void> _showOptions(BuildContext context) async {
-    final result = await FluxerBottomSheet.showScrollable<T>(
-      context,
-      title: label,
-      builder: (sheetContext, scrollController, close) {
-        return _FluxerSelectSheet<T>(
-          items: items,
-          value: value,
-          searchHint: searchHint,
-          emptyLabel: emptyLabel,
-          enableSearch: enableSearch,
-          scrollController: scrollController,
-          onSelected: (selected) => Navigator.of(sheetContext).pop(selected),
-        );
-      },
+  Widget _buildStaticSelectBody(BuildContext sheetContext) {
+    final layout = sheetContext.layout;
+    return Padding(
+      padding: EdgeInsets.only(bottom: layout.s4),
+      child: FluxerBottomSheetSection(
+        child: FluxerMenuGroup(
+          children: [
+            for (final item in items)
+              FluxerBottomSheetMenuItem(
+                label: item.label,
+                hint: item.description,
+                leading: item.leading,
+                icon: item.icon,
+                enabled: item.enabled,
+                isSelected: item.value == value,
+                onTap: () => Navigator.of(sheetContext).pop(item.value),
+              ),
+          ],
+        ),
+      ),
     );
+  }
+
+  Future<void> _showOptions(BuildContext context) async {
+    late final Future<T?> sheetFuture;
+    if (enableSearch) {
+      sheetFuture = FluxerBottomSheet.showScrollable<T>(
+        context,
+        title: label,
+        builder: (sheetContext, scrollController, close) {
+          return _FluxerSelectSheet<T>(
+            items: items,
+            value: value,
+            searchHint: searchHint,
+            emptyLabel: emptyLabel,
+            enableSearch: enableSearch,
+            scrollController: scrollController,
+            onSelected: (selected) => Navigator.of(sheetContext).pop(selected),
+          );
+        },
+      );
+    } else {
+      sheetFuture = FluxerBottomSheet.show<T>(
+        context,
+        title: label,
+        maxHeight: 0.58,
+        builder: (sheetContext, close) =>
+            SingleChildScrollView(child: _buildStaticSelectBody(sheetContext)),
+      );
+    }
+
+    final T? result = await sheetFuture;
 
     if (result != null) {
       _onChanged(result);

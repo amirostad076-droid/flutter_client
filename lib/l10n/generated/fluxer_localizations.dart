@@ -5115,6 +5115,138 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Voice connected'**
   String get voiceCallBarGuildConnectedFallback;
+
+  /// Title on the Notifications tab header.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsPageTitle;
+
+  /// Notifications tab segment: unread channel list.
+  ///
+  /// In en, this message translates to:
+  /// **'Unreads'**
+  String get notificationsFilterUnreads;
+
+  /// Notifications tab segment: recent mentions.
+  ///
+  /// In en, this message translates to:
+  /// **'Mentions'**
+  String get notificationsFilterMentions;
+
+  /// Tooltip for bookmarks icon from notifications tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get notificationsBookmarksTooltip;
+
+  /// Tooltip for recent-mentions filter control.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter mentions'**
+  String get notificationsMentionFilterTooltip;
+
+  /// Title for mention filter bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mention filters'**
+  String get notificationsMentionFiltersTitle;
+
+  /// Checkbox label for everybody mentions in mentions filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Include @everyone and @here mentions'**
+  String get notificationsMentionIncludeEveryone;
+
+  /// Checkbox label for role mentions in mentions filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Include role mentions'**
+  String get notificationsMentionIncludeRoles;
+
+  /// Checkbox label for all guild/community mentions filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Include all community mentions'**
+  String get notificationsMentionIncludeGuilds;
+
+  /// Empty-state title when there are no unreads.
+  ///
+  /// In en, this message translates to:
+  /// **'No Unread Messages'**
+  String get notificationsNoUnreadTitle;
+
+  /// Empty-state body when there are no unreads.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up.'**
+  String get notificationsNoUnreadBody;
+
+  /// Empty-state title when there are no recent mentions.
+  ///
+  /// In en, this message translates to:
+  /// **'No Recent Mentions'**
+  String get notificationsNoMentionsTitle;
+
+  /// Empty-state body for mentions tab.
+  ///
+  /// In en, this message translates to:
+  /// **'All @mentions of you will appear here for 7 days.'**
+  String get notificationsNoMentionsBody;
+
+  /// Footer title when mentions pagination is exhausted.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve reached the end'**
+  String get notificationsMentionsEndTitle;
+
+  /// Footer body when mentions pagination is exhausted.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve seen all your recent mentions. Don\'t fret, more will appear here soon.'**
+  String get notificationsMentionsEndBody;
+
+  /// Button to navigate to channel message.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump'**
+  String get notificationsJump;
+
+  /// Tooltip to dismiss a mention from the feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove mention'**
+  String get notificationsRemoveMentionTooltip;
+
+  /// Button to open unread channel location.
+  ///
+  /// In en, this message translates to:
+  /// **'View all unread'**
+  String get notificationsViewAllUnread;
+
+  /// Mark inbox channel unread as read.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as read'**
+  String get notificationsMarkAsRead;
+
+  /// Expand collapsed unread inbox card.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand'**
+  String get notificationsExpand;
+
+  /// Collapse unread inbox card preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse'**
+  String get notificationsCollapse;
+
+  /// Shown when an inbox mention row has no backing message row.
+  ///
+  /// In en, this message translates to:
+  /// **'This message couldn\'t be loaded.'**
+  String get notificationsMessageUnavailable;
 }
 
 class _FluxerLocalizationsDelegate

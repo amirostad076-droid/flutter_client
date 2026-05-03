@@ -2991,4 +2991,75 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get voiceCallBarGuildConnectedFallback => 'Voice connected';
+
+  @override
+  String get notificationsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsFilterUnreads => 'Unreads';
+
+  @override
+  String get notificationsFilterMentions => 'Mentions';
+
+  @override
+  String get notificationsBookmarksTooltip => 'Bookmarks';
+
+  @override
+  String get notificationsMentionFilterTooltip => 'Filter mentions';
+
+  @override
+  String get notificationsMentionFiltersTitle => 'Mention filters';
+
+  @override
+  String get notificationsMentionIncludeEveryone =>
+      'Include @everyone and @here mentions';
+
+  @override
+  String get notificationsMentionIncludeRoles => 'Include role mentions';
+
+  @override
+  String get notificationsMentionIncludeGuilds =>
+      'Include all community mentions';
+
+  @override
+  String get notificationsNoUnreadTitle => 'No Unread Messages';
+
+  @override
+  String get notificationsNoUnreadBody => 'You\'re all caught up.';
+
+  @override
+  String get notificationsNoMentionsTitle => 'No Recent Mentions';
+
+  @override
+  String get notificationsNoMentionsBody =>
+      'All @mentions of you will appear here for 7 days.';
+
+  @override
+  String get notificationsMentionsEndTitle => 'You\'ve reached the end';
+
+  @override
+  String get notificationsMentionsEndBody =>
+      'You\'ve seen all your recent mentions. Don\'t fret, more will appear here soon.';
+
+  @override
+  String get notificationsJump => 'Jump';
+
+  @override
+  String get notificationsRemoveMentionTooltip => 'Remove mention';
+
+  @override
+  String get notificationsViewAllUnread => 'View all unread';
+
+  @override
+  String get notificationsMarkAsRead => 'Mark as read';
+
+  @override
+  String get notificationsExpand => 'Expand';
+
+  @override
+  String get notificationsCollapse => 'Collapse';
+
+  @override
+  String get notificationsMessageUnavailable =>
+      'This message couldn\'t be loaded.';
 }

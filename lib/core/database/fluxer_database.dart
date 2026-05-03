@@ -16,6 +16,7 @@ import 'package:fluxer_app/core/database/daos/guild_last_channel_dao.dart';
 import 'package:fluxer_app/core/database/daos/guild_sticker_dao.dart';
 import 'package:fluxer_app/core/database/daos/member_dao.dart';
 import 'package:fluxer_app/core/database/daos/message_dao.dart';
+import 'package:fluxer_app/core/database/daos/notification_dao.dart';
 import 'package:fluxer_app/core/database/daos/pinned_dms_dao.dart';
 import 'package:fluxer_app/core/database/daos/read_state_dao.dart';
 import 'package:fluxer_app/core/database/daos/relationship_dao.dart';
@@ -38,6 +39,9 @@ import 'package:fluxer_app/core/database/tables/guild_last_channels.dart';
 import 'package:fluxer_app/core/database/tables/guild_stickers.dart';
 import 'package:fluxer_app/core/database/tables/members.dart';
 import 'package:fluxer_app/core/database/tables/messages.dart';
+import 'package:fluxer_app/core/database/tables/notification_mention_feed.dart';
+import 'package:fluxer_app/core/database/tables/notification_mention_prefs.dart';
+import 'package:fluxer_app/core/database/tables/notification_unread_collapsed.dart';
 import 'package:fluxer_app/core/database/tables/pinned_dms.dart';
 import 'package:fluxer_app/core/database/tables/read_states.dart';
 import 'package:fluxer_app/core/database/tables/relationships.dart';
@@ -80,6 +84,9 @@ part 'fluxer_database.g.dart';
     GuildStickers,
     SavedMessages,
     DmFolderSettingsTable,
+    NotificationUnreadCollapsed,
+    NotificationMentionFeed,
+    NotificationMentionPrefs,
   ],
   daos: [
     AuthSessionDao,
@@ -105,6 +112,7 @@ part 'fluxer_database.g.dart';
     GuildStickerDao,
     SavedMessageDao,
     DmFolderSettingsDao,
+    NotificationDao,
   ],
 )
 class FluxerDatabase extends _$FluxerDatabase {
@@ -113,7 +121,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 32;
+  int get schemaVersion => 33;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -380,6 +388,28 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 32) {
         await m.addColumn(messages, messages.stickersJson);
+        await m.createTable(notificationUnreadCollapsed);
+        await m.createTable(notificationMentionFeed);
+        await m.createTable(notificationMentionPrefs);
+        await into(notificationMentionPrefs).insert(
+          NotificationMentionPrefsCompanion.insert(
+            id: const Value(1),
+          ),
+        );
+      }
+      if (from < 33) {
+        final List<QueryRow> messageColumns =
+            await customSelect('PRAGMA table_info(messages)').get();
+        final bool hasStickersJson = messageColumns.any(
+          (QueryRow row) => row.read<String?>('name') == 'stickers_json',
+        );
+        if (!hasStickersJson) {
+          await m.addColumn(messages, messages.stickersJson);
+        }
+        await customStatement(
+          'UPDATE messages SET stickers_json = ? WHERE stickers_json IS NULL',
+          ['[]'],
+        );
       }
     },
   );
@@ -408,6 +438,7 @@ class FluxerDatabase extends _$FluxerDatabase {
       await guildEmojiDao.clearAll();
       await guildStickerDao.clearAll();
       await savedMessageDao.clearAll();
+      await notificationDao.clearAllUserData();
     });
   }
 

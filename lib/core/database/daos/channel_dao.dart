@@ -16,6 +16,10 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
             ..orderBy([(c) => OrderingTerm.asc(c.position)]))
           .watch();
 
+  Stream<List<Channel>> watchAllChannels() => select(channels).watch();
+
+  Future<List<Channel>> getAllChannels() => select(channels).get();
+
   Future<List<Channel>> getChannels(String guildId) =>
       (select(channels)
             ..where((c) => c.guildId.equals(guildId))

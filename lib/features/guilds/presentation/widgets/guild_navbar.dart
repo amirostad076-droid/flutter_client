@@ -54,6 +54,7 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/utils/guild_name_abbreviation.dart';
 import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:go_router/go_router.dart';
@@ -2095,7 +2096,7 @@ class _GuildListItemState extends State<_GuildListItem> {
           : widget.icon != null
           ? PhosphorIcon(widget.icon!, color: iconColor, size: 32)
           : Text(
-              _abbreviation(widget.label),
+              abbreviateGuildName(widget.label),
               style: TextStyle(
                 color: iconColor,
                 fontSize: 20,
@@ -2254,14 +2255,6 @@ class _GuildListItemState extends State<_GuildListItem> {
         ],
       ),
     );
-  }
-
-  String _abbreviation(String name) {
-    final words = name.split(' ');
-    if (words.length >= 2) {
-      return '${words[0][0]}${words[1][0]}'.toUpperCase();
-    }
-    return name.substring(0, name.length.clamp(0, 2)).toUpperCase();
   }
 
   Future<void> _showContextMenu(BuildContext context, Offset position) async {

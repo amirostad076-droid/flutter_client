@@ -10,6 +10,7 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_menu_data.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/shared/utils/guild_name_abbreviation.dart';
 
 Future<GuildAction?> showGuildBottomSheet(
   BuildContext context, {
@@ -236,20 +237,12 @@ class _GuildAvatar extends StatelessWidget {
   Widget _buildFallback(BuildContext context) {
     return Center(
       child: Text(
-        _abbreviation(guild.name),
+        abbreviateGuildName(guild.name),
         style: context.textStyles.label.copyWith(
           color: context.colors.textPrimary,
         ),
       ),
     );
-  }
-
-  String _abbreviation(String name) {
-    final words = name.split(' ');
-    if (words.length >= 2) {
-      return '${words[0][0]}${words[1][0]}'.toUpperCase();
-    }
-    return name.substring(0, name.length.clamp(0, 2)).toUpperCase();
   }
 }
 

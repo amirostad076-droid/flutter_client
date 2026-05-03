@@ -55,6 +55,7 @@ class MessageRepository {
     required String channelId,
     int limit = 30,
     String? before,
+    String? after,
     String? around,
   }) async {
     try {
@@ -62,6 +63,7 @@ class MessageRepository {
         channelId: channelId,
         limit: limit.toString(),
         before: before,
+        after: after,
         around: around,
       );
 
@@ -101,6 +103,7 @@ class MessageRepository {
           channelId: channelId,
           limit: limit,
           before: before,
+          after: after,
           around: around,
         );
       }
@@ -116,11 +119,13 @@ class MessageRepository {
     required String channelId,
     int limit = 30,
     String? before,
+    String? after,
     String? around,
   }) async {
     final queryParams = <String, dynamic>{
       'limit': limit,
       'before': ?before,
+      'after': ?after,
       'around': ?around,
     };
     final response = await _dio.get<List<dynamic>>(

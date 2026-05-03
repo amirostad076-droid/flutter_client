@@ -83,6 +83,12 @@ class MessageItem extends ConsumerStatefulWidget {
   final VoidCallback? onDelete;
   final void Function(String emoji, {String? emojiId, bool animated})?
   onReaction;
+  final bool inboxPreviewMode;
+  final bool hideMentionHighlight;
+
+  /// When set, resolves author guild role highlight for inbox previews
+  /// (active guild sheet may differ from the channel's guild).
+  final String? previewRoleGuildId;
 
   const MessageItem({
     required this.message,
@@ -93,6 +99,9 @@ class MessageItem extends ConsumerStatefulWidget {
     this.onEdit,
     this.onDelete,
     this.onReaction,
+    this.inboxPreviewMode = false,
+    this.hideMentionHighlight = false,
+    this.previewRoleGuildId,
     super.key,
   });
 
@@ -224,7 +233,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     final isMobile = isMobileLayout(context);
     final isTouch =
         layoutModeOf(MediaQuery.sizeOf(context).width) != LayoutMode.desktop;
-    final guildId = ref.watch(activeGuildIdProvider);
+    final guildId =
+        widget.previewRoleGuildId ?? ref.watch(activeGuildIdProvider);
     final renderEmbeds = ref.watch(
       userSettingsViewModelProvider.select((s) => s.renderEmbeds),
     );
@@ -250,10 +260,15 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           .watch(memberRoleColorProvider((msg.authorId, guildId)))
           .value;
     }
+    final bool shouldHighlightMention =
+        msg.isMentioned && !widget.hideMentionHighlight;
 
     final body = GestureDetector(
-      onLongPress: isMobile ? () => _showActions(context) : null,
-      onSecondaryTapUp: !isMobile
+      onLongPress: isMobile && !widget.inboxPreviewMode
+          ? () => _showActions(context)
+          : null,
+      onSecondaryTapUp:
+          !isMobile && !widget.inboxPreviewMode
           ? (details) => _showContextMenu(context, details.globalPosition)
           : null,
       child: MouseRegion(
@@ -265,23 +280,30 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: msg.isMentioned
+            color: shouldHighlightMention
                 ? _kMentionColor.withValues(alpha: _isHovered ? 0.14 : 0.1)
                 : _isHovered
                 ? context.colors.backgroundModifierHover
                 : Colors.transparent,
-            border: msg.isMentioned
+            border: shouldHighlightMention
                 ? const Border(
                     left: BorderSide(color: _kMentionColor, width: 2),
                   )
                 : null,
           ),
-          padding: EdgeInsets.only(
-            left: msg.isMentioned ? 14 : 16,
-            right: 16,
-            top: isGrouped ? 2 : 8,
-            bottom: isGrouped ? 2 : 8,
-          ),
+          padding: widget.inboxPreviewMode
+              ? EdgeInsets.only(
+                  left: shouldHighlightMention ? 7 : 8,
+                  right: 8,
+                  top: isGrouped ? 2 : 8,
+                  bottom: isGrouped ? 2 : 8,
+                )
+              : EdgeInsets.only(
+                  left: shouldHighlightMention ? 14 : 16,
+                  right: 16,
+                  top: isGrouped ? 2 : 8,
+                  bottom: isGrouped ? 2 : 8,
+                ),
           child: Stack(
             children: [
               Column(
@@ -321,7 +343,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                     ),
                 ],
               ),
-              if ((_isHovered || _isReactionPickerOpen) && !isMobile)
+              if ((_isHovered || _isReactionPickerOpen) &&
+                  !isMobile &&
+                  !widget.inboxPreviewMode)
                 Positioned(top: 0, right: 0, child: _buildActions(context)),
             ],
           ),
@@ -329,7 +353,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       ),
     );
     final onReply = widget.onReply;
-    if (!isTouch || onReply == null) {
+    if (!isTouch ||
+        onReply == null ||
+        widget.inboxPreviewMode) {
       return body;
     }
     return SwipeToReply(onReply: onReply, child: body);

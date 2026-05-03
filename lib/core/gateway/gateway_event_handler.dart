@@ -313,6 +313,9 @@ class GatewayEventHandler {
         unawaited(database.savedMessageDao.removeSavedMessage(event.messageId));
       case RecentMentionDeleteEvent():
         talker.debug('[Gateway] RECENT_MENTION_DELETE: ${event.messageId}');
+        unawaited(
+          database.notificationDao.deleteMentionRow(event.messageId),
+        );
       case WebhooksUpdateEvent():
         talker.debug('[Gateway] WEBHOOKS_UPDATE: ${event.channelId}');
       case FavoriteMemeCreateEvent():
