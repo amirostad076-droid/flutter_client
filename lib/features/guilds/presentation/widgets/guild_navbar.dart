@@ -689,6 +689,9 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                       userLimit: null,
                       permissionOverwrites: [],
                       nsfw: false,
+                      nsfwOverride: null,
+                      contentWarningLevel: null,
+                      contentWarningText: null,
                     ),
                   ),
             );
@@ -1204,6 +1207,9 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                         userLimit: null,
                         permissionOverwrites: [],
                         nsfw: false,
+                        nsfwOverride: null,
+                        contentWarningLevel: null,
+                        contentWarningText: null,
                       ),
                     ),
               );
@@ -2423,6 +2429,9 @@ class _GuildListItemState extends State<_GuildListItem> {
                         userLimit: 0,
                         permissionOverwrites: [],
                         nsfw: false,
+                        nsfwOverride: null,
+                        contentWarningLevel: null,
+                        contentWarningText: null,
                       ),
                       998 => ChannelCreateRequest998(
                         name: name,
@@ -2434,6 +2443,9 @@ class _GuildListItemState extends State<_GuildListItem> {
                         userLimit: null,
                         permissionOverwrites: [],
                         nsfw: false,
+                        nsfwOverride: null,
+                        contentWarningLevel: null,
+                        contentWarningText: null,
                       ),
                       _ => ChannelCreateRequest0(
                         name: name,
@@ -2445,6 +2457,9 @@ class _GuildListItemState extends State<_GuildListItem> {
                         userLimit: null,
                         permissionOverwrites: [],
                         nsfw: false,
+                        nsfwOverride: null,
+                        contentWarningLevel: null,
+                        contentWarningText: null,
                       ),
                     };
                     Navigator.of(context).pop(body);

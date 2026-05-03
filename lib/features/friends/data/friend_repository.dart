@@ -24,7 +24,7 @@ class FriendRepository {
 
   Future<List<Friend>> getRelationships() async {
     try {
-      final relationships = await _client.users.listUserRelationships();
+      final relationships = await _client.users.listUserRelationships2();
 
       final companions = <db.RelationshipsCompanion>[];
       for (final rel in relationships) {
@@ -51,7 +51,10 @@ class FriendRepository {
 
   Future<void> sendFriendRequest(String userId) async {
     try {
-      await _client.users.sendFriendRequest(userId: userId);
+      await _client.users.sendFriendRequest(
+        userId: userId,
+        body: const FriendRequestCreateRequest(),
+      );
     } on DioException catch (e) {
       throw Exception(
         e.response?.statusMessage ?? 'Failed to send friend request',

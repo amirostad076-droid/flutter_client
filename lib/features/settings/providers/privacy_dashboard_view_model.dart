@@ -37,7 +37,7 @@ abstract final class GroupDmAddPermissionFlag {
   static const int nobody = 1 << 4;
 }
 
-abstract final class SensitiveMediaFilterLevel {
+abstract final class SensitiveMediaFilterValue {
   static const int show = 0;
   static const int blur = 1;
   static const int block = 2;
@@ -333,10 +333,14 @@ class PrivacyDashboardViewModel extends _$PrivacyDashboardViewModel {
         incomingCallFlags: settings.incomingCallFlags,
         groupDmAddPermissionFlags: settings.groupDmAddPermissionFlags,
         sensitiveContentFriendDmFilter:
-            settings.sensitiveContentFriendDmFilter ?? 0,
+            settings.sensitiveContentFriendDmFilter.json ??
+            SensitiveMediaFilterValue.show,
         sensitiveContentNonFriendDmFilter:
-            settings.sensitiveContentNonFriendDmFilter ?? 0,
-        sensitiveContentGuildFilter: settings.sensitiveContentGuildFilter ?? 0,
+            settings.sensitiveContentNonFriendDmFilter.json ??
+            SensitiveMediaFilterValue.show,
+        sensitiveContentGuildFilter:
+            settings.sensitiveContentGuildFilter.json ??
+            SensitiveMediaFilterValue.show,
         isAdult: user.nsfwAllowed,
         pendingDeletion: user.pendingBulkMessageDeletion,
         harvestStatus: harvest,

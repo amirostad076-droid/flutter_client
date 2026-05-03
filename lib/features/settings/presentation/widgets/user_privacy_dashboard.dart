@@ -719,6 +719,7 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
     FluxerLayoutTheme layout,
   ) {
     final vm = ref.read(privacyDashboardViewModelProvider.notifier);
+    final pendingDeletion = state.pendingDeletion;
 
     return FluxerSettingsSection(
       title: 'Data Deletion',
@@ -728,7 +729,7 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
       children: [
         FluxerSettingsSubsection(
           children: [
-            if (state.hasPendingDeletion)
+            if (pendingDeletion != null)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -737,11 +738,11 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
                       context,
                     ).privacyPendingDeletionTitle,
                     message:
-                        'Deletion will remove ${state.pendingDeletion!.messageCount} '
-                        'messages from '
-                        '${state.pendingDeletion!.channelCount} channels. '
+                        'Deletion will remove '
+                        '${pendingDeletion.messageCount} messages from '
+                        '${pendingDeletion.channelCount} channels. '
                         'Scheduled to run on '
-                        '${_formatScheduledDate(state.pendingDeletion!.scheduledAt)}.',
+                        '${_formatScheduledDate(pendingDeletion.scheduledAt)}.',
                   ),
                   SizedBox(height: layout.s3),
                   SizedBox(
@@ -761,7 +762,7 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
                 color: colors.textPrimaryMuted,
               ),
             ),
-            if (!state.hasPendingDeletion)
+            if (pendingDeletion == null)
               SizedBox(
                 width: double.infinity,
                 child: FluxerButton.dangerPrimary(
