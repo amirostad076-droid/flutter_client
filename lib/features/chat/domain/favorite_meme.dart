@@ -34,54 +34,66 @@ class FavoriteMeme {
     required this.tenorSlugId,
   });
 
-  factory FavoriteMeme.fromSdk(sdk.FavoriteMemeResponse meme) => FavoriteMeme(
-    id: meme.id,
-    userId: meme.userId,
-    name: meme.name,
-    altText: meme.altText,
-    tags: meme.tags,
-    attachmentId: meme.attachmentId,
-    filename: meme.filename,
-    contentType: meme.contentType,
-    contentHash: meme.contentHash,
-    size: meme.size.toInt(),
-    width: meme.width,
-    height: meme.height,
-    duration: meme.duration?.toDouble(),
-    isGifv: meme.isGifv ?? false,
-    url: meme.url,
-    klipySlug: meme.klipySlug,
-    tenorSlugId: meme.tenorSlugId,
-  );
+  factory FavoriteMeme.fromSdk(sdk.FavoriteMemeResponse meme) {
+    final gifSource = _gifSourceFromProvider(
+      provider: meme.gifProvider,
+      slug: meme.gifSlug,
+    );
+    return FavoriteMeme(
+      id: meme.id,
+      userId: meme.userId,
+      name: meme.name,
+      altText: meme.altText,
+      tags: meme.tags,
+      attachmentId: meme.attachmentId,
+      filename: meme.filename,
+      contentType: meme.contentType,
+      contentHash: meme.contentHash,
+      size: meme.size.toInt(),
+      width: meme.width,
+      height: meme.height,
+      duration: meme.duration?.toDouble(),
+      isGifv: meme.isGifv ?? false,
+      url: meme.url,
+      klipySlug: gifSource.klipySlug,
+      tenorSlugId: gifSource.tenorSlugId,
+    );
+  }
 
   factory FavoriteMeme.fromRow(db.FavoriteMemesTableData row) {
     final json = jsonDecode(row.data) as Map<String, dynamic>;
     return FavoriteMeme.fromJson({...json, 'id': json['id'] ?? row.id});
   }
 
-  factory FavoriteMeme.fromJson(Map<String, Object?> json) => FavoriteMeme(
-    id: _requiredString(json, 'id'),
-    userId: _requiredString(json, 'user_id'),
-    name: _requiredString(json, 'name'),
-    altText: json['alt_text'] as String?,
-    tags:
-        (json['tags'] as List<dynamic>?)
-            ?.map((tag) => tag.toString())
-            .toList(growable: false) ??
-        const [],
-    attachmentId: _requiredString(json, 'attachment_id'),
-    filename: _requiredString(json, 'filename'),
-    contentType: _requiredString(json, 'content_type'),
-    contentHash: json['content_hash'] as String?,
-    size: _requiredNum(json, 'size').toInt(),
-    width: (json['width'] as num?)?.toInt(),
-    height: (json['height'] as num?)?.toInt(),
-    duration: (json['duration'] as num?)?.toDouble(),
-    isGifv: json['is_gifv'] as bool? ?? false,
-    url: _requiredString(json, 'url'),
-    klipySlug: json['klipy_slug'] as String?,
-    tenorSlugId: json['tenor_slug_id'] as String?,
-  );
+  factory FavoriteMeme.fromJson(Map<String, Object?> json) {
+    final gifSource = _gifSourceFromProvider(
+      provider: json['gif_provider'] as String?,
+      slug: json['gif_slug'] as String?,
+    );
+    return FavoriteMeme(
+      id: _requiredString(json, 'id'),
+      userId: _requiredString(json, 'user_id'),
+      name: _requiredString(json, 'name'),
+      altText: json['alt_text'] as String?,
+      tags:
+          (json['tags'] as List<dynamic>?)
+              ?.map((tag) => tag.toString())
+              .toList(growable: false) ??
+          const [],
+      attachmentId: _requiredString(json, 'attachment_id'),
+      filename: _requiredString(json, 'filename'),
+      contentType: _requiredString(json, 'content_type'),
+      contentHash: json['content_hash'] as String?,
+      size: _requiredNum(json, 'size').toInt(),
+      width: (json['width'] as num?)?.toInt(),
+      height: (json['height'] as num?)?.toInt(),
+      duration: (json['duration'] as num?)?.toDouble(),
+      isGifv: json['is_gifv'] as bool? ?? false,
+      url: _requiredString(json, 'url'),
+      klipySlug: json['klipy_slug'] as String? ?? gifSource.klipySlug,
+      tenorSlugId: json['tenor_slug_id'] as String? ?? gifSource.tenorSlugId,
+    );
+  }
 
   final String id;
   final String userId;
@@ -161,6 +173,22 @@ class FavoriteMeme {
     'url': url,
     'klipy_slug': klipySlug,
     'tenor_slug_id': tenorSlugId,
+  };
+}
+
+({String? klipySlug, String? tenorSlugId}) _gifSourceFromProvider({
+  required String? provider,
+  required String? slug,
+}) {
+  final normalizedSlug = slug?.trim();
+  if (normalizedSlug == null || normalizedSlug.isEmpty) {
+    return (klipySlug: null, tenorSlugId: null);
+  }
+
+  return switch (provider?.trim().toLowerCase()) {
+    'klipy' => (klipySlug: normalizedSlug, tenorSlugId: null),
+    'tenor' => (klipySlug: null, tenorSlugId: normalizedSlug),
+    _ => (klipySlug: null, tenorSlugId: null),
   };
 }
 

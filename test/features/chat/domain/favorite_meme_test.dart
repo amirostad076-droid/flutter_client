@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
+import 'package:fluxer_dart/export.dart' as sdk;
 
 void main() {
   test('FavoriteMeme decodes persisted JSON and exposes media metadata', () {
@@ -42,6 +43,42 @@ void main() {
     });
 
     expect(meme.shareUrl, 'https://tenor.com/view/funny-cat-123');
+  });
+
+  test('FavoriteMeme maps generic Tenor GIF source fields from SDK', () {
+    const response = sdk.FavoriteMemeResponse(
+      id: '1',
+      userId: 'user-1',
+      name: 'Excited ah',
+      tags: [],
+      attachmentId: 'attachment-1',
+      filename: 'excited.webp',
+      contentType: 'image/webp',
+      size: 10,
+      url: 'https://cdn.example/excited.webp',
+      gifSlug: 'view/excited-ah-gif-1',
+      gifProvider: 'tenor',
+    );
+
+    final meme = FavoriteMeme.fromSdk(response);
+
+    expect(meme.klipySlug, isNull);
+    expect(meme.tenorSlugId, 'view/excited-ah-gif-1');
+    expect(meme.shareUrl, 'https://tenor.com/view/excited-ah-gif-1');
+  });
+
+  test('FavoriteMeme maps generic KLIPY GIF source fields from JSON', () {
+    final meme = FavoriteMeme.fromJson({
+      ..._memeJson(),
+      'klipy_slug': null,
+      'tenor_slug_id': null,
+      'gif_slug': 'party-parrot',
+      'gif_provider': 'klipy',
+    });
+
+    expect(meme.klipySlug, 'party-parrot');
+    expect(meme.tenorSlugId, isNull);
+    expect(meme.shareUrl, 'https://klipy.com/gifs/party-parrot');
   });
 
   test('FavoriteMeme keeps gifv WebP media on the image render path', () {
