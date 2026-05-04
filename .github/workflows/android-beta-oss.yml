@@ -1,0 +1,127 @@
+name: Android Beta OSS Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-actor:
+    name: Check allowed user
+    runs-on: self-hosted
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+    steps:
+      - name: Check actor against allowlist
+        id: check
+        run: |
+          ALLOWED="${{ vars.ALLOWED_TESTFLIGHT_ACTORS }}"
+          if [ -z "$ALLOWED" ]; then
+            echo "::error::Repository variable ALLOWED_TESTFLIGHT_ACTORS is not set. Add a comma-separated list of GitHub usernames in Settings -> Secrets and variables -> Actions -> Variables."
+            exit 1
+          fi
+          ACTOR="${{ github.actor }}"
+          ALLOWED_ARR="${ALLOWED//,/ }"
+          FOUND=false
+          for user_name in $ALLOWED_ARR; do
+            user_name_trimmed=$(echo "$user_name" | xargs)
+            if [ "$user_name_trimmed" = "$ACTOR" ]; then
+              FOUND=true
+              break
+            fi
+          done
+          if [ "$FOUND" != "true" ]; then
+            echo "::error::User $ACTOR is not allowed to run this workflow. Allowed users are listed in ALLOWED_TESTFLIGHT_ACTORS."
+            exit 1
+          fi
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+  build-beta-oss:
+    name: Build beta OSS APK (UnifiedPush)
+    needs: check-actor
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: recursive
+
+      - name: Fetch Android build number
+        id: android_build_number
+        env:
+          BUILD_SERVICE_TOKEN: ${{ secrets.BUILD_SERVICE_TOKEN }}
+          BUILD_SERVICE_URL: ${{ secrets.BUILD_SERVICE_URL }}
+        run: |
+          set -euo pipefail
+          URL="https://$BUILD_SERVICE_URL/v1/build-number?platform=android"
+          echo "Calling build service at $URL"
+          RESPONSE=$(curl -sS -X POST "$URL" \
+            -H "Authorization: Bearer $BUILD_SERVICE_TOKEN")
+          RESPONSE_ONE_LINE=$(printf '%s' "$RESPONSE" | tr -d '\n')
+          BUILD_NUMBER=$(printf '%s\n' "$RESPONSE_ONE_LINE" | sed -n 's/.*"buildNumber"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p')
+          if ! [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid or missing buildNumber in response: $RESPONSE"
+            exit 1
+          fi
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Sync submodules
+        run: git submodule update --init --recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Restore Gradle cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-oss-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-oss-
+            ${{ runner.os }}-gradle-
+
+      - name: Set up Flutter
+        uses: axi92/flutter-action@72633a794ba0b23276fa4fc465a6cacb758a90c5
+        with:
+          channel: stable
+      - name: Restore pub cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Create Android signing files
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          KEYSTORE_PATH="$RUNNER_TEMP/upload-keystore.jks"
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          cat > android/key.properties << EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=$KEYSTORE_PATH
+          EOF
+
+      - name: Build beta OSS APK
+        run: flutter build apk --release --flavor betaUnifiedpush --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/beta.json --dart-define=PUSH_PROVIDER=unifiedpush --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+      - name: Upload beta OSS APK artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: beta-oss-apk
+          path: build/app/outputs/flutter-apk/app-betaunifiedpush-release.apk
+          if-no-files-found: error
