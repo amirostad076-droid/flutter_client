@@ -10,12 +10,14 @@ import 'package:fluxer_app/features/chat/domain/api_attachment_metadata.dart';
 import 'package:fluxer_app/features/chat/domain/cloud_composer_attachments.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
 import 'package:fluxer_app/features/chat/providers/attachment_upload_client_provider.dart';
+import 'package:fluxer_app/features/chat/utils/attachment_filename_utils.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_constants.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart'
     show
         FileUploadValidationError,
         FileUploadValidationResult,
         FileUploadValidator;
+import 'package:path/path.dart' as path_lib;
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -24,8 +26,7 @@ part 'cloud_upload_controller.g.dart';
 @Riverpod(keepAlive: true)
 class CloudUploadController extends _$CloudUploadController {
   int _nextAttachmentId = 1;
-  final Map<int, CancelToken> _activeUploadControllers =
-      <int, CancelToken>{};
+  final Map<int, CancelToken> _activeUploadControllers = <int, CancelToken>{};
   String _channelId = '';
 
   @override
@@ -50,12 +51,12 @@ class CloudUploadController extends _$CloudUploadController {
       maxAttachments: kMaxAttachmentsPerMessage,
       maxFileBytes: kDefaultMaxAttachmentBytes,
     );
-    final FileUploadValidationResult validation =
-        await validator.validateAddFiles(
-      currentCount: state.items.length,
-      newFiles: files,
-      multipartPayloadPreview: const <String, dynamic>{'content': ''},
-    );
+    final FileUploadValidationResult validation = await validator
+        .validateAddFiles(
+          currentCount: state.items.length,
+          newFiles: files,
+          multipartPayloadPreview: const <String, dynamic>{'content': ''},
+        );
     if (!validation.isValid) {
       return validation;
     }
@@ -63,8 +64,9 @@ class CloudUploadController extends _$CloudUploadController {
     for (final XFile file in files) {
       final XFile resolved = await _ensureResolvableFile(file);
       final int length = await resolved.length();
-      final String contentType =
-          FileUploadValidator.guessContentTypeFromName(resolved.name);
+      final String contentType = FileUploadValidator.guessContentTypeFromName(
+        resolved.name,
+      );
       created.add(
         PendingAttachment(
           id: _nextAttachmentId++,
@@ -86,18 +88,32 @@ class CloudUploadController extends _$CloudUploadController {
   }
 
   Future<XFile> _ensureResolvableFile(XFile file) async {
-    final String path = file.path;
+    final String safeName = sanitizeAttachmentFilename(
+      rawUploadFilenameForSanitization(name: file.name, path: file.path),
+      mimeType: file.mimeType,
+    );
+    final String path = file.path.trim();
     if (path.isNotEmpty && File(path).existsSync()) {
-      return file;
+      // dart:io [XFile] ignores the constructor `name` and always exposes
+      // basename(path). Copy to a temp path so [XFile.name] matches [safeName].
+      final String onDiskBasename = path_lib.basename(path);
+      if (onDiskBasename == safeName) {
+        return XFile(path, mimeType: file.mimeType);
+      }
+      final Directory dir = await getTemporaryDirectory();
+      final File dest = File(
+        '${dir.path}/fluxer_upload_${DateTime.now().microsecondsSinceEpoch}_$safeName',
+      );
+      await File(path).copy(dest.path);
+      return XFile(dest.path, mimeType: file.mimeType);
     }
     final Uint8List bytes = await file.readAsBytes();
     final Directory dir = await getTemporaryDirectory();
-    final String name = file.name.isNotEmpty ? file.name : 'attachment.bin';
     final File temp = File(
-      '${dir.path}/fluxer_upload_${DateTime.now().microsecondsSinceEpoch}_$name',
+      '${dir.path}/fluxer_upload_${DateTime.now().microsecondsSinceEpoch}_$safeName',
     );
     await temp.writeAsBytes(bytes, flush: true);
-    return XFile(temp.path, name: name, mimeType: file.mimeType);
+    return XFile(temp.path, mimeType: file.mimeType);
   }
 
   Future<void> _ensureAttachmentUploaded(int attachmentId) async {
@@ -125,39 +141,41 @@ class CloudUploadController extends _$CloudUploadController {
       ),
     );
     try {
-      final AttachmentUploadClient client =
-          ref.read(attachmentUploadClientProvider);
-      final AttachmentUploadPlan plan =
-          await client.requestAttachmentUploadPlan(
-        channelId: _channelId,
-        attachmentId: attachment.id,
-        filename: attachment.filename,
-        fileSize: attachment.size,
-        contentType: attachment.contentType,
-        cancelToken: token,
+      final AttachmentUploadClient client = ref.read(
+        attachmentUploadClientProvider,
       );
+      final AttachmentUploadPlan plan = await client
+          .requestAttachmentUploadPlan(
+            channelId: _channelId,
+            attachmentId: attachment.id,
+            filename: attachment.filename,
+            fileSize: attachment.size,
+            contentType: attachment.contentType,
+            cancelToken: token,
+          );
       await client.uploadAttachmentPlan(
         UploadAttachmentPlanParams(
           channelId: _channelId,
           file: attachment.file,
           plan: plan,
           cancelToken: token,
-          onPlanReady: ({
-            required String uploadFilename,
-            required int fileSize,
-            required String contentType,
-            String? uploadId,
-          }) {
-            _patchAttachment(
-              attachmentId,
-              (PendingAttachment a) => a.copyWith(
-                uploadFilename: uploadFilename,
-                fileSizePlan: fileSize,
-                contentTypePlan: contentType,
-                multipartUploadId: uploadId,
-              ),
-            );
-          },
+          onPlanReady:
+              ({
+                required String uploadFilename,
+                required int fileSize,
+                required String contentType,
+                String? uploadId,
+              }) {
+                _patchAttachment(
+                  attachmentId,
+                  (PendingAttachment a) => a.copyWith(
+                    uploadFilename: uploadFilename,
+                    fileSizePlan: fileSize,
+                    contentTypePlan: contentType,
+                    multipartUploadId: uploadId,
+                  ),
+                );
+              },
           onProgress: (int uploadedBytes, int totalBytes) {
             final double p = totalBytes > 0 ? uploadedBytes / totalBytes : 0;
             _patchAttachment(
@@ -198,10 +216,7 @@ class CloudUploadController extends _$CloudUploadController {
   ) {
     state = CloudComposerAttachments(
       state.items
-          .map(
-            (PendingAttachment e) =>
-                e.id == attachmentId ? updater(e) : e,
-          )
+          .map((PendingAttachment e) => e.id == attachmentId ? updater(e) : e)
           .toList(),
     );
   }
@@ -220,9 +235,7 @@ class CloudUploadController extends _$CloudUploadController {
     final CancelToken? c = _activeUploadControllers.remove(attachmentId);
     c?.cancel();
     state = CloudComposerAttachments(
-      state.items
-          .where((PendingAttachment e) => e.id != attachmentId)
-          .toList(),
+      state.items.where((PendingAttachment e) => e.id != attachmentId).toList(),
     );
   }
 
@@ -254,8 +267,9 @@ class CloudUploadController extends _$CloudUploadController {
     if (oldIndex < adjustedNewIndex) {
       adjustedNewIndex -= 1;
     }
-    final List<PendingAttachment> next =
-        List<PendingAttachment>.from(state.items);
+    final List<PendingAttachment> next = List<PendingAttachment>.from(
+      state.items,
+    );
     final PendingAttachment item = next.removeAt(oldIndex);
     next.insert(adjustedNewIndex, item);
     state = CloudComposerAttachments(next);
@@ -270,8 +284,9 @@ class CloudUploadController extends _$CloudUploadController {
     if (favoriteMemePayload) {
       return PreparedAttachments(
         attachmentMetadata: _mapApi(state.items),
-        attachmentFiles:
-            state.items.map((PendingAttachment e) => e.file).toList(),
+        attachmentFiles: state.items
+            .map((PendingAttachment e) => e.file)
+            .toList(),
       );
     }
     try {
@@ -285,20 +300,20 @@ class CloudUploadController extends _$CloudUploadController {
         _fallbackResetComposerUploadsForMultipartSend();
         return PreparedAttachments(
           attachmentMetadata: _mapApi(state.items),
-          attachmentFiles:
-              state.items.map((PendingAttachment e) => e.file).toList(),
+          attachmentFiles: state.items
+              .map((PendingAttachment e) => e.file)
+              .toList(),
         );
       }
-      return PreparedAttachments(
-        attachmentMetadata: _mapApi(state.items),
-      );
+      return PreparedAttachments(attachmentMetadata: _mapApi(state.items));
     } on Object catch (e, st) {
       talker.warning('[CloudUpload] prepareForSend presigned error: $e\n$st');
       _fallbackResetComposerUploadsForMultipartSend();
       return PreparedAttachments(
         attachmentMetadata: _mapApi(state.items),
-        attachmentFiles:
-            state.items.map((PendingAttachment e) => e.file).toList(),
+        attachmentFiles: state.items
+            .map((PendingAttachment e) => e.file)
+            .toList(),
       );
     }
   }
