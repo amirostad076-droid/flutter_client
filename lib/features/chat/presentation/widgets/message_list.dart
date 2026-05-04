@@ -387,13 +387,19 @@ class _MessageListState extends ConsumerState<MessageList> {
     return diff.inMinutes < 7;
   }
 
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _isSameDay(DateTime a, DateTime b) {
+    final localA = a.toLocal();
+    final localB = b.toLocal();
+    return localA.year == localB.year &&
+        localA.month == localB.month &&
+        localA.day == localB.day;
+  }
 
   Widget _buildDateSeparator(BuildContext context, DateTime date) {
+    final local = date.toLocal();
     final formatted =
-        '${_kMonthNames[date.month - 1]} ${date.day},'
-        ' ${date.year}';
+        '${_kMonthNames[local.month - 1]} ${local.day},'
+        ' ${local.year}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
