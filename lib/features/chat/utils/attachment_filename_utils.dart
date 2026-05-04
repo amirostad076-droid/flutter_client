@@ -1,0 +1,110 @@
+import 'package:path/path.dart' as path_lib;
+
+/// Picker plugins often put a generic or empty cross-file name while the real
+/// temp path still contains `image_picker`.
+String rawUploadFilenameForSanitization({
+  required String name,
+  required String path,
+}) {
+  final String fromName = name.trim();
+  final String fromPath =
+      path.trim().isNotEmpty ? path_lib.basename(path.trim()) : '';
+  String candidate = fromName.isNotEmpty ? fromName : fromPath;
+  final String lower = candidate.toLowerCase();
+  final String pathLower = fromPath.toLowerCase();
+  if (!lower.contains('image_picker') && pathLower.contains('image_picker')) {
+    candidate = fromPath;
+  }
+  return candidate.isNotEmpty ? candidate : 'attachment.bin';
+}
+
+/// The gallery/camera picker often yields basenames containing the string
+/// `image_picker`, which is not appropriate for display or server filenames.
+String sanitizeAttachmentFilename(
+  String name, {
+  String? mimeType,
+}) {
+  final String trimmed = name.trim();
+  final String lower = trimmed.toLowerCase();
+  final bool tainted = lower.contains('image_picker');
+  if (!tainted) {
+    return trimmed.isNotEmpty ? trimmed : _fallbackBasename(mimeType);
+  }
+  final String ext = _extensionFromFilename(trimmed);
+  final String fromMime = _extensionForMime(mimeType);
+  final String effectiveExt = ext.isNotEmpty ? ext : fromMime;
+  final bool asVideo =
+      _isVideoMime(mimeType) || _isVideoExtension(effectiveExt);
+  final String prefix = asVideo ? 'video' : 'image';
+  if (effectiveExt.isNotEmpty) {
+    return '$prefix$effectiveExt';
+  }
+  return asVideo ? 'video.mp4' : 'image.jpg';
+}
+
+String _extensionFromFilename(String name) {
+  final int dot = name.lastIndexOf('.');
+  if (dot <= 0 || dot >= name.length - 1) {
+    return '';
+  }
+  final String ext = name.substring(dot).toLowerCase();
+  if (ext.length > 12) {
+    return '';
+  }
+  return ext;
+}
+
+String _extensionForMime(String? mimeType) {
+  if (mimeType == null) {
+    return '';
+  }
+  switch (mimeType.toLowerCase()) {
+    case 'image/jpeg':
+    case 'image/jpg':
+      return '.jpg';
+    case 'image/png':
+      return '.png';
+    case 'image/gif':
+      return '.gif';
+    case 'image/webp':
+      return '.webp';
+    case 'image/heic':
+    case 'image/heif':
+      return '.heic';
+    case 'video/mp4':
+      return '.mp4';
+    case 'video/quicktime':
+      return '.mov';
+    default:
+      return '';
+  }
+}
+
+String _fallbackBasename(String? mimeType) {
+  final String fromMime = _extensionForMime(mimeType);
+  if (fromMime.isNotEmpty) {
+    final String prefix = _isVideoMime(mimeType) ? 'video' : 'image';
+    return '$prefix$fromMime';
+  }
+  return 'attachment.bin';
+}
+
+bool _isVideoMime(String? mimeType) {
+  if (mimeType == null) {
+    return false;
+  }
+  return mimeType.toLowerCase().startsWith('video/');
+}
+
+bool _isVideoExtension(String extLower) {
+  switch (extLower) {
+    case '.mp4':
+    case '.mov':
+    case '.m4v':
+    case '.webm':
+    case '.mkv':
+      return true;
+    default:
+      return false;
+  }
+}
