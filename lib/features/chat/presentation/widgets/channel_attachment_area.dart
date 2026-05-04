@@ -241,7 +241,6 @@ class _AttachmentChip extends ConsumerWidget {
                     icon: PhosphorIconsFill.pencilSimple,
                     onPressed: () => AttachmentEditModal.show(
                       context,
-                      ref,
                       channelId: channelId,
                       attachment: attachment,
                     ),
