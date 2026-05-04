@@ -1,28 +1,36 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/chat/domain/cloud_composer_attachments.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/channel_attachment_area.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart'
     show kSkinToneSurrogates, skinToneToName;
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_blocked_provider.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
+import 'package:fluxer_app/features/chat/utils/clipboard_attachment_reader.dart';
+import 'package:fluxer_app/features/chat/utils/file_upload_constants.dart';
+import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const double _kVoiceMicDeniedOpacity = 0.45;
@@ -73,6 +81,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       return KeyEventResult.ignored;
     }
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.keyV &&
+        (HardwareKeyboard.instance.isMetaPressed ||
+            HardwareKeyboard.instance.isControlPressed)) {
+      unawaited(_pasteClipboardAttachments());
       return KeyEventResult.ignored;
     }
     if (event.logicalKey != LogicalKeyboardKey.enter) {
@@ -204,6 +218,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               ],
             ),
           ),
+        ChannelAttachmentArea(channelId: channelId),
         Container(
           decoration: BoxDecoration(
             color: context.colors.chatInputBackground,
@@ -257,9 +272,18 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     ChatViewModel chatNotifier,
     ChannelMessagePermissions perms,
   ) {
-    final hasText = ref.watch(
+    final String channelId = ref.watch(
+      chatViewModelProvider.select((s) => s.channelId),
+    );
+    final bool hasMessageText = ref.watch(
       chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
     );
+    final bool hasPendingUploads = ref.watch(
+      cloudUploadControllerProvider(channelId).select(
+        (CloudComposerAttachments a) => a.items.isNotEmpty,
+      ),
+    );
+    final bool hasText = hasMessageText || hasPendingUploads;
     return Row(
       children: [
         if (perms.canAttachFiles) ...[
@@ -267,8 +291,25 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             icon: PhosphorIconsFill.plusCircle,
             isSquare: true,
             size: FluxerButtonSize.compact,
-            onPressed: () {},
+            onPressed: perms.canSendMessages
+                ? () => unawaited(_pickAttachments(context))
+                : null,
           ),
+          if (_isDesktop) ...[
+            const SizedBox(width: 4),
+            IconButton(
+              icon: const PhosphorIcon(PhosphorIconsFill.clipboard, size: 22),
+              color: context.colors.interactiveNormal,
+              tooltip: FluxerLocalizations.of(
+                context,
+              ).chatAttachmentPasteTooltip,
+              onPressed: perms.canSendMessages
+                  ? () => unawaited(_pasteClipboardAttachments())
+                  : null,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            ),
+          ],
           const SizedBox(width: 8),
         ],
         Expanded(
@@ -455,9 +496,18 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     ChatViewModel chatNotifier,
     ChannelMessagePermissions perms,
   ) {
-    final hasText = ref.watch(
+    final String channelId = ref.watch(
+      chatViewModelProvider.select((s) => s.channelId),
+    );
+    final bool hasMessageText = ref.watch(
       chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
     );
+    final bool hasPendingUploads = ref.watch(
+      cloudUploadControllerProvider(channelId).select(
+        (CloudComposerAttachments a) => a.items.isNotEmpty,
+      ),
+    );
+    final bool hasText = hasMessageText || hasPendingUploads;
 
     return Row(
       children: [
@@ -467,7 +517,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             variant: FluxerButtonVariant.secondary,
             size: FluxerButtonSize.small,
             iconSize: 20,
-            onPressed: () {},
+            onPressed: perms.canSendMessages
+                ? () => unawaited(_pickAttachments(context))
+                : null,
           ),
           const SizedBox(width: 8),
         ],
@@ -741,5 +793,165 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               ),
             ),
     );
+  }
+
+  Future<void> _pickAttachments(BuildContext context) async {
+    final String channelId = ref.read(
+      chatViewModelProvider.select((s) => s.channelId),
+    );
+    final CloudUploadController notifier = ref.read(
+      cloudUploadControllerProvider(channelId).notifier,
+    );
+    if (isMobileLayout(context)) {
+      await showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext sheetContext) {
+          final FluxerLocalizations l10n = FluxerLocalizations.of(sheetContext);
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library_outlined),
+                  title: Text(l10n.chatAttachmentSourceGallery),
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    final ImagePicker picker = ImagePicker();
+                    final List<XFile> images = await picker.pickMultiImage();
+                    if (images.isEmpty) {
+                      return;
+                    }
+                    if (!mounted) {
+                      return;
+                    }
+                    final FileUploadValidationResult r =
+                        await notifier.addFiles(images);
+                    if (mounted) {
+                      _toastUploadValidation(r);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_camera_outlined),
+                  title: Text(l10n.chatAttachmentSourceCamera),
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    final ImagePicker picker = ImagePicker();
+                    final XFile? image = await picker.pickImage(
+                      source: ImageSource.camera,
+                    );
+                    if (image == null) {
+                      return;
+                    }
+                    if (!mounted) {
+                      return;
+                    }
+                    final FileUploadValidationResult r =
+                        await notifier.addFiles(<XFile>[image]);
+                    if (mounted) {
+                      _toastUploadValidation(r);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.folder_open),
+                  title: Text(l10n.chatAttachmentSourceBrowse),
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    final FilePickerResult? res =
+                        await FilePicker.pickFiles(
+                      allowMultiple: true,
+                    );
+                    if (res == null) {
+                      return;
+                    }
+                    if (!mounted) {
+                      return;
+                    }
+                    final List<XFile> files = <XFile>[];
+                    for (final PlatformFile p in res.files) {
+                      if (p.path != null && p.path!.isNotEmpty) {
+                        files.add(XFile(p.path!, name: p.name));
+                      }
+                    }
+                    if (files.isEmpty) {
+                      return;
+                    }
+                    final FileUploadValidationResult r =
+                        await notifier.addFiles(files);
+                    if (mounted) {
+                      _toastUploadValidation(r);
+                    }
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      );
+      return;
+    }
+    final FilePickerResult? res = await FilePicker.pickFiles(
+      allowMultiple: true,
+    );
+    if (res == null || !mounted) {
+      return;
+    }
+    final List<XFile> files = <XFile>[];
+    for (final PlatformFile p in res.files) {
+      if (p.path != null && p.path!.isNotEmpty) {
+        files.add(XFile(p.path!, name: p.name));
+      }
+    }
+    if (files.isEmpty) {
+      return;
+    }
+    final FileUploadValidationResult r = await notifier.addFiles(files);
+    if (mounted) {
+      _toastUploadValidation(r);
+    }
+  }
+
+  void _toastUploadValidation(
+    FileUploadValidationResult result,
+  ) {
+    if (result.isValid || !mounted) {
+      return;
+    }
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final String msg = switch (result.error!) {
+      FileUploadValidationError.tooManyAttachments =>
+        l10n.chatAttachmentTooMany(kMaxAttachmentsPerMessage),
+      FileUploadValidationError.fileTooLarge =>
+        l10n.chatAttachmentFileTooLarge,
+      FileUploadValidationError.multipartRequestTooLarge =>
+        l10n.chatAttachmentPayloadTooLarge,
+      FileUploadValidationError.noFiles => '',
+    };
+    if (msg.isEmpty) {
+      return;
+    }
+    ref.read(toastProvider.notifier).show(
+          FluxerToast(
+            message: msg,
+            variant: FluxerToastVariant.warning,
+          ),
+        );
+  }
+
+  Future<void> _pasteClipboardAttachments() async {
+    final List<XFile> files = await readClipboardImageFiles();
+    if (files.isEmpty) {
+      return;
+    }
+    final String channelId = ref.read(
+      chatViewModelProvider.select((s) => s.channelId),
+    );
+    final FileUploadValidationResult r = await ref
+        .read(cloudUploadControllerProvider(channelId).notifier)
+        .addFiles(files);
+    if (mounted) {
+      _toastUploadValidation(r);
+    }
   }
 }

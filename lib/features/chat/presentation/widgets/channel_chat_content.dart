@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/inline_expression_
 import 'package:fluxer_app/features/chat/presentation/widgets/message_list.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/slowmode_indicator.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/typing_indicator_bar.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/upload_drop_overlay.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
@@ -72,71 +73,74 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
     return ColoredBox(
       color: context.colors.chatBackground,
       child: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                if (widget.showTopBar) const ChannelHeader(),
-                DirectVoiceSessionStrip(channelId: widget.channelId),
-                if (layoutModeOf(MediaQuery.sizeOf(context).width) ==
-                    LayoutMode.desktop)
-                  DmEmbeddedVoiceCallPanel(channelId: widget.channelId),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      MessageList(targetMessageId: widget.targetMessageId),
-                      const Positioned(
-                        left: 8,
-                        right: 8,
-                        bottom: 8,
-                        child: Row(
-                          spacing: 8,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(child: TypingIndicatorBar()),
-                            SlowmodeIndicator(),
-                          ],
+        child: UploadDropOverlay(
+          channelId: widget.channelId,
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  if (widget.showTopBar) const ChannelHeader(),
+                  DirectVoiceSessionStrip(channelId: widget.channelId),
+                  if (layoutModeOf(MediaQuery.sizeOf(context).width) ==
+                      LayoutMode.desktop)
+                    DmEmbeddedVoiceCallPanel(channelId: widget.channelId),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        MessageList(targetMessageId: widget.targetMessageId),
+                        const Positioned(
+                          left: 8,
+                          right: 8,
+                          bottom: 8,
+                          child: Row(
+                            spacing: 8,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(child: TypingIndicatorBar()),
+                              SlowmodeIndicator(),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                  const ChannelTextarea(),
+                  if (isMobile && isPanelOpen)
+                    const SizedBox(height: kCollapsedPanelHeight),
+                ],
+              ),
+              if (isMobile && isPanelOpen && widget.showInlineEmojiPicker)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: panelBottomOffset,
+                  child: InlineExpressionPanel(
+                    onClose: () =>
+                        ref.read(expressionPanelProvider.notifier).close(),
+                    onEmojiSelect: (name, surrogates) {
+                      ref
+                          .read(pendingEmojiInsertProvider.notifier)
+                          .emit(name, surrogates);
+                    },
+                    onGifSelect: (selection) {
+                      ref
+                          .read(pendingGifSelectionProvider.notifier)
+                          .emit(selection);
+                    },
+                    onStickerSelect: (selection) {
+                      ref
+                          .read(pendingStickerSelectionProvider.notifier)
+                          .emit(selection);
+                    },
+                    onFavoriteMemeSelect: (selection) {
+                      ref
+                          .read(pendingFavoriteMemeSelectionProvider.notifier)
+                          .emit(selection);
+                    },
                   ),
                 ),
-                const ChannelTextarea(),
-                if (isMobile && isPanelOpen)
-                  const SizedBox(height: kCollapsedPanelHeight),
-              ],
-            ),
-            if (isMobile && isPanelOpen && widget.showInlineEmojiPicker)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: panelBottomOffset,
-                child: InlineExpressionPanel(
-                  onClose: () =>
-                      ref.read(expressionPanelProvider.notifier).close(),
-                  onEmojiSelect: (name, surrogates) {
-                    ref
-                        .read(pendingEmojiInsertProvider.notifier)
-                        .emit(name, surrogates);
-                  },
-                  onGifSelect: (selection) {
-                    ref
-                        .read(pendingGifSelectionProvider.notifier)
-                        .emit(selection);
-                  },
-                  onStickerSelect: (selection) {
-                    ref
-                        .read(pendingStickerSelectionProvider.notifier)
-                        .emit(selection);
-                  },
-                  onFavoriteMemeSelect: (selection) {
-                    ref
-                        .read(pendingFavoriteMemeSelectionProvider.notifier)
-                        .emit(selection);
-                  },
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

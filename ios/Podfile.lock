@@ -53,7 +53,11 @@ PODS:
   - flutter_webrtc (1.4.0):
     - Flutter
     - WebRTC-SDK (= 144.7559.01)
+  - image_picker_ios (0.0.1):
+    - Flutter
   - InternalCollectionsUtilities (1.1.1)
+  - irondash_engine_context (0.0.1):
+    - Flutter
   - livekit_client (2.7.0):
     - Flutter
     - flutter_webrtc
@@ -102,6 +106,8 @@ PODS:
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
     - sqlite3/session
+  - super_native_extensions (0.0.1):
+    - Flutter
   - swift-collections (1.1.1):
     - swift-collections/BitCollections (= 1.1.1)
     - swift-collections/DequeModule (= 1.1.1)
@@ -136,6 +142,8 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
+  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - irondash_engine_context (from `.symlinks/plugins/irondash_engine_context/ios`)
   - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
@@ -145,6 +153,7 @@ DEPENDENCIES:
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - pointer_interceptor_ios (from `.symlinks/plugins/pointer_interceptor_ios/ios`)
   - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
+  - super_native_extensions (from `.symlinks/plugins/super_native_extensions/ios`)
   - ua_client_hints (from `.symlinks/plugins/ua_client_hints/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
@@ -177,6 +186,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
   flutter_webrtc:
     :path: ".symlinks/plugins/flutter_webrtc/ios"
+  image_picker_ios:
+    :path: ".symlinks/plugins/image_picker_ios/ios"
+  irondash_engine_context:
+    :path: ".symlinks/plugins/irondash_engine_context/ios"
   livekit_client:
     :path: ".symlinks/plugins/livekit_client/ios"
   media_kit_libs_ios_video:
@@ -195,6 +208,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/pointer_interceptor_ios/ios"
   sqlite3_flutter_libs:
     :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
+  super_native_extensions:
+    :path: ".symlinks/plugins/super_native_extensions/ios"
   ua_client_hints:
     :path: ".symlinks/plugins/ua_client_hints/ios"
   url_launcher_ios:
@@ -213,7 +228,9 @@ SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_inappwebview_ios: 9cde7869829d54b4110df350f3eedd192c5a4aea
   flutter_webrtc: ec91d94b484ad49cf191ef93413f64a40ffd3b4c
+  image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   InternalCollectionsUtilities: af3f471602c4a67cbcb0bee0a80f6f55a33ae453
+  irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
   livekit_client: 9b9a08c5c78f694ac6a9e70c1c269704ba574b73
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
@@ -225,6 +242,7 @@ SPEC CHECKSUMS:
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   sqlite3: a51c07cf16e023d6c48abd5e5791a61a47354921
   sqlite3_flutter_libs: b3e120efe9a82017e5552a620f696589ed4f62ab
+  super_native_extensions: b763c02dc3a8fd078389f410bf15149179020cb4
   swift-collections: ba248ecaf44ef500b27d5cf94d304218c89892ff
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   ua_client_hints: 92fe0d139619b73ec9fcb46cc7e079a26178f586

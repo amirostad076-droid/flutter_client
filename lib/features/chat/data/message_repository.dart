@@ -1,7 +1,11 @@
+import 'dart:convert';
+
+import 'package:cross_file/cross_file.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/chat/domain/api_attachment_metadata.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -14,6 +18,7 @@ Map<String, dynamic> buildMessageCreateBody({
   String? replyToId,
   List<String> stickerIds = const [],
   String? favoriteMemeId,
+  List<ApiAttachmentMetadata>? attachments,
 }) {
   final body = <String, dynamic>{};
   if (content.isNotEmpty) {
@@ -21,6 +26,7 @@ Map<String, dynamic> buildMessageCreateBody({
   }
   if (replyToId != null) {
     body['message_reference'] = <String, dynamic>{'message_id': replyToId};
+    body['allowed_mentions'] = <String, dynamic>{'replied_user': true};
   }
   if (stickerIds.isNotEmpty) {
     body['sticker_ids'] = stickerIds;
@@ -28,6 +34,10 @@ Map<String, dynamic> buildMessageCreateBody({
   if (favoriteMemeId != null) {
     body['favorite_meme_id'] = favoriteMemeId;
     body['flags'] = kMessageFlagCompactAttachments;
+  }
+  if (attachments != null && attachments.isNotEmpty) {
+    body['attachments'] =
+        attachments.map((ApiAttachmentMetadata e) => e.toJson()).toList();
   }
   return body;
 }
@@ -278,27 +288,75 @@ class MessageRepository {
     String? replyToId,
     List<String> stickerIds = const [],
     String? favoriteMemeId,
+    List<ApiAttachmentMetadata>? attachmentMetadata,
+    List<XFile>? attachmentFiles,
   }) async {
     try {
-      final body = buildMessageCreateBody(
+      final Map<String, dynamic> body = buildMessageCreateBody(
         content: content,
         replyToId: replyToId,
         stickerIds: stickerIds,
         favoriteMemeId: favoriteMemeId,
+        attachments: attachmentMetadata,
       );
 
-      final response = await _dio.post<Map<String, dynamic>>(
+      if (attachmentFiles != null && attachmentFiles.isNotEmpty) {
+        final FormData formData = FormData();
+        formData.fields.add(MapEntry('payload_json', jsonEncode(body)));
+        for (var i = 0; i < attachmentFiles.length; i++) {
+          final XFile x = attachmentFiles[i];
+          formData.files.add(
+            MapEntry(
+              'files[$i]',
+              await MultipartFile.fromFile(x.path, filename: x.name),
+            ),
+          );
+        }
+        final Response<Map<String, dynamic>> response =
+            await _dio.post<Map<String, dynamic>>(
+          '/channels/$channelId/messages',
+          data: formData,
+          options: Options(
+            contentType: 'multipart/form-data',
+            sendTimeout: const Duration(minutes: 30),
+            receiveTimeout: const Duration(minutes: 5),
+          ),
+        );
+        final Map<String, dynamic>? data = response.data;
+        if (data == null) {
+          throw Exception('Empty response from sendMessage');
+        }
+        final MessageResponseSchema schema = MessageResponseSchema.fromJson(
+          data,
+        );
+        final Message message = Message.fromSdk(
+          schema,
+          currentUserId: _currentUserId,
+        );
+        await _db.messageDao.upsertMessage(message.toCompanion());
+        return message;
+      }
+
+      final Response<Map<String, dynamic>> response =
+          await _dio.post<Map<String, dynamic>>(
         '/channels/$channelId/messages',
         data: body,
+        options: Options(
+          sendTimeout: const Duration(minutes: 5),
+          receiveTimeout: const Duration(minutes: 2),
+        ),
       );
-      final data = response.data;
+      final Map<String, dynamic>? data = response.data;
       if (data == null) {
         throw Exception('Empty response from sendMessage');
       }
 
-      final schema = MessageResponseSchema.fromJson(data);
+      final MessageResponseSchema schema = MessageResponseSchema.fromJson(data);
 
-      final message = Message.fromSdk(schema, currentUserId: _currentUserId);
+      final Message message = Message.fromSdk(
+        schema,
+        currentUserId: _currentUserId,
+      );
       await _db.messageDao.upsertMessage(message.toCompanion());
       return message;
     } on DioException catch (e) {

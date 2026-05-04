@@ -1,0 +1,362 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachment_edit_modal.dart';
+import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+class ChannelAttachmentArea extends ConsumerWidget {
+  const ChannelAttachmentArea({required this.channelId, super.key});
+
+  final String channelId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final List<PendingAttachment> attachments = ref
+        .watch(cloudUploadControllerProvider(channelId))
+        .items;
+    if (attachments.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 130,
+          child: ReorderableListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            buildDefaultDragHandles: false,
+            itemCount: attachments.length,
+            onReorder: (int oldIndex, int newIndex) {
+              ref
+                  .read(cloudUploadControllerProvider(channelId).notifier)
+                  .reorderAttachments(oldIndex, newIndex);
+            },
+            proxyDecorator: (
+              Widget child,
+              int index,
+              Animation<double> animation,
+            ) {
+              return AnimatedBuilder(
+                animation: animation,
+                builder: (BuildContext _, Widget? c) {
+                  final double t = Curves.easeInOut.transform(animation.value);
+                  return Transform.scale(
+                    scale: 1.0 + t * 0.02,
+                    child: Opacity(opacity: 1.0 - t * 0.15, child: c),
+                  );
+                },
+                child: child,
+              );
+            },
+            itemBuilder: (BuildContext context, int index) {
+              final PendingAttachment att = attachments[index];
+              return ReorderableDragStartListener(
+                key: ValueKey<int>(att.id),
+                index: index,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _AttachmentChip(
+                    channelId: channelId,
+                    attachment: att,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        Divider(height: 1, color: context.colors.userAreaDividerColor),
+      ],
+    );
+  }
+}
+
+class _AttachmentChip extends ConsumerWidget {
+  const _AttachmentChip({
+    required this.channelId,
+    required this.attachment,
+  });
+
+  final String channelId;
+  final PendingAttachment attachment;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
+    final String path = attachment.file.path;
+    final bool hasImagePreview = path.isNotEmpty &&
+        _isImageFilename(attachment.filename) &&
+        File(path).existsSync();
+    final bool isVideo = _isVideoFilename(attachment.filename);
+    final bool isSpoiler = (attachment.flags & attachmentFlagIsSpoiler) != 0;
+
+    return SizedBox(
+      width: 150,
+      height: 130,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ColoredBox(color: colors.backgroundSecondaryAlt),
+            if (hasImagePreview && !isSpoiler)
+              Image.file(
+                File(path),
+                fit: BoxFit.cover,
+              )
+            else if (isVideo)
+              ColoredBox(
+                color: colors.backgroundSecondary,
+                child: Icon(
+                  PhosphorIconsFill.filmStrip,
+                  size: 48,
+                  color: colors.textPrimaryMuted,
+                ),
+              )
+            else
+              ColoredBox(
+                color: colors.backgroundSecondary,
+                child: Icon(
+                  _fileIcon(attachment.filename),
+                  size: 48,
+                  color: colors.textPrimaryMuted,
+                ),
+              ),
+            if (isSpoiler)
+              ColoredBox(
+                color: colors.backgroundPrimary.withValues(alpha: 0.72),
+                child: Center(
+                  child: Text(
+                    FluxerLocalizations.of(context).chatAttachmentSpoiler,
+                    style: context.textStyles.messageText.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            if (attachment.status == PendingAttachmentStatus.uploading)
+              ColoredBox(
+                color: colors.backgroundPrimary.withValues(alpha: 0.55),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: attachment.uploadProgress > 0 &&
+                            attachment.uploadProgress < 1
+                        ? attachment.uploadProgress
+                        : null,
+                  ),
+                ),
+              ),
+            if (attachment.status == PendingAttachmentStatus.failed)
+              ColoredBox(
+                color: colors.statusDanger.withValues(alpha: 0.35),
+                child: Center(
+                  child: Icon(
+                    PhosphorIconsFill.warningCircle,
+                    color: colors.statusDanger,
+                    size: 40,
+                  ),
+                ),
+              ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: <Color>[
+                      Colors.transparent,
+                      colors.backgroundPrimary.withValues(alpha: 0.85),
+                    ],
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      attachment.filename,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textStyles.smallText.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (_formatBytes(attachment.size) != null)
+                      Text(
+                        _formatBytes(attachment.size)!,
+                        style: context.textStyles.smallText.copyWith(
+                          color: colors.textTertiary,
+                          fontSize: 11,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _RoundIconButton(
+                    tooltip: FluxerLocalizations.of(context).chatAttachmentSpoilerLabel,
+                    icon: isSpoiler
+                        ? PhosphorIconsFill.eyeSlash
+                        : PhosphorIconsFill.eye,
+                    onPressed: () {
+                      final int next = isSpoiler
+                          ? attachment.flags & ~attachmentFlagIsSpoiler
+                          : attachment.flags | attachmentFlagIsSpoiler;
+                      ref
+                          .read(
+                            cloudUploadControllerProvider(channelId).notifier,
+                          )
+                          .updateAttachment(
+                            attachment.id,
+                            filename: attachment.filename,
+                            description: attachment.description,
+                            flags: next,
+                          );
+                    },
+                  ),
+                  _RoundIconButton(
+                    tooltip: FluxerLocalizations.of(context).chatAttachmentEditTitle,
+                    icon: PhosphorIconsFill.pencilSimple,
+                    onPressed: () => AttachmentEditModal.show(
+                      context,
+                      ref,
+                      channelId: channelId,
+                      attachment: attachment,
+                    ),
+                  ),
+                  _RoundIconButton(
+                    tooltip:
+                        FluxerLocalizations.of(context).chatAttachmentRemove,
+                    icon: PhosphorIconsFill.trash,
+                    onPressed: () => ref
+                        .read(cloudUploadControllerProvider(channelId).notifier)
+                        .removeAttachment(attachment.id),
+                    danger: true,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static IconData _fileIcon(String filename) {
+    final String lower = filename.toLowerCase();
+    if (lower.endsWith('.pdf')) {
+      return PhosphorIconsFill.filePdf;
+    }
+    if (lower.endsWith('.zip') ||
+        lower.endsWith('.rar') ||
+        lower.endsWith('.7z')) {
+      return PhosphorIconsFill.fileZip;
+    }
+    final RegExp audio = RegExp(r'\.(mp3|wav|ogg|m4a|flac)$');
+    if (audio.hasMatch(lower)) {
+      return PhosphorIconsFill.fileAudio;
+    }
+    final RegExp code = RegExp(
+      r'\.(js|ts|tsx|jsx|dart|py|rs|go|html|css|json|md)$',
+    );
+    if (code.hasMatch(lower)) {
+      return PhosphorIconsFill.fileCode;
+    }
+    return PhosphorIconsFill.file;
+  }
+
+  static bool _isImageFilename(String name) {
+    final String lower = name.toLowerCase();
+    return lower.endsWith('.png') ||
+        lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.gif') ||
+        lower.endsWith('.webp');
+  }
+
+  static bool _isVideoFilename(String name) {
+    final String lower = name.toLowerCase();
+    return lower.endsWith('.mp4') ||
+        lower.endsWith('.webm') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.mkv');
+  }
+}
+
+String? _formatBytes(int? bytes) {
+  if (bytes == null || bytes <= 0) {
+    return null;
+  }
+  const List<String> units = <String>['B', 'KB', 'MB', 'GB'];
+  double value = bytes.toDouble();
+  int unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  final int precision = unit == 0 || value >= 10 ? 0 : 1;
+  return '${value.toStringAsFixed(precision)} ${units[unit]}';
+}
+
+class _RoundIconButton extends StatelessWidget {
+  const _RoundIconButton({
+    required this.icon,
+    required this.onPressed,
+    required this.tooltip,
+    this.danger = false,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final String tooltip;
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Tooltip(
+        message: tooltip,
+        child: Material(
+          color: colors.backgroundPrimary.withValues(alpha: 0.75),
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onPressed,
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(
+                icon,
+                size: 18,
+                color: danger ? colors.statusDanger : colors.textPrimary,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

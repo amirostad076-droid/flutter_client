@@ -2753,6 +2753,75 @@
   "@channelNoSendPermissionHint": {
     "description": "Placeholder text in the channel message input when the user lacks Send Messages permission."
   },
+  "chatAttachmentTooMany": "Too many attachments (max {max})",
+  "@chatAttachmentTooMany": {
+    "description": "Shown when adding files would exceed the per-message attachment limit.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "chatAttachmentFileTooLarge": "One or more files exceed the size limit",
+  "@chatAttachmentFileTooLarge": {
+    "description": "Shown when a selected file is larger than allowed."
+  },
+  "chatAttachmentPayloadTooLarge": "Those files are too large to send together",
+  "@chatAttachmentPayloadTooLarge": {
+    "description": "Shown when the estimated multipart request exceeds the limit."
+  },
+  "chatAttachmentDropToUpload": "Drop files to upload",
+  "@chatAttachmentDropToUpload": {
+    "description": "Overlay hint when dragging files over chat without Shift."
+  },
+  "chatAttachmentDropToSend": "Drop files to send now",
+  "@chatAttachmentDropToSend": {
+    "description": "Overlay hint when dragging files over chat with Shift held."
+  },
+  "chatAttachmentEditTitle": "Edit attachment",
+  "@chatAttachmentEditTitle": {
+    "description": "Title for the attachment edit sheet."
+  },
+  "chatAttachmentFilenameLabel": "Filename",
+  "@chatAttachmentFilenameLabel": {
+    "description": "Label for attachment filename field."
+  },
+  "chatAttachmentDescriptionLabel": "Description",
+  "@chatAttachmentDescriptionLabel": {
+    "description": "Label for attachment description / alt text."
+  },
+  "chatAttachmentDescriptionHint": "Optional alt text",
+  "@chatAttachmentDescriptionHint": {
+    "description": "Hint for attachment description field."
+  },
+  "chatAttachmentSpoilerLabel": "Mark as spoiler",
+  "@chatAttachmentSpoilerLabel": {
+    "description": "Toggle to mark an attachment as spoiler."
+  },
+  "chatAttachmentRemove": "Remove attachment",
+  "@chatAttachmentRemove": {
+    "description": "Accessibility label for removing a pending attachment."
+  },
+  "chatAttachmentSourceGallery": "Photo library",
+  "@chatAttachmentSourceGallery": {
+    "description": "Option to pick images from the device gallery."
+  },
+  "chatAttachmentSourceCamera": "Camera",
+  "@chatAttachmentSourceCamera": {
+    "description": "Option to capture a photo with the camera."
+  },
+  "chatAttachmentSourceBrowse": "Browse files",
+  "@chatAttachmentSourceBrowse": {
+    "description": "Option to pick arbitrary files from storage."
+  },
+  "chatAttachmentPasteTooltip": "Paste image from clipboard",
+  "@chatAttachmentPasteTooltip": {
+    "description": "Tooltip for pasting an image attachment from the clipboard."
+  },
+  "chatAttachmentSpoiler": "Spoiler",
+  "@chatAttachmentSpoiler": {
+    "description": "Badge text for spoiler attachments."
+  },
   "connectionsTitle": "Connections",
   "@connectionsTitle": {
     "description": "Title of the Connections settings page."

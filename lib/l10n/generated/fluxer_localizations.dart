@@ -3850,6 +3850,102 @@ abstract class FluxerLocalizations {
   /// **'You do not have permission to send messages'**
   String get channelNoSendPermissionHint;
 
+  /// Shown when adding files would exceed the per-message attachment limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attachments (max {max})'**
+  String chatAttachmentTooMany(int max);
+
+  /// Shown when a selected file is larger than allowed.
+  ///
+  /// In en, this message translates to:
+  /// **'One or more files exceed the size limit'**
+  String get chatAttachmentFileTooLarge;
+
+  /// Shown when the estimated multipart request exceeds the limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Those files are too large to send together'**
+  String get chatAttachmentPayloadTooLarge;
+
+  /// Overlay hint when dragging files over chat without Shift.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop files to upload'**
+  String get chatAttachmentDropToUpload;
+
+  /// Overlay hint when dragging files over chat with Shift held.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop files to send now'**
+  String get chatAttachmentDropToSend;
+
+  /// Title for the attachment edit sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit attachment'**
+  String get chatAttachmentEditTitle;
+
+  /// Label for attachment filename field.
+  ///
+  /// In en, this message translates to:
+  /// **'Filename'**
+  String get chatAttachmentFilenameLabel;
+
+  /// Label for attachment description / alt text.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get chatAttachmentDescriptionLabel;
+
+  /// Hint for attachment description field.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional alt text'**
+  String get chatAttachmentDescriptionHint;
+
+  /// Toggle to mark an attachment as spoiler.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as spoiler'**
+  String get chatAttachmentSpoilerLabel;
+
+  /// Accessibility label for removing a pending attachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove attachment'**
+  String get chatAttachmentRemove;
+
+  /// Option to pick images from the device gallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo library'**
+  String get chatAttachmentSourceGallery;
+
+  /// Option to capture a photo with the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get chatAttachmentSourceCamera;
+
+  /// Option to pick arbitrary files from storage.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse files'**
+  String get chatAttachmentSourceBrowse;
+
+  /// Tooltip for pasting an image attachment from the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste image from clipboard'**
+  String get chatAttachmentPasteTooltip;
+
+  /// Badge text for spoiler attachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Spoiler'**
+  String get chatAttachmentSpoiler;
+
   /// Title of the Connections settings page.
   ///
   /// In en, this message translates to:

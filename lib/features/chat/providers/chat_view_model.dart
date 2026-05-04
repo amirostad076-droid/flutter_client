@@ -8,7 +8,9 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
+import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
@@ -315,10 +317,15 @@ class ChatViewModel extends _$ChatViewModel {
     List<String> stickerIds = const [],
     String? favoriteMemeId,
   }) async {
-    if (text.isEmpty && stickerIds.isEmpty && favoriteMemeId == null) {
+    final String channelId = state.channelId;
+    final List<PendingAttachment> pendingAttachments =
+        ref.read(cloudUploadControllerProvider(channelId)).items;
+    if (text.isEmpty &&
+        stickerIds.isEmpty &&
+        favoriteMemeId == null &&
+        pendingAttachments.isEmpty) {
       return;
     }
-    final channelId = state.channelId;
     final channelRow = await ref
         .read(fluxerDatabaseProvider)
         .channelDao
@@ -371,14 +378,22 @@ class ChatViewModel extends _$ChatViewModel {
     );
 
     try {
+      final CloudUploadController uploadNotifier =
+          ref.read(cloudUploadControllerProvider(channelId).notifier);
+      final prepared = await uploadNotifier.prepareForSend(
+        favoriteMemePayload: favoriteMemeId != null,
+      );
       final repo = ref.read(messageRepositoryProvider);
-      final sent = await repo.sendMessage(
+      final Message sent = await repo.sendMessage(
         channelId: channelId,
         content: text,
         replyToId: replyToId,
         stickerIds: stickerIds,
         favoriteMemeId: favoriteMemeId,
+        attachmentMetadata: prepared.attachmentMetadata,
+        attachmentFiles: prepared.attachmentFiles,
       );
+      uploadNotifier.clearComposerAttachments();
       // TODO(chat): Handle sending message states (pending/sent/failed) so the
       // UI can show an optimistic echo before the server/realtime round-trip.
       ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);

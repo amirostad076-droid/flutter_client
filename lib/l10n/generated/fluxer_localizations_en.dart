@@ -2250,6 +2250,58 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'You do not have permission to send messages';
 
   @override
+  String chatAttachmentTooMany(int max) {
+    return 'Too many attachments (max $max)';
+  }
+
+  @override
+  String get chatAttachmentFileTooLarge =>
+      'One or more files exceed the size limit';
+
+  @override
+  String get chatAttachmentPayloadTooLarge =>
+      'Those files are too large to send together';
+
+  @override
+  String get chatAttachmentDropToUpload => 'Drop files to upload';
+
+  @override
+  String get chatAttachmentDropToSend => 'Drop files to send now';
+
+  @override
+  String get chatAttachmentEditTitle => 'Edit attachment';
+
+  @override
+  String get chatAttachmentFilenameLabel => 'Filename';
+
+  @override
+  String get chatAttachmentDescriptionLabel => 'Description';
+
+  @override
+  String get chatAttachmentDescriptionHint => 'Optional alt text';
+
+  @override
+  String get chatAttachmentSpoilerLabel => 'Mark as spoiler';
+
+  @override
+  String get chatAttachmentRemove => 'Remove attachment';
+
+  @override
+  String get chatAttachmentSourceGallery => 'Photo library';
+
+  @override
+  String get chatAttachmentSourceCamera => 'Camera';
+
+  @override
+  String get chatAttachmentSourceBrowse => 'Browse files';
+
+  @override
+  String get chatAttachmentPasteTooltip => 'Paste image from clipboard';
+
+  @override
+  String get chatAttachmentSpoiler => 'Spoiler';
+
+  @override
   String get connectionsTitle => 'Connections';
 
   @override
