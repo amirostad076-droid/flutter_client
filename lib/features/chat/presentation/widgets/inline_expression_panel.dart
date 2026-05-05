@@ -20,7 +20,7 @@ const _kDragHandleHeight = 28.0;
 const _kExpandedFraction = 0.85;
 const _kInlineSearchHorizontalPadding = 16.0;
 const _kInlineSearchTopPadding = 8.0;
-const _kInlineSearchBottomPadding = 4.0;
+const _kInlineSearchBottomPadding = 8.0;
 
 class InlineExpressionPanel extends StatefulWidget {
   const InlineExpressionPanel({
@@ -44,12 +44,14 @@ class InlineExpressionPanel extends StatefulWidget {
 
 class _InlineExpressionPanelState extends State<InlineExpressionPanel>
     with TickerProviderStateMixin {
-  double _panelHeight = kCollapsedPanelHeight;
+  final ValueNotifier<double> _panelHeightNotifier = ValueNotifier(
+    kCollapsedPanelHeight,
+  );
+  double get _panelHeight => _panelHeightNotifier.value;
   late double _expandedHeight;
   bool _isExpanded = false;
 
   bool _isDraggingViaScroll = false;
-  bool _heightUpdateScheduled = false;
 
   late final AnimationController _entryController;
   late final Animation<double> _entrySlide;
@@ -74,6 +76,7 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
   void dispose() {
     _entryController.dispose();
     _snapController?.dispose();
+    _panelHeightNotifier.dispose();
     super.dispose();
   }
 
@@ -172,21 +175,11 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
   }
 
   void _setPanelHeight(double height) {
-    if (_panelHeight == height) {
+    if (_panelHeightNotifier.value == height) {
       return;
     }
-    _panelHeight = height;
-    if (_heightUpdateScheduled) {
-      return;
-    }
-
-    _heightUpdateScheduled = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _heightUpdateScheduled = false;
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    _panelHeightNotifier.value = height;
+    _isExpanded = height >= _expandedHeight - 1;
   }
 
   void _snapFromVelocity(double velocity) {
@@ -224,10 +217,9 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
         Tween(begin: _panelHeight, end: clampedTarget).animate(
           CurvedAnimation(parent: _snapController!, curve: Curves.easeOutCubic),
         )..addListener(() {
-          setState(() {
-            _panelHeight = _snapAnimation.value;
-            _isExpanded = _panelHeight >= _expandedHeight - 1;
-          });
+          final value = _snapAnimation.value;
+          _panelHeightNotifier.value = value;
+          _isExpanded = value >= _expandedHeight - 1;
         });
     unawaited(_snapController!.forward());
   }
@@ -235,6 +227,49 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+
+    final panelBody = GestureDetector(
+      onVerticalDragUpdate: _onVerticalDragUpdate,
+      onVerticalDragEnd: _onVerticalDragEnd,
+      behavior: HitTestBehavior.translucent,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.backgroundSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color.fromRGBO(0, 0, 0, 0.15),
+              blurRadius: 12,
+              offset: Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            _buildDragHandle(colors),
+            Expanded(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: RepaintBoundary(
+                  child: _ExpressionPanelContent(
+                    onClose: widget.onClose,
+                    onEmojiSelect: (name, surrogates) {
+                      widget.onEmojiSelect?.call(name, surrogates);
+                      if (_isExpanded) {
+                        _animateToHeight(kCollapsedPanelHeight);
+                      }
+                    },
+                    onGifSelect: widget.onGifSelect,
+                    onStickerSelect: widget.onStickerSelect,
+                    onFavoriteMemeSelect: widget.onFavoriteMemeSelect,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -248,58 +283,18 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
           expandedFraction: _kExpandedFraction,
         );
         _expandedHeight = expandedHeight;
-        final panelHeight = _panelHeight.clamp(0, expandedHeight).toDouble();
 
         return SlideTransition(
           position: _entrySlide.drive(
             Tween(begin: const Offset(0, 1), end: Offset.zero),
           ),
-          child: SizedBox(
-            height: panelHeight,
-            child: GestureDetector(
-              onVerticalDragUpdate: _onVerticalDragUpdate,
-              onVerticalDragEnd: _onVerticalDragEnd,
-              behavior: HitTestBehavior.translucent,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colors.backgroundSecondary,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromRGBO(0, 0, 0, 0.15),
-                      blurRadius: 12,
-                      offset: Offset(0, -2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    _buildDragHandle(colors),
-                    Expanded(
-                      child: NotificationListener<ScrollNotification>(
-                        onNotification: _onScrollNotification,
-                        child: RepaintBoundary(
-                          child: _ExpressionPanelContent(
-                            onClose: widget.onClose,
-                            onEmojiSelect: (name, surrogates) {
-                              widget.onEmojiSelect?.call(name, surrogates);
-                              if (_isExpanded) {
-                                _animateToHeight(kCollapsedPanelHeight);
-                              }
-                            },
-                            onGifSelect: widget.onGifSelect,
-                            onStickerSelect: widget.onStickerSelect,
-                            onFavoriteMemeSelect: widget.onFavoriteMemeSelect,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          child: ValueListenableBuilder<double>(
+            valueListenable: _panelHeightNotifier,
+            builder: (context, height, child) {
+              final clamped = height.clamp(0.0, expandedHeight);
+              return SizedBox(height: clamped, child: child);
+            },
+            child: panelBody,
           ),
         );
       },
@@ -348,9 +343,12 @@ class _ExpressionPanelContent extends ConsumerStatefulWidget {
 
 class _ExpressionPanelContentState
     extends ConsumerState<_ExpressionPanelContent> {
+  static const _kSearchDebounce = Duration(milliseconds: 120);
+
   ExpressionPickerTab _selectedTab = ExpressionPickerTab.emojis;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _searchDebounce;
 
   static const List<ExpressionPickerTab> _kVisibleTabs = [
     ExpressionPickerTab.gifs,
@@ -362,15 +360,32 @@ class _ExpressionPanelContentState
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(
-      () => setState(() => _searchQuery = _searchController.text),
-    );
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    final next = _searchController.text;
+    if (next.isEmpty) {
+      _searchDebounce?.cancel();
+      if (_searchQuery.isNotEmpty) {
+        setState(() => _searchQuery = '');
+      }
+      return;
+    }
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(_kSearchDebounce, () {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _searchQuery = _searchController.text);
+    });
   }
 
   String _tabLabel(ExpressionPickerTab tab) =>

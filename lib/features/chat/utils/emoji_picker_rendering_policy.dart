@@ -1,4 +1,4 @@
-const int kEmojiPickerOverscanRows = 5;
+const int kEmojiPickerOverscanRows = 2;
 
 double emojiPickerCacheExtent({
   required double rowHeight,

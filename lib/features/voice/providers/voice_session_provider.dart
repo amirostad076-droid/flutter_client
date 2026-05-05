@@ -201,8 +201,6 @@ class VoiceSession extends _$VoiceSession {
         selfDeaf: selfDeaf,
         selfVideo: false,
         selfStream: false,
-        viewerStreamKeys: const <String>[],
-        connectionId: null,
         isMobile:
             !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows,
       ),
@@ -363,7 +361,7 @@ class VoiceSession extends _$VoiceSession {
       await room.connect(
         event.endpoint,
         event.token,
-        connectOptions: const ConnectOptions(autoSubscribe: true),
+        connectOptions: const ConnectOptions(),
       );
       if (attempt != _connectGeneration) {
         talker.warning(
@@ -591,12 +589,10 @@ class VoiceSession extends _$VoiceSession {
         .updateVoiceState(
           GatewayVoiceStateUpdate(
             guildId: guildId,
-            channelId: null,
             selfMute: true,
             selfDeaf: true,
             selfVideo: false,
             selfStream: false,
-            viewerStreamKeys: const <String>[],
             connectionId: connectionId,
             isMobile:
                 !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows,

@@ -18,12 +18,12 @@ const List<String> kDefaultQuickEmojis = [
 ];
 
 class GuildEmojiEntry {
-  const GuildEmojiEntry({
+  GuildEmojiEntry({
     required this.id,
     required this.name,
     required this.animated,
     required this.guildId,
-  });
+  }) : nameLower = name.toLowerCase();
 
   factory GuildEmojiEntry.fromRow(GuildEmoji row) => GuildEmojiEntry(
     id: row.id,
@@ -34,6 +34,7 @@ class GuildEmojiEntry {
 
   final String id;
   final String name;
+  final String nameLower;
   final bool animated;
   final String guildId;
 
@@ -61,9 +62,7 @@ Future<List<EmojiEntry>> frecentEmojis(Ref ref) async {
       continue;
     }
     final name = usage.key.substring('unicode:'.length);
-    final entry = EmojiRegistry.allEmojis
-        .where((e) => e.primaryName == name)
-        .firstOrNull;
+    final entry = EmojiRegistry.entryByName(name);
     if (entry != null) {
       result.add(entry);
     }

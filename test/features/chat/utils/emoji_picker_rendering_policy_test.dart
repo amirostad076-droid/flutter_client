@@ -2,9 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/chat/utils/emoji_picker_rendering_policy.dart';
 
 void main() {
-  test('uses web-matched five row overscan for emoji picker rendering', () {
-    expect(kEmojiPickerOverscanRows, 5);
-    expect(emojiPickerCacheExtent(rowHeight: 48), 240);
+  test('uses tight overscan to limit concurrent emoji decode pressure', () {
+    expect(kEmojiPickerOverscanRows, 2);
+    expect(emojiPickerCacheExtent(rowHeight: 48), 96);
   });
 
   test('does not track hover state on mobile', () {

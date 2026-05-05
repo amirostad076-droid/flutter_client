@@ -155,8 +155,8 @@ class VoiceParticipantMediaTile extends StatelessWidget {
                         child: _nonWatchingPreviewLayer(videoWidget),
                       ),
                     ),
-                    Positioned.fill(
-                      child: ColoredBox(color: const Color(0x55000000)),
+                    const Positioned.fill(
+                      child: ColoredBox(color: Color(0x55000000)),
                     ),
                   ],
                 );
@@ -298,7 +298,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
       previewUrl,
       fit: BoxFit.cover,
       headers: headers,
-      errorBuilder: (BuildContext _, Object __, StackTrace? ___) {
+      errorBuilder: (BuildContext _, Object _, StackTrace? _) {
         return fallbackVideo;
       },
       loadingBuilder:
@@ -320,10 +320,10 @@ class VoiceParticipantMediaTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: backgroundColor.withValues(alpha: 0.88),
           ),
-          child: Center(
+          child: const Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: const Column(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Icon(

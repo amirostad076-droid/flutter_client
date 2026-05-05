@@ -3,16 +3,17 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 class EmojiEntry {
-  const EmojiEntry({
+  EmojiEntry({
     required this.names,
     required this.surrogates,
     required this.category,
     required this.spriteIndex,
     this.diversityIndex,
     this.hasDiversity = false,
-  });
+  }) : namesLower = names.map((n) => n.toLowerCase()).toList(growable: false);
 
   final List<String> names;
+  final List<String> namesLower;
   final String surrogates;
   final String category;
   final int spriteIndex;
@@ -41,6 +42,7 @@ class EmojiRegistry {
   static const _kAssetPath = 'assets/emojis.json';
 
   static Map<String, String>? _nameToSurrogate;
+  static Map<String, EmojiEntry>? _nameToEntry;
   static Map<String, List<EmojiEntry>>? _categories;
   static List<EmojiEntry>? _allEmojis;
   static RegExp? _unicodeEmojiRegex;
@@ -57,6 +59,8 @@ class EmojiRegistry {
 
   static List<EmojiEntry> get allEmojis => _allEmojis ?? [];
 
+  static EmojiEntry? entryByName(String name) => _nameToEntry?[name];
+
   static Future<void> preload() async {
     if (_categories != null && _unicodeEmojiRegex != null) {
       return;
@@ -68,6 +72,7 @@ class EmojiRegistry {
 
   static void _parseAll(Map<String, dynamic> json) {
     final nameMap = <String, String>{};
+    final entryMap = <String, EmojiEntry>{};
     final cats = <String, List<EmojiEntry>>{};
     final all = <EmojiEntry>[];
     final unicodeSurrogates = <String>{};
@@ -107,6 +112,7 @@ class EmojiRegistry {
         all.add(emoji);
         for (final name in names) {
           nameMap[name] = surrogates;
+          entryMap[name] = emoji;
         }
 
         final skins = obj['skins'] as List<dynamic>?;
@@ -125,6 +131,7 @@ class EmojiRegistry {
     }
 
     _nameToSurrogate = nameMap;
+    _nameToEntry = entryMap;
     _categories = cats;
     _allEmojis = all;
     _unicodeEmojiRegex = _buildUnicodeEmojiRegex(unicodeSurrogates);
@@ -154,6 +161,8 @@ class EmojiRegistry {
       return [];
     }
     final q = query.toLowerCase();
-    return allEmojis.where((e) => e.names.any((n) => n.contains(q))).toList();
+    return allEmojis
+        .where((e) => e.namesLower.any((n) => n.contains(q)))
+        .toList();
   }
 }

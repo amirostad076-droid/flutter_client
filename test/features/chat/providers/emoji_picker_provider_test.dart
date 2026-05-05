@@ -8,7 +8,7 @@ void main() {
       Guild(id: '1', name: 'One'),
       Guild(id: '2', name: 'Two'),
     ];
-    const emojis = <GuildEmojiEntry>[
+    final emojis = <GuildEmojiEntry>[
       GuildEmojiEntry(id: 'a', name: 'one', animated: false, guildId: '1'),
       GuildEmojiEntry(id: 'b', name: 'two', animated: false, guildId: '2'),
     ];
@@ -44,7 +44,7 @@ void main() {
       Guild(id: '1', name: 'One'),
       Guild(id: '2', name: 'Two'),
     ];
-    const emojis = <GuildEmojiEntry>[
+    final emojis = <GuildEmojiEntry>[
       GuildEmojiEntry(id: 'a', name: 'one', animated: false, guildId: '1'),
       GuildEmojiEntry(id: 'b', name: 'two', animated: false, guildId: '2'),
     ];

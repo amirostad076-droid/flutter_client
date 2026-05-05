@@ -11,7 +11,6 @@ import 'package:fluxer_app/features/ui/avatar/fluxer_guild_icon_avatar.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-const double _kMentionServerIconSize = 36;
 const double _kMentionActionButtonSize = 28;
 const String _kFallbackTitle = '…';
 
@@ -85,7 +84,6 @@ class MentionInboxCard extends ConsumerWidget {
             abbreviation: mentionHeader?.guildAbbrev ?? '?',
             imageUrl: mentionHeader?.guildIconUrl,
             isUnavailable: mentionHeader?.isGuildUnavailable ?? false,
-            size: _kMentionServerIconSize,
           ),
         const SizedBox(width: 6),
         Expanded(
@@ -153,9 +151,7 @@ class MentionInboxCard extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Text(
           l10n.notificationsMessageUnavailable,
-          style: textStyles.bodySmall.copyWith(
-            color: colors.textPrimaryMuted,
-          ),
+          style: textStyles.bodySmall.copyWith(color: colors.textPrimaryMuted),
         ),
       );
     }
@@ -190,9 +186,7 @@ class _ActionIconButton extends StatelessWidget {
         minWidth: _kMentionActionButtonSize,
         minHeight: _kMentionActionButtonSize,
       ),
-      style: IconButton.styleFrom(
-        backgroundColor: colors.backgroundTertiary,
-      ),
+      style: IconButton.styleFrom(backgroundColor: colors.backgroundTertiary),
       onPressed: onPressed,
       icon: Icon(icon, size: 16, color: colors.textPrimaryMuted),
       tooltip: tooltip,

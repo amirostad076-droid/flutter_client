@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/shared/utils/emoji_utils.dart';
@@ -38,6 +39,7 @@ class EmojiSpriteSheet {
   static final Map<String, ui.Image> _images = <String, ui.Image>{};
   static final Map<String, Future<ui.Image>> _loading =
       <String, Future<ui.Image>>{};
+  static final BaseCacheManager _cacheManager = DefaultCacheManager();
 
   static bool isLoaded({String? skinTone}) =>
       _images.containsKey(_spriteSheetKeyForSkinTone(skinTone));
@@ -69,13 +71,41 @@ class EmojiSpriteSheet {
   static Future<ui.Image> _load(String key) async {
     final name = _kSpriteSheetNames[key] ?? _kSpriteSheetNames['default']!;
     final url = _buildSpriteSheetUrl(name);
-    final client = HttpClient();
-    final request = await client.getUrl(Uri.parse(url));
-    final response = await request.close();
-    final bytes = await consolidateHttpClientResponseBytes(response);
+    final cacheKey = 'emoji-sprite-$name-v$_kSpriteVersion';
+
+    final bytes = await _fetchBytes(url, cacheKey);
     final codec = await ui.instantiateImageCodec(bytes);
     final frame = await codec.getNextFrame();
     return frame.image;
+  }
+
+  static Future<Uint8List> _fetchBytes(String url, String cacheKey) async {
+    final cached = await _cacheManager.getFileFromCache(cacheKey);
+    if (cached != null) {
+      return cached.file.readAsBytes();
+    }
+
+    final client = HttpClient();
+    Uint8List bytes;
+    try {
+      final request = await client.getUrl(Uri.parse(url));
+      final response = await request.close();
+      bytes = await consolidateHttpClientResponseBytes(response);
+    } finally {
+      client.close();
+    }
+
+    unawaited(
+      _cacheManager.putFile(
+        url,
+        bytes,
+        key: cacheKey,
+        fileExtension: 'png',
+        maxAge: const Duration(days: 365),
+      ),
+    );
+
+    return bytes;
   }
 
   /// Source rect for [index] in the @2x sheet (64px per sprite).
@@ -102,6 +132,8 @@ class EmojiSpritePainter extends CustomPainter {
     required this.diversity,
   });
 
+  static final Paint _paint = Paint()..filterQuality = FilterQuality.medium;
+
   final ui.Image image;
   final int spriteIndex;
   final bool diversity;
@@ -110,18 +142,14 @@ class EmojiSpritePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final src = EmojiSpriteSheet.spriteRect(spriteIndex, diversity: diversity);
     final dst = Offset.zero & size;
-    canvas.drawImageRect(
-      image,
-      src,
-      dst,
-      Paint()..filterQuality = FilterQuality.medium,
-    );
+    canvas.drawImageRect(image, src, dst, _paint);
   }
 
   @override
   bool shouldRepaint(EmojiSpritePainter oldDelegate) =>
       oldDelegate.spriteIndex != spriteIndex ||
-      oldDelegate.diversity != diversity;
+      oldDelegate.diversity != diversity ||
+      !identical(oldDelegate.image, image);
 }
 
 class SpriteEmoji extends StatelessWidget {

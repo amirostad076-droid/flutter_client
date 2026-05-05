@@ -80,10 +80,13 @@ class ExpressionPicker extends ConsumerStatefulWidget {
 }
 
 class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
+  static const _kSearchDebounce = Duration(milliseconds: 120);
+
   late ExpressionPickerTab _selectedTab;
   TextEditingController? _ownSearchController;
   String _ownSearchQuery = '';
   String? _ownHoveredEmoji;
+  Timer? _ownSearchDebounce;
 
   TextEditingController get _searchController =>
       widget.searchController ??
@@ -102,9 +105,7 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
     _selectedTab = widget.initialTab;
     if (widget.searchController == null) {
       _ownSearchController = TextEditingController();
-      _ownSearchController!.addListener(
-        () => setState(() => _ownSearchQuery = _ownSearchController!.text),
-      );
+      _ownSearchController!.addListener(_onOwnSearchChanged);
     }
   }
 
@@ -118,8 +119,31 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
 
   @override
   void dispose() {
+    _ownSearchDebounce?.cancel();
     _ownSearchController?.dispose();
     super.dispose();
+  }
+
+  void _onOwnSearchChanged() {
+    final controller = _ownSearchController;
+    if (controller == null) {
+      return;
+    }
+    final next = controller.text;
+    if (next.isEmpty) {
+      _ownSearchDebounce?.cancel();
+      if (_ownSearchQuery.isNotEmpty) {
+        setState(() => _ownSearchQuery = '');
+      }
+      return;
+    }
+    _ownSearchDebounce?.cancel();
+    _ownSearchDebounce = Timer(_kSearchDebounce, () {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _ownSearchQuery = controller.text);
+    });
   }
 
   String _tabLabel(ExpressionPickerTab tab) =>

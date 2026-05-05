@@ -121,7 +121,7 @@ class _EmojiAutocompleteOverlayState extends State<EmojiAutocompleteOverlay>
     final suggestions = <_Suggestion>[];
 
     for (final entry in EmojiRegistry.allEmojis) {
-      if (entry.names.any((n) => n.contains(q))) {
+      if (entry.namesLower.any((n) => n.contains(q))) {
         suggestions.add(
           _Suggestion(
             name: entry.primaryName,
@@ -136,7 +136,7 @@ class _EmojiAutocompleteOverlayState extends State<EmojiAutocompleteOverlay>
     }
 
     for (final entry in widget.customEmojis) {
-      if (entry.name.toLowerCase().contains(q)) {
+      if (entry.nameLower.contains(q)) {
         suggestions.add(
           _Suggestion(
             name: entry.name,

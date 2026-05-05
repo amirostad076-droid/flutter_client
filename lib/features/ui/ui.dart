@@ -14,11 +14,6 @@ export 'package:fluxer_app/features/ui/badge/fluxer_guild_badge.dart';
 export 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 // Buttons
 export 'package:fluxer_app/features/ui/button/fluxer_button.dart';
-export 'package:fluxer_app/features/ui/voice/voice_channel_control_bar.dart';
-export 'package:fluxer_app/features/ui/voice/voice_channel_join_button.dart';
-export 'package:fluxer_app/features/ui/voice/voice_channel_leave_button.dart';
-export 'package:fluxer_app/features/ui/voice/voice_channel_participant_grid.dart';
-export 'package:fluxer_app/features/ui/voice/voice_participant_media_tile.dart';
 export 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 export 'package:fluxer_app/features/ui/button/fluxer_button_variant.dart';
 // Inputs
@@ -63,3 +58,8 @@ export 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 export 'package:fluxer_app/features/ui/toggle_switch/fluxer_switch_control.dart';
 export 'package:fluxer_app/features/ui/toggle_switch/fluxer_toggle_switch.dart';
 export 'package:fluxer_app/features/ui/tooltip/fluxer_tooltip.dart';
+export 'package:fluxer_app/features/ui/voice/voice_channel_control_bar.dart';
+export 'package:fluxer_app/features/ui/voice/voice_channel_join_button.dart';
+export 'package:fluxer_app/features/ui/voice/voice_channel_leave_button.dart';
+export 'package:fluxer_app/features/ui/voice/voice_channel_participant_grid.dart';
+export 'package:fluxer_app/features/ui/voice/voice_participant_media_tile.dart';

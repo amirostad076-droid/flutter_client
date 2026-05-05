@@ -10,7 +10,6 @@ import 'package:fluxer_app/features/ui/badge/fluxer_badge.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-const double _kInboxServerIconSize = 36;
 const double _kActionButtonSize = 28;
 const String _kFallbackTitle = '…';
 
@@ -94,7 +93,6 @@ class UnreadInboxCardHeader extends StatelessWidget {
               abbreviation: meta.guildIconAbbrev,
               imageUrl: meta.guildIconDisplayUrl,
               isUnavailable: meta.guildUnavailableForIcon,
-              size: _kInboxServerIconSize,
             ),
             const SizedBox(width: 8),
           ] else ...<Widget>[
@@ -177,9 +175,7 @@ class UnreadInboxCardHeader extends StatelessWidget {
         minWidth: _kActionButtonSize,
         minHeight: _kActionButtonSize,
       ),
-      style: IconButton.styleFrom(
-        backgroundColor: colors.backgroundSecondary,
-      ),
+      style: IconButton.styleFrom(backgroundColor: colors.backgroundSecondary),
       onPressed: onOpenGuildNotificationSettings,
       icon: Icon(
         PhosphorIconsFill.bellSimple,
@@ -199,9 +195,7 @@ class UnreadInboxCardHeader extends StatelessWidget {
         minWidth: _kActionButtonSize,
         minHeight: _kActionButtonSize,
       ),
-      style: IconButton.styleFrom(
-        backgroundColor: colors.backgroundSecondary,
-      ),
+      style: IconButton.styleFrom(backgroundColor: colors.backgroundSecondary),
       onPressed: onMarkRead,
       icon: Icon(
         PhosphorIconsBold.check,

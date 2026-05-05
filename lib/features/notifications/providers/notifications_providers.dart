@@ -1,5 +1,5 @@
-import 'package:fluxer_app/core/database/fluxer_database.dart' hide Message;
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' hide Message;
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
@@ -94,14 +94,9 @@ class MentionFeedCoordinator extends _$MentionFeedCoordinator {
         includeRoles: includeRoles,
         includeGuilds: includeGuilds,
       );
-      state = MentionFeedUiState(fetched: true, busy: false, hasMore: hasMore);
+      state = MentionFeedUiState(fetched: true, hasMore: hasMore);
     } on Object catch (e) {
-      state = MentionFeedUiState(
-        fetched: true,
-        busy: false,
-        hasMore: false,
-        lastError: e,
-      );
+      state = MentionFeedUiState(fetched: true, lastError: e);
     }
   }
 

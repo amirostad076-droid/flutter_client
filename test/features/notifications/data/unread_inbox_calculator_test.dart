@@ -33,7 +33,7 @@ void main() {
           id: channelId,
           guildId: guildId,
           name: 'general',
-          lastMessageId: Value(_snowflakeForUtc(DateTime.utc(2026, 5, 1))),
+          lastMessageId: Value(_snowflakeForUtc(DateTime.utc(2026, 5))),
         ),
       );
       await db.memberDao.upsertMember(
