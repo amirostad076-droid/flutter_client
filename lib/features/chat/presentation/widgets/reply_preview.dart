@@ -9,6 +9,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/message_item.dart'
 import 'package:fluxer_app/features/chat/presentation/widgets/message_mention.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -347,6 +348,51 @@ class ReplyInputBar extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+        IconButton(
+          icon: const PhosphorIcon(PhosphorIconsFill.xCircle, size: 16),
+          color: context.colors.textPrimaryMuted,
+          onPressed: onCancel,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+        ),
+      ],
+    ),
+  );
+}
+
+/// The edit bar shown above the input while message editing is active.
+class EditingInputBar extends StatelessWidget {
+  final VoidCallback onCancel;
+
+  const EditingInputBar({required this.onCancel, super.key});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    decoration: BoxDecoration(
+      color: context.colors.chatInputBackground,
+      border: Border(
+        top: BorderSide(color: context.colors.userAreaDividerColor),
+      ),
+    ),
+    child: Row(
+      children: [
+        PhosphorIcon(
+          PhosphorIconsFill.pencilSimple,
+          size: 16,
+          color: context.colors.textPrimaryMuted,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            FluxerLocalizations.of(context).chatEditingMessage,
+            style: TextStyle(
+              color: context.colors.textPrimaryMuted,
+              fontSize: 14,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         IconButton(

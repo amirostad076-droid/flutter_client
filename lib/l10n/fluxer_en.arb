@@ -3785,5 +3785,53 @@
   "chatMessageDeleteFailed": "Delete Failed Message",
   "@chatMessageDeleteFailed": {
     "description": "Action label for deleting a failed outgoing chat message."
+  },
+  "chatMessageAddReaction": "Add Reaction",
+  "@chatMessageAddReaction": {
+    "description": "Action label for opening reaction picker for a message."
+  },
+  "chatMessageEdit": "Edit Message",
+  "@chatMessageEdit": {
+    "description": "Action label for editing a sent message."
+  },
+  "chatMessageReply": "Reply",
+  "@chatMessageReply": {
+    "description": "Action label for replying to a message."
+  },
+  "chatMessageForward": "Forward",
+  "@chatMessageForward": {
+    "description": "Action label for forwarding a message."
+  },
+  "chatMessageCopyText": "Copy Text",
+  "@chatMessageCopyText": {
+    "description": "Action label for copying message text."
+  },
+  "chatMessagePin": "Pin Message",
+  "@chatMessagePin": {
+    "description": "Action label for pinning a message."
+  },
+  "chatMessageUnpin": "Unpin Message",
+  "@chatMessageUnpin": {
+    "description": "Action label for unpinning a message."
+  },
+  "chatMessageDelete": "Delete Message",
+  "@chatMessageDelete": {
+    "description": "Action label for deleting a message."
+  },
+  "chatMessageMore": "More",
+  "@chatMessageMore": {
+    "description": "Tooltip label for additional message actions."
+  },
+  "chatEditingMessage": "Editing message",
+  "@chatEditingMessage": {
+    "description": "Banner text shown above composer while editing a message."
+  },
+  "chatEditMessageHint": "Edit message",
+  "@chatEditMessageHint": {
+    "description": "Composer hint text while editing a message."
+  },
+  "chatMessageEdited": "(edited)",
+  "@chatMessageEdited": {
+    "description": "Message metadata label displayed after edited messages."
   }
 }

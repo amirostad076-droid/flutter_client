@@ -166,6 +166,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final chatNotifier = ref.read(chatViewModelProvider.notifier);
     final replyTo = vm.replyingTo;
     final forwardFrom = vm.forwardingFrom;
+    final editingMessage = vm.editingMessage;
     final channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
@@ -218,6 +219,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               ],
             ),
           ),
+        if (editingMessage != null)
+          EditingInputBar(onCancel: chatNotifier.cancelEdit),
         ChannelAttachmentArea(channelId: channelId),
         Container(
           decoration: BoxDecoration(
@@ -249,6 +252,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   }
 
   String _resolveHintText() {
+    final bool isEditing = ref.read(
+      chatViewModelProvider.select((s) => s.editingMessage != null),
+    );
+    if (isEditing) {
+      return FluxerLocalizations.of(context).chatEditMessageHint;
+    }
     final channelId = ref.read(
       chatViewModelProvider.select((s) => s.channelId),
     );
@@ -279,9 +288,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
     );
     final bool hasPendingUploads = ref.watch(
-      cloudUploadControllerProvider(channelId).select(
-        (CloudComposerAttachments a) => a.items.isNotEmpty,
-      ),
+      cloudUploadControllerProvider(
+        channelId,
+      ).select((CloudComposerAttachments a) => a.items.isNotEmpty),
     );
     final bool hasText = hasMessageText || hasPendingUploads;
     return Row(
@@ -503,9 +512,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
     );
     final bool hasPendingUploads = ref.watch(
-      cloudUploadControllerProvider(channelId).select(
-        (CloudComposerAttachments a) => a.items.isNotEmpty,
-      ),
+      cloudUploadControllerProvider(
+        channelId,
+      ).select((CloudComposerAttachments a) => a.items.isNotEmpty),
     );
     final bool hasText = hasMessageText || hasPendingUploads;
 
@@ -824,8 +833,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                     if (!mounted) {
                       return;
                     }
-                    final FileUploadValidationResult r =
-                        await notifier.addFiles(images);
+                    final FileUploadValidationResult r = await notifier
+                        .addFiles(images);
                     if (mounted) {
                       _toastUploadValidation(r);
                     }
@@ -846,8 +855,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                     if (!mounted) {
                       return;
                     }
-                    final FileUploadValidationResult r =
-                        await notifier.addFiles(<XFile>[image]);
+                    final FileUploadValidationResult r = await notifier
+                        .addFiles(<XFile>[image]);
                     if (mounted) {
                       _toastUploadValidation(r);
                     }
@@ -858,8 +867,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                   title: Text(l10n.chatAttachmentSourceBrowse),
                   onTap: () async {
                     Navigator.of(sheetContext).pop();
-                    final FilePickerResult? res =
-                        await FilePicker.pickFiles(
+                    final FilePickerResult? res = await FilePicker.pickFiles(
                       allowMultiple: true,
                     );
                     if (res == null) {
@@ -877,8 +885,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                     if (files.isEmpty) {
                       return;
                     }
-                    final FileUploadValidationResult r =
-                        await notifier.addFiles(files);
+                    final FileUploadValidationResult r = await notifier
+                        .addFiles(files);
                     if (mounted) {
                       _toastUploadValidation(r);
                     }
@@ -912,9 +920,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     }
   }
 
-  void _toastUploadValidation(
-    FileUploadValidationResult result,
-  ) {
+  void _toastUploadValidation(FileUploadValidationResult result) {
     if (result.isValid || !mounted) {
       return;
     }
@@ -922,8 +928,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final String msg = switch (result.error!) {
       FileUploadValidationError.tooManyAttachments =>
         l10n.chatAttachmentTooMany(kMaxAttachmentsPerMessage),
-      FileUploadValidationError.fileTooLarge =>
-        l10n.chatAttachmentFileTooLarge,
+      FileUploadValidationError.fileTooLarge => l10n.chatAttachmentFileTooLarge,
       FileUploadValidationError.multipartRequestTooLarge =>
         l10n.chatAttachmentPayloadTooLarge,
       FileUploadValidationError.noFiles => '',
@@ -931,12 +936,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (msg.isEmpty) {
       return;
     }
-    ref.read(toastProvider.notifier).show(
-          FluxerToast(
-            message: msg,
-            variant: FluxerToastVariant.warning,
-          ),
-        );
+    ref
+        .read(toastProvider.notifier)
+        .show(FluxerToast(message: msg, variant: FluxerToastVariant.warning));
   }
 
   Future<void> _pasteClipboardAttachments() async {

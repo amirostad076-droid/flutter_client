@@ -188,7 +188,7 @@ class _ContextMenuPage extends StatelessWidget {
         },
       ),
       _MenuItem(
-        label: 'Add Reaction',
+        label: l10n.chatMessageAddReaction,
         icon: PhosphorIconsRegular.smiley,
         trailing: PhosphorIconsRegular.caretRight,
         onTap: () => pop(MessageAction.addReaction),
@@ -202,29 +202,29 @@ class _ContextMenuPage extends StatelessWidget {
       const _MenuDivider(),
       if (isOwnMessage)
         _MenuItem(
-          label: 'Edit Message',
+          label: l10n.chatMessageEdit,
           icon: PhosphorIconsRegular.pencilSimple,
           onTap: () => pop(MessageAction.edit),
         ),
       _MenuItem(
-        label: 'Reply',
+        label: l10n.chatMessageReply,
         icon: PhosphorIconsRegular.arrowBendUpLeft,
         onTap: () => pop(MessageAction.reply),
       ),
       _MenuItem(
-        label: 'Forward',
+        label: l10n.chatMessageForward,
         icon: PhosphorIconsRegular.shareFat,
         onTap: () => pop(MessageAction.forward),
       ),
       const _MenuDivider(),
       if (message.content.isNotEmpty)
         _MenuItem(
-          label: 'Copy Text',
+          label: l10n.chatMessageCopyText,
           icon: PhosphorIconsRegular.copy,
           onTap: () => pop(MessageAction.copyText),
         ),
       _MenuItem(
-        label: message.isPinned ? 'Unpin Message' : 'Pin Message',
+        label: message.isPinned ? l10n.chatMessageUnpin : l10n.chatMessagePin,
         icon: PhosphorIconsRegular.pushPin,
         onTap: () => pop(MessageAction.pin),
       ),
@@ -246,7 +246,7 @@ class _ContextMenuPage extends StatelessWidget {
       if (isOwnMessage) ...[
         const _MenuDivider(),
         _MenuItem(
-          label: 'Delete Message',
+          label: l10n.chatMessageDelete,
           icon: PhosphorIconsRegular.trash,
           isDanger: true,
           onTap: () => pop(MessageAction.delete),

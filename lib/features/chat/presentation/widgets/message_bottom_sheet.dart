@@ -61,7 +61,7 @@ class MessageBottomSheet extends StatelessWidget {
           ),
           _ActionRow(
             icon: PhosphorIconsRegular.smiley,
-            label: 'Add Reaction',
+            label: l10n.chatMessageAddReaction,
             onTap: () => Navigator.pop(context, MessageAction.addReaction),
           ),
           if (message.hasFailed)
@@ -73,23 +73,23 @@ class MessageBottomSheet extends StatelessWidget {
           if (isOwnMessage)
             _ActionRow(
               icon: PhosphorIconsRegular.pencilSimple,
-              label: 'Edit Message',
+              label: l10n.chatMessageEdit,
               onTap: () => Navigator.pop(context, MessageAction.edit),
             ),
           _ActionRow(
             icon: PhosphorIconsRegular.arrowBendUpLeft,
-            label: 'Reply',
+            label: l10n.chatMessageReply,
             onTap: () => Navigator.pop(context, MessageAction.reply),
           ),
           _ActionRow(
             icon: PhosphorIconsRegular.shareFat,
-            label: 'Forward',
+            label: l10n.chatMessageForward,
             onTap: () => Navigator.pop(context, MessageAction.forward),
           ),
           if (message.content.isNotEmpty)
             _ActionRow(
               icon: PhosphorIconsRegular.copy,
-              label: 'Copy Text',
+              label: l10n.chatMessageCopyText,
               onTap: () async {
                 await Clipboard.setData(ClipboardData(text: message.content));
                 if (!context.mounted) {
@@ -100,7 +100,9 @@ class MessageBottomSheet extends StatelessWidget {
             ),
           _ActionRow(
             icon: PhosphorIconsRegular.pushPin,
-            label: message.isPinned ? 'Unpin Message' : 'Pin Message',
+            label: message.isPinned
+                ? l10n.chatMessageUnpin
+                : l10n.chatMessagePin,
             onTap: () => Navigator.pop(context, MessageAction.pin),
           ),
           _ActionRow(
@@ -116,7 +118,7 @@ class MessageBottomSheet extends StatelessWidget {
           if (isOwnMessage)
             _ActionRow(
               icon: PhosphorIconsRegular.trash,
-              label: 'Delete Message',
+              label: l10n.chatMessageDelete,
               color: context.colors.textDanger,
               onTap: () => Navigator.pop(context, MessageAction.delete),
             ),

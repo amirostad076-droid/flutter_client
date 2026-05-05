@@ -3120,4 +3120,40 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get chatMessageDeleteFailed => 'Delete Failed Message';
+
+  @override
+  String get chatMessageAddReaction => 'Add Reaction';
+
+  @override
+  String get chatMessageEdit => 'Edit Message';
+
+  @override
+  String get chatMessageReply => 'Reply';
+
+  @override
+  String get chatMessageForward => 'Forward';
+
+  @override
+  String get chatMessageCopyText => 'Copy Text';
+
+  @override
+  String get chatMessagePin => 'Pin Message';
+
+  @override
+  String get chatMessageUnpin => 'Unpin Message';
+
+  @override
+  String get chatMessageDelete => 'Delete Message';
+
+  @override
+  String get chatMessageMore => 'More';
+
+  @override
+  String get chatEditingMessage => 'Editing message';
+
+  @override
+  String get chatEditMessageHint => 'Edit message';
+
+  @override
+  String get chatMessageEdited => '(edited)';
 }

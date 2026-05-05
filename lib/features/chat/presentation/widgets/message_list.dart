@@ -331,6 +331,8 @@ class _MessageListState extends ConsumerState<MessageList> {
                 ref.read(chatViewModelProvider.notifier).startReply(msg),
             onForward: () =>
                 ref.read(chatViewModelProvider.notifier).startForward(msg),
+            onEdit: () =>
+                ref.read(chatViewModelProvider.notifier).startEdit(msg),
             onRetry: () => ref
                 .read(chatViewModelProvider.notifier)
                 .retryMessageSend(msg.id),

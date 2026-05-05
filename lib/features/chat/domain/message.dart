@@ -692,6 +692,7 @@ class Message {
       authorAvatarColor: Value(authorAvatarColor),
       content: content,
       timestamp: timestamp,
+      editedTimestamp: Value(editedTimestamp),
       embedsJson: Value(jsonEncode(embeds.map((e) => e.toJson()).toList())),
       attachmentsJson: Value(
         jsonEncode(attachments.map((a) => a.toJson()).toList()),

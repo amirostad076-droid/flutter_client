@@ -5355,6 +5355,78 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Delete Failed Message'**
   String get chatMessageDeleteFailed;
+
+  /// Action label for opening reaction picker for a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Reaction'**
+  String get chatMessageAddReaction;
+
+  /// Action label for editing a sent message.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Message'**
+  String get chatMessageEdit;
+
+  /// Action label for replying to a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get chatMessageReply;
+
+  /// Action label for forwarding a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward'**
+  String get chatMessageForward;
+
+  /// Action label for copying message text.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Text'**
+  String get chatMessageCopyText;
+
+  /// Action label for pinning a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin Message'**
+  String get chatMessagePin;
+
+  /// Action label for unpinning a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin Message'**
+  String get chatMessageUnpin;
+
+  /// Action label for deleting a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Message'**
+  String get chatMessageDelete;
+
+  /// Tooltip label for additional message actions.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get chatMessageMore;
+
+  /// Banner text shown above composer while editing a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing message'**
+  String get chatEditingMessage;
+
+  /// Composer hint text while editing a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit message'**
+  String get chatEditMessageHint;
+
+  /// Message metadata label displayed after edited messages.
+  ///
+  /// In en, this message translates to:
+  /// **'(edited)'**
+  String get chatMessageEdited;
 }
 
 class _FluxerLocalizationsDelegate

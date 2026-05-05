@@ -278,8 +278,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       onLongPress: isMobile && !widget.inboxPreviewMode
           ? () => _showActions(context)
           : null,
-      onSecondaryTapUp:
-          !isMobile && !widget.inboxPreviewMode
+      onSecondaryTapUp: !isMobile && !widget.inboxPreviewMode
           ? (details) => _showContextMenu(context, details.globalPosition)
           : null,
       child: MouseRegion(
@@ -365,9 +364,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       ),
     );
     final onReply = widget.onReply;
-    if (!isTouch ||
-        onReply == null ||
-        widget.inboxPreviewMode) {
+    if (!isTouch || onReply == null || widget.inboxPreviewMode) {
       return Opacity(opacity: isSending ? 0.65 : 1, child: body);
     }
     return Opacity(
@@ -433,12 +430,11 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     return [
       if (msg.content.isNotEmpty &&
           !msg.shouldHideContent(renderEmbeds: renderEmbeds))
-        MessageMarkdown(
-          data: msg.content,
-          selectable: !isMobile,
-          channelId: msg.channelId,
+        _buildMessageTextWithEditedTag(
+          context,
+          msg,
+          isMobile: isMobile,
           revealSpoilers: revealSpoilers,
-          spoilerSyncController: _spoilerSyncController,
         ),
       if (msg.hasForwardSnapshots)
         ForwardedMessageContent(
@@ -536,6 +532,67 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     );
   }
 
+  Widget _buildMessageTextWithEditedTag(
+    BuildContext context,
+    Message msg, {
+    required bool isMobile,
+    required bool revealSpoilers,
+  }) {
+    final Widget markdown = MessageMarkdown(
+      data: msg.content,
+      selectable: !isMobile,
+      channelId: msg.channelId,
+      revealSpoilers: revealSpoilers,
+      spoilerSyncController: _spoilerSyncController,
+    );
+    if (!msg.isEdited) {
+      return markdown;
+    }
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.end,
+      children: [markdown, _buildEditedLabel(context, msg)],
+    );
+  }
+
+  Widget _buildEditedLabel(BuildContext context, Message msg) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    const Widget label = Padding(
+      padding: EdgeInsets.only(bottom: 2),
+      child: Text(' '),
+    );
+    final Widget editedText = Text(l10n.chatMessageEdited);
+    final TextStyle editedTextStyle = context.textStyles.smallText.copyWith(
+      color: context.colors.textTertiaryMuted,
+      fontSize: 10,
+    );
+    final DateTime? editedTimestamp = msg.editedTimestamp;
+    if (editedTimestamp == null) {
+      return DefaultTextStyle(
+        style: editedTextStyle,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [label, editedText],
+        ),
+      );
+    }
+    final DateTime localEditedTimestamp = editedTimestamp.toLocal();
+    final MaterialLocalizations materialLocalizations =
+        MaterialLocalizations.of(context);
+    final String editedTooltip =
+        '${materialLocalizations.formatFullDate(localEditedTimestamp)} '
+        '${materialLocalizations.formatTimeOfDay(TimeOfDay.fromDateTime(localEditedTimestamp))}';
+    return Tooltip(
+      message: editedTooltip,
+      child: DefaultTextStyle(
+        style: editedTextStyle,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [label, editedText],
+        ),
+      ),
+    );
+  }
+
   /// Grouped message row: hover-reveal short timestamp
   /// in the left column, content on the right.
   Widget _buildGroupedRow(
@@ -557,12 +614,17 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           child: AnimatedOpacity(
             opacity: _isHovered ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 100),
-            child: Text(
-              _formatShortTimestamp(msg.timestamp.toLocal()),
-              style: TextStyle(
-                color: context.colors.textTertiaryMuted,
-                fontSize: 10,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _formatShortTimestamp(msg.timestamp.toLocal()),
+                  style: TextStyle(
+                    color: context.colors.textTertiaryMuted,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -644,16 +706,6 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                   _formatTimestamp(msg.timestamp.toLocal()),
                   style: context.textStyles.timestamp,
                 ),
-                if (msg.isEdited) ...[
-                  const SizedBox(width: 4),
-                  Text(
-                    '(edited)',
-                    style: TextStyle(
-                      color: context.colors.textTertiaryMuted,
-                      fontSize: 10,
-                    ),
-                  ),
-                ],
               ],
             ),
             const SizedBox(height: 2),
@@ -852,7 +904,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             child: _actionButton(
               context,
               PhosphorIconsFill.smiley,
-              'Add Reaction',
+              FluxerLocalizations.of(context).chatMessageAddReaction,
               () {
                 _reactionPickerKey.currentState?.toggle();
                 setState(() {
@@ -865,16 +917,21 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           _actionButton(
             context,
             PhosphorIconsFill.arrowBendUpLeft,
-            'Reply',
+            FluxerLocalizations.of(context).chatMessageReply,
             widget.onReply,
           ),
           _actionButton(
             context,
             PhosphorIconsFill.shareFat,
-            'Forward',
+            FluxerLocalizations.of(context).chatMessageForward,
             widget.onForward,
           ),
-          _actionButton(context, PhosphorIconsFill.dotsThree, 'More', () {}),
+          _actionButton(
+            context,
+            PhosphorIconsFill.dotsThree,
+            FluxerLocalizations.of(context).chatMessageMore,
+            () {},
+          ),
         ],
       ),
     ),

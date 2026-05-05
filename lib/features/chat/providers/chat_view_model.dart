@@ -33,6 +33,7 @@ class ChatViewState {
   final List<Message> messages;
   final Message? replyingTo;
   final Message? forwardingFrom;
+  final Message? editingMessage;
   final String messageText;
   final int scrollToBottomSignal;
   final (String messageId, int version)? scrollToMessageSignal;
@@ -46,6 +47,7 @@ class ChatViewState {
     required this.messages,
     required this.replyingTo,
     required this.forwardingFrom,
+    required this.editingMessage,
     required this.messageText,
     required this.scrollToBottomSignal,
     required this.isLoading,
@@ -62,6 +64,7 @@ class ChatViewState {
     List<Message>? messages,
     Object? replyingTo = _unset,
     Object? forwardingFrom = _unset,
+    Object? editingMessage = _unset,
     String? messageText,
     int? scrollToBottomSignal,
     Object? scrollToMessageSignal = _unset,
@@ -79,6 +82,9 @@ class ChatViewState {
       forwardingFrom: forwardingFrom == _unset
           ? this.forwardingFrom
           : forwardingFrom as Message?,
+      editingMessage: editingMessage == _unset
+          ? this.editingMessage
+          : editingMessage as Message?,
       messageText: messageText ?? this.messageText,
       scrollToBottomSignal: scrollToBottomSignal ?? this.scrollToBottomSignal,
       scrollToMessageSignal: scrollToMessageSignal == _unset
@@ -111,6 +117,7 @@ class ChatViewModel extends _$ChatViewModel {
       messages: [],
       replyingTo: null,
       forwardingFrom: null,
+      editingMessage: null,
       messageText: '',
       scrollToBottomSignal: 0,
       isLoading: false,
@@ -220,6 +227,7 @@ class ChatViewModel extends _$ChatViewModel {
         messages: const [],
         replyingTo: null,
         forwardingFrom: null,
+        editingMessage: null,
         messageText: '',
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: true,
@@ -239,6 +247,7 @@ class ChatViewModel extends _$ChatViewModel {
         messages: const [],
         replyingTo: null,
         forwardingFrom: null,
+        editingMessage: null,
         messageText: '',
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: false,
@@ -256,6 +265,7 @@ class ChatViewModel extends _$ChatViewModel {
       messages: const [],
       replyingTo: null,
       forwardingFrom: null,
+      editingMessage: null,
       messageText: '',
       scrollToBottomSignal: state.scrollToBottomSignal,
       isLoading: true,
@@ -338,10 +348,15 @@ class ChatViewModel extends _$ChatViewModel {
     List<String> stickerIds = const [],
     String? favoriteMemeId,
   }) async {
+    if (state.editingMessage != null) {
+      await saveEditedMessage();
+      return;
+    }
     final String channelId = state.channelId;
     final String? currentUserId = ref.read(currentUserIdProvider);
-    final List<PendingAttachment> pendingAttachments =
-        ref.read(cloudUploadControllerProvider(channelId)).items;
+    final List<PendingAttachment> pendingAttachments = ref
+        .read(cloudUploadControllerProvider(channelId))
+        .items;
     if (text.isEmpty &&
         stickerIds.isEmpty &&
         favoriteMemeId == null &&
@@ -394,9 +409,11 @@ class ChatViewModel extends _$ChatViewModel {
     final replyToId = state.replyingTo?.id;
     final db.User? currentUser = currentUserId == null
         ? null
-        : await ref.read(fluxerDatabaseProvider).userDao.getUserById(currentUserId);
-    final String authorName =
-        currentUser?.globalName?.trim().isNotEmpty == true
+        : await ref
+              .read(fluxerDatabaseProvider)
+              .userDao
+              .getUserById(currentUserId);
+    final String authorName = currentUser?.globalName?.trim().isNotEmpty == true
         ? currentUser!.globalName!
         : currentUser?.username ?? 'You';
     final String clientNonce = _createClientNonce(channelId);
@@ -421,8 +438,9 @@ class ChatViewModel extends _$ChatViewModel {
     );
 
     try {
-      final CloudUploadController uploadNotifier =
-          ref.read(cloudUploadControllerProvider(channelId).notifier);
+      final CloudUploadController uploadNotifier = ref.read(
+        cloudUploadControllerProvider(channelId).notifier,
+      );
       final prepared = await uploadNotifier.prepareForSend(
         favoriteMemePayload: favoriteMemeId != null,
       );
@@ -479,7 +497,9 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   Future<void> retryMessageSend(String messageId) async {
-    final int messageIndex = state.messages.indexWhere((m) => m.id == messageId);
+    final int messageIndex = state.messages.indexWhere(
+      (m) => m.id == messageId,
+    );
     if (messageIndex == -1) {
       return;
     }
@@ -494,13 +514,18 @@ class ChatViewModel extends _$ChatViewModel {
     );
     state = state.copyWith(messages: pendingMessages, errorMessage: null);
     try {
-      final Message sent = await ref.read(messageRepositoryProvider).sendMessage(
-        channelId: message.channelId,
-        content: message.content,
-        replyToId: message.replyToId,
-        clientNonce: message.clientNonce ?? _createClientNonce(message.channelId),
-        stickerIds: message.stickers.map((MessageSticker s) => s.id).toList(),
-      );
+      final Message sent = await ref
+          .read(messageRepositoryProvider)
+          .sendMessage(
+            channelId: message.channelId,
+            content: message.content,
+            replyToId: message.replyToId,
+            clientNonce:
+                message.clientNonce ?? _createClientNonce(message.channelId),
+            stickerIds: message.stickers
+                .map((MessageSticker s) => s.id)
+                .toList(),
+          );
       final List<Message> nextMessages = _replaceOptimisticWithDelivered(
         messages: state.messages,
         optimisticId: message.id,
@@ -513,7 +538,9 @@ class ChatViewModel extends _$ChatViewModel {
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Retry failed: $e');
       final List<Message> nextMessages = List<Message>.from(state.messages);
-      final int latestIndex = nextMessages.indexWhere((m) => m.id == message.id);
+      final int latestIndex = nextMessages.indexWhere(
+        (m) => m.id == message.id,
+      );
       if (latestIndex == -1) {
         return;
       }
@@ -529,7 +556,9 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void deleteFailedMessage(String messageId) {
-    final int messageIndex = state.messages.indexWhere((m) => m.id == messageId);
+    final int messageIndex = state.messages.indexWhere(
+      (m) => m.id == messageId,
+    );
     if (messageIndex == -1 || !state.messages[messageIndex].hasFailed) {
       return;
     }
@@ -541,7 +570,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void startReply(Message message) {
-    state = state.copyWith(replyingTo: message);
+    state = state.copyWith(replyingTo: message, editingMessage: null);
   }
 
   void cancelReply() {
@@ -549,7 +578,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void startForward(Message message) {
-    state = state.copyWith(forwardingFrom: message);
+    state = state.copyWith(forwardingFrom: message, editingMessage: null);
   }
 
   void cancelForward() {
@@ -574,6 +603,53 @@ class ChatViewModel extends _$ChatViewModel {
     unawaited(
       ref.read(typingSenderProvider.notifier).notifyUserTyping(channelId),
     );
+  }
+
+  void startEdit(Message message) {
+    state = state.copyWith(
+      editingMessage: message,
+      replyingTo: null,
+      forwardingFrom: null,
+      messageText: message.content,
+    );
+  }
+
+  void cancelEdit() {
+    state = state.copyWith(editingMessage: null, messageText: '');
+  }
+
+  Future<void> saveEditedMessage() async {
+    final Message? editingMessage = state.editingMessage;
+    if (editingMessage == null) {
+      return;
+    }
+    final String editedContent = state.messageText.trim();
+    if (editedContent.isEmpty || editedContent == editingMessage.content) {
+      state = state.copyWith(editingMessage: null, messageText: '');
+      return;
+    }
+    try {
+      final Message updatedMessage = await ref
+          .read(messageRepositoryProvider)
+          .editMessage(
+            channelId: editingMessage.channelId,
+            messageId: editingMessage.id,
+            content: editedContent,
+          );
+      final List<Message>? nextMessages = _replaceById(
+        state.messages,
+        updatedMessage,
+      );
+      state = state.copyWith(
+        messages: nextMessages ?? state.messages,
+        editingMessage: null,
+        messageText: '',
+        errorMessage: null,
+      );
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to edit message: $e');
+      state = state.copyWith(errorMessage: 'Failed to edit message');
+    }
   }
 
   Future<void> toggleReaction(
@@ -706,8 +782,7 @@ class ChatViewModel extends _$ChatViewModel {
     }
     final int timestampPart = timestampMs - kSnowflakeEpochMs;
     const int workerId = 1;
-    final int nonce =
-        (timestampPart << 22) | (workerId << 12) | _nonceSequence;
+    final int nonce = (timestampPart << 22) | (workerId << 12) | _nonceSequence;
     return nonce.toString();
   }
 
@@ -720,8 +795,12 @@ class ChatViewModel extends _$ChatViewModel {
     int optimisticIndex = optimisticId == null
         ? -1
         : updated.indexWhere((Message m) => m.id == optimisticId);
-    int deliveredIndex = updated.indexWhere((Message m) => m.id == delivered.id);
-    if (optimisticIndex != -1 && deliveredIndex != -1 && deliveredIndex != optimisticIndex) {
+    int deliveredIndex = updated.indexWhere(
+      (Message m) => m.id == delivered.id,
+    );
+    if (optimisticIndex != -1 &&
+        deliveredIndex != -1 &&
+        deliveredIndex != optimisticIndex) {
       updated.removeAt(deliveredIndex);
       if (deliveredIndex < optimisticIndex) {
         optimisticIndex -= 1;

@@ -37,8 +37,9 @@ Map<String, dynamic> buildMessageCreateBody({
     body['flags'] = kMessageFlagCompactAttachments;
   }
   if (attachments != null && attachments.isNotEmpty) {
-    body['attachments'] =
-        attachments.map((ApiAttachmentMetadata e) => e.toJson()).toList();
+    body['attachments'] = attachments
+        .map((ApiAttachmentMetadata e) => e.toJson())
+        .toList();
   }
   if (clientNonce != null && clientNonce.isNotEmpty) {
     body['nonce'] = clientNonce;
@@ -318,16 +319,16 @@ class MessageRepository {
             ),
           );
         }
-        final Response<Map<String, dynamic>> response =
-            await _dio.post<Map<String, dynamic>>(
-          '/channels/$channelId/messages',
-          data: formData,
-          options: Options(
-            contentType: 'multipart/form-data',
-            sendTimeout: const Duration(minutes: 30),
-            receiveTimeout: const Duration(minutes: 5),
-          ),
-        );
+        final Response<Map<String, dynamic>> response = await _dio
+            .post<Map<String, dynamic>>(
+              '/channels/$channelId/messages',
+              data: formData,
+              options: Options(
+                contentType: 'multipart/form-data',
+                sendTimeout: const Duration(minutes: 30),
+                receiveTimeout: const Duration(minutes: 5),
+              ),
+            );
         final Map<String, dynamic>? data = response.data;
         if (data == null) {
           throw Exception('Empty response from sendMessage');
@@ -343,15 +344,15 @@ class MessageRepository {
         return message;
       }
 
-      final Response<Map<String, dynamic>> response =
-          await _dio.post<Map<String, dynamic>>(
-        '/channels/$channelId/messages',
-        data: body,
-        options: Options(
-          sendTimeout: const Duration(minutes: 5),
-          receiveTimeout: const Duration(minutes: 2),
-        ),
-      );
+      final Response<Map<String, dynamic>> response = await _dio
+          .post<Map<String, dynamic>>(
+            '/channels/$channelId/messages',
+            data: body,
+            options: Options(
+              sendTimeout: const Duration(minutes: 5),
+              receiveTimeout: const Duration(minutes: 2),
+            ),
+          );
       final Map<String, dynamic>? data = response.data;
       if (data == null) {
         throw Exception('Empty response from sendMessage');
@@ -367,6 +368,28 @@ class MessageRepository {
       return message;
     } on DioException catch (e) {
       throw Exception(e.response?.statusMessage ?? 'Failed to send message');
+    }
+  }
+
+  Future<Message> editMessage({
+    required String channelId,
+    required String messageId,
+    required String content,
+  }) async {
+    try {
+      final MessageResponseSchema schema = await _client.channels.editMessage(
+        channelId: channelId,
+        messageId: messageId,
+        content: content,
+      );
+      final Message message = Message.fromSdk(
+        schema,
+        currentUserId: _currentUserId,
+      );
+      await _db.messageDao.upsertMessage(message.toCompanion());
+      return message;
+    } on DioException catch (e) {
+      throw Exception(e.response?.statusMessage ?? 'Failed to edit message');
     }
   }
 }
