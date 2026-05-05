@@ -34,6 +34,7 @@ import 'package:fluxer_app/features/settings/providers/chat_preferences_provider
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
@@ -81,6 +82,8 @@ class MessageItem extends ConsumerStatefulWidget {
   final VoidCallback? onForward;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onRetry;
+  final VoidCallback? onDeleteFailed;
   final void Function(String emoji, {String? emojiId, bool animated})?
   onReaction;
   final bool inboxPreviewMode;
@@ -98,6 +101,8 @@ class MessageItem extends ConsumerStatefulWidget {
     this.onForward,
     this.onEdit,
     this.onDelete,
+    this.onRetry,
+    this.onDeleteFailed,
     this.onReaction,
     this.inboxPreviewMode = false,
     this.hideMentionHighlight = false,
@@ -144,6 +149,10 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         widget.onEdit?.call();
       case MessageAction.delete:
         widget.onDelete?.call();
+      case MessageAction.retry:
+        widget.onRetry?.call();
+      case MessageAction.deleteFailed:
+        widget.onDeleteFailed?.call();
       case MessageAction.copyText:
       case MessageAction.copyMessageId:
         break;
@@ -262,6 +271,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     }
     final bool shouldHighlightMention =
         msg.isMentioned && !widget.hideMentionHighlight;
+    final bool isFailed = msg.hasFailed;
+    final bool isSending = msg.isSending;
 
     final body = GestureDetector(
       onLongPress: isMobile && !widget.inboxPreviewMode
@@ -345,6 +356,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               ),
               if ((_isHovered || _isReactionPickerOpen) &&
                   !isMobile &&
+                  !isFailed &&
                   !widget.inboxPreviewMode)
                 Positioned(top: 0, right: 0, child: _buildActions(context)),
             ],
@@ -356,9 +368,12 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     if (!isTouch ||
         onReply == null ||
         widget.inboxPreviewMode) {
-      return body;
+      return Opacity(opacity: isSending ? 0.65 : 1, child: body);
     }
-    return SwipeToReply(onReply: onReply, child: body);
+    return Opacity(
+      opacity: isSending ? 0.65 : 1,
+      child: SwipeToReply(onReply: onReply, child: body),
+    );
   }
 
   /// Builds the reply preview row with space for the
@@ -486,7 +501,39 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                 .toList(),
           ),
         ),
+      if (msg.hasFailed) _buildDeliveryStatus(context, msg),
     ];
+  }
+
+  Widget _buildDeliveryStatus(BuildContext context, Message msg) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Wrap(
+        spacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PhosphorIcon(
+                PhosphorIconsBold.warningCircle,
+                size: 14,
+                color: context.colors.textDanger,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                FluxerLocalizations.of(context).chatMessageFailedToSend,
+                style: TextStyle(
+                  color: context.colors.textDanger,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   /// Grouped message row: hover-reveal short timestamp

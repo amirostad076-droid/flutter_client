@@ -16,4 +16,14 @@ void main() {
 
     expect(body, {'content': 'hello'});
   });
+
+  test('buildMessageCreateBody includes nonce when provided', () {
+    final body = buildMessageCreateBody(
+      content: 'hello',
+      clientNonce: '1501123056699965440',
+    );
+
+    expect(body['content'], 'hello');
+    expect(body['nonce'], '1501123056699965440');
+  });
 }

@@ -16,6 +16,7 @@ const int kMessageFlagCompactAttachments = 1 << 17;
 Map<String, dynamic> buildMessageCreateBody({
   required String content,
   String? replyToId,
+  String? clientNonce,
   List<String> stickerIds = const [],
   String? favoriteMemeId,
   List<ApiAttachmentMetadata>? attachments,
@@ -38,6 +39,9 @@ Map<String, dynamic> buildMessageCreateBody({
   if (attachments != null && attachments.isNotEmpty) {
     body['attachments'] =
         attachments.map((ApiAttachmentMetadata e) => e.toJson()).toList();
+  }
+  if (clientNonce != null && clientNonce.isNotEmpty) {
+    body['nonce'] = clientNonce;
   }
   return body;
 }
@@ -286,6 +290,7 @@ class MessageRepository {
     required String channelId,
     required String content,
     String? replyToId,
+    String? clientNonce,
     List<String> stickerIds = const [],
     String? favoriteMemeId,
     List<ApiAttachmentMetadata>? attachmentMetadata,
@@ -295,6 +300,7 @@ class MessageRepository {
       final Map<String, dynamic> body = buildMessageCreateBody(
         content: content,
         replyToId: replyToId,
+        clientNonce: clientNonce,
         stickerIds: stickerIds,
         favoriteMemeId: favoriteMemeId,
         attachments: attachmentMetadata,

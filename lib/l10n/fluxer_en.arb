@@ -3777,5 +3777,13 @@
   "notificationsMessageUnavailable": "This message couldn't be loaded.",
   "@notificationsMessageUnavailable": {
     "description": "Shown when an inbox mention row has no backing message row."
+  },
+  "chatMessageFailedToSend": "Failed to send message",
+  "@chatMessageFailedToSend": {
+    "description": "Status label shown under a failed outgoing chat message."
+  },
+  "chatMessageDeleteFailed": "Delete Failed Message",
+  "@chatMessageDeleteFailed": {
+    "description": "Action label for deleting a failed outgoing chat message."
   }
 }

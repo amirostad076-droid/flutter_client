@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum MessageAction {
   addReaction,
+  retry,
   edit,
   reply,
   forward,
@@ -15,6 +17,7 @@ enum MessageAction {
   markAsUnread,
   copyMessageLink,
   delete,
+  deleteFailed,
   copyMessageId,
 }
 
@@ -40,6 +43,7 @@ class MessageBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -60,6 +64,12 @@ class MessageBottomSheet extends StatelessWidget {
             label: 'Add Reaction',
             onTap: () => Navigator.pop(context, MessageAction.addReaction),
           ),
+          if (message.hasFailed)
+            _ActionRow(
+              icon: PhosphorIconsRegular.arrowClockwise,
+              label: l10n.retry,
+              onTap: () => Navigator.pop(context, MessageAction.retry),
+            ),
           if (isOwnMessage)
             _ActionRow(
               icon: PhosphorIconsRegular.pencilSimple,
@@ -109,6 +119,13 @@ class MessageBottomSheet extends StatelessWidget {
               label: 'Delete Message',
               color: context.colors.textDanger,
               onTap: () => Navigator.pop(context, MessageAction.delete),
+            ),
+          if (message.hasFailed)
+            _ActionRow(
+              icon: PhosphorIconsRegular.trash,
+              label: l10n.chatMessageDeleteFailed,
+              color: context.colors.textDanger,
+              onTap: () => Navigator.pop(context, MessageAction.deleteFailed),
             ),
         ],
       ),

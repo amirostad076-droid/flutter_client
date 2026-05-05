@@ -7,6 +7,7 @@ import 'package:fluxer_app/shared/utils/sticker_utils.dart';
 import 'package:fluxer_dart/export.dart';
 
 enum EmbedType { rich, image, gifv, link, video }
+enum MessageDeliveryState { sending, sent, failed }
 
 const int messageFlagSuppressEmbeds = 1 << 2;
 const int messageFlagSuppressNotifications = 1 << 12;
@@ -575,6 +576,9 @@ class Message {
   final bool isMentioned;
   final int type;
   final int flags;
+  final MessageDeliveryState deliveryState;
+  final String? clientNonce;
+  final String? sendError;
 
   const Message({
     required this.id,
@@ -599,6 +603,9 @@ class Message {
     this.isMentioned = false,
     this.type = 0,
     this.flags = 0,
+    this.deliveryState = MessageDeliveryState.sent,
+    this.clientNonce,
+    this.sendError,
   });
 
   factory Message.fromSdk(MessageResponseSchema sdk, {String? currentUserId}) {
@@ -634,6 +641,8 @@ class Message {
       isMentioned: isMentioned,
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
+      deliveryState: MessageDeliveryState.sent,
+      clientNonce: sdk.nonce,
     );
   }
 
@@ -667,6 +676,9 @@ class Message {
       isMentioned: row.isMentioned,
       type: row.type,
       flags: row.flags,
+      deliveryState: MessageDeliveryState.values[row.deliveryState],
+      clientNonce: row.clientNonce,
+      sendError: row.sendError,
     );
   }
 
@@ -701,6 +713,65 @@ class Message {
       isMentioned: Value(isMentioned),
       type: Value(type),
       flags: Value(flags),
+      deliveryState: Value(deliveryState.index),
+      clientNonce: Value(clientNonce),
+      sendError: Value(sendError),
+    );
+  }
+
+  Message copyWith({
+    String? id,
+    String? channelId,
+    String? authorId,
+    String? authorName,
+    String? authorAvatar,
+    int? authorAvatarColor,
+    bool? authorIsBot,
+    String? content,
+    DateTime? timestamp,
+    DateTime? editedTimestamp,
+    List<Embed>? embeds,
+    List<Attachment>? attachments,
+    List<MessageSticker>? stickers,
+    List<Reaction>? reactions,
+    String? replyToId,
+    String? forwardedFrom,
+    MessageReference? messageReference,
+    List<MessageSnapshot>? messageSnapshots,
+    bool? isPinned,
+    bool? isMentioned,
+    int? type,
+    int? flags,
+    MessageDeliveryState? deliveryState,
+    Object? clientNonce = _unset,
+    Object? sendError = _unset,
+  }) {
+    return Message(
+      id: id ?? this.id,
+      channelId: channelId ?? this.channelId,
+      authorId: authorId ?? this.authorId,
+      authorName: authorName ?? this.authorName,
+      authorAvatar: authorAvatar ?? this.authorAvatar,
+      authorAvatarColor: authorAvatarColor ?? this.authorAvatarColor,
+      authorIsBot: authorIsBot ?? this.authorIsBot,
+      content: content ?? this.content,
+      timestamp: timestamp ?? this.timestamp,
+      editedTimestamp: editedTimestamp ?? this.editedTimestamp,
+      embeds: embeds ?? this.embeds,
+      attachments: attachments ?? this.attachments,
+      stickers: stickers ?? this.stickers,
+      reactions: reactions ?? this.reactions,
+      replyToId: replyToId ?? this.replyToId,
+      forwardedFrom: forwardedFrom ?? this.forwardedFrom,
+      messageReference: messageReference ?? this.messageReference,
+      messageSnapshots: messageSnapshots ?? this.messageSnapshots,
+      isPinned: isPinned ?? this.isPinned,
+      isMentioned: isMentioned ?? this.isMentioned,
+      type: type ?? this.type,
+      flags: flags ?? this.flags,
+      deliveryState: deliveryState ?? this.deliveryState,
+      clientNonce: clientNonce == _unset ? this.clientNonce : clientNonce as String?,
+      sendError: sendError == _unset ? this.sendError : sendError as String?,
     );
   }
 
@@ -777,6 +848,8 @@ class Message {
   bool get isSystemMessage => type != 0 && type != 1 && type != 19;
   bool get isMemberJoin => type == 7;
   bool get isPin => type == 6;
+  bool get isSending => deliveryState == MessageDeliveryState.sending;
+  bool get hasFailed => deliveryState == MessageDeliveryState.failed;
 
   static List<T> _decodeList<T>(
     String json,
@@ -789,4 +862,6 @@ class Message {
       return [];
     }
   }
+
+  static const Object _unset = Object();
 }

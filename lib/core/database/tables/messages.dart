@@ -25,6 +25,9 @@ class Messages extends Table {
   BoolColumn get isMentioned => boolean().withDefault(const Constant(false))();
   IntColumn get type => integer().withDefault(const Constant(0))();
   IntColumn get flags => integer().withDefault(const Constant(0))();
+  IntColumn get deliveryState => integer().withDefault(const Constant(1))();
+  TextColumn get clientNonce => text().nullable()();
+  TextColumn get sendError => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

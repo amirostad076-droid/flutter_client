@@ -3114,4 +3114,10 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   @override
   String get notificationsMessageUnavailable =>
       'This message couldn\'t be loaded.';
+
+  @override
+  String get chatMessageFailedToSend => 'Failed to send message';
+
+  @override
+  String get chatMessageDeleteFailed => 'Delete Failed Message';
 }

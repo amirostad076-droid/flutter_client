@@ -331,6 +331,12 @@ class _MessageListState extends ConsumerState<MessageList> {
                 ref.read(chatViewModelProvider.notifier).startReply(msg),
             onForward: () =>
                 ref.read(chatViewModelProvider.notifier).startForward(msg),
+            onRetry: () => ref
+                .read(chatViewModelProvider.notifier)
+                .retryMessageSend(msg.id),
+            onDeleteFailed: () => ref
+                .read(chatViewModelProvider.notifier)
+                .deleteFailedMessage(msg.id),
             onReaction: (emoji, {String? emojiId, bool animated = false}) => ref
                 .read(chatViewModelProvider.notifier)
                 .toggleReaction(

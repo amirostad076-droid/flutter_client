@@ -5343,6 +5343,18 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'This message couldn\'t be loaded.'**
   String get notificationsMessageUnavailable;
+
+  /// Status label shown under a failed outgoing chat message.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send message'**
+  String get chatMessageFailedToSend;
+
+  /// Action label for deleting a failed outgoing chat message.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Failed Message'**
+  String get chatMessageDeleteFailed;
 }
 
 class _FluxerLocalizationsDelegate

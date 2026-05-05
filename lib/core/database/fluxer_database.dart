@@ -121,7 +121,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 33;
+  int get schemaVersion => 34;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -410,6 +410,11 @@ class FluxerDatabase extends _$FluxerDatabase {
           'UPDATE messages SET stickers_json = ? WHERE stickers_json IS NULL',
           ['[]'],
         );
+      }
+      if (from < 34) {
+        await m.addColumn(messages, messages.deliveryState);
+        await m.addColumn(messages, messages.clientNonce);
+        await m.addColumn(messages, messages.sendError);
       }
     },
   );

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
@@ -17,6 +18,7 @@ import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
+import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -95,6 +97,8 @@ class ChatViewState {
 @Riverpod(keepAlive: true)
 class ChatViewModel extends _$ChatViewModel {
   StreamSubscription<MessageRealtimeEvent>? _eventsSub;
+  int _nonceTimestampMs = 0;
+  int _nonceSequence = 0;
 
   @override
   ChatViewState build() {
@@ -130,6 +134,23 @@ class ChatViewModel extends _$ChatViewModel {
           return null;
         }
         final msg = _toDomain(event.message);
+        int matchedIndex = state.messages.indexWhere(
+          (m) =>
+              m.clientNonce != null &&
+              msg.clientNonce != null &&
+              m.clientNonce == msg.clientNonce,
+        );
+        if (matchedIndex == -1) {
+          matchedIndex = _findOptimisticMatchForDelivered(msg);
+        }
+        if (matchedIndex != -1) {
+          final updated = List<Message>.from(state.messages);
+          updated[matchedIndex] = msg.copyWith(
+            deliveryState: MessageDeliveryState.sent,
+            sendError: null,
+          );
+          return updated;
+        }
         if (state.messages.any((m) => m.id == msg.id)) {
           return null;
         }
@@ -318,6 +339,7 @@ class ChatViewModel extends _$ChatViewModel {
     String? favoriteMemeId,
   }) async {
     final String channelId = state.channelId;
+    final String? currentUserId = ref.read(currentUserIdProvider);
     final List<PendingAttachment> pendingAttachments =
         ref.read(cloudUploadControllerProvider(channelId)).items;
     if (text.isEmpty &&
@@ -370,11 +392,32 @@ class ChatViewModel extends _$ChatViewModel {
     }
 
     final replyToId = state.replyingTo?.id;
+    final db.User? currentUser = currentUserId == null
+        ? null
+        : await ref.read(fluxerDatabaseProvider).userDao.getUserById(currentUserId);
+    final String authorName =
+        currentUser?.globalName?.trim().isNotEmpty == true
+        ? currentUser!.globalName!
+        : currentUser?.username ?? 'You';
+    final String clientNonce = _createClientNonce(channelId);
+    final Message optimisticMessage = _buildOptimisticMessage(
+      channelId: channelId,
+      content: text,
+      replyToId: replyToId,
+      stickerIds: stickerIds,
+      currentUserId: currentUserId,
+      authorName: authorName,
+      authorAvatar: currentUser?.avatar,
+      authorAvatarColor: currentUser?.avatarColor,
+      clientNonce: clientNonce,
+    );
 
     state = state.copyWith(
       replyingTo: null,
       forwardingFrom: null,
       messageText: clearMessageText ? '' : state.messageText,
+      messages: [...state.messages, optimisticMessage],
+      errorMessage: null,
     );
 
     try {
@@ -388,30 +431,113 @@ class ChatViewModel extends _$ChatViewModel {
         channelId: channelId,
         content: text,
         replyToId: replyToId,
+        clientNonce: clientNonce,
         stickerIds: stickerIds,
         favoriteMemeId: favoriteMemeId,
         attachmentMetadata: prepared.attachmentMetadata,
         attachmentFiles: prepared.attachmentFiles,
       );
       uploadNotifier.clearComposerAttachments();
-      // TODO(chat): Handle sending message states (pending/sent/failed) so the
-      // UI can show an optimistic echo before the server/realtime round-trip.
       ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);
       if (state.channelId != channelId) {
         return;
       }
-      final alreadyPresent = state.messages.any((m) => m.id == sent.id);
-      final nextMessages = alreadyPresent
-          ? _replaceById(state.messages, sent) ?? state.messages
-          : [...state.messages, sent];
+      final int optimisticIndex = state.messages.indexWhere(
+        (m) => m.id == optimisticMessage.id,
+      );
+      final List<Message> nextMessages = _replaceOptimisticWithDelivered(
+        messages: state.messages,
+        optimisticId: optimisticIndex == -1 ? null : optimisticMessage.id,
+        delivered: sent.copyWith(
+          deliveryState: MessageDeliveryState.sent,
+          sendError: null,
+        ),
+      );
       state = state.copyWith(
         messages: nextMessages,
         scrollToBottomSignal: state.scrollToBottomSignal + 1,
       );
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to send: $e');
-      state = state.copyWith(errorMessage: 'Failed to send message');
+      final int optimisticIndex = state.messages.indexWhere(
+        (m) => m.id == optimisticMessage.id,
+      );
+      if (optimisticIndex == -1) {
+        state = state.copyWith(errorMessage: 'Failed to send message');
+        return;
+      }
+      final List<Message> nextMessages = List<Message>.from(state.messages);
+      nextMessages[optimisticIndex] = nextMessages[optimisticIndex].copyWith(
+        deliveryState: MessageDeliveryState.failed,
+        sendError: 'Failed to send message',
+      );
+      state = state.copyWith(
+        messages: nextMessages,
+        errorMessage: 'Failed to send message',
+      );
     }
+  }
+
+  Future<void> retryMessageSend(String messageId) async {
+    final int messageIndex = state.messages.indexWhere((m) => m.id == messageId);
+    if (messageIndex == -1) {
+      return;
+    }
+    final Message message = state.messages[messageIndex];
+    if (!message.hasFailed) {
+      return;
+    }
+    final List<Message> pendingMessages = List<Message>.from(state.messages);
+    pendingMessages[messageIndex] = message.copyWith(
+      deliveryState: MessageDeliveryState.sending,
+      sendError: null,
+    );
+    state = state.copyWith(messages: pendingMessages, errorMessage: null);
+    try {
+      final Message sent = await ref.read(messageRepositoryProvider).sendMessage(
+        channelId: message.channelId,
+        content: message.content,
+        replyToId: message.replyToId,
+        clientNonce: message.clientNonce ?? _createClientNonce(message.channelId),
+        stickerIds: message.stickers.map((MessageSticker s) => s.id).toList(),
+      );
+      final List<Message> nextMessages = _replaceOptimisticWithDelivered(
+        messages: state.messages,
+        optimisticId: message.id,
+        delivered: sent.copyWith(
+          deliveryState: MessageDeliveryState.sent,
+          sendError: null,
+        ),
+      );
+      state = state.copyWith(messages: nextMessages);
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Retry failed: $e');
+      final List<Message> nextMessages = List<Message>.from(state.messages);
+      final int latestIndex = nextMessages.indexWhere((m) => m.id == message.id);
+      if (latestIndex == -1) {
+        return;
+      }
+      nextMessages[latestIndex] = nextMessages[latestIndex].copyWith(
+        deliveryState: MessageDeliveryState.failed,
+        sendError: 'Failed to send message',
+      );
+      state = state.copyWith(
+        messages: nextMessages,
+        errorMessage: 'Failed to send message',
+      );
+    }
+  }
+
+  void deleteFailedMessage(String messageId) {
+    final int messageIndex = state.messages.indexWhere((m) => m.id == messageId);
+    if (messageIndex == -1 || !state.messages[messageIndex].hasFailed) {
+      return;
+    }
+    final List<Message>? next = _removeIds(state.messages, {messageId});
+    if (next == null) {
+      return;
+    }
+    state = state.copyWith(messages: next);
   }
 
   void startReply(Message message) {
@@ -504,28 +630,7 @@ class ChatViewModel extends _$ChatViewModel {
 
     // Optimistic update.
     final updatedMessages = List<Message>.from(state.messages);
-    updatedMessages[msgIndex] = Message(
-      id: msg.id,
-      channelId: msg.channelId,
-      authorId: msg.authorId,
-      authorName: msg.authorName,
-      authorAvatar: msg.authorAvatar,
-      authorAvatarColor: msg.authorAvatarColor,
-      authorIsBot: msg.authorIsBot,
-      content: msg.content,
-      timestamp: msg.timestamp,
-      editedTimestamp: msg.editedTimestamp,
-      embeds: msg.embeds,
-      attachments: msg.attachments,
-      stickers: msg.stickers,
-      reactions: updatedReactions,
-      replyToId: msg.replyToId,
-      forwardedFrom: msg.forwardedFrom,
-      isPinned: msg.isPinned,
-      isMentioned: msg.isMentioned,
-      type: msg.type,
-      flags: msg.flags,
-    );
+    updatedMessages[msgIndex] = msg.copyWith(reactions: updatedReactions);
     state = state.copyWith(messages: updatedMessages);
 
     final reaction = Reaction(
@@ -556,5 +661,115 @@ class ChatViewModel extends _$ChatViewModel {
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Reaction failed: $e');
     }
+  }
+
+  Message _buildOptimisticMessage({
+    required String channelId,
+    required String content,
+    required String? replyToId,
+    required List<String> stickerIds,
+    required String? currentUserId,
+    required String authorName,
+    required String? authorAvatar,
+    required int? authorAvatarColor,
+    required String clientNonce,
+  }) {
+    final DateTime now = DateTime.now();
+    return Message(
+      id: clientNonce,
+      channelId: channelId,
+      authorId: currentUserId ?? '',
+      authorName: authorName,
+      authorAvatar: authorAvatar,
+      authorAvatarColor: authorAvatarColor,
+      content: content,
+      timestamp: now,
+      replyToId: replyToId,
+      stickers: stickerIds
+          .map(
+            (String stickerId) =>
+                MessageSticker(id: stickerId, name: '', animated: false),
+          )
+          .toList(),
+      deliveryState: MessageDeliveryState.sending,
+      clientNonce: clientNonce,
+    );
+  }
+
+  String _createClientNonce(String channelId) {
+    final int timestampMs = DateTime.now().millisecondsSinceEpoch;
+    if (timestampMs == _nonceTimestampMs) {
+      _nonceSequence = (_nonceSequence + 1) & 0xFFF;
+    } else {
+      _nonceTimestampMs = timestampMs;
+      _nonceSequence = 0;
+    }
+    final int timestampPart = timestampMs - kSnowflakeEpochMs;
+    const int workerId = 1;
+    final int nonce =
+        (timestampPart << 22) | (workerId << 12) | _nonceSequence;
+    return nonce.toString();
+  }
+
+  List<Message> _replaceOptimisticWithDelivered({
+    required List<Message> messages,
+    required String? optimisticId,
+    required Message delivered,
+  }) {
+    final List<Message> updated = List<Message>.from(messages);
+    int optimisticIndex = optimisticId == null
+        ? -1
+        : updated.indexWhere((Message m) => m.id == optimisticId);
+    int deliveredIndex = updated.indexWhere((Message m) => m.id == delivered.id);
+    if (optimisticIndex != -1 && deliveredIndex != -1 && deliveredIndex != optimisticIndex) {
+      updated.removeAt(deliveredIndex);
+      if (deliveredIndex < optimisticIndex) {
+        optimisticIndex -= 1;
+      }
+      deliveredIndex = -1;
+    }
+    if (optimisticIndex != -1) {
+      updated[optimisticIndex] = delivered;
+      return updated;
+    }
+    if (deliveredIndex != -1) {
+      updated[deliveredIndex] = delivered;
+      return updated;
+    }
+    updated.add(delivered);
+    return updated;
+  }
+
+  int _findOptimisticMatchForDelivered(Message delivered) {
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    if (currentUserId == null || currentUserId.isEmpty) {
+      return -1;
+    }
+    for (int i = state.messages.length - 1; i >= 0; i--) {
+      final Message candidate = state.messages[i];
+      if (!candidate.isSending) {
+        continue;
+      }
+      if (candidate.authorId != currentUserId) {
+        continue;
+      }
+      if (candidate.channelId != delivered.channelId) {
+        continue;
+      }
+      if (candidate.content != delivered.content) {
+        continue;
+      }
+      if (candidate.replyToId != delivered.replyToId) {
+        continue;
+      }
+      final Duration timestampDiff = delivered.timestamp
+          .difference(candidate.timestamp)
+          .abs();
+      if (timestampDiff > const Duration(seconds: 30)) {
+        continue;
+      }
+      return i;
+    }
+    return -1;
   }
 }

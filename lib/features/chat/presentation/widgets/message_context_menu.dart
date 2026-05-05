@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_bottom_sheet.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kMenuWidth = 220.0;
@@ -40,6 +41,7 @@ Future<MessageAction?> showMessageContextMenu(
     case MessageAction.copyMessageId:
       await Clipboard.setData(ClipboardData(text: message.id));
     case MessageAction.addReaction:
+    case MessageAction.retry:
     case MessageAction.edit:
     case MessageAction.reply:
     case MessageAction.forward:
@@ -48,6 +50,7 @@ Future<MessageAction?> showMessageContextMenu(
     case MessageAction.markAsUnread:
     case MessageAction.copyMessageLink:
     case MessageAction.delete:
+    case MessageAction.deleteFailed:
     case null:
       break;
   }
@@ -173,6 +176,7 @@ class _ContextMenuPage extends StatelessWidget {
   }
 
   List<Widget> _buildItems(BuildContext context) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     void pop(MessageAction action) => Navigator.of(context).pop(action);
 
     return [
@@ -189,6 +193,12 @@ class _ContextMenuPage extends StatelessWidget {
         trailing: PhosphorIconsRegular.caretRight,
         onTap: () => pop(MessageAction.addReaction),
       ),
+      if (message.hasFailed)
+        _MenuItem(
+          label: l10n.retry,
+          icon: PhosphorIconsRegular.arrowClockwise,
+          onTap: () => pop(MessageAction.retry),
+        ),
       const _MenuDivider(),
       if (isOwnMessage)
         _MenuItem(
@@ -240,6 +250,15 @@ class _ContextMenuPage extends StatelessWidget {
           icon: PhosphorIconsRegular.trash,
           isDanger: true,
           onTap: () => pop(MessageAction.delete),
+        ),
+      ],
+      if (message.hasFailed) ...[
+        const _MenuDivider(),
+        _MenuItem(
+          label: l10n.chatMessageDeleteFailed,
+          icon: PhosphorIconsRegular.trash,
+          isDanger: true,
+          onTap: () => pop(MessageAction.deleteFailed),
         ),
       ],
       const _MenuDivider(),
