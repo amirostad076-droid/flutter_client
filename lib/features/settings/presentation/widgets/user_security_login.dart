@@ -12,7 +12,6 @@ import 'package:fluxer_app/features/settings/presentation/sheets/claim_account_s
 import 'package:fluxer_app/features/settings/presentation/sheets/email_change_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/sheets/passkey_name_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/sheets/password_change_sheet.dart';
-import 'package:fluxer_app/features/settings/presentation/sheets/phone_add_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/sheets/totp_disable_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/sheets/totp_enable_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -23,16 +22,14 @@ import 'package:fluxer_app/features/ui/settings/fluxer_settings_section.dart';
 import 'package:fluxer_app/features/ui/settings/fluxer_settings_subsection.dart';
 import 'package:fluxer_app/features/ui/text/fluxer_field_label.dart';
 import 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
-import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
-import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
-import 'package:fluxer_app/features/ui/tooltip/fluxer_tooltip.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/relative_time.dart';
 import 'package:fluxer_dart/export.dart';
 
-const int _kFlagStaff = 1 << 0;
-const int _kFlagPartner = 1 << 2;
+// TODO: Re-enable if needed for WhatsApp replacement eligibility rules.
+// const int _kFlagStaff = 1 << 0;
+// const int _kFlagPartner = 1 << 2;
 const int _kMaxPasskeys = 10;
 
 class UserSecurityLogin extends ConsumerStatefulWidget {
@@ -46,7 +43,8 @@ class UserSecurityLogin extends ConsumerStatefulWidget {
 
 class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
   bool _emailRevealed = false;
-  bool _phoneRevealed = false;
+  // TODO: Switch phone-number flows to WhatsApp.
+  // bool _phoneRevealed = false;
   List<WebAuthnCredentialResponse>? _passkeys;
   bool _loadingPasskeys = false;
 
@@ -82,12 +80,13 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     return '${'*' * atIndex}${email.substring(atIndex)}';
   }
 
-  String _maskPhone(String phone) {
-    if (phone.length <= 4) {
-      return '*' * phone.length;
-    }
-    return '${'*' * (phone.length - 2)}${phone.substring(phone.length - 2)}';
-  }
+  // TODO: Switch phone-number flows to WhatsApp.
+  // String _maskPhone(String phone) {
+  //   if (phone.length <= 4) {
+  //     return '*' * phone.length;
+  //   }
+  //   return '${'*' * (phone.length - 2)}${phone.substring(phone.length - 2)}';
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -264,14 +263,15 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
         _buildTfaSubsection(s, colors, l10n),
         SizedBox(height: layout.s8),
         _buildPasskeysSubsection(s, colors, l10n),
-        if (s.mfaEnabled) ...[
-          SizedBox(height: layout.s8),
-          _buildPhoneSubsection(s, colors, l10n),
-        ],
-        if (s.mfaEnabled && s.phone != null) ...[
-          SizedBox(height: layout.s8),
-          _buildSmsSubsection(s, colors, l10n),
-        ],
+        // TODO: Switch phone-number flows to WhatsApp.
+        // if (s.mfaEnabled) ...[
+        //   SizedBox(height: layout.s8),
+        //   _buildPhoneSubsection(s, colors, l10n),
+        // ],
+        // if (s.mfaEnabled && s.phone != null) ...[
+        //   SizedBox(height: layout.s8),
+        //   _buildSmsSubsection(s, colors, l10n),
+        // ],
       ],
     );
   }
@@ -465,184 +465,187 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     }
   }
 
-  Widget _buildPhoneSubsection(
-    UserSettingsViewState s,
-    FluxerColorTheme colors,
-    FluxerLocalizations l10n,
-  ) {
-    return FluxerSettingsSubsection(
-      title: l10n.securityPhoneSectionTitle,
-      description: l10n.securityPhoneSectionDescription,
-      children: [
-        if (s.phone != null)
-          _responsiveRow(
-            label: l10n.securityPhoneLabel,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _phoneRevealed ? s.phone! : _maskPhone(s.phone!),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: colors.textPrimaryMuted,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                FluxerTextLink(
-                  text: _phoneRevealed
-                      ? l10n.securityLoginHide
-                      : l10n.securityLoginReveal,
-                  onTap: () => setState(() => _phoneRevealed = !_phoneRevealed),
-                ),
-              ],
-            ),
-            button: FluxerButton.dangerSecondary(
-              onPressedAsync: () => _handleRemovePhone(s, l10n),
-              label: l10n.securityPhoneRemove,
-              size: FluxerButtonSize.small,
-            ),
-          )
-        else
-          _responsiveRow(
-            label: l10n.securityPhoneLabel,
-            child: Text(
-              l10n.securityPhoneNone,
-              style: TextStyle(fontSize: 14, color: colors.textPrimaryMuted),
-            ),
-            button: FluxerButton.primary(
-              onPressedAsync: () => PhoneAddSheet.show(context, ref),
-              label: l10n.securityPhoneAdd,
-              size: FluxerButtonSize.small,
-            ),
-          ),
-      ],
-    );
-  }
+  // TODO: Switch phone-number flows to WhatsApp.
+  // Widget _buildPhoneSubsection(
+  //   UserSettingsViewState s,
+  //   FluxerColorTheme colors,
+  //   FluxerLocalizations l10n,
+  // ) {
+  //   return FluxerSettingsSubsection(
+  //     title: l10n.securityPhoneSectionTitle,
+  //     description: l10n.securityPhoneSectionDescription,
+  //     children: [
+  //       if (s.phone != null)
+  //         _responsiveRow(
+  //           label: l10n.securityPhoneLabel,
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 _phoneRevealed ? s.phone! : _maskPhone(s.phone!),
+  //                 style: TextStyle(
+  //                   fontSize: 14,
+  //                   color: colors.textPrimaryMuted,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 4),
+  //               FluxerTextLink(
+  //                 text: _phoneRevealed
+  //                     ? l10n.securityLoginHide
+  //                     : l10n.securityLoginReveal,
+  //                 onTap: () => setState(() => _phoneRevealed = !_phoneRevealed),
+  //               ),
+  //             ],
+  //           ),
+  //           button: FluxerButton.dangerSecondary(
+  //             onPressedAsync: () => _handleRemovePhone(s, l10n),
+  //             label: l10n.securityPhoneRemove,
+  //             size: FluxerButtonSize.small,
+  //           ),
+  //         )
+  //       else
+  //         _responsiveRow(
+  //           label: l10n.securityPhoneLabel,
+  //           child: Text(
+  //             l10n.securityPhoneNone,
+  //             style: TextStyle(fontSize: 14, color: colors.textPrimaryMuted),
+  //           ),
+  //           button: FluxerButton.primary(
+  //             onPressedAsync: () => PhoneAddSheet.show(context, ref),
+  //             label: l10n.securityPhoneAdd,
+  //             size: FluxerButtonSize.small,
+  //           ),
+  //         ),
+  //     ],
+  //   );
+  // }
 
-  Future<void> _handleRemovePhone(
-    UserSettingsViewState s,
-    FluxerLocalizations l10n,
-  ) async {
-    final description = s.hasSmsMfa
-        ? '${l10n.securityPhoneRemoveDescription}'
-              '\n\n${l10n.securityPhoneRemoveWarning}'
-        : l10n.securityPhoneRemoveDescription;
+  // TODO: Switch phone-number flows to WhatsApp.
+  // Future<void> _handleRemovePhone(
+  //   UserSettingsViewState s,
+  //   FluxerLocalizations l10n,
+  // ) async {
+  //   final description = s.hasSmsMfa
+  //       ? '${l10n.securityPhoneRemoveDescription}'
+  //             '\n\n${l10n.securityPhoneRemoveWarning}'
+  //       : l10n.securityPhoneRemoveDescription;
+  //
+  //   final confirmed = await FluxerConfirmModal.show(
+  //     context,
+  //     title: l10n.securityPhoneRemoveTitle,
+  //     description: description,
+  //     confirmLabel: l10n.securityPhoneRemove,
+  //     isDanger: true,
+  //     onConfirm: () {},
+  //   );
+  //   if (confirmed != true) {
+  //     return;
+  //   }
+  //
+  //   try {
+  //     final client = ref.read(fluxerClientProvider);
+  //     await client.users.removePhoneFromAccount(
+  //       body: const SudoVerificationSchema(),
+  //     );
+  //     ref
+  //         .read(toastProvider.notifier)
+  //         .show(
+  //           FluxerToast(
+  //             message: l10n.securityPhoneRemoved,
+  //             variant: FluxerToastVariant.success,
+  //           ),
+  //         );
+  //     await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
+  //   } on Exception {
+  //     // TODO: show error toast
+  //   }
+  // }
 
-    final confirmed = await FluxerConfirmModal.show(
-      context,
-      title: l10n.securityPhoneRemoveTitle,
-      description: description,
-      confirmLabel: l10n.securityPhoneRemove,
-      isDanger: true,
-      onConfirm: () {},
-    );
-    if (confirmed != true) {
-      return;
-    }
-
-    try {
-      final client = ref.read(fluxerClientProvider);
-      await client.users.removePhoneFromAccount(
-        body: const SudoVerificationSchema(),
-      );
-      ref
-          .read(toastProvider.notifier)
-          .show(
-            FluxerToast(
-              message: l10n.securityPhoneRemoved,
-              variant: FluxerToastVariant.success,
-            ),
-          );
-      await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
-    } on Exception {
-      // TODO: show error toast
-    }
-  }
-
-  Widget _buildSmsSubsection(
-    UserSettingsViewState s,
-    FluxerColorTheme colors,
-    FluxerLocalizations l10n,
-  ) {
-    final isDisabledForUser =
-        s.publicFlags & _kFlagStaff != 0 || s.publicFlags & _kFlagPartner != 0;
-
-    return FluxerSettingsSubsection(
-      title: l10n.securitySmsSectionTitle,
-      description: l10n.securitySmsSectionDescription,
-      children: [
-        _responsiveRow(
-          label: l10n.securitySmsBackup,
-          child: Text(
-            s.hasSmsMfa ? l10n.securitySmsEnabled : l10n.securitySmsDisabled,
-            style: TextStyle(fontSize: 14, color: colors.textPrimaryMuted),
-          ),
-          button: s.hasSmsMfa
-              ? FluxerButton.dangerPrimary(
-                  onPressedAsync: () => _handleDisableSms(l10n),
-                  label: l10n.disable,
-                  size: FluxerButtonSize.small,
-                )
-              : isDisabledForUser
-              ? FluxerTooltip(
-                  message: l10n.securitySmsDisabledForPartners,
-                  child: FluxerButton.primary(
-                    label: l10n.enable,
-                    size: FluxerButtonSize.small,
-                  ),
-                )
-              : FluxerButton.primary(
-                  onPressedAsync: () => _handleEnableSms(l10n),
-                  label: l10n.enable,
-                  size: FluxerButtonSize.small,
-                ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _handleEnableSms(FluxerLocalizations l10n) async {
-    final confirmed = await FluxerConfirmModal.show(
-      context,
-      title: l10n.securitySmsEnableTitle,
-      description: l10n.securitySmsEnableDescription,
-      confirmLabel: l10n.enable,
-      onConfirm: () {},
-    );
-    if (confirmed != true) {
-      return;
-    }
-
-    try {
-      final client = ref.read(fluxerClientProvider);
-      await client.users.enableSmsMfa(body: const SudoVerificationSchema());
-      await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
-    } on Exception {
-      // TODO: show error toast
-    }
-  }
-
-  Future<void> _handleDisableSms(FluxerLocalizations l10n) async {
-    final confirmed = await FluxerConfirmModal.show(
-      context,
-      title: l10n.securitySmsDisableTitle,
-      description: l10n.securitySmsDisableDescription,
-      confirmLabel: l10n.disable,
-      isDanger: true,
-      onConfirm: () {},
-    );
-    if (confirmed != true) {
-      return;
-    }
-
-    try {
-      final client = ref.read(fluxerClientProvider);
-      await client.users.disableSmsMfa(body: const SudoVerificationSchema());
-      await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
-    } on Exception {
-      // TODO: show error toast
-    }
-  }
+  // TODO: Switch phone-number flows to WhatsApp.
+  // Widget _buildSmsSubsection(
+  //   UserSettingsViewState s,
+  //   FluxerColorTheme colors,
+  //   FluxerLocalizations l10n,
+  // ) {
+  //   final isDisabledForUser =
+  //       s.publicFlags & _kFlagStaff != 0 || s.publicFlags & _kFlagPartner != 0;
+  //
+  //   return FluxerSettingsSubsection(
+  //     title: l10n.securitySmsSectionTitle,
+  //     description: l10n.securitySmsSectionDescription,
+  //     children: [
+  //       _responsiveRow(
+  //         label: l10n.securitySmsBackup,
+  //         child: Text(
+  //           s.hasSmsMfa ? l10n.securitySmsEnabled : l10n.securitySmsDisabled,
+  //           style: TextStyle(fontSize: 14, color: colors.textPrimaryMuted),
+  //         ),
+  //         button: s.hasSmsMfa
+  //             ? FluxerButton.dangerPrimary(
+  //                 onPressedAsync: () => _handleDisableSms(l10n),
+  //                 label: l10n.disable,
+  //                 size: FluxerButtonSize.small,
+  //               )
+  //             : isDisabledForUser
+  //             ? FluxerTooltip(
+  //                 message: l10n.securitySmsDisabledForPartners,
+  //                 child: FluxerButton.primary(
+  //                   label: l10n.enable,
+  //                   size: FluxerButtonSize.small,
+  //                 ),
+  //               )
+  //             : FluxerButton.primary(
+  //                 onPressedAsync: () => _handleEnableSms(l10n),
+  //                 label: l10n.enable,
+  //                 size: FluxerButtonSize.small,
+  //               ),
+  //       ),
+  //     ],
+  //   );
+  // }
+  //
+  // Future<void> _handleEnableSms(FluxerLocalizations l10n) async {
+  //   final confirmed = await FluxerConfirmModal.show(
+  //     context,
+  //     title: l10n.securitySmsEnableTitle,
+  //     description: l10n.securitySmsEnableDescription,
+  //     confirmLabel: l10n.enable,
+  //     onConfirm: () {},
+  //   );
+  //   if (confirmed != true) {
+  //     return;
+  //   }
+  //
+  //   try {
+  //     final client = ref.read(fluxerClientProvider);
+  //     await client.users.enableSmsMfa(body: const SudoVerificationSchema());
+  //     await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
+  //   } on Exception {
+  //     // TODO: show error toast
+  //   }
+  // }
+  //
+  // Future<void> _handleDisableSms(FluxerLocalizations l10n) async {
+  //   final confirmed = await FluxerConfirmModal.show(
+  //     context,
+  //     title: l10n.securitySmsDisableTitle,
+  //     description: l10n.securitySmsDisableDescription,
+  //     confirmLabel: l10n.disable,
+  //     isDanger: true,
+  //     onConfirm: () {},
+  //   );
+  //   if (confirmed != true) {
+  //     return;
+  //   }
+  //
+  //   try {
+  //     final client = ref.read(fluxerClientProvider);
+  //     await client.users.disableSmsMfa(body: const SudoVerificationSchema());
+  //     await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
+  //   } on Exception {
+  //     // TODO: show error toast
+  //   }
+  // }
 
   Widget _buildDangerZone(
     UserSettingsViewState s,

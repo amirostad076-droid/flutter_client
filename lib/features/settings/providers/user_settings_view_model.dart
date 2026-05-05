@@ -783,7 +783,8 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         verified: profile.verified,
         passwordLastChangedAt: profile.passwordLastChangedAt,
         mfaEnabled: profile.mfaEnabled,
-        phone: profile.phone,
+        // TODO: Switch phone-number profile field to WhatsApp field.
+        phone: null,
         authenticatorTypes:
             profile.authenticatorTypes
                 ?.map((t) => t.json)
@@ -798,7 +799,7 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         premiumBadgeMasked: profile.premiumBadgeMasked,
         premiumBadgeTimestampHidden: profile.premiumBadgeTimestampHidden,
         premiumBadgeSequenceHidden: profile.premiumBadgeSequenceHidden,
-        premiumDiscriminator: profile.premiumDiscriminator ?? false,
+        premiumDiscriminator: profile.premiumDiscriminator,
         premiumUntil: profile.premiumUntil,
         premiumOutOfBandTrialEndsAt: profile.premiumOutOfBandTrialEndsAt,
         premiumBillingCycle: profile.premiumBillingCycle,

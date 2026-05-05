@@ -1,16 +1,12 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:fluxer_dart/export.dart';
 
 enum _Step { phone, code }
 
@@ -36,7 +32,6 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
   final _codeController = TextEditingController();
   bool _loading = false;
   String? _error;
-  String? _phoneToken;
 
   @override
   void dispose() {
@@ -51,83 +46,33 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
     return '+$digits';
   }
 
-  String _extractError(DioException e) {
-    final data = e.response?.data;
-    if (data is Map<String, dynamic>) {
-      final message = data['message'] as String?;
-      if (message != null && message.isNotEmpty) return message;
-    }
-    return e.message ?? 'An error occurred';
-  }
-
   Future<void> _handleSendCode() async {
+    // TODO: Switch phone verification flow to WhatsApp verification flow.
     final phone = _e164Phone;
-    if (phone.length < 4) return;
-
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    try {
-      final client = ref.read(fluxerClientProvider);
-      await client.users.sendPhoneVerificationCode(
-        body: PhoneSendVerificationRequest(phone: phone),
-      );
-      setState(() {
-        _step = _Step.code;
-        _loading = false;
-      });
-    } on DioException catch (e) {
-      setState(() {
-        _loading = false;
-        _error = _extractError(e);
-      });
+    if (phone.length < 4) {
+      return;
     }
+    setState(() => _step = _Step.code);
+    ref.read(toastProvider.notifier).show(
+      FluxerToast(
+        message: 'WhatsApp verification is coming soon.',
+        variant: FluxerToastVariant.info,
+      ),
+    );
   }
 
   Future<void> _handleVerify() async {
+    // TODO: Switch phone verification flow to WhatsApp verification flow.
     final code = _codeController.text.trim();
-    if (code.isEmpty) return;
-
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    try {
-      final client = ref.read(fluxerClientProvider);
-      final response = await client.users.verifyPhoneCode(
-        body: PhoneVerifyRequest(phone: _e164Phone, code: code),
-      );
-
-      _phoneToken = response.phoneToken;
-
-      await client.users.addPhoneToAccount(
-        body: PhoneAddRequest(phoneToken: _phoneToken!),
-      );
-
-      final l10n = FluxerLocalizations.of(context);
-      ref
-          .read(toastProvider.notifier)
-          .show(
-            FluxerToast(
-              message: l10n.phoneAddSuccess,
-              variant: FluxerToastVariant.success,
-            ),
-          );
-
-      await ref.read(userSettingsViewModelProvider.notifier).loadProfile();
-
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-    } on DioException catch (e) {
-      setState(() {
-        _loading = false;
-        _error = _extractError(e);
-      });
+    if (code.isEmpty) {
+      return;
     }
+    ref.read(toastProvider.notifier).show(
+      FluxerToast(
+        message: 'WhatsApp verification is coming soon.',
+        variant: FluxerToastVariant.info,
+      ),
+    );
   }
 
   @override
