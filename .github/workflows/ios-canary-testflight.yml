@@ -90,7 +90,12 @@ jobs:
           KEYCHAIN_PASSWORD=actions
           LOGIN_KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
           ORIGINAL_DEFAULT_KEYCHAIN="$(security default-keychain -d user 2>/dev/null | tr -d '"' || true)"
+          TEMP_KEYCHAIN_WAS_DEFAULT=false
+          if [ -z "$ORIGINAL_DEFAULT_KEYCHAIN" ]; then
+            TEMP_KEYCHAIN_WAS_DEFAULT=true
+          fi
           echo "ORIGINAL_DEFAULT_KEYCHAIN=$ORIGINAL_DEFAULT_KEYCHAIN" >> "$GITHUB_ENV"
+          echo "TEMP_KEYCHAIN_WAS_DEFAULT=$TEMP_KEYCHAIN_WAS_DEFAULT" >> "$GITHUB_ENV"
           if [ -z "$CERTIFICATES_P12" ]; then
             echo "::error::CERTIFICATES_P12 is not set."
             exit 1
@@ -102,7 +107,9 @@ jobs:
           echo "$CERTIFICATES_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lu -t 3600 "$KEYCHAIN_PATH"
-          security default-keychain -d user -s "$KEYCHAIN_PATH"
+          if [ "$TEMP_KEYCHAIN_WAS_DEFAULT" = "true" ]; then
+            security default-keychain -d user -s "$KEYCHAIN_PATH"
+          fi
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN_PATH" -P "$CERTIFICATES_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
@@ -120,6 +127,15 @@ jobs:
         run: |
           PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILES_DIR"
+          for existing_profile in "$PROFILES_DIR"/*.mobileprovision; do
+            [ -e "$existing_profile" ] || continue
+            PROFILE_APP_ID=$(security cms -D -i "$existing_profile" | plutil -extract Entitlements.application-identifier raw - 2>/dev/null || true)
+            case "$PROFILE_APP_ID" in
+              *.com.fluxer|*.com.fluxer.canary|*.com.fluxer.BroadcastExtension|*.com.fluxer.canary.BroadcastExtension)
+                rm -f "$existing_profile"
+                ;;
+            esac
+          done
           if [ -z "$PROVISIONING_PROFILE_BASE64" ]; then
             echo "::error::CANARY_PROVISIONING_PROFILE_BASE64 is not set. Add the base64-encoded App Store profile for the canary app."
             exit 1
@@ -201,9 +217,9 @@ jobs:
         run: |
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
           LOGIN_KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
-          if [ -n "${ORIGINAL_DEFAULT_KEYCHAIN:-}" ]; then
+          if [ "${TEMP_KEYCHAIN_WAS_DEFAULT:-false}" = "true" ] && [ -n "${ORIGINAL_DEFAULT_KEYCHAIN:-}" ]; then
             security default-keychain -d user -s "$ORIGINAL_DEFAULT_KEYCHAIN" || true
-          elif [ -f "$LOGIN_KEYCHAIN" ]; then
+          elif [ "${TEMP_KEYCHAIN_WAS_DEFAULT:-false}" = "true" ] && [ -f "$LOGIN_KEYCHAIN" ]; then
             security default-keychain -d user -s "$LOGIN_KEYCHAIN" || true
           fi
           if [ -n "${ORIGINAL_DEFAULT_KEYCHAIN:-}" ]; then
