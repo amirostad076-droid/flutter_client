@@ -147,16 +147,16 @@ jobs:
             exit 0
           fi
           CURRENT_RUBY_VERSION="$(ruby -e 'print RUBY_VERSION')"
-          case "$CURRENT_RUBY_VERSION" in
-            ${REQUIRED_RUBY_VERSION}.*)
-              echo "::notice::Using preinstalled Ruby ${CURRENT_RUBY_VERSION}."
-              echo "ruby_ready=true" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "::notice::Found Ruby ${CURRENT_RUBY_VERSION}; requires ${REQUIRED_RUBY_VERSION}.x. Workflow will install required version."
-              echo "ruby_ready=false" >> "$GITHUB_OUTPUT"
-              ;;
-          esac
+          CURRENT_RUBY_MAJOR="${CURRENT_RUBY_VERSION%%.*}"
+          CURRENT_RUBY_MINOR_WITH_PATCH="${CURRENT_RUBY_VERSION#*.}"
+          CURRENT_RUBY_MINOR="${CURRENT_RUBY_MINOR_WITH_PATCH%%.*}"
+          if [ "$CURRENT_RUBY_MAJOR" -gt 3 ] || { [ "$CURRENT_RUBY_MAJOR" -eq 3 ] && [ "$CURRENT_RUBY_MINOR" -ge 4 ]; }; then
+            echo "::notice::Using preinstalled Ruby ${CURRENT_RUBY_VERSION}."
+            echo "ruby_ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Found Ruby ${CURRENT_RUBY_VERSION}; requires Ruby >= ${REQUIRED_RUBY_VERSION}. Workflow will install required version."
+            echo "ruby_ready=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Set up Ruby
         if: steps.detect_ruby.outputs.ruby_ready != 'true'
         uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5
