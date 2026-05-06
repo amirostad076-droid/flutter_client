@@ -136,7 +136,10 @@ class MfaViewModel extends _$MfaViewModel {
 
       state = state.copyWith(isSubmitting: false, completedSession: session);
     } on AuthFailure catch (e) {
-      state = state.copyWith(isSubmitting: false, error: e.message);
+      state = state.copyWith(
+        isSubmitting: false,
+        error: _failureMessage(e, preferredField: 'code'),
+      );
     } on Exception catch (e) {
       talker.error('[MfaViewModel] Unexpected error: $e');
       state = state.copyWith(
@@ -144,6 +147,27 @@ class MfaViewModel extends _$MfaViewModel {
         error: 'Verification failed. Please try again.',
       );
     }
+  }
+
+  String _failureMessage(AuthFailure failure, {String? preferredField}) {
+    final preferredMessage = preferredField == null
+        ? null
+        : failure.fieldErrors[preferredField];
+    if (preferredMessage != null && preferredMessage.isNotEmpty) {
+      return _remapFailureMessage(preferredMessage);
+    }
+    if (failure.fieldErrors.isNotEmpty) {
+      return _remapFailureMessage(failure.fieldErrors.values.first);
+    }
+    return _remapFailureMessage(failure.message);
+  }
+
+  String _remapFailureMessage(String message) {
+    return switch (message) {
+      'Session timed out. Refresh the page and log in again.' =>
+        'Session timed out. Go back and log in again.',
+      _ => message,
+    };
   }
 
   Future<void> sendSms() async {
@@ -155,7 +179,7 @@ class MfaViewModel extends _$MfaViewModel {
           .sendMfaSms(ticket: _challenge.ticket);
       state = state.copyWith(isSubmitting: false, smsSent: true);
     } on AuthFailure catch (e) {
-      state = state.copyWith(isSubmitting: false, error: e.message);
+      state = state.copyWith(isSubmitting: false, error: _failureMessage(e));
     } on Exception catch (e) {
       talker.error('[MfaViewModel] SMS send error: $e');
       state = state.copyWith(
@@ -192,7 +216,7 @@ class MfaViewModel extends _$MfaViewModel {
 
       state = state.copyWith(webauthnLoading: false, completedSession: session);
     } on AuthFailure catch (e) {
-      state = state.copyWith(webauthnLoading: false, error: e.message);
+      state = state.copyWith(webauthnLoading: false, error: _failureMessage(e));
     } on Exception catch (e) {
       talker.error('[MfaViewModel] WebAuthn error: $e');
       state = state.copyWith(webauthnLoading: false);
