@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -35,6 +36,7 @@ typedef VoiceServerUpdateCallback = void Function(VoiceServerUpdateEvent event);
 class GatewayEventHandler {
   GatewayEventHandler({
     required this.database,
+    this.readStateRepository,
     this.currentUserId,
     this.onReady,
     this.onTypingStart,
@@ -61,6 +63,7 @@ class GatewayEventHandler {
   });
 
   final db.FluxerDatabase database;
+  final ReadStateRepository? readStateRepository;
   final String? currentUserId;
   final ReadyCallback? onReady;
   final TypingCallback? onTypingStart;
@@ -196,14 +199,19 @@ class GatewayEventHandler {
         }
       case ChannelPinsUpdateEvent():
         talker.debug('[Gateway] CHANNEL_PINS_UPDATE: ${event.channelId}');
-        unawaited(
-          database.readStateDao.updatePinTimestamp(
-            event.channelId,
-            event.lastPinTimestamp,
-          ),
+        await database.channelDao.updateLastPinTimestamp(
+          event.channelId,
+          event.lastPinTimestamp,
         );
       case ChannelPinsAckEvent():
         talker.debug('[Gateway] CHANNEL_PINS_ACK: ${event.channelId}');
+        final channel = await database.channelDao.getChannelById(
+          event.channelId,
+        );
+        await database.readStateDao.updatePinTimestamp(
+          event.channelId,
+          event.lastPinTimestamp ?? channel?.lastPinTimestamp,
+        );
       case ChannelRecipientAddEvent():
         talker.debug('[Gateway] CHANNEL_RECIPIENT_ADD: ${event.channelId}');
         unawaited(database.userDao.upsertUser(userFromPartialSdk(event.user)));
@@ -350,6 +358,9 @@ class GatewayEventHandler {
     final readStatesByChannelId = <String, GatewayReadState>{
       for (final readState in event.readStates) readState.id: readState,
     };
+    final hasUnavailableGuilds = event.rawGuilds.any(
+      (guild) => guild['unavailable'] as bool? ?? false,
+    );
 
     await database.transaction(() async {
       // Clear all entity tables (full replace).
@@ -682,6 +693,9 @@ class GatewayEventHandler {
     final hydratedSettings = event.userSettings;
     if (hydratedSettings != null) {
       onUserSettingsHydrate?.call(hydratedSettings);
+    }
+    if (!hasUnavailableGuilds) {
+      unawaited(readStateRepository?.cleanupStaleReadStates());
     }
     onReady?.call();
   }

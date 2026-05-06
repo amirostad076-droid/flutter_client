@@ -53,6 +53,24 @@ bool hasUnreadByReadState({
   return lastMessageMs > 0 && lastMessageMs > fallbackAckMs;
 }
 
+int parseIsoTimestampMs(String? timestamp) {
+  if (timestamp == null || timestamp.isEmpty) {
+    return 0;
+  }
+  return DateTime.tryParse(timestamp)?.millisecondsSinceEpoch ?? 0;
+}
+
+bool hasUnreadPins({
+  required String? channelLastPinTimestamp,
+  required String? ackLastPinTimestamp,
+}) {
+  final lastPinMs = parseIsoTimestampMs(channelLastPinTimestamp);
+  if (lastPinMs <= 0) {
+    return false;
+  }
+  return lastPinMs > parseIsoTimestampMs(ackLastPinTimestamp);
+}
+
 String? oldestUnreadMessageId({
   required Iterable<String> messageIds,
   required String? ackLastMessageId,

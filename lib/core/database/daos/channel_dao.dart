@@ -29,7 +29,8 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
   Future<Channel?> getChannelById(String id) =>
       (select(channels)..where((c) => c.id.equals(id))).getSingleOrNull();
 
-  /// Root category (or channel without parent) first, then each child down to [channelId].
+  /// Root category (or channel without parent) first,
+  /// then each child down to [channelId].
   Future<List<String?>> getPermissionOverwriteLayersRootToLeaf(
     String channelId,
   ) async {
@@ -44,8 +45,7 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
       currentId = row.parentId;
     }
     return <String?>[
-      for (final Channel row in bottomUp.reversed)
-        row.permissionOverwritesJson,
+      for (final Channel row in bottomUp.reversed) row.permissionOverwritesJson,
     ];
   }
 
@@ -66,6 +66,11 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
   Future<void> updateLastMessageId(String channelId, String messageId) =>
       (update(channels)..where((c) => c.id.equals(channelId))).write(
         ChannelsCompanion(lastMessageId: Value(messageId)),
+      );
+
+  Future<void> updateLastPinTimestamp(String channelId, String? timestamp) =>
+      (update(channels)..where((c) => c.id.equals(channelId))).write(
+        ChannelsCompanion(lastPinTimestamp: Value(timestamp)),
       );
 
   Future<void> deleteChannel(String id) =>

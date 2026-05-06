@@ -121,7 +121,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 34;
+  int get schemaVersion => 35;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -415,6 +415,9 @@ class FluxerDatabase extends _$FluxerDatabase {
         await m.addColumn(messages, messages.deliveryState);
         await m.addColumn(messages, messages.clientNonce);
         await m.addColumn(messages, messages.sendError);
+      }
+      if (from < 35) {
+        await m.addColumn(channels, channels.lastPinTimestamp);
       }
     },
   );

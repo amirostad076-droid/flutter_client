@@ -48,6 +48,45 @@ void main() {
     },
   );
 
+  test(
+    'channelUnread reports unread pins when channel pins are newer',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      const latestPin = '2026-05-06T12:00:00.000Z';
+      const ackedPin = '2026-05-05T12:00:00.000Z';
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastPinTimestamp: const Value(latestPin),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        const ReadStatesCompanion(
+          channelId: Value('channel-1'),
+          lastPinTimestamp: Value(ackedPin),
+        ),
+      );
+
+      final container = _container(db);
+      addTearDown(container.dispose);
+      final subscription = container.listen(
+        channelUnreadProvider('channel-1'),
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(subscription.close);
+
+      final unread = await container.read(
+        channelUnreadProvider('channel-1').future,
+      );
+
+      expect(unread.hasUnreadPins, isTrue);
+    },
+  );
+
   test('serverUnread includes channels without read state rows', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);

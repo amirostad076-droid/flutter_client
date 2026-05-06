@@ -172,6 +172,69 @@ void main() {
     expect(mentionRows, isEmpty);
   });
 
+  test('channel pins update stores latest channel pin timestamp', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    const latestPin = '2026-05-06T12:00:00.000Z';
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+      ),
+    );
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(
+      const ChannelPinsUpdateEvent(
+        channelId: 'channel-1',
+        lastPinTimestamp: latestPin,
+      ),
+    );
+
+    final channel = await db.channelDao.getChannelById('channel-1');
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(channel?.lastPinTimestamp, latestPin);
+    expect(readState?.lastPinTimestamp, isNot(latestPin));
+  });
+
+  test('channel pins ack falls back to latest channel pin timestamp', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    const latestPin = '2026-05-06T12:00:00.000Z';
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastPinTimestamp: const Value(latestPin),
+      ),
+    );
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(const ChannelPinsAckEvent(channelId: 'channel-1'));
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.lastPinTimestamp, latestPin);
+  });
+
+  test('channel pins ack stores acknowledged pin timestamp', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    const latestPin = '2026-05-06T12:00:00.000Z';
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(
+      const ChannelPinsAckEvent(
+        channelId: 'channel-1',
+        lastPinTimestamp: latestPin,
+      ),
+    );
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.lastPinTimestamp, latestPin);
+  });
+
   test('incoming DM messages increment DM unread count', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);

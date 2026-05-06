@@ -11,8 +11,13 @@ part 'unread_provider.g.dart';
 class UnreadState {
   final bool hasUnread;
   final int mentionCount;
+  final bool hasUnreadPins;
 
-  const UnreadState({this.hasUnread = false, this.mentionCount = 0});
+  const UnreadState({
+    this.hasUnread = false,
+    this.mentionCount = 0,
+    this.hasUnreadPins = false,
+  });
 }
 
 /// Voice channel type (2) and category type (4) don't contribute to
@@ -54,9 +59,18 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
           mentionCount: mentionCount,
         );
 
+    final hasPinUnread = hasUnreadPins(
+      channelLastPinTimestamp: channel?.lastPinTimestamp,
+      ackLastPinTimestamp: readState?.lastPinTimestamp,
+    );
+
     if (!disposed) {
       controller.add(
-        UnreadState(hasUnread: hasUnread, mentionCount: mentionCount),
+        UnreadState(
+          hasUnread: hasUnread,
+          mentionCount: mentionCount,
+          hasUnreadPins: hasPinUnread,
+        ),
       );
     }
   }

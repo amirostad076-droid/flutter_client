@@ -79,6 +79,53 @@ class ReadStateRepository {
     );
   }
 
+  Future<void> cleanupStaleReadStates({
+    Duration delayBetweenDeletes = const Duration(milliseconds: 300),
+  }) async {
+    final readStates = await _db.readStateDao.getReadStates();
+    final staleChannelIds = <String>[];
+    for (final readState in readStates) {
+      final channel = await _db.channelDao.getChannelById(readState.channelId);
+      if (channel != null) {
+        continue;
+      }
+      final dm = await _db.dmChannelDao.getDmChannelById(readState.channelId);
+      if (dm == null) {
+        staleChannelIds.add(readState.channelId);
+      }
+    }
+    staleChannelIds.sort();
+
+    for (var i = 0; i < staleChannelIds.length; i++) {
+      final channelId = staleChannelIds[i];
+      try {
+        await _client.channels.clearChannelReadState(channelId: channelId);
+      } finally {
+        await _db.readStateDao.deleteReadState(channelId);
+      }
+      if (delayBetweenDeletes > Duration.zero &&
+          i < staleChannelIds.length - 1) {
+        await Future<void>.delayed(delayBetweenDeletes);
+      }
+    }
+  }
+
+  Future<void> ackPins(String channelId) async {
+    final channel = await _db.channelDao.getChannelById(channelId);
+    final latestPinTimestamp = channel?.lastPinTimestamp;
+    if (latestPinTimestamp == null || latestPinTimestamp.isEmpty) {
+      return;
+    }
+
+    final current = await _db.readStateDao.getReadState(channelId);
+    if (current?.lastPinTimestamp == latestPinTimestamp) {
+      return;
+    }
+
+    await _client.channels.acknowledgePins(channelId: channelId);
+    await _db.readStateDao.updatePinTimestamp(channelId, latestPinTimestamp);
+  }
+
   Future<String?> latestAckableMessageId(String channelId) async {
     final channel = await _db.channelDao.getChannelById(channelId);
     final channelLastMessageId = channel?.lastMessageId;

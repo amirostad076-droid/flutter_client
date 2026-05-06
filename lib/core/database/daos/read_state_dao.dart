@@ -14,6 +14,8 @@ class ReadStateDao extends DatabaseAccessor<FluxerDatabase>
     readStates,
   )..where((r) => r.channelId.equals(channelId))).getSingleOrNull();
 
+  Future<List<ReadState>> getReadStates() => select(readStates).get();
+
   Stream<List<ReadState>> watchReadStates() => select(readStates).watch();
 
   Stream<ReadState?> watchReadState(String channelId) => (select(
@@ -35,10 +37,20 @@ class ReadStateDao extends DatabaseAccessor<FluxerDatabase>
     );
   }
 
-  Future<void> updatePinTimestamp(String channelId, String? timestamp) =>
-      (update(readStates)..where((r) => r.channelId.equals(channelId))).write(
-        ReadStatesCompanion(lastPinTimestamp: Value(timestamp)),
-      );
+  Future<void> updatePinTimestamp(String channelId, String? timestamp) async {
+    final existing = await getReadState(channelId);
+    await upsertReadState(
+      ReadStatesCompanion(
+        channelId: Value(channelId),
+        lastMessageId: Value(existing?.lastMessageId),
+        mentionCount: Value(existing?.mentionCount ?? 0),
+        lastPinTimestamp: Value(timestamp),
+      ),
+    );
+  }
+
+  Future<void> deleteReadState(String channelId) =>
+      (delete(readStates)..where((r) => r.channelId.equals(channelId))).go();
 
   Stream<List<ReadState>> watchReadStatesForChannels(List<String> channelIds) =>
       (select(readStates)..where((r) => r.channelId.isIn(channelIds))).watch();

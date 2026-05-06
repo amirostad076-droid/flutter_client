@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
@@ -8,6 +9,7 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/auth/providers/current_auth_session_provider.dart';
+import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
@@ -31,16 +33,15 @@ part 'gateway_provider.g.dart';
 /// socket.
 @Riverpod(keepAlive: true)
 void gatewayConnectBinding(Ref ref) {
-  ref.listen<GatewayConnection>(
-    gatewayConnectionProvider,
-    (GatewayConnection? previous, GatewayConnection next) {
-      if (previous != null) {
-        ref.read(gatewayReadyProvider.notifier).reset();
-      }
-      unawaited(next.connect());
-    },
-    fireImmediately: true,
-  );
+  ref.listen<GatewayConnection>(gatewayConnectionProvider, (
+    GatewayConnection? previous,
+    GatewayConnection next,
+  ) {
+    if (previous != null) {
+      ref.read(gatewayReadyProvider.notifier).reset();
+    }
+    unawaited(next.connect());
+  }, fireImmediately: true);
 }
 
 @Riverpod(keepAlive: true)
@@ -52,6 +53,10 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
   final messageBus = ref.watch(messageRealtimeBusProvider);
   final handler = GatewayEventHandler(
     database: db,
+    readStateRepository: ReadStateRepository(
+      ref.watch(fluxerClientProvider),
+      db,
+    ),
     currentUserId: currentUserId,
     onReady: () {
       talker.info('[Gateway] Setting gatewayReady = true');

@@ -2,11 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
@@ -51,6 +55,10 @@ class ChannelHeader extends ConsumerWidget {
     final isMemberListVisible = ref.watch(
       channelListViewModelProvider.select((s) => s.isMemberListVisible),
     );
+    final hasUnreadPins =
+        channel != null &&
+        (ref.watch(channelUnreadProvider(channel.id)).value?.hasUnreadPins ??
+            false);
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -76,6 +84,7 @@ class ChannelHeader extends ConsumerWidget {
             dm: dm,
             isMemberListVisible: isMemberListVisible,
             showMessageActions: showMessageActions,
+            hasUnreadPins: hasUnreadPins,
           ),
         },
       ),
@@ -101,7 +110,7 @@ class ChannelHeader extends ConsumerWidget {
           onPressed: () {
             final panels = OverlappingPanels.of(context);
             if (panels != null) {
-              panels.moveToState(RevealSide.left);
+              unawaited(panels.moveToState(RevealSide.left));
               return;
             }
             if (context.canPop()) {
@@ -200,6 +209,7 @@ class ChannelHeader extends ConsumerWidget {
     required DmConversation? dm,
     required bool isMemberListVisible,
     required bool showMessageActions,
+    required bool hasUnreadPins,
   }) => SizedBox(
     height: 56,
     child: Padding(
@@ -261,7 +271,15 @@ class ChannelHeader extends ConsumerWidget {
               PhosphorIconsFill.bell,
               'Notification Settings',
             ),
-            _topBarIcon(context, PhosphorIconsFill.pushPin, 'Pinned Messages'),
+            _topBarIcon(
+              context,
+              PhosphorIconsFill.pushPin,
+              'Pinned Messages',
+              showIndicator: hasUnreadPins,
+              onTap: channel == null
+                  ? null
+                  : () => _ackPins(ref: ref, channelId: channel.id),
+            ),
             if (dm == null)
               _topBarIcon(
                 context,
@@ -342,7 +360,7 @@ class ChannelHeader extends ConsumerWidget {
         '${dm.recipientId}/$avatar.png';
   }
 
-  /// TODO: Replace with a more final design
+  /// Builds the current voice connection status for voice channels.
   Widget _buildVoiceConnectionStatus(
     BuildContext context,
     WidgetRef ref,
@@ -437,23 +455,50 @@ class ChannelHeader extends ConsumerWidget {
     IconData icon,
     String tooltip, {
     bool isActive = false,
+    bool showIndicator = false,
     VoidCallback? onTap,
   }) => Tooltip(
     message: tooltip,
     child: InkWell(
       onTap: onTap ?? () {},
       borderRadius: BorderRadius.circular(4),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: PhosphorIcon(
-          icon,
-          size: 24,
-          color: isActive
-              ? context.colors.interactiveActive
-              : context.colors.interactiveNormal,
-        ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: PhosphorIcon(
+              icon,
+              size: 24,
+              color: isActive
+                  ? context.colors.interactiveActive
+                  : context.colors.interactiveNormal,
+            ),
+          ),
+          if (showIndicator)
+            Positioned(
+              right: 5,
+              top: 5,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: context.colors.statusDanger,
+                  shape: BoxShape.circle,
+                ),
+                child: const SizedBox.square(dimension: 8),
+              ),
+            ),
+        ],
       ),
     ),
+  );
+}
+
+void _ackPins({required WidgetRef ref, required String channelId}) {
+  unawaited(
+    ReadStateRepository(
+      ref.read(fluxerClientProvider),
+      ref.read(fluxerDatabaseProvider),
+    ).ackPins(channelId),
   );
 }
 
