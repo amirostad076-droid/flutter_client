@@ -24,7 +24,7 @@ const _kGridColumns = 9;
 const _kMobileGridColumns = 8;
 const _kEmojiSize = 40.0;
 const _kCellSize = 48.0;
-const _kCustomEmojiRequestSize = 24;
+const _kCustomEmojiRequestSize = 48;
 
 const Map<String, IconData> _kCategoryIcons = {
   'people': PhosphorIconsFill.smiley,
