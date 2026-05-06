@@ -60,6 +60,29 @@ int parseIsoTimestampMs(String? timestamp) {
   return DateTime.tryParse(timestamp)?.millisecondsSinceEpoch ?? 0;
 }
 
+int dmUnreadCountFromReadState({
+  required bool hasReadState,
+  required String? latestMessageId,
+  required String? ackLastMessageId,
+  required int mentionCount,
+  required int cachedUnreadCount,
+}) {
+  if (!hasReadState) {
+    return cachedUnreadCount;
+  }
+  if (mentionCount > 0) {
+    return mentionCount;
+  }
+  if (latestMessageId != null &&
+      latestMessageId.isNotEmpty &&
+      ackLastMessageId != null &&
+      ackLastMessageId.isNotEmpty &&
+      compareSnowflakeIds(ackLastMessageId, latestMessageId) < 0) {
+    return 1;
+  }
+  return 0;
+}
+
 bool hasUnreadPins({
   required String? channelLastPinTimestamp,
   required String? ackLastPinTimestamp,

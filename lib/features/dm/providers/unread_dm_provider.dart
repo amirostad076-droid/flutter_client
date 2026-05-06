@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'unread_dm_provider.g.dart';
@@ -15,17 +16,26 @@ class UnreadDmState {
 @Riverpod(keepAlive: true)
 class UnreadDmChannels extends _$UnreadDmChannels {
   final _removalTimers = <String, Timer>{};
-  StreamSubscription<List<DmChannel>>? _subscription;
+  StreamSubscription<List<DmChannel>>? _dmSubscription;
+  StreamSubscription<List<ReadState>>? _readStateSubscription;
+  List<DmChannel> _latestRows = const [];
 
   @override
   UnreadDmState build() {
     final db = ref.watch(fluxerDatabaseProvider);
 
-    unawaited(_subscription?.cancel());
-    _subscription = db.dmChannelDao.watchDmChannels().listen(_reconcile);
+    unawaited(_dmSubscription?.cancel());
+    unawaited(_readStateSubscription?.cancel());
+    _dmSubscription = db.dmChannelDao.watchDmChannels().listen(
+      (rows) => unawaited(_reconcile(rows)),
+    );
+    _readStateSubscription = db.readStateDao.watchReadStates().listen(
+      (_) => unawaited(_reconcile()),
+    );
 
     ref.onDispose(() {
-      unawaited(_subscription?.cancel());
+      unawaited(_dmSubscription?.cancel());
+      unawaited(_readStateSubscription?.cancel());
       for (final timer in _removalTimers.values) {
         timer.cancel();
       }
@@ -35,7 +45,30 @@ class UnreadDmChannels extends _$UnreadDmChannels {
     return const UnreadDmState();
   }
 
-  void _reconcile(List<DmChannel> allChannels) {
+  Future<void> _reconcile([List<DmChannel>? rows]) async {
+    if (rows != null) {
+      _latestRows = rows;
+    }
+    final db = ref.read(fluxerDatabaseProvider);
+    final channelIds = _latestRows.map((row) => row.id).toList();
+    final lastMessages = await db.messageDao.getLastMessageForChannels(
+      channelIds,
+    );
+    final readStates = channelIds.isEmpty
+        ? <ReadState>[]
+        : await db.readStateDao.watchReadStatesForChannels(channelIds).first;
+    final readStateMap = {for (final rs in readStates) rs.channelId: rs};
+    final allChannels = _latestRows.map((channel) {
+      final readState = readStateMap[channel.id];
+      final unreadCount = dmUnreadCountFromReadState(
+        hasReadState: readState != null,
+        latestMessageId: lastMessages[channel.id]?.id,
+        ackLastMessageId: readState?.lastMessageId,
+        mentionCount: readState?.mentionCount ?? 0,
+        cachedUnreadCount: channel.unreadCount,
+      );
+      return channel.copyWith(unreadCount: unreadCount);
+    }).toList();
     final unreadChannels = allChannels.where((c) => c.unreadCount > 0).toList();
     final unreadIds = unreadChannels.map((c) => c.id).toSet();
     final currentIds = state.channels.map((c) => c.id).toSet();

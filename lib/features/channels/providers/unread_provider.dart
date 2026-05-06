@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
-import 'package:fluxer_dart/export.dart';
+import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'unread_provider.g.dart';
@@ -42,6 +41,18 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
     final latestCachedMessageId = messages.isEmpty ? null : messages.last.id;
     final latestMessageId = channel?.lastMessageId ?? latestCachedMessageId;
     final mentionCount = readState?.mentionCount ?? 0;
+    final guildSettings = channel == null
+        ? null
+        : await db.userGuildSettingsDao.getByGuildId(channel.guildId);
+    final unreadSettings = channel == null
+        ? null
+        : resolveUnreadSettings(
+            channel: channel,
+            guildSettings: guildSettings == null
+                ? null
+                : decodeUserGuildSettings(guildSettings.data),
+            now: DateTime.now(),
+          );
     final fallbackAckMs = snowflakeTimestampMs(channel?.id ?? channelId);
     final staleSuppressed = shouldSuppressStaleUnread(
       channelLastMessageId: latestMessageId,
@@ -50,14 +61,17 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
       mentionCount: mentionCount,
       now: DateTime.now(),
     );
-    final hasUnread =
+    final hasUnreadMessage =
         !staleSuppressed &&
         hasUnreadByReadState(
           channelLastMessageId: latestMessageId,
           ackLastMessageId: readState?.lastMessageId,
           fallbackAckMs: fallbackAckMs,
-          mentionCount: mentionCount,
+          mentionCount: 0,
         );
+    final hasUnread =
+        mentionCount > 0 ||
+        ((unreadSettings?.allowsMessageUnread ?? true) && hasUnreadMessage);
 
     final hasPinUnread = hasUnreadPins(
       channelLastPinTimestamp: channel?.lastPinTimestamp,
@@ -84,6 +98,9 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
   final messageSub = db.messageDao
       .watchMessages(channelId)
       .listen((_) => unawaited(recompute()));
+  final settingsSub = db.userGuildSettingsDao.watchAll().listen(
+    (_) => unawaited(recompute()),
+  );
 
   unawaited(recompute());
 
@@ -92,6 +109,7 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
     unawaited(channelSub.cancel());
     unawaited(readStateSub.cancel());
     unawaited(messageSub.cancel());
+    unawaited(settingsSub.cancel());
     unawaited(controller.close());
   });
 
@@ -117,21 +135,12 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
       return;
     }
 
-    final guildSettings = await db.userGuildSettingsDao.getByGuildId(guildId);
-    final mutedChannelIds = <String>{};
-    var guildMuted = false;
-    if (guildSettings != null) {
-      final gs = UserGuildSettingsResponse.fromJson(
-        jsonDecode(guildSettings.data) as Map<String, dynamic>,
-      );
-      guildMuted = gs.muted;
-      final overrides = gs.channelOverrides ?? {};
-      for (final entry in overrides.entries) {
-        if (entry.value.muted) {
-          mutedChannelIds.add(entry.key);
-        }
-      }
-    }
+    final guildSettingsRow = await db.userGuildSettingsDao.getByGuildId(
+      guildId,
+    );
+    final guildSettings = guildSettingsRow == null
+        ? null
+        : decodeUserGuildSettings(guildSettingsRow.data);
 
     final channelIds = channels.map((c) => c.id).toList();
     final readStates = await db.readStateDao
@@ -151,16 +160,17 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
       final readState = readStateMap[channel.id];
       final mentions = readState?.mentionCount ?? 0;
       final isVoice = channel.type == _voiceType;
-      final isMuted =
-          guildMuted ||
-          mutedChannelIds.contains(channel.id) ||
-          mutedChannelIds.contains(channel.parentId);
+      final unreadSettings = resolveUnreadSettings(
+        channel: channel,
+        guildSettings: guildSettings,
+        now: DateTime.fromMillisecondsSinceEpoch(nowMs),
+      );
 
       if (isVoice && mentions == 0) {
         continue;
       }
 
-      if (isMuted && mentions == 0) {
+      if (unreadSettings.isMuted && mentions == 0) {
         continue;
       }
 
@@ -179,12 +189,14 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
 
       totalMentions += mentions;
 
-      if (hasUnreadByReadState(
+      final hasUnreadMessage = hasUnreadByReadState(
         channelLastMessageId: channelLastMsg,
         ackLastMessageId: readState?.lastMessageId,
         fallbackAckMs: fallbackAckMs,
-        mentionCount: mentions,
-      )) {
+        mentionCount: 0,
+      );
+      if (mentions > 0 ||
+          (unreadSettings.allowsMessageUnread && hasUnreadMessage)) {
         anyUnread = true;
       }
     }
@@ -203,6 +215,9 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
   final readStateSub = db.readStateDao.watchReadStates().listen(
     (_) => unawaited(recompute()),
   );
+  final settingsSub = db.userGuildSettingsDao
+      .watchByGuildId(guildId)
+      .listen((_) => unawaited(recompute()));
 
   unawaited(recompute());
 
@@ -210,6 +225,7 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
     disposed = true;
     unawaited(channelSub.cancel());
     unawaited(readStateSub.cancel());
+    unawaited(settingsSub.cancel());
     unawaited(controller.close());
   });
 

@@ -30,7 +30,7 @@ class DmConversation {
   final List<GroupMemberInfo> groupMembers;
 
   /// Recipients persisted for this DM/channel (excluding the current account at
-  /// call time — filter with [currentUserId] before ringing).
+  /// call time — filter with the current user ID before ringing).
   final List<String> remoteRecipientIds;
 
   const DmConversation({
@@ -70,6 +70,7 @@ class DmConversation {
     String? groupStatus,
     List<GroupMemberInfo> groupMembers = const [],
     List<String> remoteRecipientIds = const [],
+    int? unreadCount,
   }) {
     return DmConversation(
       id: row.id,
@@ -89,7 +90,7 @@ class DmConversation {
       lastMessageAuthorName:
           lastMessageAuthor?.globalName ?? lastMessageAuthor?.username,
       lastMessageTime: row.lastMessageTime,
-      unreadCount: row.unreadCount,
+      unreadCount: unreadCount ?? row.unreadCount,
       groupStatus: groupStatus,
       groupMembers: groupMembers,
       remoteRecipientIds: remoteRecipientIds,

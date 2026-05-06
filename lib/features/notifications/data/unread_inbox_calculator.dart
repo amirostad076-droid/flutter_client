@@ -1,6 +1,6 @@
-import 'dart:convert';
-
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:fluxer_app/features/notifications/domain/unread_inbox_entry.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -107,31 +107,14 @@ class UnreadInboxCalculator {
       return resolved;
     }
 
-    final Map<String, bool> guildMutedByGuild = <String, bool>{};
-    final Map<String, Set<String>> mutedChannelOverrides =
-        <String, Set<String>>{};
+    final Map<String, UserGuildSettingsResponse> guildSettingsByGuild =
+        <String, UserGuildSettingsResponse>{};
 
     for (final UserGuildSettingsTableData row in userGuildRows) {
-      Map<String, dynamic> json;
-      try {
-        json = jsonDecode(row.data) as Map<String, dynamic>;
-      } on Object {
-        continue;
+      final settings = decodeUserGuildSettings(row.data);
+      if (settings != null) {
+        guildSettingsByGuild[row.guildId] = settings;
       }
-      final UserGuildSettingsResponse gs = UserGuildSettingsResponse.fromJson(
-        json,
-      );
-      guildMutedByGuild[row.guildId] = gs.muted;
-      final Set<String> muted = <String>{};
-      final Map<String, ChannelOverrides>? overrides = gs.channelOverrides;
-      if (overrides != null) {
-        for (final MapEntry<String, ChannelOverrides> e in overrides.entries) {
-          if (e.value.muted) {
-            muted.add(e.key);
-          }
-        }
-      }
-      mutedChannelOverrides[row.guildId] = muted;
     }
 
     for (final Channel channel in allChannels) {
@@ -142,19 +125,17 @@ class UnreadInboxCalculator {
       final ReadState? readState = readStateMap[channel.id];
       final int mentions = readState?.mentionCount ?? 0;
       final bool isVoice = channel.type == _voiceType;
-      final bool guildMuted = guildMutedByGuild[guildId] ?? false;
-      final Set<String> mutedIds = mutedChannelOverrides[guildId] ?? {};
-      final String? parentId = channel.parentId;
-      final bool isMuted =
-          guildMuted ||
-          mutedIds.contains(channel.id) ||
-          (parentId != null && mutedIds.contains(parentId));
+      final unreadSettings = resolveUnreadSettings(
+        channel: channel,
+        guildSettings: guildSettingsByGuild[guildId],
+        now: DateTime.fromMillisecondsSinceEpoch(nowMs),
+      );
 
       if (isVoice && mentions == 0) {
         continue;
       }
 
-      if (isMuted && mentions == 0) {
+      if (unreadSettings.isMuted && mentions == 0) {
         continue;
       }
 
@@ -176,12 +157,15 @@ class UnreadInboxCalculator {
 
       final int tsLast = snowflakeComparator(channelLastMsg);
       final int fallbackAckMs = await resolveFallbackAckMs(guildId, channel.id);
-      final bool hasUnread = _hasGuildUnreadByWebRules(
+      final bool hasUnreadMessage = _hasGuildUnreadByWebRules(
         channelLastMessageId: channelLastMsg,
         ackLastMessageId: ackId,
         fallbackAckMs: fallbackAckMs,
-        mentionCount: mentions,
+        mentionCount: 0,
       );
+      final bool hasUnread =
+          mentions > 0 ||
+          (unreadSettings.allowsMessageUnread && hasUnreadMessage);
 
       if (!hasUnread) {
         continue;
@@ -202,17 +186,30 @@ class UnreadInboxCalculator {
     }
 
     final List<DmChannel> dms = await db.dmChannelDao.getDmChannels();
+    final dmLastMessages = await db.messageDao.getLastMessageForChannels(
+      dms.map((dm) => dm.id).toList(),
+    );
     for (final DmChannel dm in dms) {
-      if (dm.unreadCount <= 0) {
+      final readState = readStateMap[dm.id];
+      final unreadCount = dmUnreadCountFromReadState(
+        hasReadState: readState != null,
+        latestMessageId: dmLastMessages[dm.id]?.id,
+        ackLastMessageId: readState?.lastMessageId,
+        mentionCount: readState?.mentionCount ?? 0,
+        cachedUnreadCount: dm.unreadCount,
+      );
+      if (unreadCount <= 0) {
         continue;
       }
-      final int ms = dm.lastMessageTime.millisecondsSinceEpoch;
+      final int ms =
+          dmLastMessages[dm.id]?.timestamp.millisecondsSinceEpoch ??
+          dm.lastMessageTime.millisecondsSinceEpoch;
       entries.add(
         UnreadInboxEntry(
           channelId: dm.id,
           guildId: null,
           isDm: true,
-          mentionCount: dm.unreadCount,
+          mentionCount: unreadCount,
           isCollapsed: collapsedByChannelId[dm.id] ?? false,
           recencyComparator: ms.clamp(0, 1 << 30),
         ),

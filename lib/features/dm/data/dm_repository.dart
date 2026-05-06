@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -16,46 +18,93 @@ class DmRepository {
   const DmRepository(this._client, this._db);
 
   Stream<List<DmConversation>> watchDmChannels() {
-    return _db.dmChannelDao.watchDmChannels().asyncMap((rows) async {
-      final channelIds = rows.map((r) => r.id).toList();
-      final lastMessages = await _db.messageDao.getLastMessageForChannels(
-        channelIds,
-      );
+    final controller = StreamController<List<DmConversation>>();
+    var latestRows = <db.DmChannel>[];
+    var disposed = false;
 
-      final allRecipientIds = <String>{};
-      for (final row in rows) {
-        allRecipientIds.add(row.recipientId);
-        final ids = _parseRecipientIds(row.recipientIds);
-        allRecipientIds.addAll(ids);
+    Future<void> recompute([List<db.DmChannel>? rows]) async {
+      if (disposed) {
+        return;
       }
-      allRecipientIds.addAll(lastMessages.values.map((m) => m.authorId));
+      latestRows = rows ?? await _db.dmChannelDao.getDmChannels();
+      final conversations = await _buildConversations(latestRows);
+      if (!disposed) {
+        controller.add(conversations);
+      }
+    }
 
-      final users = await _db.userDao.getUsersByIds(allRecipientIds.toList());
-      final userMap = {for (final u in users) u.id: u};
+    final dmSub = _db.dmChannelDao.watchDmChannels().listen(
+      (rows) => unawaited(recompute(rows)),
+      onError: controller.addError,
+    );
+    final readStateSub = _db.readStateDao.watchReadStates().listen(
+      (_) => unawaited(recompute()),
+      onError: controller.addError,
+    );
 
-      return rows.map((row) {
-        final lastMsg = lastMessages[row.id];
-        final recipientIds = _parseRecipientIds(row.recipientIds);
-        final isGroup = row.type == 3;
-        final remoteRecipientIds = _buildRemoteRecipientIds(
-          recipientIds,
-          row.recipientId,
-        );
-        return DmConversation.fromRow(
-          row,
-          userMap[row.recipientId],
-          cachedLastMessage: lastMsg,
-          lastMessageAuthor: lastMsg != null ? userMap[lastMsg.authorId] : null,
-          groupStatus: isGroup
-              ? _computeGroupStatus(recipientIds, userMap)
-              : null,
-          groupMembers: isGroup
-              ? _buildGroupMembers(recipientIds, userMap)
-              : const [],
-          remoteRecipientIds: remoteRecipientIds,
-        );
-      }).toList();
-    });
+    controller.onCancel = () async {
+      disposed = true;
+      await dmSub.cancel();
+      await readStateSub.cancel();
+      await controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  Future<List<DmConversation>> _buildConversations(
+    List<db.DmChannel> rows,
+  ) async {
+    final channelIds = rows.map((r) => r.id).toList();
+    final lastMessages = await _db.messageDao.getLastMessageForChannels(
+      channelIds,
+    );
+    final readStates = channelIds.isEmpty
+        ? <db.ReadState>[]
+        : await _db.readStateDao.watchReadStatesForChannels(channelIds).first;
+    final readStateMap = {for (final rs in readStates) rs.channelId: rs};
+
+    final allRecipientIds = <String>{};
+    for (final row in rows) {
+      allRecipientIds.add(row.recipientId);
+      final ids = _parseRecipientIds(row.recipientIds);
+      allRecipientIds.addAll(ids);
+    }
+    allRecipientIds.addAll(lastMessages.values.map((m) => m.authorId));
+
+    final users = await _db.userDao.getUsersByIds(allRecipientIds.toList());
+    final userMap = {for (final u in users) u.id: u};
+
+    return rows.map((row) {
+      final lastMsg = lastMessages[row.id];
+      final readState = readStateMap[row.id];
+      final recipientIds = _parseRecipientIds(row.recipientIds);
+      final isGroup = row.type == 3;
+      final remoteRecipientIds = _buildRemoteRecipientIds(
+        recipientIds,
+        row.recipientId,
+      );
+      return DmConversation.fromRow(
+        row,
+        userMap[row.recipientId],
+        cachedLastMessage: lastMsg,
+        lastMessageAuthor: lastMsg != null ? userMap[lastMsg.authorId] : null,
+        groupStatus: isGroup
+            ? _computeGroupStatus(recipientIds, userMap)
+            : null,
+        groupMembers: isGroup
+            ? _buildGroupMembers(recipientIds, userMap)
+            : const [],
+        remoteRecipientIds: remoteRecipientIds,
+        unreadCount: dmUnreadCountFromReadState(
+          hasReadState: readState != null,
+          latestMessageId: lastMsg?.id,
+          ackLastMessageId: readState?.lastMessageId,
+          mentionCount: readState?.mentionCount ?? 0,
+          cachedUnreadCount: row.unreadCount,
+        ),
+      );
+    }).toList();
   }
 
   static List<String> _parseRecipientIds(String json) {
@@ -149,43 +198,7 @@ class DmRepository {
       await _db.dmChannelDao.upsertDmChannels(companions);
 
       final rows = await _db.dmChannelDao.getDmChannels();
-      final channelIds = rows.map((r) => r.id).toList();
-      final lastMessages = await _db.messageDao.getLastMessageForChannels(
-        channelIds,
-      );
-
-      final allRecipientIds = <String>{
-        ...rows.map((r) => r.recipientId),
-        ...lastMessages.values.map((m) => m.authorId),
-      };
-      for (final row in rows) {
-        allRecipientIds.addAll(_parseRecipientIds(row.recipientIds));
-      }
-      final users = await _db.userDao.getUsersByIds(allRecipientIds.toList());
-      final userMap = {for (final u in users) u.id: u};
-
-      return rows.map((row) {
-        final lastMsg = lastMessages[row.id];
-        final recipientIds = _parseRecipientIds(row.recipientIds);
-        final isGroup = row.type == 3;
-        final remoteRecipientIds = _buildRemoteRecipientIds(
-          recipientIds,
-          row.recipientId,
-        );
-        return DmConversation.fromRow(
-          row,
-          userMap[row.recipientId],
-          cachedLastMessage: lastMsg,
-          lastMessageAuthor: lastMsg != null ? userMap[lastMsg.authorId] : null,
-          groupStatus: isGroup
-              ? _computeGroupStatus(recipientIds, userMap)
-              : null,
-          groupMembers: isGroup
-              ? _buildGroupMembers(recipientIds, userMap)
-              : const [],
-          remoteRecipientIds: remoteRecipientIds,
-        );
-      }).toList();
+      return _buildConversations(rows);
     } on DioException catch (e) {
       throw Exception(
         e.response?.statusMessage ?? 'Failed to fetch DM channels',
