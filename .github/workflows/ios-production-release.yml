@@ -85,9 +85,20 @@ jobs:
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
           KEYCHAIN_PASSWORD=actions
           LOGIN_KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
+          ORIGINAL_DEFAULT_KEYCHAIN="$(security default-keychain -d user 2>/dev/null | tr -d '"' || true)"
+          echo "ORIGINAL_DEFAULT_KEYCHAIN=$ORIGINAL_DEFAULT_KEYCHAIN" >> "$GITHUB_ENV"
+          if [ -z "$CERTIFICATES_P12" ]; then
+            echo "::error::CERTIFICATES_P12 is not set."
+            exit 1
+          fi
+          if [ -z "$CERTIFICATES_P12_PASSWORD" ]; then
+            echo "::error::CERTIFICATES_P12_PASSWORD is not set."
+            exit 1
+          fi
           echo "$CERTIFICATES_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lu -t 3600 "$KEYCHAIN_PATH"
+          security default-keychain -d user -s "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN_PATH" -P "$CERTIFICATES_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
@@ -182,7 +193,14 @@ jobs:
         run: |
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
           LOGIN_KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
-          if [ -f "$LOGIN_KEYCHAIN" ]; then
+          if [ -n "${ORIGINAL_DEFAULT_KEYCHAIN:-}" ]; then
+            security default-keychain -d user -s "$ORIGINAL_DEFAULT_KEYCHAIN" || true
+          elif [ -f "$LOGIN_KEYCHAIN" ]; then
+            security default-keychain -d user -s "$LOGIN_KEYCHAIN" || true
+          fi
+          if [ -n "${ORIGINAL_DEFAULT_KEYCHAIN:-}" ]; then
+            security list-keychains -d user -s "$ORIGINAL_DEFAULT_KEYCHAIN" || true
+          elif [ -f "$LOGIN_KEYCHAIN" ]; then
             security list-keychains -d user -s "$LOGIN_KEYCHAIN" || true
           fi
           if [ -f "$KEYCHAIN_PATH" ]; then
