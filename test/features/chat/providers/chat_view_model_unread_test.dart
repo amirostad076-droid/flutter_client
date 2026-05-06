@@ -1,0 +1,207 @@
+import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
+import 'package:fluxer_app/shared/utils/snowflake_time.dart';
+import 'package:fluxer_dart/export.dart';
+
+String _snowflakeForUtc(DateTime utc) {
+  final int internal = (utc.millisecondsSinceEpoch - kSnowflakeEpochMs) << 22;
+  return internal.toString();
+}
+
+Map<String, Object?> _messageJson({
+  required String id,
+  required String channelId,
+  required String authorId,
+}) => <String, Object?>{
+  'id': id,
+  'channel_id': channelId,
+  'author': <String, Object?>{
+    'id': authorId,
+    'username': 'user-$authorId',
+    'discriminator': '0001',
+    'global_name': null,
+    'avatar': null,
+    'avatar_color': null,
+    'flags': 0,
+  },
+  'type': 0,
+  'flags': 0,
+  'content': 'message $id',
+  'timestamp': dateTimeFromUserSnowflakeOrNull(id)!.toIso8601String(),
+  'pinned': false,
+  'mention_everyone': false,
+};
+
+void main() {
+  test('auto ack preserves sticky unread divider after ack advances', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final unreadId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(0),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: unreadId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    notifier.setReadViewportActive(isActive: true);
+    await _flushAsync();
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.lastMessageId, latestId);
+    expect(
+      container.read(chatViewModelProvider).stickyUnreadMessageId,
+      unreadId,
+    );
+  });
+
+  test(
+    'auto ack fetches missing unread boundary before preserving divider',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final boundaryId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        ],
+        messagesAfterAck: [
+          _messageJson(
+            id: boundaryId,
+            channelId: 'channel-1',
+            authorId: 'other',
+          ),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      notifier.setReadViewportActive(isActive: true);
+      await _flushAsync();
+
+      expect(adapter.afterQueries, [ackId]);
+      final messages = container.read(chatViewModelProvider).messages;
+      expect(messages.map((message) => message.id), [boundaryId, latestId]);
+      expect(
+        container.read(chatViewModelProvider).stickyUnreadMessageId,
+        boundaryId,
+      );
+    },
+  );
+}
+
+ProviderContainer _container(FluxerDatabase db, _ChatAdapter adapter) {
+  final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+    ..httpClientAdapter = adapter;
+  return ProviderContainer(
+    overrides: [
+      fluxerDatabaseProvider.overrideWithValue(db),
+      fluxerDioProvider.overrideWithValue(dio),
+      fluxerClientProvider.overrideWithValue(
+        FluxerClient(dio, baseUrl: 'https://api.fluxer.app/v1'),
+      ),
+      currentUserIdProvider.overrideWithValue('me'),
+    ],
+  );
+}
+
+Future<void> _flushAsync() async {
+  for (var i = 0; i < 8; i++) {
+    await pumpEventQueue();
+  }
+}
+
+class _ChatAdapter implements HttpClientAdapter {
+  _ChatAdapter({
+    required this.initialMessages,
+    this.messagesAfterAck = const [],
+  });
+
+  final List<Map<String, Object?>> initialMessages;
+  final List<Map<String, Object?>> messagesAfterAck;
+  final List<String> afterQueries = [];
+  final List<String> ackedMessageIds = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    if (options.method == 'GET' &&
+        options.uri.path.endsWith('/channels/channel-1/messages')) {
+      final after = options.uri.queryParameters['after'];
+      if (after != null) {
+        afterQueries.add(after);
+      }
+      final messages = after == null ? initialMessages : messagesAfterAck;
+      return ResponseBody.fromString(
+        jsonEncode(messages),
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+        },
+      );
+    }
+
+    if (options.method == 'POST' && options.uri.path.endsWith('/ack')) {
+      ackedMessageIds.add(options.uri.pathSegments[3]);
+      return ResponseBody.fromString('', 204, statusMessage: 'No Content');
+    }
+
+    return ResponseBody.fromString('Not found', 404);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}

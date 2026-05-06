@@ -88,7 +88,9 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   @override
   void dispose() {
-    _chatViewModel.setReadViewportActive(isActive: false);
+    _chatViewModel
+      ..setReadViewportActive(isActive: false)
+      ..clearStickyUnread();
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
@@ -263,6 +265,12 @@ class _MessageListState extends ConsumerState<MessageList> {
       messageIds: messages.map((message) => message.id),
       ackLastMessageId: readState?.lastMessageId,
     );
+    final stickyUnreadId = state.stickyUnreadMessageId;
+    final visualUnreadId =
+        stickyUnreadId != null &&
+            messages.any((message) => message.id == stickyUnreadId)
+        ? stickyUnreadId
+        : oldestUnreadId;
     final chatFontSize = ref.watch(
       themePreferenceProvider.select((s) => s.chatFontSize),
     );
@@ -361,7 +369,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             return _withUnreadSeparator(
               context,
               messageId: msg.id,
-              oldestUnreadId: oldestUnreadId,
+              oldestUnreadId: visualUnreadId,
               child: content,
             );
           }
@@ -411,7 +419,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           return _withUnreadSeparator(
             context,
             messageId: msg.id,
-            oldestUnreadId: oldestUnreadId,
+            oldestUnreadId: visualUnreadId,
             child: content,
           );
         },

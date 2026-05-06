@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
@@ -41,6 +42,7 @@ class ChatViewState {
   final String messageText;
   final int scrollToBottomSignal;
   final (String messageId, int version)? scrollToMessageSignal;
+  final String? stickyUnreadMessageId;
   final bool isLoading;
   final bool isLoadingMore;
   final bool hasMoreMessages;
@@ -59,6 +61,7 @@ class ChatViewState {
     required this.hasMoreMessages,
     required this.errorMessage,
     this.scrollToMessageSignal,
+    this.stickyUnreadMessageId,
   });
 
   bool get canSend => messageText.trim().isNotEmpty;
@@ -72,6 +75,7 @@ class ChatViewState {
     String? messageText,
     int? scrollToBottomSignal,
     Object? scrollToMessageSignal = _unset,
+    Object? stickyUnreadMessageId = _unset,
     bool? isLoading,
     bool? isLoadingMore,
     bool? hasMoreMessages,
@@ -94,6 +98,9 @@ class ChatViewState {
       scrollToMessageSignal: scrollToMessageSignal == _unset
           ? this.scrollToMessageSignal
           : scrollToMessageSignal as (String, int)?,
+      stickyUnreadMessageId: stickyUnreadMessageId == _unset
+          ? this.stickyUnreadMessageId
+          : stickyUnreadMessageId as String?,
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMoreMessages: hasMoreMessages ?? this.hasMoreMessages,
@@ -111,6 +118,7 @@ class ChatViewModel extends _$ChatViewModel {
     minInterval: _kReadAckMinInterval,
   );
   Timer? _readAckRetryTimer;
+  final Set<String> _loadedUnreadBoundaryKeys = <String>{};
   bool _readViewportActive = false;
   bool _readViewportNearBottom = true;
   int _nonceTimestampMs = 0;
@@ -145,6 +153,9 @@ class ChatViewModel extends _$ChatViewModel {
     if (next != null) {
       state = state.copyWith(messages: next);
       if (ev is MessageCreated) {
+        if (ev.event.message.author.id == ref.read(currentUserIdProvider)) {
+          clearStickyUnread();
+        }
         unawaited(ackCurrentChannel());
       }
     }
@@ -237,6 +248,7 @@ class ChatViewModel extends _$ChatViewModel {
     if (state.channelId.isNotEmpty && state.channelId != channelId) {
       _readAckRetryTimer?.cancel();
       _readAckGate.clearManualUnread(state.channelId);
+      _clearLoadedUnreadBoundaryKeys(state.channelId);
     }
     if (targetMessageId != null) {
       if (state.channelId == channelId && state.isLoading) {
@@ -313,6 +325,7 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreMessages: messages.length >= _kPageSize,
       );
       if (targetMessageId == null) {
+        await _ensureUnreadBoundaryLoaded(channelId);
         unawaited(ackCurrentChannel());
       }
     } on Exception catch (e) {
@@ -393,6 +406,10 @@ class ChatViewModel extends _$ChatViewModel {
     _readAckRetryTimer?.cancel();
     _readAckGate.markAttemptStarted(channelId, now: now);
     try {
+      if (!force) {
+        await _ensureUnreadBoundaryLoaded(channelId);
+        await _preserveStickyUnreadBeforeAck(channelId);
+      }
       await ReadStateRepository(
         ref.read(fluxerClientProvider),
         ref.read(fluxerDatabaseProvider),
@@ -412,6 +429,100 @@ class ChatViewModel extends _$ChatViewModel {
     });
   }
 
+  Future<void> _ensureUnreadBoundaryLoaded(String channelId) async {
+    if (state.channelId != channelId || state.messages.isEmpty) {
+      return;
+    }
+
+    final db = ref.read(fluxerDatabaseProvider);
+    final readState = await db.readStateDao.getReadState(channelId);
+    final ackMessageId = readState?.lastMessageId;
+    if (ackMessageId == null || ackMessageId.isEmpty) {
+      return;
+    }
+
+    final oldestLoadedId = state.messages.first.id;
+    if (compareSnowflakeIds(oldestLoadedId, ackMessageId) <= 0) {
+      return;
+    }
+
+    final latestLoadedId = state.messages.last.id;
+    if (compareSnowflakeIds(latestLoadedId, ackMessageId) <= 0) {
+      return;
+    }
+
+    final key = _unreadBoundaryKey(channelId, ackMessageId);
+    if (_loadedUnreadBoundaryKeys.contains(key)) {
+      return;
+    }
+    _loadedUnreadBoundaryKeys.add(key);
+
+    try {
+      final messages = await ref
+          .read(messageRepositoryProvider)
+          .getMessages(channelId: channelId, after: ackMessageId);
+      if (messages.isEmpty || state.channelId != channelId) {
+        return;
+      }
+      state = state.copyWith(
+        messages: _mergeMessages(state.messages, messages),
+      );
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to load unread boundary: $e');
+    }
+  }
+
+  Future<void> _preserveStickyUnreadBeforeAck(String channelId) async {
+    if (state.channelId != channelId || state.stickyUnreadMessageId != null) {
+      return;
+    }
+    final readState = await ref
+        .read(fluxerDatabaseProvider)
+        .readStateDao
+        .getReadState(channelId);
+    final stickyUnreadMessageId = oldestUnreadMessageId(
+      messageIds: state.messages.map((message) => message.id),
+      ackLastMessageId: readState?.lastMessageId,
+    );
+    if (stickyUnreadMessageId == null) {
+      return;
+    }
+    state = state.copyWith(stickyUnreadMessageId: stickyUnreadMessageId);
+  }
+
+  List<Message> _mergeMessages(List<Message> current, List<Message> incoming) {
+    final byId = <String, Message>{
+      for (final message in current) message.id: message,
+    };
+    for (final message in incoming) {
+      byId[message.id] = message;
+    }
+    final merged = byId.values.toList()
+      ..sort((a, b) {
+        final byId = compareSnowflakeIds(a.id, b.id);
+        if (byId != 0) {
+          return byId;
+        }
+        return a.timestamp.compareTo(b.timestamp);
+      });
+    return merged;
+  }
+
+  String _unreadBoundaryKey(String channelId, String ackMessageId) =>
+      '$channelId:$ackMessageId';
+
+  void _clearLoadedUnreadBoundaryKeys(String channelId) {
+    _loadedUnreadBoundaryKeys.removeWhere(
+      (key) => key.startsWith('$channelId:'),
+    );
+  }
+
+  void clearStickyUnread() {
+    if (state.stickyUnreadMessageId != null) {
+      state = state.copyWith(stickyUnreadMessageId: null);
+    }
+  }
+
   Future<void> markMessageUnread(String messageId) async {
     final channelId = state.channelId;
     if (channelId.isEmpty || messageId.isEmpty) {
@@ -428,6 +539,7 @@ class ChatViewModel extends _$ChatViewModel {
       );
       _readAckRetryTimer?.cancel();
       _readAckGate.markManualUnread(channelId);
+      clearStickyUnread();
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to mark unread: $e');
     }
