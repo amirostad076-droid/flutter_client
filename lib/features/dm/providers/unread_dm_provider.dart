@@ -61,9 +61,9 @@ class UnreadDmChannels extends _$UnreadDmChannels {
     final allChannels = _latestRows.map((channel) {
       final readState = readStateMap[channel.id];
       final unreadCount = dmUnreadCountFromReadState(
-        hasReadState: readState != null,
         latestMessageId: channel.lastMessageId ?? lastMessages[channel.id]?.id,
         ackLastMessageId: readState?.lastMessageId,
+        fallbackAckMs: snowflakeTimestampMs(channel.id),
         mentionCount: readState?.mentionCount ?? 0,
         cachedUnreadCount: channel.unreadCount,
       );

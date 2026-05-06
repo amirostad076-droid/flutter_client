@@ -135,7 +135,7 @@ class UnreadInboxCalculator {
         continue;
       }
 
-      if (unreadSettings.isMuted && mentions == 0) {
+      if (unreadSettings.isMuted) {
         continue;
       }
 
@@ -199,9 +199,9 @@ class UnreadInboxCalculator {
       }
       final readState = readStateMap[dm.id];
       final unreadCount = dmUnreadCountFromReadState(
-        hasReadState: readState != null,
         latestMessageId: dm.lastMessageId ?? dmLastMessages[dm.id]?.id,
         ackLastMessageId: readState?.lastMessageId,
+        fallbackAckMs: snowflakeTimestampMs(dm.id),
         mentionCount: readState?.mentionCount ?? 0,
         cachedUnreadCount: dm.unreadCount,
       );

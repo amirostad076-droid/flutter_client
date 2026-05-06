@@ -61,23 +61,25 @@ int parseIsoTimestampMs(String? timestamp) {
 }
 
 int dmUnreadCountFromReadState({
-  required bool hasReadState,
   required String? latestMessageId,
   required String? ackLastMessageId,
+  required int fallbackAckMs,
   required int mentionCount,
   required int cachedUnreadCount,
 }) {
-  if (!hasReadState) {
-    return cachedUnreadCount;
-  }
   if (mentionCount > 0) {
     return mentionCount;
   }
-  if (latestMessageId != null &&
-      latestMessageId.isNotEmpty &&
-      ackLastMessageId != null &&
-      ackLastMessageId.isNotEmpty &&
-      compareSnowflakeIds(ackLastMessageId, latestMessageId) < 0) {
+  if (latestMessageId == null || latestMessageId.isEmpty) {
+    return cachedUnreadCount;
+  }
+  final hasUnread = hasUnreadByReadState(
+    channelLastMessageId: latestMessageId,
+    ackLastMessageId: ackLastMessageId,
+    fallbackAckMs: fallbackAckMs,
+    mentionCount: 0,
+  );
+  if (hasUnread) {
     return 1;
   }
   return 0;

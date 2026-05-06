@@ -610,10 +610,7 @@ class GatewayEventHandler {
       final guildSettings = event.userGuildSettings;
       if (guildSettings != null) {
         for (final gs in guildSettings) {
-          final guildId = gs.guildId;
-          if (guildId == null) {
-            continue;
-          }
+          final guildId = gs.guildId ?? '@me';
           await database.userGuildSettingsDao.upsert(
             db.UserGuildSettingsTableCompanion(
               guildId: Value(guildId),

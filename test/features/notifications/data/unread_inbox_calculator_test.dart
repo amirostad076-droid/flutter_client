@@ -146,6 +146,57 @@ void main() {
   });
 
   test(
+    'muted guild channel with mentions is excluded from unread inbox',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      const guildId = 'guild_test_1';
+      const channelId = 'channel_test_1';
+      await db.guildDao.upsertServer(
+        ServersCompanion.insert(id: guildId, name: 'Test Guild'),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: channelId,
+          guildId: guildId,
+          name: 'general',
+          lastMessageId: Value(_snowflakeForUtc(DateTime.utc(2026, 5, 6))),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        const ReadStatesCompanion(
+          channelId: Value(channelId),
+          mentionCount: Value(2),
+        ),
+      );
+      await db.userGuildSettingsDao.upsert(
+        UserGuildSettingsTableCompanion.insert(
+          guildId: guildId,
+          data: jsonEncode(
+            _guildSettings(
+              channelOverrides: {
+                channelId: const ChannelOverrides(
+                  collapsed: false,
+                  messageNotifications: UserNotificationSettings.inherit,
+                  muted: true,
+                  muteConfig: null,
+                ),
+              },
+            ).toJson(),
+          ),
+        ),
+      );
+
+      final entries = await UnreadInboxCalculator.compute(
+        db,
+        collapsedByChannelId: <String, bool>{},
+      );
+
+      expect(entries, isEmpty);
+    },
+  );
+
+  test(
     'guild channel stays in unread inbox when notifications are mentions only '
     'and unread badges are unset',
     () async {

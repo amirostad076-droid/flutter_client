@@ -97,9 +97,9 @@ class DmRepository {
             : const [],
         remoteRecipientIds: remoteRecipientIds,
         unreadCount: dmUnreadCountFromReadState(
-          hasReadState: readState != null,
           latestMessageId: row.lastMessageId ?? lastMsg?.id,
           ackLastMessageId: readState?.lastMessageId,
+          fallbackAckMs: snowflakeTimestampMs(row.id),
           mentionCount: readState?.mentionCount ?? 0,
           cachedUnreadCount: row.unreadCount,
         ),

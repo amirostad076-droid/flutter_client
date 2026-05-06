@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
@@ -24,6 +24,52 @@ UserPartialResponse _user(String id) => UserPartialResponse(
   flags: 0,
 );
 
+UserPrivateResponse _privateUser(String id) => UserPrivateResponse(
+  hasVerifiedPhone: false,
+  username: 'user-$id',
+  discriminator: '0001',
+  globalName: null,
+  avatar: null,
+  avatarColor: null,
+  privacyAgreedAt: null,
+  termsAgreedAt: null,
+  pendingBulkMessageDeletion: null,
+  flags: 0,
+  unreadGiftInventoryCount: 0,
+  isStaff: false,
+  acls: const [],
+  traits: const [],
+  email: null,
+  hasUnreadGiftInventory: false,
+  hasEverPurchased: false,
+  id: id,
+  bio: null,
+  pronouns: null,
+  accentColor: null,
+  banner: null,
+  hasDismissedPremiumOnboarding: false,
+  bannerColor: null,
+  mfaEnabled: false,
+  nsfwAllowed: true,
+  verified: true,
+  premiumType: null,
+  premiumSince: null,
+  premiumUntil: null,
+  premiumWillCancel: false,
+  premiumBillingCycle: null,
+  premiumLifetimeSequence: null,
+  premiumGraceEndsAt: null,
+  premiumDiscriminator: false,
+  requiredActions: const [],
+  premiumBadgeMasked: false,
+  premiumBadgeTimestampHidden: false,
+  premiumBadgeSequenceHidden: false,
+  premiumPurchaseDisabled: false,
+  premiumEnabledOverride: false,
+  passwordLastChangedAt: null,
+  premiumBadgeHidden: false,
+);
+
 MessageResponseSchema _message({
   required String id,
   required String channelId,
@@ -44,6 +90,53 @@ MessageResponseSchema _message({
 );
 
 void main() {
+  test('ready stores private settings under @me', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(
+      ReadyEvent(
+        sessionId: 'session-1',
+        user: _privateUser('me'),
+        guilds: const [],
+        rawGuilds: const [],
+        privateChannels: const [],
+        relationships: const [],
+        readStates: const [],
+        presences: const [],
+        userGuildSettings: const [
+          UserGuildSettingsResponse(
+            guildId: null,
+            messageNotifications: UserNotificationSettings.allMessages,
+            muted: false,
+            muteConfig: null,
+            mobilePush: true,
+            suppressEveryone: false,
+            suppressRoles: false,
+            hideMutedChannels: false,
+            channelOverrides: {
+              'dm-1': ChannelOverrides(
+                collapsed: false,
+                messageNotifications: UserNotificationSettings.inherit,
+                muted: true,
+                muteConfig: null,
+              ),
+            },
+            version: 1,
+          ),
+        ],
+      ),
+    );
+
+    final settings = await db.userGuildSettingsDao.getByGuildId('@me');
+    expect(settings, isNotNull);
+    final decoded = UserGuildSettingsResponse.fromJson(
+      jsonDecode(settings!.data) as Map<String, dynamic>,
+    );
+    expect(decoded.channelOverrides?['dm-1']?.muted, isTrue);
+  });
+
   test('own created messages locally ack the channel', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
