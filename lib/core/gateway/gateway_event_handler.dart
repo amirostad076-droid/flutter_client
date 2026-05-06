@@ -715,12 +715,121 @@ class GatewayEventHandler {
   Future<void> _handleUserGuildSettingsUpdate(
     UserGuildSettingsUpdateEvent event,
   ) async {
+    final guildId = _userGuildSettingsStorageId(event.guildId, event.data);
+    final existingRow = await database.userGuildSettingsDao.getByGuildId(
+      guildId,
+    );
+    final merged = _mergeUserGuildSettingsData(
+      guildId: guildId,
+      existing: existingRow == null
+          ? null
+          : _tryDecodeJsonObject(existingRow.data),
+      updates: event.data,
+    );
     await database.userGuildSettingsDao.upsert(
       db.UserGuildSettingsTableCompanion(
-        guildId: Value(event.guildId),
-        data: Value(jsonEncode(event.data)),
+        guildId: Value(guildId),
+        data: Value(jsonEncode(merged)),
       ),
     );
+  }
+
+  String _userGuildSettingsStorageId(
+    String eventGuildId,
+    Map<String, dynamic> data,
+  ) {
+    final rawGuildId = data['guild_id'];
+    if (rawGuildId is String && rawGuildId.isNotEmpty) {
+      return rawGuildId;
+    }
+    return eventGuildId.isEmpty ? '@me' : eventGuildId;
+  }
+
+  Map<String, dynamic>? _tryDecodeJsonObject(String data) {
+    try {
+      final decoded = jsonDecode(data);
+      return decoded is Map ? decoded.cast<String, dynamic>() : null;
+    } on Object {
+      return null;
+    }
+  }
+
+  Map<String, dynamic> _mergeUserGuildSettingsData({
+    required String guildId,
+    required Map<String, dynamic>? existing,
+    required Map<String, dynamic> updates,
+  }) {
+    final merged = <String, dynamic>{
+      ..._defaultUserGuildSettingsData(guildId),
+      if (existing != null) ...existing,
+      ...updates,
+    };
+    final mergedOverrides = _mergeChannelOverrides(
+      existing?['channel_overrides'],
+      updates['channel_overrides'],
+    );
+    if (mergedOverrides != null) {
+      merged['channel_overrides'] = mergedOverrides;
+    }
+    merged['guild_id'] = guildId == '@me' ? null : guildId;
+    return merged;
+  }
+
+  Map<String, dynamic> _defaultUserGuildSettingsData(String guildId) {
+    return UserGuildSettingsResponse(
+      guildId: guildId == '@me' ? null : guildId,
+      messageNotifications: guildId == '@me'
+          ? UserNotificationSettings.allMessages
+          : UserNotificationSettings.inherit,
+      muted: false,
+      muteConfig: null,
+      mobilePush: true,
+      suppressEveryone: false,
+      suppressRoles: false,
+      hideMutedChannels: false,
+      channelOverrides: null,
+      version: -1,
+    ).toJson();
+  }
+
+  Map<String, dynamic>? _mergeChannelOverrides(
+    Object? existingRaw,
+    Object? updatesRaw,
+  ) {
+    if (updatesRaw == null) {
+      return null;
+    }
+    final existing = existingRaw is Map
+        ? existingRaw.cast<String, dynamic>()
+        : const <String, dynamic>{};
+    final updates = updatesRaw is Map
+        ? updatesRaw.cast<String, dynamic>()
+        : const <String, dynamic>{};
+    final merged = <String, dynamic>{...existing};
+    for (final entry in updates.entries) {
+      final existingOverride = existing[entry.key];
+      final updateOverride = entry.value;
+      if (updateOverride is Map) {
+        merged[entry.key] = <String, dynamic>{
+          ..._defaultChannelOverrideData(),
+          if (existingOverride is Map)
+            ...existingOverride.cast<String, dynamic>(),
+          ...updateOverride.cast<String, dynamic>(),
+        };
+      } else {
+        merged[entry.key] = updateOverride;
+      }
+    }
+    return merged;
+  }
+
+  Map<String, dynamic> _defaultChannelOverrideData() {
+    return const ChannelOverrides(
+      collapsed: false,
+      messageNotifications: UserNotificationSettings.inherit,
+      muted: false,
+      muteConfig: null,
+    ).toJson();
   }
 
   Future<void> _handleUserNoteUpdate(UserNoteUpdateEvent event) async {

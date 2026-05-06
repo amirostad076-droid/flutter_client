@@ -137,6 +137,74 @@ void main() {
     expect(decoded.channelOverrides?['dm-1']?.muted, isTrue);
   });
 
+  test('user guild settings update merges partial payload', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    await db.userGuildSettingsDao.upsert(
+      UserGuildSettingsTableCompanion.insert(
+        guildId: 'guild-1',
+        data: jsonEncode(
+          const UserGuildSettingsResponse(
+            guildId: 'guild-1',
+            messageNotifications: UserNotificationSettings.onlyMentions,
+            muted: false,
+            muteConfig: null,
+            mobilePush: true,
+            suppressEveryone: true,
+            suppressRoles: false,
+            hideMutedChannels: false,
+            channelOverrides: {
+              'channel-1': ChannelOverrides(
+                collapsed: false,
+                messageNotifications: UserNotificationSettings.inherit,
+                muted: false,
+                muteConfig: null,
+                unreadBadges: UserNotificationSettings.onlyMentions,
+              ),
+            },
+            unreadBadges: UserNotificationSettings.allMessages,
+            version: 1,
+          ).toJson(),
+        ),
+      ),
+    );
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(
+      const UserGuildSettingsUpdateEvent(
+        guildId: 'guild-1',
+        data: <String, dynamic>{
+          'guild_id': 'guild-1',
+          'muted': true,
+          'channel_overrides': <String, dynamic>{
+            'channel-2': <String, dynamic>{'muted': true},
+          },
+          'version': 2,
+        },
+      ),
+    );
+    await pumpEventQueue();
+
+    final row = await db.userGuildSettingsDao.getByGuildId('guild-1');
+    final decoded = UserGuildSettingsResponse.fromJson(
+      jsonDecode(row!.data) as Map<String, dynamic>,
+    );
+    expect(decoded.muted, isTrue);
+    expect(decoded.messageNotifications, UserNotificationSettings.onlyMentions);
+    expect(decoded.suppressEveryone, isTrue);
+    expect(decoded.unreadBadges, UserNotificationSettings.allMessages);
+    expect(
+      decoded.channelOverrides?['channel-1']?.unreadBadges,
+      UserNotificationSettings.onlyMentions,
+    );
+    expect(decoded.channelOverrides?['channel-2']?.muted, isTrue);
+    expect(
+      decoded.channelOverrides?['channel-2']?.messageNotifications,
+      UserNotificationSettings.inherit,
+    );
+    expect(decoded.version, 2);
+  });
+
   test('own created messages locally ack the channel', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
