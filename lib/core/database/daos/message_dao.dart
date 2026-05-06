@@ -53,6 +53,19 @@ class MessageDao extends DatabaseAccessor<FluxerDatabase>
   Future<Message?> getMessage(String id) =>
       (select(messages)..where((m) => m.id.equals(id))).getSingleOrNull();
 
+  Future<List<Message>> getAllMessagesForChannel(String channelId) =>
+      (select(messages)
+            ..where((m) => m.channelId.equals(channelId))
+            ..orderBy([(m) => OrderingTerm.asc(m.timestamp)]))
+          .get();
+
+  Future<Message?> getLastMessage(String channelId) =>
+      (select(messages)
+            ..where((m) => m.channelId.equals(channelId))
+            ..orderBy([(m) => OrderingTerm.desc(m.timestamp)])
+            ..limit(1))
+          .getSingleOrNull();
+
   Future<void> updateReactions(String messageId, String json) =>
       (update(messages)..where((m) => m.id.equals(messageId))).write(
         MessagesCompanion(reactionsJson: Value(json)),
@@ -60,6 +73,13 @@ class MessageDao extends DatabaseAccessor<FluxerDatabase>
 
   Future<void> deleteMessage(String id) =>
       (delete(messages)..where((m) => m.id.equals(id))).go();
+
+  Future<void> deleteMessages(List<String> ids) {
+    if (ids.isEmpty) {
+      return Future.value();
+    }
+    return (delete(messages)..where((m) => m.id.isIn(ids))).go();
+  }
 
   Future<void> deleteMessagesForChannel(String channelId) =>
       (delete(messages)..where((m) => m.channelId.equals(channelId))).go();

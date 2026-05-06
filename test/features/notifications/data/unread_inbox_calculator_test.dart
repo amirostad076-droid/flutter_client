@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/features/notifications/data/unread_inbox_calculator.dart';
 import 'package:fluxer_app/features/notifications/domain/unread_inbox_entry.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -92,12 +93,103 @@ void main() {
     },
   );
 
+  test(
+    'guild channel without view permission is excluded from unread inbox',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      const guildId = 'guild_test_1';
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5));
+      const userId = 'user_test_1';
+      await db.guildDao.upsertServer(
+        ServersCompanion.insert(
+          id: guildId,
+          name: 'Test Guild',
+          ownerId: const Value('owner'),
+        ),
+      );
+      await db.roleDao.upsertRoles([
+        RolesCompanion.insert(
+          id: guildId,
+          guildId: guildId,
+          name: '@everyone',
+          permissions: const Value('0'),
+        ),
+      ]);
+      await db.memberDao.upsertMember(
+        MembersCompanion.insert(userId: userId, guildId: guildId),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: channelId,
+          guildId: guildId,
+          name: 'general',
+          lastMessageId: Value(_snowflakeForUtc(DateTime.utc(2026, 5, 6))),
+        ),
+      );
+
+      final entries = await UnreadInboxCalculator.compute(
+        db,
+        collapsedByChannelId: <String, bool>{},
+        currentUserId: userId,
+      );
+
+      expect(entries, isEmpty);
+    },
+  );
+
+  test('guild channel uses join time when read state is missing', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    const guildId = 'guild_test_1';
+    final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    const userId = 'user_test_1';
+    await db.guildDao.upsertServer(
+      ServersCompanion.insert(
+        id: guildId,
+        name: 'Test Guild',
+        ownerId: const Value('owner'),
+      ),
+    );
+    await db.roleDao.upsertRoles([
+      RolesCompanion.insert(
+        id: guildId,
+        guildId: guildId,
+        name: '@everyone',
+        permissions: Value(Permission.viewChannel.value.toString()),
+      ),
+    ]);
+    await db.memberDao.upsertMember(
+      MembersCompanion.insert(
+        userId: userId,
+        guildId: guildId,
+        joinedAt: Value(DateTime.utc(2026, 5, 6, 12, 1)),
+      ),
+    );
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: channelId,
+        guildId: guildId,
+        name: 'general',
+        lastMessageId: Value(_snowflakeForUtc(DateTime.utc(2026, 5, 6, 12))),
+      ),
+    );
+
+    final entries = await UnreadInboxCalculator.compute(
+      db,
+      collapsedByChannelId: <String, bool>{},
+      currentUserId: userId,
+    );
+
+    expect(entries, isEmpty);
+  });
+
   test('guild channel with mentions-only unread badges is excluded from unread '
       'inbox', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
     const guildId = 'guild_test_1';
-    const channelId = 'channel_test_1';
+    final channelId = _snowflakeForUtc(DateTime.utc(2026, 5));
     const userId = 'user_test_1';
     await db.guildDao.upsertServer(
       ServersCompanion.insert(id: guildId, name: 'Test Guild'),

@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -27,6 +29,7 @@ const _categoryType = 4;
 @riverpod
 Stream<UnreadState> channelUnread(Ref ref, String channelId) {
   final db = ref.watch(fluxerDatabaseProvider);
+  final currentUserId = ref.watch(currentUserIdProvider);
   final controller = StreamController<UnreadState>();
   var disposed = false;
 
@@ -41,6 +44,18 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
     final latestCachedMessageId = messages.isEmpty ? null : messages.last.id;
     final latestMessageId = channel?.lastMessageId ?? latestCachedMessageId;
     final mentionCount = readState?.mentionCount ?? 0;
+    if (channel != null &&
+        !await canReadChannelForUnread(
+          database: db,
+          channel: channel,
+          currentUserId: currentUserId,
+        )) {
+      if (!disposed) {
+        controller.add(const UnreadState());
+      }
+      return;
+    }
+
     final guildSettings = channel == null
         ? null
         : await db.userGuildSettingsDao.getByGuildId(channel.guildId);
@@ -53,7 +68,13 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
                 : decodeUserGuildSettings(guildSettings.data),
             now: DateTime.now(),
           );
-    final fallbackAckMs = snowflakeTimestampMs(channel?.id ?? channelId);
+    final fallbackAckMs = channel == null
+        ? snowflakeTimestampMs(channelId)
+        : await guildChannelFallbackAckMs(
+            database: db,
+            channel: channel,
+            currentUserId: currentUserId,
+          );
     final staleSuppressed = shouldSuppressStaleUnread(
       channelLastMessageId: latestMessageId,
       ackLastMessageId: readState?.lastMessageId,
@@ -119,6 +140,7 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
 @riverpod
 Stream<UnreadState> serverUnread(Ref ref, String guildId) {
   final db = ref.watch(fluxerDatabaseProvider);
+  final currentUserId = ref.watch(currentUserIdProvider);
   final controller = StreamController<UnreadState>();
   var disposed = false;
 
@@ -157,6 +179,14 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
         continue;
       }
 
+      if (!await canReadChannelForUnread(
+        database: db,
+        channel: channel,
+        currentUserId: currentUserId,
+      )) {
+        continue;
+      }
+
       final readState = readStateMap[channel.id];
       final mentions = readState?.mentionCount ?? 0;
       final isVoice = channel.type == _voiceType;
@@ -175,7 +205,11 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
       }
 
       final channelLastMsg = channel.lastMessageId;
-      final fallbackAckMs = snowflakeTimestampMs(channel.id);
+      final fallbackAckMs = await guildChannelFallbackAckMs(
+        database: db,
+        channel: channel,
+        currentUserId: currentUserId,
+      );
       final staleSuppressed = shouldSuppressStaleUnread(
         channelLastMessageId: channelLastMsg,
         ackLastMessageId: readState?.lastMessageId,

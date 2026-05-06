@@ -1,0 +1,79 @@
+import 'dart:convert';
+
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/permissions/channel_permission_resolver.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/members/domain/member.dart';
+
+Future<bool> canReadChannelForUnread({
+  required db.FluxerDatabase database,
+  required db.Channel channel,
+  required String? currentUserId,
+}) async {
+  if (currentUserId == null || currentUserId.isEmpty) {
+    return true;
+  }
+  final guild = await database.guildDao.getServerById(channel.guildId);
+  if (guild == null) {
+    return false;
+  }
+  if (guild.ownerId == currentUserId) {
+    return true;
+  }
+
+  final member = await database.memberDao.getMemberByUserId(
+    currentUserId,
+    channel.guildId,
+  );
+  if (member == null) {
+    return false;
+  }
+
+  final roles = await database.roleDao.getRoles(channel.guildId);
+  final memberRoleIds = member.roleIdsJson.isNotEmpty
+      ? List<String>.from(jsonDecode(member.roleIdsJson) as List<dynamic>)
+      : <String>[];
+  final everyoneRole = roles
+      .where((role) => role.id == channel.guildId)
+      .firstOrNull;
+  if (everyoneRole == null && roles.isEmpty) {
+    return true;
+  }
+  final everyonePermissions =
+      int.tryParse(everyoneRole?.permissions ?? '0') ?? 0;
+  final memberRoles = roles
+      .where((role) => memberRoleIds.contains(role.id))
+      .map(MemberRole.fromRow)
+      .toList();
+  final layers = await database.channelDao
+      .getPermissionOverwriteLayersRootToLeaf(channel.id);
+  final bits = evaluateChannelEffectivePermissionBits(
+    guildOwnerId: guild.ownerId ?? '',
+    guildId: channel.guildId,
+    currentUserId: currentUserId,
+    everyonePermissions: everyonePermissions,
+    memberRoles: memberRoles,
+    memberRecordPresent: true,
+    overwriteJsonLayersRootToLeaf: layers,
+  );
+  return hasPermission(bits, Permission.viewChannel);
+}
+
+Future<int> guildChannelFallbackAckMs({
+  required db.FluxerDatabase database,
+  required db.Channel channel,
+  required String? currentUserId,
+}) async {
+  if (currentUserId != null && currentUserId.isNotEmpty) {
+    final member = await database.memberDao.getMemberByUserId(
+      currentUserId,
+      channel.guildId,
+    );
+    final joinedAt = member?.joinedAt;
+    if (joinedAt != null) {
+      return joinedAt.millisecondsSinceEpoch;
+    }
+  }
+  return snowflakeTimestampMs(channel.id);
+}

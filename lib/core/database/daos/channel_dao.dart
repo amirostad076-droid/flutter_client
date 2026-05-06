@@ -64,6 +64,9 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
   }
 
   Future<void> updateLastMessageId(String channelId, String messageId) =>
+      setLastMessageId(channelId, messageId);
+
+  Future<void> setLastMessageId(String channelId, String? messageId) =>
       (update(channels)..where((c) => c.id.equals(channelId))).write(
         ChannelsCompanion(lastMessageId: Value(messageId)),
       );

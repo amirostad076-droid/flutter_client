@@ -5,7 +5,9 @@ import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -239,6 +241,109 @@ void main() {
     expect(unread.mentionCount, 0);
   });
 
+  test('serverUnread excludes channels without view permission', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final channelId = _snowflakeForUtc(DateTime.utc(2026, 5));
+    final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6));
+    await db.guildDao.upsertServer(
+      ServersCompanion.insert(
+        id: 'guild-1',
+        name: 'Guild',
+        ownerId: const Value('owner'),
+      ),
+    );
+    await db.roleDao.upsertRoles([
+      RolesCompanion.insert(
+        id: 'guild-1',
+        guildId: 'guild-1',
+        name: '@everyone',
+        permissions: const Value('0'),
+      ),
+    ]);
+    await db.memberDao.upsertMember(
+      MembersCompanion.insert(userId: 'me', guildId: 'guild-1'),
+    );
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: channelId,
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(lastMessageId),
+      ),
+    );
+
+    final container = _container(db, currentUserId: 'me');
+    addTearDown(container.dispose);
+    final subscription = container.listen(
+      serverUnreadProvider('guild-1'),
+      (_, _) {},
+      fireImmediately: true,
+    );
+    addTearDown(subscription.close);
+
+    final unread = await container.read(serverUnreadProvider('guild-1').future);
+
+    expect(unread.hasUnread, isFalse);
+    expect(unread.mentionCount, 0);
+  });
+
+  test(
+    'serverUnread uses member join time when read state is missing',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.guildDao.upsertServer(
+        ServersCompanion.insert(
+          id: 'guild-1',
+          name: 'Guild',
+          ownerId: const Value('owner'),
+        ),
+      );
+      await db.roleDao.upsertRoles([
+        RolesCompanion.insert(
+          id: 'guild-1',
+          guildId: 'guild-1',
+          name: '@everyone',
+          permissions: Value(Permission.viewChannel.value.toString()),
+        ),
+      ]);
+      await db.memberDao.upsertMember(
+        MembersCompanion.insert(
+          userId: 'me',
+          guildId: 'guild-1',
+          joinedAt: Value(DateTime.utc(2026, 5, 6, 12, 1)),
+        ),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: channelId,
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(lastMessageId),
+        ),
+      );
+
+      final container = _container(db, currentUserId: 'me');
+      addTearDown(container.dispose);
+      final subscription = container.listen(
+        serverUnreadProvider('guild-1'),
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(subscription.close);
+
+      final unread = await container.read(
+        serverUnreadProvider('guild-1').future,
+      );
+
+      expect(unread.hasUnread, isFalse);
+      expect(unread.mentionCount, 0);
+    },
+  );
+
   test('serverUnread includes channels without read state rows', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
@@ -289,8 +394,12 @@ UserGuildSettingsResponse _guildSettings({
   version: 1,
 );
 
-ProviderContainer _container(FluxerDatabase db) {
+ProviderContainer _container(FluxerDatabase db, {String? currentUserId}) {
   return ProviderContainer(
-    overrides: [fluxerDatabaseProvider.overrideWithValue(db)],
+    overrides: [
+      fluxerDatabaseProvider.overrideWithValue(db),
+      if (currentUserId != null)
+        currentUserIdProvider.overrideWithValue(currentUserId),
+    ],
   );
 }

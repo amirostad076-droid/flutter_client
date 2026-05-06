@@ -9,8 +9,14 @@ part 'unread_dm_provider.g.dart';
 
 class UnreadDmState {
   final List<DmChannel> channels;
+  final Set<String> unreadChannelIds;
 
-  const UnreadDmState({this.channels = const []});
+  const UnreadDmState({
+    this.channels = const [],
+    this.unreadChannelIds = const {},
+  });
+
+  bool hasUnread(String channelId) => unreadChannelIds.contains(channelId);
 }
 
 @Riverpod(keepAlive: true)
@@ -60,16 +66,26 @@ class UnreadDmChannels extends _$UnreadDmChannels {
     final readStateMap = {for (final rs in readStates) rs.channelId: rs};
     final allChannels = _latestRows.map((channel) {
       final readState = readStateMap[channel.id];
-      final unreadCount = dmUnreadCountFromReadState(
-        latestMessageId: channel.lastMessageId ?? lastMessages[channel.id]?.id,
-        ackLastMessageId: readState?.lastMessageId,
-        fallbackAckMs: snowflakeTimestampMs(channel.id),
-        mentionCount: readState?.mentionCount ?? 0,
-        cachedUnreadCount: channel.unreadCount,
+      final latestMessageId =
+          channel.lastMessageId ?? lastMessages[channel.id]?.id;
+      final hasUnreadMessages =
+          (latestMessageId == null && channel.unreadCount > 0) ||
+          hasUnreadByReadState(
+            channelLastMessageId: latestMessageId,
+            ackLastMessageId: readState?.lastMessageId,
+            fallbackAckMs: snowflakeTimestampMs(channel.id),
+            mentionCount: 0,
+          );
+      final mentionCount = readState?.mentionCount ?? 0;
+      return (
+        channel: channel.copyWith(unreadCount: mentionCount),
+        hasUnread: hasUnreadMessages || mentionCount > 0,
       );
-      return channel.copyWith(unreadCount: unreadCount);
     }).toList();
-    final unreadChannels = allChannels.where((c) => c.unreadCount > 0).toList();
+    final unreadChannels = allChannels
+        .where((entry) => entry.hasUnread)
+        .map((entry) => entry.channel)
+        .toList();
     final unreadIds = unreadChannels.map((c) => c.id).toSet();
     final currentIds = state.channels.map((c) => c.id).toSet();
 
@@ -81,6 +97,7 @@ class UnreadDmChannels extends _$UnreadDmChannels {
             _removalTimers.remove(id);
             state = UnreadDmState(
               channels: state.channels.where((c) => c.id != id).toList(),
+              unreadChannelIds: {...state.unreadChannelIds}..remove(id),
             );
           });
         }
@@ -105,6 +122,6 @@ class UnreadDmChannels extends _$UnreadDmChannels {
     final newChannels = merged.values.toList()
       ..sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
 
-    state = UnreadDmState(channels: newChannels);
+    state = UnreadDmState(channels: newChannels, unreadChannelIds: unreadIds);
   }
 }

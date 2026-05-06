@@ -5,6 +5,8 @@ import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -105,7 +107,7 @@ class GatewayEventHandler {
         _handleMessageUpdate(event);
       case MessageDeleteEvent():
         talker.debug('[Gateway] MESSAGE_DELETE: ${event.messageId}');
-        _handleMessageDelete(event);
+        await _handleMessageDelete(event);
       case TypingStartEvent():
         _handleTypingStart(event);
       case PresenceUpdateEvent():
@@ -183,7 +185,7 @@ class GatewayEventHandler {
         talker.debug(
           '[Gateway] MESSAGE_DELETE_BULK: ${event.ids.length} messages',
         );
-        _handleMessageDeleteBulk(event);
+        await _handleMessageDeleteBulk(event);
       case MessageAckEvent():
         talker.debug('[Gateway] MESSAGE_ACK: ${event.channelId}');
         await _handleMessageAck(event);
@@ -968,7 +970,9 @@ class GatewayEventHandler {
 
     if (dm != null) {
       await database.dmChannelDao.incrementUnreadCount(msg.channelId);
-      await database.readStateDao.incrementMentionCount(msg.channelId);
+      if (!await _isDmMuted(msg.channelId)) {
+        await database.readStateDao.incrementMentionCount(msg.channelId);
+      }
       return;
     }
 
@@ -979,6 +983,17 @@ class GatewayEventHandler {
         channelId: msg.channelId,
       );
     }
+  }
+
+  Future<bool> _isDmMuted(String channelId) async {
+    final settingsRow = await database.userGuildSettingsDao.getByGuildId('@me');
+    final settings = settingsRow == null
+        ? null
+        : decodeUserGuildSettings(settingsRow.data);
+    return isChannelOverrideMuted(
+      settings?.channelOverrides?[channelId],
+      now: DateTime.now(),
+    );
   }
 
   Future<bool> _messageMentionsCurrentUser(
@@ -1031,9 +1046,80 @@ class GatewayEventHandler {
     onMessageUpdate?.call(event);
   }
 
-  void _handleMessageDelete(MessageDeleteEvent event) {
-    unawaited(database.messageDao.deleteMessage(event.messageId));
+  Future<void> _handleMessageDelete(MessageDeleteEvent event) async {
+    await _deleteMessagesAndRecalculate(
+      channelId: event.channelId,
+      messageIds: [event.messageId],
+    );
     onMessageDelete?.call(event);
+  }
+
+  Future<void> _deleteMessagesAndRecalculate({
+    required String channelId,
+    required List<String> messageIds,
+  }) async {
+    if (messageIds.isEmpty) {
+      return;
+    }
+
+    await database.transaction(() async {
+      for (final messageId in messageIds) {
+        await database.notificationDao.deleteMentionRow(messageId);
+      }
+      await database.messageDao.deleteMessages(messageIds);
+      await _refreshLastMessageAfterDelete(channelId, messageIds.toSet());
+      await _recalculateReadStateFromCachedMessages(channelId);
+    });
+  }
+
+  Future<void> _refreshLastMessageAfterDelete(
+    String channelId,
+    Set<String> deletedIds,
+  ) async {
+    final latest = await database.messageDao.getLastMessage(channelId);
+    final channel = await database.channelDao.getChannelById(channelId);
+    if (channel != null && deletedIds.contains(channel.lastMessageId)) {
+      await database.channelDao.setLastMessageId(channelId, latest?.id);
+    }
+
+    final dm = await database.dmChannelDao.getDmChannelById(channelId);
+    if (dm != null && deletedIds.contains(dm.lastMessageId)) {
+      await database.dmChannelDao.replaceLastMessageFromCache(
+        channelId,
+        latest,
+      );
+    }
+  }
+
+  Future<void> _recalculateReadStateFromCachedMessages(String channelId) async {
+    final readState = await database.readStateDao.getReadState(channelId);
+    if (readState == null) {
+      return;
+    }
+
+    final messages = await database.messageDao.getAllMessagesForChannel(
+      channelId,
+    );
+    final mentionCount = messages
+        .where(
+          (message) =>
+              message.isMentioned &&
+              compareSnowflakeIds(message.id, readState.lastMessageId) > 0,
+        )
+        .length;
+    await database.readStateDao.upsertReadState(
+      db.ReadStatesCompanion(
+        channelId: Value(channelId),
+        lastMessageId: Value(readState.lastMessageId),
+        mentionCount: Value(mentionCount),
+        lastPinTimestamp: Value(readState.lastPinTimestamp),
+      ),
+    );
+
+    final dm = await database.dmChannelDao.getDmChannelById(channelId);
+    if (dm != null) {
+      await database.dmChannelDao.updateUnreadCount(channelId, mentionCount);
+    }
   }
 
   void _handleTypingStart(TypingStartEvent event) {
@@ -1134,10 +1220,11 @@ class GatewayEventHandler {
     );
   }
 
-  void _handleMessageDeleteBulk(MessageDeleteBulkEvent event) {
-    for (final id in event.ids) {
-      unawaited(database.messageDao.deleteMessage(id));
-    }
+  Future<void> _handleMessageDeleteBulk(MessageDeleteBulkEvent event) async {
+    await _deleteMessagesAndRecalculate(
+      channelId: event.channelId,
+      messageIds: event.ids,
+    );
     onMessageDeleteBulk?.call(event);
   }
 

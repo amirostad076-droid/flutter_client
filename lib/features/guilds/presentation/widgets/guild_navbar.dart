@@ -242,7 +242,8 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     final unavailableCount = guilds.where((g) => g.isUnavailable).length;
 
     final dmFolderState = ref.watch(dmFolderProvider);
-    final unreadDms = ref.watch(unreadDmChannelsProvider).channels;
+    final unreadDmState = ref.watch(unreadDmChannelsProvider);
+    final unreadDms = unreadDmState.channels;
     final showFavorites = ref.watch(
       appearancePreferencesProvider.select((s) => s.showFavorites),
     );
@@ -265,10 +266,15 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     final dmItemsVisible = !dmFolderState.collapseDMs || dmFolderState.expanded;
 
     final int dmMentionCount;
+    final bool hasCollapsedDmUnread;
     if (dmFolderState.collapseDMs && !dmFolderState.expanded) {
       dmMentionCount = unreadDms.fold(0, (sum, dm) => sum + dm.unreadCount);
+      hasCollapsedDmUnread = unreadDms.any(
+        (dm) => unreadDmState.hasUnread(dm.id),
+      );
     } else {
       dmMentionCount = 0;
+      hasCollapsedDmUnread = false;
     }
 
     final permissionsNotifier = ref.read(guildPermissionsProvider.notifier);
@@ -307,6 +313,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                   isSelected: isDm,
                   svgAsset: Assets.fluxerSymbol,
                   mentionCount: pendingFriendCount + dmMentionCount,
+                  hasUnread: hasCollapsedDmUnread,
                   onTap: () {
                     if (dmFolderState.collapseDMs && isDm) {
                       ref.read(dmFolderProvider.notifier).toggleExpanded();
@@ -331,6 +338,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                     recipientId: dm.recipientId,
                     displayName: dm.name ?? 'Direct Message',
                     mentionCount: dm.unreadCount,
+                    hasUnread: unreadDmState.hasUnread(dm.id),
                     type: dm.type,
                     isSelected: currentLocation.contains(dm.id),
                     onContextMenu: (position) => _handleDmContextMenu(
@@ -359,6 +367,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                                   recipientId: dm.recipientId,
                                   displayName: dm.name ?? 'Direct Message',
                                   mentionCount: dm.unreadCount,
+                                  hasUnread: unreadDmState.hasUnread(dm.id),
                                   type: dm.type,
                                   isSelected: currentLocation.contains(dm.id),
                                   onContextMenu: (position) =>
@@ -483,7 +492,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       context,
       position: position,
       channelId: dm.id,
-      hasUnread: dm.unreadCount > 0,
+      hasUnread: ref.read(unreadDmChannelsProvider).hasUnread(dm.id),
       isMuted: mutedIds.contains(dm.id),
       isPinned: pinnedIds.contains(dm.id),
       isCollapsed: isCollapsed,

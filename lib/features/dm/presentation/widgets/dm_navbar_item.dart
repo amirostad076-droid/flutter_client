@@ -12,6 +12,7 @@ class DmNavbarItem extends ConsumerStatefulWidget {
   final int? avatarColor;
   final int type;
   final int mentionCount;
+  final bool hasUnread;
   final bool isSelected;
   final void Function(Offset position)? onContextMenu;
 
@@ -23,6 +24,7 @@ class DmNavbarItem extends ConsumerStatefulWidget {
     this.avatarUrl,
     this.avatarColor,
     this.mentionCount = 0,
+    this.hasUnread = false,
     this.isSelected = false,
     this.onContextMenu,
     super.key,
@@ -35,7 +37,7 @@ class DmNavbarItem extends ConsumerStatefulWidget {
 class _DmNavbarItemState extends ConsumerState<DmNavbarItem> {
   bool _isHovered = false;
 
-  bool get _hasUnread => widget.mentionCount > 0;
+  bool get _hasUnread => widget.hasUnread || widget.mentionCount > 0;
 
   @override
   Widget build(BuildContext context) {

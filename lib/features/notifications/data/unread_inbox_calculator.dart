@@ -1,5 +1,6 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:fluxer_app/features/notifications/domain/unread_inbox_entry.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -121,6 +122,14 @@ class UnreadInboxCalculator {
       if (channel.type == _categoryType) {
         continue;
       }
+      if (!await canReadChannelForUnread(
+        database: db,
+        channel: channel,
+        currentUserId: currentUserId,
+      )) {
+        continue;
+      }
+
       final String guildId = channel.guildId;
       final ReadState? readState = readStateMap[channel.id];
       final int mentions = readState?.mentionCount ?? 0;
