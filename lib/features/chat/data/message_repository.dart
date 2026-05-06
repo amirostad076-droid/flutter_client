@@ -99,6 +99,7 @@ class MessageRepository {
         final last = messages.last;
         await _db.dmChannelDao.updateLastMessage(
           channelId,
+          last.id,
           last.content,
           last.authorId,
           last.timestamp,
@@ -236,6 +237,7 @@ class MessageRepository {
       final last = messages.last;
       await _db.dmChannelDao.updateLastMessage(
         channelId,
+        last.id,
         last.content,
         last.authorId,
         last.timestamp,

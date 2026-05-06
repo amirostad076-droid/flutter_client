@@ -17,9 +17,26 @@ String _snowflakeForUtc(DateTime utc) {
 
 UserGuildSettingsResponse _guildSettings({
   Map<String, ChannelOverrides>? channelOverrides,
+  UserNotificationSettings messageNotifications =
+      UserNotificationSettings.inherit,
 }) => UserGuildSettingsResponse(
   guildId: 'guild_test_1',
-  messageNotifications: UserNotificationSettings.inherit,
+  messageNotifications: messageNotifications,
+  muted: false,
+  muteConfig: null,
+  mobilePush: true,
+  suppressEveryone: false,
+  suppressRoles: false,
+  hideMutedChannels: false,
+  channelOverrides: channelOverrides,
+  version: 1,
+);
+
+UserGuildSettingsResponse _dmSettings({
+  Map<String, ChannelOverrides>? channelOverrides,
+}) => UserGuildSettingsResponse(
+  guildId: null,
+  messageNotifications: UserNotificationSettings.allMessages,
   muted: false,
   muteConfig: null,
   mobilePush: true,
@@ -123,6 +140,97 @@ void main() {
       db,
       collapsedByChannelId: <String, bool>{},
       currentUserId: userId,
+    );
+
+    expect(entries, isEmpty);
+  });
+
+  test(
+    'guild channel stays in unread inbox when notifications are mentions only '
+    'and unread badges are unset',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      const guildId = 'guild_test_1';
+      const channelId = 'channel_test_1';
+      const userId = 'user_test_1';
+      await db.guildDao.upsertServer(
+        ServersCompanion.insert(id: guildId, name: 'Test Guild'),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: channelId,
+          guildId: guildId,
+          name: 'general',
+          lastMessageId: Value(_snowflakeForUtc(DateTime.utc(2026, 5))),
+        ),
+      );
+      await db.memberDao.upsertMember(
+        MembersCompanion.insert(
+          userId: userId,
+          guildId: guildId,
+          joinedAt: Value(DateTime.utc(2020, 1, 15)),
+        ),
+      );
+      await db.userGuildSettingsDao.upsert(
+        UserGuildSettingsTableCompanion.insert(
+          guildId: guildId,
+          data: jsonEncode(
+            _guildSettings(
+              messageNotifications: UserNotificationSettings.onlyMentions,
+            ).toJson(),
+          ),
+        ),
+      );
+
+      final entries = await UnreadInboxCalculator.compute(
+        db,
+        collapsedByChannelId: <String, bool>{},
+        currentUserId: userId,
+      );
+
+      expect(entries, hasLength(1));
+      expect(entries.single.channelId, channelId);
+    },
+  );
+
+  test('muted DM is excluded from unread inbox', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    await db.dmChannelDao.upsertDmChannels([
+      DmChannelsCompanion.insert(
+        id: 'dm-1',
+        recipientId: 'other',
+        unreadCount: const Value(0),
+      ),
+    ]);
+    await db.readStateDao.upsertReadState(
+      const ReadStatesCompanion(
+        channelId: Value('dm-1'),
+        mentionCount: Value(4),
+      ),
+    );
+    await db.userGuildSettingsDao.upsert(
+      UserGuildSettingsTableCompanion.insert(
+        guildId: '@me',
+        data: jsonEncode(
+          _dmSettings(
+            channelOverrides: {
+              'dm-1': const ChannelOverrides(
+                collapsed: false,
+                messageNotifications: UserNotificationSettings.inherit,
+                muted: true,
+                muteConfig: null,
+              ),
+            },
+          ).toJson(),
+        ),
+      ),
+    );
+
+    final entries = await UnreadInboxCalculator.compute(
+      db,
+      collapsedByChannelId: <String, bool>{},
     );
 
     expect(entries, isEmpty);

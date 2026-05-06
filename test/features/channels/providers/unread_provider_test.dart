@@ -199,6 +199,46 @@ void main() {
     },
   );
 
+  test('serverUnread keeps message unread when notifications are mentions only '
+      'and unread badges are unset', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final channelId = _snowflakeForUtc(DateTime.utc(2026, 5));
+    final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: channelId,
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(lastMessageId),
+      ),
+    );
+    await db.userGuildSettingsDao.upsert(
+      UserGuildSettingsTableCompanion.insert(
+        guildId: 'guild-1',
+        data: jsonEncode(
+          _guildSettings(
+            messageNotifications: UserNotificationSettings.onlyMentions,
+          ).toJson(),
+        ),
+      ),
+    );
+
+    final container = _container(db);
+    addTearDown(container.dispose);
+    final subscription = container.listen(
+      serverUnreadProvider('guild-1'),
+      (_, _) {},
+      fireImmediately: true,
+    );
+    addTearDown(subscription.close);
+
+    final unread = await container.read(serverUnreadProvider('guild-1').future);
+
+    expect(unread.hasUnread, isTrue);
+    expect(unread.mentionCount, 0);
+  });
+
   test('serverUnread includes channels without read state rows', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);

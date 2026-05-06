@@ -121,7 +121,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 35;
+  int get schemaVersion => 36;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -391,15 +391,14 @@ class FluxerDatabase extends _$FluxerDatabase {
         await m.createTable(notificationUnreadCollapsed);
         await m.createTable(notificationMentionFeed);
         await m.createTable(notificationMentionPrefs);
-        await into(notificationMentionPrefs).insert(
-          NotificationMentionPrefsCompanion.insert(
-            id: const Value(1),
-          ),
-        );
+        await into(
+          notificationMentionPrefs,
+        ).insert(NotificationMentionPrefsCompanion.insert(id: const Value(1)));
       }
       if (from < 33) {
-        final List<QueryRow> messageColumns =
-            await customSelect('PRAGMA table_info(messages)').get();
+        final List<QueryRow> messageColumns = await customSelect(
+          'PRAGMA table_info(messages)',
+        ).get();
         final bool hasStickersJson = messageColumns.any(
           (QueryRow row) => row.read<String?>('name') == 'stickers_json',
         );
@@ -418,6 +417,9 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 35) {
         await m.addColumn(channels, channels.lastPinTimestamp);
+      }
+      if (from < 36) {
+        await m.addColumn(dmChannels, dmChannels.lastMessageId);
       }
     },
   );

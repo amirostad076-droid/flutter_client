@@ -98,7 +98,7 @@ class DmRepository {
         remoteRecipientIds: remoteRecipientIds,
         unreadCount: dmUnreadCountFromReadState(
           hasReadState: readState != null,
-          latestMessageId: lastMsg?.id,
+          latestMessageId: row.lastMessageId ?? lastMsg?.id,
           ackLastMessageId: readState?.lastMessageId,
           mentionCount: readState?.mentionCount ?? 0,
           cachedUnreadCount: row.unreadCount,
@@ -175,6 +175,7 @@ class DmRepository {
       icon: Value(channel.icon),
       recipientCount: Value(recipients.length + 1),
       recipientIds: Value(jsonEncode(recipients.map((r) => r.id).toList())),
+      lastMessageId: Value(channel.lastMessageId),
       lastMessageTime: Value(
         channel.lastMessageId != null
             ? dateTimeFromSnowflakeAsLocalOrNow(channel.lastMessageId!)

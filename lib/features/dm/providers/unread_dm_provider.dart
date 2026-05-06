@@ -62,7 +62,7 @@ class UnreadDmChannels extends _$UnreadDmChannels {
       final readState = readStateMap[channel.id];
       final unreadCount = dmUnreadCountFromReadState(
         hasReadState: readState != null,
-        latestMessageId: lastMessages[channel.id]?.id,
+        latestMessageId: channel.lastMessageId ?? lastMessages[channel.id]?.id,
         ackLastMessageId: readState?.lastMessageId,
         mentionCount: readState?.mentionCount ?? 0,
         cachedUnreadCount: channel.unreadCount,

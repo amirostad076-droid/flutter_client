@@ -28,6 +28,7 @@ class DmChannelDao extends DatabaseAccessor<FluxerDatabase>
 
   Future<void> updateLastMessage(
     String channelId,
+    String messageId,
     String message,
     String authorId,
     DateTime timestamp,
@@ -40,6 +41,7 @@ class DmChannelDao extends DatabaseAccessor<FluxerDatabase>
           .write(
             DmChannelsCompanion(
               lastMessage: Value(message),
+              lastMessageId: Value(messageId),
               lastMessageAuthorId: Value(authorId),
               lastMessageTime: Value(timestamp),
             ),

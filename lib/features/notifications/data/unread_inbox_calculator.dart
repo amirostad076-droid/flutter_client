@@ -189,11 +189,18 @@ class UnreadInboxCalculator {
     final dmLastMessages = await db.messageDao.getLastMessageForChannels(
       dms.map((dm) => dm.id).toList(),
     );
+    final dmSettings = guildSettingsByGuild['@me'];
     for (final DmChannel dm in dms) {
+      if (isChannelOverrideMuted(
+        dmSettings?.channelOverrides?[dm.id],
+        now: DateTime.fromMillisecondsSinceEpoch(nowMs),
+      )) {
+        continue;
+      }
       final readState = readStateMap[dm.id];
       final unreadCount = dmUnreadCountFromReadState(
         hasReadState: readState != null,
-        latestMessageId: dmLastMessages[dm.id]?.id,
+        latestMessageId: dm.lastMessageId ?? dmLastMessages[dm.id]?.id,
         ackLastMessageId: readState?.lastMessageId,
         mentionCount: readState?.mentionCount ?? 0,
         cachedUnreadCount: dm.unreadCount,

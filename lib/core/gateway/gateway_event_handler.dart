@@ -536,6 +536,7 @@ class GatewayEventHandler {
               recipientIds: Value(
                 jsonEncode(recipients.map((r) => r.id).toList()),
               ),
+              lastMessageId: Value(ch.lastMessageId),
               lastMessageTime: Value(
                 ch.lastMessageId != null
                     ? dateTimeFromSnowflakeAsLocalOrNow(ch.lastMessageId!)
@@ -824,6 +825,7 @@ class GatewayEventHandler {
     // Update DM last-message metadata (no-ops for guild channels).
     await database.dmChannelDao.updateLastMessage(
       msg.channelId,
+      msg.id,
       msg.content,
       msg.authorId,
       msg.timestamp,
@@ -984,6 +986,7 @@ class GatewayEventHandler {
             recipientIds: Value(
               jsonEncode(recipients.map((r) => r.id).toList()),
             ),
+            lastMessageId: Value(channel.lastMessageId),
           ),
         ]),
       );

@@ -93,6 +93,43 @@ void main() {
     },
   );
 
+  test(
+    'watchDmChannels derives unread from DM latest message id without cache',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12, 1));
+      await db.userDao.upsertUser(
+        UsersCompanion.insert(id: 'other', username: 'Other'),
+      );
+      await db.dmChannelDao.upsertDmChannels([
+        DmChannelsCompanion.insert(
+          id: 'dm-1',
+          recipientId: 'other',
+          lastMessageId: Value(latestId),
+          unreadCount: const Value(0),
+        ),
+      ]);
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('dm-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+        ),
+      );
+
+      final repo = DmRepository(
+        FluxerClient(Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))),
+        db,
+      );
+
+      final conversations = await repo.watchDmChannels().first;
+
+      expect(conversations.single.unreadCount, 1);
+    },
+  );
+
   test('watchDmChannels reacts to read state changes', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);

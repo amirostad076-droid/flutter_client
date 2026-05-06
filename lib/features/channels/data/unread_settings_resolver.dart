@@ -55,6 +55,13 @@ bool _isGuildMuted(UserGuildSettingsResponse? settings, DateTime now) {
   return _isMuteActive(settings?.muteConfig?.endTime, now);
 }
 
+bool isChannelOverrideMuted(
+  ChannelOverrides? override, {
+  required DateTime now,
+}) {
+  return _isChannelMuted(override, now);
+}
+
 bool _isChannelMuted(ChannelOverrides? override, DateTime now) {
   if (override?.muted != true) {
     return false;
@@ -79,9 +86,6 @@ bool _allowsMessageUnread({
       _explicitLevel(directOverride?.unreadBadges) ??
       _explicitLevel(parentOverride?.unreadBadges) ??
       _explicitLevel(guildSettings?.unreadBadges) ??
-      _explicitLevel(directOverride?.messageNotifications) ??
-      _explicitLevel(parentOverride?.messageNotifications) ??
-      _explicitLevel(guildSettings?.messageNotifications) ??
       UserNotificationSettings.allMessages;
   return badgeLevel == UserNotificationSettings.allMessages;
 }
