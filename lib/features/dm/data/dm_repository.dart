@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -71,8 +72,7 @@ class DmRepository {
     String primaryRecipientId,
   ) {
     final Set<String> combined = {...parsedRecipientIds, primaryRecipientId};
-    final List<String> out = combined.toList();
-    out.sort();
+    final List<String> out = combined.toList()..sort();
     return out;
   }
 
@@ -214,23 +214,8 @@ class DmRepository {
     return channel.id;
   }
 
-  Future<void> markAsRead(String channelId) async {
-    await _db.dmChannelDao.markAsRead(channelId);
-
-    // Find the latest message to ack: prefer cached messages, fall back
-    // to the read state's ack point.
-    final messages = await _db.messageDao.getMessages(channelId, limit: 1);
-    final messageId = messages.isNotEmpty
-        ? messages.last.id
-        : (await _db.readStateDao.getReadState(channelId))?.lastMessageId;
-    if (messageId != null) {
-      await _client.channels.acknowledgeMessage(
-        channelId: channelId,
-        messageId: messageId,
-        body: const MessageAckRequest(),
-      );
-    }
-  }
+  Future<void> markAsRead(String channelId) =>
+      ReadStateRepository(_client, _db).ackLatest(channelId);
 
   Future<void> closeDmChannel(String channelId) async {
     await _client.channels.deleteChannel(channelId: channelId);

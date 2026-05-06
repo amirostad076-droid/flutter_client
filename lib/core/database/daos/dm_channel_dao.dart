@@ -45,10 +45,20 @@ class DmChannelDao extends DatabaseAccessor<FluxerDatabase>
             ),
           );
 
-  Future<void> markAsRead(String channelId) =>
+  Future<void> markAsRead(String channelId) => updateUnreadCount(channelId, 0);
+
+  Future<void> updateUnreadCount(String channelId, int count) =>
       (update(dmChannels)..where((d) => d.id.equals(channelId))).write(
-        const DmChannelsCompanion(unreadCount: Value(0)),
+        DmChannelsCompanion(unreadCount: Value(count)),
       );
+
+  Future<void> incrementUnreadCount(String channelId) async {
+    final row = await getDmChannelById(channelId);
+    if (row == null) {
+      return;
+    }
+    await updateUnreadCount(channelId, row.unreadCount + 1);
+  }
 
   Future<void> deleteDmChannel(String channelId) =>
       (delete(dmChannels)..where((d) => d.id.equals(channelId))).go();

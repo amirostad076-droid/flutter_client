@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/shared/utils/snowflake_time.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -20,53 +20,68 @@ class UnreadState {
 const _voiceType = 2;
 const _categoryType = 4;
 
-/// Messages older than 7 days are suppressed from unread indicators
-/// unless the channel was recently visited or has mentions.
-const _oldMessageThreshold = Duration(days: 7);
-
-/// A channel is considered "recently visited" if it was acked within
-/// the last 3 days.
-const _recentVisitThreshold = Duration(days: 3);
-
-/// Extracts millisecond timestamp from a snowflake ID, or 0 if invalid.
-int _snowflakeTimestamp(String? id) {
-  if (id == null) {
-    return 0;
-  }
-  final parsed = int.tryParse(id);
-  if (parsed == null) {
-    return 0;
-  }
-  return (parsed >> 22) + kSnowflakeEpochMs;
-}
-
 @riverpod
-Stream<UnreadState> channelUnread(Ref ref, String channelId) async* {
+Stream<UnreadState> channelUnread(Ref ref, String channelId) {
   final db = ref.watch(fluxerDatabaseProvider);
+  final controller = StreamController<UnreadState>();
+  var disposed = false;
 
-  await for (final readState in db.readStateDao.watchReadState(channelId)) {
-    if (readState == null || readState.lastMessageId == null) {
-      yield const UnreadState();
-      continue;
+  Future<void> recompute() async {
+    if (disposed) {
+      return;
     }
 
+    final channel = await db.channelDao.getChannelById(channelId);
+    final readState = await db.readStateDao.getReadState(channelId);
     final messages = await db.messageDao.getMessages(channelId, limit: 1);
-    if (messages.isEmpty) {
-      yield UnreadState(
-        hasUnread: readState.mentionCount > 0,
-        mentionCount: readState.mentionCount,
-      );
-      continue;
-    }
-
-    final latestMessageId = messages.last.id;
-    final hasUnread = latestMessageId != readState.lastMessageId;
-
-    yield UnreadState(
-      hasUnread: hasUnread || readState.mentionCount > 0,
-      mentionCount: readState.mentionCount,
+    final latestCachedMessageId = messages.isEmpty ? null : messages.last.id;
+    final latestMessageId = channel?.lastMessageId ?? latestCachedMessageId;
+    final mentionCount = readState?.mentionCount ?? 0;
+    final fallbackAckMs = snowflakeTimestampMs(channel?.id ?? channelId);
+    final staleSuppressed = shouldSuppressStaleUnread(
+      channelLastMessageId: latestMessageId,
+      ackLastMessageId: readState?.lastMessageId,
+      fallbackAckMs: fallbackAckMs,
+      mentionCount: mentionCount,
+      now: DateTime.now(),
     );
+    final hasUnread =
+        !staleSuppressed &&
+        hasUnreadByReadState(
+          channelLastMessageId: latestMessageId,
+          ackLastMessageId: readState?.lastMessageId,
+          fallbackAckMs: fallbackAckMs,
+          mentionCount: mentionCount,
+        );
+
+    if (!disposed) {
+      controller.add(
+        UnreadState(hasUnread: hasUnread, mentionCount: mentionCount),
+      );
+    }
   }
+
+  final channelSub = db.channelDao
+      .watchChannelById(channelId)
+      .listen((_) => unawaited(recompute()));
+  final readStateSub = db.readStateDao
+      .watchReadState(channelId)
+      .listen((_) => unawaited(recompute()));
+  final messageSub = db.messageDao
+      .watchMessages(channelId)
+      .listen((_) => unawaited(recompute()));
+
+  unawaited(recompute());
+
+  ref.onDispose(() {
+    disposed = true;
+    unawaited(channelSub.cancel());
+    unawaited(readStateSub.cancel());
+    unawaited(messageSub.cancel());
+    unawaited(controller.close());
+  });
+
+  return controller.stream;
 }
 
 @riverpod
@@ -120,11 +135,7 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
       }
 
       final readState = readStateMap[channel.id];
-      if (readState == null || readState.lastMessageId == null) {
-        continue;
-      }
-
-      final mentions = readState.mentionCount;
+      final mentions = readState?.mentionCount ?? 0;
       final isVoice = channel.type == _voiceType;
       final isMuted =
           guildMuted ||
@@ -140,27 +151,26 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
       }
 
       final channelLastMsg = channel.lastMessageId;
-      final lastMsgTs = _snowflakeTimestamp(channelLastMsg);
-      final ackTs = _snowflakeTimestamp(readState.lastMessageId);
-
-      // Suppress old unreads: messages older than 7 days are hidden unless
-      // the channel was recently visited (acked within 3 days) or has
-      // mentions.
-      if (lastMsgTs > 0 &&
-          lastMsgTs < nowMs - _oldMessageThreshold.inMilliseconds) {
-        final recentlyVisited =
-            ackTs > 0 && ackTs > nowMs - _recentVisitThreshold.inMilliseconds;
-        if (!recentlyVisited && mentions == 0) {
-          continue;
-        }
+      final fallbackAckMs = snowflakeTimestampMs(channel.id);
+      final staleSuppressed = shouldSuppressStaleUnread(
+        channelLastMessageId: channelLastMsg,
+        ackLastMessageId: readState?.lastMessageId,
+        fallbackAckMs: fallbackAckMs,
+        mentionCount: mentions,
+        now: DateTime.fromMillisecondsSinceEpoch(nowMs),
+      );
+      if (staleSuppressed) {
+        continue;
       }
 
       totalMentions += mentions;
 
-      // Use snowflake timestamp comparison: unread if ack < last message.
-      if (lastMsgTs > 0 && ackTs < lastMsgTs) {
-        anyUnread = true;
-      } else if (mentions > 0) {
+      if (hasUnreadByReadState(
+        channelLastMessageId: channelLastMsg,
+        ackLastMessageId: readState?.lastMessageId,
+        fallbackAckMs: fallbackAckMs,
+        mentionCount: mentions,
+      )) {
         anyUnread = true;
       }
     }

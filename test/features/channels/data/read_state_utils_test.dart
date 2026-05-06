@@ -1,0 +1,95 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/shared/utils/snowflake_time.dart';
+
+String _snowflakeForUtc(DateTime utc) {
+  final int internal = (utc.millisecondsSinceEpoch - kSnowflakeEpochMs) << 22;
+  return internal.toString();
+}
+
+void main() {
+  test(
+    'hasUnreadByReadState uses fallback ack time when no read state exists',
+    () {
+      final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final fallbackAckMs = DateTime.utc(2026, 5, 6, 11).millisecondsSinceEpoch;
+
+      expect(
+        hasUnreadByReadState(
+          channelLastMessageId: lastMessageId,
+          ackLastMessageId: null,
+          fallbackAckMs: fallbackAckMs,
+          mentionCount: 0,
+        ),
+        isTrue,
+      );
+    },
+  );
+
+  test('hasUnreadByReadState treats matching ack and last message as read', () {
+    final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+
+    expect(
+      hasUnreadByReadState(
+        channelLastMessageId: lastMessageId,
+        ackLastMessageId: lastMessageId,
+        fallbackAckMs: 0,
+        mentionCount: 0,
+      ),
+      isFalse,
+    );
+  });
+
+  test('shouldSuppressStaleUnread suppresses old unread channels', () {
+    final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 4, 20, 12));
+    final fallbackAckMs = DateTime.utc(2026, 4).millisecondsSinceEpoch;
+
+    expect(
+      shouldSuppressStaleUnread(
+        channelLastMessageId: lastMessageId,
+        ackLastMessageId: null,
+        fallbackAckMs: fallbackAckMs,
+        mentionCount: 0,
+        now: DateTime.utc(2026, 5, 6, 12),
+      ),
+      isTrue,
+    );
+  });
+
+  test('snowflakeAtPreviousMillisecond sorts before target snowflake', () {
+    final target = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final previous = snowflakeAtPreviousMillisecond(target);
+
+    expect(compareSnowflakeIds(previous, target), isNegative);
+  });
+
+  test('oldestUnreadMessageId returns first message newer than ack', () {
+    final first = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final second = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12, 1));
+    final third = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12, 2));
+
+    expect(
+      oldestUnreadMessageId(
+        messageIds: [first, second, third],
+        ackLastMessageId: second,
+      ),
+      third,
+    );
+  });
+
+  test(
+    'oldestUnreadMessageId returns null when all cached messages are read',
+    () {
+      final first = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final second = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12, 1));
+
+      expect(
+        oldestUnreadMessageId(
+          messageIds: [first, second],
+          ackLastMessageId: second,
+        ),
+        null,
+      );
+    },
+  );
+}

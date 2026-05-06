@@ -1,16 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
+import 'package:fluxer_app/features/chat/providers/chat_read_ack_gate.dart';
 import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
@@ -25,6 +28,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'chat_view_model.g.dart';
 
 const _kPageSize = 30;
+const _kReadAckMinInterval = Duration(seconds: 5);
 
 class ChatViewState {
   static const _unset = Object();
@@ -103,6 +107,12 @@ class ChatViewState {
 @Riverpod(keepAlive: true)
 class ChatViewModel extends _$ChatViewModel {
   StreamSubscription<MessageRealtimeEvent>? _eventsSub;
+  final ChatReadAckGate _readAckGate = ChatReadAckGate(
+    minInterval: _kReadAckMinInterval,
+  );
+  Timer? _readAckRetryTimer;
+  bool _readViewportActive = false;
+  bool _readViewportNearBottom = true;
   int _nonceTimestampMs = 0;
   int _nonceSequence = 0;
 
@@ -111,7 +121,10 @@ class ChatViewModel extends _$ChatViewModel {
     final bus = ref.watch(messageRealtimeBusProvider);
     unawaited(_eventsSub?.cancel());
     _eventsSub = bus.stream.listen(_onRealtimeEvent);
-    ref.onDispose(() => unawaited(_eventsSub?.cancel()));
+    ref.onDispose(() {
+      _readAckRetryTimer?.cancel();
+      unawaited(_eventsSub?.cancel());
+    });
     return const ChatViewState(
       channelId: '',
       messages: [],
@@ -131,6 +144,9 @@ class ChatViewModel extends _$ChatViewModel {
     final next = await _nextMessagesFor(ev);
     if (next != null) {
       state = state.copyWith(messages: next);
+      if (ev is MessageCreated) {
+        unawaited(ackCurrentChannel());
+      }
     }
   }
 
@@ -218,6 +234,10 @@ class ChatViewModel extends _$ChatViewModel {
     String? targetMessageId,
     bool loadMessages = true,
   }) async {
+    if (state.channelId.isNotEmpty && state.channelId != channelId) {
+      _readAckRetryTimer?.cancel();
+      _readAckGate.clearManualUnread(state.channelId);
+    }
     if (targetMessageId != null) {
       if (state.channelId == channelId && state.isLoading) {
         return;
@@ -292,6 +312,9 @@ class ChatViewModel extends _$ChatViewModel {
         isLoading: false,
         hasMoreMessages: messages.length >= _kPageSize,
       );
+      if (targetMessageId == null) {
+        unawaited(ackCurrentChannel());
+      }
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load messages: $e');
       state = state.copyWith(
@@ -324,6 +347,89 @@ class ChatViewModel extends _$ChatViewModel {
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load more: $e');
       state = state.copyWith(isLoadingMore: false);
+    }
+  }
+
+  void setReadViewportActive({required bool isActive}) {
+    _readViewportActive = isActive;
+    if (!isActive) {
+      _readAckRetryTimer?.cancel();
+      return;
+    }
+    unawaited(ackCurrentChannel());
+  }
+
+  void updateReadViewport({required bool isNearBottom}) {
+    _readViewportNearBottom = isNearBottom;
+    if (!isNearBottom) {
+      _readAckRetryTimer?.cancel();
+      return;
+    }
+    unawaited(ackCurrentChannel());
+  }
+
+  Future<void> ackCurrentChannel({bool force = false}) async {
+    final channelId = state.channelId;
+    final now = DateTime.now();
+    if (!_readAckGate.canAttemptAck(
+      channelId: channelId,
+      isActive: _readViewportActive,
+      isNearBottom: _readViewportNearBottom,
+      now: now,
+      force: force,
+    )) {
+      final retryDelay = _readAckGate.retryDelay(
+        channelId: channelId,
+        isActive: _readViewportActive,
+        isNearBottom: _readViewportNearBottom,
+        now: now,
+      );
+      if (retryDelay != null && retryDelay > Duration.zero) {
+        _scheduleReadAckRetry(retryDelay);
+      }
+      return;
+    }
+
+    _readAckRetryTimer?.cancel();
+    _readAckGate.markAttemptStarted(channelId, now: now);
+    try {
+      await ReadStateRepository(
+        ref.read(fluxerClientProvider),
+        ref.read(fluxerDatabaseProvider),
+      ).ackLatest(channelId);
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to ack channel: $e');
+    } finally {
+      _readAckGate.markAttemptFinished(channelId);
+    }
+  }
+
+  void _scheduleReadAckRetry(Duration delay) {
+    _readAckRetryTimer?.cancel();
+    _readAckRetryTimer = Timer(delay, () {
+      _readAckRetryTimer = null;
+      unawaited(ackCurrentChannel());
+    });
+  }
+
+  Future<void> markMessageUnread(String messageId) async {
+    final channelId = state.channelId;
+    if (channelId.isEmpty || messageId.isEmpty) {
+      return;
+    }
+    try {
+      await ReadStateRepository(
+        ref.read(fluxerClientProvider),
+        ref.read(fluxerDatabaseProvider),
+      ).markMessageUnread(
+        channelId: channelId,
+        messageId: messageId,
+        currentUserId: ref.read(currentUserIdProvider),
+      );
+      _readAckRetryTimer?.cancel();
+      _readAckGate.markManualUnread(channelId);
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to mark unread: $e');
     }
   }
 
@@ -413,7 +519,9 @@ class ChatViewModel extends _$ChatViewModel {
               .read(fluxerDatabaseProvider)
               .userDao
               .getUserById(currentUserId);
-    final String authorName = currentUser?.globalName?.trim().isNotEmpty == true
+    final bool hasGlobalName =
+        currentUser?.globalName?.trim().isNotEmpty ?? false;
+    final String authorName = hasGlobalName
         ? currentUser!.globalName!
         : currentUser?.username ?? 'You';
     final String clientNonce = _createClientNonce(channelId);

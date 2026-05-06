@@ -30,9 +30,7 @@ typedef ConnectionsUpdateCallback =
     void Function(List<ConnectionResponse> connections);
 typedef UserSettingsHydrateCallback =
     void Function(UserSettingsResponse settings);
-typedef VoiceServerUpdateCallback = void Function(
-  VoiceServerUpdateEvent event,
-);
+typedef VoiceServerUpdateCallback = void Function(VoiceServerUpdateEvent event);
 
 class GatewayEventHandler {
   GatewayEventHandler({
@@ -98,7 +96,7 @@ class GatewayEventHandler {
         talker.info('[Gateway] RESUMED');
       case MessageCreateEvent():
         talker.debug('[Gateway] MESSAGE_CREATE: ${event.message.channelId}');
-        _handleMessageCreate(event);
+        await _handleMessageCreate(event);
       case MessageUpdateEvent():
         talker.debug('[Gateway] MESSAGE_UPDATE: ${event.message.id}');
         _handleMessageUpdate(event);
@@ -185,7 +183,7 @@ class GatewayEventHandler {
         _handleMessageDeleteBulk(event);
       case MessageAckEvent():
         talker.debug('[Gateway] MESSAGE_ACK: ${event.channelId}');
-        _handleMessageAck(event);
+        await _handleMessageAck(event);
       case MessageReactionAddManyEvent():
         talker.debug('[Gateway] MESSAGE_REACTION_ADD_MANY: ${event.messageId}');
         _handleReactionAddMany(event);
@@ -313,9 +311,7 @@ class GatewayEventHandler {
         unawaited(database.savedMessageDao.removeSavedMessage(event.messageId));
       case RecentMentionDeleteEvent():
         talker.debug('[Gateway] RECENT_MENTION_DELETE: ${event.messageId}');
-        unawaited(
-          database.notificationDao.deleteMentionRow(event.messageId),
-        );
+        unawaited(database.notificationDao.deleteMentionRow(event.messageId));
       case WebhooksUpdateEvent():
         talker.debug('[Gateway] WEBHOOKS_UPDATE: ${event.channelId}');
       case FavoriteMemeCreateEvent():
@@ -350,6 +346,10 @@ class GatewayEventHandler {
     _currentUserId = event.user.id;
     onPermissionsClearAll?.call();
     onAuthSessionIdHashChanged?.call(event.authSessionIdHash);
+
+    final readStatesByChannelId = <String, GatewayReadState>{
+      for (final readState in event.readStates) readState.id: readState,
+    };
 
     await database.transaction(() async {
       // Clear all entity tables (full replace).
@@ -529,6 +529,9 @@ class GatewayEventHandler {
                 ch.lastMessageId != null
                     ? dateTimeFromSnowflakeAsLocalOrNow(ch.lastMessageId!)
                     : dateTimeFromSnowflakeAsLocalOrNow(ch.id),
+              ),
+              unreadCount: Value(
+                readStatesByChannelId[ch.id]?.mentionCount ?? 0,
               ),
             ),
           );
@@ -784,33 +787,120 @@ class GatewayEventHandler {
     await database.favoriteMemesDao.deleteMeme(event.id);
   }
 
-  void _handleMessageCreate(MessageCreateEvent event) {
-    final msg = Message.fromSdk(event.message, currentUserId: currentUserId);
+  Future<void> _handleMessageCreate(MessageCreateEvent event) async {
+    final mentionsCurrentUser = await _messageMentionsCurrentUser(
+      event.message,
+    );
+    final msg = Message.fromSdk(
+      event.message,
+      currentUserId: currentUserId,
+    ).copyWith(isMentioned: mentionsCurrentUser);
 
     // Clear typing indicator for the message author.
     onTypingClear?.call(msg.channelId, msg.authorId);
 
     // Upsert the author.
-    unawaited(
-      database.userDao.upsertUser(userFromPartialSdk(event.message.author)),
-    );
+    await database.userDao.upsertUser(userFromPartialSdk(event.message.author));
 
-    unawaited(database.messageDao.upsertMessage(msg.toCompanion()));
+    await database.messageDao.upsertMessage(msg.toCompanion());
 
     // Update channel's last message ID for unread tracking.
-    unawaited(database.channelDao.updateLastMessageId(msg.channelId, msg.id));
+    await database.channelDao.updateLastMessageId(msg.channelId, msg.id);
 
     // Update DM last-message metadata (no-ops for guild channels).
-    unawaited(
-      database.dmChannelDao.updateLastMessage(
-        msg.channelId,
-        msg.content,
-        msg.authorId,
-        msg.timestamp,
-      ),
+    await database.dmChannelDao.updateLastMessage(
+      msg.channelId,
+      msg.content,
+      msg.authorId,
+      msg.timestamp,
+    );
+
+    await _updateReadStateForCreatedMessage(
+      msg,
+      mentionsCurrentUser: mentionsCurrentUser,
     );
 
     onMessageCreate?.call(event);
+  }
+
+  Future<void> _updateReadStateForCreatedMessage(
+    Message msg, {
+    required bool mentionsCurrentUser,
+  }) async {
+    final isOwnMessage = msg.authorId == currentUserId;
+    final dm = await database.dmChannelDao.getDmChannelById(msg.channelId);
+
+    if (isOwnMessage) {
+      await database.readStateDao.upsertReadState(
+        db.ReadStatesCompanion(
+          channelId: Value(msg.channelId),
+          lastMessageId: Value(msg.id),
+          mentionCount: const Value(0),
+        ),
+      );
+      if (dm != null) {
+        await database.dmChannelDao.markAsRead(msg.channelId);
+      }
+      return;
+    }
+
+    if (dm != null) {
+      await database.dmChannelDao.incrementUnreadCount(msg.channelId);
+      await database.readStateDao.incrementMentionCount(msg.channelId);
+      return;
+    }
+
+    if (mentionsCurrentUser) {
+      await database.readStateDao.incrementMentionCount(msg.channelId);
+      await database.notificationDao.prependMentionRow(
+        messageId: msg.id,
+        channelId: msg.channelId,
+      );
+    }
+  }
+
+  Future<bool> _messageMentionsCurrentUser(
+    MessageResponseSchema message,
+  ) async {
+    final userId = currentUserId;
+    if (userId == null || message.author.id == userId) {
+      return false;
+    }
+    if (message.mentions?.any((u) => u.id == userId) ?? false) {
+      return true;
+    }
+    final channel = await database.channelDao.getChannelById(message.channelId);
+    if (channel == null) {
+      return message.mentionEveryone;
+    }
+    final settingsRow = await database.userGuildSettingsDao.getByGuildId(
+      channel.guildId,
+    );
+    final settings = settingsRow == null
+        ? null
+        : UserGuildSettingsResponse.fromJson(
+            jsonDecode(settingsRow.data) as Map<String, dynamic>,
+          );
+    if (message.mentionEveryone) {
+      return !(settings?.suppressEveryone ?? false);
+    }
+    final roleIds = message.mentionRoles;
+    if (roleIds == null ||
+        roleIds.isEmpty ||
+        (settings?.suppressRoles ?? false)) {
+      return false;
+    }
+    final member = await database.memberDao.getMemberByUserId(
+      userId,
+      channel.guildId,
+    );
+    if (member == null) {
+      return false;
+    }
+    final memberRoleIds = (jsonDecode(member.roleIdsJson) as List<dynamic>)
+        .map((roleId) => roleId.toString())
+        .toSet();
+    return roleIds.any(memberRoleIds.contains);
   }
 
   void _handleMessageUpdate(MessageUpdateEvent event) {
@@ -1167,16 +1257,22 @@ class GatewayEventHandler {
     await database.messageDao.updateReactions(messageId, jsonEncode(reactions));
   }
 
-  void _handleMessageAck(MessageAckEvent event) {
-    unawaited(
-      database.readStateDao.upsertReadState(
-        db.ReadStatesCompanion(
-          channelId: Value(event.channelId),
-          lastMessageId: Value(event.messageId),
-          mentionCount: Value(event.mentionCount ?? 0),
-        ),
+  Future<void> _handleMessageAck(MessageAckEvent event) async {
+    final mentionCount = event.mentionCount ?? 0;
+    await database.readStateDao.upsertReadState(
+      db.ReadStatesCompanion(
+        channelId: Value(event.channelId),
+        lastMessageId: Value(event.messageId),
+        mentionCount: Value(mentionCount),
       ),
     );
+    final dm = await database.dmChannelDao.getDmChannelById(event.channelId);
+    if (dm != null) {
+      await database.dmChannelDao.updateUnreadCount(
+        event.channelId,
+        mentionCount,
+      );
+    }
   }
 
   void _handleReactionAddMany(MessageReactionAddManyEvent event) {

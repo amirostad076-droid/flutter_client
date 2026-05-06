@@ -84,6 +84,7 @@ class MessageItem extends ConsumerStatefulWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onRetry;
   final VoidCallback? onDeleteFailed;
+  final VoidCallback? onMarkAsUnread;
   final void Function(String emoji, {String? emojiId, bool animated})?
   onReaction;
   final bool inboxPreviewMode;
@@ -103,6 +104,7 @@ class MessageItem extends ConsumerStatefulWidget {
     this.onDelete,
     this.onRetry,
     this.onDeleteFailed,
+    this.onMarkAsUnread,
     this.onReaction,
     this.inboxPreviewMode = false,
     this.hideMentionHighlight = false,
@@ -182,10 +184,11 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         }
       case MessageAction.pin:
       case MessageAction.bookmark:
-      case MessageAction.markAsUnread:
       case MessageAction.copyMessageLink:
       case null:
         break;
+      case MessageAction.markAsUnread:
+        widget.onMarkAsUnread?.call();
     }
   }
 
@@ -578,9 +581,12 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     final DateTime localEditedTimestamp = editedTimestamp.toLocal();
     final MaterialLocalizations materialLocalizations =
         MaterialLocalizations.of(context);
+    final TimeOfDay localEditedTime = TimeOfDay.fromDateTime(
+      localEditedTimestamp,
+    );
     final String editedTooltip =
         '${materialLocalizations.formatFullDate(localEditedTimestamp)} '
-        '${materialLocalizations.formatTimeOfDay(TimeOfDay.fromDateTime(localEditedTimestamp))}';
+        '${materialLocalizations.formatTimeOfDay(localEditedTime)}';
     return Tooltip(
       message: editedTooltip,
       child: DefaultTextStyle(

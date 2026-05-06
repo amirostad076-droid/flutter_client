@@ -42,30 +42,27 @@ class NotificationDao extends DatabaseAccessor<FluxerDatabase>
     );
   }
 
-  Future<void> deleteUnreadCollapsed(String channelId) =>
-      (delete(notificationUnreadCollapsed)
-            ..where((t) => t.channelId.equals(channelId)))
-          .go();
+  Future<void> deleteUnreadCollapsed(String channelId) => (delete(
+    notificationUnreadCollapsed,
+  )..where((t) => t.channelId.equals(channelId))).go();
 
   Stream<List<NotificationMentionFeedData>> watchMentionFeedOrdered() =>
-      (select(notificationMentionFeed)
-            ..orderBy([(t) => OrderingTerm.asc(t.ordinal)]))
-          .watch();
+      (select(
+        notificationMentionFeed,
+      )..orderBy([(t) => OrderingTerm.asc(t.ordinal)])).watch();
 
-  Future<List<NotificationMentionFeedData>> getMentionFeedOrdered() =>
-      (select(notificationMentionFeed)
-            ..orderBy([(t) => OrderingTerm.asc(t.ordinal)]))
-          .get();
+  Future<List<NotificationMentionFeedData>> getMentionFeedOrdered() => (select(
+    notificationMentionFeed,
+  )..orderBy([(t) => OrderingTerm.asc(t.ordinal)])).get();
 
   Future<void> replaceMentionFeed(
     List<NotificationMentionFeedCompanion> rows,
-  ) =>
-      transaction(() async {
-        await delete(notificationMentionFeed).go();
-        for (final r in rows) {
-          await into(notificationMentionFeed).insert(r);
-        }
-      });
+  ) => transaction(() async {
+    await delete(notificationMentionFeed).go();
+    for (final r in rows) {
+      await into(notificationMentionFeed).insert(r);
+    }
+  });
 
   Future<void> appendMentionRows(
     List<NotificationMentionFeedCompanion> rows,
@@ -75,16 +72,37 @@ class NotificationDao extends DatabaseAccessor<FluxerDatabase>
     }
   }
 
-  Future<void> deleteMentionRow(String messageId) =>
-      (delete(notificationMentionFeed)
-            ..where((t) => t.messageId.equals(messageId)))
-          .go();
+  Future<void> prependMentionRow({
+    required String messageId,
+    required String channelId,
+  }) => transaction(() async {
+    final rows = await getMentionFeedOrdered();
+    for (final row in rows.reversed) {
+      await (update(
+        notificationMentionFeed,
+      )..where((t) => t.messageId.equals(row.messageId))).write(
+        NotificationMentionFeedCompanion(ordinal: Value(row.ordinal + 1)),
+      );
+    }
+    await into(notificationMentionFeed).insertOnConflictUpdate(
+      NotificationMentionFeedCompanion.insert(
+        messageId: messageId,
+        channelId: channelId,
+        ordinal: 0,
+      ),
+    );
+  });
+
+  Future<void> deleteMentionRow(String messageId) => (delete(
+    notificationMentionFeed,
+  )..where((t) => t.messageId.equals(messageId))).go();
 
   Future<int?> maxMentionOrdinal() async {
-    final q = await (select(notificationMentionFeed)
-          ..orderBy([(t) => OrderingTerm.desc(t.ordinal)])
-          ..limit(1))
-        .getSingleOrNull();
+    final q =
+        await (select(notificationMentionFeed)
+              ..orderBy([(t) => OrderingTerm.desc(t.ordinal)])
+              ..limit(1))
+            .getSingleOrNull();
     return q?.ordinal;
   }
 
@@ -92,8 +110,8 @@ class NotificationDao extends DatabaseAccessor<FluxerDatabase>
       select(notificationMentionPrefs).watchSingleOrNull();
 
   Future<NotificationMentionPref?> getMentionPrefs() => (select(
-        notificationMentionPrefs,
-      )..where((t) => t.id.equals(1))).getSingleOrNull();
+    notificationMentionPrefs,
+  )..where((t) => t.id.equals(1))).getSingleOrNull();
 
   Future<void> upsertMentionPrefs({
     required bool includeEveryone,

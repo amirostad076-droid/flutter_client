@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' as drift_db;
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_item.dart';
@@ -15,6 +18,15 @@ import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kLoadMoreThreshold = 200.0;
+const _kReadBottomThreshold = 24.0;
+
+// Riverpod does not export the concrete auto-dispose family type.
+// ignore: specify_nonobvious_property_types
+final _messageListReadStateProvider = StreamProvider.autoDispose
+    .family<drift_db.ReadState?, String>((ref, channelId) {
+      final db = ref.watch(fluxerDatabaseProvider);
+      return db.readStateDao.watchReadState(channelId);
+    });
 
 const _kMonthNames = [
   'January',
@@ -47,13 +59,22 @@ class MessageList extends ConsumerStatefulWidget {
 class _MessageListState extends ConsumerState<MessageList> {
   final _scrollController = ScrollController();
   final _itemKeys = <String, GlobalKey>{};
+  late final ChatViewModel _chatViewModel;
   String? _pendingScrollTarget;
 
   @override
   void initState() {
     super.initState();
+    _chatViewModel = ref.read(chatViewModelProvider.notifier);
     _scrollController.addListener(_onScroll);
     _pendingScrollTarget = widget.targetMessageId;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _chatViewModel.setReadViewportActive(isActive: true);
+      _syncReadViewport();
+    });
   }
 
   @override
@@ -67,6 +88,7 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   @override
   void dispose() {
+    _chatViewModel.setReadViewportActive(isActive: false);
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
@@ -81,6 +103,16 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (pos.pixels >= pos.maxScrollExtent - _kLoadMoreThreshold) {
       unawaited(ref.read(chatViewModelProvider.notifier).loadMore());
     }
+    _syncReadViewport();
+  }
+
+  void _syncReadViewport() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+    _chatViewModel.updateReadViewport(
+      isNearBottom: _scrollController.position.pixels <= _kReadBottomThreshold,
+    );
   }
 
   void _onScrollToBottom() {
@@ -200,27 +232,37 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<int>(
-      chatViewModelProvider.select((state) => state.scrollToBottomSignal),
-      (previous, next) {
-        if (next != previous) {
-          _onScrollToBottom();
-        }
-      },
-    );
-
-    ref.listen<(String, int)?>(
-      chatViewModelProvider.select((s) => s.scrollToMessageSignal),
-      (previous, next) {
-        if (next != null && next != previous) {
-          _onScrollToMessage(next.$1);
-        }
-      },
-    );
+    ref
+      ..listen<int>(
+        chatViewModelProvider.select((state) => state.scrollToBottomSignal),
+        (previous, next) {
+          if (next != previous) {
+            _onScrollToBottom();
+          }
+        },
+      )
+      ..listen<(String, int)?>(
+        chatViewModelProvider.select((s) => s.scrollToMessageSignal),
+        (previous, next) {
+          if (next != null && next != previous) {
+            _onScrollToMessage(next.$1);
+          }
+        },
+      );
 
     final currentUserId = ref.watch(currentUserIdProvider);
     final state = ref.watch(chatViewModelProvider);
     final messages = state.messages;
+    final readState = state.channelId.isEmpty
+        ? null
+        : ref
+              .watch(_messageListReadStateProvider(state.channelId))
+              .asData
+              ?.value;
+    final oldestUnreadId = oldestUnreadMessageId(
+      messageIds: messages.map((message) => message.id),
+      ackLastMessageId: readState?.lastMessageId,
+    );
     final chatFontSize = ref.watch(
       themePreferenceProvider.select((s) => s.chatFontSize),
     );
@@ -307,16 +349,21 @@ class _MessageListState extends ConsumerState<MessageList> {
               message: msg,
             );
 
-            if (isNewDay) {
-              return Column(
-                children: [
-                  _buildDateSeparator(context, msg.timestamp),
-                  systemWidget,
-                ],
-              );
-            }
+            final Widget content = isNewDay
+                ? Column(
+                    children: [
+                      _buildDateSeparator(context, msg.timestamp),
+                      systemWidget,
+                    ],
+                  )
+                : systemWidget;
 
-            return systemWidget;
+            return _withUnreadSeparator(
+              context,
+              messageId: msg.id,
+              oldestUnreadId: oldestUnreadId,
+              child: content,
+            );
           }
 
           final isGrouped = !isNewDay && _shouldGroup(msg, prevMsg);
@@ -339,6 +386,9 @@ class _MessageListState extends ConsumerState<MessageList> {
             onDeleteFailed: () => ref
                 .read(chatViewModelProvider.notifier)
                 .deleteFailedMessage(msg.id),
+            onMarkAsUnread: () => ref
+                .read(chatViewModelProvider.notifier)
+                .markMessageUnread(msg.id),
             onReaction: (emoji, {String? emojiId, bool animated = false}) => ref
                 .read(chatViewModelProvider.notifier)
                 .toggleReaction(
@@ -349,13 +399,21 @@ class _MessageListState extends ConsumerState<MessageList> {
                 ),
           );
 
-          if (isNewDay) {
-            return Column(
-              children: [_buildDateSeparator(context, msg.timestamp), bubble],
-            );
-          }
+          final Widget content = isNewDay
+              ? Column(
+                  children: [
+                    _buildDateSeparator(context, msg.timestamp),
+                    bubble,
+                  ],
+                )
+              : bubble;
 
-          return bubble;
+          return _withUnreadSeparator(
+            context,
+            messageId: msg.id,
+            oldestUnreadId: oldestUnreadId,
+            child: content,
+          );
         },
       );
     }
@@ -401,6 +459,41 @@ class _MessageListState extends ConsumerState<MessageList> {
     return localA.year == localB.year &&
         localA.month == localB.month &&
         localA.day == localB.day;
+  }
+
+  Widget _withUnreadSeparator(
+    BuildContext context, {
+    required String messageId,
+    required String? oldestUnreadId,
+    required Widget child,
+  }) {
+    if (messageId != oldestUnreadId) {
+      return child;
+    }
+
+    return Column(children: [_buildUnreadSeparator(context), child]);
+  }
+
+  Widget _buildUnreadSeparator(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: context.colors.brandPrimary)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              'New',
+              style: context.textStyles.smallText.copyWith(
+                color: context.colors.brandPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Expanded(child: Divider(color: context.colors.brandPrimary)),
+        ],
+      ),
+    );
   }
 
   Widget _buildDateSeparator(BuildContext context, DateTime date) {
