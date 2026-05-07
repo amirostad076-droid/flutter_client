@@ -8,6 +8,7 @@ import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
+import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_drag.dart';
@@ -131,33 +132,38 @@ class _InlineExpressionPanelState extends State<InlineExpressionPanel>
       }
     }
 
-    if (_isExpanded && notification is OverscrollNotification) {
+    if (notification is OverscrollNotification &&
+        inlineExpressionPanelShouldHandleTopOverscroll(
+          pixels: notification.metrics.pixels,
+          minScrollExtent: notification.metrics.minScrollExtent,
+          overscroll: notification.overscroll,
+        )) {
       final delta = notification.overscroll;
-      if (delta < 0) {
-        _isDraggingViaScroll = true;
-        _snapController?.stop();
-        _setPanelHeight(
-          inlineExpressionPanelHeightAfterScrollExpansion(
-            currentHeight: _panelHeight,
-            scrollDelta: delta,
-            minHeight: kCollapsedPanelHeight,
-            maxHeight: _expandedHeight,
-          ),
-        );
-        return true;
-      }
+      _isDraggingViaScroll = true;
+      _snapController?.stop();
+      _setPanelHeight(
+        inlineExpressionPanelHeightAfterTopOverscroll(
+          currentHeight: _panelHeight,
+          overscroll: delta,
+          minHeight: kCollapsedPanelHeight * 0.5,
+          maxHeight: _expandedHeight,
+        ),
+      );
+      return true;
     }
 
     if (_isDraggingViaScroll &&
         !_isExpanded &&
         notification is ScrollUpdateNotification) {
       final delta = notification.scrollDelta ?? 0;
-      if (delta < 0) {
+      if (delta < 0 &&
+          notification.metrics.pixels <=
+              notification.metrics.minScrollExtent + 0.5) {
         _setPanelHeight(
-          inlineExpressionPanelHeightAfterScrollExpansion(
+          inlineExpressionPanelHeightAfterTopOverscroll(
             currentHeight: _panelHeight,
-            scrollDelta: delta,
-            minHeight: kCollapsedPanelHeight,
+            overscroll: delta,
+            minHeight: kCollapsedPanelHeight * 0.5,
             maxHeight: _expandedHeight,
           ),
         );
@@ -394,6 +400,9 @@ class _ExpressionPanelContentState
   @override
   Widget build(BuildContext context) {
     final skinTone = ref.watch(emojiSkinToneProvider).value ?? '';
+    final channelId = ref.watch(
+      chatViewModelProvider.select((state) => state.channelId),
+    );
 
     return Column(
       children: [
@@ -419,6 +428,7 @@ class _ExpressionPanelContentState
             searchController: _searchController,
             searchQuery: _searchQuery,
             skinTone: skinTone,
+            channelId: channelId,
             contentSearchHorizontalPadding: _kInlineSearchHorizontalPadding,
             contentSearchTopPadding: _kInlineSearchTopPadding,
             contentSearchBottomPadding: _kInlineSearchBottomPadding,

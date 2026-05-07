@@ -70,4 +70,43 @@ void main() {
       700,
     );
   });
+
+  test('top overscroll can shrink below the collapsed height', () {
+    expect(
+      inlineExpressionPanelHeightAfterTopOverscroll(
+        currentHeight: 350,
+        overscroll: -120,
+        minHeight: 175,
+        maxHeight: 700,
+      ),
+      230,
+    );
+  });
+
+  test('top overscroll only starts at the scrollable start', () {
+    expect(
+      inlineExpressionPanelShouldHandleTopOverscroll(
+        pixels: 0,
+        minScrollExtent: 0,
+        overscroll: -20,
+      ),
+      isTrue,
+    );
+    expect(
+      inlineExpressionPanelShouldHandleTopOverscroll(
+        pixels: 12,
+        minScrollExtent: 0,
+        overscroll: -20,
+      ),
+      isFalse,
+    );
+    expect(
+      inlineExpressionPanelShouldHandleTopOverscroll(
+        pixels: 0,
+        minScrollExtent: 0,
+        overscroll: 20,
+      ),
+      isFalse,
+    );
+  });
 }
