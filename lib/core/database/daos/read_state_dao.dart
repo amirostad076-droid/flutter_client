@@ -33,6 +33,7 @@ class ReadStateDao extends DatabaseAccessor<FluxerDatabase>
         lastMessageId: Value(existing?.lastMessageId),
         mentionCount: Value((existing?.mentionCount ?? 0) + 1),
         lastPinTimestamp: Value(existing?.lastPinTimestamp),
+        manual: Value(existing?.manual ?? false),
       ),
     );
   }
@@ -45,9 +46,15 @@ class ReadStateDao extends DatabaseAccessor<FluxerDatabase>
         lastMessageId: Value(existing?.lastMessageId),
         mentionCount: Value(existing?.mentionCount ?? 0),
         lastPinTimestamp: Value(timestamp),
+        manual: Value(existing?.manual ?? false),
       ),
     );
   }
+
+  Future<void> setManual(String channelId, {required bool manual}) =>
+      (update(readStates)..where((r) => r.channelId.equals(channelId))).write(
+        ReadStatesCompanion(manual: Value(manual)),
+      );
 
   Future<void> deleteReadState(String channelId) =>
       (delete(readStates)..where((r) => r.channelId.equals(channelId))).go();

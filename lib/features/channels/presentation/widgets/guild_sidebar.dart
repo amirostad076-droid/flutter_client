@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_participants.dart';
@@ -225,33 +228,51 @@ class GuildSidebar extends ConsumerWidget {
     WidgetRef ref,
     ChannelCategory category,
     bool isCollapsed,
-  ) => InkWell(
-    onTap: () => ref
-        .read(channelListViewModelProvider.notifier)
-        .toggleCategory(category.id),
-    child: Padding(
-      padding: const EdgeInsets.only(left: 12, right: 8, top: 16, bottom: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              category.name,
-              style: context.textStyles.categoryName,
-              overflow: TextOverflow.ellipsis,
+  ) {
+    final hasMarkReadAction = category.channels.any(_canMarkChannelRead);
+    return InkWell(
+      onTap: () => ref
+          .read(channelListViewModelProvider.notifier)
+          .toggleCategory(category.id),
+      onSecondaryTapUp: hasMarkReadAction
+          ? (details) => unawaited(
+              _showCategoryActions(
+                context,
+                ref,
+                category,
+                details.globalPosition,
+              ),
+            )
+          : null,
+      onLongPress: hasMarkReadAction && isMobileLayout(context)
+          ? () => unawaited(
+              _showCategoryActions(context, ref, category, Offset.zero),
+            )
+          : null,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 12, right: 8, top: 16, bottom: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                category.name,
+                style: context.textStyles.categoryName,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          const SizedBox(width: 4),
-          PhosphorIcon(
-            isCollapsed
-                ? PhosphorIconsRegular.caretRight
-                : PhosphorIconsRegular.caretDown,
-            size: 12,
-            color: context.colors.textPrimaryMuted,
-          ),
-        ],
+            const SizedBox(width: 4),
+            PhosphorIcon(
+              isCollapsed
+                  ? PhosphorIconsRegular.caretRight
+                  : PhosphorIconsRegular.caretDown,
+              size: 12,
+              color: context.colors.textPrimaryMuted,
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _buildChannelTile(
     BuildContext context,
@@ -309,6 +330,28 @@ class GuildSidebar extends ConsumerWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
+        onSecondaryTapUp: _canMarkChannelRead(channel)
+            ? (details) => unawaited(
+                _showChannelActions(
+                  context,
+                  ref,
+                  channel,
+                  hasUnread: hasUnread,
+                  position: details.globalPosition,
+                ),
+              )
+            : null,
+        onLongPress: _canMarkChannelRead(channel) && isMobileLayout(context)
+            ? () => unawaited(
+                _showChannelActions(
+                  context,
+                  ref,
+                  channel,
+                  hasUnread: hasUnread,
+                  position: Offset.zero,
+                ),
+              )
+            : null,
         onTap: () async {
           if (channel.type == ChannelType.link) {
             final channelUrl = channel.url;
@@ -421,6 +464,60 @@ class GuildSidebar extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _showChannelActions(
+    BuildContext context,
+    WidgetRef ref,
+    Channel channel, {
+    required bool hasUnread,
+    required Offset position,
+  }) => FluxerActionMenu.show(
+    context,
+    position: position,
+    builder: (context, close) => [
+      FluxerMenuItem(
+        label: 'Mark as Read',
+        icon: PhosphorIconsRegular.envelopeOpen,
+        enabled: hasUnread,
+        onPressed: () {
+          close();
+          unawaited(_readStateRepository(ref).ackLatest(channel.id));
+        },
+      ),
+    ],
+  );
+
+  Future<void> _showCategoryActions(
+    BuildContext context,
+    WidgetRef ref,
+    ChannelCategory category,
+    Offset position,
+  ) {
+    final channelIds = category.channels
+        .where(_canMarkChannelRead)
+        .map((channel) => channel.id)
+        .toList();
+    return FluxerActionMenu.show(
+      context,
+      position: position,
+      builder: (context, close) => [
+        FluxerMenuItem(
+          label: 'Mark Category as Read',
+          icon: PhosphorIconsRegular.envelopeOpen,
+          onPressed: () {
+            close();
+            unawaited(_readStateRepository(ref).ackLatestBulk(channelIds));
+          },
+        ),
+      ],
+    );
+  }
+
+  ReadStateRepository _readStateRepository(WidgetRef ref) =>
+      ReadStateRepository(
+        ref.read(fluxerClientProvider),
+        ref.read(fluxerDatabaseProvider),
+      );
 }
 
 bool _isChannelMuted(Channel channel, Set<String> mutedSet, bool guildMuted) {
@@ -428,3 +525,6 @@ bool _isChannelMuted(Channel channel, Set<String> mutedSet, bool guildMuted) {
       mutedSet.contains(channel.id) ||
       (channel.parentId != null && mutedSet.contains(channel.parentId));
 }
+
+bool _canMarkChannelRead(Channel channel) =>
+    channel.type != ChannelType.category && channel.type != ChannelType.link;

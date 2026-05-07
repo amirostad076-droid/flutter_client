@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
+import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
@@ -129,10 +130,18 @@ class ChatViewModel extends _$ChatViewModel {
     final bus = ref.watch(messageRealtimeBusProvider);
     unawaited(_eventsSub?.cancel());
     _eventsSub = bus.stream.listen(_onRealtimeEvent);
-    ref.onDispose(() {
-      _readAckRetryTimer?.cancel();
-      unawaited(_eventsSub?.cancel());
-    });
+    ref
+      ..listen<bool>(appUiForegroundProvider, (previous, next) {
+        if (!next) {
+          _readAckRetryTimer?.cancel();
+          return;
+        }
+        unawaited(ackCurrentChannel());
+      })
+      ..onDispose(() {
+        _readAckRetryTimer?.cancel();
+        unawaited(_eventsSub?.cancel());
+      });
     return const ChatViewState(
       channelId: '',
       messages: [],
@@ -246,9 +255,10 @@ class ChatViewModel extends _$ChatViewModel {
     bool loadMessages = true,
   }) async {
     if (state.channelId.isNotEmpty && state.channelId != channelId) {
+      final previousChannelId = state.channelId;
       _readAckRetryTimer?.cancel();
-      _readAckGate.clearManualUnread(state.channelId);
-      _clearLoadedUnreadBoundaryKeys(state.channelId);
+      _clearManualUnread(previousChannelId);
+      _clearLoadedUnreadBoundaryKeys(previousChannelId);
     }
     if (targetMessageId != null) {
       if (state.channelId == channelId && state.isLoading) {
@@ -384,16 +394,30 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> ackCurrentChannel({bool force = false}) async {
     final channelId = state.channelId;
     final now = DateTime.now();
+    final isReadViewportEligible =
+        _readViewportActive && ref.read(appUiForegroundProvider);
+    final database = ref.read(fluxerDatabaseProvider);
+    final readState = await database.readStateDao.getReadState(channelId);
+    if (force) {
+      _readAckGate.clearManualUnread(channelId);
+    } else if (readState?.manual ?? false) {
+      _readAckRetryTimer?.cancel();
+      _readAckGate.markManualUnread(channelId);
+      return;
+    }
+    if (!(readState?.manual ?? false)) {
+      _readAckGate.clearManualUnread(channelId);
+    }
     if (!_readAckGate.canAttemptAck(
       channelId: channelId,
-      isActive: _readViewportActive,
+      isActive: isReadViewportEligible,
       isNearBottom: _readViewportNearBottom,
       now: now,
       force: force,
     )) {
       final retryDelay = _readAckGate.retryDelay(
         channelId: channelId,
-        isActive: _readViewportActive,
+        isActive: isReadViewportEligible,
         isNearBottom: _readViewportNearBottom,
         now: now,
       );
@@ -412,8 +436,9 @@ class ChatViewModel extends _$ChatViewModel {
       }
       await ReadStateRepository(
         ref.read(fluxerClientProvider),
-        ref.read(fluxerDatabaseProvider),
+        database,
       ).ackLatest(channelId);
+      _readAckGate.clearManualUnread(channelId);
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to ack channel: $e');
     } finally {
@@ -517,9 +542,42 @@ class ChatViewModel extends _$ChatViewModel {
     );
   }
 
+  void _clearManualUnread(String channelId) {
+    if (channelId.isEmpty) {
+      return;
+    }
+    _readAckGate.clearManualUnread(channelId);
+    unawaited(
+      ref
+          .read(fluxerDatabaseProvider)
+          .readStateDao
+          .setManual(channelId, manual: false),
+    );
+  }
+
   void clearStickyUnread() {
     if (state.stickyUnreadMessageId != null) {
       state = state.copyWith(stickyUnreadMessageId: null);
+    }
+  }
+
+  void clearCurrentManualUnread() => _clearManualUnread(state.channelId);
+
+  Future<void> markCurrentChannelRead() async {
+    final channelId = state.channelId;
+    if (channelId.isEmpty) {
+      return;
+    }
+    _readAckRetryTimer?.cancel();
+    _readAckGate.clearManualUnread(channelId);
+    clearStickyUnread();
+    try {
+      await ReadStateRepository(
+        ref.read(fluxerClientProvider),
+        ref.read(fluxerDatabaseProvider),
+      ).ackLatest(channelId);
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to mark channel read: $e');
     }
   }
 

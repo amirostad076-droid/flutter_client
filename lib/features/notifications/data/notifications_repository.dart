@@ -208,6 +208,7 @@ class NotificationsRepository {
         channelId: Value(channelId),
         lastMessageId: Value(messageId),
         mentionCount: const Value(0),
+        manual: const Value(false),
       ),
     );
     if ((await _database.dmChannelDao.getDmChannelById(channelId)) != null) {

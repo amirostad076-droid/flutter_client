@@ -92,7 +92,7 @@ void main() {
     },
   );
 
-  test('serverUnread suppresses message-only unread when channel badge setting '
+  test('serverUnread keeps message unread when channel badge setting '
       'is mentions only', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
@@ -136,7 +136,7 @@ void main() {
 
     final unread = await container.read(serverUnreadProvider('guild-1').future);
 
-    expect(unread.hasUnread, isFalse);
+    expect(unread.hasUnread, isTrue);
     expect(unread.mentionCount, 0);
   });
 
@@ -289,6 +289,55 @@ void main() {
   });
 
   test(
+    'serverUnread uses everyone permissions when member row is missing',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5));
+      final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6));
+      await db.guildDao.upsertServer(
+        ServersCompanion.insert(
+          id: 'guild-1',
+          name: 'Guild',
+          ownerId: const Value('owner'),
+        ),
+      );
+      await db.roleDao.upsertRoles([
+        RolesCompanion.insert(
+          id: 'guild-1',
+          guildId: 'guild-1',
+          name: '@everyone',
+          permissions: Value(Permission.viewChannel.value.toString()),
+        ),
+      ]);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: channelId,
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(lastMessageId),
+        ),
+      );
+
+      final container = _container(db, currentUserId: 'me');
+      addTearDown(container.dispose);
+      final subscription = container.listen(
+        serverUnreadProvider('guild-1'),
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(subscription.close);
+
+      final unread = await container.read(
+        serverUnreadProvider('guild-1').future,
+      );
+
+      expect(unread.hasUnread, isTrue);
+      expect(unread.mentionCount, 0);
+    },
+  );
+
+  test(
     'serverUnread uses member join time when read state is missing',
     () async {
       final db = FluxerDatabase.forTesting(NativeDatabase.memory());
@@ -372,6 +421,59 @@ void main() {
     expect(unread.hasUnread, isTrue);
     expect(unread.mentionCount, 0);
   });
+
+  test(
+    'serverUnread recomputes when READY completes after channel hydration',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+
+      final container = _container(db, currentUserId: 'me');
+      addTearDown(container.dispose);
+      final provider = serverUnreadProvider('guild-1');
+      final subscription = container.listen(
+        provider,
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(subscription.close);
+
+      final initialUnread = await container.read(provider.future);
+      expect(initialUnread.hasUnread, isFalse);
+
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: channelId,
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(lastMessageId),
+        ),
+      );
+      await pumpEventQueue();
+      expect(container.read(provider).value?.hasUnread, isFalse);
+
+      await db.guildDao.upsertServer(
+        ServersCompanion.insert(
+          id: 'guild-1',
+          name: 'Guild',
+          ownerId: const Value('owner'),
+        ),
+      );
+      await db.memberDao.upsertMember(
+        MembersCompanion.insert(
+          userId: 'me',
+          guildId: 'guild-1',
+          joinedAt: Value(DateTime.utc(2026, 5, 6, 11)),
+        ),
+      );
+      container.read(gatewayReadyProvider.notifier).setReady();
+      await pumpEventQueue();
+
+      expect(container.read(provider).value?.hasUnread, isTrue);
+    },
+  );
 }
 
 UserGuildSettingsResponse _guildSettings({

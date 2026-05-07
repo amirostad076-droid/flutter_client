@@ -593,6 +593,7 @@ class GatewayEventHandler {
               lastMessageId: Value(rs.lastMessageId),
               mentionCount: Value(rs.mentionCount),
               lastPinTimestamp: Value(rs.lastPinTimestamp),
+              manual: const Value(false),
             ),
           );
         }
@@ -960,6 +961,7 @@ class GatewayEventHandler {
           channelId: Value(msg.channelId),
           lastMessageId: Value(msg.id),
           mentionCount: const Value(0),
+          manual: const Value(false),
         ),
       );
       if (dm != null) {
@@ -1113,6 +1115,7 @@ class GatewayEventHandler {
         lastMessageId: Value(readState.lastMessageId),
         mentionCount: Value(mentionCount),
         lastPinTimestamp: Value(readState.lastPinTimestamp),
+        manual: Value(readState.manual),
       ),
     );
 
@@ -1474,6 +1477,7 @@ class GatewayEventHandler {
         channelId: Value(event.channelId),
         lastMessageId: Value(event.messageId),
         mentionCount: Value(mentionCount),
+        manual: Value(event.manual ?? false),
       ),
     );
     final dm = await database.dmChannelDao.getDmChannelById(event.channelId);

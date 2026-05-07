@@ -16,7 +16,9 @@ class ReadStateRepository {
     }
 
     final current = await _db.readStateDao.getReadState(channelId);
-    if (current?.lastMessageId == messageId && current?.mentionCount == 0) {
+    if (current?.lastMessageId == messageId &&
+        current?.mentionCount == 0 &&
+        current?.manual != true) {
       await _db.dmChannelDao.markAsRead(channelId);
       return;
     }
@@ -33,16 +35,58 @@ class ReadStateRepository {
     );
   }
 
+  Future<void> ackLatestBulk(Iterable<String> channelIds) async {
+    final entries = <ReadStateAckBulkRequestReadStates>[];
+    for (final channelId in channelIds.toSet()) {
+      final messageId = await latestAckableMessageId(channelId);
+      if (messageId == null || messageId.isEmpty) {
+        continue;
+      }
+
+      final current = await _db.readStateDao.getReadState(channelId);
+      if (current?.lastMessageId == messageId &&
+          current?.mentionCount == 0 &&
+          current?.manual != true) {
+        continue;
+      }
+
+      entries.add(
+        ReadStateAckBulkRequestReadStates(
+          channelId: channelId,
+          messageId: messageId,
+        ),
+      );
+    }
+
+    if (entries.isEmpty) {
+      return;
+    }
+
+    for (final entry in entries) {
+      await applyLocalAck(
+        channelId: entry.channelId,
+        messageId: entry.messageId,
+        mentionCount: 0,
+      );
+    }
+
+    await _client.readStates.ackBulkMessages(
+      body: ReadStateAckBulkRequest(readStates: entries),
+    );
+  }
+
   Future<void> applyLocalAck({
     required String channelId,
     required String messageId,
     required int mentionCount,
+    bool manual = false,
   }) async {
     await _db.readStateDao.upsertReadState(
       ReadStatesCompanion(
         channelId: Value(channelId),
         lastMessageId: Value(messageId),
         mentionCount: Value(mentionCount),
+        manual: Value(manual),
       ),
     );
     final dm = await _db.dmChannelDao.getDmChannelById(channelId);
@@ -76,6 +120,7 @@ class ReadStateRepository {
       channelId: channelId,
       messageId: ackMessageId,
       mentionCount: mentionCount,
+      manual: true,
     );
   }
 

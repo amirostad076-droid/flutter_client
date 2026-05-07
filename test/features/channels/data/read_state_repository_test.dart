@@ -62,6 +62,76 @@ void main() {
       final readState = await db.readStateDao.getReadState('channel-1');
       expect(readState?.lastMessageId, lastMessageId);
       expect(readState?.mentionCount, 0);
+      expect(readState?.manual, isFalse);
+    },
+  );
+
+  test(
+    'ackLatestBulk acknowledges unread channels and clears manual state',
+    () async {
+      final firstId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final secondId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = _AckAdapter(
+          expectedPath: '/v1/read-states/ack-bulk',
+          expectedBody: <String, Object?>{
+            'read_states': [
+              <String, Object?>{
+                'channel_id': 'channel-1',
+                'message_id': firstId,
+              },
+              <String, Object?>{
+                'channel_id': 'channel-2',
+                'message_id': secondId,
+              },
+            ],
+          },
+        );
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      await db.channelDao.upsertChannels([
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(firstId),
+        ),
+        ChannelsCompanion.insert(
+          id: 'channel-2',
+          guildId: 'guild-1',
+          name: 'updates',
+          lastMessageId: Value(secondId),
+        ),
+      ]);
+      await db.readStateDao.upsertReadState(
+        const ReadStatesCompanion(
+          channelId: Value('channel-1'),
+          lastMessageId: Value('older-message'),
+          mentionCount: Value(3),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-2'),
+          lastMessageId: Value(secondId),
+          mentionCount: const Value(0),
+          manual: const Value(true),
+        ),
+      );
+
+      await ReadStateRepository(
+        FluxerClient(dio),
+        db,
+      ).ackLatestBulk(['channel-1', 'channel-2']);
+
+      final first = await db.readStateDao.getReadState('channel-1');
+      final second = await db.readStateDao.getReadState('channel-2');
+      expect(first?.lastMessageId, firstId);
+      expect(first?.mentionCount, 0);
+      expect(first?.manual, isFalse);
+      expect(second?.lastMessageId, secondId);
+      expect(second?.mentionCount, 0);
+      expect(second?.manual, isFalse);
     },
   );
 
@@ -90,6 +160,7 @@ void main() {
     final readState = await db.readStateDao.getReadState('dm-1');
     expect(dm?.unreadCount, 0);
     expect(readState?.lastMessageId, messageId);
+    expect(readState?.manual, isFalse);
   });
 
   test('ackPins acknowledges latest channel pin timestamp', () async {
@@ -191,6 +262,7 @@ void main() {
     final readState = await db.readStateDao.getReadState('channel-1');
     expect(readState?.lastMessageId, firstId);
     expect(readState?.mentionCount, 1);
+    expect(readState?.manual, isTrue);
   });
 }
 

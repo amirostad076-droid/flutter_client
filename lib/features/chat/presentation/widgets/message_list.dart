@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,6 +91,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   void dispose() {
     _chatViewModel
       ..setReadViewportActive(isActive: false)
+      ..clearCurrentManualUnread()
       ..clearStickyUnread();
     _scrollController
       ..removeListener(_onScroll)
@@ -129,6 +131,11 @@ class _MessageListState extends ConsumerState<MessageList> {
         );
       }
     });
+  }
+
+  void _onUnreadBarTap() {
+    _onScrollToBottom();
+    unawaited(_chatViewModel.markCurrentChannelRead());
   }
 
   /// Scrolls to [messageId]
@@ -271,6 +278,14 @@ class _MessageListState extends ConsumerState<MessageList> {
             messages.any((message) => message.id == stickyUnreadId)
         ? stickyUnreadId
         : oldestUnreadId;
+    final loadedUnreadCount = _loadedUnreadCount(
+      messages,
+      readState?.lastMessageId,
+    );
+    final unreadCount = readState == null
+        ? 0
+        : math.max(loadedUnreadCount, readState.mentionCount);
+    final unreadSince = _messageTimestamp(messages, visualUnreadId);
     final chatFontSize = ref.watch(
       themePreferenceProvider.select((s) => s.chatFontSize),
     );
@@ -432,10 +447,56 @@ class _MessageListState extends ConsumerState<MessageList> {
       mediaQuery.textScaler.scale(1) * scaleRatio,
     );
 
+    final Widget scaledBody;
+    if (!state.isLoading && messages.isNotEmpty && unreadCount > 0) {
+      scaledBody = Stack(
+        fit: StackFit.expand,
+        children: [
+          body,
+          Positioned(
+            top: 8,
+            left: 12,
+            right: 12,
+            child: _buildNewMessagesBar(
+              context,
+              count: unreadCount,
+              since: unreadSince,
+              onTap: _onUnreadBarTap,
+            ),
+          ),
+        ],
+      );
+    } else {
+      scaledBody = body;
+    }
+
     return MediaQuery(
       data: mediaQuery.copyWith(textScaler: combinedScaler),
-      child: body,
+      child: scaledBody,
     );
+  }
+
+  int _loadedUnreadCount(List<Message> messages, String? ackLastMessageId) {
+    if (ackLastMessageId == null || ackLastMessageId.isEmpty) {
+      return 0;
+    }
+    return messages
+        .where(
+          (message) => compareSnowflakeIds(message.id, ackLastMessageId) > 0,
+        )
+        .length;
+  }
+
+  DateTime? _messageTimestamp(List<Message> messages, String? messageId) {
+    if (messageId == null) {
+      return null;
+    }
+    for (final message in messages) {
+      if (message.id == messageId) {
+        return message.timestamp;
+      }
+    }
+    return null;
   }
 
   /// Whether [current] should be visually grouped
@@ -502,6 +563,73 @@ class _MessageListState extends ConsumerState<MessageList> {
         ],
       ),
     );
+  }
+
+  Widget _buildNewMessagesBar(
+    BuildContext context, {
+    required int count,
+    required DateTime? since,
+    required VoidCallback onTap,
+  }) {
+    final displayCount = count > 99 ? '99+' : '$count';
+    final messageLabel = count == 1 ? '1 new message' : '$displayCount new';
+    final sinceLabel = since == null ? '' : ' since ${_formatTime(since)}';
+
+    return Material(
+      color: context.colors.brandPrimary,
+      elevation: 3,
+      shadowColor: Colors.black.withValues(alpha: 0.22),
+      borderRadius: BorderRadius.circular(8),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          child: Row(
+            children: [
+              PhosphorIcon(
+                PhosphorIconsRegular.envelopeOpen,
+                color: context.colors.textOnBrandPrimary,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '$messageLabel$sinceLabel',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textStyles.smallText.copyWith(
+                    color: context.colors.textOnBrandPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Mark Read',
+                maxLines: 1,
+                style: context.textStyles.smallText.copyWith(
+                  color: context.colors.textOnBrandPrimary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime date) {
+    final local = date.toLocal();
+    final hour = local.hour == 0
+        ? 12
+        : local.hour > 12
+        ? local.hour - 12
+        : local.hour;
+    final minute = local.minute.toString().padLeft(2, '0');
+    final period = local.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
   }
 
   Widget _buildDateSeparator(BuildContext context, DateTime date) {

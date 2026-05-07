@@ -1483,6 +1483,7 @@ Future<void> markGuildAsRead(
         channelId: Value(entry.channelId),
         lastMessageId: Value(entry.messageId),
         mentionCount: const Value(0),
+        manual: const Value(false),
       ),
     );
   }

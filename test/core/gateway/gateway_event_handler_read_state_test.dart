@@ -246,6 +246,41 @@ void main() {
     final readState = await db.readStateDao.getReadState('channel-1');
     expect(readState?.lastMessageId, messageId);
     expect(readState?.mentionCount, 0);
+    expect(readState?.manual, isFalse);
+  });
+
+  test('message ack stores manual state from gateway event', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final messageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(
+      MessageAckEvent(
+        channelId: 'channel-1',
+        messageId: messageId,
+        mentionCount: 2,
+        manual: true,
+      ),
+    );
+
+    var readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.lastMessageId, messageId);
+    expect(readState?.mentionCount, 2);
+    expect(readState?.manual, isTrue);
+
+    await handler.handle(
+      MessageAckEvent(
+        channelId: 'channel-1',
+        messageId: messageId,
+        mentionCount: 0,
+        manual: false,
+      ),
+    );
+
+    readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.mentionCount, 0);
+    expect(readState?.manual, isFalse);
   });
 
   test('role mentions increment guild channel mention count', () async {

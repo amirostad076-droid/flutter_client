@@ -30,6 +30,7 @@ const _categoryType = 4;
 Stream<UnreadState> channelUnread(Ref ref, String channelId) {
   final db = ref.watch(fluxerDatabaseProvider);
   final currentUserId = ref.watch(currentUserIdProvider);
+  ref.watch(gatewayReadyProvider);
   final controller = StreamController<UnreadState>();
   var disposed = false;
 
@@ -141,6 +142,7 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
 Stream<UnreadState> serverUnread(Ref ref, String guildId) {
   final db = ref.watch(fluxerDatabaseProvider);
   final currentUserId = ref.watch(currentUserIdProvider);
+  ref.watch(gatewayReadyProvider);
   final controller = StreamController<UnreadState>();
   var disposed = false;
 
@@ -229,8 +231,7 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
         fallbackAckMs: fallbackAckMs,
         mentionCount: 0,
       );
-      if (mentions > 0 ||
-          (unreadSettings.allowsMessageUnread && hasUnreadMessage)) {
+      if (mentions > 0 || hasUnreadMessage) {
         anyUnread = true;
       }
     }
@@ -246,6 +247,15 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
       .watchChannels(guildId)
       .listen((_) => unawaited(recompute()));
 
+  final guildSub = db.guildDao.watchServers().listen(
+    (_) => unawaited(recompute()),
+  );
+  final memberSub = db.memberDao
+      .watchMembers(guildId)
+      .listen((_) => unawaited(recompute()));
+  final roleSub = db.roleDao
+      .watchRoles(guildId)
+      .listen((_) => unawaited(recompute()));
   final readStateSub = db.readStateDao.watchReadStates().listen(
     (_) => unawaited(recompute()),
   );
@@ -258,6 +268,9 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
   ref.onDispose(() {
     disposed = true;
     unawaited(channelSub.cancel());
+    unawaited(guildSub.cancel());
+    unawaited(memberSub.cancel());
+    unawaited(roleSub.cancel());
     unawaited(readStateSub.cancel());
     unawaited(settingsSub.cancel());
     unawaited(controller.close());

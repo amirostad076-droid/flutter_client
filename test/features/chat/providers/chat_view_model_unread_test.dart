@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
@@ -138,14 +139,110 @@ void main() {
       );
     },
   );
+
+  test('auto ack waits while app UI is not foreground', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(0),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    );
+    final container = _container(db, adapter, foreground: false);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    notifier.setReadViewportActive(isActive: true);
+    await _flushAsync();
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.lastMessageId, ackId);
+    expect(adapter.ackedMessageIds, isEmpty);
+  });
+
+  test(
+    'manual read state suppresses auto ack until explicitly marked read',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+          manual: const Value(true),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      notifier.setReadViewportActive(isActive: true);
+      await _flushAsync();
+
+      var readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, ackId);
+      expect(readState?.manual, isTrue);
+      expect(adapter.ackedMessageIds, isEmpty);
+
+      await notifier.markCurrentChannelRead();
+      await _flushAsync();
+
+      readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, latestId);
+      expect(readState?.manual, isFalse);
+      expect(adapter.ackedMessageIds, [latestId]);
+    },
+  );
 }
 
-ProviderContainer _container(FluxerDatabase db, _ChatAdapter adapter) {
+ProviderContainer _container(
+  FluxerDatabase db,
+  _ChatAdapter adapter, {
+  bool foreground = true,
+}) {
   final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
     ..httpClientAdapter = adapter;
   return ProviderContainer(
     overrides: [
       fluxerDatabaseProvider.overrideWithValue(db),
+      appUiForegroundProvider.overrideWithValue(foreground),
       fluxerDioProvider.overrideWithValue(dio),
       fluxerClientProvider.overrideWithValue(
         FluxerClient(dio, baseUrl: 'https://api.fluxer.app/v1'),
@@ -195,7 +292,7 @@ class _ChatAdapter implements HttpClientAdapter {
     }
 
     if (options.method == 'POST' && options.uri.path.endsWith('/ack')) {
-      ackedMessageIds.add(options.uri.pathSegments[3]);
+      ackedMessageIds.add(options.uri.pathSegments[4]);
       return ResponseBody.fromString('', 204, statusMessage: 'No Content');
     }
 

@@ -22,16 +22,12 @@ Future<bool> canReadChannelForUnread({
     return true;
   }
 
+  final roles = await database.roleDao.getRoles(channel.guildId);
   final member = await database.memberDao.getMemberByUserId(
     currentUserId,
     channel.guildId,
   );
-  if (member == null) {
-    return false;
-  }
-
-  final roles = await database.roleDao.getRoles(channel.guildId);
-  final memberRoleIds = member.roleIdsJson.isNotEmpty
+  final memberRoleIds = member != null && member.roleIdsJson.isNotEmpty
       ? List<String>.from(jsonDecode(member.roleIdsJson) as List<dynamic>)
       : <String>[];
   final everyoneRole = roles
@@ -54,7 +50,7 @@ Future<bool> canReadChannelForUnread({
     currentUserId: currentUserId,
     everyonePermissions: everyonePermissions,
     memberRoles: memberRoles,
-    memberRecordPresent: true,
+    memberRecordPresent: member != null,
     overwriteJsonLayersRootToLeaf: layers,
   );
   return hasPermission(bits, Permission.viewChannel);
