@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_participants.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
@@ -195,16 +196,24 @@ class GuildSidebar extends ConsumerWidget {
           children: [
             _buildCategoryHeader(context, ref, category, isCollapsed),
             if (!isCollapsed)
-              ...category.channels.map(
-                (channel) => _buildChannelTile(
-                  context,
-                  ref,
-                  channel,
-                  channel.id == selectedId,
-                  mutedSet: mutedSet,
-                  guildMuted: guildMuted,
-                ),
-              ),
+              ...<Widget>[
+                for (final Channel channel in category.channels) ...<Widget>[
+                  _buildChannelTile(
+                    context,
+                    ref,
+                    channel,
+                    channel.id == selectedId,
+                    mutedSet: mutedSet,
+                    guildMuted: guildMuted,
+                  ),
+                  if (guildId != null &&
+                      channel.type == ChannelType.voice)
+                    VoiceChannelParticipantsList(
+                      guildId: guildId,
+                      channelId: channel.id,
+                    ),
+                ],
+              ],
           ],
         );
       },
@@ -311,9 +320,8 @@ class GuildSidebar extends ConsumerWidget {
 
           final String? guildId = ref.read(activeGuildIdProvider);
           if (guildId != null) {
-            final VoiceSessionState voiceSession = ref.read(
-              voiceSessionProvider,
-            );
+            final VoiceSessionState voiceSession =
+                ref.read(voiceSessionProvider);
             final bool isInCurrentVoiceChannel =
                 channel.type == ChannelType.voice &&
                 voiceSession.isInVoice &&

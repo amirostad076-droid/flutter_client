@@ -1,0 +1,31 @@
+import 'package:flutter/material.dart';
+
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+
+class FluxerLiveBadge extends StatelessWidget {
+  const FluxerLiveBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFDC2626),
+        borderRadius: BorderRadius.circular(9999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        child: Text(
+          l10n.voiceLiveBadge.toUpperCase(),
+          style: TextStyle(
+            color: context.colors.textPrimary,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            height: 1,
+          ),
+        ),
+      ),
+    );
+  }
+}

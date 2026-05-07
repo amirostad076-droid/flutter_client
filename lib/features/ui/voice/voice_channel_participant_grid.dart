@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart' as database;
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
+import 'package:fluxer_app/features/ui/voice/fluxer_live_badge.dart';
 import 'package:fluxer_app/features/ui/voice/voice_participant_media_tile.dart';
 import 'package:fluxer_app/features/voice/providers/voice_channel_participants_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_screen_share_watch_tile_provider.dart';
@@ -694,14 +695,14 @@ class _StreamStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final Participant? p = participant;
     if (p == null) {
-      return _LiveBadge(l10n: l10n);
+      return const FluxerLiveBadge();
     }
     return ListenableBuilder(
       listenable: p,
       builder: (BuildContext context, Widget? child) {
         final _StreamTrackInfo? info = _resolveInfo();
         if (info == null) {
-          return _LiveBadge(l10n: l10n);
+          return const FluxerLiveBadge();
         }
         final String resolutionText = _buildResolutionLabel(info.height);
         final String fpsText = info.fps > 0 ? '${info.fps} FPS' : '';
@@ -730,7 +731,7 @@ class _StreamStatusBadge extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            _LiveBadge(l10n: l10n),
+            const FluxerLiveBadge(),
           ],
         );
       },
@@ -846,34 +847,6 @@ class _StopWatchingButton extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LiveBadge extends StatelessWidget {
-  const _LiveBadge({required this.l10n});
-
-  final FluxerLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFFDC2626),
-        borderRadius: BorderRadius.circular(9999),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        child: Text(
-          l10n.voiceLiveBadge.toUpperCase(),
-          style: TextStyle(
-            color: context.colors.textPrimary,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            height: 1,
           ),
         ),
       ),
