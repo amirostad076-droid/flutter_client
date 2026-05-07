@@ -505,14 +505,23 @@ class ChatViewModel extends _$ChatViewModel {
         .read(fluxerDatabaseProvider)
         .readStateDao
         .getReadState(channelId);
+    final currentUserId = ref.read(currentUserIdProvider);
     final stickyUnreadMessageId = oldestUnreadMessageId(
-      messageIds: state.messages.map((message) => message.id),
+      messageIds: state.messages
+          .where((message) => !_isOwnMessage(message, currentUserId))
+          .map((message) => message.id),
       ackLastMessageId: readState?.lastMessageId,
     );
     if (stickyUnreadMessageId == null) {
       return;
     }
     state = state.copyWith(stickyUnreadMessageId: stickyUnreadMessageId);
+  }
+
+  bool _isOwnMessage(Message message, String? currentUserId) {
+    return currentUserId != null &&
+        currentUserId.isNotEmpty &&
+        message.authorId == currentUserId;
   }
 
   List<Message> _mergeMessages(List<Message> current, List<Message> incoming) {
@@ -559,6 +568,18 @@ class ChatViewModel extends _$ChatViewModel {
     if (state.stickyUnreadMessageId != null) {
       state = state.copyWith(stickyUnreadMessageId: null);
     }
+  }
+
+  void clearStickyUnreadAfterBuildForCurrentChannel() {
+    final channelId = state.channelId;
+    unawaited(
+      Future<void>(() {
+        if (state.channelId != channelId) {
+          return;
+        }
+        clearStickyUnread();
+      }),
+    );
   }
 
   void clearCurrentManualUnread() => _clearManualUnread(state.channelId);

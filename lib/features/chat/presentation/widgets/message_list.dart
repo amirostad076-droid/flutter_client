@@ -20,6 +20,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kLoadMoreThreshold = 200.0;
 const _kReadBottomThreshold = 24.0;
+const _kUnreadDividerHeight = 16.0;
+const _kUnreadDateDividerHeight = 20.0;
 
 // Riverpod does not export the concrete auto-dispose family type.
 // ignore: specify_nonobvious_property_types
@@ -92,7 +94,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _chatViewModel
       ..setReadViewportActive(isActive: false)
       ..clearCurrentManualUnread()
-      ..clearStickyUnread();
+      ..clearStickyUnreadAfterBuildForCurrentChannel();
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
@@ -268,19 +270,22 @@ class _MessageListState extends ConsumerState<MessageList> {
               .watch(_messageListReadStateProvider(state.channelId))
               .asData
               ?.value;
-    final oldestUnreadId = oldestUnreadMessageId(
-      messageIds: messages.map((message) => message.id),
+    final oldestUnreadId = _oldestUnreadMessageId(
+      messages: messages,
       ackLastMessageId: readState?.lastMessageId,
+      currentUserId: currentUserId,
     );
     final stickyUnreadId = state.stickyUnreadMessageId;
-    final visualUnreadId =
-        stickyUnreadId != null &&
-            messages.any((message) => message.id == stickyUnreadId)
-        ? stickyUnreadId
-        : oldestUnreadId;
+    final visualUnreadId = _visualUnreadId(
+      messages: messages,
+      stickyUnreadId: stickyUnreadId,
+      oldestUnreadId: oldestUnreadId,
+      currentUserId: currentUserId,
+    );
     final loadedUnreadCount = _loadedUnreadCount(
       messages,
       readState?.lastMessageId,
+      currentUserId,
     );
     final unreadCount = readState == null
         ? 0
@@ -372,20 +377,12 @@ class _MessageListState extends ConsumerState<MessageList> {
               message: msg,
             );
 
-            final Widget content = isNewDay
-                ? Column(
-                    children: [
-                      _buildDateSeparator(context, msg.timestamp),
-                      systemWidget,
-                    ],
-                  )
-                : systemWidget;
-
-            return _withUnreadSeparator(
+            return _withMessageSeparators(
               context,
-              messageId: msg.id,
-              oldestUnreadId: visualUnreadId,
-              child: content,
+              message: msg,
+              isNewDay: isNewDay,
+              visualUnreadId: visualUnreadId,
+              child: systemWidget,
             );
           }
 
@@ -422,20 +419,12 @@ class _MessageListState extends ConsumerState<MessageList> {
                 ),
           );
 
-          final Widget content = isNewDay
-              ? Column(
-                  children: [
-                    _buildDateSeparator(context, msg.timestamp),
-                    bubble,
-                  ],
-                )
-              : bubble;
-
-          return _withUnreadSeparator(
+          return _withMessageSeparators(
             context,
-            messageId: msg.id,
-            oldestUnreadId: visualUnreadId,
-            child: content,
+            message: msg,
+            isNewDay: isNewDay,
+            visualUnreadId: visualUnreadId,
+            child: bubble,
           );
         },
       );
@@ -476,15 +465,57 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  int _loadedUnreadCount(List<Message> messages, String? ackLastMessageId) {
+  String? _oldestUnreadMessageId({
+    required List<Message> messages,
+    required String? ackLastMessageId,
+    required String? currentUserId,
+  }) {
+    return oldestUnreadMessageId(
+      messageIds: messages
+          .where((message) => !_isOwnMessage(message, currentUserId))
+          .map((message) => message.id),
+      ackLastMessageId: ackLastMessageId,
+    );
+  }
+
+  String? _visualUnreadId({
+    required List<Message> messages,
+    required String? stickyUnreadId,
+    required String? oldestUnreadId,
+    required String? currentUserId,
+  }) {
+    if (stickyUnreadId == null) {
+      return oldestUnreadId;
+    }
+    final hasVisibleSticky = messages.any(
+      (message) =>
+          message.id == stickyUnreadId &&
+          !_isOwnMessage(message, currentUserId),
+    );
+    return hasVisibleSticky ? stickyUnreadId : oldestUnreadId;
+  }
+
+  int _loadedUnreadCount(
+    List<Message> messages,
+    String? ackLastMessageId,
+    String? currentUserId,
+  ) {
     if (ackLastMessageId == null || ackLastMessageId.isEmpty) {
       return 0;
     }
     return messages
         .where(
-          (message) => compareSnowflakeIds(message.id, ackLastMessageId) > 0,
+          (message) =>
+              !_isOwnMessage(message, currentUserId) &&
+              compareSnowflakeIds(message.id, ackLastMessageId) > 0,
         )
         .length;
+  }
+
+  bool _isOwnMessage(Message message, String? currentUserId) {
+    return currentUserId != null &&
+        currentUserId.isNotEmpty &&
+        message.authorId == currentUserId;
   }
 
   DateTime? _messageTimestamp(List<Message> messages, String? messageId) {
@@ -530,37 +561,125 @@ class _MessageListState extends ConsumerState<MessageList> {
         localA.day == localB.day;
   }
 
-  Widget _withUnreadSeparator(
+  Widget _withMessageSeparators(
     BuildContext context, {
-    required String messageId,
-    required String? oldestUnreadId,
+    required Message message,
+    required bool isNewDay,
+    required String? visualUnreadId,
     required Widget child,
   }) {
-    if (messageId != oldestUnreadId) {
-      return child;
+    final isUnreadBoundary = message.id == visualUnreadId;
+
+    if (isNewDay) {
+      return Column(
+        children: [
+          if (isUnreadBoundary)
+            _buildUnreadDateSeparator(context, message.timestamp)
+          else
+            _buildDateSeparator(context, message.timestamp),
+          child,
+        ],
+      );
     }
 
-    return Column(children: [_buildUnreadSeparator(context), child]);
+    if (isUnreadBoundary) {
+      return Column(children: [_buildUnreadSeparator(context), child]);
+    }
+
+    return child;
   }
 
   Widget _buildUnreadSeparator(BuildContext context) {
+    final danger = context.colors.statusDanger;
+    return SizedBox(
+      height: _kUnreadDividerHeight,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(child: _buildUnreadLine(danger)),
+            _buildUnreadBadge(context, danger, height: _kUnreadDividerHeight),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnreadDateSeparator(BuildContext context, DateTime date) {
+    final danger = context.colors.statusDanger;
+    final local = date.toLocal();
+    final formatted =
+        '${_kMonthNames[local.month - 1]} ${local.day},'
+        ' ${local.year}';
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(child: Divider(color: context.colors.brandPrimary)),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              'New',
-              style: context.textStyles.smallText.copyWith(
-                color: context.colors.brandPrimary,
-                fontWeight: FontWeight.w700,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: SizedBox(
+        height: _kUnreadDateDividerHeight,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Row(
+              children: [
+                Expanded(child: _buildUnreadLine(danger)),
+                _buildUnreadBadge(
+                  context,
+                  danger,
+                  height: _kUnreadDateDividerHeight,
+                ),
+              ],
+            ),
+            ColoredBox(
+              color: context.colors.backgroundSecondaryLighter,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  formatted,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textStyles.smallText.copyWith(
+                    color: danger,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    height: 1,
+                    letterSpacing: 0,
+                  ),
+                ),
               ),
             ),
-          ),
-          Expanded(child: Divider(color: context.colors.brandPrimary)),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnreadLine(Color color) {
+    return Container(height: 2, color: color.withValues(alpha: 0.4));
+  }
+
+  Widget _buildUnreadBadge(
+    BuildContext context,
+    Color color, {
+    required double height,
+  }) {
+    return Container(
+      height: height,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        'NEW',
+        maxLines: 1,
+        style: context.textStyles.smallText.copyWith(
+          color: Colors.white.withValues(alpha: 0.9),
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          height: 1,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
