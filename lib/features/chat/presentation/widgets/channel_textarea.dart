@@ -380,6 +380,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             FluxerEmojiPickerPopout(
               key: _gifPickerKey,
               initialTab: ExpressionPickerTab.gifs,
+              channelId: channelId,
               onEmojiSelected: (emoji) =>
                   _insertEmoji(emoji.name, emoji.surrogates),
               onGifSelected: _handleGifSelection,
@@ -407,6 +408,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             FluxerEmojiPickerPopout(
               key: _mediaPickerKey,
               initialTab: ExpressionPickerTab.memes,
+              channelId: channelId,
               onEmojiSelected: (emoji) =>
                   _insertEmoji(emoji.name, emoji.surrogates),
               onGifSelected: _handleGifSelection,
@@ -433,6 +435,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           FluxerEmojiPickerPopout(
             key: _stickerPickerKey,
             initialTab: ExpressionPickerTab.stickers,
+            channelId: channelId,
             onEmojiSelected: (emoji) =>
                 _insertEmoji(emoji.name, emoji.surrogates),
             onGifSelected: _handleGifSelection,
@@ -458,6 +461,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           ),
           FluxerEmojiPickerPopout(
             key: _expressionPickerKey,
+            channelId: channelId,
             onEmojiSelected: (emoji) =>
                 _insertEmoji(emoji.name, emoji.surrogates),
             onGifSelected: _handleGifSelection,

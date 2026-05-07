@@ -24,6 +24,7 @@ class FluxerEmojiPickerPopout extends StatefulWidget {
       ExpressionPickerTab.emojis,
     ],
     this.initialTab = ExpressionPickerTab.emojis,
+    this.channelId,
     super.key,
   });
 
@@ -36,6 +37,7 @@ class FluxerEmojiPickerPopout extends StatefulWidget {
   final bool closeOnEmojiSelect;
   final List<ExpressionPickerTab> visibleTabs;
   final ExpressionPickerTab initialTab;
+  final String? channelId;
 
   @override
   State<FluxerEmojiPickerPopout> createState() =>
@@ -173,6 +175,7 @@ class FluxerEmojiPickerPopoutState extends State<FluxerEmojiPickerPopout>
                       onFavoriteMemeSelect: widget.onFavoriteMemeSelected,
                       visibleTabs: widget.visibleTabs,
                       initialTab: widget.initialTab,
+                      channelId: widget.channelId,
                     ),
                   ),
                 ),

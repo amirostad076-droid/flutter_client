@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/data/favorite_media_repository.dart';
+import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/picker_search_input.dart';
+import 'package:fluxer_app/features/chat/providers/favorite_media_provider.dart';
 import 'package:fluxer_app/features/chat/providers/gif_provider.dart';
 import 'package:fluxer_app/features/chat/utils/gif_category_grid_layout.dart';
 import 'package:fluxer_app/features/chat/utils/gif_preview_media_policy.dart';
@@ -14,7 +17,10 @@ import 'package:fluxer_app/features/chat/utils/gif_preview_playback_policy.dart'
 import 'package:fluxer_app/features/chat/utils/gif_preview_player_config.dart';
 import 'package:fluxer_app/features/chat/utils/klipy_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
+import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart' as sdk;
 import 'package:media_kit/media_kit.dart';
@@ -34,6 +40,35 @@ const _kGifVideoHttpHeaders = <String, String>{
 };
 
 enum _GifPickerView { landing, trending }
+
+class _GifFavoriteLookup {
+  _GifFavoriteLookup.fromMemes(List<FavoriteMeme> memes)
+    : _klipyBySlug = <String, FavoriteMeme>{},
+      _tenorBySlugId = <String, FavoriteMeme>{} {
+    for (final meme in memes) {
+      final klipySlug = meme.klipySlug?.trim();
+      if (klipySlug != null && klipySlug.isNotEmpty) {
+        _klipyBySlug.putIfAbsent(klipySlug, () => meme);
+      }
+
+      final tenorSlugId = meme.tenorSlugId?.trim();
+      if (tenorSlugId != null && tenorSlugId.isNotEmpty) {
+        _tenorBySlugId.putIfAbsent(tenorSlugId, () => meme);
+      }
+    }
+  }
+
+  final Map<String, FavoriteMeme> _klipyBySlug;
+  final Map<String, FavoriteMeme> _tenorBySlugId;
+
+  FavoriteMeme? favoriteForGif(GifPickerGif gif) {
+    final shareId = gifShareId(gif);
+    return switch (gif.provider) {
+      GifProviderKind.klipy => _klipyBySlug[shareId],
+      GifProviderKind.tenor => _tenorBySlugId[shareId],
+    };
+  }
+}
 
 class GifPickerContent extends ConsumerStatefulWidget {
   const GifPickerContent({
@@ -225,11 +260,16 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
   }
 
   Widget _buildBody(BuildContext context, sdk.Locale locale) {
+    final favoriteMemes =
+        ref.watch(favoriteMemesProvider).value ?? const <FavoriteMeme>[];
+    final favoriteLookup = _GifFavoriteLookup.fromMemes(favoriteMemes);
     if (_view == _GifPickerView.trending) {
       final trending = ref.watch(gifTrendingProvider(locale));
       return _AsyncGifGrid(
         gifs: trending,
         onGifTap: (gif) => _selectGif(gif, locale),
+        favoriteForGif: favoriteLookup.favoriteForGif,
+        onGifLongPress: _showGifActions,
       );
     }
 
@@ -265,6 +305,8 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
                       context,
                     ).gifPickerNoResultsDescription,
                     onGifTap: (gif) => _selectGif(gif, locale),
+                    favoriteForGif: favoriteLookup.favoriteForGif,
+                    onGifLongPress: _showGifActions,
                   ),
           ),
         ],
@@ -279,6 +321,8 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
         onTrendingTap: _showTrending,
         onCategoryTap: _setSearchTerm,
         onGifTap: (gif) => _selectGif(gif, locale),
+        favoriteForGif: favoriteLookup.favoriteForGif,
+        onGifLongPress: _showGifActions,
       ),
       error: (_, _) => _GifEmptyState(
         title: FluxerLocalizations.of(context).gifPickerLoadFailedTitle,
@@ -336,6 +380,59 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
       widget.onClose();
     }
   }
+
+  void _showGifActions(GifPickerGif gif, FavoriteMeme? favorite) {
+    final isFavorite = favorite != null;
+    unawaited(
+      FluxerBottomSheet.show<void>(
+        context,
+        title: gif.title.trim().isEmpty ? 'GIF' : gif.title.trim(),
+        variant: FluxerBottomSheetVariant.menu,
+        builder: (sheetContext, close) => FluxerBottomSheetContent(
+          scrollable: false,
+          child: FluxerMenuGroup(
+            children: [
+              FluxerBottomSheetMenuItem(
+                label: isFavorite
+                    ? 'Remove from Favorites'
+                    : 'Save to Favorites',
+                icon: isFavorite
+                    ? PhosphorIconsRegular.star
+                    : PhosphorIconsFill.star,
+                onTap: () {
+                  close();
+                  unawaited(_toggleGifFavorite(gif, favorite));
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _toggleGifFavorite(
+    GifPickerGif gif,
+    FavoriteMeme? favorite,
+  ) async {
+    try {
+      final repository = ref.read(favoriteMediaRepositoryProvider);
+      if (favorite != null) {
+        await repository.deleteFavoriteMeme(favorite);
+      } else {
+        await repository.createFromGif(gif);
+      }
+    } on Object {
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            const FluxerToast(
+              message: 'Could not update GIF favorite.',
+              variant: FluxerToastVariant.danger,
+            ),
+          );
+    }
+  }
 }
 
 class _FeaturedGifLanding extends StatelessWidget {
@@ -344,6 +441,8 @@ class _FeaturedGifLanding extends StatelessWidget {
     required this.onTrendingTap,
     required this.onCategoryTap,
     required this.onGifTap,
+    required this.favoriteForGif,
+    required this.onGifLongPress,
     this.onFavoritesTap,
   });
 
@@ -352,6 +451,8 @@ class _FeaturedGifLanding extends StatelessWidget {
   final VoidCallback onTrendingTap;
   final ValueChanged<String> onCategoryTap;
   final ValueChanged<GifPickerGif> onGifTap;
+  final FavoriteMeme? Function(GifPickerGif gif) favoriteForGif;
+  final void Function(GifPickerGif gif, FavoriteMeme? favorite) onGifLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -392,7 +493,12 @@ class _FeaturedGifLanding extends StatelessWidget {
     if (categories.length == 1 &&
         onFavoritesTap == null &&
         featured.gifs.isNotEmpty) {
-      return _GifGrid(gifs: featured.gifs, onGifTap: onGifTap);
+      return _GifGrid(
+        gifs: featured.gifs,
+        onGifTap: onGifTap,
+        favoriteForGif: favoriteForGif,
+        onGifLongPress: onGifLongPress,
+      );
     }
 
     return _CategoryGrid(categories: categories);
@@ -426,12 +532,16 @@ class _AsyncGifGrid extends StatelessWidget {
   const _AsyncGifGrid({
     required this.gifs,
     required this.onGifTap,
+    required this.favoriteForGif,
+    required this.onGifLongPress,
     this.emptyTitle,
     this.emptyDescription,
   });
 
   final AsyncValue<List<GifPickerGif>> gifs;
   final ValueChanged<GifPickerGif> onGifTap;
+  final FavoriteMeme? Function(GifPickerGif gif) favoriteForGif;
+  final void Function(GifPickerGif gif, FavoriteMeme? favorite) onGifLongPress;
   final String? emptyTitle;
   final String? emptyDescription;
 
@@ -448,7 +558,12 @@ class _AsyncGifGrid extends StatelessWidget {
               FluxerLocalizations.of(context).gifPickerNoResultsDescription,
         );
       }
-      return _GifGrid(gifs: items, onGifTap: onGifTap);
+      return _GifGrid(
+        gifs: items,
+        onGifTap: onGifTap,
+        favoriteForGif: favoriteForGif,
+        onGifLongPress: onGifLongPress,
+      );
     },
     error: (_, _) => _GifEmptyState(
       title: FluxerLocalizations.of(context).gifPickerLoadFailedTitle,
@@ -459,10 +574,17 @@ class _AsyncGifGrid extends StatelessWidget {
 }
 
 class _GifGrid extends StatelessWidget {
-  const _GifGrid({required this.gifs, required this.onGifTap});
+  const _GifGrid({
+    required this.gifs,
+    required this.onGifTap,
+    required this.favoriteForGif,
+    required this.onGifLongPress,
+  });
 
   final List<GifPickerGif> gifs;
   final ValueChanged<GifPickerGif> onGifTap;
+  final FavoriteMeme? Function(GifPickerGif gif) favoriteForGif;
+  final void Function(GifPickerGif gif, FavoriteMeme? favorite) onGifLongPress;
 
   @override
   Widget build(BuildContext context) => _VirtualMasonryGrid(
@@ -484,6 +606,7 @@ class _GifGrid extends StatelessWidget {
           required isAnimatedImagePlaybackAllowed,
         }) {
           final gif = item as GifPickerGif;
+          final favorite = favoriteForGif(gif);
           final title = gif.title.trim().isEmpty
               ? parseKlipyTitleFromUrl(gif.url)
               : gif.title;
@@ -494,7 +617,9 @@ class _GifGrid extends StatelessWidget {
             isVisible: isVisible,
             allowVideoPlayback: isVideoPlaybackAllowed,
             allowAnimatedImagePlayback: isAnimatedImagePlaybackAllowed,
+            isFavorite: favorite != null,
             onTap: () => onGifTap(gif),
+            onLongPress: () => onGifLongPress(gif, favorite),
           );
         },
   );
@@ -1075,9 +1200,11 @@ class _GifTile extends StatefulWidget {
     required this.sourceUrl,
     required this.isVisible,
     required this.onTap,
+    this.onLongPress,
     this.icon,
     this.isCategory = false,
     this.categoryOverlayColor,
+    this.isFavorite = false,
     this.enableVideoPlayback = true,
     this.allowVideoPlayback = true,
     this.allowAnimatedImagePlayback = true,
@@ -1088,9 +1215,11 @@ class _GifTile extends StatefulWidget {
   final String sourceUrl;
   final bool isVisible;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final IconData? icon;
   final bool isCategory;
   final Color? categoryOverlayColor;
+  final bool isFavorite;
   final bool enableVideoPlayback;
   final bool allowVideoPlayback;
   final bool allowAnimatedImagePlayback;
@@ -1224,6 +1353,7 @@ class _GifTileState extends State<_GifTile> {
 
     return FluxerTappable(
       onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
       semanticLabel: widget.title,
       builder: (context, states) {
         final isHovered = states.contains(WidgetState.hovered);
@@ -1303,6 +1433,25 @@ class _GifTileState extends State<_GifTile> {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                if (!widget.isCategory && widget.isFavorite)
+                  Positioned(
+                    top: layout.s2,
+                    right: layout.s2,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.62),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(layout.s1),
+                        child: const PhosphorIcon(
+                          PhosphorIconsFill.star,
+                          size: 16,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),

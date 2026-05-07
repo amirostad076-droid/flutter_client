@@ -49,12 +49,23 @@ class GuildEmojiEntry {
   /// Markdown token inserted into the message text.
   String get markdown =>
       getCustomEmojiMarkdown(name: name, id: id, animated: animated);
+
+  String get favoriteKey => customEmojiFavoriteKey(this);
 }
+
+String unicodeEmojiFavoriteKey(EmojiEntry emoji) =>
+    'unicode:${emoji.primaryName}';
+
+String customEmojiFavoriteKey(GuildEmojiEntry emoji) =>
+    'custom:${emoji.guildId}:${emoji.id}';
 
 @riverpod
 Future<List<EmojiEntry>> frecentEmojis(Ref ref) async {
   final db = ref.watch(fluxerDatabaseProvider);
-  final keys = await db.emojiUsageDao.getTopByFrecency(kMaxFrecentEmojis);
+  final keys = await db.emojiUsageDao.getTopByFrecencyForPrefix(
+    'unicode:',
+    kMaxFrecentEmojis,
+  );
 
   final result = <EmojiEntry>[];
   for (final usage in keys) {
@@ -91,8 +102,10 @@ Map<Guild, List<GuildEmojiEntry>> guildEmojiEntriesForPicker({
   required List<GuildEmojiEntry> emojis,
   required String? activeGuildId,
   required bool isPremium,
+  bool canUseExternalEmojis = true,
 }) {
-  final targetGuilds = isPremium
+  final hasGlobalEmojiAccess = isPremium && canUseExternalEmojis;
+  final targetGuilds = hasGlobalEmojiAccess
       ? guilds
       : guilds.where((guild) => guild.id == activeGuildId).toList();
   return _groupEmojiEntriesByGuild(guilds: targetGuilds, emojis: emojis);
@@ -103,8 +116,9 @@ List<GuildEmojiEntry> lockedGuildEmojiEntriesForUpsell({
   required List<GuildEmojiEntry> emojis,
   required String? activeGuildId,
   required bool isPremium,
+  bool canUseExternalEmojis = true,
 }) {
-  if (isPremium) {
+  if (isPremium || !canUseExternalEmojis) {
     return const <GuildEmojiEntry>[];
   }
 

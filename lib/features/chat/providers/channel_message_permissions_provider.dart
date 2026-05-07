@@ -16,23 +16,31 @@ class ChannelMessagePermissions {
   final bool canSendMessages;
   final bool canAttachFiles;
   final bool canEmbedLinks;
+  final bool canUseExternalEmojis;
+  final bool canUseExternalStickers;
 
   const ChannelMessagePermissions({
     required this.canSendMessages,
     required this.canAttachFiles,
     required this.canEmbedLinks,
+    required this.canUseExternalEmojis,
+    required this.canUseExternalStickers,
   });
 
   static const ChannelMessagePermissions none = ChannelMessagePermissions(
     canSendMessages: false,
     canAttachFiles: false,
     canEmbedLinks: false,
+    canUseExternalEmojis: false,
+    canUseExternalStickers: false,
   );
 
   static const ChannelMessagePermissions all = ChannelMessagePermissions(
     canSendMessages: true,
     canAttachFiles: true,
     canEmbedLinks: true,
+    canUseExternalEmojis: true,
+    canUseExternalStickers: true,
   );
 }
 
@@ -66,6 +74,11 @@ Future<ChannelMessagePermissions> channelMessagePermissions(
       canSendMessages: canSendMessages,
       canAttachFiles: hasPermission(bits, Permission.attachFiles),
       canEmbedLinks: hasPermission(bits, Permission.embedLinks),
+      canUseExternalEmojis: hasPermission(bits, Permission.useExternalEmojis),
+      canUseExternalStickers: hasPermission(
+        bits,
+        Permission.useExternalStickers,
+      ),
     );
   }
   return ChannelMessagePermissions.none;

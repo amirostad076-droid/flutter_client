@@ -9,9 +9,14 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/picker_search_input.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/plutonium_upsell_banner.dart';
+import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
+import 'package:fluxer_app/features/chat/providers/expression_picker_preferences_provider.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
+import 'package:fluxer_app/features/ui/plutonium_upsell/fluxer_plutonium_upsell.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -35,6 +40,7 @@ class StickerPickerContent extends ConsumerStatefulWidget {
     this.searchHorizontalPadding,
     this.searchTopPadding,
     this.searchBottomPadding,
+    this.channelId,
     super.key,
   });
 
@@ -43,6 +49,7 @@ class StickerPickerContent extends ConsumerStatefulWidget {
   final double? searchHorizontalPadding;
   final double? searchTopPadding;
   final double? searchBottomPadding;
+  final String? channelId;
 
   @override
   ConsumerState<StickerPickerContent> createState() =>
@@ -52,21 +59,40 @@ class StickerPickerContent extends ConsumerStatefulWidget {
 class _StickerPickerData {
   const _StickerPickerData({
     required this.allStickers,
+    required this.visibleStickers,
     required this.frecent,
+    required this.favoriteStickers,
+    required this.collapsedCategories,
+    required this.guilds,
+    required this.activeGuildId,
+    required this.isPremium,
+    required this.canUseExternalStickers,
     required this.stickersByGuild,
   });
 
   final List<StickerEntry> allStickers;
+  final List<StickerEntry> visibleStickers;
   final List<StickerEntry> frecent;
+  final List<StickerEntry> favoriteStickers;
+  final List<String> collapsedCategories;
+  final List<Guild> guilds;
+  final String? activeGuildId;
+  final bool isPremium;
+  final bool canUseExternalStickers;
   final Map<Guild, List<StickerEntry>> stickersByGuild;
 }
 
 class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
   final _scrollController = ScrollController();
   final _searchController = TextEditingController();
-  final _collapsedCategories = <String>{};
   String _searchQuery = '';
   StickerEntry? _hoveredSticker;
+  List<Guild>? _cachedGuilds;
+  String? _cachedActiveGuildId;
+  bool? _cachedIsPremium;
+  bool? _cachedCanUseExternalStickers;
+  List<StickerEntry>? _cachedAllStickers;
+  Map<Guild, List<StickerEntry>>? _cachedGroupedStickers;
 
   @override
   void initState() {
@@ -103,51 +129,142 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
     return rows * _cellHeight + (rows - 1) * _kStickerGridGap;
   }
 
-  _StickerPickerData _watchPickerData() {
-    final guilds = ref.watch(guildListViewModelProvider).guilds;
-    final activeGuildId = ref.watch(activeGuildIdProvider);
-    final isPremium = ref.watch(currentUserPremiumTypeProvider) > 0;
-    final allStickers =
-        ref.watch(allGuildStickersForPickerProvider).value ?? const [];
-    final frecent = ref.watch(frecentStickersProvider).value ?? const [];
-    final stickersByGuild = guildStickerEntriesForPicker(
+  Map<Guild, List<StickerEntry>> _groupedStickersFor({
+    required List<Guild> guilds,
+    required String? activeGuildId,
+    required bool isPremium,
+    required bool canUseExternalStickers,
+    required List<StickerEntry> allStickers,
+  }) {
+    final cached = _cachedGroupedStickers;
+    if (cached != null &&
+        identical(_cachedGuilds, guilds) &&
+        _cachedActiveGuildId == activeGuildId &&
+        _cachedIsPremium == isPremium &&
+        _cachedCanUseExternalStickers == canUseExternalStickers &&
+        identical(_cachedAllStickers, allStickers)) {
+      return cached;
+    }
+
+    final grouped = guildStickerEntriesForPicker(
       guilds: guilds,
       stickers: allStickers,
       activeGuildId: activeGuildId,
       isPremium: isPremium,
+      canUseExternalStickers: canUseExternalStickers,
     );
-    final visibleStickerIds = stickersByGuild.values
+    _cachedGuilds = guilds;
+    _cachedActiveGuildId = activeGuildId;
+    _cachedIsPremium = isPremium;
+    _cachedCanUseExternalStickers = canUseExternalStickers;
+    _cachedAllStickers = allStickers;
+    _cachedGroupedStickers = grouped;
+    return grouped;
+  }
+
+  _StickerPickerData _watchPickerData() {
+    final guilds = ref.watch(guildListViewModelProvider).guilds;
+    final activeGuildId = ref.watch(activeGuildIdProvider);
+    final isPremium = ref.watch(currentUserPremiumTypeProvider) > 0;
+    final canUseExternalStickers = _watchCanUseExternalStickers();
+    final allStickers =
+        ref.watch(allGuildStickersForPickerProvider).value ?? const [];
+    final frecent = ref.watch(frecentStickersProvider).value ?? const [];
+    final favoriteKeys =
+        ref.watch(favoriteStickerKeysProvider).value ?? const <String>[];
+    final collapsedCategories =
+        ref.watch(collapsedStickerPickerCategoriesProvider).value ??
+        const <String>[];
+    final stickersByGuild = _groupedStickersFor(
+      guilds: guilds,
+      activeGuildId: activeGuildId,
+      isPremium: isPremium,
+      canUseExternalStickers: canUseExternalStickers,
+      allStickers: allStickers,
+    );
+    final visibleStickers = stickersByGuild.values
         .expand((stickers) => stickers)
+        .toList(growable: false);
+    final visibleStickerIds = visibleStickers
         .map((sticker) => sticker.id)
         .toSet();
+    final favoriteStickers = _favoriteStickers(favoriteKeys, visibleStickers);
 
     return _StickerPickerData(
       allStickers: allStickers,
+      visibleStickers: visibleStickers,
       frecent: frecent
           .where((sticker) => visibleStickerIds.contains(sticker.id))
           .toList(growable: false),
+      favoriteStickers: favoriteStickers,
+      collapsedCategories: collapsedCategories,
+      guilds: guilds,
+      activeGuildId: activeGuildId,
+      isPremium: isPremium,
+      canUseExternalStickers: canUseExternalStickers,
       stickersByGuild: stickersByGuild,
     );
+  }
+
+  bool _watchCanUseExternalStickers() {
+    final channelId = widget.channelId;
+    if (channelId == null || channelId.isEmpty) {
+      return true;
+    }
+    return switch (ref.watch(channelMessagePermissionsProvider(channelId))) {
+      AsyncData<ChannelMessagePermissions>(:final value) =>
+        value.canUseExternalStickers,
+      _ => false,
+    };
   }
 
   Map<Guild, List<StickerEntry>> _readStickersByGuild() {
     final guilds = ref.read(guildListViewModelProvider).guilds;
     final activeGuildId = ref.read(activeGuildIdProvider);
     final isPremium = ref.read(currentUserPremiumTypeProvider) > 0;
+    final canUseExternalStickers = _readCanUseExternalStickers();
     final stickers = ref.read(allGuildStickersForPickerProvider).value ?? [];
-    return guildStickerEntriesForPicker(
+    return _groupedStickersFor(
       guilds: guilds,
-      stickers: stickers,
       activeGuildId: activeGuildId,
       isPremium: isPremium,
+      canUseExternalStickers: canUseExternalStickers,
+      allStickers: stickers,
     );
   }
 
-  void _scrollToCategory(String category) {
-    final frecent = ref.read(frecentStickersProvider).value ?? [];
-    final stickersByGuild = _readStickersByGuild();
+  bool _readCanUseExternalStickers() {
+    final channelId = widget.channelId;
+    if (channelId == null || channelId.isEmpty) {
+      return true;
+    }
+    return switch (ref.read(channelMessagePermissionsProvider(channelId))) {
+      AsyncData<ChannelMessagePermissions>(:final value) =>
+        value.canUseExternalStickers,
+      _ => false,
+    };
+  }
 
-    if (category == 'frequently-used') {
+  void _scrollToCategory(String category) {
+    final collapsedCategories =
+        ref.read(collapsedStickerPickerCategoriesProvider).value ??
+        const <String>[];
+    final stickersByGuild = _readStickersByGuild();
+    final visibleStickers = stickersByGuild.values
+        .expand((stickers) => stickers)
+        .toList(growable: false);
+    final visibleStickerIds = visibleStickers
+        .map((sticker) => sticker.id)
+        .toSet();
+    final frecent = (ref.read(frecentStickersProvider).value ?? const [])
+        .where((sticker) => visibleStickerIds.contains(sticker.id))
+        .toList(growable: false);
+    final favoriteStickers = _favoriteStickers(
+      ref.read(favoriteStickerKeysProvider).value ?? const <String>[],
+      visibleStickers,
+    );
+
+    if (category == 'favorites') {
       unawaited(
         _scrollController.animateTo(
           0,
@@ -159,9 +276,26 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
     }
 
     var offset = 0.0;
+    if (favoriteStickers.isNotEmpty) {
+      offset += _kCategoryHeaderHeight;
+      if (!collapsedCategories.contains('favorites')) {
+        offset += _gridHeightForItemCount(favoriteStickers.length);
+      }
+      offset += _kCategoryGap;
+    }
+    if (category == 'frequently-used') {
+      unawaited(
+        _scrollController.animateTo(
+          offset.clamp(0, _scrollController.position.maxScrollExtent),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        ),
+      );
+      return;
+    }
     if (frecent.isNotEmpty) {
       offset += _kCategoryHeaderHeight;
-      if (!_collapsedCategories.contains('frequently-used')) {
+      if (!collapsedCategories.contains('frequently-used')) {
         offset += _gridHeightForItemCount(frecent.length);
       }
       offset += _kCategoryGap;
@@ -180,7 +314,7 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
         return;
       }
       offset += _kCategoryGap + _kCategoryHeaderHeight;
-      if (!_collapsedCategories.contains(key)) {
+      if (!collapsedCategories.contains(key)) {
         offset += _gridHeightForItemCount(entry.value.length);
       }
     }
@@ -193,6 +327,61 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
         .trackUsage(sticker.frecencyKey);
     ref.invalidate(frecentStickersProvider);
     widget.onSelect?.call(sticker);
+  }
+
+  List<StickerEntry> _favoriteStickers(
+    List<String> favoriteKeys,
+    List<StickerEntry> visibleStickers,
+  ) {
+    if (favoriteKeys.isEmpty) {
+      return const <StickerEntry>[];
+    }
+    final byKey = <String, StickerEntry>{};
+    for (final sticker in visibleStickers) {
+      byKey[sticker.favoriteKey] = sticker;
+    }
+    return favoriteKeys
+        .map((key) => byKey[key])
+        .whereType<StickerEntry>()
+        .toList(growable: false);
+  }
+
+  void _showStickerActions(StickerEntry sticker) {
+    if (!widget.isMobile) {
+      return;
+    }
+    final key = sticker.favoriteKey;
+    final favoriteKeys =
+        ref.read(favoriteStickerKeysProvider).value ?? const <String>[];
+    final isFavorite = favoriteKeys.contains(key);
+    unawaited(
+      FluxerBottomSheet.show<void>(
+        context,
+        title: ':${sticker.name}:',
+        variant: FluxerBottomSheetVariant.menu,
+        builder: (sheetContext, close) => FluxerBottomSheetContent(
+          scrollable: false,
+          child: FluxerMenuGroup(
+            children: [
+              FluxerBottomSheetMenuItem(
+                label: isFavorite
+                    ? 'Remove from Favorites'
+                    : 'Add to Favorites',
+                icon: isFavorite
+                    ? PhosphorIconsRegular.star
+                    : PhosphorIconsFill.star,
+                onTap: () {
+                  close();
+                  unawaited(
+                    ref.read(favoriteStickerKeysProvider.notifier).toggle(key),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _setHoveredSticker(StickerEntry? sticker) {
@@ -235,7 +424,7 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
       );
     }
 
-    final visibleStickers = data.stickersByGuild.values.expand((e) => e);
+    final visibleStickers = data.visibleStickers;
     if (visibleStickers.isEmpty) {
       return const _StickerEmptyState(
         icon: PhosphorIconsDuotone.sticker,
@@ -309,20 +498,40 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
     FluxerColorTheme colors,
     _StickerPickerData data,
   ) {
+    final favoriteStickers = data.favoriteStickers;
     final guildEntries = data.stickersByGuild.entries.toList();
 
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        const SliverToBoxAdapter(child: SizedBox.shrink()),
+        const SliverToBoxAdapter(child: SizedBox(height: 4)),
+        SliverPadding(
+          padding: _gridPadding,
+          sliver: SliverToBoxAdapter(child: _buildUpsellBanner(context, data)),
+        ),
+        if (favoriteStickers.isNotEmpty) ...[
+          SliverPadding(
+            padding: _gridPadding,
+            sliver: SliverToBoxAdapter(
+              child: _buildCategoryHeader('favorites', colors),
+            ),
+          ),
+          if (!data.collapsedCategories.contains('favorites'))
+            SliverPadding(
+              padding: _gridPadding,
+              sliver: _buildStickerGridSliver(favoriteStickers, colors),
+            ),
+        ],
         if (data.frecent.isNotEmpty) ...[
+          if (favoriteStickers.isNotEmpty)
+            const SliverToBoxAdapter(child: SizedBox(height: _kCategoryGap)),
           SliverPadding(
             padding: _gridPadding,
             sliver: SliverToBoxAdapter(
               child: _buildCategoryHeader('frequently-used', colors),
             ),
           ),
-          if (!_collapsedCategories.contains('frequently-used'))
+          if (!data.collapsedCategories.contains('frequently-used'))
             SliverPadding(
               padding: _gridPadding,
               sliver: _buildStickerGridSliver(data.frecent, colors),
@@ -341,7 +550,7 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
               ),
             ),
           ),
-          if (!_collapsedCategories.contains('guild-${entry.key.id}'))
+          if (!data.collapsedCategories.contains('guild-${entry.key.id}'))
             SliverPadding(
               padding: _gridPadding,
               sliver: _buildStickerGridSliver(entry.value, colors),
@@ -349,6 +558,45 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
         ],
         const SliverToBoxAdapter(child: SizedBox(height: 4)),
       ],
+    );
+  }
+
+  Widget _buildUpsellBanner(BuildContext context, _StickerPickerData data) {
+    if (data.isPremium || !data.canUseExternalStickers) {
+      return const SizedBox.shrink();
+    }
+    final lockedStickers = lockedGuildStickerEntriesForUpsell(
+      guilds: data.guilds,
+      stickers: data.allStickers,
+      activeGuildId: data.activeGuildId,
+      isPremium: data.isPremium,
+      canUseExternalStickers: data.canUseExternalStickers,
+    );
+    if (lockedStickers.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final lockedGuilds = data.guilds
+        .where((guild) => guild.id != data.activeGuildId)
+        .toList();
+    final dismissed =
+        ref.watch(plutoniumUpsellDismissedProvider).value ?? false;
+    if (dismissed) {
+      return const SizedBox.shrink();
+    }
+    final stickerLabel = lockedStickers.length == 1
+        ? '1 sticker'
+        : '${lockedStickers.length} stickers';
+    final guildLabel = lockedGuilds.length == 1
+        ? 'another community'
+        : '${lockedGuilds.length} communities';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: FluxerPlutoniumUpsell(
+        text: 'Unlock $stickerLabel from $guildLabel with Plutonium.',
+        onDismiss: () => unawaited(
+          ref.read(plutoniumUpsellDismissedProvider.notifier).dismiss(),
+        ),
+      ),
     );
   }
 
@@ -375,11 +623,23 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
     String? labelOverride,
     Guild? guild,
   }) {
-    final isCollapsed = _collapsedCategories.contains(category);
+    final collapsedCategories =
+        ref.watch(collapsedStickerPickerCategoriesProvider).value ??
+        const <String>[];
+    final isCollapsed = collapsedCategories.contains(category);
     final label =
-        labelOverride ?? FluxerLocalizations.of(context).emojiFrequentlyUsed;
+        labelOverride ??
+        (category == 'favorites'
+            ? 'Favorites'
+            : FluxerLocalizations.of(context).emojiFrequentlyUsed);
     final leadingIcon = guild != null
         ? _StickerGuildIcon(guild: guild, size: 16)
+        : category == 'favorites'
+        ? PhosphorIcon(
+            PhosphorIconsFill.star,
+            size: 16,
+            color: colors.textPrimaryMuted,
+          )
         : category == 'frequently-used'
         ? PhosphorIcon(
             PhosphorIconsFill.clock,
@@ -389,13 +649,11 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
         : null;
 
     return GestureDetector(
-      onTap: () => setState(() {
-        if (isCollapsed) {
-          _collapsedCategories.remove(category);
-        } else {
-          _collapsedCategories.add(category);
-        }
-      }),
+      onTap: () => unawaited(
+        ref
+            .read(collapsedStickerPickerCategoriesProvider.notifier)
+            .toggle(category),
+      ),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         height: _kCategoryHeaderHeight,
@@ -457,6 +715,7 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
 
     return GestureDetector(
       onTap: () => unawaited(_selectSticker(sticker)),
+      onLongPress: () => _showStickerActions(sticker),
       child: widget.isMobile
           ? content
           : MouseRegion(
@@ -480,6 +739,11 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
     child: ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
+        if (data.favoriteStickers.isNotEmpty)
+          _StickerCategoryButton(
+            icon: PhosphorIconsFill.star,
+            onTap: () => _scrollToCategory('favorites'),
+          ),
         if (data.frecent.isNotEmpty)
           _StickerCategoryButton(
             icon: PhosphorIconsFill.clock,
@@ -508,6 +772,11 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       children: [
+        if (data.favoriteStickers.isNotEmpty)
+          _StickerCategoryButton(
+            icon: PhosphorIconsFill.star,
+            onTap: () => _scrollToCategory('favorites'),
+          ),
         if (data.frecent.isNotEmpty)
           _StickerCategoryButton(
             icon: PhosphorIconsFill.clock,

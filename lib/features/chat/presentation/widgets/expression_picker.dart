@@ -47,6 +47,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
     this.onGifSelect,
     this.onStickerSelect,
     this.onFavoriteMemeSelect,
+    this.channelId,
     this.contentSearchHorizontalPadding,
     this.contentSearchTopPadding,
     this.contentSearchBottomPadding,
@@ -71,6 +72,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
   final ValueChanged<StickerEntry>? onStickerSelect;
   final ValueChanged<FavoriteMemeSelection>? onFavoriteMemeSelect;
+  final String? channelId;
   final double? contentSearchHorizontalPadding;
   final double? contentSearchTopPadding;
   final double? contentSearchBottomPadding;
@@ -241,6 +243,7 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
         skinTone: widget.skinTone ?? skinTone,
         onHoveredEmojiChanged: _onHoveredChanged,
         onSelect: widget.onEmojiSelect,
+        channelId: widget.channelId,
       );
     }
     if (_selectedTab == ExpressionPickerTab.gifs) {
@@ -259,6 +262,7 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
       return StickerPickerContent(
         isMobile: isMobileLayout(context),
         onSelect: widget.onStickerSelect,
+        channelId: widget.channelId,
         searchHorizontalPadding: widget.contentSearchHorizontalPadding,
         searchTopPadding: widget.contentSearchTopPadding,
         searchBottomPadding: widget.contentSearchBottomPadding,

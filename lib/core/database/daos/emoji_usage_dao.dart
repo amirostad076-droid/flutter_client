@@ -40,6 +40,17 @@ class EmojiUsageDao extends DatabaseAccessor<FluxerDatabase>
     return all.take(limit).toList();
   }
 
+  Future<List<EmojiUsageData>> getTopByFrecencyForPrefix(
+    String prefix,
+    int limit,
+  ) async {
+    final matching = await (select(
+      emojiUsage,
+    )..where((e) => e.key.like('$prefix%'))).get();
+    matching.sort((a, b) => _score(b).compareTo(_score(a)));
+    return matching.take(limit).toList();
+  }
+
   /// Returns the top [limit] unicode emoji strings,
   /// padded with [defaults] if not enough history.
   Future<List<String>> getQuickReactionEmojis(

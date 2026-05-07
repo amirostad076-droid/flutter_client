@@ -25,6 +25,7 @@ class FluxerEmojiPickerSheet {
       ExpressionPickerTab.emojis,
     ],
     ExpressionPickerTab initialTab = ExpressionPickerTab.emojis,
+    String? channelId,
   }) {
     return FluxerBottomSheet.show<void>(
       context,
@@ -39,6 +40,7 @@ class FluxerEmojiPickerSheet {
           onGifSelected: onGifSelected,
           onStickerSelected: onStickerSelected,
           onFavoriteMemeSelected: onFavoriteMemeSelected,
+          channelId: channelId,
         );
       },
     );
@@ -54,6 +56,7 @@ class _SheetContent extends StatefulWidget {
     this.onGifSelected,
     this.onStickerSelected,
     this.onFavoriteMemeSelected,
+    this.channelId,
   });
 
   final List<ExpressionPickerTab> visibleTabs;
@@ -63,6 +66,7 @@ class _SheetContent extends StatefulWidget {
   final ValueChanged<FluxerSelectedGif>? onGifSelected;
   final ValueChanged<StickerEntry>? onStickerSelected;
   final ValueChanged<FavoriteMemeSelection>? onFavoriteMemeSelected;
+  final String? channelId;
 
   @override
   State<_SheetContent> createState() => _SheetContentState();
@@ -113,6 +117,7 @@ class _SheetContentState extends State<_SheetContent> {
           visibleTabs: widget.visibleTabs,
           initialTab: _selectedTab,
           showTabs: false,
+          channelId: widget.channelId,
         ),
       ),
     ],

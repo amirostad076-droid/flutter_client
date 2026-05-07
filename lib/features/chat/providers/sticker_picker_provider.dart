@@ -44,6 +44,8 @@ class StickerEntry {
 
   String get frecencyKey => 'sticker:$guildId:$id';
 
+  String get favoriteKey => stickerFavoriteKey(this);
+
   static List<String> _decodeTags(String tagsJson) {
     try {
       return (jsonDecode(tagsJson) as List<dynamic>)
@@ -54,6 +56,9 @@ class StickerEntry {
     }
   }
 }
+
+String stickerFavoriteKey(StickerEntry sticker) =>
+    'sticker:${sticker.guildId}:${sticker.id}';
 
 final allGuildStickersForPickerProvider = rp.StreamProvider<List<StickerEntry>>(
   (ref) {
@@ -68,7 +73,8 @@ final frecentStickersProvider = rp.FutureProvider<List<StickerEntry>>((
   ref,
 ) async {
   final db = ref.watch(fluxerDatabaseProvider);
-  final usage = await db.emojiUsageDao.getTopByFrecency(
+  final usage = await db.emojiUsageDao.getTopByFrecencyForPrefix(
+    'sticker:',
     kMaxFrecentStickers * 4,
   );
   final stickers = await db.guildStickerDao.getAll();
@@ -89,8 +95,10 @@ Map<Guild, List<StickerEntry>> guildStickerEntriesForPicker({
   required List<StickerEntry> stickers,
   required String? activeGuildId,
   required bool isPremium,
+  bool canUseExternalStickers = true,
 }) {
-  final targetGuilds = isPremium
+  final hasGlobalStickerAccess = isPremium && canUseExternalStickers;
+  final targetGuilds = hasGlobalStickerAccess
       ? guilds
       : guilds.where((guild) => guild.id == activeGuildId).toList();
   return _groupStickerEntriesByGuild(guilds: targetGuilds, stickers: stickers);
@@ -101,8 +109,9 @@ List<StickerEntry> lockedGuildStickerEntriesForUpsell({
   required List<StickerEntry> stickers,
   required String? activeGuildId,
   required bool isPremium,
+  bool canUseExternalStickers = true,
 }) {
-  if (isPremium) {
+  if (isPremium || !canUseExternalStickers) {
     return const <StickerEntry>[];
   }
 

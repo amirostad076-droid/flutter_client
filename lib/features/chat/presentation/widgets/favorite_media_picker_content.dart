@@ -5,11 +5,16 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/picker_search_input.dart';
 import 'package:fluxer_app/features/chat/providers/favorite_media_provider.dart';
+import 'package:fluxer_app/features/chat/utils/gif_preview_media_policy.dart';
+import 'package:fluxer_app/features/chat/utils/gif_preview_playback_policy.dart';
 import 'package:fluxer_app/features/chat/utils/gif_preview_player_config.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -20,6 +25,8 @@ const _kMaxColumnWidth = 227.0;
 const _kMinTileHeight = 96.0;
 const _kMinNonImageTileHeight = 128.0;
 const _kMaxTileHeight = 320.0;
+const _kMasonryCacheExtent = 700.0;
+const _kFavoriteMediaVideoResumeDelay = Duration(milliseconds: 220);
 const _kFavoriteMediaVideoHttpHeaders = <String, String>{
   'Accept': 'video/webm,video/mp4,video/*,*/*',
 };
@@ -66,9 +73,68 @@ class _FavoriteMediaPickerContentState
   }
 
   void _select(FavoriteMeme meme) {
+    unawaited(
+      ref
+          .read(fluxerDatabaseProvider)
+          .emojiUsageDao
+          .trackUsage('meme:${meme.id}'),
+    );
+    ref.invalidate(favoriteMemeFrecencyKeysProvider);
     final autoSend = !HardwareKeyboard.instance.isShiftPressed;
     widget.onSelect?.call(
       FavoriteMemeSelection(meme: meme, autoSend: autoSend),
+    );
+  }
+
+  void _showActions(FavoriteMeme meme) {
+    unawaited(
+      FluxerBottomSheet.show<void>(
+        context,
+        title: meme.name,
+        variant: FluxerBottomSheetVariant.menu,
+        builder: (sheetContext, close) => FluxerBottomSheetContent(
+          scrollable: false,
+          child: FluxerMenuGroup(
+            children: [
+              FluxerBottomSheetMenuItem(
+                label: 'Edit',
+                icon: PhosphorIconsFill.pencilSimple,
+                onTap: () {
+                  close();
+                  unawaited(_showEditSheet(meme));
+                },
+              ),
+              FluxerBottomSheetMenuItem(
+                label: 'Delete',
+                icon: PhosphorIconsFill.trash,
+                isDanger: true,
+                onTap: () {
+                  close();
+                  unawaited(_showDeleteSheet(meme));
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showEditSheet(FavoriteMeme meme) {
+    return FluxerBottomSheet.show<void>(
+      context,
+      title: 'Edit saved media',
+      builder: (sheetContext, close) =>
+          _FavoriteMediaEditSheet(meme: meme, close: close),
+    );
+  }
+
+  Future<void> _showDeleteSheet(FavoriteMeme meme) {
+    return FluxerBottomSheet.show<void>(
+      context,
+      title: 'Delete saved media',
+      builder: (sheetContext, close) =>
+          _FavoriteMediaDeleteSheet(meme: meme, close: close),
     );
   }
 
@@ -113,11 +179,17 @@ class _FavoriteMediaPickerContentState
       );
     }
 
-    final filtered = filterFavoriteMemes(
+    var filtered = filterFavoriteMemes(
       allMemes,
       query: _searchQuery,
       filter: _filter,
     );
+    if (_searchQuery.trim().isNotEmpty) {
+      filtered = sortFavoriteMemesForSearchFrecency(
+        filtered,
+        ref.watch(favoriteMemeFrecencyKeysProvider).value ?? const <String>[],
+      );
+    }
     if (filtered.isEmpty) {
       return const _FavoriteMediaEmptyState(
         icon: PhosphorIconsDuotone.smileySad,
@@ -126,7 +198,11 @@ class _FavoriteMediaPickerContentState
       );
     }
 
-    return _FavoriteMediaMasonryGrid(memes: filtered, onTap: _select);
+    return _FavoriteMediaMasonryGrid(
+      memes: filtered,
+      onTap: _select,
+      onLongPress: _showActions,
+    );
   }
 }
 
@@ -234,11 +310,322 @@ class _FilterPill extends StatelessWidget {
   }
 }
 
-class _FavoriteMediaMasonryGrid extends StatelessWidget {
-  const _FavoriteMediaMasonryGrid({required this.memes, required this.onTap});
+class _FavoriteMediaEditSheet extends ConsumerStatefulWidget {
+  const _FavoriteMediaEditSheet({required this.meme, required this.close});
+
+  final FavoriteMeme meme;
+  final VoidCallback close;
+
+  @override
+  ConsumerState<_FavoriteMediaEditSheet> createState() =>
+      _FavoriteMediaEditSheetState();
+}
+
+class _FavoriteMediaEditSheetState
+    extends ConsumerState<_FavoriteMediaEditSheet> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _altTextController;
+  late final TextEditingController _tagsController;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.meme.name);
+    _altTextController = TextEditingController(text: widget.meme.altText ?? '');
+    _tagsController = TextEditingController(text: widget.meme.tags.join(', '));
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _altTextController.dispose();
+    _tagsController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() => _errorText = null);
+    try {
+      await ref
+          .read(favoriteMediaRepositoryProvider)
+          .updateFavoriteMeme(
+            meme: widget.meme,
+            name: _nameController.text,
+            altText: _altTextController.text,
+            tags: _parseTags(_tagsController.text),
+          );
+      if (mounted) {
+        widget.close();
+      }
+    } on Object {
+      if (mounted) {
+        setState(() => _errorText = 'Could not update saved media.');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.layout;
+    final colors = context.colors;
+
+    return FluxerBottomSheetContent(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _SavedMediaTextField(
+            controller: _nameController,
+            label: 'Name',
+            textInputAction: TextInputAction.next,
+          ),
+          SizedBox(height: layout.s3),
+          _SavedMediaTextField(
+            controller: _altTextController,
+            label: 'Alt text',
+            maxLines: 2,
+            textInputAction: TextInputAction.next,
+          ),
+          SizedBox(height: layout.s3),
+          _SavedMediaTextField(
+            controller: _tagsController,
+            label: 'Tags',
+            hintText: 'funny, reaction, work',
+            textInputAction: TextInputAction.done,
+          ),
+          if (_errorText != null) ...[
+            SizedBox(height: layout.s3),
+            Text(
+              _errorText!,
+              style: TextStyle(color: colors.accentDanger, fontSize: 13),
+            ),
+          ],
+          SizedBox(height: layout.s4),
+          FluxerButton.primary(label: 'Save', onPressedAsync: _save),
+        ],
+      ),
+    );
+  }
+}
+
+class _FavoriteMediaDeleteSheet extends ConsumerStatefulWidget {
+  const _FavoriteMediaDeleteSheet({required this.meme, required this.close});
+
+  final FavoriteMeme meme;
+  final VoidCallback close;
+
+  @override
+  ConsumerState<_FavoriteMediaDeleteSheet> createState() =>
+      _FavoriteMediaDeleteSheetState();
+}
+
+class _FavoriteMediaDeleteSheetState
+    extends ConsumerState<_FavoriteMediaDeleteSheet> {
+  String? _errorText;
+
+  Future<void> _delete() async {
+    setState(() => _errorText = null);
+    try {
+      await ref
+          .read(favoriteMediaRepositoryProvider)
+          .deleteFavoriteMeme(widget.meme);
+      if (mounted) {
+        widget.close();
+      }
+    } on Object {
+      if (mounted) {
+        setState(() => _errorText = 'Could not delete saved media.');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.layout;
+    final colors = context.colors;
+
+    return FluxerBottomSheetContent(
+      scrollable: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Remove "${widget.meme.name}" from your saved media?',
+            style: TextStyle(color: colors.textSecondary, fontSize: 14),
+          ),
+          if (_errorText != null) ...[
+            SizedBox(height: layout.s3),
+            Text(
+              _errorText!,
+              style: TextStyle(color: colors.accentDanger, fontSize: 13),
+            ),
+          ],
+          SizedBox(height: layout.s4),
+          FluxerButton.dangerPrimary(label: 'Delete', onPressedAsync: _delete),
+          SizedBox(height: layout.s2),
+          FluxerButton.secondary(label: 'Cancel', onPressed: widget.close),
+        ],
+      ),
+    );
+  }
+}
+
+class _SavedMediaTextField extends StatelessWidget {
+  const _SavedMediaTextField({
+    required this.controller,
+    required this.label,
+    this.hintText,
+    this.maxLines = 1,
+    this.textInputAction,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String? hintText;
+  final int maxLines;
+  final TextInputAction? textInputAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      textInputAction: textInputAction,
+      style: TextStyle(color: colors.textPrimary),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hintText,
+        filled: true,
+        fillColor: colors.backgroundTertiary,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colors.backgroundModifierAccent),
+        ),
+      ),
+    );
+  }
+}
+
+List<String> _parseTags(String value) => value
+    .split(',')
+    .map((tag) => tag.trim())
+    .where((tag) => tag.isNotEmpty)
+    .toSet()
+    .toList(growable: false);
+
+class _FavoriteMediaMasonryGrid extends StatefulWidget {
+  const _FavoriteMediaMasonryGrid({
+    required this.memes,
+    required this.onTap,
+    required this.onLongPress,
+  });
 
   final List<FavoriteMeme> memes;
   final ValueChanged<FavoriteMeme> onTap;
+  final ValueChanged<FavoriteMeme> onLongPress;
+
+  @override
+  State<_FavoriteMediaMasonryGrid> createState() =>
+      _FavoriteMediaMasonryGridState();
+}
+
+class _FavoriteMediaMasonryGridState extends State<_FavoriteMediaMasonryGrid> {
+  final _scrollController = ScrollController();
+  var _itemsVersion = 0;
+  int? _layoutItemsVersion;
+  double? _layoutColumnWidth;
+  int? _layoutColumnCount;
+  List<_FavoriteMediaPosition> _layoutPositions =
+      const <_FavoriteMediaPosition>[];
+  var _layoutContentHeight = 0.0;
+  var _scrollUpdateScheduled = false;
+  var _isScrollActive = false;
+  Timer? _videoResumeTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(_FavoriteMediaMasonryGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_sameMemes(oldWidget.memes, widget.memes)) {
+      _itemsVersion++;
+      _invalidateLayoutCache();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.jumpTo(0);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoResumeTimer?.cancel();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    _markScrollActive();
+    _scheduleScrollUpdate();
+  }
+
+  void _markScrollActive() {
+    _videoResumeTimer?.cancel();
+    _isScrollActive = true;
+    _videoResumeTimer = Timer(_kFavoriteMediaVideoResumeDelay, () {
+      if (!mounted || !_isScrollActive) {
+        return;
+      }
+      setState(() => _isScrollActive = false);
+    });
+  }
+
+  void _scheduleScrollUpdate() {
+    if (_scrollUpdateScheduled) {
+      return;
+    }
+
+    _scrollUpdateScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollUpdateScheduled = false;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  bool _sameMemes(List<FavoriteMeme> previous, List<FavoriteMeme> next) {
+    if (previous.length != next.length) {
+      return false;
+    }
+    for (var i = 0; i < previous.length; i++) {
+      final previousMeme = previous[i];
+      final nextMeme = next[i];
+      if (previousMeme.id != nextMeme.id ||
+          previousMeme.url != nextMeme.url ||
+          previousMeme.mediaType != nextMeme.mediaType ||
+          previousMeme.aspectRatio != nextMeme.aspectRatio) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void _invalidateLayoutCache() {
+    _layoutItemsVersion = null;
+    _layoutPositions = const <_FavoriteMediaPosition>[];
+    _layoutContentHeight = 0;
+  }
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -252,50 +639,186 @@ class _FavoriteMediaMasonryGrid extends StatelessWidget {
       final availableWidth = width - (_kGridHorizontalPadding * 2);
       final columnWidth =
           (availableWidth - (columns - 1) * _kGridGap) / columns;
-      final columnItems = List.generate(columns, (_) => <FavoriteMeme>[]);
-      final columnHeights = List<double>.filled(columns, 0);
-
-      for (final meme in memes) {
-        var shortestColumn = 0;
-        for (var i = 1; i < columnHeights.length; i++) {
-          if (columnHeights[i] < columnHeights[shortestColumn]) {
-            shortestColumn = i;
-          }
-        }
-        columnItems[shortestColumn].add(meme);
-        columnHeights[shortestColumn] +=
-            _tileHeight(columnWidth, meme) + _kGridGap;
-      }
+      final positions = _positionsForLayout(
+        columnWidth: columnWidth,
+        columnCount: columns,
+      );
+      final scrollOffset = _scrollController.hasClients
+          ? _scrollController.offset
+          : 0.0;
+      final viewportHeight = constraints.maxHeight.isFinite
+          ? constraints.maxHeight
+          : MediaQuery.sizeOf(context).height;
+      final visibleTop = scrollOffset - _kMasonryCacheExtent;
+      final visibleBottom =
+          scrollOffset + viewportHeight + _kMasonryCacheExtent;
+      final viewportBottom = scrollOffset + viewportHeight;
+      final visiblePositions = positions
+          .where(
+            (position) =>
+                position.bottom >= visibleTop && position.top <= visibleBottom,
+          )
+          .toList(growable: false);
+      final videoPlaybackIndexes = _allowedVideoIndexes(
+        positions: positions,
+        viewportTop: scrollOffset,
+        viewportBottom: viewportBottom,
+      );
+      final animatedImagePlaybackIndexes = _allowedAnimatedImageIndexes(
+        positions: positions,
+        viewportTop: scrollOffset,
+        viewportBottom: viewportBottom,
+      );
 
       return SingleChildScrollView(
+        controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(
-          _kGridHorizontalPadding,
-          0,
-          _kGridHorizontalPadding,
-          _kGridHorizontalPadding,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (var i = 0; i < columns; i++) ...[
-              Expanded(
-                child: Column(
-                  children: [
-                    for (final meme in columnItems[i]) ...[
-                      _FavoriteMediaTile(meme: meme, onTap: () => onTap(meme)),
-                      const SizedBox(height: _kGridGap),
-                    ],
-                  ],
+        child: SizedBox(
+          height: _layoutContentHeight,
+          child: Stack(
+            children: [
+              for (final position in visiblePositions)
+                Positioned(
+                  key: ValueKey<String>(widget.memes[position.index].id),
+                  left: position.left,
+                  top: position.top,
+                  width: position.width,
+                  height: position.height,
+                  child: RepaintBoundary(
+                    child: _FavoriteMediaTile(
+                      meme: widget.memes[position.index],
+                      isVisible:
+                          position.bottom >= scrollOffset &&
+                          position.top <= viewportBottom,
+                      allowVideoPlayback: videoPlaybackIndexes.contains(
+                        position.index,
+                      ),
+                      allowAnimatedImagePlayback: animatedImagePlaybackIndexes
+                          .contains(position.index),
+                      onTap: () => widget.onTap(widget.memes[position.index]),
+                      onLongPress: () =>
+                          widget.onLongPress(widget.memes[position.index]),
+                    ),
+                  ),
                 ),
-              ),
-              if (i != columns - 1) const SizedBox(width: _kGridGap),
             ],
-          ],
+          ),
         ),
       );
     },
   );
+
+  Set<int> _allowedVideoIndexes({
+    required List<_FavoriteMediaPosition> positions,
+    required double viewportTop,
+    required double viewportBottom,
+  }) => gifVideoPreviewPlaybackPolicy.allowedVideoIndexes(
+    candidates: _playbackCandidatesForPositions(
+      positions,
+      isCandidate: _isVideoPlaybackCandidate,
+    ),
+    viewportTop: viewportTop,
+    viewportBottom: viewportBottom,
+    isScrollActive: _isScrollActive,
+  );
+
+  Set<int> _allowedAnimatedImageIndexes({
+    required List<_FavoriteMediaPosition> positions,
+    required double viewportTop,
+    required double viewportBottom,
+  }) => gifAnimatedImagePreviewPlaybackPolicy.allowedVideoIndexes(
+    candidates: _playbackCandidatesForPositions(
+      positions,
+      isCandidate: _isAnimatedImagePlaybackCandidate,
+    ),
+    viewportTop: viewportTop,
+    viewportBottom: viewportBottom,
+    isScrollActive: _isScrollActive,
+  );
+
+  Iterable<GifPreviewPlaybackCandidate> _playbackCandidatesForPositions(
+    List<_FavoriteMediaPosition> positions, {
+    required bool Function(FavoriteMeme meme) isCandidate,
+  }) sync* {
+    for (final position in positions) {
+      if (!isCandidate(widget.memes[position.index])) {
+        continue;
+      }
+      yield GifPreviewPlaybackCandidate(
+        index: position.index,
+        top: position.top,
+        bottom: position.bottom,
+        left: position.left,
+      );
+    }
+  }
+
+  bool _isVideoPlaybackCandidate(FavoriteMeme meme) =>
+      meme.mediaType == FavoriteMemeMediaType.video ||
+      (meme.mediaType == FavoriteMemeMediaType.gif && meme.isVideoLike);
+
+  bool _isAnimatedImagePlaybackCandidate(FavoriteMeme meme) =>
+      !meme.isVideoLike &&
+      (meme.mediaType == FavoriteMemeMediaType.gif ||
+          isAnimatedImagePreviewUrl(meme.url));
+
+  List<_FavoriteMediaPosition> _positionsForLayout({
+    required double columnWidth,
+    required int columnCount,
+  }) {
+    if (_layoutItemsVersion == _itemsVersion &&
+        _layoutColumnWidth == columnWidth &&
+        _layoutColumnCount == columnCount) {
+      return _layoutPositions;
+    }
+
+    final positions = _computeMasonryPositions(
+      columnWidth: columnWidth,
+      columnCount: columnCount,
+    );
+    _layoutItemsVersion = _itemsVersion;
+    _layoutColumnWidth = columnWidth;
+    _layoutColumnCount = columnCount;
+    _layoutPositions = positions;
+    _layoutContentHeight = positions.isEmpty
+        ? 0.0
+        : positions.map((p) => p.bottom).reduce(max) + _kGridHorizontalPadding;
+    return positions;
+  }
+
+  List<_FavoriteMediaPosition> _computeMasonryPositions({
+    required double columnWidth,
+    required int columnCount,
+  }) {
+    final columnHeights = List<double>.filled(columnCount, 0);
+    final positions = <_FavoriteMediaPosition>[];
+
+    for (var i = 0; i < widget.memes.length; i++) {
+      var column = 0;
+      for (var j = 1; j < columnHeights.length; j++) {
+        if (columnHeights[j] < columnHeights[column]) {
+          column = j;
+        }
+      }
+
+      final meme = widget.memes[i];
+      final itemHeight = _tileHeight(columnWidth, meme);
+      final left = _kGridHorizontalPadding + column * (columnWidth + _kGridGap);
+      final top = columnHeights[column];
+      positions.add(
+        _FavoriteMediaPosition(
+          index: i,
+          left: left,
+          top: top,
+          width: columnWidth,
+          height: itemHeight,
+        ),
+      );
+      columnHeights[column] += itemHeight + _kGridGap;
+    }
+
+    return positions;
+  }
 
   int _columnsForWidth(double width) {
     final availableWidth = width - (_kGridHorizontalPadding * 2);
@@ -303,17 +826,47 @@ class _FavoriteMediaMasonryGrid extends StatelessWidget {
   }
 }
 
+class _FavoriteMediaPosition {
+  const _FavoriteMediaPosition({
+    required this.index,
+    required this.left,
+    required this.top,
+    required this.width,
+    required this.height,
+  });
+
+  final int index;
+  final double left;
+  final double top;
+  final double width;
+  final double height;
+
+  double get bottom => top + height;
+}
+
 class _FavoriteMediaTile extends StatelessWidget {
-  const _FavoriteMediaTile({required this.meme, required this.onTap});
+  const _FavoriteMediaTile({
+    required this.meme,
+    required this.isVisible,
+    required this.allowVideoPlayback,
+    required this.allowAnimatedImagePlayback,
+    required this.onTap,
+    required this.onLongPress,
+  });
 
   final FavoriteMeme meme;
+  final bool isVisible;
+  final bool allowVideoPlayback;
+  final bool allowAnimatedImagePlayback;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: DecoratedBox(
@@ -327,7 +880,12 @@ class _FavoriteMediaTile extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    _FavoriteMediaPreview(meme: meme),
+                    _FavoriteMediaPreview(
+                      meme: meme,
+                      isVisible: isVisible,
+                      allowVideoPlayback: allowVideoPlayback,
+                      allowAnimatedImagePlayback: allowAnimatedImagePlayback,
+                    ),
                     Positioned.fill(
                       child: DecoratedBox(
                         decoration: BoxDecoration(
@@ -377,29 +935,63 @@ class _FavoriteMediaTile extends StatelessWidget {
 }
 
 class _FavoriteMediaPreview extends StatelessWidget {
-  const _FavoriteMediaPreview({required this.meme});
+  const _FavoriteMediaPreview({
+    required this.meme,
+    required this.isVisible,
+    required this.allowVideoPlayback,
+    required this.allowAnimatedImagePlayback,
+  });
 
   final FavoriteMeme meme;
+  final bool isVisible;
+  final bool allowVideoPlayback;
+  final bool allowAnimatedImagePlayback;
 
   @override
   Widget build(BuildContext context) {
     if (!meme.isVideoLike &&
         (meme.mediaType == FavoriteMemeMediaType.image ||
             meme.mediaType == FavoriteMemeMediaType.gif)) {
-      return CachedNetworkImage(
-        imageUrl: meme.url,
-        fit: BoxFit.cover,
-        fadeInDuration: Duration.zero,
-        fadeOutDuration: Duration.zero,
-        placeholder: (_, _) => const _PreviewPlaceholder(),
-        errorBuilder: (_, _, _) => const _PreviewPlaceholder(),
+      if (!gifPreviewShouldLoadImage(
+        previewUrl: meme.url,
+        sourceUrl: meme.url,
+        isAnimatedImagePlaybackAllowed: allowAnimatedImagePlayback,
+      )) {
+        return const _PreviewPlaceholder();
+      }
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+          final cacheWidth = constraints.maxWidth.isFinite
+              ? (constraints.maxWidth * devicePixelRatio).round()
+              : null;
+          final cacheHeight = constraints.maxHeight.isFinite
+              ? (constraints.maxHeight * devicePixelRatio).round()
+              : null;
+          return CachedNetworkImage(
+            imageUrl: meme.url,
+            fit: BoxFit.cover,
+            memCacheWidth: cacheWidth,
+            memCacheHeight: cacheHeight,
+            maxWidthDiskCache: cacheWidth,
+            maxHeightDiskCache: cacheHeight,
+            fadeInDuration: Duration.zero,
+            fadeOutDuration: Duration.zero,
+            placeholder: (_, _) => const _PreviewPlaceholder(),
+            errorBuilder: (_, _, _) => const _PreviewPlaceholder(),
+          );
+        },
       );
     }
 
     return switch (meme.mediaType) {
       FavoriteMemeMediaType.audio => _AudioPreview(meme: meme),
       FavoriteMemeMediaType.video ||
-      FavoriteMemeMediaType.gif => _FavoriteMediaVideoPreview(url: meme.url),
+      FavoriteMemeMediaType.gif => _FavoriteMediaVideoPreview(
+        url: meme.url,
+        isVisible: isVisible,
+        allowPlayback: allowVideoPlayback,
+      ),
       FavoriteMemeMediaType.image || FavoriteMemeMediaType.unknown =>
         _IconPreview(icon: PhosphorIconsFill.file, label: meme.filename),
     };
@@ -407,9 +999,15 @@ class _FavoriteMediaPreview extends StatelessWidget {
 }
 
 class _FavoriteMediaVideoPreview extends StatefulWidget {
-  const _FavoriteMediaVideoPreview({required this.url});
+  const _FavoriteMediaVideoPreview({
+    required this.url,
+    required this.isVisible,
+    required this.allowPlayback,
+  });
 
   final String url;
+  final bool isVisible;
+  final bool allowPlayback;
 
   @override
   State<_FavoriteMediaVideoPreview> createState() =>
@@ -418,27 +1016,29 @@ class _FavoriteMediaVideoPreview extends StatefulWidget {
 
 class _FavoriteMediaVideoPreviewState
     extends State<_FavoriteMediaVideoPreview> {
-  late Player _player;
-  late mkv.VideoController _controller;
+  Player? _player;
+  mkv.VideoController? _controller;
+  String? _openedUrl;
   bool _failed = false;
 
   @override
   void initState() {
     super.initState();
-    _createPlayer();
-    unawaited(_openPlayer(_player, widget.url));
+    _syncPlayback();
   }
 
   @override
   void didUpdateWidget(_FavoriteMediaVideoPreview oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.url == widget.url) {
-      return;
+    if (oldWidget.url != widget.url) {
+      _disposePlayer();
+      _failed = false;
     }
-    _disposePlayer();
-    _failed = false;
-    _createPlayer();
-    unawaited(_openPlayer(_player, widget.url));
+    if (oldWidget.url != widget.url ||
+        oldWidget.isVisible != widget.isVisible ||
+        oldWidget.allowPlayback != widget.allowPlayback) {
+      _syncPlayback();
+    }
   }
 
   @override
@@ -447,24 +1047,50 @@ class _FavoriteMediaVideoPreviewState
     super.dispose();
   }
 
-  void _createPlayer() {
-    _player = Player(configuration: gifPreviewPlayerConfiguration);
+  void _syncPlayback() {
+    if (!widget.isVisible || !widget.allowPlayback) {
+      final player = _player;
+      if (player != null) {
+        unawaited(player.pause());
+      }
+      return;
+    }
+
+    final player = _player;
+    if (player != null && _openedUrl == widget.url) {
+      unawaited(player.play());
+      return;
+    }
+
+    _openVideoPlayer(widget.url);
+  }
+
+  void _openVideoPlayer(String url) {
+    final player = Player(configuration: gifPreviewPlayerConfiguration);
+    _player = player;
     _controller = mkv.VideoController(
-      _player,
+      player,
       configuration: gifPreviewVideoControllerConfiguration(),
     );
+    _openedUrl = url;
+    unawaited(player.setPlaylistMode(PlaylistMode.loop));
+    unawaited(_openPlayer(player, url));
   }
 
   Future<void> _openPlayer(Player player, String url) async {
     try {
-      await player.setPlaylistMode(PlaylistMode.loop);
       await player.open(
         Media(url, httpHeaders: _kFavoriteMediaVideoHttpHeaders),
+        play: widget.isVisible && widget.allowPlayback,
       );
       if (!mounted || _player != player) {
         return;
       }
-      await player.play();
+      if (widget.isVisible && widget.allowPlayback) {
+        await player.play();
+      } else {
+        await player.pause();
+      }
     } on Object {
       if (mounted && _player == player) {
         setState(() => _failed = true);
@@ -473,7 +1099,13 @@ class _FavoriteMediaVideoPreviewState
   }
 
   void _disposePlayer() {
-    unawaited(_player.dispose());
+    final player = _player;
+    _player = null;
+    _controller = null;
+    _openedUrl = null;
+    if (player != null) {
+      unawaited(player.dispose());
+    }
   }
 
   @override
@@ -481,8 +1113,12 @@ class _FavoriteMediaVideoPreviewState
     if (_failed) {
       return const _PreviewPlaceholder();
     }
+    final controller = _controller;
+    if (controller == null) {
+      return const _PreviewPlaceholder();
+    }
     return mkv.Video(
-      controller: _controller,
+      controller: controller,
       fit: BoxFit.cover,
       fill: Colors.transparent,
       controls: null,

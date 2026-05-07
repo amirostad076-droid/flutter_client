@@ -95,6 +95,17 @@ void main() {
       '100',
     ]);
   });
+
+  test('sortFavoriteMemesForSearchFrecency prefers recently used memes', () {
+    final memes = [_meme(id: '100'), _meme(id: '300'), _meme(id: '200')];
+
+    expect(
+      sortFavoriteMemesForSearchFrecency(memes, const [
+        'meme:200',
+      ]).map((meme) => meme.id),
+      ['200', '300', '100'],
+    );
+  });
 }
 
 FavoriteMeme _meme({

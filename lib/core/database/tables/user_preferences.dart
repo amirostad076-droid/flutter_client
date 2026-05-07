@@ -37,6 +37,14 @@ class UserPreferencesTable extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get preserveEditDraft =>
       boolean().withDefault(const Constant(false))();
+  TextColumn get favoriteEmojiKeysJson =>
+      text().withDefault(const Constant('[]'))();
+  TextColumn get favoriteStickerKeysJson =>
+      text().withDefault(const Constant('[]'))();
+  TextColumn get collapsedEmojiPickerCategoriesJson =>
+      text().withDefault(const Constant('[]'))();
+  TextColumn get collapsedStickerPickerCategoriesJson =>
+      text().withDefault(const Constant('[]'))();
 
   @override
   String get tableName => 'user_preferences';
