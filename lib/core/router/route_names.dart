@@ -37,7 +37,8 @@ abstract final class RouteNames {
 abstract final class RoutePaths {
   static const me = '/channels/@me';
   static String dmChannel(String channelId) => '/channels/@me/$channelId';
-  static String dmChannelCall(String channelId) => '/channels/@me/$channelId/call';
+  static String dmChannelCall(String channelId) =>
+      '/channels/@me/$channelId/call';
   static String dmChannelMessage(String channelId, String messageId) =>
       '/channels/@me/$channelId/$messageId';
   static const favoritesBase = '/channels/@favorites';

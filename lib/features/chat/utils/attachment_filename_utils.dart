@@ -7,8 +7,9 @@ String rawUploadFilenameForSanitization({
   required String path,
 }) {
   final String fromName = name.trim();
-  final String fromPath =
-      path.trim().isNotEmpty ? path_lib.basename(path.trim()) : '';
+  final String fromPath = path.trim().isNotEmpty
+      ? path_lib.basename(path.trim())
+      : '';
   String candidate = fromName.isNotEmpty ? fromName : fromPath;
   final String lower = candidate.toLowerCase();
   final String pathLower = fromPath.toLowerCase();
@@ -20,10 +21,7 @@ String rawUploadFilenameForSanitization({
 
 /// The gallery/camera picker often yields basenames containing the string
 /// `image_picker`, which is not appropriate for display or server filenames.
-String sanitizeAttachmentFilename(
-  String name, {
-  String? mimeType,
-}) {
+String sanitizeAttachmentFilename(String name, {String? mimeType}) {
   final String trimmed = name.trim();
   final String lower = trimmed.toLowerCase();
   final bool tainted = lower.contains('image_picker');

@@ -311,7 +311,9 @@ class GuildSidebar extends ConsumerWidget {
 
           final String? guildId = ref.read(activeGuildIdProvider);
           if (guildId != null) {
-            final VoiceSessionState voiceSession = ref.read(voiceSessionProvider);
+            final VoiceSessionState voiceSession = ref.read(
+              voiceSessionProvider,
+            );
             final bool isInCurrentVoiceChannel =
                 channel.type == ChannelType.voice &&
                 voiceSession.isInVoice &&
@@ -327,9 +329,9 @@ class GuildSidebar extends ConsumerWidget {
               }
               final VoiceChannelJoinOutcome? joinOutcome =
                   await showVoiceChannelJoinBottomSheet(
-                context,
-                channelName: channel.name,
-              );
+                    context,
+                    channelName: channel.name,
+                  );
               if (!context.mounted || joinOutcome == null) {
                 return;
               }

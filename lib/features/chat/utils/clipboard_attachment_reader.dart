@@ -59,13 +59,7 @@ Future<List<XFile>> readClipboardImageFiles() async {
       }
       final String ext = _extensionForFormat(format);
       final String mime = _mimeForFormat(format);
-      result.add(
-        XFile.fromData(
-          bytes,
-          name: 'clipboard.$ext',
-          mimeType: mime,
-        ),
-      );
+      result.add(XFile.fromData(bytes, name: 'clipboard.$ext', mimeType: mime));
       return result;
     }
   }

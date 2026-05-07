@@ -95,13 +95,13 @@ class _DmEmbeddedVoiceCallPanelState
                       ),
                       IconButton(
                         tooltip: l10n.dmVoiceCallFullScreenTooltip,
-                          onPressed: () {
-                            unawaited(
-                              context.push(
-                                RoutePaths.dmChannelCall(widget.channelId),
-                              ),
-                            );
-                          },
+                        onPressed: () {
+                          unawaited(
+                            context.push(
+                              RoutePaths.dmChannelCall(widget.channelId),
+                            ),
+                          );
+                        },
                         icon: PhosphorIcon(
                           PhosphorIconsRegular.arrowsOut,
                           color: context.colors.textPrimary,
@@ -115,9 +115,7 @@ class _DmEmbeddedVoiceCallPanelState
             Divider(height: 1, color: context.colors.borderColor),
             Expanded(
               child: _LocalCameraOrientationSync(
-                child: VoiceChannelParticipantGrid(
-                  channelId: widget.channelId,
-                ),
+                child: VoiceChannelParticipantGrid(channelId: widget.channelId),
               ),
             ),
             const VoiceChannelControlBar(),

@@ -13,10 +13,7 @@ const String kVoiceDmParticipantsKeyPrefix = 'private|';
 String voiceDmChannelParticipantsFamilyKey(String channelId) =>
     '$kVoiceDmParticipantsKeyPrefix$channelId';
 
-String voiceChannelParticipantsFamilyKey(
-  String guildId,
-  String channelId,
-) {
+String voiceChannelParticipantsFamilyKey(String guildId, String channelId) {
   return '$guildId|$channelId';
 }
 
@@ -32,10 +29,7 @@ class VoiceChannelParticipantData {
   final VoiceState voice;
 }
 
-String _displayNameForSort(
-  String userId,
-  Map<String, database.User> byId,
-) {
+String _displayNameForSort(String userId, Map<String, database.User> byId) {
   final database.User? u = byId[userId];
   if (u == null) {
     return userId;
@@ -115,9 +109,7 @@ Future<List<VoiceChannelParticipantData>> voiceChannelParticipants(
   if (inChannel.isEmpty) {
     return const <VoiceChannelParticipantData>[];
   }
-  final Set<String> userIds = inChannel
-      .map((VoiceState v) => v.userId)
-      .toSet();
+  final Set<String> userIds = inChannel.map((VoiceState v) => v.userId).toSet();
   final database.FluxerDatabase db = ref.watch(fluxerDatabaseProvider);
   final List<database.User> userRows = await db.userDao.getUsersByIds(
     userIds.toList(),

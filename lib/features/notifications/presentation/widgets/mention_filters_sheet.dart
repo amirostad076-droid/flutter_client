@@ -34,55 +34,53 @@ Future<bool> showMentionFiltersSheet(
     context,
     title: l10n.notificationsMentionFiltersTitle,
     maxHeight: _kMentionFiltersSheetMaxHeight,
-    builder: (BuildContext sheetContext, VoidCallback close) =>
-        StatefulBuilder(
-          builder:
-              (BuildContext _, void Function(void Function()) setLocal) =>
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        CheckboxListTile(
-                          value: includeEveryone,
-                          title: Text(l10n.notificationsMentionIncludeEveryone),
-                          onChanged: (bool? value) =>
-                              setLocal(() => includeEveryone = value ?? false),
-                        ),
-                        CheckboxListTile(
-                          value: includeRoles,
-                          title: Text(l10n.notificationsMentionIncludeRoles),
-                          onChanged: (bool? value) =>
-                              setLocal(() => includeRoles = value ?? false),
-                        ),
-                        CheckboxListTile(
-                          value: includeGuilds,
-                          title: Text(l10n.notificationsMentionIncludeGuilds),
-                          onChanged: (bool? value) =>
-                              setLocal(() => includeGuilds = value ?? false),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12, bottom: 20),
-                          child: FilledButton(
-                            onPressed: () => unawaited(
-                              _applyAndClose(
-                                ref,
-                                sheetContext,
-                                close,
-                                includeEveryone: includeEveryone,
-                                includeRoles: includeRoles,
-                                includeGuilds: includeGuilds,
-                                onApplied: () => applied = true,
-                              ),
-                            ),
-                            child: Text(l10n.save),
-                          ),
-                        ),
-                      ],
+    builder: (BuildContext sheetContext, VoidCallback close) => StatefulBuilder(
+      builder: (BuildContext _, void Function(void Function()) setLocal) =>
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                CheckboxListTile(
+                  value: includeEveryone,
+                  title: Text(l10n.notificationsMentionIncludeEveryone),
+                  onChanged: (bool? value) =>
+                      setLocal(() => includeEveryone = value ?? false),
+                ),
+                CheckboxListTile(
+                  value: includeRoles,
+                  title: Text(l10n.notificationsMentionIncludeRoles),
+                  onChanged: (bool? value) =>
+                      setLocal(() => includeRoles = value ?? false),
+                ),
+                CheckboxListTile(
+                  value: includeGuilds,
+                  title: Text(l10n.notificationsMentionIncludeGuilds),
+                  onChanged: (bool? value) =>
+                      setLocal(() => includeGuilds = value ?? false),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 12, bottom: 20),
+                  child: FilledButton(
+                    onPressed: () => unawaited(
+                      _applyAndClose(
+                        ref,
+                        sheetContext,
+                        close,
+                        includeEveryone: includeEveryone,
+                        includeRoles: includeRoles,
+                        includeGuilds: includeGuilds,
+                        onApplied: () => applied = true,
+                      ),
                     ),
+                    child: Text(l10n.save),
                   ),
-        ),
+                ),
+              ],
+            ),
+          ),
+    ),
   );
   return applied;
 }

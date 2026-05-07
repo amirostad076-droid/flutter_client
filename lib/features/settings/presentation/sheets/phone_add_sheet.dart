@@ -30,7 +30,7 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
   _Step _step = _Step.phone;
   final _phoneController = TextEditingController();
   final _codeController = TextEditingController();
-  bool _loading = false;
+  final bool _loading = false;
   String? _error;
 
   @override
@@ -53,12 +53,11 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
       return;
     }
     setState(() => _step = _Step.code);
-    ref.read(toastProvider.notifier).show(
-      FluxerToast(
-        message: 'WhatsApp verification is coming soon.',
-        variant: FluxerToastVariant.info,
-      ),
-    );
+    ref
+        .read(toastProvider.notifier)
+        .show(
+          const FluxerToast(message: 'WhatsApp verification is coming soon.'),
+        );
   }
 
   Future<void> _handleVerify() async {
@@ -67,12 +66,11 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
     if (code.isEmpty) {
       return;
     }
-    ref.read(toastProvider.notifier).show(
-      FluxerToast(
-        message: 'WhatsApp verification is coming soon.',
-        variant: FluxerToastVariant.info,
-      ),
-    );
+    ref
+        .read(toastProvider.notifier)
+        .show(
+          const FluxerToast(message: 'WhatsApp verification is coming soon.'),
+        );
   }
 
   @override

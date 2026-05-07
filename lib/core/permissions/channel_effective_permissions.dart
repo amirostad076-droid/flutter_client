@@ -59,8 +59,8 @@ Future<int> computeEffectiveGuildChannelPermissionBits({
       .where((r) => memberRoleIds.contains(r.id))
       .map(MemberRole.fromRow)
       .toList();
-  final List<String?> layers =
-      await db.channelDao.getPermissionOverwriteLayersRootToLeaf(channelId);
+  final List<String?> layers = await db.channelDao
+      .getPermissionOverwriteLayersRootToLeaf(channelId);
   return evaluateChannelEffectivePermissionBits(
     guildOwnerId: guild.ownerId ?? '',
     guildId: guildId,

@@ -82,7 +82,8 @@ class UploadAttachmentPlanParams {
     required int fileSize,
     required String contentType,
     String? uploadId,
-  })? onPlanReady;
+  })?
+  onPlanReady;
   final void Function(int uploadedBytes, int totalBytes)? onProgress;
 }
 
@@ -121,20 +122,20 @@ class AttachmentUploadClient {
     required String contentType,
     CancelToken? cancelToken,
   }) async {
-    final PresignedAttachmentUploadResponse response =
-        await _channelsApi.requestPresignedMessageAttachmentUploads(
-      channelId: channelId,
-      body: PresignedAttachmentUploadRequest(
-        attachments: <PresignedAttachmentUploadRequestItem>[
-          PresignedAttachmentUploadRequestItem(
-            id: attachmentId,
-            filename: filename,
-            fileSize: fileSize,
-            contentType: contentType,
+    final PresignedAttachmentUploadResponse response = await _channelsApi
+        .requestPresignedMessageAttachmentUploads(
+          channelId: channelId,
+          body: PresignedAttachmentUploadRequest(
+            attachments: <PresignedAttachmentUploadRequestItem>[
+              PresignedAttachmentUploadRequestItem(
+                id: attachmentId,
+                filename: filename,
+                fileSize: fileSize,
+                contentType: contentType,
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        );
     if (response.attachments.isEmpty) {
       throw StateError('Missing attachment upload plan');
     }
@@ -167,9 +168,9 @@ class AttachmentUploadClient {
               .map(
                 (PresignedAttachmentUploadPart e) =>
                     MultipartAttachmentUploadPartPlan(
-                  partNumber: e.partNumber,
-                  uploadUrl: e.uploadUrl,
-                ),
+                      partNumber: e.partNumber,
+                      uploadUrl: e.uploadUrl,
+                    ),
               )
               .toList(),
         ),
@@ -211,9 +212,7 @@ class AttachmentUploadClient {
       cancelToken: params.cancelToken,
       options: Options(
         contentType: normalizedType,
-        headers: <String, dynamic>{
-          Headers.contentLengthHeader: totalBytes,
-        },
+        headers: <String, dynamic>{Headers.contentLengthHeader: totalBytes},
       ),
       onSendProgress: (int sent, int total) {
         params.onProgress?.call(sent, total);
@@ -238,10 +237,7 @@ class AttachmentUploadClient {
     final List<MultipartAttachmentUploadPartPlan> parts = plan.parts;
     final List<int> loadedByPart = List<int>.filled(parts.length, 0);
     void reportProgress() {
-      final int sum = loadedByPart.fold<int>(
-        0,
-        (int a, int b) => a + b,
-      );
+      final int sum = loadedByPart.fold<int>(0, (int a, int b) => a + b);
       params.onProgress?.call(sum, totalBytes);
     }
 
@@ -249,37 +245,37 @@ class AttachmentUploadClient {
       MultipartAttachmentUploadPartPlan part,
       int index,
     ) async {
-        final ({int startInclusive, int endExclusive}) range =
-            computeMultipartPartByteRange(
-          partNumberOneBased: part.partNumber,
-          partSizeBytes: plan.partSize,
-          totalFileBytes: totalBytes,
-        );
-        final int chunkLength = range.endExclusive - range.startInclusive;
-        final RandomAccessFile raf = await File(file.path).open();
-        try {
-          await raf.setPosition(range.startInclusive);
-          final Uint8List chunk = await raf.read(chunkLength);
-          await _uploadDio.put<dynamic>(
-            part.uploadUrl,
-            data: chunk,
-            cancelToken: params.cancelToken,
-            options: Options(
-              contentType: normalizedType,
-              headers: <String, dynamic>{
-                Headers.contentLengthHeader: chunk.length,
-              },
-            ),
-            onSendProgress: (int sent, int chunkTotal) {
-              loadedByPart[index] = sent < chunk.length ? sent : chunk.length;
-              reportProgress();
-            },
+      final ({int startInclusive, int endExclusive}) range =
+          computeMultipartPartByteRange(
+            partNumberOneBased: part.partNumber,
+            partSizeBytes: plan.partSize,
+            totalFileBytes: totalBytes,
           );
-          loadedByPart[index] = chunk.length;
-          reportProgress();
-        } finally {
-          await raf.close();
-        }
+      final int chunkLength = range.endExclusive - range.startInclusive;
+      final RandomAccessFile raf = await File(file.path).open();
+      try {
+        await raf.setPosition(range.startInclusive);
+        final Uint8List chunk = await raf.read(chunkLength);
+        await _uploadDio.put<dynamic>(
+          part.uploadUrl,
+          data: chunk,
+          cancelToken: params.cancelToken,
+          options: Options(
+            contentType: normalizedType,
+            headers: <String, dynamic>{
+              Headers.contentLengthHeader: chunk.length,
+            },
+          ),
+          onSendProgress: (int sent, int chunkTotal) {
+            loadedByPart[index] = sent < chunk.length ? sent : chunk.length;
+            reportProgress();
+          },
+        );
+        loadedByPart[index] = chunk.length;
+        reportProgress();
+      } finally {
+        await raf.close();
+      }
     });
 
     await _channelsApi.completeMultipartMessageAttachmentUploads(

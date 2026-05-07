@@ -128,8 +128,9 @@ class VoiceCallBar extends ConsumerWidget {
     final ChannelListState channelState = ref.watch(
       channelListViewModelProvider,
     );
-    final DmConversation? dm =
-        isGuildVoice ? null : _dmForVoice(conversations, voice.channelId);
+    final DmConversation? dm = isGuildVoice
+        ? null
+        : _dmForVoice(conversations, voice.channelId);
     late final String primaryLine;
     late final String subtitle;
     if (isGuildVoice) {

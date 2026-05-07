@@ -211,8 +211,7 @@ class FluxerMessageNotificationSfxEvaluator {
       deduper.release(messageId);
       return null;
     }
-    final settingsRow =
-        guildChannel != null
+    final settingsRow = guildChannel != null
         ? await database.userGuildSettingsDao.getByGuildId(guildChannel.guildId)
         : await database.userGuildSettingsDao.getByGuildId('@me');
     final UserGuildSettingsResponse gs = settingsRow == null
@@ -248,10 +247,7 @@ class FluxerMessageNotificationSfxEvaluator {
         return null;
       }
     } else {
-      if (_shouldSuppressAll(
-        gs: gs,
-        channelId: dmRow!.id,
-      )) {
+      if (_shouldSuppressAll(gs: gs, channelId: dmRow!.id)) {
         deduper.release(messageId);
         return null;
       }

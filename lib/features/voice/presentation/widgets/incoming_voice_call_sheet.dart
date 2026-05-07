@@ -5,7 +5,8 @@ import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart' show fluxerMediaCdn;
+import 'package:fluxer_app/features/guilds/domain/guild.dart'
+    show fluxerMediaCdn;
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar_cluster.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';

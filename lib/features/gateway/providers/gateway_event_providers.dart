@@ -177,8 +177,10 @@ class CallState {
   final String channelId;
   final String? messageId;
   final String? region;
+
   /// Last gateway snapshot of user IDs receiving a ring tone.
   final List<String> ringing;
+
   /// Subset tracked for incoming-call UI (reset from gateway `ringing` when
   /// present; mutated locally after accept/reject/ignore until next update).
   final Set<String> pendingRingUserIds;
@@ -250,8 +252,9 @@ class ActiveCalls extends _$ActiveCalls {
       return;
     }
     final bool hasRingPayload = ringing != null;
-    final List<String> nextRing =
-        ringing != null ? List<String>.from(ringing) : existing.ringing;
+    final List<String> nextRing = ringing != null
+        ? List<String>.from(ringing)
+        : existing.ringing;
     final Set<String> nextPending = hasRingPayload
         ? _normalizeRingIds(ringing)
         : existing.pendingRingUserIds;
@@ -287,10 +290,7 @@ class ActiveCalls extends _$ActiveCalls {
     if (next.length == existing.pendingRingUserIds.length) {
       return;
     }
-    state = {
-      ...state,
-      channelId: existing.copyWith(pendingRingUserIds: next),
-    };
+    state = {...state, channelId: existing.copyWith(pendingRingUserIds: next)};
   }
 
   void clearPendingRingForChannel(String channelId) {
@@ -298,10 +298,7 @@ class ActiveCalls extends _$ActiveCalls {
     if (existing == null) {
       return;
     }
-    state = {
-      ...state,
-      channelId: existing.copyWith(pendingRingUserIds: {}),
-    };
+    state = {...state, channelId: existing.copyWith(pendingRingUserIds: {})};
   }
 
   void deleteCall(String channelId) {

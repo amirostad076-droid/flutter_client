@@ -15,7 +15,6 @@ AttachmentUploadClient attachmentUploadClient(Ref ref) {
   );
 }
 
-
 /// Plain [Dio] for presigned PUT URLs (no auth headers, long timeouts).
 @Riverpod(keepAlive: true)
 Dio attachmentUploadDio(Ref ref) {

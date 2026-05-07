@@ -3,10 +3,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:fluxer_app/features/chat/domain/api_attachment_metadata.dart';
 
 class PreparedAttachments {
-  const PreparedAttachments({
-    this.attachmentMetadata,
-    this.attachmentFiles,
-  });
+  const PreparedAttachments({this.attachmentMetadata, this.attachmentFiles});
 
   final List<ApiAttachmentMetadata>? attachmentMetadata;
   final List<XFile>? attachmentFiles;

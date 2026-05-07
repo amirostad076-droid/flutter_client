@@ -40,10 +40,7 @@ Future<VoiceConnectionConfirmResult?> showVoiceConnectionConfirmModal(
       const SizedBox(height: 8),
       FluxerButton.secondary(
         onPressed: () {
-          Navigator.of(
-            context,
-            rootNavigator: true,
-          ).pop();
+          Navigator.of(context, rootNavigator: true).pop();
         },
         label: l10n.voiceConnectionConfirmDoNothing,
       ),

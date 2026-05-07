@@ -39,10 +39,7 @@ class FluxerGuildIconAvatar extends StatelessWidget {
           color: colors.serverIconBackground,
           borderRadius: radius,
         ),
-        child: ClipRRect(
-          borderRadius: radius,
-          child: _buildContent(context),
-        ),
+        child: ClipRRect(borderRadius: radius, child: _buildContent(context)),
       ),
     );
   }
@@ -60,19 +57,13 @@ class FluxerGuildIconAvatar extends StatelessWidget {
     }
     final String? url = imageUrl;
     if (url == null) {
-      return _LetterFallback(
-        text: abbreviation,
-        color: colors.textPrimary,
-      );
+      return _LetterFallback(text: abbreviation, color: colors.textPrimary);
     }
     return CachedNetworkImage(
       imageUrl: url,
       fit: BoxFit.cover,
       errorBuilder: (BuildContext _, Object _, StackTrace? _) =>
-          _LetterFallback(
-            text: abbreviation,
-            color: colors.textPrimary,
-          ),
+          _LetterFallback(text: abbreviation, color: colors.textPrimary),
     );
   }
 }

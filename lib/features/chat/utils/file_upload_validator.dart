@@ -10,9 +10,7 @@ enum FileUploadValidationError {
 }
 
 class FileUploadValidationResult {
-  const FileUploadValidationResult.success()
-    : isValid = true,
-      error = null;
+  const FileUploadValidationResult.success() : isValid = true, error = null;
 
   const FileUploadValidationResult.failure(FileUploadValidationError err)
     : isValid = false,

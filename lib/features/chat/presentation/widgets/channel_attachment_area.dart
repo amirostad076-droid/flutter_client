@@ -39,23 +39,22 @@ class ChannelAttachmentArea extends ConsumerWidget {
                   .read(cloudUploadControllerProvider(channelId).notifier)
                   .reorderAttachments(oldIndex, newIndex);
             },
-            proxyDecorator: (
-              Widget child,
-              int index,
-              Animation<double> animation,
-            ) {
-              return AnimatedBuilder(
-                animation: animation,
-                builder: (BuildContext _, Widget? c) {
-                  final double t = Curves.easeInOut.transform(animation.value);
-                  return Transform.scale(
-                    scale: 1.0 + t * 0.02,
-                    child: Opacity(opacity: 1.0 - t * 0.15, child: c),
+            proxyDecorator:
+                (Widget child, int index, Animation<double> animation) {
+                  return AnimatedBuilder(
+                    animation: animation,
+                    builder: (BuildContext _, Widget? c) {
+                      final double t = Curves.easeInOut.transform(
+                        animation.value,
+                      );
+                      return Transform.scale(
+                        scale: 1.0 + t * 0.02,
+                        child: Opacity(opacity: 1.0 - t * 0.15, child: c),
+                      );
+                    },
+                    child: child,
                   );
                 },
-                child: child,
-              );
-            },
             itemBuilder: (BuildContext context, int index) {
               final PendingAttachment att = attachments[index];
               return ReorderableDragStartListener(
@@ -63,10 +62,7 @@ class ChannelAttachmentArea extends ConsumerWidget {
                 index: index,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: _AttachmentChip(
-                    channelId: channelId,
-                    attachment: att,
-                  ),
+                  child: _AttachmentChip(channelId: channelId, attachment: att),
                 ),
               );
             },
@@ -79,10 +75,7 @@ class ChannelAttachmentArea extends ConsumerWidget {
 }
 
 class _AttachmentChip extends ConsumerWidget {
-  const _AttachmentChip({
-    required this.channelId,
-    required this.attachment,
-  });
+  const _AttachmentChip({required this.channelId, required this.attachment});
 
   final String channelId;
   final PendingAttachment attachment;
@@ -91,7 +84,8 @@ class _AttachmentChip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final String path = attachment.file.path;
-    final bool hasImagePreview = path.isNotEmpty &&
+    final bool hasImagePreview =
+        path.isNotEmpty &&
         _isImageFilename(attachment.filename) &&
         File(path).existsSync();
     final bool isVideo = _isVideoFilename(attachment.filename);
@@ -107,10 +101,7 @@ class _AttachmentChip extends ConsumerWidget {
           children: [
             ColoredBox(color: colors.backgroundSecondaryAlt),
             if (hasImagePreview && !isSpoiler)
-              Image.file(
-                File(path),
-                fit: BoxFit.cover,
-              )
+              Image.file(File(path), fit: BoxFit.cover)
             else if (isVideo)
               ColoredBox(
                 color: colors.backgroundSecondary,
@@ -147,7 +138,8 @@ class _AttachmentChip extends ConsumerWidget {
                 color: colors.backgroundPrimary.withValues(alpha: 0.55),
                 child: Center(
                   child: CircularProgressIndicator(
-                    value: attachment.uploadProgress > 0 &&
+                    value:
+                        attachment.uploadProgress > 0 &&
                             attachment.uploadProgress < 1
                         ? attachment.uploadProgress
                         : null,
@@ -170,10 +162,7 @@ class _AttachmentChip extends ConsumerWidget {
               right: 0,
               bottom: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -216,7 +205,9 @@ class _AttachmentChip extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _RoundIconButton(
-                    tooltip: FluxerLocalizations.of(context).chatAttachmentSpoilerLabel,
+                    tooltip: FluxerLocalizations.of(
+                      context,
+                    ).chatAttachmentSpoilerLabel,
                     icon: isSpoiler
                         ? PhosphorIconsFill.eyeSlash
                         : PhosphorIconsFill.eye,
@@ -237,7 +228,9 @@ class _AttachmentChip extends ConsumerWidget {
                     },
                   ),
                   _RoundIconButton(
-                    tooltip: FluxerLocalizations.of(context).chatAttachmentEditTitle,
+                    tooltip: FluxerLocalizations.of(
+                      context,
+                    ).chatAttachmentEditTitle,
                     icon: PhosphorIconsFill.pencilSimple,
                     onPressed: () => AttachmentEditModal.show(
                       context,
@@ -246,8 +239,9 @@ class _AttachmentChip extends ConsumerWidget {
                     ),
                   ),
                   _RoundIconButton(
-                    tooltip:
-                        FluxerLocalizations.of(context).chatAttachmentRemove,
+                    tooltip: FluxerLocalizations.of(
+                      context,
+                    ).chatAttachmentRemove,
                     icon: PhosphorIconsFill.trash,
                     onPressed: () => ref
                         .read(cloudUploadControllerProvider(channelId).notifier)

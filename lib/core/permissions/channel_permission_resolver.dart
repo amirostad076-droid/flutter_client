@@ -78,8 +78,7 @@ BigInt applyChannelOverwriteStage(
   }
   resolved = (resolved & ~roleDeny) | roleAllow;
   if (memberRecordPresent && memberOverwrite != null) {
-    resolved =
-        (resolved & ~memberOverwrite.deny) | memberOverwrite.allow;
+    resolved = (resolved & ~memberOverwrite.deny) | memberOverwrite.allow;
   }
   return resolved & _channelPermissionMask;
 }

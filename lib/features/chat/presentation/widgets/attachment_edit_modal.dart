@@ -47,7 +47,8 @@ class _AttachmentEditSheetBody extends ConsumerStatefulWidget {
       _AttachmentEditSheetBodyState();
 }
 
-class _AttachmentEditSheetBodyState extends ConsumerState<_AttachmentEditSheetBody> {
+class _AttachmentEditSheetBodyState
+    extends ConsumerState<_AttachmentEditSheetBody> {
   late final TextEditingController _filenameController;
   late final TextEditingController _descriptionController;
   late final ValueNotifier<bool> _spoilerNotifier;
@@ -55,7 +56,9 @@ class _AttachmentEditSheetBodyState extends ConsumerState<_AttachmentEditSheetBo
   @override
   void initState() {
     super.initState();
-    _filenameController = TextEditingController(text: widget.attachment.filename);
+    _filenameController = TextEditingController(
+      text: widget.attachment.filename,
+    );
     _descriptionController = TextEditingController(
       text: widget.attachment.description ?? '',
     );
@@ -104,15 +107,19 @@ class _AttachmentEditSheetBodyState extends ConsumerState<_AttachmentEditSheetBo
           children: [
             FluxerInput(
               controller: _filenameController,
-              label: FluxerLocalizations.of(context).chatAttachmentFilenameLabel,
+              label: FluxerLocalizations.of(
+                context,
+              ).chatAttachmentFilenameLabel,
             ),
             const SizedBox(height: 12),
             FluxerInput.multiline(
               controller: _descriptionController,
-              label:
-                  FluxerLocalizations.of(context).chatAttachmentDescriptionLabel,
-              hint:
-                  FluxerLocalizations.of(context).chatAttachmentDescriptionHint,
+              label: FluxerLocalizations.of(
+                context,
+              ).chatAttachmentDescriptionLabel,
+              hint: FluxerLocalizations.of(
+                context,
+              ).chatAttachmentDescriptionHint,
               maxLines: 4,
               minLines: 2,
             ),
@@ -124,7 +131,9 @@ class _AttachmentEditSheetBodyState extends ConsumerState<_AttachmentEditSheetBo
                   children: [
                     Expanded(
                       child: Text(
-                        FluxerLocalizations.of(context).chatAttachmentSpoilerLabel,
+                        FluxerLocalizations.of(
+                          context,
+                        ).chatAttachmentSpoilerLabel,
                         style: context.textStyles.bodyMedium.copyWith(
                           color: colors.textPrimary,
                         ),

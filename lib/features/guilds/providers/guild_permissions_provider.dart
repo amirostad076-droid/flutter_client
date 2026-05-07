@@ -21,8 +21,9 @@ class GuildPermissions extends _$GuildPermissions {
       return state[guildId]!;
     }
 
-    final ({int value, bool shouldCache}) outcome =
-        await _computePermissions(guildId);
+    final ({int value, bool shouldCache}) outcome = await _computePermissions(
+      guildId,
+    );
     if (outcome.shouldCache && outcome.value != 0) {
       final Map<String, int> newState = Map<String, int>.from(state);
       newState[guildId] = outcome.value;
@@ -32,8 +33,9 @@ class GuildPermissions extends _$GuildPermissions {
   }
 
   Future<void> refreshPermissions(String guildId) async {
-    final ({int value, bool shouldCache}) outcome =
-        await _computePermissions(guildId);
+    final ({int value, bool shouldCache}) outcome = await _computePermissions(
+      guildId,
+    );
     final Map<String, int> newState = Map<String, int>.from(state);
     newState[guildId] = outcome.value;
     state = newState;

@@ -82,9 +82,7 @@ Future<UnreadInboxCardMeta> _loadGuildChannelMeta(
   final drift_db.Channel? ch = await db.channelDao.getChannelById(
     entry.channelId,
   );
-  final domain.Channel? mapped = ch == null
-      ? null
-      : domain.Channel.fromRow(ch);
+  final domain.Channel? mapped = ch == null ? null : domain.Channel.fromRow(ch);
   final domain.ChannelType visualType = mapped?.type ?? domain.ChannelType.text;
 
   final drift_db.Server? guild = entry.guildId == null
@@ -102,8 +100,7 @@ Future<UnreadInboxCardMeta> _loadGuildChannelMeta(
   if (guild != null && !guildUnavailable) {
     final Guild mappedGuild = Guild.fromRow(guild);
     abbrev = abbreviateGuildName(mappedGuild.name);
-    iconUrl =
-        mappedGuild.hasAnimatedIcon && mappedGuild.animatedIconUrl != null
+    iconUrl = mappedGuild.hasAnimatedIcon && mappedGuild.animatedIconUrl != null
         ? mappedGuild.animatedIconUrl
         : mappedGuild.iconUrl;
   } else if (guild != null) {

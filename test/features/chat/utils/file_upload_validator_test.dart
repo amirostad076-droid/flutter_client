@@ -11,11 +11,8 @@ void main() {
         maxAttachments: 10,
         maxFileBytes: 25 * 1024 * 1024,
       );
-      final FileUploadValidationResult actual =
-          await validator.validateAddFiles(
-        currentCount: 0,
-        newFiles: const <XFile>[],
-      );
+      final FileUploadValidationResult actual = await validator
+          .validateAddFiles(currentCount: 0, newFiles: const <XFile>[]);
       expect(actual.isValid, false);
       expect(actual.error, FileUploadValidationError.noFiles);
     });
@@ -29,11 +26,8 @@ void main() {
         XFile.fromData(Uint8List(1), name: 'a.bin'),
         XFile.fromData(Uint8List(1), name: 'b.bin'),
       ];
-      final FileUploadValidationResult actual =
-          await validator.validateAddFiles(
-        currentCount: 1,
-        newFiles: inputFiles,
-      );
+      final FileUploadValidationResult actual = await validator
+          .validateAddFiles(currentCount: 1, newFiles: inputFiles);
       expect(actual.isValid, false);
       expect(actual.error, FileUploadValidationError.tooManyAttachments);
     });
@@ -46,11 +40,8 @@ void main() {
       final List<XFile> inputFiles = <XFile>[
         XFile.fromData(Uint8List(11), name: 'big.bin'),
       ];
-      final FileUploadValidationResult actual =
-          await validator.validateAddFiles(
-        currentCount: 0,
-        newFiles: inputFiles,
-      );
+      final FileUploadValidationResult actual = await validator
+          .validateAddFiles(currentCount: 0, newFiles: inputFiles);
       expect(actual.isValid, false);
       expect(actual.error, FileUploadValidationError.fileTooLarge);
     });
@@ -63,11 +54,8 @@ void main() {
       final List<XFile> inputFiles = <XFile>[
         XFile.fromData(Uint8List(100), name: 'ok.bin'),
       ];
-      final FileUploadValidationResult actual =
-          await validator.validateAddFiles(
-        currentCount: 0,
-        newFiles: inputFiles,
-      );
+      final FileUploadValidationResult actual = await validator
+          .validateAddFiles(currentCount: 0, newFiles: inputFiles);
       expect(actual.isValid, true);
       expect(actual.error, null);
     });

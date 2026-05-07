@@ -7,6 +7,7 @@ import 'package:fluxer_app/shared/utils/sticker_utils.dart';
 import 'package:fluxer_dart/export.dart';
 
 enum EmbedType { rich, image, gifv, link, video }
+
 enum MessageDeliveryState { sending, sent, failed }
 
 const int messageFlagSuppressEmbeds = 1 << 2;
@@ -641,7 +642,6 @@ class Message {
       isMentioned: isMentioned,
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
-      deliveryState: MessageDeliveryState.sent,
       clientNonce: sdk.nonce,
     );
   }
@@ -771,7 +771,9 @@ class Message {
       type: type ?? this.type,
       flags: flags ?? this.flags,
       deliveryState: deliveryState ?? this.deliveryState,
-      clientNonce: clientNonce == _unset ? this.clientNonce : clientNonce as String?,
+      clientNonce: clientNonce == _unset
+          ? this.clientNonce
+          : clientNonce as String?,
       sendError: sendError == _unset ? this.sendError : sendError as String?,
     );
   }

@@ -4,9 +4,7 @@ import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
 const double _kDefaultSfxVolume = 0.4;
 
 class FluxerSFX {
-  FluxerSFX()
-    : _loopPlayer = AudioPlayer(),
-      _oneShotPlayer = AudioPlayer();
+  FluxerSFX() : _loopPlayer = AudioPlayer(), _oneShotPlayer = AudioPlayer();
 
   final AudioPlayer _loopPlayer;
   final AudioPlayer _oneShotPlayer;
@@ -21,9 +19,7 @@ class FluxerSFX {
       await _oneShotPlayer.setReleaseMode(ReleaseMode.release);
       await _oneShotPlayer.stop();
       await _oneShotPlayer.setVolume(_clampVolume(volume));
-      await _oneShotPlayer.play(
-        AssetSource(_relativeAssetPath(clip.assetKey)),
-      );
+      await _oneShotPlayer.play(AssetSource(_relativeAssetPath(clip.assetKey)));
     } on Object {
       // Intentionally swallow: SFX must not break callers.
     }
@@ -41,9 +37,7 @@ class FluxerSFX {
       await _loopPlayer.setReleaseMode(ReleaseMode.loop);
       await _loopPlayer.stop();
       await _loopPlayer.setVolume(_clampVolume(volume));
-      await _loopPlayer.play(
-        AssetSource(_relativeAssetPath(clip.assetKey)),
-      );
+      await _loopPlayer.play(AssetSource(_relativeAssetPath(clip.assetKey)));
       _loopPlaybackActive = true;
     } on Object {
       _activeLoopClip = null;

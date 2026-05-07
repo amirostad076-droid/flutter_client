@@ -62,9 +62,7 @@ void fluxerMessageSfxBinding(Ref ref) {
         final bool foreground = ref.read(appUiForegroundProvider);
         final String? activeCh = ref.read(activeChannelIdProvider);
         final bool suppressSfxSound =
-            foreground &&
-            activeCh != null &&
-            activeCh == resolution.channelId;
+            foreground && activeCh != null && activeCh == resolution.channelId;
         if (!suppressSfxSound) {
           unawaited(
             ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.message),
@@ -77,19 +75,18 @@ void fluxerMessageSfxBinding(Ref ref) {
 @Riverpod(keepAlive: true)
 void fluxerSfxIncomingRingBinding(Ref ref) {
   final FluxerSFX sfx = ref.watch(fluxerSfxProvider);
-  ref.listen<List<String>>(
-    pendingIncomingVoiceChannelIdsProvider,
-    (List<String>? previous, List<String> next) {
-      final bool prevEmpty = previous == null || previous.isEmpty;
-      final bool nextEmpty = next.isEmpty;
-      if (prevEmpty && !nextEmpty) {
-        unawaited(sfx.startLoop(FluxerSfxClip.incomingRing));
-        return;
-      }
-      if (!prevEmpty && nextEmpty) {
-        unawaited(sfx.stopLoop());
-      }
-    },
-    fireImmediately: true,
-  );
+  ref.listen<List<String>>(pendingIncomingVoiceChannelIdsProvider, (
+    List<String>? previous,
+    List<String> next,
+  ) {
+    final bool prevEmpty = previous == null || previous.isEmpty;
+    final bool nextEmpty = next.isEmpty;
+    if (prevEmpty && !nextEmpty) {
+      unawaited(sfx.startLoop(FluxerSfxClip.incomingRing));
+      return;
+    }
+    if (!prevEmpty && nextEmpty) {
+      unawaited(sfx.stopLoop());
+    }
+  }, fireImmediately: true);
 }

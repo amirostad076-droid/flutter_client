@@ -201,8 +201,7 @@ class VoiceSession extends _$VoiceSession {
         selfDeaf: selfDeaf,
         selfVideo: false,
         selfStream: false,
-        isMobile:
-            !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows,
+        isMobile: !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows,
       ),
     );
     if (!joinSent) {
@@ -251,7 +250,8 @@ class VoiceSession extends _$VoiceSession {
     }
     final String? expectedGuildNorm = _normalizeVoiceGuildId(_expectedGuildId);
     final String? incomingGuildNorm = _normalizeVoiceGuildId(event.guildId);
-    final bool guildMatches = expectedGuildNorm == incomingGuildNorm ||
+    final bool guildMatches =
+        expectedGuildNorm == incomingGuildNorm ||
         expectedGuildNorm == null ||
         incomingGuildNorm == null;
     if (!guildMatches) {
@@ -401,7 +401,9 @@ class VoiceSession extends _$VoiceSession {
         guildId: resolvedGuildId,
         activeConnectionId: event.connectionId,
       );
-      unawaited(ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.userJoin));
+      unawaited(
+        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.userJoin),
+      );
       if (_pendingRingAfterConnect) {
         unawaited(
           _ringAfterConnect(resolvedChannelId, silently: _pendingRingSilently),
@@ -473,7 +475,9 @@ class VoiceSession extends _$VoiceSession {
     if (channelId == null) {
       return;
     }
-    ref.read(outgoingVoiceCallInitiatorProvider.notifier).clearChannel(channelId);
+    ref
+        .read(outgoingVoiceCallInitiatorProvider.notifier)
+        .clearChannel(channelId);
   }
 
   Future<void> _enableCameraAfterLiveKitConnect({
@@ -490,7 +494,9 @@ class VoiceSession extends _$VoiceSession {
     final bool camOk = await requestCameraPermissionForVoice();
     if (!camOk || attempt != _connectGeneration) {
       if (attempt == _connectGeneration) {
-        state = state.copyWith(errorMessage: kVoiceSessionErrorCameraPermission);
+        state = state.copyWith(
+          errorMessage: kVoiceSessionErrorCameraPermission,
+        );
       }
       return;
     }
@@ -648,9 +654,9 @@ class VoiceSession extends _$VoiceSession {
       selfVideo: vs?.selfVideo ?? false,
     );
     unawaited(
-      ref.read(fluxerSfxProvider).playOneShot(
-        nextMute ? FluxerSfxClip.mute : FluxerSfxClip.unmute,
-      ),
+      ref
+          .read(fluxerSfxProvider)
+          .playOneShot(nextMute ? FluxerSfxClip.mute : FluxerSfxClip.unmute),
     );
   }
 
@@ -667,18 +673,14 @@ class VoiceSession extends _$VoiceSession {
         selfDeaf: false,
         selfVideo: vs?.selfVideo ?? false,
       );
-      unawaited(
-        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.undeaf),
-      );
+      unawaited(ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.undeaf));
     } else {
       await _applySelfVoiceState(
         selfMute: true,
         selfDeaf: true,
         selfVideo: vs?.selfVideo ?? false,
       );
-      unawaited(
-        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.deaf),
-      );
+      unawaited(ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.deaf));
     }
   }
 
@@ -719,9 +721,11 @@ class VoiceSession extends _$VoiceSession {
         selfVideo: nextVideo,
       );
       unawaited(
-        ref.read(fluxerSfxProvider).playOneShot(
-          nextVideo ? FluxerSfxClip.cameraOn : FluxerSfxClip.cameraOff,
-        ),
+        ref
+            .read(fluxerSfxProvider)
+            .playOneShot(
+              nextVideo ? FluxerSfxClip.cameraOn : FluxerSfxClip.cameraOff,
+            ),
       );
     } finally {
       _togglingVideo = false;
@@ -755,19 +759,27 @@ class VoiceSession extends _$VoiceSession {
         );
         return;
       }
-      talker.debug('[Voice] setScreenShareEnabled completed: enable=$nextSelfStream');
+      talker.debug(
+        '[Voice] setScreenShareEnabled completed: enable=$nextSelfStream',
+      );
       await _reconcileSelfStreamState(
         reason: nextSelfStream ? 'toggle_enable' : 'toggle_disable',
         waitForPublication: nextSelfStream,
       );
       if (nextSelfStream &&
           !_hasPublishedLocalScreenShareVideo(requireTrack: true)) {
-        state = state.copyWith(errorMessage: kVoiceSessionErrorScreenShareToggle);
+        state = state.copyWith(
+          errorMessage: kVoiceSessionErrorScreenShareToggle,
+        );
       } else {
         unawaited(
-          ref.read(fluxerSfxProvider).playOneShot(
-            nextSelfStream ? FluxerSfxClip.streamStart : FluxerSfxClip.streamStop,
-          ),
+          ref
+              .read(fluxerSfxProvider)
+              .playOneShot(
+                nextSelfStream
+                    ? FluxerSfxClip.streamStart
+                    : FluxerSfxClip.streamStop,
+              ),
         );
       }
     } finally {
@@ -878,7 +890,8 @@ class VoiceSession extends _$VoiceSession {
       final bool actualSelfStream = _hasPublishedLocalScreenShareVideo(
         requireTrack: false,
       );
-      final bool currentSelfStream = _selfConnectionVoiceState()?.selfStream ?? false;
+      final bool currentSelfStream =
+          _selfConnectionVoiceState()?.selfStream ?? false;
       if (actualSelfStream == currentSelfStream) {
         return;
       }
@@ -893,9 +906,7 @@ class VoiceSession extends _$VoiceSession {
   }
 
   void _handleLocalParticipantChanged() {
-    unawaited(
-      _reconcileSelfStreamState(reason: 'local_participant_changed'),
-    );
+    unawaited(_reconcileSelfStreamState(reason: 'local_participant_changed'));
   }
 
   void _attachLocalParticipantListener(LocalParticipant? participant) {
@@ -930,18 +941,20 @@ class VoiceSession extends _$VoiceSession {
       if (_intentionalLiveKitTeardown) {
         return;
       }
-      if (selfIdentity != null &&
-          evt.participant.identity == selfIdentity) {
+      if (selfIdentity != null && evt.participant.identity == selfIdentity) {
         return;
       }
-      final bool isUserParticipant =
-          evt.participant.identity.startsWith('user_');
+      final bool isUserParticipant = evt.participant.identity.startsWith(
+        'user_',
+      );
       unawaited(
-        ref.read(fluxerSfxProvider).playOneShot(
-          isUserParticipant
-              ? FluxerSfxClip.userJoin
-              : FluxerSfxClip.viewerJoin,
-        ),
+        ref
+            .read(fluxerSfxProvider)
+            .playOneShot(
+              isUserParticipant
+                  ? FluxerSfxClip.userJoin
+                  : FluxerSfxClip.viewerJoin,
+            ),
       );
     });
     listener.on<ParticipantDisconnectedEvent>((
@@ -950,18 +963,20 @@ class VoiceSession extends _$VoiceSession {
       if (_intentionalLiveKitTeardown) {
         return;
       }
-      if (selfIdentity != null &&
-          evt.participant.identity == selfIdentity) {
+      if (selfIdentity != null && evt.participant.identity == selfIdentity) {
         return;
       }
-      final bool isUserParticipant =
-          evt.participant.identity.startsWith('user_');
+      final bool isUserParticipant = evt.participant.identity.startsWith(
+        'user_',
+      );
       unawaited(
-        ref.read(fluxerSfxProvider).playOneShot(
-          isUserParticipant
-              ? FluxerSfxClip.userLeave
-              : FluxerSfxClip.viewerLeave,
-        ),
+        ref
+            .read(fluxerSfxProvider)
+            .playOneShot(
+              isUserParticipant
+                  ? FluxerSfxClip.userLeave
+                  : FluxerSfxClip.viewerLeave,
+            ),
       );
     });
   }

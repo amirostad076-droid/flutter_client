@@ -11,10 +11,7 @@ const String _kFallbackDmAbbrev = 'DM';
 /// Whether [msg] points at a still-reachable channel: an existing DM, an
 /// existing guild channel without a guild row, or a guild channel whose guild
 /// is present and not flagged unavailable.
-Future<bool> isChannelReachable(
-  drift_db.FluxerDatabase db,
-  Message msg,
-) async {
+Future<bool> isChannelReachable(drift_db.FluxerDatabase db, Message msg) async {
   final drift_db.Channel? chRow = await db.channelDao.getChannelById(
     msg.channelId,
   );
@@ -75,9 +72,7 @@ Future<MentionHeaderResult> _loadHeaderForChannelId(
   drift_db.FluxerDatabase db,
   String channelId,
 ) async {
-  final drift_db.Channel? chRow = await db.channelDao.getChannelById(
-    channelId,
-  );
+  final drift_db.Channel? chRow = await db.channelDao.getChannelById(channelId);
   if (chRow != null) {
     return _buildGuildHeader(db, chRow);
   }
@@ -117,9 +112,7 @@ Future<MentionHeaderResult> _buildGuildHeader(
           : mappedGuild.iconUrl;
     }
   }
-  final String guildLine = guild == null || guild.unavailable
-      ? ''
-      : guild.name;
+  final String guildLine = guild == null || guild.unavailable ? '' : guild.name;
   return MentionHeaderResult(
     header: MentionHeader.guild(
       primary: mapped.name,
@@ -146,10 +139,7 @@ Future<MentionHeaderResult> _buildDmHeader(
     title = _kFallbackDmTitle;
   }
   return MentionHeaderResult(
-    header: MentionHeader.dm(
-      title: title,
-      abbrev: abbreviateGuildName(title),
-    ),
+    header: MentionHeader.dm(title: title, abbrev: abbreviateGuildName(title)),
     guildIdForPreview: '',
   );
 }

@@ -34,8 +34,7 @@ class UploadDropOverlay extends ConsumerStatefulWidget {
   final Widget child;
 
   @override
-  ConsumerState<UploadDropOverlay> createState() =>
-      _UploadDropOverlayState();
+  ConsumerState<UploadDropOverlay> createState() => _UploadDropOverlayState();
 }
 
 class _UploadDropOverlayState extends ConsumerState<UploadDropOverlay> {
@@ -71,7 +70,7 @@ class _UploadDropOverlayState extends ConsumerState<UploadDropOverlay> {
         }
         final bool slowBlocked =
             ref.read(isSlowmodeBlockedProvider(widget.channelId)).value ??
-                false;
+            false;
         final bool directSend =
             HardwareKeyboard.instance.isShiftPressed && !slowBlocked;
         if (directSend &&
@@ -103,9 +102,7 @@ class _UploadDropOverlayState extends ConsumerState<UploadDropOverlay> {
                         HardwareKeyboard.instance.isShiftPressed
                             ? l10n.chatAttachmentDropToSend
                             : l10n.chatAttachmentDropToUpload,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               color: colors.textPrimary,
                               fontWeight: FontWeight.w600,
@@ -134,8 +131,7 @@ class _UploadDropOverlayState extends ConsumerState<UploadDropOverlay> {
     final String msg = switch (result.error!) {
       FileUploadValidationError.tooManyAttachments =>
         l10n.chatAttachmentTooMany(kMaxAttachmentsPerMessage),
-      FileUploadValidationError.fileTooLarge =>
-        l10n.chatAttachmentFileTooLarge,
+      FileUploadValidationError.fileTooLarge => l10n.chatAttachmentFileTooLarge,
       FileUploadValidationError.multipartRequestTooLarge =>
         l10n.chatAttachmentPayloadTooLarge,
       FileUploadValidationError.noFiles => '',
@@ -143,11 +139,8 @@ class _UploadDropOverlayState extends ConsumerState<UploadDropOverlay> {
     if (msg.isEmpty) {
       return;
     }
-    ref.read(toastProvider.notifier).show(
-          FluxerToast(
-            message: msg,
-            variant: FluxerToastVariant.warning,
-          ),
-        );
+    ref
+        .read(toastProvider.notifier)
+        .show(FluxerToast(message: msg, variant: FluxerToastVariant.warning));
   }
 }

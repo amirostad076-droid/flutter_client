@@ -86,7 +86,8 @@ class SystemMessage extends StatelessWidget {
   String _formatTimestamp(DateTime dt) {
     final local = dt.toLocal();
     final now = DateTime.now();
-    final isToday = local.year == now.year &&
+    final isToday =
+        local.year == now.year &&
         local.month == now.month &&
         local.day == now.day;
     final h = local.hour.toString().padLeft(2, '0');

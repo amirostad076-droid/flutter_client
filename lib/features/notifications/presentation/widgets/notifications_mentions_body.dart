@@ -470,34 +470,36 @@ class _NotificationsMentionsBodyState
       onRefresh: _bootstrapFromPrefs,
       slivers: <Widget>[
         SliverList(
-          delegate: SliverChildBuilderDelegate((BuildContext _, int index) {
-            if (index < visible.length) {
-              return _buildMentionTile(visible[index]);
-            }
-            int rest = index - visible.length;
-            if (showLoadBusy) {
-              if (rest == 0) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 24,
-                  ),
-                  child: Center(
-                    child: FluxerLoadingSpinner(color: colors.brandPrimary),
-                  ),
-                );
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext _, int index) {
+              if (index < visible.length) {
+                return _buildMentionTile(visible[index]);
               }
-              rest--;
-            }
-            if (showEndFooter && rest == 0) {
-              return const MentionsEndFooter();
-            }
-            return const SizedBox.shrink();
-          },
-          childCount:
-              visible.length +
-              (showLoadBusy ? 1 : 0) +
-              (showEndFooter ? 1 : 0)),
+              int rest = index - visible.length;
+              if (showLoadBusy) {
+                if (rest == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 24,
+                    ),
+                    child: Center(
+                      child: FluxerLoadingSpinner(color: colors.brandPrimary),
+                    ),
+                  );
+                }
+                rest--;
+              }
+              if (showEndFooter && rest == 0) {
+                return const MentionsEndFooter();
+              }
+              return const SizedBox.shrink();
+            },
+            childCount:
+                visible.length +
+                (showLoadBusy ? 1 : 0) +
+                (showEndFooter ? 1 : 0),
+          ),
         ),
       ],
     );

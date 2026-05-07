@@ -314,7 +314,8 @@ class _VoiceChannelParticipantGridState
     final bool guildMatches = widget.guildId == null
         ? voiceForGrid.guildId == null || voiceForGrid.guildId!.isEmpty
         : voiceForGrid.guildId == widget.guildId;
-    final bool onThisChannel = voiceForGrid.isInVoice &&
+    final bool onThisChannel =
+        voiceForGrid.isInVoice &&
         voiceForGrid.channelId == widget.channelId &&
         guildMatches;
     final AsyncValue<List<VoiceChannelParticipantData>> async = ref.watch(
