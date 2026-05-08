@@ -266,6 +266,25 @@ class ChatViewModel extends _$ChatViewModel {
       _clearManualUnread(previousChannelId);
       _clearLoadedUnreadBoundaryKeys(previousChannelId);
     }
+    if (!loadMessages) {
+      if (state.channelId == channelId) {
+        return;
+      }
+      state = ChatViewState(
+        channelId: channelId,
+        messages: const [],
+        replyingTo: null,
+        forwardingFrom: null,
+        editingMessage: null,
+        messageText: '',
+        scrollToBottomSignal: state.scrollToBottomSignal,
+        isLoading: false,
+        isLoadingMore: false,
+        hasMoreMessages: true,
+        errorMessage: null,
+      );
+      return;
+    }
     if (targetMessageId != null) {
       if (state.channelId == channelId && state.isLoading) {
         return;
@@ -284,25 +303,6 @@ class ChatViewModel extends _$ChatViewModel {
         errorMessage: null,
       );
       await _loadMessages(channelId, targetMessageId: targetMessageId);
-      return;
-    }
-    if (!loadMessages) {
-      if (state.channelId == channelId) {
-        return;
-      }
-      state = ChatViewState(
-        channelId: channelId,
-        messages: const [],
-        replyingTo: null,
-        forwardingFrom: null,
-        editingMessage: null,
-        messageText: '',
-        scrollToBottomSignal: state.scrollToBottomSignal,
-        isLoading: false,
-        isLoadingMore: false,
-        hasMoreMessages: true,
-        errorMessage: null,
-      );
       return;
     }
     if (state.channelId == channelId && state.isLoading) {

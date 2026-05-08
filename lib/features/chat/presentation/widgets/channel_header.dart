@@ -15,8 +15,8 @@ import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
-import 'package:fluxer_app/features/shell/presentation/overlapping_panels.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
@@ -24,7 +24,6 @@ import 'package:fluxer_app/features/voice/utils/call_actions.dart';
 import 'package:fluxer_app/features/voice/voice_session_errors.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
-import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The chat header bar showing channel name, topic, and
@@ -106,17 +105,10 @@ class ChannelHeader extends ConsumerWidget {
     child: Row(
       children: [
         IconButton(
-          icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, size: 24),
+          icon: const PhosphorIcon(PhosphorIconsBold.sidebarSimple, size: 24),
           color: context.colors.textPrimaryMuted,
           onPressed: () {
-            final panels = OverlappingPanels.of(context);
-            if (panels != null) {
-              unawaited(panels.moveToState(RevealSide.left));
-              return;
-            }
-            if (context.canPop()) {
-              context.pop();
-            }
+            ref.read(currentRevealSideProvider.notifier).set(RevealSide.left);
           },
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

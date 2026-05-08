@@ -21,7 +21,6 @@ import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.da
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
-import 'package:fluxer_app/features/shell/presentation/overlapping_panels.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_join_bottom_sheet.dart'
@@ -417,10 +416,6 @@ class GuildSidebar extends ConsumerWidget {
               );
             }
           }
-          unawaited(
-            OverlappingPanels.of(context)?.moveToState(RevealSide.main) ??
-                Future<void>.value(),
-          );
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),

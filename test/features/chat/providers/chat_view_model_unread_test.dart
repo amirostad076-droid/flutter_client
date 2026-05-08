@@ -43,6 +43,30 @@ Map<String, Object?> _messageJson({
 };
 
 void main() {
+  test(
+    'switchChannel honors loadMessages false when target is provided',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final adapter = _ChatAdapter(initialMessages: const []);
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel(
+        'channel-1',
+        targetMessageId: 'message-1',
+        loadMessages: false,
+      );
+
+      final state = container.read(chatViewModelProvider);
+      expect(state.channelId, 'channel-1');
+      expect(state.messages, isEmpty);
+      expect(state.isLoading, isFalse);
+      expect(adapter.messageRequestUris, isEmpty);
+    },
+  );
+
   test('auto ack preserves sticky unread divider after ack advances', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
@@ -308,6 +332,7 @@ class _ChatAdapter implements HttpClientAdapter {
 
   final List<Map<String, Object?>> initialMessages;
   final List<Map<String, Object?>> messagesAfterAck;
+  final List<Uri> messageRequestUris = [];
   final List<String> afterQueries = [];
   final List<String> ackedMessageIds = [];
 
@@ -319,6 +344,7 @@ class _ChatAdapter implements HttpClientAdapter {
   ) async {
     if (options.method == 'GET' &&
         options.uri.path.endsWith('/channels/channel-1/messages')) {
+      messageRequestUris.add(options.uri);
       final after = options.uri.queryParameters['after'];
       if (after != null) {
         afterQueries.add(after);

@@ -9,6 +9,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/inline_expression_
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/features/members/presentation/widgets/channel_members.dart';
+import 'package:fluxer_app/features/shell/presentation/mobile_chat_back_scope.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/voice/presentation/voice_channel_page_view.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
@@ -42,80 +43,84 @@ class ChannelLayout extends ConsumerWidget {
     final isMobile = isMobileLayout(context);
     final isPanelOpen = ref.watch(expressionPanelProvider);
 
-    return ColoredBox(
-      color: isMobile
-          ? context.colors.chatInputBackground
-          : context.colors.chatBackground,
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final showMemberList =
-                isMemberListVisible &&
-                constraints.maxWidth >= _minWidthForMemberList;
-            final panelBottomOffset = inlineExpressionPanelBottomOffset(
-              keyboardInset: MediaQuery.viewInsetsOf(context).bottom,
-            );
+    return MobileChatBackScope(
+      child: ColoredBox(
+        color: isMobile
+            ? context.colors.chatInputBackground
+            : context.colors.chatBackground,
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final showMemberList =
+                  isMemberListVisible &&
+                  constraints.maxWidth >= _minWidthForMemberList;
+              final panelBottomOffset = inlineExpressionPanelBottomOffset(
+                keyboardInset: MediaQuery.viewInsetsOf(context).bottom,
+              );
 
-            return Stack(
-              children: [
-                Column(
-                  children: [
-                    ChannelHeader(showMessageActions: !isVoiceChannel),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: isVoiceChannel
-                                ? VoiceChannelPageView(
-                                    guildId: guildId,
-                                    channelId: channelId,
-                                  )
-                                : ChannelChatContent(
-                                    channelId: channelId,
-                                    targetMessageId: messageId,
-                                    showTopBar: false,
-                                    showInlineEmojiPicker: false,
-                                  ),
-                          ),
-                          if (showMemberList) const ChannelMembers(),
-                        ],
+              return Stack(
+                children: [
+                  Column(
+                    children: [
+                      ChannelHeader(showMessageActions: !isVoiceChannel),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: isVoiceChannel
+                                  ? VoiceChannelPageView(
+                                      guildId: guildId,
+                                      channelId: channelId,
+                                    )
+                                  : ChannelChatContent(
+                                      channelId: channelId,
+                                      targetMessageId: messageId,
+                                      showTopBar: false,
+                                      showInlineEmojiPicker: false,
+                                    ),
+                            ),
+                            if (showMemberList) const ChannelMembers(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isMobile && isPanelOpen)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: panelBottomOffset,
+                      child: InlineExpressionPanel(
+                        onClose: () =>
+                            ref.read(expressionPanelProvider.notifier).close(),
+                        onEmojiSelect: (name, surrogates) {
+                          ref
+                              .read(pendingEmojiInsertProvider.notifier)
+                              .emit(name, surrogates);
+                        },
+                        onGifSelect: (selection) {
+                          ref
+                              .read(pendingGifSelectionProvider.notifier)
+                              .emit(selection);
+                        },
+                        onStickerSelect: (selection) {
+                          ref
+                              .read(pendingStickerSelectionProvider.notifier)
+                              .emit(selection);
+                        },
+                        onFavoriteMemeSelect: (selection) {
+                          ref
+                              .read(
+                                pendingFavoriteMemeSelectionProvider.notifier,
+                              )
+                              .emit(selection);
+                        },
                       ),
                     ),
-                  ],
-                ),
-                if (isMobile && isPanelOpen)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: panelBottomOffset,
-                    child: InlineExpressionPanel(
-                      onClose: () =>
-                          ref.read(expressionPanelProvider.notifier).close(),
-                      onEmojiSelect: (name, surrogates) {
-                        ref
-                            .read(pendingEmojiInsertProvider.notifier)
-                            .emit(name, surrogates);
-                      },
-                      onGifSelect: (selection) {
-                        ref
-                            .read(pendingGifSelectionProvider.notifier)
-                            .emit(selection);
-                      },
-                      onStickerSelect: (selection) {
-                        ref
-                            .read(pendingStickerSelectionProvider.notifier)
-                            .emit(selection);
-                      },
-                      onFavoriteMemeSelect: (selection) {
-                        ref
-                            .read(pendingFavoriteMemeSelectionProvider.notifier)
-                            .emit(selection);
-                      },
-                    ),
-                  ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

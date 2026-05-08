@@ -17,9 +17,11 @@ import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart'
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
-import 'package:fluxer_app/features/shell/presentation/overlapping_panels.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/shell/presentation/sidebar_drawer.dart';
+import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
 import 'package:fluxer_app/features/shell/presentation/user_area.dart';
+import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/shell/utils/mobile_scaffold_resize_policy.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/voice_call_bar.dart';
@@ -40,18 +42,10 @@ class AppLayout extends ConsumerStatefulWidget {
 class _AppLayoutState extends ConsumerState<AppLayout>
     with SingleTickerProviderStateMixin {
   static const _youBranchIndex = 2;
-  static const _kBackGestureMinWidthCupertino = 20.0;
-  static const _kBackGestureMinWidthMaterial = 32.0;
-  static const _kBackSwipeFlingWidthPerSecond = 1.0;
-  static const _kBackSwipeProgressThresholdMaterial = 0.4;
-  static const _kBackSwipeProgressThresholdCupertino = 0.5;
-  static const _kBackSwipeSnapDuration = Duration(milliseconds: 350);
-  static const Curve _kBackSwipeSnapCurve = Curves.fastEaseInToSlowEaseOut;
   static final _rootRoutePattern = RegExp(r'^/channels/[^/]+$');
   static final _chatRoutePattern = RegExp('^/channels/[^/]+/.+');
   late final GoRouter _router;
   late final AnimationController _swipeController;
-  final _mobilePanelsKey = GlobalKey<OverlappingPanelsState>();
 
   @override
   void initState() {
@@ -60,7 +54,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     _router.routerDelegate.addListener(_onRouteChange);
     _swipeController = AnimationController(
       vsync: this,
-      duration: _kBackSwipeSnapDuration,
+      duration: kHorizontalSwipeRevealDuration,
     );
   }
 
@@ -72,20 +66,38 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   }
 
   void _onRouteChange() {
-    if (mounted) {
-      _swipeController.value = 0;
-      setState(() {});
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _syncMobilePanelWithRoute(_currentLocation);
-        }
-      });
+    if (!mounted) {
+      return;
     }
+    _swipeController.value = 0;
+    setState(() {});
+    _syncRevealSideToRoute();
   }
 
   String get _currentLocation {
     final config = _router.routerDelegate.currentConfiguration;
     return config.isNotEmpty ? config.last.matchedLocation : '/';
+  }
+
+  void _syncRevealSideToRoute() {
+    final config = _router.routerDelegate.currentConfiguration;
+    if (config.isEmpty) {
+      return;
+    }
+    final pathLocation = config.last.matchedLocation;
+    if (!_isChannelsRoute(pathLocation)) {
+      return;
+    }
+
+    final RevealSide desired;
+    if (_isRootRoute(pathLocation)) {
+      desired = RevealSide.left;
+    } else if (_isChatRoute(pathLocation)) {
+      desired = RevealSide.main;
+    } else {
+      return;
+    }
+    ref.read(currentRevealSideProvider.notifier).set(desired);
   }
 
   @override
@@ -180,66 +192,27 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   }
 
   Widget _buildMobileChannelBody(String location) {
-    final showBottomNav = !_isChatRoute(location);
-    final defaultSide = _isRootRoute(location)
-        ? RevealSide.left
-        : RevealSide.main;
-    final mainContent = OverlappingPanels(
-      key: _mobilePanelsKey,
-      left: _buildMobileSidebar(location),
-      main: widget.navigationShell,
-      defaultSide: defaultSide,
-      restWidth: 0,
-    );
+    final isOnChatRoute = _isChatRoute(location);
+    final isPanelOpen = ref.watch(expressionPanelProvider);
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
 
-    if (!showBottomNav) {
-      final isPanelOpen = ref.watch(expressionPanelProvider);
-      final shouldResizeForKeyboard =
-          mobileChannelScaffoldShouldResizeForKeyboard(
-            isChatRoute: true,
-            isExpressionPanelOpen: isPanelOpen,
-          );
-      final shouldRemoveKeyboardInset =
-          mobileChannelScaffoldShouldRemoveKeyboardInset(
-            isChatRoute: true,
-            isExpressionPanelOpen: isPanelOpen,
-          );
-      final body = shouldRemoveKeyboardInset
-          ? MediaQuery.removeViewInsets(
-              context: context,
-              removeBottom: true,
-              child: mainContent,
-            )
-          : mainContent;
-      return Scaffold(
-        backgroundColor: context.colors.backgroundPrimary,
-        resizeToAvoidBottomInset: shouldResizeForKeyboard,
-        body: body,
-      );
-    }
+    final shouldResizeForKeyboard =
+        mobileChannelScaffoldShouldResizeForKeyboard(
+          isChatRoute: isOnChatRoute,
+          isExpressionPanelOpen: isPanelOpen,
+        );
 
     return Scaffold(
       backgroundColor: context.colors.backgroundPrimary,
-      body: Column(
-        children: [
-          Expanded(child: mainContent),
-          _buildBottomNav(context),
-        ],
-      ),
-    );
-  }
-
-  void _syncMobilePanelWithRoute(String location) {
-    if (!_isChannelsRoute(location) || !isMobileLayout(context)) {
-      return;
-    }
-    final panelState = _mobilePanelsKey.currentState;
-    if (panelState == null) {
-      return;
-    }
-    unawaited(
-      panelState.moveToState(
-        _isRootRoute(location) ? RevealSide.left : RevealSide.main,
+      resizeToAvoidBottomInset: shouldResizeForKeyboard,
+      body: SidebarDrawer(
+        base: Column(
+          children: [
+            Expanded(child: _buildMobileSidebar(location)),
+            if (!keyboardOpen) _buildBottomNav(context),
+          ],
+        ),
+        slider: widget.navigationShell,
       ),
     );
   }
@@ -302,8 +275,8 @@ class _AppLayoutState extends ConsumerState<AppLayout>
               unawaited(
                 _swipeController.animateBack(
                   0,
-                  duration: _kBackSwipeSnapDuration,
-                  curve: _kBackSwipeSnapCurve,
+                  duration: kHorizontalSwipeSnapBackDuration,
+                  curve: kHorizontalSwipeCurve,
                 ),
               );
             },
@@ -318,16 +291,16 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     final bool isRtl = Directionality.of(context) == TextDirection.rtl;
     final double startEdgePadding = isRtl ? padding.right : padding.left;
     if (defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb) {
-      return math.max(_kBackGestureMinWidthCupertino, startEdgePadding);
+      return math.max(kBackSwipeEdgeMinWidthCupertino, startEdgePadding);
     }
-    return math.max(_kBackGestureMinWidthMaterial, startEdgePadding);
+    return math.max(kBackSwipeEdgeMinWidthMaterial, startEdgePadding);
   }
 
   double _backSwipeProgressThreshold() {
     if (defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb) {
-      return _kBackSwipeProgressThresholdCupertino;
+      return kHorizontalSwipeCompletionThresholdCupertino;
     }
-    return _kBackSwipeProgressThresholdMaterial;
+    return kHorizontalSwipeCompletionThresholdMaterial;
   }
 
   void _onBackSwipeEnd(
@@ -339,7 +312,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     final double vx = endDetails.velocity.pixelsPerSecond.dx;
     final double logicalWidthPerSec = (isRtl ? -vx : vx) / screenWidth;
     final bool shouldComplete;
-    if (logicalWidthPerSec.abs() >= _kBackSwipeFlingWidthPerSecond) {
+    if (logicalWidthPerSec.abs() >= kHorizontalSwipeFlingVelocity) {
       shouldComplete = logicalWidthPerSec > 0;
     } else {
       shouldComplete = _swipeController.value > _backSwipeProgressThreshold();
@@ -349,8 +322,8 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         _swipeController
             .animateTo(
               1,
-              duration: _kBackSwipeSnapDuration,
-              curve: _kBackSwipeSnapCurve,
+              duration: kHorizontalSwipeRevealDuration,
+              curve: kHorizontalSwipeCurve,
             )
             .then((void _) {
               if (mounted) {
@@ -362,8 +335,8 @@ class _AppLayoutState extends ConsumerState<AppLayout>
       unawaited(
         _swipeController.animateBack(
           0,
-          duration: _kBackSwipeSnapDuration,
-          curve: _kBackSwipeSnapCurve,
+          duration: kHorizontalSwipeSnapBackDuration,
+          curve: kHorizontalSwipeCurve,
         ),
       );
     }
@@ -404,11 +377,13 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     return Stack(
       children: [
         IgnorePointer(
-          child: Column(
-            children: [
-              Expanded(child: _buildMobileSidebar(location)),
-              _buildBottomNav(context),
-            ],
+          child: RepaintBoundary(
+            child: Column(
+              children: [
+                Expanded(child: _buildMobileSidebar(location)),
+                _buildBottomNav(context),
+              ],
+            ),
           ),
         ),
         Positioned.fill(
@@ -419,7 +394,9 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         Transform.translate(
           offset: Offset(foregroundOffset, 0),
           // [Transform] + semantics can assert during pan; t > 0 only here.
-          child: ExcludeSemantics(child: slidingContent),
+          child: RepaintBoundary(
+            child: ExcludeSemantics(child: slidingContent),
+          ),
         ),
       ],
     );
@@ -481,7 +458,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        /// TODO: Replace with a more final design
+        // TODO(montys): Replace with a more final design.
         const VoiceCallBar(),
         Divider(height: 1, color: context.colors.borderColor),
         Theme(

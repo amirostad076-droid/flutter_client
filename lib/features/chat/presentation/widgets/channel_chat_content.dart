@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 
 /// Composite chat view that assembles the top bar, message list,
 /// and input field. Works for both server channels and DMs.
@@ -39,36 +40,59 @@ class ChannelChatContent extends ConsumerStatefulWidget {
 }
 
 class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
-  @override
-  void initState() {
-    super.initState();
-    unawaited(Future(() => ref.read(expressionPanelProvider.notifier).close()));
-    unawaited(Future(_switchChannel));
-  }
+  ({String channelId, String? targetMessageId, bool loadMessages})?
+  _lastSwitchRequest;
+  ({String channelId, String? targetMessageId})? _lastClosedPanelRequest;
 
-  @override
-  void didUpdateWidget(ChannelChatContent oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.channelId != widget.channelId ||
-        oldWidget.targetMessageId != widget.targetMessageId) {
-      unawaited(
-        Future(() => ref.read(expressionPanelProvider.notifier).close()),
-      );
-      unawaited(Future(_switchChannel));
+  void _scheduleChannelSync({required bool loadMessages}) {
+    final request = (
+      channelId: widget.channelId,
+      targetMessageId: widget.targetMessageId,
+      loadMessages: loadMessages,
+    );
+    if (_lastSwitchRequest == request) {
+      return;
     }
+    _lastSwitchRequest = request;
+    unawaited(
+      Future(() async {
+        if (!mounted) {
+          return;
+        }
+        final closeRequest = (
+          channelId: request.channelId,
+          targetMessageId: request.targetMessageId,
+        );
+        if (_lastClosedPanelRequest != closeRequest) {
+          _lastClosedPanelRequest = closeRequest;
+          ref.read(expressionPanelProvider.notifier).close();
+        }
+        await ref
+            .read(chatViewModelProvider.notifier)
+            .switchChannel(
+              request.channelId,
+              targetMessageId: request.targetMessageId,
+              loadMessages: request.loadMessages,
+            );
+      }),
+    );
   }
-
-  Future<void> _switchChannel() => ref
-      .read(chatViewModelProvider.notifier)
-      .switchChannel(widget.channelId, targetMessageId: widget.targetMessageId);
 
   @override
   Widget build(BuildContext context) {
     final isMobile = isMobileLayout(context);
+    final revealSide = isMobile
+        ? ref.watch(currentRevealSideProvider)
+        : RevealSide.main;
+    final shouldLoadMessages = channelChatShouldLoadMessages(
+      isMobile: isMobile,
+      revealSide: revealSide,
+    );
     final isPanelOpen = ref.watch(expressionPanelProvider);
     final panelBottomOffset = inlineExpressionPanelBottomOffset(
       keyboardInset: MediaQuery.viewInsetsOf(context).bottom,
     );
+    _scheduleChannelSync(loadMessages: shouldLoadMessages);
 
     return ColoredBox(
       color: context.colors.chatBackground,
@@ -87,7 +111,10 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                   Expanded(
                     child: Stack(
                       children: [
-                        MessageList(targetMessageId: widget.targetMessageId),
+                        if (shouldLoadMessages)
+                          MessageList(targetMessageId: widget.targetMessageId)
+                        else
+                          const SizedBox.expand(),
                         const Positioned(
                           left: 8,
                           right: 8,
@@ -145,4 +172,12 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
       ),
     );
   }
+}
+
+@visibleForTesting
+bool channelChatShouldLoadMessages({
+  required bool isMobile,
+  required RevealSide revealSide,
+}) {
+  return !isMobile || revealSide == RevealSide.main;
 }

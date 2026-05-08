@@ -5,7 +5,6 @@ import 'package:fluxer_app/core/router/channel_persistence_observer.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/login_screen.dart';
-import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/presentation/channel_layout.dart';
 import 'package:fluxer_app/features/dm/presentation/dm_layout.dart';
 import 'package:fluxer_app/features/notifications/presentation/notifications_page.dart';
@@ -343,18 +342,23 @@ GoRouter fluxerRouter(Ref ref) {
                   if (RegExp('^/channels/[^/]+/.+').hasMatch(fullPath)) {
                     return null;
                   }
+                  if (state.uri.queryParameters['view'] == 'list') {
+                    return null;
+                  }
                   final db = ref.read(fluxerDatabaseProvider);
                   final lastChannelId = await db.guildLastChannelDao
                       .getLastChannel(guildId);
                   if (lastChannelId != null) {
                     return RoutePaths.guildChannel(guildId, lastChannelId);
                   }
-                  final channelState = ref.read(channelListViewModelProvider);
-                  final firstChannel = channelState.categories
-                      .expand((c) => c.channels)
-                      .firstOrNull;
-                  if (firstChannel != null) {
-                    return RoutePaths.guildChannel(guildId, firstChannel.id);
+                  final channels = await db.channelDao.getChannels(guildId);
+                  const categoryType = 4;
+                  const linkType = 998;
+                  for (final channel in channels) {
+                    if (channel.type != categoryType &&
+                        channel.type != linkType) {
+                      return RoutePaths.guildChannel(guildId, channel.id);
+                    }
                   }
                   return null;
                 },
