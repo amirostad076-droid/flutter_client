@@ -60,6 +60,7 @@ class GatewayEventHandler {
     this.onMessageDeleteBulk,
     this.onMessageReactionChange,
     this.onOwnMessageCreated,
+    this.onMessageAcked,
     this.onAuthSessionIdHashChanged,
     this.onConnectionsUpdate,
     this.onUserSettingsHydrate,
@@ -88,6 +89,7 @@ class GatewayEventHandler {
   final MessageDeleteBulkCallback? onMessageDeleteBulk;
   final MessageReactionChangeCallback? onMessageReactionChange;
   final void Function(String channelId)? onOwnMessageCreated;
+  final void Function(String channelId, {required bool manual})? onMessageAcked;
   final void Function(String? idHash)? onAuthSessionIdHashChanged;
   final ConnectionsUpdateCallback? onConnectionsUpdate;
   final UserSettingsHydrateCallback? onUserSettingsHydrate;
@@ -166,7 +168,7 @@ class GatewayEventHandler {
         _handleGuildUpdate(event);
       case GuildDeleteEvent():
         talker.debug('[Gateway] GUILD_DELETE: ${event.guildId}');
-        _handleGuildDelete(event);
+        unawaited(_handleGuildDelete(event));
       case RelationshipAddEvent():
         talker.debug(
           '[Gateway] RELATIONSHIP_ADD: ${event.relationship.user.id}',
@@ -974,6 +976,9 @@ class GatewayEventHandler {
     }
 
     if (dm != null) {
+      if (await database.relationshipDao.isBlocked(msg.authorId)) {
+        return;
+      }
       await database.dmChannelDao.incrementUnreadCount(msg.channelId);
       if (!await _isDmMuted(msg.channelId)) {
         await database.readStateDao.incrementMentionCount(msg.channelId);
@@ -1006,6 +1011,9 @@ class GatewayEventHandler {
   ) async {
     final userId = currentUserId;
     if (userId == null || message.author.id == userId) {
+      return false;
+    }
+    if (await database.relationshipDao.isBlocked(message.author.id)) {
       return false;
     }
     if (message.mentions?.any((u) => u.id == userId) ?? false) {
@@ -1195,6 +1203,7 @@ class GatewayEventHandler {
     unawaited(database.messageDao.deleteMessagesForChannel(event.channel.id));
     unawaited(database.channelDao.deleteChannel(event.channel.id));
     unawaited(database.dmChannelDao.deleteDmChannel(event.channel.id));
+    unawaited(database.readStateDao.deleteReadState(event.channel.id));
   }
 
   void _handleUserUpdate(UserUpdateEvent event) {
@@ -1343,17 +1352,20 @@ class GatewayEventHandler {
     unawaited(database.guildDao.upsertServer(guildFromSdk(event.guild.guild)));
   }
 
-  void _handleGuildDelete(GuildDeleteEvent event) {
+  Future<void> _handleGuildDelete(GuildDeleteEvent event) async {
     if (event.unavailable) {
       // Guild went unavailable — keep it in the list but mark it.
-      unawaited(database.guildDao.markUnavailable(event.guildId));
+      await database.guildDao.markUnavailable(event.guildId);
       return;
     }
     // Actually removed from guild — delete all associated data.
-    unawaited(database.channelDao.deleteChannelsForGuild(event.guildId));
-    unawaited(database.memberDao.deleteMembersForGuild(event.guildId));
-    unawaited(database.roleDao.deleteRolesForGuild(event.guildId));
-    unawaited(database.guildDao.deleteServer(event.guildId));
+    final channels = await database.channelDao.getChannels(event.guildId);
+    final channelIds = channels.map((c) => c.id).toList();
+    await database.readStateDao.deleteReadStatesForChannels(channelIds);
+    await database.channelDao.deleteChannelsForGuild(event.guildId);
+    await database.memberDao.deleteMembersForGuild(event.guildId);
+    await database.roleDao.deleteRolesForGuild(event.guildId);
+    await database.guildDao.deleteServer(event.guildId);
     onGuildPermissionsEvict?.call(event.guildId);
   }
 
@@ -1475,12 +1487,13 @@ class GatewayEventHandler {
 
   Future<void> _handleMessageAck(MessageAckEvent event) async {
     final mentionCount = event.mentionCount ?? 0;
+    final manual = event.manual ?? false;
     await database.readStateDao.upsertReadState(
       db.ReadStatesCompanion(
         channelId: Value(event.channelId),
         lastMessageId: Value(event.messageId),
         mentionCount: Value(mentionCount),
-        manual: Value(event.manual ?? false),
+        manual: Value(manual),
       ),
     );
     final dm = await database.dmChannelDao.getDmChannelById(event.channelId);
@@ -1490,6 +1503,7 @@ class GatewayEventHandler {
         mentionCount,
       );
     }
+    onMessageAcked?.call(event.channelId, manual: manual);
   }
 
   void _handleReactionAddMany(MessageReactionAddManyEvent event) {

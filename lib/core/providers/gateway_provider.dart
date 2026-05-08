@@ -133,7 +133,14 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       MessageReactionsChanged(channelId: channelId, messageId: messageId),
     ),
     onOwnMessageCreated: (channelId) {
-      ref.read(chatViewModelProvider.notifier).clearStickyUnreadFor(channelId);
+      ref.read(chatViewModelProvider.notifier)
+        ..clearStickyUnreadFor(channelId)
+        ..cancelPendingOutgoingAck(channelId);
+    },
+    onMessageAcked: (channelId, {required manual}) {
+      ref
+          .read(chatViewModelProvider.notifier)
+          .applyExternalAck(channelId, manual: manual);
     },
     onAuthSessionIdHashChanged: (idHash) {
       ref.read(currentAuthSessionIdHashProvider.notifier).update(idHash);

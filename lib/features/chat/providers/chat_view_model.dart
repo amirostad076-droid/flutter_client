@@ -640,6 +640,24 @@ class ChatViewModel extends _$ChatViewModel {
     clearStickyUnread();
   }
 
+  void cancelPendingOutgoingAck(String channelId) =>
+      _flushOutgoingAck(channelId);
+
+  void applyExternalAck(String channelId, {required bool manual}) {
+    if (channelId.isEmpty) {
+      return;
+    }
+    _flushOutgoingAck(channelId);
+    if (manual) {
+      _readAckGate.markManualUnread(channelId);
+    } else {
+      _readAckGate.clearManualUnread(channelId);
+    }
+    if (state.channelId == channelId) {
+      clearStickyUnread();
+    }
+  }
+
   void clearStickyUnreadAfterBuildForCurrentChannel() {
     final channelId = state.channelId;
     unawaited(

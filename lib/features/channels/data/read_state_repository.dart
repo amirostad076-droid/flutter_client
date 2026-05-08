@@ -244,10 +244,14 @@ class ReadStateRepository {
     if (isDm && await _isDmMuted(channelId)) {
       return 0;
     }
+    final blockedUserIds = await _db.relationshipDao.getBlockedUserIds();
     final messages = await _db.messageDao.getMessages(channelId, limit: 1000);
     var mentionCount = 0;
     for (final message in messages) {
       if (compareSnowflakeIds(message.id, ackMessageId) <= 0) {
+        continue;
+      }
+      if (blockedUserIds.contains(message.authorId)) {
         continue;
       }
       if (isDm) {

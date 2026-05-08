@@ -43,7 +43,15 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
     final readState = await db.readStateDao.getReadState(channelId);
     final lastCachedMessage = await db.messageDao.getLastMessage(channelId);
     final latestMessageId = channel?.lastMessageId ?? lastCachedMessage?.id;
-    final mentionCount = readState?.mentionCount ?? 0;
+    final rawMentionCount = readState?.mentionCount ?? 0;
+    final mentionCount =
+        canShowMentionCount(
+          channelLastMessageId: latestMessageId,
+          isGuildChannel: channel != null,
+          now: DateTime.now(),
+        )
+        ? rawMentionCount
+        : 0;
     if (channel != null &&
         !await canReadChannelForUnread(
           database: db,
@@ -189,7 +197,15 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
       }
 
       final readState = readStateMap[channel.id];
-      final mentions = readState?.mentionCount ?? 0;
+      final rawMentions = readState?.mentionCount ?? 0;
+      final mentions =
+          canShowMentionCount(
+            channelLastMessageId: channel.lastMessageId,
+            isGuildChannel: true,
+            now: DateTime.fromMillisecondsSinceEpoch(nowMs),
+          )
+          ? rawMentions
+          : 0;
       final isVoice = channel.type == _voiceType;
       final unreadSettings = resolveUnreadSettings(
         channel: channel,

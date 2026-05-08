@@ -5,6 +5,8 @@ import 'package:fluxer_app/core/database/tables/relationships.dart';
 
 part 'relationship_dao.g.dart';
 
+const int _blockedRelationshipType = 2;
+
 @DriftAccessor(tables: [Relationships])
 class RelationshipDao extends DatabaseAccessor<FluxerDatabase>
     with _$RelationshipDaoMixin {
@@ -29,4 +31,22 @@ class RelationshipDao extends DatabaseAccessor<FluxerDatabase>
       (delete(relationships)..where((r) => r.userId.equals(userId))).go();
 
   Future<void> clearAll() => delete(relationships).go();
+
+  Future<bool> isBlocked(String userId) async {
+    final row =
+        await (select(relationships)..where(
+              (r) =>
+                  r.userId.equals(userId) &
+                  r.type.equals(_blockedRelationshipType),
+            ))
+            .getSingleOrNull();
+    return row != null;
+  }
+
+  Future<Set<String>> getBlockedUserIds() async {
+    final rows = await (select(
+      relationships,
+    )..where((r) => r.type.equals(_blockedRelationshipType))).get();
+    return rows.map((r) => r.userId).toSet();
+  }
 }

@@ -61,6 +61,15 @@ class ReadStateDao extends DatabaseAccessor<FluxerDatabase>
   Future<void> deleteReadState(String channelId) =>
       (delete(readStates)..where((r) => r.channelId.equals(channelId))).go();
 
+  Future<void> deleteReadStatesForChannels(List<String> channelIds) {
+    if (channelIds.isEmpty) {
+      return Future.value();
+    }
+    return (delete(
+      readStates,
+    )..where((r) => r.channelId.isIn(channelIds))).go();
+  }
+
   Stream<List<ReadState>> watchReadStatesForChannels(List<String> channelIds) =>
       (select(readStates)..where((r) => r.channelId.isIn(channelIds))).watch();
 

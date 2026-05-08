@@ -113,6 +113,22 @@ String? oldestUnreadMessageId({
   return null;
 }
 
+bool canShowMentionCount({
+  required String? channelLastMessageId,
+  required bool isGuildChannel,
+  required DateTime now,
+}) {
+  if (!isGuildChannel) {
+    return true;
+  }
+  final lastMessageMs = snowflakeTimestampMs(channelLastMessageId);
+  if (lastMessageMs <= 0) {
+    return true;
+  }
+  return lastMessageMs >=
+      now.millisecondsSinceEpoch - oldMessageUnreadThreshold.inMilliseconds;
+}
+
 bool shouldSuppressStaleUnread({
   required String? channelLastMessageId,
   required String? ackLastMessageId,
