@@ -14,6 +14,7 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
+import 'package:fluxer_app/features/voice/voice_session_errors.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:fluxer_dart/gateway.dart';
@@ -206,7 +207,10 @@ class VoiceCallBar extends ConsumerWidget {
                             if (voice.errorMessage != null) ...[
                               const SizedBox(height: 2),
                               Text(
-                                voice.errorMessage!,
+                                resolveVoiceSessionErrorMessage(
+                                  voice.errorMessage!,
+                                  l10n,
+                                ),
                                 style: context.textStyles.categoryName.copyWith(
                                   color: context.colors.statusDanger,
                                 ),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -33,6 +34,9 @@ class VoiceChannelControlBar extends ConsumerWidget {
     final bool isDeafened = selfVs?.selfDeaf ?? false;
     final bool isVideoOn = selfVs?.selfVideo ?? false;
     final bool isScreenSharing = selfVs?.selfStream ?? false;
+    final bool canScreenShare = ref
+        .watch(screenShareCapabilityProvider)
+        .maybeWhen(data: (bool value) => value, orElse: () => false);
     return Material(
       color: const Color(0xFF000000),
       child: SafeArea(
@@ -105,23 +109,24 @@ class VoiceChannelControlBar extends ConsumerWidget {
                           }
                         : null,
                   ),
-                  _VoiceControlCircle(
-                    size: _kControlSize,
-                    color: isScreenSharing
-                        ? context.colors.brandPrimary
-                        : context.colors.backgroundTertiary,
-                    tooltip: l10n.voiceControlScreenShare,
-                    icon: PhosphorIconsFill.monitor,
-                    onPressed: session.isConnected
-                        ? () {
-                            unawaited(
-                              ref
-                                  .read(voiceSessionProvider.notifier)
-                                  .toggleSelfStream(),
-                            );
-                          }
-                        : null,
-                  ),
+                  if (canScreenShare)
+                    _VoiceControlCircle(
+                      size: _kControlSize,
+                      color: isScreenSharing
+                          ? context.colors.brandPrimary
+                          : context.colors.backgroundTertiary,
+                      tooltip: l10n.voiceControlScreenShare,
+                      icon: PhosphorIconsFill.monitor,
+                      onPressed: session.isConnected
+                          ? () {
+                              unawaited(
+                                ref
+                                    .read(voiceSessionProvider.notifier)
+                                    .toggleSelfStream(),
+                              );
+                            }
+                          : null,
+                    ),
                   _VoiceControlCircle(
                     size: _kControlSize,
                     color: context.colors.statusDanger,

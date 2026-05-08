@@ -21,6 +21,7 @@ import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/call_actions.dart';
+import 'package:fluxer_app/features/voice/voice_session_errors.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:go_router/go_router.dart';
@@ -396,7 +397,9 @@ class ChannelHeader extends ConsumerWidget {
       color = context.colors.statusIdle;
       label = l10n.voiceChannelStatusConnecting;
     }
-    final String tip = hasError ? voice.errorMessage! : label;
+    final String tip = hasError
+        ? resolveVoiceSessionErrorMessage(voice.errorMessage!, l10n)
+        : label;
     return Tooltip(
       message: tip,
       child: Semantics(

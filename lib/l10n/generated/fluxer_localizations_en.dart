@@ -2996,6 +2996,18 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Camera permission is required for video.';
 
   @override
+  String get voiceErrorScreenShareToggle =>
+      'Couldn\'t start screen sharing. Please try again.';
+
+  @override
+  String get voiceErrorScreenSharePermissionDenied =>
+      'Screen-sharing permission was denied.';
+
+  @override
+  String get voiceErrorScreenShareUnsupported =>
+      'Screen sharing isn\'t available on this device.';
+
+  @override
   String get voiceWatchStream => 'Watch Stream';
 
   @override

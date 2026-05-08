@@ -37,6 +37,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   package_info_plus: ^9.0.0
+  device_info_plus: ^12.4.0
   passkeys: ^2.18.0
   phosphor_flutter: ^2.1.0
   riverpod: ^3.2.1

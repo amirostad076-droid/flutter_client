@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_screen_share_watch_tile_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/camera_permission.dart';
@@ -740,6 +741,19 @@ class VoiceSession extends _$VoiceSession {
     if (_togglingScreenShare) {
       return;
     }
+    final bool isSupported = ref
+        .read(screenShareCapabilityProvider)
+        .maybeWhen(data: (bool value) => value, orElse: () => false);
+    if (!isSupported) {
+      talker.warning(
+        '[Voice] toggleSelfStream blocked: screen sharing is not supported '
+        'on this platform/device.',
+      );
+      state = state.copyWith(
+        errorMessage: kVoiceSessionErrorScreenShareUnsupported,
+      );
+      return;
+    }
     final bool nextSelfStream = !_hasPublishedLocalScreenShareVideo(
       requireTrack: false,
     );
@@ -752,10 +766,10 @@ class VoiceSession extends _$VoiceSession {
     try {
       try {
         await lp.setScreenShareEnabled(nextSelfStream);
-      } on Object catch (e) {
-        talker.error('[Voice] setScreenShareEnabled: $e');
+      } on Object catch (e, st) {
+        talker.error('[Voice] setScreenShareEnabled failed', e, st);
         state = state.copyWith(
-          errorMessage: kVoiceSessionErrorScreenShareToggle,
+          errorMessage: _classifyScreenShareException(e),
         );
         return;
       }
@@ -766,25 +780,35 @@ class VoiceSession extends _$VoiceSession {
         reason: nextSelfStream ? 'toggle_enable' : 'toggle_disable',
         waitForPublication: nextSelfStream,
       );
-      if (nextSelfStream &&
-          !_hasPublishedLocalScreenShareVideo(requireTrack: true)) {
-        state = state.copyWith(
-          errorMessage: kVoiceSessionErrorScreenShareToggle,
-        );
-      } else {
-        unawaited(
-          ref
-              .read(fluxerSfxProvider)
-              .playOneShot(
-                nextSelfStream
-                    ? FluxerSfxClip.streamStart
-                    : FluxerSfxClip.streamStop,
-              ),
-        );
+      final bool published = _hasPublishedLocalScreenShareVideo(
+        requireTrack: true,
+      );
+      if (nextSelfStream && !published) {
+        return;
       }
+      unawaited(
+        ref
+            .read(fluxerSfxProvider)
+            .playOneShot(
+              nextSelfStream
+                  ? FluxerSfxClip.streamStart
+                  : FluxerSfxClip.streamStop,
+            ),
+      );
     } finally {
       _togglingScreenShare = false;
     }
+  }
+
+  String _classifyScreenShareException(Object error) {
+    final String msg = error.toString().toLowerCase();
+    if (msg.contains('permission') && msg.contains('deni')) {
+      return kVoiceSessionErrorScreenSharePermissionDenied;
+    }
+    if (msg.contains('not allowed') || msg.contains('user cancel')) {
+      return kVoiceSessionErrorScreenSharePermissionDenied;
+    }
+    return kVoiceSessionErrorScreenShareToggle;
   }
 
   void reportCameraPermissionDenied() {

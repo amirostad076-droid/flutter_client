@@ -5116,6 +5116,24 @@ abstract class FluxerLocalizations {
   /// **'Camera permission is required for video.'**
   String get voiceCameraPermissionRequired;
 
+  /// Error shown when toggling screen sharing fails for an unknown reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start screen sharing. Please try again.'**
+  String get voiceErrorScreenShareToggle;
+
+  /// Error shown when the OS denies screen-capture permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen-sharing permission was denied.'**
+  String get voiceErrorScreenSharePermissionDenied;
+
+  /// Error shown when screen sharing is invoked on a platform that does not support it.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen sharing isn\'t available on this device.'**
+  String get voiceErrorScreenShareUnsupported;
+
   /// Primary button on a screen-share tile to subscribe to the remote stream.
   ///
   /// In en, this message translates to:
