@@ -30,7 +30,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'chat_view_model.g.dart';
 
 const _kPageSize = 30;
-const _kReadAckMinInterval = Duration(seconds: 5);
+const _kReadAckMinInterval = Duration(seconds: 1);
+const _kOutgoingAckDebounce = Duration(seconds: 3);
 
 class ChatViewState {
   static const _unset = Object();
@@ -119,6 +120,7 @@ class ChatViewModel extends _$ChatViewModel {
     minInterval: _kReadAckMinInterval,
   );
   Timer? _readAckRetryTimer;
+  final Map<String, Timer> _outgoingAckTimers = <String, Timer>{};
   final Set<String> _loadedUnreadBoundaryKeys = <String>{};
   bool _readViewportActive = false;
   bool _readViewportNearBottom = true;
@@ -140,6 +142,10 @@ class ChatViewModel extends _$ChatViewModel {
       })
       ..onDispose(() {
         _readAckRetryTimer?.cancel();
+        for (final timer in _outgoingAckTimers.values) {
+          timer.cancel();
+        }
+        _outgoingAckTimers.clear();
         unawaited(_eventsSub?.cancel());
       });
     return const ChatViewState(
@@ -335,7 +341,11 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreMessages: messages.length >= _kPageSize,
       );
       if (targetMessageId == null) {
-        await _ensureUnreadBoundaryLoaded(channelId);
+        final readState = await ref
+            .read(fluxerDatabaseProvider)
+            .readStateDao
+            .getReadState(channelId);
+        await _ensureUnreadBoundaryLoaded(channelId, readState: readState);
         unawaited(ackCurrentChannel());
       }
     } on Exception catch (e) {
@@ -429,20 +439,66 @@ class ChatViewModel extends _$ChatViewModel {
 
     _readAckRetryTimer?.cancel();
     _readAckGate.markAttemptStarted(channelId, now: now);
+    final hadMentions = (readState?.mentionCount ?? 0) > 0;
     try {
       if (!force) {
-        await _ensureUnreadBoundaryLoaded(channelId);
-        await _preserveStickyUnreadBeforeAck(channelId);
+        await _ensureUnreadBoundaryLoaded(channelId, readState: readState);
+        await _preserveStickyUnreadBeforeAck(channelId, readState: readState);
       }
-      await ReadStateRepository(
+      final repository = ReadStateRepository(
         ref.read(fluxerClientProvider),
         database,
-      ).ackLatest(channelId);
+      );
+      final ackedMessageId = await repository.applyLocalAckLatest(channelId);
+      if (ackedMessageId != null) {
+        _scheduleOutgoingAck(
+          repository: repository,
+          channelId: channelId,
+          messageId: ackedMessageId,
+          immediate: hadMentions || force,
+        );
+      }
       _readAckGate.clearManualUnread(channelId);
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to ack channel: $e');
     } finally {
       _readAckGate.markAttemptFinished(channelId);
+    }
+  }
+
+  void _scheduleOutgoingAck({
+    required ReadStateRepository repository,
+    required String channelId,
+    required String messageId,
+    required bool immediate,
+  }) {
+    _outgoingAckTimers.remove(channelId)?.cancel();
+    if (immediate) {
+      unawaited(_dispatchOutgoingAck(repository, channelId, messageId));
+      return;
+    }
+    _outgoingAckTimers[channelId] = Timer(_kOutgoingAckDebounce, () {
+      _outgoingAckTimers.remove(channelId);
+      unawaited(_dispatchOutgoingAck(repository, channelId, messageId));
+    });
+  }
+
+  Future<void> _dispatchOutgoingAck(
+    ReadStateRepository repository,
+    String channelId,
+    String messageId,
+  ) async {
+    try {
+      await repository.sendAckHttp(channelId, messageId);
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to send ack HTTP: $e');
+    }
+  }
+
+  void _flushOutgoingAck(String channelId) {
+    final timer = _outgoingAckTimers.remove(channelId);
+    if (timer != null) {
+      timer.cancel();
     }
   }
 
@@ -454,13 +510,14 @@ class ChatViewModel extends _$ChatViewModel {
     });
   }
 
-  Future<void> _ensureUnreadBoundaryLoaded(String channelId) async {
+  Future<void> _ensureUnreadBoundaryLoaded(
+    String channelId, {
+    required db.ReadState? readState,
+  }) async {
     if (state.channelId != channelId || state.messages.isEmpty) {
       return;
     }
 
-    final db = ref.read(fluxerDatabaseProvider);
-    final readState = await db.readStateDao.getReadState(channelId);
     final ackMessageId = readState?.lastMessageId;
     if (ackMessageId == null || ackMessageId.isEmpty) {
       return;
@@ -497,14 +554,13 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  Future<void> _preserveStickyUnreadBeforeAck(String channelId) async {
+  Future<void> _preserveStickyUnreadBeforeAck(
+    String channelId, {
+    required db.ReadState? readState,
+  }) async {
     if (state.channelId != channelId || state.stickyUnreadMessageId != null) {
       return;
     }
-    final readState = await ref
-        .read(fluxerDatabaseProvider)
-        .readStateDao
-        .getReadState(channelId);
     final currentUserId = ref.read(currentUserIdProvider);
     final stickyUnreadMessageId = oldestUnreadMessageId(
       messageIds: state.messages
@@ -551,16 +607,23 @@ class ChatViewModel extends _$ChatViewModel {
     );
   }
 
-  void _clearManualUnread(String channelId) {
+  void _clearManualUnread(String channelId) =>
+      _setChannelManual(channelId, manual: false);
+
+  void _setChannelManual(String channelId, {required bool manual}) {
     if (channelId.isEmpty) {
       return;
     }
-    _readAckGate.clearManualUnread(channelId);
+    if (manual) {
+      _readAckGate.markManualUnread(channelId);
+    } else {
+      _readAckGate.clearManualUnread(channelId);
+    }
     unawaited(
       ref
           .read(fluxerDatabaseProvider)
           .readStateDao
-          .setManual(channelId, manual: false),
+          .setManual(channelId, manual: manual),
     );
   }
 
@@ -568,6 +631,13 @@ class ChatViewModel extends _$ChatViewModel {
     if (state.stickyUnreadMessageId != null) {
       state = state.copyWith(stickyUnreadMessageId: null);
     }
+  }
+
+  void clearStickyUnreadFor(String channelId) {
+    if (state.channelId != channelId) {
+      return;
+    }
+    clearStickyUnread();
   }
 
   void clearStickyUnreadAfterBuildForCurrentChannel() {
@@ -590,6 +660,7 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     _readAckRetryTimer?.cancel();
+    _flushOutgoingAck(channelId);
     _readAckGate.clearManualUnread(channelId);
     clearStickyUnread();
     try {
@@ -608,6 +679,7 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     try {
+      _flushOutgoingAck(channelId);
       await ReadStateRepository(
         ref.read(fluxerClientProvider),
         ref.read(fluxerDatabaseProvider),

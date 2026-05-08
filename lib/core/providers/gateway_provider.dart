@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/auth/providers/current_auth_session_provider.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
+import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
@@ -131,6 +132,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     onMessageReactionChange: (channelId, messageId) => messageBus.emit(
       MessageReactionsChanged(channelId: channelId, messageId: messageId),
     ),
+    onOwnMessageCreated: (channelId) {
+      ref.read(chatViewModelProvider.notifier).clearStickyUnreadFor(channelId);
+    },
     onAuthSessionIdHashChanged: (idHash) {
       ref.read(currentAuthSessionIdHashProvider.notifier).update(idHash);
     },

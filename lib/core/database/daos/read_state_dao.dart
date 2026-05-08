@@ -25,31 +25,33 @@ class ReadStateDao extends DatabaseAccessor<FluxerDatabase>
   Future<void> upsertReadState(ReadStatesCompanion state) =>
       into(readStates).insertOnConflictUpdate(state);
 
-  Future<void> incrementMentionCount(String channelId) async {
-    final existing = await getReadState(channelId);
-    await upsertReadState(
-      ReadStatesCompanion(
-        channelId: Value(channelId),
-        lastMessageId: Value(existing?.lastMessageId),
-        mentionCount: Value((existing?.mentionCount ?? 0) + 1),
-        lastPinTimestamp: Value(existing?.lastPinTimestamp),
-        manual: Value(existing?.manual ?? false),
-      ),
-    );
-  }
+  Future<void> incrementMentionCount(String channelId) =>
+      transaction(() async {
+        final existing = await getReadState(channelId);
+        await upsertReadState(
+          ReadStatesCompanion(
+            channelId: Value(channelId),
+            lastMessageId: Value(existing?.lastMessageId),
+            mentionCount: Value((existing?.mentionCount ?? 0) + 1),
+            lastPinTimestamp: Value(existing?.lastPinTimestamp),
+            manual: Value(existing?.manual ?? false),
+          ),
+        );
+      });
 
-  Future<void> updatePinTimestamp(String channelId, String? timestamp) async {
-    final existing = await getReadState(channelId);
-    await upsertReadState(
-      ReadStatesCompanion(
-        channelId: Value(channelId),
-        lastMessageId: Value(existing?.lastMessageId),
-        mentionCount: Value(existing?.mentionCount ?? 0),
-        lastPinTimestamp: Value(timestamp),
-        manual: Value(existing?.manual ?? false),
-      ),
-    );
-  }
+  Future<void> updatePinTimestamp(String channelId, String? timestamp) =>
+      transaction(() async {
+        final existing = await getReadState(channelId);
+        await upsertReadState(
+          ReadStatesCompanion(
+            channelId: Value(channelId),
+            lastMessageId: Value(existing?.lastMessageId),
+            mentionCount: Value(existing?.mentionCount ?? 0),
+            lastPinTimestamp: Value(timestamp),
+            manual: Value(existing?.manual ?? false),
+          ),
+        );
+      });
 
   Future<void> setManual(String channelId, {required bool manual}) =>
       (update(readStates)..where((r) => r.channelId.equals(channelId))).write(

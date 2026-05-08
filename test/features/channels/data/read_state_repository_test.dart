@@ -217,10 +217,7 @@ void main() {
       const ReadStatesCompanion(channelId: Value('missing-1')),
     );
 
-    await ReadStateRepository(
-      FluxerClient(dio),
-      db,
-    ).cleanupStaleReadStates(delayBetweenDeletes: Duration.zero);
+    await ReadStateRepository(FluxerClient(dio), db).cleanupStaleReadStates();
 
     final adapter = dio.httpClientAdapter as _RecordingAdapter;
     expect(adapter.requests, [

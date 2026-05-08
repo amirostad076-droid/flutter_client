@@ -66,6 +66,24 @@ class MessageDao extends DatabaseAccessor<FluxerDatabase>
             ..limit(1))
           .getSingleOrNull();
 
+  Future<Message?> getPreviousMessage(String channelId, String beforeId) async {
+    final reference = await (select(
+      messages,
+    )..where((m) => m.id.equals(beforeId))).getSingleOrNull();
+    if (reference == null) {
+      return null;
+    }
+    return (select(messages)
+          ..where(
+            (m) =>
+                m.channelId.equals(channelId) &
+                m.timestamp.isSmallerThanValue(reference.timestamp),
+          )
+          ..orderBy([(m) => OrderingTerm.desc(m.timestamp)])
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
   Future<void> updateReactions(String messageId, String json) =>
       (update(messages)..where((m) => m.id.equals(messageId))).write(
         MessagesCompanion(reactionsJson: Value(json)),

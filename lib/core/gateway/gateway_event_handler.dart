@@ -59,6 +59,7 @@ class GatewayEventHandler {
     this.onMessageDelete,
     this.onMessageDeleteBulk,
     this.onMessageReactionChange,
+    this.onOwnMessageCreated,
     this.onAuthSessionIdHashChanged,
     this.onConnectionsUpdate,
     this.onUserSettingsHydrate,
@@ -86,6 +87,7 @@ class GatewayEventHandler {
   final MessageDeleteCallback? onMessageDelete;
   final MessageDeleteBulkCallback? onMessageDeleteBulk;
   final MessageReactionChangeCallback? onMessageReactionChange;
+  final void Function(String channelId)? onOwnMessageCreated;
   final void Function(String? idHash)? onAuthSessionIdHashChanged;
   final ConnectionsUpdateCallback? onConnectionsUpdate;
   final UserSettingsHydrateCallback? onUserSettingsHydrate;
@@ -967,6 +969,7 @@ class GatewayEventHandler {
       if (dm != null) {
         await database.dmChannelDao.markAsRead(msg.channelId);
       }
+      onOwnMessageCreated?.call(msg.channelId);
       return;
     }
 

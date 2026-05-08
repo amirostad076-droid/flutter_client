@@ -41,9 +41,8 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
 
     final channel = await db.channelDao.getChannelById(channelId);
     final readState = await db.readStateDao.getReadState(channelId);
-    final messages = await db.messageDao.getMessages(channelId, limit: 1);
-    final latestCachedMessageId = messages.isEmpty ? null : messages.last.id;
-    final latestMessageId = channel?.lastMessageId ?? latestCachedMessageId;
+    final lastCachedMessage = await db.messageDao.getLastMessage(channelId);
+    final latestMessageId = channel?.lastMessageId ?? lastCachedMessage?.id;
     final mentionCount = readState?.mentionCount ?? 0;
     if (channel != null &&
         !await canReadChannelForUnread(
