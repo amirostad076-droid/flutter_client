@@ -94,7 +94,6 @@ class GatewayEventHandler {
   final ConnectionsUpdateCallback? onConnectionsUpdate;
   final UserSettingsHydrateCallback? onUserSettingsHydrate;
 
-  /// The current user's ID, set during READY processing.
   String? _currentUserId;
 
   Future<void> handle(GatewayEvent event) async {
@@ -369,7 +368,6 @@ class GatewayEventHandler {
     );
 
     await database.transaction(() async {
-      // Clear all entity tables (full replace).
       await database.userDao.clearAll();
       await database.guildDao.clearAll();
       await database.channelDao.clearAll();
@@ -387,7 +385,6 @@ class GatewayEventHandler {
       await database.guildEmojiDao.clearAll();
       await database.guildStickerDao.clearAll();
 
-      // Insert current user.
       await database.userDao.upsertUser(
         db.UsersCompanion.insert(
           id: event.user.id,
@@ -401,7 +398,6 @@ class GatewayEventHandler {
         ),
       );
 
-      // Insert cached users.
       final cachedUsers = event.users;
       if (cachedUsers != null && cachedUsers.isNotEmpty) {
         await database.userDao.upsertUsers(
@@ -415,7 +411,6 @@ class GatewayEventHandler {
         );
       }
 
-      // Build guild position map from guild folders in user settings.
       final guildPositions = <String, int>{};
       final userSettings = event.userSettings;
       if (userSettings != null) {
@@ -428,7 +423,6 @@ class GatewayEventHandler {
         }
       }
 
-      // Insert guilds (skip unavailable — no metadata).
       if (event.rawGuilds.isNotEmpty) {
         final guildCompanions = <db.ServersCompanion>[];
         final processedGuilds = <GuildCreateData>[];
@@ -519,7 +513,6 @@ class GatewayEventHandler {
         }
       }
 
-      // Insert DM channels (+ upsert recipients as users).
       if (event.privateChannels.isNotEmpty) {
         final dmCompanions = <db.DmChannelsCompanion>[];
         final recipientUsers = <db.UsersCompanion>[];
@@ -560,7 +553,6 @@ class GatewayEventHandler {
         await database.dmChannelDao.upsertDmChannels(dmCompanions);
       }
 
-      // Insert relationships (+ upsert related users).
       if (event.relationships.isNotEmpty) {
         final relUsers = <db.UsersCompanion>[];
         final relCompanions = <db.RelationshipsCompanion>[];
@@ -579,7 +571,6 @@ class GatewayEventHandler {
         await database.relationshipDao.upsertRelationships(relCompanions);
       }
 
-      // Update user statuses from presences (users already inserted above).
       for (final p in event.presences) {
         final userId = (p['user'] as Map<String, dynamic>?)?['id'] as String?;
         final status = p['status'] as String?;
@@ -588,7 +579,6 @@ class GatewayEventHandler {
         }
       }
 
-      // Insert read states.
       if (event.readStates.isNotEmpty) {
         for (final rs in event.readStates) {
           await database.readStateDao.upsertReadState(
@@ -603,7 +593,6 @@ class GatewayEventHandler {
         }
       }
 
-      // Insert user settings (JSON blob).
       if (userSettings != null) {
         await database.userSettingsDao.upsertSettings(
           db.UserSettingsTableCompanion(
@@ -613,7 +602,6 @@ class GatewayEventHandler {
         );
       }
 
-      // Insert user guild settings (JSON blob per guild).
       final guildSettings = event.userGuildSettings;
       if (guildSettings != null) {
         for (final gs in guildSettings) {
@@ -627,7 +615,6 @@ class GatewayEventHandler {
         }
       }
 
-      // Insert notes.
       final notes = event.notes;
       if (notes != null && notes.isNotEmpty) {
         await database.userNotesDao.upsertNotes(
@@ -642,7 +629,6 @@ class GatewayEventHandler {
         );
       }
 
-      // Insert pinned DMs with position index (table already cleared above).
       final pinnedDms = event.pinnedDms;
       if (pinnedDms != null && pinnedDms.isNotEmpty) {
         for (var i = 0; i < pinnedDms.length; i++) {
@@ -657,7 +643,6 @@ class GatewayEventHandler {
         }
       }
 
-      // Insert favorite memes (JSON blob per meme).
       final favoriteMemes = event.favoriteMemes;
       if (favoriteMemes != null) {
         for (final meme in favoriteMemes) {
@@ -674,7 +659,6 @@ class GatewayEventHandler {
         }
       }
 
-      // Insert RTC regions (table already cleared above).
       final rtcRegions = event.rtcRegions;
       if (rtcRegions != null) {
         for (final region in rtcRegions) {
@@ -924,18 +908,15 @@ class GatewayEventHandler {
       currentUserId: currentUserId,
     ).copyWith(isMentioned: mentionsCurrentUser);
 
-    // Clear typing indicator for the message author.
     onTypingClear?.call(msg.channelId, msg.authorId);
 
-    // Upsert the author.
     await database.userDao.upsertUser(userFromPartialSdk(event.message.author));
 
     await database.messageDao.upsertMessage(msg.toCompanion());
 
-    // Update channel's last message ID for unread tracking.
     await database.channelDao.updateLastMessageId(msg.channelId, msg.id);
 
-    // Update DM last-message metadata (no-ops for guild channels).
+    // No-op for guild channels — only DM rows have a last-message column.
     await database.dmChannelDao.updateLastMessage(
       msg.channelId,
       msg.id,
@@ -1174,7 +1155,6 @@ class GatewayEventHandler {
       return;
     }
 
-    // Handle DM channel create/update.
     final recipients = channel.recipients;
     if (recipients != null && recipients.isNotEmpty) {
       for (final r in recipients) {
@@ -1276,7 +1256,6 @@ class GatewayEventHandler {
   void _handleGuildCreate(GuildCreateEvent event) {
     unawaited(database.guildDao.upsertServer(guildFromSdk(event.guild.guild)));
 
-    // Upsert channels and roles from the guild create payload.
     for (final channel in event.guild.channels) {
       final guildId = channel.guildId;
       if (guildId != null) {
@@ -1296,12 +1275,10 @@ class GatewayEventHandler {
       );
     }
 
-    // Upsert members.
     for (final member in event.guild.members) {
       _handleMemberUpsert(event.guild.guild.id, member);
     }
 
-    // Upsert emojis.
     final guildId = event.guild.guild.id;
     if (event.guild.emojis.isNotEmpty) {
       unawaited(
@@ -1321,7 +1298,6 @@ class GatewayEventHandler {
       );
     }
 
-    // Upsert stickers.
     if (event.guild.stickers.isNotEmpty) {
       unawaited(
         database.guildStickerDao.replaceForGuild(
@@ -1342,7 +1318,6 @@ class GatewayEventHandler {
       );
     }
 
-    // Populate voice states from guild payload.
     if (event.guild.voiceStates.isNotEmpty) {
       onVoiceStatesBulk?.call(event.guild.voiceStates);
     }

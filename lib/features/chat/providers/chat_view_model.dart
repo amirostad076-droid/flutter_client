@@ -1093,7 +1093,6 @@ class ChatViewModel extends _$ChatViewModel {
       );
     }
 
-    // Optimistic update.
     final updatedMessages = List<Message>.from(state.messages);
     updatedMessages[msgIndex] = msg.copyWith(reactions: updatedReactions);
     state = state.copyWith(messages: updatedMessages);
@@ -1119,7 +1118,6 @@ class ChatViewModel extends _$ChatViewModel {
           messageId: messageId,
           emoji: reaction.apiParam,
         );
-        // Track frecency on successful add.
         final db = ref.read(fluxerDatabaseProvider);
         unawaited(db.emojiUsageDao.trackUsage(reaction.frecencyKey));
       }
