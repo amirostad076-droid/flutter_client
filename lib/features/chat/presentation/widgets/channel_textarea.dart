@@ -98,13 +98,10 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final channelId = ref.read(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final AsyncValue<ChannelMessagePermissions> permsAsync = ref.read(
-      channelMessagePermissionsProvider(channelId),
-    );
-    final ChannelMessagePermissions perms = switch (permsAsync) {
-      AsyncData<ChannelMessagePermissions>(:final value) => value,
-      _ => ChannelMessagePermissions.none,
-    };
+    final ChannelMessagePermissions perms =
+        channelMessagePermissionsForComposer(
+          ref.read(channelMessagePermissionsProvider(channelId)),
+        );
     if (!perms.canSendMessages) {
       return KeyEventResult.ignored;
     }
@@ -170,13 +167,10 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final AsyncValue<ChannelMessagePermissions> permsAsync = ref.watch(
-      channelMessagePermissionsProvider(channelId),
-    );
-    final ChannelMessagePermissions perms = switch (permsAsync) {
-      AsyncData<ChannelMessagePermissions>(:final value) => value,
-      _ => ChannelMessagePermissions.none,
-    };
+    final ChannelMessagePermissions perms =
+        channelMessagePermissionsForComposer(
+          ref.watch(channelMessagePermissionsProvider(channelId)),
+        );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -667,11 +661,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final channelId = ref.read(
       chatViewModelProvider.select((state) => state.channelId),
     );
-    final perms = ref.read(channelMessagePermissionsProvider(channelId));
-    return switch (perms) {
-      AsyncData<ChannelMessagePermissions>(:final value) => value,
-      _ => ChannelMessagePermissions.none,
-    };
+    return channelMessagePermissionsForComposer(
+      ref.read(channelMessagePermissionsProvider(channelId)),
+    );
   }
 
   void _insertGifUrl(String url) {

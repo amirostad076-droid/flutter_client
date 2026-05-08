@@ -1,5 +1,7 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
@@ -52,12 +54,24 @@ Future<ChannelMessagePermissions> channelMessagePermissions(
   if (channelId.isEmpty) {
     return ChannelMessagePermissions.none;
   }
-  final conversations = ref.watch(dmViewModelProvider).conversations;
-  if (findDmById(conversations, channelId) != null) {
+  final bool isDmChannel = ref.watch(
+    dmViewModelProvider.select(
+      (state) => findDmById(state.conversations, channelId) != null,
+    ),
+  );
+  if (isDmChannel) {
     return ChannelMessagePermissions.all;
   }
-  final channel = await ref.watch(channelByIdProvider(channelId).future);
-  if (channel != null && channel.guildId.isNotEmpty) {
+  await ref.watch(channelPermissionIdentityProvider(channelId).future);
+  final channelRow = await ref
+      .read(fluxerDatabaseProvider)
+      .channelDao
+      .getChannelById(channelId);
+  if (channelRow == null) {
+    return ChannelMessagePermissions.none;
+  }
+  final Channel channel = Channel.fromRow(channelRow);
+  if (channel.guildId.isNotEmpty) {
     final String guildId = channel.guildId;
     ref
       ..watch(guildListViewModelProvider)
@@ -82,4 +96,15 @@ Future<ChannelMessagePermissions> channelMessagePermissions(
     );
   }
   return ChannelMessagePermissions.none;
+}
+
+ChannelMessagePermissions channelMessagePermissionsForComposer(
+  AsyncValue<ChannelMessagePermissions> async,
+) {
+  return async.when(
+    skipLoadingOnReload: true,
+    data: (ChannelMessagePermissions value) => value,
+    error: (Object _, StackTrace stackTrace) => ChannelMessagePermissions.none,
+    loading: () => ChannelMessagePermissions.none,
+  );
 }

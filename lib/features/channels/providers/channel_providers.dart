@@ -6,6 +6,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'channel_providers.g.dart';
 
+typedef ChannelPermissionIdentity = ({
+  String guildId,
+  int type,
+  String? parentId,
+  String? permissionOverwritesJson,
+});
+
 @Riverpod(keepAlive: true)
 ChannelRepository channelRepository(Ref ref) {
   final client = ref.watch(fluxerClientProvider);
@@ -19,4 +26,26 @@ Stream<Channel?> channelById(Ref ref, String id) {
   return db.channelDao
       .watchChannelById(id)
       .map((row) => row == null ? null : Channel.fromRow(row));
+}
+
+@riverpod
+Stream<ChannelPermissionIdentity?> channelPermissionIdentity(
+  Ref ref,
+  String id,
+) {
+  if (id.isEmpty) {
+    return Stream<ChannelPermissionIdentity?>.value(null);
+  }
+  final db = ref.watch(fluxerDatabaseProvider);
+  return db.channelDao.watchChannelById(id).map((row) {
+    if (row == null) {
+      return null;
+    }
+    return (
+      guildId: row.guildId,
+      type: row.type,
+      parentId: row.parentId,
+      permissionOverwritesJson: row.permissionOverwritesJson,
+    );
+  }).distinct();
 }

@@ -20,5 +20,8 @@ Stream<int> guildMemberRowCount(Ref ref, String guildId) {
     return Stream<int>.value(0);
   }
   final db = ref.watch(fluxerDatabaseProvider);
-  return db.memberDao.watchMembers(guildId).map((rows) => rows.length);
+  return db.memberDao
+      .watchMembers(guildId)
+      .map((rows) => rows.length)
+      .distinct();
 }

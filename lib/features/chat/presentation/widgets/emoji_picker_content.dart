@@ -371,11 +371,9 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     if (channelId == null || channelId.isEmpty) {
       return true;
     }
-    return switch (ref.watch(channelMessagePermissionsProvider(channelId))) {
-      AsyncData<ChannelMessagePermissions>(:final value) =>
-        value.canUseExternalEmojis,
-      _ => false,
-    };
+    return channelMessagePermissionsForComposer(
+      ref.watch(channelMessagePermissionsProvider(channelId)),
+    ).canUseExternalEmojis;
   }
 
   Map<Guild, List<GuildEmojiEntry>> _readGuildEmojisByGuild() {
@@ -398,11 +396,9 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     if (channelId == null || channelId.isEmpty) {
       return true;
     }
-    return switch (ref.read(channelMessagePermissionsProvider(channelId))) {
-      AsyncData<ChannelMessagePermissions>(:final value) =>
-        value.canUseExternalEmojis,
-      _ => false,
-    };
+    return channelMessagePermissionsForComposer(
+      ref.read(channelMessagePermissionsProvider(channelId)),
+    ).canUseExternalEmojis;
   }
 
   List<_FavoriteEmojiItem> _favoriteEmojiItems(

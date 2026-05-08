@@ -211,11 +211,9 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
     if (channelId == null || channelId.isEmpty) {
       return true;
     }
-    return switch (ref.watch(channelMessagePermissionsProvider(channelId))) {
-      AsyncData<ChannelMessagePermissions>(:final value) =>
-        value.canUseExternalStickers,
-      _ => false,
-    };
+    return channelMessagePermissionsForComposer(
+      ref.watch(channelMessagePermissionsProvider(channelId)),
+    ).canUseExternalStickers;
   }
 
   Map<Guild, List<StickerEntry>> _readStickersByGuild() {
@@ -238,11 +236,9 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
     if (channelId == null || channelId.isEmpty) {
       return true;
     }
-    return switch (ref.read(channelMessagePermissionsProvider(channelId))) {
-      AsyncData<ChannelMessagePermissions>(:final value) =>
-        value.canUseExternalStickers,
-      _ => false,
-    };
+    return channelMessagePermissionsForComposer(
+      ref.read(channelMessagePermissionsProvider(channelId)),
+    ).canUseExternalStickers;
   }
 
   void _scrollToCategory(String category) {
