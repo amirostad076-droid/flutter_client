@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/voice/utils/microphone_permission.dart';
 import 'package:fluxer_app/features/voice/voice_session_errors.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -764,6 +765,15 @@ class VoiceSession extends _$VoiceSession {
     talker.debug('[Voice] toggleSelfStream requested: enable=$nextSelfStream');
     _togglingScreenShare = true;
     try {
+      final bool hasCapturePermission = await _requestScreenCapturePermission(
+        shouldEnableScreenShare: nextSelfStream,
+      );
+      if (!hasCapturePermission) {
+        state = state.copyWith(
+          errorMessage: kVoiceSessionErrorScreenSharePermissionDenied,
+        );
+        return;
+      }
       try {
         await lp.setScreenShareEnabled(nextSelfStream);
       } on Object catch (e, st) {
@@ -798,6 +808,22 @@ class VoiceSession extends _$VoiceSession {
     } finally {
       _togglingScreenShare = false;
     }
+  }
+
+  Future<bool> _requestScreenCapturePermission({
+    required bool shouldEnableScreenShare,
+  }) async {
+    final bool requiresCapturePermission = Platform.isAndroid || Platform.isMacOS;
+    if (!shouldEnableScreenShare || !requiresCapturePermission) {
+      return true;
+    }
+    final bool hasCapturePermission = await Helper.requestCapturePermission();
+    if (!hasCapturePermission) {
+      talker.warning(
+        '[Voice] Screen-share capture permission denied by user.',
+      );
+    }
+    return hasCapturePermission;
   }
 
   String _classifyScreenShareException(Object error) {
