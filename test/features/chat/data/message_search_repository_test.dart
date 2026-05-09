@@ -1,0 +1,119 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/features/chat/data/message_search_repository.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart' as domain;
+import 'package:fluxer_dart/export.dart';
+
+void main() {
+  group('buildGlobalSearchMessagesRequest', () {
+    test('maps default current-channel search request', () {
+      final request = buildGlobalSearchMessagesRequest(
+        const MessageSearchQuery(
+          channelId: 'channel-1',
+          guildId: 'guild-1',
+          text: '  hello  ',
+        ),
+      );
+
+      expect(request.hitsPerPage, kMessageSearchPageSize);
+      expect(request.page, 1);
+      expect(request.cursor, isNull);
+      expect(request.content, 'hello');
+      expect(request.scope, MessageSearchScope.current);
+      expect(request.contextChannelId, 'channel-1');
+      expect(request.contextGuildId, 'guild-1');
+      expect(request.sortBy, MessageSortField.timestamp);
+      expect(request.sortOrder, MessageSortOrder.desc);
+      expect(request.authorId, isNull);
+      expect(request.has, isNull);
+    });
+
+    test('maps cursor, author, content type, scope, and sort filters', () {
+      final request = buildGlobalSearchMessagesRequest(
+        const MessageSearchQuery(
+          channelId: 'channel-1',
+          guildId: 'guild-1',
+          authorId: 'user-1, user-2',
+          scope: MessageSearchScopeFilter.allGuilds,
+          sort: MessageSearchSortFilter.oldest,
+          contentType: MessageSearchContentFilter.images,
+          cursor: ['cursor-1'],
+          page: 7,
+        ),
+      );
+
+      expect(request.page, isNull);
+      expect(request.cursor, ['cursor-1']);
+      expect(request.authorId, ['user-1']);
+      expect(request.has, [MessageContentType.image]);
+      expect(request.scope, MessageSearchScope.allGuilds);
+      expect(request.contextChannelId, isNull);
+      expect(request.contextGuildId, isNull);
+      expect(request.sortBy, MessageSortField.timestamp);
+      expect(request.sortOrder, MessageSortOrder.asc);
+    });
+  });
+
+  group('message adapters', () {
+    test('adapts pinned message responses into domain messages', () {
+      final message = domain.Message.fromPinnedMessage(
+        ChannelPinMessageResponse(
+          id: 'message-1',
+          channelId: 'channel-1',
+          author: _author(),
+          type: ChannelPinMessageResponseTypeType.valueDefault,
+          flags: 0,
+          content: 'Pinned',
+          timestamp: DateTime.utc(2026, 5, 9, 12),
+          pinned: true,
+          mentionEveryone: false,
+        ),
+        currentUserId: 'current-user',
+      );
+
+      expect(message.id, 'message-1');
+      expect(message.channelId, 'channel-1');
+      expect(message.content, 'Pinned');
+      expect(message.authorId, 'user-1');
+      expect(message.authorName, 'Monty');
+      expect(message.isPinned, isTrue);
+      expect(message.isMentioned, isFalse);
+    });
+
+    test('adapts search result responses into domain messages', () {
+      final message = domain.Message.fromSearchResult(
+        MessageSearchResultsResponseMessages(
+          id: 'message-2',
+          channelId: 'channel-2',
+          author: _author(id: 'current-user'),
+          type: MessageSearchResultsResponseMessagesTypeType.valueDefault,
+          flags: 0,
+          content: 'Result',
+          timestamp: DateTime.utc(2026, 5, 9, 13),
+          pinned: false,
+          mentionEveryone: false,
+        ),
+        currentUserId: 'current-user',
+      );
+
+      expect(message.id, 'message-2');
+      expect(message.channelId, 'channel-2');
+      expect(message.content, 'Result');
+      expect(message.authorId, 'current-user');
+      expect(message.authorName, 'Monty');
+      expect(message.isPinned, isFalse);
+      expect(message.isMentioned, isFalse);
+    });
+  });
+}
+
+UserPartialResponse _author({String id = 'user-1'}) {
+  return UserPartialResponse(
+    id: id,
+    username: 'monty',
+    discriminator: '0001',
+    globalName: 'Monty',
+    avatar: null,
+    avatarColor: null,
+    flags: 0,
+  );
+}

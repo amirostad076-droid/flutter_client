@@ -26,6 +26,7 @@ class FluxerTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isHorizontal = direction == Axis.horizontal;
     return Flex(
       direction: direction,
       crossAxisAlignment: direction == Axis.vertical
@@ -33,12 +34,22 @@ class FluxerTabs extends StatelessWidget {
           : CrossAxisAlignment.center,
       children: [
         for (var i = 0; i < tabs.length; i++)
-          _FluxerTabItem(
-            tab: tabs[i],
-            isSelected: i == selectedIndex,
-            onTap: () => onChanged(i),
-            direction: direction,
-          ),
+          if (isHorizontal)
+            Expanded(
+              child: _FluxerTabItem(
+                tab: tabs[i],
+                isSelected: i == selectedIndex,
+                onTap: () => onChanged(i),
+                direction: direction,
+              ),
+            )
+          else
+            _FluxerTabItem(
+              tab: tabs[i],
+              isSelected: i == selectedIndex,
+              onTap: () => onChanged(i),
+              direction: direction,
+            ),
       ],
     );
   }
@@ -94,25 +105,28 @@ class _FluxerTabItem extends StatelessWidget {
                   ),
           ),
           padding: EdgeInsets.symmetric(
-            horizontal: isVertical ? layout.s3 : layout.s2,
-            vertical: isVertical ? layout.s2 : layout.s1,
+            horizontal: isVertical ? layout.s3 : layout.s4,
+            vertical: isVertical ? layout.s2 : layout.s3,
           ),
           child: Row(
-            mainAxisSize: isVertical ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisAlignment: isVertical
+                ? MainAxisAlignment.start
+                : MainAxisAlignment.center,
             children: [
               if (tab.icon != null) ...[
                 Icon(
                   tab.icon,
-                  size: 16,
+                  size: isVertical ? 16 : 20,
                   color: isSelected ? colors.textPrimary : colors.textSecondary,
                 ),
-                SizedBox(width: layout.s1),
+                SizedBox(width: isVertical ? layout.s1 : layout.s2),
               ],
               AnimatedDefaultTextStyle(
                 duration: motion.normal,
                 curve: motion.curve,
                 style: textStyles.label.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontSize: isVertical ? null : 16,
+                  fontWeight: isVertical ? FontWeight.w600 : FontWeight.w500,
                   color: isSelected ? colors.textPrimary : colors.textSecondary,
                 ),
                 child: Text(tab.label),

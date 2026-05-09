@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/login_screen.dart';
 import 'package:fluxer_app/features/chat/presentation/channel_layout.dart';
 import 'package:fluxer_app/features/dm/presentation/dm_layout.dart';
+import 'package:fluxer_app/features/favorites/presentation/favorites_page.dart';
 import 'package:fluxer_app/features/notifications/presentation/notifications_page.dart';
 import 'package:fluxer_app/features/profile/presentation/profile_page.dart';
 import 'package:fluxer_app/features/settings/presentation/guild_settings_modal.dart';
@@ -309,22 +310,13 @@ GoRouter fluxerRouter(Ref ref) {
                 name: RouteNames.favorites,
                 pageBuilder: (context, state) => _fadeTransitionPage(
                   key: state.pageKey,
-                  child: const StubScreen(
-                    title: 'Favorites',
-                    icon: PhosphorIconsFill.star,
-                  ),
+                  child: const FavoritesPage(),
                 ),
                 routes: [
                   GoRoute(
                     path: ':channelId',
                     name: RouteNames.favoritesChannel,
-                    pageBuilder: (context, state) => _slideTransitionPage(
-                      key: state.pageKey,
-                      child: const StubScreen(
-                        title: 'Favorites',
-                        icon: PhosphorIconsFill.star,
-                      ),
-                    ),
+                    redirect: (context, state) => RoutePaths.favoritesBase,
                   ),
                 ],
               ),

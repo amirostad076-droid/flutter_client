@@ -49,3 +49,11 @@ Stream<ChannelPermissionIdentity?> channelPermissionIdentity(
     );
   }).distinct();
 }
+
+@riverpod
+Stream<List<Channel>> allChannels(Ref ref) {
+  final db = ref.watch(fluxerDatabaseProvider);
+  return db.channelDao.watchAllChannels().map(
+    (rows) => rows.map(Channel.fromRow).toList(),
+  );
+}

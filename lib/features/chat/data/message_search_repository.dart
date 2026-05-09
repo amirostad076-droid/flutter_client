@@ -1,0 +1,276 @@
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/shared/utils/sdk_converters.dart';
+import 'package:fluxer_dart/export.dart';
+
+const int kMessageSearchPageSize = 25;
+
+enum MessageSearchScopeFilter { current, openDms, allDms, allGuilds, all }
+
+enum MessageSearchSortFilter { newest, oldest, relevance }
+
+enum MessageSearchContentFilter {
+  any,
+  images,
+  videos,
+  files,
+  links,
+  embeds,
+  stickers,
+}
+
+class MessageSearchQuery {
+  const MessageSearchQuery({
+    required this.channelId,
+    this.guildId,
+    this.text = '',
+    this.authorId = '',
+    this.scope = MessageSearchScopeFilter.current,
+    this.sort = MessageSearchSortFilter.newest,
+    this.contentType = MessageSearchContentFilter.any,
+    this.cursor,
+    this.page = 1,
+  });
+
+  final String channelId;
+  final String? guildId;
+  final String text;
+  final String authorId;
+  final MessageSearchScopeFilter scope;
+  final MessageSearchSortFilter sort;
+  final MessageSearchContentFilter contentType;
+  final List<String>? cursor;
+  final int page;
+
+  MessageSearchQuery copyWith({
+    String? channelId,
+    Object? guildId = _unset,
+    String? text,
+    String? authorId,
+    MessageSearchScopeFilter? scope,
+    MessageSearchSortFilter? sort,
+    MessageSearchContentFilter? contentType,
+    Object? cursor = _unset,
+    int? page,
+  }) {
+    return MessageSearchQuery(
+      channelId: channelId ?? this.channelId,
+      guildId: guildId == _unset ? this.guildId : guildId as String?,
+      text: text ?? this.text,
+      authorId: authorId ?? this.authorId,
+      scope: scope ?? this.scope,
+      sort: sort ?? this.sort,
+      contentType: contentType ?? this.contentType,
+      cursor: cursor == _unset ? this.cursor : cursor as List<String>?,
+      page: page ?? this.page,
+    );
+  }
+
+  bool get hasSearchTerms =>
+      text.trim().isNotEmpty ||
+      authorId.trim().isNotEmpty ||
+      contentType != MessageSearchContentFilter.any;
+}
+
+class MessageSearchResultEntry {
+  const MessageSearchResultEntry({
+    required this.message,
+    this.guildId,
+    this.channelName,
+  });
+
+  final Message message;
+  final String? guildId;
+  final String? channelName;
+}
+
+class MessageSearchPage {
+  const MessageSearchPage({
+    required this.results,
+    required this.total,
+    required this.page,
+    required this.hitsPerPage,
+    required this.indexing,
+    this.cursor,
+  });
+
+  const MessageSearchPage.indexing()
+    : results = const <MessageSearchResultEntry>[],
+      total = 0,
+      page = 1,
+      hitsPerPage = kMessageSearchPageSize,
+      cursor = null,
+      indexing = true;
+
+  final List<MessageSearchResultEntry> results;
+  final int total;
+  final int page;
+  final int hitsPerPage;
+  final List<String>? cursor;
+  final bool indexing;
+
+  bool get hasMore {
+    if (indexing) {
+      return false;
+    }
+    if (cursor != null && cursor!.isNotEmpty) {
+      return true;
+    }
+    return page * hitsPerPage < total;
+  }
+}
+
+class MessageSearchRepository {
+  const MessageSearchRepository(
+    this._client,
+    this._database,
+    this._currentUserId,
+  );
+
+  final FluxerClient _client;
+  final db.FluxerDatabase _database;
+  final String? _currentUserId;
+
+  Future<MessageSearchPage> searchMessages(MessageSearchQuery query) async {
+    final response = await _client.search.searchMessages(
+      body: buildGlobalSearchMessagesRequest(query),
+    );
+    final raw = response.toJson();
+    if (raw['indexing'] == true) {
+      return const MessageSearchPage.indexing();
+    }
+
+    final results = response.toMessageSearchResultsResponse();
+    final channelById = <String, ChannelResponse>{
+      for (final channel in results.channels) channel.id: channel,
+    };
+
+    await _upsertChannels(results.channels);
+    await _database.userDao.upsertUsers(
+      results.messages
+          .map((message) => userFromPartialSdk(message.author))
+          .toList(),
+    );
+
+    final entries = <MessageSearchResultEntry>[
+      for (final result in results.messages)
+        MessageSearchResultEntry(
+          message: Message.fromSearchResult(
+            result,
+            currentUserId: _currentUserId,
+          ),
+          guildId: channelById[result.channelId]?.guildId,
+          channelName: channelById[result.channelId]?.name,
+        ),
+    ];
+
+    await _database.messageDao.upsertMessages(
+      entries.map((entry) => entry.message.toCompanion()).toList(),
+    );
+
+    return MessageSearchPage(
+      results: entries,
+      total: results.total,
+      page: results.page,
+      hitsPerPage: results.hitsPerPage,
+      cursor: results.cursor,
+      indexing: false,
+    );
+  }
+
+  Future<void> _upsertChannels(List<ChannelResponse> channels) async {
+    final companions = <db.ChannelsCompanion>[];
+    for (final channel in channels) {
+      final guildId = channel.guildId;
+      if (guildId == null || guildId.isEmpty) {
+        continue;
+      }
+      companions.add(channelFromSdk(channel, guildId));
+    }
+    if (companions.isEmpty) {
+      return;
+    }
+    await _database.channelDao.upsertChannels(companions);
+  }
+}
+
+GlobalSearchMessagesRequest buildGlobalSearchMessagesRequest(
+  MessageSearchQuery query,
+) {
+  final authorId = _singleIdFilter(query.authorId);
+  final contentType = _messageContentType(query.contentType);
+  final sort = _messageSort(query.sort);
+
+  return GlobalSearchMessagesRequest(
+    hitsPerPage: kMessageSearchPageSize,
+    page: query.cursor == null ? query.page : null,
+    cursor: query.cursor,
+    content: _blankToNull(query.text),
+    authorId: authorId == null ? null : <String>[authorId],
+    has: contentType == null ? null : <MessageContentType>[contentType],
+    sortBy: sort.$1,
+    sortOrder: sort.$2,
+    scope: _messageSearchScope(query.scope),
+    contextChannelId: query.scope == MessageSearchScopeFilter.current
+        ? query.channelId
+        : null,
+    contextGuildId: query.scope == MessageSearchScopeFilter.current
+        ? _blankToNull(query.guildId)
+        : null,
+  );
+}
+
+String? _blankToNull(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) {
+    return null;
+  }
+  return trimmed;
+}
+
+String? _singleIdFilter(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) {
+    return null;
+  }
+  return trimmed.split(RegExp(r'[\s,]+')).first;
+}
+
+MessageSearchScope _messageSearchScope(MessageSearchScopeFilter scope) =>
+    switch (scope) {
+      MessageSearchScopeFilter.current => MessageSearchScope.current,
+      MessageSearchScopeFilter.openDms => MessageSearchScope.openDms,
+      MessageSearchScopeFilter.allDms => MessageSearchScope.allDms,
+      MessageSearchScopeFilter.allGuilds => MessageSearchScope.allGuilds,
+      MessageSearchScopeFilter.all => MessageSearchScope.all,
+    };
+
+(MessageSortField, MessageSortOrder) _messageSort(
+  MessageSearchSortFilter sort,
+) => switch (sort) {
+  MessageSearchSortFilter.newest => (
+    MessageSortField.timestamp,
+    MessageSortOrder.desc,
+  ),
+  MessageSearchSortFilter.oldest => (
+    MessageSortField.timestamp,
+    MessageSortOrder.asc,
+  ),
+  MessageSearchSortFilter.relevance => (
+    MessageSortField.relevance,
+    MessageSortOrder.desc,
+  ),
+};
+
+MessageContentType? _messageContentType(MessageSearchContentFilter type) =>
+    switch (type) {
+      MessageSearchContentFilter.any => null,
+      MessageSearchContentFilter.images => MessageContentType.image,
+      MessageSearchContentFilter.videos => MessageContentType.video,
+      MessageSearchContentFilter.files => MessageContentType.file,
+      MessageSearchContentFilter.links => MessageContentType.link,
+      MessageSearchContentFilter.embeds => MessageContentType.embed,
+      MessageSearchContentFilter.stickers => MessageContentType.sticker,
+    };
+
+const Object _unset = Object();

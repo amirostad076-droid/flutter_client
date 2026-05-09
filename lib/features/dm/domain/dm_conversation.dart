@@ -58,7 +58,17 @@ class DmConversation {
 
   bool get isGroup => type == 3;
 
-  String get displayName => isGroup ? (name ?? 'Group DM') : recipientName;
+  bool get isPersonalNotes => type == 999;
+
+  String get displayName {
+    if (isPersonalNotes) {
+      return 'Personal Notes';
+    }
+    if (isGroup) {
+      return name ?? 'Group DM';
+    }
+    return recipientName;
+  }
 
   int get memberCount => recipientCount;
 

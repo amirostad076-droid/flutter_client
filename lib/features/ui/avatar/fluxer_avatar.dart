@@ -30,7 +30,10 @@ class FluxerAvatar extends StatelessWidget {
        showStatus = false,
        avatarColor = null,
        roleColor = null,
-       _userId = null;
+       _userId = null,
+       icon = null,
+       iconColor = null,
+       iconBackgroundColor = null;
 
   const FluxerAvatar.user({
     this.imageUrl,
@@ -43,7 +46,10 @@ class FluxerAvatar extends StatelessWidget {
     String? userId,
     super.key,
   }) : _shape = _AvatarShape.circle,
-       _userId = userId;
+       _userId = userId,
+       icon = null,
+       iconColor = null,
+       iconBackgroundColor = null;
 
   const FluxerAvatar.guild({
     this.imageUrl,
@@ -51,6 +57,25 @@ class FluxerAvatar extends StatelessWidget {
     this.size = 44,
     super.key,
   }) : _shape = _AvatarShape.rounded,
+       status = null,
+       showStatus = false,
+       avatarColor = null,
+       roleColor = null,
+       _userId = null,
+       icon = null,
+       iconColor = null,
+       iconBackgroundColor = null;
+
+  /// Icon centered on a colored disc — use for channel-type avatars.
+  const FluxerAvatar.icon({
+    required IconData this.icon,
+    this.size = 40,
+    this.iconColor,
+    this.iconBackgroundColor,
+    super.key,
+  }) : _shape = _AvatarShape.circle,
+       imageUrl = null,
+       fallbackText = null,
        status = null,
        showStatus = false,
        avatarColor = null,
@@ -87,6 +112,9 @@ class FluxerAvatar extends StatelessWidget {
   final int? roleColor;
   final _AvatarShape _shape;
   final String? _userId;
+  final IconData? icon;
+  final Color? iconColor;
+  final Color? iconBackgroundColor;
 
   String? get _resolvedImageUrl {
     if (imageUrl != null) {
@@ -160,27 +188,47 @@ class FluxerAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final resolvedUrl = _resolvedImageUrl;
     final hasStatus = showStatus && status != null;
+    final iconData = icon;
 
-    Widget avatarContent = Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: _backgroundColor,
-        borderRadius: _borderRadius,
-      ),
-      child: ClipRRect(
-        borderRadius: _borderRadius,
-        child: resolvedUrl != null
-            ? CachedNetworkImage(
-                imageUrl: resolvedUrl,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _buildFallback(context),
-              )
-            : _buildFallback(context),
-      ),
-    );
+    Widget avatarContent;
+    if (iconData != null) {
+      avatarContent = Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: iconBackgroundColor ?? context.colors.backgroundTertiary,
+          borderRadius: _borderRadius,
+        ),
+        child: Center(
+          child: Icon(
+            iconData,
+            size: size * 0.5,
+            color: iconColor ?? context.colors.textPrimary,
+          ),
+        ),
+      );
+    } else {
+      avatarContent = Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: _backgroundColor,
+          borderRadius: _borderRadius,
+        ),
+        child: ClipRRect(
+          borderRadius: _borderRadius,
+          child: resolvedUrl != null
+              ? CachedNetworkImage(
+                  imageUrl: resolvedUrl,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _buildFallback(context),
+                )
+              : _buildFallback(context),
+        ),
+      );
+    }
 
     if (hasStatus) {
       avatarContent = ClipPath(

@@ -646,6 +646,85 @@ class Message {
     );
   }
 
+  factory Message.fromPinnedMessage(
+    ChannelPinMessageResponse sdk, {
+    String? currentUserId,
+  }) {
+    final isMentioned =
+        sdk.mentionEveryone ||
+        (currentUserId != null &&
+            (sdk.mentions?.any((u) => u.id == currentUserId) ?? false));
+
+    return Message(
+      id: sdk.id,
+      channelId: sdk.channelId,
+      authorId: sdk.author.id,
+      authorName: sdk.author.globalName ?? sdk.author.username,
+      authorAvatar: sdk.author.avatar,
+      authorAvatarColor: sdk.author.avatarColor,
+      authorIsBot: sdk.author.bot ?? false,
+      content: sdk.content,
+      timestamp: sdk.timestamp,
+      editedTimestamp: sdk.editedTimestamp,
+      embeds: sdk.embeds?.map(Embed.fromSdk).toList() ?? const [],
+      attachments:
+          sdk.attachments?.map(Attachment.fromSdk).toList() ?? const [],
+      stickers: sdk.stickers?.map(MessageSticker.fromSdk).toList() ?? const [],
+      replyToId: sdk.messageReference?.messageId,
+      messageReference: sdk.messageReference != null
+          ? MessageReference.fromSdk(sdk.messageReference!)
+          : null,
+      messageSnapshots:
+          sdk.messageSnapshots?.map(MessageSnapshot.fromSdk).toList() ??
+          const [],
+      isPinned: sdk.pinned,
+      isMentioned: isMentioned,
+      type: sdk.type.json ?? 0,
+      flags: sdk.flags,
+      clientNonce: sdk.nonce,
+    );
+  }
+
+  factory Message.fromSearchResult(
+    MessageSearchResultsResponseMessages sdk, {
+    String? currentUserId,
+  }) {
+    final isMentioned =
+        sdk.mentionEveryone ||
+        (currentUserId != null &&
+            (sdk.mentions?.any((u) => u.id == currentUserId) ?? false));
+
+    return Message(
+      id: sdk.id,
+      channelId: sdk.channelId,
+      authorId: sdk.author.id,
+      authorName: sdk.author.globalName ?? sdk.author.username,
+      authorAvatar: sdk.author.avatar,
+      authorAvatarColor: sdk.author.avatarColor,
+      authorIsBot: sdk.author.bot ?? false,
+      content: sdk.content,
+      timestamp: sdk.timestamp,
+      editedTimestamp: sdk.editedTimestamp,
+      embeds: sdk.embeds?.map(Embed.fromSdk).toList() ?? const [],
+      attachments:
+          sdk.attachments?.map(Attachment.fromSdk).toList() ?? const [],
+      stickers: sdk.stickers?.map(MessageSticker.fromSdk).toList() ?? const [],
+      reactions: sdk.reactions?.map(Reaction.fromSdk).toList() ?? const [],
+      replyToId: sdk.messageReference?.messageId,
+      messageReference: sdk.messageReference != null
+          ? MessageReference.fromSdk(sdk.messageReference!)
+          : null,
+      messageSnapshots:
+          sdk.messageSnapshots?.map(MessageSnapshot.fromSdk).toList() ??
+          const [],
+      isPinned: sdk.pinned,
+      isMentioned: isMentioned,
+      type: sdk.type.json ?? 0,
+      flags: sdk.flags,
+      clientNonce: sdk.nonce,
+    );
+  }
+
   factory Message.fromRow(db.Message row) {
     return Message(
       id: row.id,
@@ -711,6 +790,7 @@ class Message {
       messageSnapshotsJson: Value(
         jsonEncode(messageSnapshots.map((s) => s.toJson()).toList()),
       ),
+      pinned: Value(isPinned),
       isMentioned: Value(isMentioned),
       type: Value(type),
       flags: Value(flags),

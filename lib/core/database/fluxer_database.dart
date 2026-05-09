@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/database/daos/channel_dao.dart';
 import 'package:fluxer_app/core/database/daos/dm_channel_dao.dart';
 import 'package:fluxer_app/core/database/daos/dm_folder_settings_dao.dart';
 import 'package:fluxer_app/core/database/daos/emoji_usage_dao.dart';
+import 'package:fluxer_app/core/database/daos/favorite_channels_dao.dart';
 import 'package:fluxer_app/core/database/daos/favorite_memes_dao.dart';
 import 'package:fluxer_app/core/database/daos/guild_dao.dart';
 import 'package:fluxer_app/core/database/daos/guild_emoji_dao.dart';
@@ -33,7 +34,10 @@ import 'package:fluxer_app/core/database/tables/channels.dart';
 import 'package:fluxer_app/core/database/tables/dm_channels.dart';
 import 'package:fluxer_app/core/database/tables/dm_folder_settings.dart';
 import 'package:fluxer_app/core/database/tables/emoji_usage.dart';
+import 'package:fluxer_app/core/database/tables/favorite_categories.dart';
+import 'package:fluxer_app/core/database/tables/favorite_channels.dart';
 import 'package:fluxer_app/core/database/tables/favorite_memes.dart';
+import 'package:fluxer_app/core/database/tables/favorite_settings.dart';
 import 'package:fluxer_app/core/database/tables/guild_emojis.dart';
 import 'package:fluxer_app/core/database/tables/guild_last_channels.dart';
 import 'package:fluxer_app/core/database/tables/guild_stickers.dart';
@@ -87,6 +91,9 @@ part 'fluxer_database.g.dart';
     NotificationUnreadCollapsed,
     NotificationMentionFeed,
     NotificationMentionPrefs,
+    FavoriteChannels,
+    FavoriteCategories,
+    FavoriteSettings,
   ],
   daos: [
     AuthSessionDao,
@@ -113,6 +120,7 @@ part 'fluxer_database.g.dart';
     SavedMessageDao,
     DmFolderSettingsDao,
     NotificationDao,
+    FavoriteChannelsDao,
   ],
 )
 class FluxerDatabase extends _$FluxerDatabase {
@@ -121,7 +129,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 38;
+  int get schemaVersion => 39;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -442,6 +450,14 @@ class FluxerDatabase extends _$FluxerDatabase {
       if (from < 38) {
         await m.addColumn(readStates, readStates.manual);
       }
+      if (from < 39) {
+        await m.createTable(favoriteChannels);
+        await m.createTable(favoriteCategories);
+        await m.createTable(favoriteSettings);
+        await into(
+          favoriteSettings,
+        ).insert(const FavoriteSettingsCompanion(id: Value(1)));
+      }
     },
   );
 
@@ -470,6 +486,7 @@ class FluxerDatabase extends _$FluxerDatabase {
       await guildStickerDao.clearAll();
       await savedMessageDao.clearAll();
       await notificationDao.clearAllUserData();
+      await favoriteChannelsDao.clearAll();
     });
   }
 

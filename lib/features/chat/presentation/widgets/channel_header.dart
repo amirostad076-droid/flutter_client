@@ -2,19 +2,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
-import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
+import 'package:fluxer_app/features/chat/presentation/sheets/channel_details_sheet.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -98,101 +99,142 @@ class ChannelHeader extends ConsumerWidget {
     required Channel? channel,
     required DmConversation? dm,
     required bool showMessageActions,
-  }) => Container(
-    height: 64,
-    color: context.colors.chatInputBackground,
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    child: Row(
-      children: [
-        IconButton(
-          icon: const PhosphorIcon(PhosphorIconsBold.sidebarSimple, size: 24),
-          color: context.colors.textPrimaryMuted,
-          onPressed: () {
-            ref.read(currentRevealSideProvider.notifier).set(RevealSide.left);
-          },
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          style: IconButton.styleFrom(shape: const CircleBorder()),
-        ),
-        _buildLeadingIcon(context, channel: channel, dm: dm),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Row(
-            children: [
-              Flexible(
-                child: Text(
-                  _resolveTitle(channel: channel, dm: dm),
-                  style: context.textStyles.channelName,
-                  overflow: TextOverflow.ellipsis,
+  }) {
+    final showFavorites = ref.watch(
+      appearancePreferencesProvider.select((s) => s.showFavorites),
+    );
+    final targetChannelId = channel?.id ?? dm?.id;
+    final isFavorite =
+        showFavorites &&
+        targetChannelId != null &&
+        (ref.watch(favoriteChannelProvider(targetChannelId)).asData?.value !=
+            null);
+
+    return Container(
+      height: 64,
+      color: context.colors.chatInputBackground,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, size: 24),
+            color: context.colors.textPrimaryMuted,
+            onPressed: () {
+              ref.read(currentRevealSideProvider.notifier).set(RevealSide.left);
+            },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            style: IconButton.styleFrom(shape: const CircleBorder()),
+          ),
+          Expanded(
+            child: Semantics(
+              button: true,
+              label: 'Open channel details',
+              child: InkWell(
+                onTap: () => _openDetails(context, channel: channel, dm: dm),
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 2,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    children: [
+                      _buildLeadingIcon(context, channel: channel, dm: dm),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          _resolveTitle(channel: channel, dm: dm),
+                          style: context.textStyles.channelName,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (dm != null && !dm.isGroup && dm.isBot) ...[
+                        const SizedBox(width: 6),
+                        const FluxerBotBadge(),
+                      ],
+                      if (channel != null) ...<Widget>[
+                        const SizedBox(width: 4),
+                        _buildVoiceConnectionStatus(
+                          context,
+                          ref,
+                          l10n,
+                          channel,
+                          compact: true,
+                        ),
+                      ],
+                      const SizedBox(width: 4),
+                      PhosphorIcon(
+                        PhosphorIconsBold.caretRight,
+                        size: 16,
+                        color: context.colors.textPrimaryMuted,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              if (dm != null && !dm.isGroup && dm.isBot) ...[
-                const SizedBox(width: 6),
-                const FluxerBotBadge(),
-              ],
-              if (channel != null) ...<Widget>[
-                const SizedBox(width: 4),
-                _buildVoiceConnectionStatus(
-                  context,
-                  ref,
-                  l10n,
-                  channel,
-                  compact: true,
-                ),
-              ],
-              const SizedBox(width: 4),
-              PhosphorIcon(
-                PhosphorIconsBold.caretRight,
-                size: 16,
-                color: context.colors.textPrimaryMuted,
-              ),
-            ],
-          ),
-        ),
-        if (showMessageActions) ...[
-          FluxerButton.circle(
-            icon: PhosphorIconsBold.star,
-            variant: FluxerButtonVariant.secondary,
-            size: FluxerButtonSize.small,
-            iconSize: 20,
-            onPressed: () {},
-          ),
-          const SizedBox(width: 8),
-        ],
-        if (dm != null) ...[
-          FluxerButton.circle(
-            icon: PhosphorIconsFill.phone,
-            variant: FluxerButtonVariant.secondary,
-            size: FluxerButtonSize.small,
-            iconSize: 20,
-            onPressed: () =>
-                _executeOutboundDmCall(ref: ref, context: context, dm: dm),
-          ),
-          const SizedBox(width: 8),
-          FluxerButton.circle(
-            icon: PhosphorIconsFill.videoCamera,
-            variant: FluxerButtonVariant.secondary,
-            size: FluxerButtonSize.small,
-            iconSize: 20,
-            onPressed: () => _executeOutboundDmCall(
-              ref: ref,
-              context: context,
-              dm: dm,
-              startWithVideo: true,
             ),
           ),
+          if (showMessageActions &&
+              showFavorites &&
+              targetChannelId != null) ...[
+            GestureDetector(
+              onLongPress: () => _showFavoriteActions(context, ref),
+              child: FluxerButton.circle(
+                icon: isFavorite
+                    ? PhosphorIconsFill.star
+                    : PhosphorIconsBold.star,
+                variant: isFavorite
+                    ? FluxerButtonVariant.primary
+                    : FluxerButtonVariant.secondary,
+                size: FluxerButtonSize.small,
+                iconSize: 20,
+                onPressedAsync: () => _toggleFavorite(
+                  context,
+                  ref,
+                  channel: channel,
+                  dm: dm,
+                  isFavorite: isFavorite,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          if (dm != null) ...[
+            FluxerButton.circle(
+              icon: PhosphorIconsFill.phone,
+              variant: FluxerButtonVariant.secondary,
+              size: FluxerButtonSize.small,
+              iconSize: 20,
+              onPressed: () =>
+                  _executeOutboundDmCall(ref: ref, context: context, dm: dm),
+            ),
+            const SizedBox(width: 8),
+            FluxerButton.circle(
+              icon: PhosphorIconsFill.videoCamera,
+              variant: FluxerButtonVariant.secondary,
+              size: FluxerButtonSize.small,
+              iconSize: 20,
+              onPressed: () => _executeOutboundDmCall(
+                ref: ref,
+                context: context,
+                dm: dm,
+                startWithVideo: true,
+              ),
+            ),
+          ],
+          if (showMessageActions && dm == null && channel != null)
+            FluxerButton.circle(
+              icon: PhosphorIconsBold.magnifyingGlass,
+              variant: FluxerButtonVariant.secondary,
+              size: FluxerButtonSize.small,
+              iconSize: 20,
+              onPressed: () => _openSearch(context, channel: channel),
+            ),
         ],
-        if (showMessageActions && dm == null)
-          FluxerButton.circle(
-            icon: PhosphorIconsBold.magnifyingGlass,
-            variant: FluxerButtonVariant.secondary,
-            size: FluxerButtonSize.small,
-            iconSize: 20,
-            onPressed: () {},
-          ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 
   Widget _buildDesktopBar(
     BuildContext context,
@@ -209,13 +251,27 @@ class ChannelHeader extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          _buildLeadingIcon(context, channel: channel, dm: dm),
-          const SizedBox(width: 8),
           Flexible(
-            child: Text(
-              _resolveTitle(channel: channel, dm: dm),
-              style: context.textStyles.channelName,
-              overflow: TextOverflow.ellipsis,
+            child: InkWell(
+              onTap: () => _openDetails(context, channel: channel, dm: dm),
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildLeadingIcon(context, channel: channel, dm: dm),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        _resolveTitle(channel: channel, dm: dm),
+                        style: context.textStyles.channelName,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           if (dm != null && !dm.isGroup && dm.isBot) ...[
@@ -259,20 +315,19 @@ class ChannelHeader extends ConsumerWidget {
           ],
           const Spacer(),
           if (showMessageActions) ...[
-            _topBarIcon(
-              context,
-              PhosphorIconsFill.bell,
-              'Notification Settings',
-            ),
-            _topBarIcon(
-              context,
-              PhosphorIconsFill.pushPin,
-              'Pinned Messages',
-              showIndicator: hasUnreadPins,
-              onTap: channel == null
-                  ? null
-                  : () => _ackPins(ref: ref, channelId: channel.id),
-            ),
+            if (channel != null)
+              _topBarIcon(
+                context,
+                PhosphorIconsFill.pushPin,
+                'Pinned Messages',
+                showIndicator: hasUnreadPins,
+                onTap: () => showChannelDetailsSheet(
+                  context,
+                  channel: channel,
+                  dm: null,
+                  initialTab: ChannelDetailsInitialTab.pins,
+                ),
+              ),
             if (dm == null)
               _topBarIcon(
                 context,
@@ -283,37 +338,48 @@ class ChannelHeader extends ConsumerWidget {
                     .read(channelListViewModelProvider.notifier)
                     .toggleMemberList(),
               ),
-            SizedBox(
-              width: 160,
-              height: 28,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: context.colors.backgroundTertiary,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Search',
-                        style: TextStyle(
-                          color: context.colors.textPrimaryMuted,
-                          fontSize: 14,
+            if (channel != null)
+              InkWell(
+                onTap: () => _openSearch(context, channel: channel),
+                borderRadius: BorderRadius.circular(4),
+                child: SizedBox(
+                  width: 160,
+                  height: 28,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: context.colors.backgroundTertiary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Search',
+                            style: TextStyle(
+                              color: context.colors.textPrimaryMuted,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
-                      ),
+                        PhosphorIcon(
+                          PhosphorIconsFill.magnifyingGlass,
+                          size: 16,
+                          color: context.colors.textPrimaryMuted,
+                        ),
+                      ],
                     ),
-                    PhosphorIcon(
-                      PhosphorIconsFill.magnifyingGlass,
-                      size: 16,
-                      color: context.colors.textPrimaryMuted,
-                    ),
-                  ],
+                  ),
                 ),
               ),
+            _topBarIcon(
+              context,
+              PhosphorIconsFill.tray,
+              'Inbox',
+              onTap: () => ref
+                  .read(fluxerRouterProvider)
+                  .go(RoutePaths.notificationsPath),
             ),
-            _topBarIcon(context, PhosphorIconsFill.tray, 'Inbox'),
-            _topBarIcon(context, PhosphorIconsFill.question, 'Help'),
           ],
         ],
       ),
@@ -445,17 +511,109 @@ class ChannelHeader extends ConsumerWidget {
     return '';
   }
 
+  void _openDetails(
+    BuildContext context, {
+    required Channel? channel,
+    required DmConversation? dm,
+  }) {
+    if (channel == null && dm == null) {
+      return;
+    }
+    unawaited(showChannelDetailsSheet(context, channel: channel, dm: dm));
+  }
+
+  void _openSearch(BuildContext context, {required Channel channel}) {
+    unawaited(
+      showChannelDetailsSheet(
+        context,
+        channel: channel,
+        dm: null,
+        openSearchImmediately: true,
+      ),
+    );
+  }
+
+  Future<void> _toggleFavorite(
+    BuildContext context,
+    WidgetRef ref, {
+    required Channel? channel,
+    required DmConversation? dm,
+    required bool isFavorite,
+  }) async {
+    final channelId = channel?.id ?? dm?.id;
+    if (channelId == null) {
+      return;
+    }
+
+    final repository = ref.read(favoriteChannelsRepositoryProvider);
+    if (isFavorite) {
+      await repository.removeChannel(channelId);
+    } else {
+      await repository.addChannel(
+        channelId: channelId,
+        guildId: channel?.guildId,
+        nickname: channel?.name ?? dm?.displayName,
+      );
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+    ref
+        .read(toastProvider.notifier)
+        .show(
+          FluxerToast(
+            message: isFavorite
+                ? 'Removed from Favorites'
+                : 'Added to Favorites',
+            variant: FluxerToastVariant.success,
+          ),
+        );
+  }
+
+  void _showFavoriteActions(BuildContext context, WidgetRef ref) {
+    unawaited(
+      FluxerBottomSheet.show<void>(
+        context,
+        title: 'Favorites',
+        variant: FluxerBottomSheetVariant.menu,
+        builder: (sheetContext, close) => FluxerBottomSheetContent(
+          child: FluxerBottomSheetMenuItem(
+            label: 'Hide Favorites',
+            icon: PhosphorIconsBold.eyeSlash,
+            onTap: () {
+              close();
+              unawaited(
+                ref
+                    .read(appearancePreferencesProvider.notifier)
+                    .setShowFavorites(value: false),
+              );
+              ref
+                  .read(toastProvider.notifier)
+                  .show(
+                    const FluxerToast(
+                      message: 'Favorites hidden',
+                      variant: FluxerToastVariant.success,
+                    ),
+                  );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _topBarIcon(
     BuildContext context,
     IconData icon,
     String tooltip, {
+    required VoidCallback onTap,
     bool isActive = false,
     bool showIndicator = false,
-    VoidCallback? onTap,
   }) => Tooltip(
     message: tooltip,
     child: InkWell(
-      onTap: onTap ?? () {},
+      onTap: onTap,
       borderRadius: BorderRadius.circular(4),
       child: Stack(
         clipBehavior: Clip.none,
@@ -485,15 +643,6 @@ class ChannelHeader extends ConsumerWidget {
         ],
       ),
     ),
-  );
-}
-
-void _ackPins({required WidgetRef ref, required String channelId}) {
-  unawaited(
-    ReadStateRepository(
-      ref.read(fluxerClientProvider),
-      ref.read(fluxerDatabaseProvider),
-    ).ackPins(channelId),
   );
 }
 
