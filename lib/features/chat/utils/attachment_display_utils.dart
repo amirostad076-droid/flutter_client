@@ -1,3 +1,125 @@
+import 'package:flutter/widgets.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+IconData phosphorFillIconForChatAttachmentFilename(String filename) {
+  final List<String> segments = filename.split('.');
+  final String fileExt = segments.length > 1
+      ? segments.last.toLowerCase()
+      : '';
+  const Set<String> imageTypes = <String>{
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'webp',
+    'svg',
+    'bmp',
+    'ico',
+  };
+  const Set<String> textTypes = <String>{'txt', 'rtf', 'md', 'log'};
+  const Set<String> archiveTypes = <String>{
+    'zip',
+    'rar',
+    '7z',
+    'tar',
+    'gz',
+    'bz2',
+    'xz',
+  };
+  const Set<String> audioTypes = <String>{
+    'mp3',
+    'wav',
+    'ogg',
+    'flac',
+    'm4a',
+    'aac',
+    'wma',
+  };
+  const Set<String> videoTypes = <String>{
+    'mp4',
+    'webm',
+    'mov',
+    'avi',
+    'mkv',
+    'flv',
+    'wmv',
+  };
+  const Set<String> codeTypes = <String>{
+    'js',
+    'jsx',
+    'ts',
+    'tsx',
+    'py',
+    'java',
+    'c',
+    'cpp',
+    'h',
+    'css',
+    'html',
+    'json',
+    'xml',
+    'yml',
+    'yaml',
+    'sh',
+    'go',
+    'rs',
+    'rb',
+    'php',
+  };
+  const Set<String> excelTypes = <String>{'xls', 'xlsx', 'csv'};
+  const Set<String> presentationTypes = <String>{'ppt', 'pptx'};
+  const Set<String> documentTypes = <String>{'doc', 'docx'};
+  if (imageTypes.contains(fileExt)) {
+    return PhosphorIconsFill.fileImage;
+  }
+  if (fileExt == 'pdf') {
+    return PhosphorIconsFill.filePdf;
+  }
+  if (textTypes.contains(fileExt)) {
+    return PhosphorIconsFill.fileText;
+  }
+  if (documentTypes.contains(fileExt)) {
+    return PhosphorIconsFill.fileDoc;
+  }
+  if (archiveTypes.contains(fileExt)) {
+    return PhosphorIconsFill.fileArchive;
+  }
+  if (audioTypes.contains(fileExt)) {
+    return PhosphorIconsFill.fileAudio;
+  }
+  if (videoTypes.contains(fileExt)) {
+    return PhosphorIconsFill.fileVideo;
+  }
+  if (codeTypes.contains(fileExt)) {
+    return PhosphorIconsFill.fileCode;
+  }
+  if (excelTypes.contains(fileExt)) {
+    return PhosphorIconsFill.fileXls;
+  }
+  if (presentationTypes.contains(fileExt)) {
+    return PhosphorIconsFill.filePpt;
+  }
+  return PhosphorIconsFill.file;
+}
+
+String? attachmentEffectiveDownloadUrl({
+  required String url,
+  required bool isExpired,
+  String? proxyUrl,
+}) {
+  if (isExpired) {
+    return null;
+  }
+  final String? trimmedProxy = proxyUrl?.trim();
+  if (trimmedProxy != null && trimmedProxy.isNotEmpty) {
+    return trimmedProxy;
+  }
+  final String trimmedUrl = url.trim();
+  if (trimmedUrl.isEmpty) {
+    return null;
+  }
+  return trimmedUrl;
+}
 
 (String, String) splitAttachmentFilenameStemAndExtension(String filename) {
   final int lastDot = filename.lastIndexOf('.');

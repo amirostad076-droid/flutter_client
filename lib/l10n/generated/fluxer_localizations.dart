@@ -3916,6 +3916,18 @@ abstract class FluxerLocalizations {
   /// **'Remove attachment'**
   String get chatAttachmentRemove;
 
+  /// Tooltip and accessibility label for downloading a non-media file attachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get chatAttachmentDownload;
+
+  /// Tooltip when a file attachment link is no longer available.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment expired'**
+  String get chatAttachmentExpiredTooltip;
+
   /// Option to pick images from the device gallery.
   ///
   /// In en, this message translates to:

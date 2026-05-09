@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_audio.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_expiry_footnote.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_file_label.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_file.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_render_state.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_video.dart';
@@ -62,7 +62,7 @@ class AttachmentRenderer extends StatelessWidget {
 
   Widget _buildContent(AttachmentRenderState renderState) {
     if (renderState.shouldRenderAsFile) {
-      return AttachmentFileLabel(attachment: attachment);
+      return AttachmentFile(attachment: attachment);
     }
     return switch (renderState.type) {
       AttachmentRenderType.image => AttachmentImage(
@@ -78,7 +78,7 @@ class AttachmentRenderer extends StatelessWidget {
         dimensionSize: dimensionSize,
       ),
       AttachmentRenderType.audio => AttachmentAudio(attachment: attachment),
-      AttachmentRenderType.file => AttachmentFileLabel(attachment: attachment),
+      AttachmentRenderType.file => AttachmentFile(attachment: attachment),
     };
   }
 }

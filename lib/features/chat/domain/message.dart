@@ -242,7 +242,9 @@ class Embed {
 class Attachment {
   final String id;
   final String filename;
+  final String? title;
   final String url;
+  final String? proxyUrl;
   final String? contentType;
   final String? placeholder;
   final int? size;
@@ -257,6 +259,8 @@ class Attachment {
     required this.id,
     required this.filename,
     required this.url,
+    this.title,
+    this.proxyUrl,
     this.contentType,
     this.placeholder,
     this.nsfw,
@@ -272,7 +276,9 @@ class Attachment {
     return Attachment(
       id: sdk.id,
       filename: sdk.filename,
+      title: sdk.title,
       url: sdk.url ?? '',
+      proxyUrl: sdk.proxyUrl,
       size: sdk.size,
       width: sdk.width,
       height: sdk.height,
@@ -289,7 +295,9 @@ class Attachment {
     return Attachment(
       id: json['id'] as String? ?? '',
       filename: json['filename'] as String? ?? '',
+      title: json['title'] as String?,
       url: json['url'] as String? ?? '',
+      proxyUrl: (json['proxy_url'] as String?) ?? (json['proxyUrl'] as String?),
       size: json['size'] as int?,
       width: json['width'] as int?,
       height: json['height'] as int?,
@@ -305,7 +313,9 @@ class Attachment {
   Map<String, dynamic> toJson() => {
     'id': id,
     'filename': filename,
+    'title': title,
     'url': url,
+    'proxy_url': proxyUrl,
     'size': size,
     'width': width,
     'height': height,

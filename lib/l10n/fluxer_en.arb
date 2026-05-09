@@ -2802,6 +2802,14 @@
   "@chatAttachmentRemove": {
     "description": "Accessibility label for removing a pending attachment."
   },
+  "chatAttachmentDownload": "Download",
+  "@chatAttachmentDownload": {
+    "description": "Tooltip and accessibility label for downloading a non-media file attachment."
+  },
+  "chatAttachmentExpiredTooltip": "Attachment expired",
+  "@chatAttachmentExpiredTooltip": {
+    "description": "Tooltip when a file attachment link is no longer available."
+  },
   "chatAttachmentSourceGallery": "Photo library",
   "@chatAttachmentSourceGallery": {
     "description": "Option to pick images from the device gallery."
