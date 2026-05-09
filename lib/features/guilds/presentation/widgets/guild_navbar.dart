@@ -296,7 +296,130 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
 
     _scheduleScrollIndicatorUpdate();
 
+    final isMobile = isMobileLayout(context);
     final topPadding = max<double>(MediaQuery.of(context).padding.top, 4);
+    final guildListView = ListView(
+      controller: _scrollController,
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.only(top: topPadding, bottom: 8),
+      children: [
+        _GuildListItem(
+          label: 'Direct Messages',
+          isSelected: isDm,
+          svgAsset: Assets.fluxerSymbol,
+          mentionCount: pendingFriendCount + dmMentionCount,
+          hasUnread: hasCollapsedDmUnread,
+          onTap: () {
+            if (dmFolderState.collapseDMs && isDm) {
+              ref.read(dmFolderProvider.notifier).toggleExpanded();
+              return;
+            }
+            context.go(RoutePaths.me);
+          },
+        ),
+        if (showFavorites)
+          _GuildListItem(
+            label: 'Favorites',
+            isSelected: isFavorites,
+            icon: PhosphorIconsFill.star,
+            onTap: () {
+              context.go(RoutePaths.favoritesBase);
+            },
+          ),
+        for (final dm in allowlistedDms)
+          DmNavbarItem(
+            key: ValueKey('dm-${dm.id}'),
+            channelId: dm.id,
+            recipientId: dm.recipientId,
+            displayName: dm.name ?? 'Direct Message',
+            mentionCount: dm.unreadCount,
+            hasUnread: unreadDmState.hasUnread(dm.id),
+            type: dm.type,
+            isSelected: currentLocation.contains(dm.id),
+            onContextMenu: (position) => _handleDmContextMenu(
+              context,
+              position: position,
+              dm: dm,
+              isCollapsed: dmFolderState.collapseDMs,
+              isAllowlisted: true,
+            ),
+          ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          alignment: Alignment.topCenter,
+          child: dmItemsVisible && regularDms.isNotEmpty
+              ? AnimatedOpacity(
+                  opacity: dmItemsVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final dm in regularDms)
+                        DmNavbarItem(
+                          key: ValueKey('dm-${dm.id}'),
+                          channelId: dm.id,
+                          recipientId: dm.recipientId,
+                          displayName: dm.name ?? 'Direct Message',
+                          mentionCount: dm.unreadCount,
+                          hasUnread: unreadDmState.hasUnread(dm.id),
+                          type: dm.type,
+                          isSelected: currentLocation.contains(dm.id),
+                          onContextMenu: (position) => _handleDmContextMenu(
+                            context,
+                            position: position,
+                            dm: dm,
+                            isCollapsed: dmFolderState.collapseDMs,
+                            isAllowlisted: false,
+                          ),
+                        ),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+        _SidebarDivider(color: context.colors.backgroundModifierHover),
+        for (final item in organizedItems)
+          switch (item) {
+            GuildNavbarGuild(:final guild) => GuildDragWrapper(
+              itemId: guild.id,
+              isFolder: false,
+              enabled: !guild.isUnavailable,
+              child: _buildGuildItem(
+                context,
+                guild: guild,
+                activeGuildId: activeGuildId,
+                unavailableCount: unavailableCount,
+              ),
+            ),
+            GuildNavbarFolder(:final id) => GuildDragWrapper(
+              itemId: id.toString(),
+              isFolder: true,
+              child: _GuildFolderWidget(
+                folder: item,
+                activeGuildId: activeGuildId,
+                unavailableCount: unavailableCount,
+              ),
+            ),
+          },
+        _SidebarDivider(color: context.colors.backgroundModifierHover),
+        _DashedGuildIcon(
+          label: 'Add a Server',
+          icon: PhosphorIconsRegular.plus,
+          onTap: () {},
+        ),
+        _DashedGuildIcon(
+          label: 'Explore Discoverable Servers',
+          icon: PhosphorIconsRegular.compass,
+          onTap: () {},
+        ),
+        _DashedGuildIcon(
+          label: 'Help',
+          icon: PhosphorIconsRegular.question,
+          onTap: () {},
+        ),
+      ],
+    );
 
     return Container(
       width: 72,
@@ -308,129 +431,10 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
         child: Stack(
           children: [
-            ListView(
-              controller: _scrollController,
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.only(top: topPadding, bottom: 8),
-              children: [
-                _GuildListItem(
-                  label: 'Direct Messages',
-                  isSelected: isDm,
-                  svgAsset: Assets.fluxerSymbol,
-                  mentionCount: pendingFriendCount + dmMentionCount,
-                  hasUnread: hasCollapsedDmUnread,
-                  onTap: () {
-                    if (dmFolderState.collapseDMs && isDm) {
-                      ref.read(dmFolderProvider.notifier).toggleExpanded();
-                      return;
-                    }
-                    context.go(RoutePaths.me);
-                  },
-                ),
-                if (showFavorites)
-                  _GuildListItem(
-                    label: 'Favorites',
-                    isSelected: isFavorites,
-                    icon: PhosphorIconsFill.star,
-                    onTap: () {
-                      context.go(RoutePaths.favoritesBase);
-                    },
-                  ),
-                for (final dm in allowlistedDms)
-                  DmNavbarItem(
-                    key: ValueKey('dm-${dm.id}'),
-                    channelId: dm.id,
-                    recipientId: dm.recipientId,
-                    displayName: dm.name ?? 'Direct Message',
-                    mentionCount: dm.unreadCount,
-                    hasUnread: unreadDmState.hasUnread(dm.id),
-                    type: dm.type,
-                    isSelected: currentLocation.contains(dm.id),
-                    onContextMenu: (position) => _handleDmContextMenu(
-                      context,
-                      position: position,
-                      dm: dm,
-                      isCollapsed: dmFolderState.collapseDMs,
-                      isAllowlisted: true,
-                    ),
-                  ),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOut,
-                  alignment: Alignment.topCenter,
-                  child: dmItemsVisible && regularDms.isNotEmpty
-                      ? AnimatedOpacity(
-                          opacity: dmItemsVisible ? 1.0 : 0.0,
-                          duration: const Duration(milliseconds: 200),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              for (final dm in regularDms)
-                                DmNavbarItem(
-                                  key: ValueKey('dm-${dm.id}'),
-                                  channelId: dm.id,
-                                  recipientId: dm.recipientId,
-                                  displayName: dm.name ?? 'Direct Message',
-                                  mentionCount: dm.unreadCount,
-                                  hasUnread: unreadDmState.hasUnread(dm.id),
-                                  type: dm.type,
-                                  isSelected: currentLocation.contains(dm.id),
-                                  onContextMenu: (position) =>
-                                      _handleDmContextMenu(
-                                        context,
-                                        position: position,
-                                        dm: dm,
-                                        isCollapsed: dmFolderState.collapseDMs,
-                                        isAllowlisted: false,
-                                      ),
-                                ),
-                            ],
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-                _SidebarDivider(color: context.colors.backgroundModifierHover),
-                for (final item in organizedItems)
-                  switch (item) {
-                    GuildNavbarGuild(:final guild) => GuildDragWrapper(
-                      itemId: guild.id,
-                      isFolder: false,
-                      enabled: !guild.isUnavailable,
-                      child: _buildGuildItem(
-                        context,
-                        guild: guild,
-                        activeGuildId: activeGuildId,
-                        unavailableCount: unavailableCount,
-                      ),
-                    ),
-                    GuildNavbarFolder(:final id) => GuildDragWrapper(
-                      itemId: id.toString(),
-                      isFolder: true,
-                      child: _GuildFolderWidget(
-                        folder: item,
-                        activeGuildId: activeGuildId,
-                        unavailableCount: unavailableCount,
-                      ),
-                    ),
-                  },
-                _SidebarDivider(color: context.colors.backgroundModifierHover),
-                _DashedGuildIcon(
-                  label: 'Add a Server',
-                  icon: PhosphorIconsRegular.plus,
-                  onTap: () {},
-                ),
-                _DashedGuildIcon(
-                  label: 'Explore Discoverable Servers',
-                  icon: PhosphorIconsRegular.compass,
-                  onTap: () {},
-                ),
-                _DashedGuildIcon(
-                  label: 'Help',
-                  icon: PhosphorIconsRegular.question,
-                  onTap: () {},
-                ),
-              ],
-            ),
+            if (isMobile)
+              Scrollbar(controller: _scrollController, child: guildListView)
+            else
+              guildListView,
             Positioned(
               top: 8 + topPadding,
               left: 0,
