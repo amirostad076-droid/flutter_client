@@ -3625,7 +3625,7 @@ abstract class FluxerLocalizations {
   /// Typing indicator shown when exactly four other users are typing.
   ///
   /// In en, this message translates to:
-  /// **'Multiple people are typing...'**
+  /// **'Several people are typing...'**
   String get typingIndicatorMultiple;
 
   /// Typing indicator shown when 5-9 other users are typing.

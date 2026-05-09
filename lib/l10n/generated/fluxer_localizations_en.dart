@@ -2050,7 +2050,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   }
 
   @override
-  String get typingIndicatorMultiple => 'Multiple people are typing...';
+  String get typingIndicatorMultiple => 'Several people are typing...';
 
   @override
   String get typingIndicatorHandful =>

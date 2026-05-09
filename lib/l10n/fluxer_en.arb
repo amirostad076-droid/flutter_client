@@ -2568,7 +2568,7 @@
       "name3": {"type": "String"}
     }
   },
-  "typingIndicatorMultiple": "Multiple people are typing...",
+  "typingIndicatorMultiple": "Several people are typing...",
   "@typingIndicatorMultiple": {
     "description": "Typing indicator shown when exactly four other users are typing."
   },
