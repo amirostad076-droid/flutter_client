@@ -7,8 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/attachment_file_label.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/attachment_image.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_list_renderer.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_link.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_rich.dart';
@@ -84,17 +83,14 @@ class ForwardedMessageContent extends ConsumerWidget {
                           spoilerSyncController: spoilerSyncController,
                         ),
                       ),
-                    ...snapshot.attachments.map(
-                      (attachment) => Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: _ForwardedAttachment(
-                          attachment: attachment,
-                          inlineAttachmentMedia: inlineAttachmentMedia,
-                          dimensionSize: attachmentSize,
-                          revealSpoilers: revealSpoilers,
-                        ),
+                    if (snapshot.attachments.isNotEmpty)
+                      AttachmentListRenderer(
+                        attachments: snapshot.attachments,
+                        inlineAttachmentMedia: inlineAttachmentMedia,
+                        dimensionSize: attachmentSize,
+                        revealSpoilers: revealSpoilers,
+                        topPadding: 4,
                       ),
-                    ),
                     if (renderEmbeds)
                       ...snapshot.embeds.map((embed) {
                         final spoilerSyncKeys = spoilerSyncKeysForEmbed(
@@ -155,39 +151,6 @@ class _ForwardedHeader extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ForwardedAttachment extends StatelessWidget {
-  const _ForwardedAttachment({
-    required this.attachment,
-    required this.inlineAttachmentMedia,
-    required this.dimensionSize,
-    required this.revealSpoilers,
-  });
-
-  final Attachment attachment;
-  final bool inlineAttachmentMedia;
-  final MediaDimensionSize dimensionSize;
-  final bool revealSpoilers;
-
-  @override
-  Widget build(BuildContext context) {
-    if (attachment.isImage &&
-        inlineAttachmentMedia &&
-        attachment.url.isNotEmpty) {
-      return AttachmentImage(
-        attachment: attachment,
-        dimensionSize: dimensionSize,
-        revealSpoiler: revealSpoilers,
-      );
-    }
-
-    return SpoilerOverlay(
-      isSpoiler: attachment.isSpoiler,
-      initiallyRevealed: revealSpoilers,
-      child: AttachmentFileLabel(attachment: attachment),
     );
   }
 }

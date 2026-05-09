@@ -7,8 +7,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/attachment_file_label.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/attachment_image.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_list_renderer.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_invite.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embed_link.dart';
@@ -472,14 +471,13 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             dimensionSize: chatPreferences.embedMediaDimensionSize,
           );
         }),
-      ...msg.attachments.map(
-        (attachment) => _buildAttachment(
-          attachment,
+      if (msg.attachments.isNotEmpty)
+        AttachmentListRenderer(
+          attachments: msg.attachments,
           inlineAttachmentMedia: inlineAttachmentMedia,
           dimensionSize: attachmentSize,
           revealSpoilers: revealSpoilers,
         ),
-      ),
       if (msg.hasStickers)
         Padding(
           padding: const EdgeInsets.only(top: 4),
@@ -806,32 +804,6 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       ),
     ),
   );
-
-  Widget _buildAttachment(
-    Attachment attachment, {
-    required bool inlineAttachmentMedia,
-    required MediaDimensionSize dimensionSize,
-    required bool revealSpoilers,
-  }) {
-    Widget child;
-    if (attachment.isImage &&
-        inlineAttachmentMedia &&
-        attachment.url.isNotEmpty) {
-      child = AttachmentImage(
-        attachment: attachment,
-        dimensionSize: dimensionSize,
-        revealSpoiler: revealSpoilers,
-      );
-    } else {
-      child = SpoilerOverlay(
-        isSpoiler: attachment.isSpoiler,
-        initiallyRevealed: revealSpoilers,
-        child: AttachmentFileLabel(attachment: attachment),
-      );
-    }
-
-    return Padding(padding: const EdgeInsets.only(top: 2), child: child);
-  }
 
   Widget _buildReaction(BuildContext context, Reaction reaction) =>
       GestureDetector(
