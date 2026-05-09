@@ -28,12 +28,12 @@ import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.da
 import 'package:fluxer_app/features/chat/presentation/widgets/swipe_to_reply.dart';
 import 'package:fluxer_app/features/chat/providers/spoiler_reveal_provider.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/utils/emoji_utils.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
@@ -65,6 +65,7 @@ const _kReplyLineEndGap = 6.0;
 
 const _kMessageStickerSize = 160.0;
 const _kMessageStickerRequestSize = 320;
+const _kReactionEmojiSize = 16.0;
 
 /// A single message row -- avatar, username, timestamp,
 /// content, embeds, reactions, and action buttons on hover.
@@ -834,11 +835,18 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               children: [
                 if (reaction.isCustom)
                   CachedNetworkImage(
-                    imageUrl:
-                        '$fluxerMediaCdn/emojis/'
-                        '${reaction.emojiId}.webp',
-                    width: 16,
-                    height: 16,
+                    imageUrl: getCustomEmojiUrl(
+                      id: reaction.emojiId!,
+                      animated: reaction.animated,
+                      size: _kReactionEmojiSize.toInt(),
+                    ),
+                    cacheKey:
+                        'reaction_emoji_'
+                        '${reaction.emojiId}_'
+                        '${reaction.animated ? 'a' : 's'}_'
+                        '${_kReactionEmojiSize.toInt()}',
+                    width: _kReactionEmojiSize,
+                    height: _kReactionEmojiSize,
                   )
                 else
                   Text(reaction.emoji, style: const TextStyle(fontSize: 16)),
