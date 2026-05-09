@@ -5505,6 +5505,42 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'{current}/{total}'**
   String mediaViewerAttachmentIndex(int current, int total);
+
+  /// Accessibility label for the tap surface that shows or hides inline video playback controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle video controls'**
+  String get chatAttachmentVideoToggleControls;
+
+  /// Accessibility label for muting playback in mobile attachment fullscreen video.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute video'**
+  String get chatAttachmentVideoMute;
+
+  /// Accessibility label for unmuting playback in mobile attachment fullscreen video.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute video'**
+  String get chatAttachmentVideoUnmute;
+
+  /// Accessibility label for the play button in mobile attachment fullscreen video.
+  ///
+  /// In en, this message translates to:
+  /// **'Play video'**
+  String get chatAttachmentVideoPlay;
+
+  /// Accessibility label for the pause button in mobile attachment fullscreen video.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause video'**
+  String get chatAttachmentVideoPause;
+
+  /// Accessibility label for the seek bar in mobile attachment fullscreen video.
+  ///
+  /// In en, this message translates to:
+  /// **'Video progress'**
+  String get chatAttachmentVideoProgress;
 }
 
 class _FluxerLocalizationsDelegate

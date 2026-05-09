@@ -199,8 +199,10 @@ class _AttachmentAudioState extends State<AttachmentAudio> {
     final double progress = _duration.inMilliseconds <= 0
         ? 0
         : (_position.inMilliseconds / _duration.inMilliseconds).clamp(0, 1);
-    final String timeText =
-        '${formatAttachmentDurationMmSs(_position)} / ${formatAttachmentDurationMmSs(_duration)}';
+    final String timeText = formatAttachmentElapsedTotalMmSs(
+      elapsed: _position,
+      total: _duration,
+    );
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
       margin: const EdgeInsets.only(top: 4),

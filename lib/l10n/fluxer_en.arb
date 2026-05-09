@@ -3906,5 +3906,29 @@
         "type": "int"
       }
     }
+  },
+  "chatAttachmentVideoToggleControls": "Toggle video controls",
+  "@chatAttachmentVideoToggleControls": {
+    "description": "Accessibility label for the tap surface that shows or hides inline video playback controls."
+  },
+  "chatAttachmentVideoMute": "Mute video",
+  "@chatAttachmentVideoMute": {
+    "description": "Accessibility label for muting playback in mobile attachment fullscreen video."
+  },
+  "chatAttachmentVideoUnmute": "Unmute video",
+  "@chatAttachmentVideoUnmute": {
+    "description": "Accessibility label for unmuting playback in mobile attachment fullscreen video."
+  },
+  "chatAttachmentVideoPlay": "Play video",
+  "@chatAttachmentVideoPlay": {
+    "description": "Accessibility label for the play button in mobile attachment fullscreen video."
+  },
+  "chatAttachmentVideoPause": "Pause video",
+  "@chatAttachmentVideoPause": {
+    "description": "Accessibility label for the pause button in mobile attachment fullscreen video."
+  },
+  "chatAttachmentVideoProgress": "Video progress",
+  "@chatAttachmentVideoProgress": {
+    "description": "Accessibility label for the seek bar in mobile attachment fullscreen video."
   }
 }

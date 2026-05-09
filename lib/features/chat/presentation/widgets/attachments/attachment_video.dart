@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_thumbhash/flutter_thumbhash.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
-import 'package:fluxer_app/shared/widgets/shared_video_controls.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_mobile_video.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
+import 'package:fluxer_app/shared/widgets/shared_video_controls.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
 
@@ -77,6 +79,16 @@ class _AttachmentVideoState extends State<AttachmentVideo> {
     return _defaultAspectRatio;
   }
 
+  Future<void> _openMobileFullscreen() async {
+    if (widget.attachment.url.isEmpty) {
+      return;
+    }
+    await showAttachmentMobileFullscreenVideo(
+      context,
+      attachment: widget.attachment,
+    );
+  }
+
   Future<void> _startPlayback() async {
     if (_isLoading || widget.attachment.url.isEmpty) {
       return;
@@ -89,7 +101,7 @@ class _AttachmentVideoState extends State<AttachmentVideo> {
       if (_hasLoadedMedia) {
         await player.play();
       } else {
-        await player.open(Media(widget.attachment.url), play: true);
+        await player.open(Media(widget.attachment.url));
         _hasLoadedMedia = true;
       }
       if (!mounted) {
@@ -112,6 +124,7 @@ class _AttachmentVideoState extends State<AttachmentVideo> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = isMobileLayout(context);
     final FluxerMediaDimensions dimensions = mediaDimensionsForSize(
       widget.dimensionSize,
     );
@@ -129,7 +142,34 @@ class _AttachmentVideoState extends State<AttachmentVideo> {
         borderRadius: BorderRadius.circular(8),
         child: AspectRatio(
           aspectRatio: _resolveAspectRatio(),
-          child: _hasLoadedMedia
+          child: isMobile
+              ? GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _openMobileFullscreen,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      _buildPoster(),
+                      Center(
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.6),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.play_arrow,
+                            color: context.colors.textOnBrandPrimary,
+                            size: 28,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : _hasLoadedMedia
               ? Stack(
                   fit: StackFit.expand,
                   children: [

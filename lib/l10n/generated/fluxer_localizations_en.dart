@@ -3204,4 +3204,22 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String mediaViewerAttachmentIndex(int current, int total) {
     return '$current/$total';
   }
+
+  @override
+  String get chatAttachmentVideoToggleControls => 'Toggle video controls';
+
+  @override
+  String get chatAttachmentVideoMute => 'Mute video';
+
+  @override
+  String get chatAttachmentVideoUnmute => 'Unmute video';
+
+  @override
+  String get chatAttachmentVideoPlay => 'Play video';
+
+  @override
+  String get chatAttachmentVideoPause => 'Pause video';
+
+  @override
+  String get chatAttachmentVideoProgress => 'Video progress';
 }

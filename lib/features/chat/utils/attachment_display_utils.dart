@@ -29,6 +29,13 @@ String formatAttachmentDurationMmSs(Duration duration) {
   return '$minutes:${seconds.toString().padLeft(2, '0')}';
 }
 
+String formatAttachmentElapsedTotalMmSs({
+  required Duration elapsed,
+  required Duration total,
+}) {
+  return '${formatAttachmentDurationMmSs(elapsed)} / ${formatAttachmentDurationMmSs(total)}';
+}
+
 String buildAttachmentSizeDurationMetaLine({
   required int? fileSize,
   required Duration duration,
