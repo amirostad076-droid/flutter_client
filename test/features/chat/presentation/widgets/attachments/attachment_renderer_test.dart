@@ -8,7 +8,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_audio.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_file_label.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_file.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_image_grid.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_list_renderer.dart';
