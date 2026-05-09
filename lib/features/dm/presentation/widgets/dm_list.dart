@@ -11,6 +11,7 @@ import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
@@ -1822,13 +1823,14 @@ class _DmBottomSheet extends StatelessWidget {
   void _openMuteSheet(BuildContext context) {
     final nav = Navigator.of(context);
     unawaited(
-      FluxerBottomSheet.show<_DmAction>(
+      FluxerBottomSheet.show<MuteSelection>(
         context,
         builder: (_, _) => _DmMuteSheet(isMuted: isMuted),
-      ).then((result) {
-        if (result != null) {
-          nav.pop(result);
+      ).then((selection) {
+        if (selection == null) {
+          return;
         }
+        nav.pop(_dmActionForMuteSelection(selection));
       }),
     );
   }
@@ -1857,7 +1859,6 @@ class _DmMuteSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final layout = context.layout;
     final l10n = FluxerLocalizations.of(context);
-    void pop(_DmAction action) => Navigator.of(context).pop(action);
 
     return DraggableScrollableSheet(
       expand: false,
@@ -1875,7 +1876,7 @@ class _DmMuteSheet extends StatelessWidget {
               ),
               SizedBox(height: layout.s3),
               Expanded(
-                child: ListView(
+                child: SingleChildScrollView(
                   controller: scrollController,
                   padding: EdgeInsets.fromLTRB(
                     layout.s4,
@@ -1883,59 +1884,11 @@ class _DmMuteSheet extends StatelessWidget {
                     layout.s4,
                     layout.s4,
                   ),
-                  children: [
-                    FluxerBottomSheetGroupColumn(
-                      children: [
-                        FluxerMenuGroup(
-                          children: isMuted
-                              ? [
-                                  FluxerBottomSheetMenuItem(
-                                    label: l10n.dmUnmuteConversation,
-                                    onTap: () => pop(_DmAction.unmute),
-                                  ),
-                                ]
-                              : [
-                                  FluxerBottomSheetMenuItem(
-                                    label: l10n.dmMuteFor15Min,
-                                    onTap: () => pop(_DmAction.mute15Min),
-                                  ),
-                                  FluxerBottomSheetMenuItem(
-                                    label: l10n.dmMuteFor30Min,
-                                    onTap: () => pop(_DmAction.mute30Min),
-                                  ),
-                                  FluxerBottomSheetMenuItem(
-                                    label: l10n.dmMuteFor1Hour,
-                                    onTap: () => pop(_DmAction.mute1Hour),
-                                  ),
-                                  FluxerBottomSheetMenuItem(
-                                    label: l10n.dmMuteFor3Hours,
-                                    onTap: () => pop(_DmAction.mute3Hours),
-                                  ),
-                                  FluxerBottomSheetMenuItem(
-                                    label: l10n.dmMuteFor4Hours,
-                                    onTap: () => pop(_DmAction.mute4Hours),
-                                  ),
-                                  FluxerBottomSheetMenuItem(
-                                    label: l10n.dmMuteFor8Hours,
-                                    onTap: () => pop(_DmAction.mute8Hours),
-                                  ),
-                                  FluxerBottomSheetMenuItem(
-                                    label: l10n.dmMuteFor24Hours,
-                                    onTap: () => pop(_DmAction.mute24Hours),
-                                  ),
-                                  FluxerBottomSheetMenuItem(
-                                    label: l10n.dmMuteFor3Days,
-                                    onTap: () => pop(_DmAction.mute3Days),
-                                  ),
-                                  FluxerBottomSheetMenuItem(
-                                    label: l10n.dmMuteForever,
-                                    onTap: () => pop(_DmAction.muteForever),
-                                  ),
-                                ],
-                        ),
-                      ],
-                    ),
-                  ],
+                  child: MuteDurationSheetBody(
+                    isMuted: isMuted,
+                    onSelected: (selection) =>
+                        Navigator.of(context).pop(selection),
+                  ),
                 ),
               ),
             ],
@@ -1944,6 +1897,23 @@ class _DmMuteSheet extends StatelessWidget {
       },
     );
   }
+}
+
+_DmAction _dmActionForMuteSelection(MuteSelection selection) {
+  if (!selection.muted) {
+    return _DmAction.unmute;
+  }
+  return switch (selection.durationSeconds) {
+    900 => _DmAction.mute15Min,
+    1800 => _DmAction.mute30Min,
+    3600 => _DmAction.mute1Hour,
+    10800 => _DmAction.mute3Hours,
+    14400 => _DmAction.mute4Hours,
+    28800 => _DmAction.mute8Hours,
+    86400 => _DmAction.mute24Hours,
+    259200 => _DmAction.mute3Days,
+    _ => _DmAction.muteForever,
+  };
 }
 
 class _DmInviteSheet extends ConsumerWidget {
