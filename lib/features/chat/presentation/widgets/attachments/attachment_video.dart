@@ -5,6 +5,7 @@ import 'package:flutter_thumbhash/flutter_thumbhash.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/widgets/shared_video_controls.dart';
+import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
@@ -231,8 +232,8 @@ class _AttachmentVideoState extends State<AttachmentVideo> {
       isMuted: _isMuted,
       volume: _volume,
       playbackRate: _playbackRate,
-      positionLabel: _formatDuration(_position),
-      durationLabel: _formatDuration(_duration),
+      positionLabel: formatAttachmentDurationMmSs(_position),
+      durationLabel: formatAttachmentDurationMmSs(_duration),
       progress: _duration.inMilliseconds <= 0
           ? 0
           : (_position.inMilliseconds / _duration.inMilliseconds).clamp(0, 1),
@@ -356,13 +357,6 @@ class _AttachmentVideoState extends State<AttachmentVideo> {
         _showControls = false;
       });
     });
-  }
-
-  String _formatDuration(Duration duration) {
-    final int totalSeconds = duration.inSeconds;
-    final int minutes = totalSeconds ~/ 60;
-    final int seconds = totalSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
   Widget _buildPoster() {

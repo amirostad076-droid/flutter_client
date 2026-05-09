@@ -7,6 +7,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachment_edit_modal.dart';
 import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
+import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -90,6 +91,7 @@ class _AttachmentChip extends ConsumerWidget {
         File(path).existsSync();
     final bool isVideo = _isVideoFilename(attachment.filename);
     final bool isSpoiler = (attachment.flags & attachmentFlagIsSpoiler) != 0;
+    final String? byteSizeLabel = formatAttachmentByteSize(attachment.size);
 
     return SizedBox(
       width: 150,
@@ -186,9 +188,9 @@ class _AttachmentChip extends ConsumerWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (_formatBytes(attachment.size) != null)
+                    if (byteSizeLabel != null)
                       Text(
-                        _formatBytes(attachment.size)!,
+                        byteSizeLabel,
                         style: context.textStyles.smallText.copyWith(
                           color: colors.textTertiary,
                           fontSize: 11,
@@ -296,21 +298,6 @@ class _AttachmentChip extends ConsumerWidget {
         lower.endsWith('.mov') ||
         lower.endsWith('.mkv');
   }
-}
-
-String? _formatBytes(int? bytes) {
-  if (bytes == null || bytes <= 0) {
-    return null;
-  }
-  const List<String> units = <String>['B', 'KB', 'MB', 'GB'];
-  double value = bytes.toDouble();
-  int unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  final int precision = unit == 0 || value >= 10 ? 0 : 1;
-  return '${value.toStringAsFixed(precision)} ${units[unit]}';
 }
 
 class _RoundIconButton extends StatelessWidget {

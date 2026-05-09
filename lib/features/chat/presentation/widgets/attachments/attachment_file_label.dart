@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -14,7 +15,7 @@ class AttachmentFileLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final sizeLabel = _formatBytes(attachment.size);
+    final sizeLabel = formatAttachmentByteSize(attachment.size);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -69,19 +70,4 @@ class AttachmentFileLabel extends StatelessWidget {
       ),
     );
   }
-}
-
-String? _formatBytes(int? bytes) {
-  if (bytes == null || bytes <= 0) {
-    return null;
-  }
-  const units = ['B', 'KB', 'MB', 'GB'];
-  var value = bytes.toDouble();
-  var unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  final precision = unit == 0 || value >= 10 ? 0 : 1;
-  return '${value.toStringAsFixed(precision)} ${units[unit]}';
 }

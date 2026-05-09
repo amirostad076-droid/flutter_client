@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/shared/widgets/volume_popout_control.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
@@ -189,9 +190,9 @@ class _AttachmentAudioState extends State<AttachmentAudio> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final String fileName = _splitFileName(widget.attachment.filename).$1;
-    final String fileExtension = _splitFileName(widget.attachment.filename).$2;
-    final String metaText = _buildMetaText(
+    final (String stem, String extension) =
+        splitAttachmentFilenameStemAndExtension(widget.attachment.filename);
+    final String metaText = buildAttachmentSizeDurationMetaLine(
       fileSize: widget.attachment.size,
       duration: _duration,
     );
@@ -199,7 +200,7 @@ class _AttachmentAudioState extends State<AttachmentAudio> {
         ? 0
         : (_position.inMilliseconds / _duration.inMilliseconds).clamp(0, 1);
     final String timeText =
-        '${_formatDuration(_position)} / ${_formatDuration(_duration)}';
+        '${formatAttachmentDurationMmSs(_position)} / ${formatAttachmentDurationMmSs(_duration)}';
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
       margin: const EdgeInsets.only(top: 4),
@@ -233,9 +234,9 @@ class _AttachmentAudioState extends State<AttachmentAudio> {
                           fontWeight: FontWeight.w600,
                         ),
                         children: [
-                          TextSpan(text: fileName),
+                          TextSpan(text: stem),
                           TextSpan(
-                            text: fileExtension,
+                            text: extension,
                             style: context.textStyles.bodySmall.copyWith(
                               color: colors.textTertiary,
                               fontWeight: FontWeight.w500,
@@ -379,49 +380,4 @@ class _AudioPlayButton extends StatelessWidget {
       icon: isPlaying ? PhosphorIconsFill.pause : PhosphorIconsFill.play,
     );
   }
-}
-
-(String, String) _splitFileName(String filename) {
-  final int lastDot = filename.lastIndexOf('.');
-  if (lastDot <= 0) {
-    return (filename, '');
-  }
-  return (filename.substring(0, lastDot), filename.substring(lastDot));
-}
-
-String _buildMetaText({required int? fileSize, required Duration duration}) {
-  final String? sizeLabel = _formatBytes(fileSize);
-  final String durationLabel = _formatDuration(duration);
-  if (sizeLabel == null) {
-    if (duration == Duration.zero) {
-      return '';
-    }
-    return durationLabel;
-  }
-  if (duration == Duration.zero) {
-    return sizeLabel;
-  }
-  return '$sizeLabel · $durationLabel';
-}
-
-String _formatDuration(Duration duration) {
-  final int totalSeconds = duration.inSeconds;
-  final int minutes = totalSeconds ~/ 60;
-  final int seconds = totalSeconds % 60;
-  return '$minutes:${seconds.toString().padLeft(2, '0')}';
-}
-
-String? _formatBytes(int? bytes) {
-  if (bytes == null || bytes <= 0) {
-    return null;
-  }
-  const List<String> units = <String>['B', 'KB', 'MB', 'GB'];
-  double value = bytes.toDouble();
-  int unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  final int precision = unit == 0 || value >= 10 ? 0 : 1;
-  return '${value.toStringAsFixed(precision)} ${units[unit]}';
 }
