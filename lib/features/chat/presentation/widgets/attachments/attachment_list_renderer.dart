@@ -63,6 +63,10 @@ class AttachmentListRenderer extends StatelessWidget {
           inlineAttachmentMedia: inlineAttachmentMedia,
           dimensionSize: dimensionSize,
           revealSpoilers: revealSpoilers,
+          imageGallery: imageAttachments,
+          imageGalleryIndex: isImageAttachment
+              ? imageAttachments.indexOf(attachment)
+              : 0,
         ),
       );
     }

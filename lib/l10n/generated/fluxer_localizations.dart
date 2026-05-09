@@ -3946,6 +3946,18 @@ abstract class FluxerLocalizations {
   /// **'Spoiler'**
   String get chatAttachmentSpoiler;
 
+  /// Footnote when attachment(s) share one expiry date. {date} is already formatted for the locale.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires on {date}'**
+  String chatAttachmentExpiresOn(String date);
+
+  /// Footnote when attachments expire across a range. {start} and {end} are formatted for the locale.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires between {start} and {end}'**
+  String chatAttachmentExpiresBetween(String start, String end);
+
   /// Title of the Connections settings page.
   ///
   /// In en, this message translates to:
@@ -5445,6 +5457,54 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'(edited)'**
   String get chatMessageEdited;
+
+  /// Accessible barrier label for the attachment media viewer dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Image preview'**
+  String get mediaViewerImagePreview;
+
+  /// Tooltip and accessibility label for closing the attachment media viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Close media viewer'**
+  String get mediaViewerClose;
+
+  /// Tooltip and accessibility label to open the current media item in an external browser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get mediaViewerOpenInBrowser;
+
+  /// Tooltip and accessibility label for the media viewer zoom-in action.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get mediaViewerZoomIn;
+
+  /// Tooltip and accessibility label for the media viewer zoom-out action.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get mediaViewerZoomOut;
+
+  /// Tooltip and accessibility label for navigating to the previous attachment in the media viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous attachment'**
+  String get mediaViewerPreviousAttachment;
+
+  /// Tooltip and accessibility label for navigating to the next attachment in the media viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Next attachment'**
+  String get mediaViewerNextAttachment;
+
+  /// Index label shown in the media viewer to indicate the current attachment position.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total}'**
+  String mediaViewerAttachmentIndex(int current, int total);
 }
 
 class _FluxerLocalizationsDelegate

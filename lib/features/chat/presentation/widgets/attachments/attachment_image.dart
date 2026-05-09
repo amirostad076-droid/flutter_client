@@ -6,6 +6,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/features/ui/media_viewer/attachment_media_viewer.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class AttachmentImage extends StatelessWidget {
@@ -15,12 +16,16 @@ class AttachmentImage extends StatelessWidget {
   final MediaDimensionSize dimensionSize;
   final bool revealSpoiler;
   final bool wrapWithSpoiler;
+  final List<Attachment>? imageGallery;
+  final int imageGalleryIndex;
 
   const AttachmentImage({
     required this.attachment,
     this.dimensionSize = MediaDimensionSize.small,
     this.revealSpoiler = false,
     this.wrapWithSpoiler = true,
+    this.imageGallery,
+    this.imageGalleryIndex = 0,
     super.key,
   });
 
@@ -36,6 +41,7 @@ class AttachmentImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dimensions = mediaDimensionsForSize(dimensionSize);
+    final List<Attachment> gallery = _buildGallery();
     final image = Container(
       margin: const EdgeInsets.only(top: 4, bottom: 3),
       constraints: BoxConstraints(
@@ -48,28 +54,36 @@ class AttachmentImage extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: AspectRatio(
-          aspectRatio: _resolveAspectRatio(),
-          // TODO(mobile): Add full page preview onTap
-          child: CachedNetworkImage(
-            imageUrl: attachment.url,
-            fit: BoxFit.contain,
-            placeholder: (context, url) {
-              if (attachment.placeholder != null) {
-                return Image(
-                  image: ThumbHash.fromBase64(
-                    attachment.placeholder!,
-                  ).toImage(),
-                  fit: BoxFit.contain,
-                );
-              }
-              return const Skeletonizer(
-                child: SizedBox(
-                  height: double.maxFinite,
-                  width: double.maxFinite,
+        child: GestureDetector(
+          onTap: gallery.isEmpty
+              ? null
+              : () => showAttachmentMediaViewer(
+                  context,
+                  items: gallery.map(_buildMediaViewerItem).toList(),
+                  initialIndex: imageGalleryIndex.clamp(0, gallery.length - 1),
                 ),
-              );
-            },
+          child: AspectRatio(
+            aspectRatio: _resolveAspectRatio(),
+            child: CachedNetworkImage(
+              imageUrl: attachment.url,
+              fit: BoxFit.contain,
+              placeholder: (context, url) {
+                if (attachment.placeholder != null) {
+                  return Image(
+                    image: ThumbHash.fromBase64(
+                      attachment.placeholder!,
+                    ).toImage(),
+                    fit: BoxFit.contain,
+                  );
+                }
+                return const Skeletonizer(
+                  child: SizedBox(
+                    height: double.maxFinite,
+                    width: double.maxFinite,
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -81,6 +95,25 @@ class AttachmentImage extends StatelessWidget {
       isSpoiler: attachment.isSpoiler,
       initiallyRevealed: revealSpoiler,
       child: image,
+    );
+  }
+
+  List<Attachment> _buildGallery() {
+    if (imageGallery != null && imageGallery!.isNotEmpty) {
+      return imageGallery!;
+    }
+    if (attachment.url.isEmpty) {
+      return const <Attachment>[];
+    }
+    return <Attachment>[attachment];
+  }
+
+  AttachmentMediaViewerItem _buildMediaViewerItem(Attachment value) {
+    return AttachmentMediaViewerItem(
+      url: value.url,
+      filename: value.filename,
+      width: value.width,
+      height: value.height,
     );
   }
 }

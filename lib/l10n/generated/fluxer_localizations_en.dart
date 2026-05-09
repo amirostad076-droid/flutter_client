@@ -2302,6 +2302,16 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatAttachmentSpoiler => 'Spoiler';
 
   @override
+  String chatAttachmentExpiresOn(String date) {
+    return 'Expires on $date';
+  }
+
+  @override
+  String chatAttachmentExpiresBetween(String start, String end) {
+    return 'Expires between $start and $end';
+  }
+
+  @override
   String get connectionsTitle => 'Connections';
 
   @override
@@ -3168,4 +3178,30 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get chatMessageEdited => '(edited)';
+
+  @override
+  String get mediaViewerImagePreview => 'Image preview';
+
+  @override
+  String get mediaViewerClose => 'Close media viewer';
+
+  @override
+  String get mediaViewerOpenInBrowser => 'Open in browser';
+
+  @override
+  String get mediaViewerZoomIn => 'Zoom in';
+
+  @override
+  String get mediaViewerZoomOut => 'Zoom out';
+
+  @override
+  String get mediaViewerPreviousAttachment => 'Previous attachment';
+
+  @override
+  String get mediaViewerNextAttachment => 'Next attachment';
+
+  @override
+  String mediaViewerAttachmentIndex(int current, int total) {
+    return '$current/$total';
+  }
 }

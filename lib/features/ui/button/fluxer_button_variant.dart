@@ -9,7 +9,10 @@ enum FluxerButtonVariant {
   dangerSecondary,
   inverted,
   invertedOutline,
-  ghost;
+  ghost,
+
+  /// Raised control on blurred or dark overlays (e.g. media viewer toolbar).
+  mediaOverlay;
 
   Color fill(FluxerColorTheme colors) => switch (this) {
     primary => colors.brandPrimary,
@@ -19,6 +22,7 @@ enum FluxerButtonVariant {
     inverted => colors.buttonInvertedFill,
     invertedOutline => Colors.transparent,
     ghost => Colors.transparent,
+    mediaOverlay => colors.backgroundTextarea,
   };
 
   Color activeFill(FluxerColorTheme colors) => switch (this) {
@@ -29,6 +33,7 @@ enum FluxerButtonVariant {
     inverted => colors.buttonInvertedFill,
     invertedOutline => colors.buttonOutlineActiveFill,
     ghost => colors.backgroundModifierHover,
+    mediaOverlay => colors.backgroundSecondaryAlt,
   };
 
   Color textColor(FluxerColorTheme colors) => switch (this) {
@@ -39,10 +44,12 @@ enum FluxerButtonVariant {
     inverted => colors.buttonInvertedText,
     invertedOutline => colors.buttonOutlineText,
     ghost => colors.buttonGhostText,
+    mediaOverlay => colors.textPrimary,
   };
 
   Color? borderColor(FluxerColorTheme colors) => switch (this) {
     invertedOutline => colors.buttonOutlineBorder,
+    mediaOverlay => colors.backgroundModifierAccent,
     _ => null,
   };
 }

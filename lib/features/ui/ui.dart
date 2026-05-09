@@ -26,6 +26,7 @@ export 'package:fluxer_app/features/ui/emoji_picker/fluxer_selected_emoji.dart';
 export 'package:fluxer_app/features/ui/focus_ring/fluxer_focus_ring.dart';
 export 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 export 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
+export 'package:fluxer_app/features/ui/media_viewer/attachment_media_viewer.dart';
 export 'package:fluxer_app/features/ui/plutonium_upsell/fluxer_plutonium_upsell.dart';
 export 'package:fluxer_app/features/ui/popout/fluxer_popout.dart';
 export 'package:fluxer_app/features/ui/radio_group/fluxer_radio_group.dart';

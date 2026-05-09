@@ -2822,6 +2822,27 @@
   "@chatAttachmentSpoiler": {
     "description": "Badge text for spoiler attachments."
   },
+  "chatAttachmentExpiresOn": "Expires on {date}",
+  "@chatAttachmentExpiresOn": {
+    "description": "Footnote when attachment(s) share one expiry date. {date} is already formatted for the locale.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "chatAttachmentExpiresBetween": "Expires between {start} and {end}",
+  "@chatAttachmentExpiresBetween": {
+    "description": "Footnote when attachments expire across a range. {start} and {end} are formatted for the locale.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "connectionsTitle": "Connections",
   "@connectionsTitle": {
     "description": "Title of the Connections settings page."
@@ -3845,5 +3866,45 @@
   "chatMessageEdited": "(edited)",
   "@chatMessageEdited": {
     "description": "Message metadata label displayed after edited messages."
+  },
+  "mediaViewerImagePreview": "Image preview",
+  "@mediaViewerImagePreview": {
+    "description": "Accessible barrier label for the attachment media viewer dialog."
+  },
+  "mediaViewerClose": "Close media viewer",
+  "@mediaViewerClose": {
+    "description": "Tooltip and accessibility label for closing the attachment media viewer."
+  },
+  "mediaViewerOpenInBrowser": "Open in browser",
+  "@mediaViewerOpenInBrowser": {
+    "description": "Tooltip and accessibility label to open the current media item in an external browser."
+  },
+  "mediaViewerZoomIn": "Zoom in",
+  "@mediaViewerZoomIn": {
+    "description": "Tooltip and accessibility label for the media viewer zoom-in action."
+  },
+  "mediaViewerZoomOut": "Zoom out",
+  "@mediaViewerZoomOut": {
+    "description": "Tooltip and accessibility label for the media viewer zoom-out action."
+  },
+  "mediaViewerPreviousAttachment": "Previous attachment",
+  "@mediaViewerPreviousAttachment": {
+    "description": "Tooltip and accessibility label for navigating to the previous attachment in the media viewer."
+  },
+  "mediaViewerNextAttachment": "Next attachment",
+  "@mediaViewerNextAttachment": {
+    "description": "Tooltip and accessibility label for navigating to the next attachment in the media viewer."
+  },
+  "mediaViewerAttachmentIndex": "{current}/{total}",
+  "@mediaViewerAttachmentIndex": {
+    "description": "Index label shown in the media viewer to indicate the current attachment position.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
@@ -16,6 +17,8 @@ import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attach
 import 'package:fluxer_app/features/chat/presentation/widgets/forwarded_message_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/features/ui/media_viewer/attachment_media_viewer.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 
 void main() {
@@ -37,6 +40,25 @@ void main() {
       ),
     );
     expect(find.byType(AttachmentImage), findsOneWidget);
+  });
+
+  testWidgets('opens attachment media viewer when image is tapped', (
+    tester,
+  ) async {
+    final Attachment attachment = _buildAttachment(
+      filename: 'image.png',
+      url: 'https://cdn.example/image.png',
+      width: 640,
+      height: 360,
+    );
+    await tester.pumpWidget(
+      _buildTestApp(
+        child: AttachmentImage(attachment: attachment, wrapWithSpoiler: false),
+      ),
+    );
+    await tester.tap(find.byType(CachedNetworkImage).first);
+    await tester.pump();
+    expect(find.byType(AttachmentMediaViewerShell), findsOneWidget);
   });
 
   testWidgets('renders video attachment inline when enabled', (tester) async {
@@ -278,6 +300,8 @@ Widget _buildTestApp({required Widget child}) {
   final colorTheme = buildDarkColorTheme();
   return ProviderScope(
     child: MaterialApp(
+      localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+      supportedLocales: FluxerLocalizations.supportedLocales,
       theme: buildFluxerTheme(
         colorTheme: colorTheme,
         textTheme: FluxerTextTheme.fromColors(colorTheme),

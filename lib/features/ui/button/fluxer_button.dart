@@ -158,6 +158,27 @@ class FluxerButton extends StatefulWidget {
          'Cannot provide both onPressed and onPressedAsync',
        );
 
+  const FluxerButton.mediaOverlay({
+    this.onPressed,
+    this.onPressedAsync,
+    this.label,
+    this.icon,
+    this.trailingIcon,
+    this.size = FluxerButtonSize.regular,
+    this.isSquare = false,
+    this.isLoading = false,
+    this.fitContent = false,
+    this.recording = false,
+    this.child,
+    super.key,
+  }) : _variant = FluxerButtonVariant.mediaOverlay,
+       _isCircle = false,
+       _iconSizeOverride = null,
+       assert(
+         onPressed == null || onPressedAsync == null,
+         'Cannot provide both onPressed and onPressedAsync',
+       );
+
   const FluxerButton.circle({
     required IconData this.icon,
     this.onPressed,
@@ -208,14 +229,20 @@ class _FluxerButtonState extends State<FluxerButton> {
       (widget.onPressed != null || widget.onPressedAsync != null) &&
       !_effectiveLoading;
 
-  BorderRadius get _borderRadius => BorderRadius.circular(
-    widget._isCircle
-        ? widget.size.height / 2
-        : switch (widget.size) {
-            FluxerButtonSize.regular || FluxerButtonSize.small => 8.0,
-            FluxerButtonSize.compact || FluxerButtonSize.superCompact => 6.0,
-          },
-  );
+  BorderRadius get _borderRadius {
+    if (!widget._isCircle &&
+        widget._variant == FluxerButtonVariant.mediaOverlay) {
+      return BorderRadius.circular(10);
+    }
+    return BorderRadius.circular(
+      widget._isCircle
+          ? widget.size.height / 2
+          : switch (widget.size) {
+              FluxerButtonSize.regular || FluxerButtonSize.small => 8.0,
+              FluxerButtonSize.compact || FluxerButtonSize.superCompact => 6.0,
+            },
+    );
+  }
 
   void _handleTap() {
     if (widget.onPressedAsync != null) {
@@ -442,6 +469,21 @@ Widget fluxerButtonDangerSecondaryPreview() {
 @FluxerWidgetPreview(name: 'Ghost', group: 'FluxerButton')
 Widget fluxerButtonGhostPreview() {
   return FluxerButton.ghost(onPressed: () {}, label: 'Learn more');
+}
+
+@FluxerWidgetPreview(name: 'Media overlay', group: 'FluxerButton')
+Widget fluxerButtonMediaOverlayPreview() {
+  return ColoredBox(
+    color: Colors.black.withValues(alpha: 0.55),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: FluxerButton.mediaOverlay(
+        onPressed: () {},
+        icon: PhosphorIconsBold.x,
+        isSquare: true,
+      ),
+    ),
+  );
 }
 
 @FluxerWidgetPreview(name: 'Circle icon', group: 'FluxerButton')
