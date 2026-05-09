@@ -184,14 +184,14 @@ class ChannelSearch extends _$ChannelSearch {
     String? authorId,
     MessageSearchScopeFilter? scope,
     MessageSearchSortFilter? sort,
-    MessageSearchContentFilter? contentType,
+    Set<MessageSearchContentFilter>? contentTypes,
   }) async {
     final nextQuery = state.query.copyWith(
       text: text,
       authorId: authorId,
       scope: scope,
       sort: sort,
-      contentType: contentType,
+      contentTypes: contentTypes,
       cursor: null,
       page: 1,
     );

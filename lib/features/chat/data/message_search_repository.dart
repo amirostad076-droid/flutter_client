@@ -5,18 +5,25 @@ import 'package:fluxer_dart/export.dart';
 
 const int kMessageSearchPageSize = 25;
 
-enum MessageSearchScopeFilter { current, openDms, allDms, allGuilds, all }
+enum MessageSearchScopeFilter {
+  current,
+  openDms,
+  allDms,
+  allGuilds,
+  all,
+  openDmsAndAllGuilds,
+}
 
 enum MessageSearchSortFilter { newest, oldest, relevance }
 
 enum MessageSearchContentFilter {
-  any,
-  images,
-  videos,
-  files,
-  links,
-  embeds,
-  stickers,
+  image,
+  video,
+  audio,
+  file,
+  link,
+  embed,
+  sticker,
 }
 
 class MessageSearchQuery {
@@ -27,7 +34,7 @@ class MessageSearchQuery {
     this.authorId = '',
     this.scope = MessageSearchScopeFilter.current,
     this.sort = MessageSearchSortFilter.newest,
-    this.contentType = MessageSearchContentFilter.any,
+    this.contentTypes = const <MessageSearchContentFilter>{},
     this.cursor,
     this.page = 1,
   });
@@ -38,7 +45,7 @@ class MessageSearchQuery {
   final String authorId;
   final MessageSearchScopeFilter scope;
   final MessageSearchSortFilter sort;
-  final MessageSearchContentFilter contentType;
+  final Set<MessageSearchContentFilter> contentTypes;
   final List<String>? cursor;
   final int page;
 
@@ -49,7 +56,7 @@ class MessageSearchQuery {
     String? authorId,
     MessageSearchScopeFilter? scope,
     MessageSearchSortFilter? sort,
-    MessageSearchContentFilter? contentType,
+    Set<MessageSearchContentFilter>? contentTypes,
     Object? cursor = _unset,
     int? page,
   }) {
@@ -60,7 +67,7 @@ class MessageSearchQuery {
       authorId: authorId ?? this.authorId,
       scope: scope ?? this.scope,
       sort: sort ?? this.sort,
-      contentType: contentType ?? this.contentType,
+      contentTypes: contentTypes ?? this.contentTypes,
       cursor: cursor == _unset ? this.cursor : cursor as List<String>?,
       page: page ?? this.page,
     );
@@ -69,7 +76,7 @@ class MessageSearchQuery {
   bool get hasSearchTerms =>
       text.trim().isNotEmpty ||
       authorId.trim().isNotEmpty ||
-      contentType != MessageSearchContentFilter.any;
+      contentTypes.isNotEmpty;
 }
 
 class MessageSearchResultEntry {
@@ -197,8 +204,10 @@ class MessageSearchRepository {
 GlobalSearchMessagesRequest buildGlobalSearchMessagesRequest(
   MessageSearchQuery query,
 ) {
-  final authorId = _singleIdFilter(query.authorId);
-  final contentType = _messageContentType(query.contentType);
+  final authorIds = _authorIdsFilter(query.authorId);
+  final contentTypes = query.contentTypes
+      .map(_messageContentType)
+      .toList(growable: false);
   final sort = _messageSort(query.sort);
 
   return GlobalSearchMessagesRequest(
@@ -206,8 +215,8 @@ GlobalSearchMessagesRequest buildGlobalSearchMessagesRequest(
     page: query.cursor == null ? query.page : null,
     cursor: query.cursor,
     content: _blankToNull(query.text),
-    authorId: authorId == null ? null : <String>[authorId],
-    has: contentType == null ? null : <MessageContentType>[contentType],
+    authorId: authorIds,
+    has: contentTypes.isEmpty ? null : contentTypes,
     sortBy: sort.$1,
     sortOrder: sort.$2,
     scope: _messageSearchScope(query.scope),
@@ -228,12 +237,19 @@ String? _blankToNull(String? value) {
   return trimmed;
 }
 
-String? _singleIdFilter(String value) {
+List<String>? _authorIdsFilter(String value) {
   final trimmed = value.trim();
   if (trimmed.isEmpty) {
     return null;
   }
-  return trimmed.split(RegExp(r'[\s,]+')).first;
+  final ids = <String>{};
+  for (final part in trimmed.split(RegExp(r'[\s,]+'))) {
+    final t = part.trim();
+    if (t.isNotEmpty) {
+      ids.add(t);
+    }
+  }
+  return ids.isEmpty ? null : ids.toList();
 }
 
 MessageSearchScope _messageSearchScope(MessageSearchScopeFilter scope) =>
@@ -243,6 +259,8 @@ MessageSearchScope _messageSearchScope(MessageSearchScopeFilter scope) =>
       MessageSearchScopeFilter.allDms => MessageSearchScope.allDms,
       MessageSearchScopeFilter.allGuilds => MessageSearchScope.allGuilds,
       MessageSearchScopeFilter.all => MessageSearchScope.all,
+      MessageSearchScopeFilter.openDmsAndAllGuilds =>
+        MessageSearchScope.openDmsAndAllGuilds,
     };
 
 (MessageSortField, MessageSortOrder) _messageSort(
@@ -262,15 +280,15 @@ MessageSearchScope _messageSearchScope(MessageSearchScopeFilter scope) =>
   ),
 };
 
-MessageContentType? _messageContentType(MessageSearchContentFilter type) =>
+MessageContentType _messageContentType(MessageSearchContentFilter type) =>
     switch (type) {
-      MessageSearchContentFilter.any => null,
-      MessageSearchContentFilter.images => MessageContentType.image,
-      MessageSearchContentFilter.videos => MessageContentType.video,
-      MessageSearchContentFilter.files => MessageContentType.file,
-      MessageSearchContentFilter.links => MessageContentType.link,
-      MessageSearchContentFilter.embeds => MessageContentType.embed,
-      MessageSearchContentFilter.stickers => MessageContentType.sticker,
+      MessageSearchContentFilter.image => MessageContentType.image,
+      MessageSearchContentFilter.video => MessageContentType.video,
+      MessageSearchContentFilter.audio => MessageContentType.sound,
+      MessageSearchContentFilter.file => MessageContentType.file,
+      MessageSearchContentFilter.link => MessageContentType.link,
+      MessageSearchContentFilter.embed => MessageContentType.embed,
+      MessageSearchContentFilter.sticker => MessageContentType.sticker,
     };
 
 const Object _unset = Object();

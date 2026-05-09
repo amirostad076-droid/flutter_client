@@ -15,6 +15,7 @@ import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
@@ -36,7 +37,10 @@ import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -83,7 +87,7 @@ Future<void> showChannelSearchSheet(
 }) {
   return FluxerBottomSheet.showScrollable<void>(
     context,
-    title: 'Search $title',
+    title: 'Search',
     maxHeight: 0.96,
     builder: (sheetContext, scrollController, close) => ChannelSearchSheet(
       channelId: channelId,
@@ -269,6 +273,34 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
     );
   }
 
+  Future<void> _openMuteSheet({required bool isMuted}) async {
+    final guildId = widget.dm != null ? '@me' : widget.channel?.guildId;
+    final channelId = widget.dm?.id ?? widget.channel?.id;
+    ChannelOverridesMuteConfig? muteConfig;
+    if (guildId != null && channelId != null) {
+      muteConfig = await _readChannelOverrideMuteConfig(
+        ref,
+        guildId: guildId,
+        channelId: channelId,
+      );
+    }
+    if (!mounted) {
+      return;
+    }
+    final selection = await showMuteDurationSheet(
+      context,
+      isMuted: isMuted,
+      muteConfig: muteConfig,
+    );
+    if (selection == null || !mounted) {
+      return;
+    }
+    await _setMute(
+      isMuted: selection.muted,
+      durationSeconds: selection.durationSeconds,
+    );
+  }
+
   Future<void> _setMute({required bool isMuted, int? durationSeconds}) async {
     final dm = widget.dm;
     final channel = widget.channel;
@@ -382,11 +414,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
                   icon: PhosphorIconsFill.bellSlash,
                   label: isMuted ? 'Unmute' : 'Mute',
                   isActive: isMuted,
-                  onTap: () => _showMuteSheet(
-                    context,
-                    isMuted: isMuted,
-                    onSelected: _setMute,
-                  ),
+                  onTap: () => _openMuteSheet(isMuted: isMuted),
                 ),
               ),
               if (hasPins) ...[
@@ -415,6 +443,9 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
                                 )
                                 .value ??
                             0;
+                    final developerMode = ref
+                        .read(userSettingsViewModelProvider)
+                        .developerMode;
                     unawaited(
                       _showDetailsMoreSheet(
                         context,
@@ -428,6 +459,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
                         isDmPinned: isDmPinned,
                         hasUnread: unread > 0,
                         channelPermissionBits: bits,
+                        developerMode: developerMode,
                         onMarkRead: _markRead,
                         onToggleFavorite: _toggleFavorite,
                         onToggleDmPin: _toggleDmPin,
@@ -943,17 +975,17 @@ class ChannelSearchSheet extends ConsumerStatefulWidget {
 
 class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
   late final TextEditingController _textController;
-  late final TextEditingController _authorController;
   late final FocusNode _focusNode;
-  Timer? _debounce;
+  final Set<String> _selectedAuthorIds = <String>{};
+  final Map<String, String> _selectedAuthorNames = <String, String>{};
 
   @override
   void initState() {
     super.initState();
     _textController = TextEditingController();
-    _authorController = TextEditingController();
     _focusNode = FocusNode();
     widget.scrollController.addListener(_onScroll);
+    _textController.addListener(_onTextChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _focusNode.requestFocus();
@@ -963,12 +995,16 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
 
   @override
   void dispose() {
-    _debounce?.cancel();
     widget.scrollController.removeListener(_onScroll);
-    _textController.dispose();
-    _authorController.dispose();
+    _textController
+      ..removeListener(_onTextChanged)
+      ..dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onTextChanged() {
+    setState(() {});
   }
 
   void _onScroll() {
@@ -985,9 +1021,37 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
     }
   }
 
-  void _scheduleSearch() {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 350), _runSearch);
+  String get _authorIdsValue => _selectedAuthorIds.join(',');
+
+  String? get _authorChipValue {
+    if (_selectedAuthorIds.isEmpty) {
+      return null;
+    }
+    if (_selectedAuthorIds.length == 1) {
+      final id = _selectedAuthorIds.first;
+      return _selectedAuthorNames[id] ?? id;
+    }
+    return '${_selectedAuthorIds.length} users';
+  }
+
+  void _setAuthorSelection(List<_PickerUser> selectedUsers) {
+    setState(() {
+      _selectedAuthorIds
+        ..clear()
+        ..addAll(selectedUsers.map((u) => u.id));
+      _selectedAuthorNames
+        ..clear()
+        ..addEntries(selectedUsers.map((u) => MapEntry(u.id, u.displayName)));
+    });
+    _runSearch();
+  }
+
+  void _clearAuthorSelection() {
+    setState(() {
+      _selectedAuthorIds.clear();
+      _selectedAuthorNames.clear();
+    });
+    _runSearch();
   }
 
   void _runSearch() {
@@ -1001,75 +1065,138 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
           )
           .search(
             text: _textController.text,
-            authorId: _authorController.text,
+            authorId: _authorIdsValue,
             scope: state.query.scope,
             sort: state.query.sort,
-            contentType: state.query.contentType,
+            contentTypes: state.query.contentTypes,
           ),
     );
   }
+
+  void _clearAll() {
+    _textController.clear();
+    setState(() {
+      _selectedAuthorIds.clear();
+      _selectedAuthorNames.clear();
+    });
+    _updateFilters(
+      scope: MessageSearchScopeFilter.current,
+      sort: MessageSearchSortFilter.newest,
+      contentTypes: const <MessageSearchContentFilter>{},
+    );
+  }
+
+  bool get _hasActiveFilters {
+    final state = ref.read(
+      channelSearchProvider(widget.channelId, widget.guildId),
+    );
+    return _selectedAuthorIds.isNotEmpty ||
+        state.query.scope != MessageSearchScopeFilter.current ||
+        state.query.sort != MessageSearchSortFilter.newest ||
+        state.query.contentTypes.isNotEmpty;
+  }
+
+  bool get _canSearch =>
+      _textController.text.trim().isNotEmpty || _hasActiveFilters;
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(
       channelSearchProvider(widget.channelId, widget.guildId),
     );
+    final colors = context.colors;
+    final hasContent = _textController.text.isNotEmpty;
+    final hasAuthorFilter = _selectedAuthorIds.isNotEmpty;
+    final scopeIsCustom = state.query.scope != MessageSearchScopeFilter.current;
+    final hasContentFilter = state.query.contentTypes.isNotEmpty;
+    final hasChipValue = _hasChipValue(state.query.contentTypes);
+    final showResultCount =
+        state.hasSearched && !state.isSearching && state.total > 0;
+    final showClear = hasContent || _hasActiveFilters;
 
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: Column(
             children: [
               FluxerInput(
                 controller: _textController,
                 focusNode: _focusNode,
-                hint: 'Search messages',
+                hint: 'Search Messages',
                 prefixIcon: const PhosphorIcon(
                   PhosphorIconsBold.magnifyingGlass,
                 ),
+                suffixIcon: showClear
+                    ? const PhosphorIcon(PhosphorIconsBold.x)
+                    : null,
+                onSuffixTap: showClear ? _clearAll : null,
                 textInputAction: TextInputAction.search,
-                onChanged: (_) => _scheduleSearch(),
                 onSubmitted: (_) => _runSearch(),
               ),
-              SizedBox(height: context.layout.s2),
-              FluxerInput(
-                controller: _authorController,
-                hint: 'Author ID',
-                prefixIcon: const PhosphorIcon(PhosphorIconsBold.user),
-                textInputAction: TextInputAction.search,
-                onChanged: (_) => _scheduleSearch(),
-                onSubmitted: (_) => _runSearch(),
-              ),
-              SizedBox(height: context.layout.s2),
+              const SizedBox(height: 12),
               Wrap(
-                spacing: context.layout.s2,
-                runSpacing: context.layout.s2,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  _SearchDropdown<MessageSearchScopeFilter>(
-                    value: state.query.scope,
-                    items: MessageSearchScopeFilter.values,
-                    labelFor: _scopeLabel,
-                    onChanged: (value) => _updateFilters(scope: value),
+                  _SearchFilterChip(
+                    label: 'From',
+                    value: _authorChipValue,
+                    icon: PhosphorIconsBold.user,
+                    isActive: hasAuthorFilter,
+                    onTap: _openFromSheet,
+                    onRemove: hasAuthorFilter ? _clearAuthorSelection : null,
                   ),
-                  _SearchDropdown<MessageSearchSortFilter>(
-                    value: state.query.sort,
-                    items: MessageSearchSortFilter.values,
-                    labelFor: _sortLabel,
-                    onChanged: (value) => _updateFilters(sort: value),
+                  _SearchFilterChip(
+                    label: 'Has',
+                    value: hasChipValue,
+                    icon: PhosphorIconsBold.funnel,
+                    isActive: hasContentFilter,
+                    onTap: _openHasSheet,
+                    onRemove: hasContentFilter
+                        ? () => _updateFilters(
+                              contentTypes:
+                                  const <MessageSearchContentFilter>{},
+                            )
+                        : null,
                   ),
-                  _SearchDropdown<MessageSearchContentFilter>(
-                    value: state.query.contentType,
-                    items: MessageSearchContentFilter.values,
-                    labelFor: _contentLabel,
-                    onChanged: (value) => _updateFilters(contentType: value),
+                  _SearchFilterChip(
+                    label: 'Sort',
+                    value: _sortLabel(state.query.sort),
+                    icon: PhosphorIconsBold.sortAscending,
+                    onTap: _openSortSheet,
+                  ),
+                  _SearchFilterChip(
+                    label: _scopeLabel(
+                      state.query.scope,
+                      isGuildChannel: widget.guildId != null,
+                    ),
+                    icon: PhosphorIconsBold.caretDown,
+                    isActive: scopeIsCustom,
+                    onTap: _openScopeSheet,
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FluxerButton.primary(
+                  label: 'Search',
+                  onPressed: _canSearch ? _runSearch : null,
+                ),
+              ),
+              if (showResultCount) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '${state.total} ${state.total == 1 ? 'Result' : 'Results'}',
+                  style: context.textStyles.bodySmall.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
-        SizedBox(height: context.layout.s3),
         Expanded(child: _buildResults(context, state)),
       ],
     );
@@ -1078,7 +1205,7 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
   void _updateFilters({
     MessageSearchScopeFilter? scope,
     MessageSearchSortFilter? sort,
-    MessageSearchContentFilter? contentType,
+    Set<MessageSearchContentFilter>? contentTypes,
   }) {
     final state = ref.read(
       channelSearchProvider(widget.channelId, widget.guildId),
@@ -1090,12 +1217,184 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
           )
           .search(
             text: _textController.text,
-            authorId: _authorController.text,
+            authorId: _authorIdsValue,
             scope: scope ?? state.query.scope,
             sort: sort ?? state.query.sort,
-            contentType: contentType ?? state.query.contentType,
+            contentTypes: contentTypes ?? state.query.contentTypes,
           ),
     );
+  }
+
+  String? _hasChipValue(Set<MessageSearchContentFilter> contentTypes) {
+    if (contentTypes.isEmpty) {
+      return null;
+    }
+    if (contentTypes.length == 1) {
+      return _contentLabel(contentTypes.first);
+    }
+    return '${contentTypes.length} types';
+  }
+
+  Future<void> _openFromSheet() async {
+    final users = await _loadFromCandidates();
+    if (!mounted) {
+      return;
+    }
+    final selected = await FluxerBottomSheet.showScrollable<List<_PickerUser>>(
+      context,
+      title: 'Filter by user',
+      initialChildSize: 0.85,
+      minChildSize: 0.5,
+      builder: (sheetContext, scrollController, close) => _UserFilterSheet(
+        availableUsers: users,
+        initialSelectedIds: _selectedAuthorIds,
+        scrollController: scrollController,
+        onDone: (chosen) => Navigator.of(sheetContext).pop(chosen),
+      ),
+    );
+    if (selected != null) {
+      _setAuthorSelection(selected);
+    }
+  }
+
+  Future<List<_PickerUser>> _loadFromCandidates() async {
+    final database = ref.read(fluxerDatabaseProvider);
+    final guildId = widget.guildId;
+    if (guildId != null) {
+      final members = await database.memberDao.getMembers(guildId);
+      final ids = members.map((m) => m.userId).toList();
+      final users = await database.userDao.getUsersByIds(ids);
+      final memberByUserId = {for (final m in members) m.userId: m};
+      final pickers = <_PickerUser>[
+        for (final user in users)
+          _PickerUser.fromUserRow(
+            user,
+            nick: memberByUserId[user.id]?.nick,
+          ),
+      ]..sort(
+        (a, b) =>
+            a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()),
+      );
+      return pickers;
+    }
+
+    final dmRow = await database.dmChannelDao.getDmChannelById(
+      widget.channelId,
+    );
+    final ids = <String>{};
+    if (dmRow != null) {
+      try {
+        final raw = jsonDecode(dmRow.recipientIds);
+        if (raw is List) {
+          for (final entry in raw) {
+            if (entry is String && entry.isNotEmpty) {
+              ids.add(entry);
+            }
+          }
+        }
+      } on FormatException {
+        // Ignore malformed cache; falls back to recipientId only.
+      }
+      if (dmRow.recipientId.isNotEmpty) {
+        ids.add(dmRow.recipientId);
+      }
+    }
+    final users = await database.userDao.getUsersByIds(ids.toList());
+    final pickers = <_PickerUser>[
+      for (final user in users) _PickerUser.fromUserRow(user),
+    ]..sort(
+      (a, b) =>
+          a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()),
+    );
+    return pickers;
+  }
+
+  Future<void> _openHasSheet() async {
+    final state = ref.read(
+      channelSearchProvider(widget.channelId, widget.guildId),
+    );
+    final selected =
+        await FluxerBottomSheet.showScrollable<Set<MessageSearchContentFilter>>(
+      context,
+      title: 'Filter by content',
+      initialChildSize: 0.85,
+      minChildSize: 0.5,
+      builder: (sheetContext, scrollController, close) => _HasFilterSheet(
+        initialSelected: state.query.contentTypes,
+        scrollController: scrollController,
+        onDone: (chosen) => Navigator.of(sheetContext).pop(chosen),
+      ),
+    );
+    if (selected != null) {
+      _updateFilters(contentTypes: selected);
+    }
+  }
+
+  Future<void> _openSortSheet() async {
+    final state = ref.read(
+      channelSearchProvider(widget.channelId, widget.guildId),
+    );
+    final selected = await FluxerBottomSheet.show<MessageSearchSortFilter>(
+      context,
+      title: 'Sort results by',
+      builder: (sheetContext, close) => FluxerBottomSheetContent(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final value in MessageSearchSortFilter.values) ...[
+              _SearchOptionCard(
+                icon: _sortIcon(value),
+                label: _sortLabel(value),
+                description: _sortDescription(value),
+                isSelected: state.query.sort == value,
+                onTap: () => Navigator.of(sheetContext).pop(value),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ],
+        ),
+      ),
+    );
+    if (selected != null) {
+      _updateFilters(sort: selected);
+    }
+  }
+
+  Future<void> _openScopeSheet() async {
+    final state = ref.read(
+      channelSearchProvider(widget.channelId, widget.guildId),
+    );
+    final isGuildChannel = widget.guildId != null;
+    final options = _scopeOptionsFor(isGuildChannel: isGuildChannel);
+    final selected = await FluxerBottomSheet.show<MessageSearchScopeFilter>(
+      context,
+      title: 'Search In',
+      builder: (sheetContext, close) => FluxerBottomSheetContent(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final value in options) ...[
+              _SearchOptionCard(
+                icon: _scopeIcon(value),
+                label: _scopeLabel(value, isGuildChannel: isGuildChannel),
+                description: _scopeDescription(
+                  value,
+                  isGuildChannel: isGuildChannel,
+                ),
+                isSelected: state.query.scope == value,
+                onTap: () => Navigator.of(sheetContext).pop(value),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ],
+        ),
+      ),
+    );
+    if (selected != null) {
+      _updateFilters(scope: selected);
+    }
   }
 
   Widget _buildResults(BuildContext context, ChannelSearchState state) {
@@ -1529,50 +1828,528 @@ List<_RenderGroup> _splitOnlineOffline(List<RoleGroup> roleGroups) {
   return online;
 }
 
-class _SearchDropdown<T> extends StatelessWidget {
-  const _SearchDropdown({
-    required this.value,
-    required this.items,
-    required this.labelFor,
-    required this.onChanged,
+class _SearchFilterChip extends StatelessWidget {
+  const _SearchFilterChip({
+    required this.label,
+    required this.onTap,
+    this.value,
+    this.icon,
+    this.isActive = false,
+    this.onRemove,
   });
 
-  final T value;
-  final List<T> items;
-  // Generic dropdown callbacks preserve enum-specific labels and selections.
-  // ignore: unsafe_variance
-  final String Function(T value) labelFor;
-  // Generic dropdown callbacks preserve enum-specific labels and selections.
-  // ignore: unsafe_variance
-  final ValueChanged<T> onChanged;
+  final String label;
+  final String? value;
+  final IconData? icon;
+  final bool isActive;
+  final VoidCallback onTap;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.colors.backgroundTertiary,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<T>(
-            value: value,
-            dropdownColor: context.colors.backgroundSecondary,
-            style: context.textStyles.label.copyWith(
-              color: context.colors.textPrimary,
-            ),
-            items: [
-              for (final item in items)
-                DropdownMenuItem<T>(value: item, child: Text(labelFor(item))),
+    final colors = context.colors;
+    final background = isActive
+        ? colors.brandPrimary
+        : colors.backgroundSecondaryAlt;
+    final borderColor = isActive ? colors.brandPrimary : colors.borderColor;
+    final labelColor = isActive ? Colors.white : colors.textSecondary;
+    final valueColor = isActive ? Colors.white : colors.textPrimary;
+    final iconColor = isActive ? Colors.white : colors.textSecondary;
+
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: borderColor),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                PhosphorIcon(icon!, size: 14, color: iconColor),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: context.textStyles.label.copyWith(
+                  color: labelColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (value != null && value!.isNotEmpty) ...[
+                const SizedBox(width: 4),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 120),
+                  child: Text(
+                    value!,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: context.textStyles.label.copyWith(color: valueColor),
+                  ),
+                ),
+              ],
+              if (isActive && onRemove != null) ...[
+                const SizedBox(width: 6),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onRemove,
+                  child: const PhosphorIcon(
+                    PhosphorIconsBold.x,
+                    size: 12,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ],
-            onChanged: (next) {
-              if (next != null) {
-                onChanged(next);
-              }
-            },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SearchOptionCard extends StatelessWidget {
+  const _SearchOptionCard({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    this.description,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? description;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final accent = colors.brandPrimaryLight;
+    final background = isSelected
+        ? accent.withValues(alpha: 0.10)
+        : colors.backgroundTertiary;
+    final borderColor = isSelected ? accent : colors.borderColor;
+    final iconColor = isSelected ? accent : colors.textSecondary;
+
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: borderColor),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              PhosphorIcon(icon, size: 22, color: iconColor),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: colors.textPrimary,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+                    if (description != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        description!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.2,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (isSelected) ...[
+                const SizedBox(width: 12),
+                PhosphorIcon(
+                  PhosphorIconsBold.check,
+                  size: 20,
+                  color: accent,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PickerUser {
+  const _PickerUser({
+    required this.id,
+    required this.username,
+    required this.displayName,
+    this.avatar,
+    this.avatarColor,
+    this.status = 'offline',
+  });
+
+  factory _PickerUser.fromUserRow(db.User user, {String? nick}) {
+    final display =
+        nick ?? user.globalName ?? (user.username.isNotEmpty
+            ? user.username
+            : user.id);
+    return _PickerUser(
+      id: user.id,
+      username: user.username,
+      displayName: display,
+      avatar: user.avatar,
+      avatarColor: user.avatarColor,
+      status: user.status,
+    );
+  }
+
+  final String id;
+  final String username;
+  final String displayName;
+  final String? avatar;
+  final int? avatarColor;
+  final String status;
+
+  String? get avatarUrl =>
+      avatar == null ? null : '$fluxerMediaCdn/avatars/$id/$avatar.png';
+
+  String get tag => username.isNotEmpty ? '@$username' : '@$id';
+}
+
+class _UserFilterSheet extends StatefulWidget {
+  const _UserFilterSheet({
+    required this.availableUsers,
+    required this.initialSelectedIds,
+    required this.scrollController,
+    required this.onDone,
+  });
+
+  final List<_PickerUser> availableUsers;
+  final Set<String> initialSelectedIds;
+  final ScrollController scrollController;
+  final ValueChanged<List<_PickerUser>> onDone;
+
+  @override
+  State<_UserFilterSheet> createState() => _UserFilterSheetState();
+}
+
+class _UserFilterSheetState extends State<_UserFilterSheet> {
+  late final TextEditingController _searchController;
+  late final Set<String> _selectedIds;
+  String _searchTerm = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _selectedIds = <String>{...widget.initialSelectedIds};
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController
+      ..removeListener(_onSearchChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() => _searchTerm = _searchController.text);
+  }
+
+  void _toggle(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  List<_PickerUser> get _filteredUsers {
+    final q = _searchTerm.trim().toLowerCase();
+    if (q.isEmpty) {
+      return widget.availableUsers;
+    }
+    return [
+      for (final user in widget.availableUsers)
+        if (user.displayName.toLowerCase().contains(q) ||
+            user.username.toLowerCase().contains(q))
+          user,
+    ];
+  }
+
+  List<_PickerUser> _selectionForResult() {
+    final byId = {for (final u in widget.availableUsers) u.id: u};
+    return [
+      for (final id in _selectedIds)
+        if (byId[id] != null)
+          byId[id]!
+        else
+          _PickerUser(id: id, username: '', displayName: id),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final filtered = _filteredUsers;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        children: [
+          FluxerInput(
+            controller: _searchController,
+            hint: 'Search users',
+            prefixIcon: const PhosphorIcon(PhosphorIconsBold.magnifyingGlass),
+            suffixIcon: _searchTerm.isNotEmpty
+                ? const PhosphorIcon(PhosphorIconsBold.x)
+                : null,
+            onSuffixTap: _searchTerm.isNotEmpty
+                ? () {
+                    _searchController.clear();
+                  }
+                : null,
+            textInputAction: TextInputAction.search,
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: filtered.isEmpty
+                ? Center(
+                    child: Text(
+                      _searchTerm.isNotEmpty
+                          ? 'No users found'
+                          : 'No users available',
+                      style: context.textStyles.bodySmall.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    controller: widget.scrollController,
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 4),
+                    itemBuilder: (context, index) {
+                      final user = filtered[index];
+                      final isSelected = _selectedIds.contains(user.id);
+                      return _UserFilterRow(
+                        user: user,
+                        isSelected: isSelected,
+                        onTap: () => _toggle(user.id),
+                      );
+                    },
+                  ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FluxerButton.primary(
+              label: 'Done',
+              onPressed: () => widget.onDone(_selectionForResult()),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UserFilterRow extends StatelessWidget {
+  const _UserFilterRow({
+    required this.user,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final _PickerUser user;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final accent = colors.brandPrimaryLight;
+    final background = isSelected
+        ? accent.withValues(alpha: 0.10)
+        : Colors.transparent;
+    final borderColor = isSelected ? accent : colors.borderColor;
+
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: borderColor),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              FluxerAvatar.user(
+                imageUrl: user.avatarUrl,
+                fallbackText: user.displayName,
+                avatarColor: user.avatarColor,
+                size: 36,
+                showStatus: false,
+                userId: user.id,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      user.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      user.tag,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelected) ...[
+                const SizedBox(width: 12),
+                PhosphorIcon(
+                  PhosphorIconsBold.check,
+                  size: 20,
+                  color: accent,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HasFilterSheet extends StatefulWidget {
+  const _HasFilterSheet({
+    required this.initialSelected,
+    required this.scrollController,
+    required this.onDone,
+  });
+
+  final Set<MessageSearchContentFilter> initialSelected;
+  final ScrollController scrollController;
+  final ValueChanged<Set<MessageSearchContentFilter>> onDone;
+
+  @override
+  State<_HasFilterSheet> createState() => _HasFilterSheetState();
+}
+
+class _HasFilterSheetState extends State<_HasFilterSheet> {
+  late final Set<MessageSearchContentFilter> _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = <MessageSearchContentFilter>{...widget.initialSelected};
+  }
+
+  void _toggle(MessageSearchContentFilter value) {
+    setState(() {
+      if (_selected.contains(value)) {
+        _selected.remove(value);
+      } else {
+        _selected.add(value);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                'Show messages that contain:',
+                style: context.textStyles.bodySmall.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.separated(
+              controller: widget.scrollController,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              itemCount: MessageSearchContentFilter.values.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final value = MessageSearchContentFilter.values[index];
+                return _SearchOptionCard(
+                  icon: _contentIcon(value),
+                  label: _contentLabel(value),
+                  description: _contentDescription(value),
+                  isSelected: _selected.contains(value),
+                  onTap: () => _toggle(value),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FluxerButton.primary(
+              label: 'Done',
+              onPressed: () => widget.onDone(_selected),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1680,101 +2457,7 @@ class _InlineRetry extends StatelessWidget {
   }
 }
 
-class _MuteSelection {
-  const _MuteSelection({required this.muted, this.durationSeconds});
-
-  final bool muted;
-  final int? durationSeconds;
-}
-
 enum _PinnedMessageAction { jump, unpin, copyMessageId, copyMessageLink }
-
-Future<void> _showMuteSheet(
-  BuildContext context, {
-  required bool isMuted,
-  required Future<void> Function({required bool isMuted, int? durationSeconds})
-  onSelected,
-}) async {
-  final result = await FluxerBottomSheet.show<_MuteSelection>(
-    context,
-    title: isMuted ? 'Unmute' : 'Mute',
-    variant: FluxerBottomSheetVariant.menu,
-    builder: (sheetContext, close) {
-      void select(_MuteSelection selection) {
-        close();
-        unawaited(
-          onSelected(
-            isMuted: selection.muted,
-            durationSeconds: selection.durationSeconds,
-          ),
-        );
-      }
-
-      return FluxerBottomSheetContent(
-        child: FluxerMenuGroup(
-          children: isMuted
-              ? [
-                  FluxerBottomSheetMenuItem(
-                    label: 'Unmute',
-                    icon: PhosphorIconsBold.bell,
-                    onTap: () => select(const _MuteSelection(muted: false)),
-                  ),
-                ]
-              : [
-                  FluxerBottomSheetMenuItem(
-                    label: 'For 15 minutes',
-                    onTap: () => select(
-                      const _MuteSelection(
-                        muted: true,
-                        durationSeconds: 15 * 60,
-                      ),
-                    ),
-                  ),
-                  FluxerBottomSheetMenuItem(
-                    label: 'For 1 hour',
-                    onTap: () => select(
-                      const _MuteSelection(
-                        muted: true,
-                        durationSeconds: 60 * 60,
-                      ),
-                    ),
-                  ),
-                  FluxerBottomSheetMenuItem(
-                    label: 'For 8 hours',
-                    onTap: () => select(
-                      const _MuteSelection(
-                        muted: true,
-                        durationSeconds: 8 * 60 * 60,
-                      ),
-                    ),
-                  ),
-                  FluxerBottomSheetMenuItem(
-                    label: 'For 24 hours',
-                    onTap: () => select(
-                      const _MuteSelection(
-                        muted: true,
-                        durationSeconds: 24 * 60 * 60,
-                      ),
-                    ),
-                  ),
-                  FluxerBottomSheetMenuItem(
-                    label: 'Until I turn it back on',
-                    icon: PhosphorIconsBold.bellSlash,
-                    onTap: () => select(const _MuteSelection(muted: true)),
-                  ),
-                ],
-        ),
-      );
-    },
-  );
-
-  if (result != null && context.mounted) {
-    await onSelected(
-      isMuted: result.muted,
-      durationSeconds: result.durationSeconds,
-    );
-  }
-}
 
 void _stubComingSoon(BuildContext context, WidgetRef ref) {
   ref.read(toastProvider.notifier).show(
@@ -1871,6 +2554,7 @@ Future<void> _showDetailsMoreSheet(
   required bool isDmPinned,
   required bool hasUnread,
   required int channelPermissionBits,
+  required bool developerMode,
   required Future<void> Function() onMarkRead,
   required Future<void> Function({required bool isFavorite}) onToggleFavorite,
   required Future<void> Function({required bool isPinned}) onToggleDmPin,
@@ -1883,6 +2567,8 @@ Future<void> _showDetailsMoreSheet(
   final title = dm == null
       ? 'Channel Settings'
       : (dm.isGroup ? 'Group Settings' : 'DM Settings');
+  final isDM = dm != null && !dm.isGroup && !dm.isPersonalNotes;
+  final isGroupDM = dm != null && dm.isGroup;
   return FluxerBottomSheet.show<void>(
     context,
     title: title,
@@ -1898,50 +2584,108 @@ Future<void> _showDetailsMoreSheet(
       final canCreateInvite = channel != null &&
           hasPermission(channelPermissionBits, Permission.createInstantInvite);
 
-      final groups = <Widget>[
-        FluxerMenuGroup(
-          children: [
-            if (showFavorite)
-              FluxerBottomSheetMenuItem(
-                label: isFavorite
-                    ? 'Remove from Favorites'
-                    : 'Add to Favorites',
-                icon: isFavorite
-                    ? PhosphorIconsFill.star
-                    : PhosphorIconsBold.star,
-                onTap: () =>
-                    run(() => onToggleFavorite(isFavorite: isFavorite)),
-              ),
-            if (hasUnread)
-              FluxerBottomSheetMenuItem(
-                label: 'Mark as Read',
-                icon: PhosphorIconsBold.checkCircle,
-                onTap: () => run(onMarkRead),
-              ),
-            if (dm != null && !dm.isPersonalNotes)
-              FluxerBottomSheetMenuItem(
-                label: dm.isGroup
-                    ? (isDmPinned ? 'Unpin Group DM' : 'Pin Group DM')
-                    : (isDmPinned ? 'Unpin DM' : 'Pin DM'),
-                icon: PhosphorIconsBold.pushPin,
-                onTap: () => run(() => onToggleDmPin(isPinned: isDmPinned)),
-              ),
-          ],
-        ),
-        if (canCreateInvite)
-          FluxerMenuGroup(
-            children: [
-              FluxerBottomSheetMenuItem(
-                label: 'Invite People',
-                icon: PhosphorIconsBold.userPlus,
-                onTap: () {
-                  close();
-                  _stubComingSoon(context, ref);
-                },
-              ),
-            ],
+      final commonItems = <Widget>[
+        if (showFavorite)
+          FluxerBottomSheetMenuItem(
+            label: isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+            icon: isFavorite ? PhosphorIconsFill.star : PhosphorIconsBold.star,
+            onTap: () => run(() => onToggleFavorite(isFavorite: isFavorite)),
           ),
-        if (dm != null && dm.isGroup)
+        if (hasUnread)
+          FluxerBottomSheetMenuItem(
+            label: 'Mark as Read',
+            icon: PhosphorIconsBold.checkCircle,
+            onTap: () => run(onMarkRead),
+          ),
+        if (dm != null && !dm.isPersonalNotes)
+          FluxerBottomSheetMenuItem(
+            label: dm.isGroup
+                ? (isDmPinned ? 'Unpin Group DM' : 'Pin Group DM')
+                : (isDmPinned ? 'Unpin DM' : 'Pin DM'),
+            icon: PhosphorIconsBold.pushPin,
+            onTap: () => run(() => onToggleDmPin(isPinned: isDmPinned)),
+          ),
+        if (canCreateInvite)
+          FluxerBottomSheetMenuItem(
+            label: 'Invite People',
+            icon: PhosphorIconsBold.userPlus,
+            onTap: () {
+              close();
+              _stubComingSoon(context, ref);
+            },
+          ),
+        if (channel != null)
+          FluxerBottomSheetMenuItem(
+            label: 'Copy Link',
+            icon: PhosphorIconsBold.link,
+            onTap: () =>
+                run(() => onCopy(_channelLink(channel.id, channel.guildId))),
+          ),
+        if (channel != null)
+          FluxerBottomSheetSubmenuItem(
+            label: 'Notification Settings',
+            icon: PhosphorIconsBold.bellRinging,
+            onTap: () {
+              close();
+              unawaited(
+                _showNotificationSettingsSheet(
+                  context,
+                  channel: channel,
+                  onSetNotification: onSetNotification,
+                ),
+              );
+            },
+          ),
+      ];
+
+      final miscItems = <Widget>[
+        if (developerMode && channelId != null)
+          FluxerBottomSheetMenuItem(
+            label: 'Debug Channel',
+            icon: PhosphorIconsBold.bug,
+            onTap: () {
+              close();
+              unawaited(
+                _showDebugChannelSheet(
+                  context,
+                  ref: ref,
+                  channelId: channelId,
+                ),
+              );
+            },
+          ),
+        if (developerMode && isDM)
+          FluxerBottomSheetMenuItem(
+            label: 'Debug User',
+            icon: PhosphorIconsBold.bug,
+            onTap: () {
+              close();
+              unawaited(
+                _showDebugUserSheet(
+                  context,
+                  ref: ref,
+                  userId: dm.recipientId,
+                ),
+              );
+            },
+          ),
+        if (isDM)
+          FluxerBottomSheetMenuItem(
+            label: 'Copy User ID',
+            icon: PhosphorIconsRegular.snowflake,
+            onTap: () => run(() => onCopy(dm.recipientId)),
+          ),
+        if (channelId != null)
+          FluxerBottomSheetMenuItem(
+            label: 'Copy Channel ID',
+            icon: PhosphorIconsRegular.snowflake,
+            onTap: () => run(() => onCopy(channelId)),
+          ),
+      ];
+
+      final groups = <Widget>[
+        if (commonItems.isNotEmpty) FluxerMenuGroup(children: commonItems),
+        if (isGroupDM)
           FluxerMenuGroup(
             children: [
               FluxerBottomSheetMenuItem(
@@ -1970,49 +2714,6 @@ Future<void> _showDetailsMoreSheet(
               ),
             ],
           ),
-        if (channel != null)
-          FluxerMenuGroup(
-            children: [
-              FluxerBottomSheetSubmenuItem(
-                label: 'Notification Settings',
-                icon: PhosphorIconsBold.bellRinging,
-                onTap: () {
-                  close();
-                  unawaited(
-                    _showNotificationSettingsSheet(
-                      context,
-                      channel: channel,
-                      onSetNotification: onSetNotification,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        if (channelId != null)
-          FluxerMenuGroup(
-            children: [
-              if (channel != null)
-                FluxerBottomSheetMenuItem(
-                  label: 'Copy Channel Link',
-                  icon: PhosphorIconsBold.link,
-                  onTap: () => run(
-                    () => onCopy(_channelLink(channelId, channel.guildId)),
-                  ),
-                ),
-              if (dm != null && !dm.isGroup && !dm.isPersonalNotes)
-                FluxerBottomSheetMenuItem(
-                  label: 'Copy User ID',
-                  icon: PhosphorIconsRegular.snowflake,
-                  onTap: () => run(() => onCopy(dm.recipientId)),
-                ),
-              FluxerBottomSheetMenuItem(
-                label: 'Copy Channel ID',
-                icon: PhosphorIconsRegular.snowflake,
-                onTap: () => run(() => onCopy(channelId)),
-              ),
-            ],
-          ),
         if (canManageChannel)
           FluxerMenuGroup(
             children: [
@@ -2035,17 +2736,18 @@ Future<void> _showDetailsMoreSheet(
               ),
             ],
           ),
-        if (dm != null && !dm.isPersonalNotes)
+        if (isDM || isGroupDM)
           FluxerMenuGroup(
             children: [
               FluxerBottomSheetMenuItem(
-                label: dm.isGroup ? 'Leave Group' : 'Close DM',
+                label: isGroupDM ? 'Leave Group' : 'Close DM',
                 icon: PhosphorIconsBold.xCircle,
                 isDanger: true,
                 onTap: () => run(onCloseDm),
               ),
             ],
           ),
+        if (miscItems.isNotEmpty) FluxerMenuGroup(children: miscItems),
       ];
 
       return FluxerBottomSheetContent(
@@ -2053,6 +2755,60 @@ Future<void> _showDetailsMoreSheet(
       );
     },
   );
+}
+
+Future<void> _showDebugChannelSheet(
+  BuildContext context, {
+  required WidgetRef ref,
+  required String channelId,
+}) async {
+  try {
+    final client = ref.read(fluxerClientProvider);
+    final channel = await client.channels.getChannel(channelId: channelId);
+    if (!context.mounted) {
+      return;
+    }
+    await showDebugBottomSheet(
+      context,
+      title: FluxerLocalizations.of(context).dmDebugChannel,
+      data: channel.toJson(),
+      onCopied: (message) => ref.read(toastProvider.notifier).show(
+            FluxerToast(
+              message: message,
+              variant: FluxerToastVariant.success,
+            ),
+          ),
+    );
+  } on Exception catch (_) {
+    // Ignore — failed to fetch channel.
+  }
+}
+
+Future<void> _showDebugUserSheet(
+  BuildContext context, {
+  required WidgetRef ref,
+  required String userId,
+}) async {
+  try {
+    final client = ref.read(fluxerClientProvider);
+    final user = await client.users.getUserById(userId: userId);
+    if (!context.mounted) {
+      return;
+    }
+    await showDebugBottomSheet(
+      context,
+      title: FluxerLocalizations.of(context).dmDebugUser,
+      data: user.toJson(),
+      onCopied: (message) => ref.read(toastProvider.notifier).show(
+            FluxerToast(
+              message: message,
+              variant: FluxerToastVariant.success,
+            ),
+          ),
+    );
+  } on Exception catch (_) {
+    // Ignore — failed to fetch user.
+  }
 }
 
 Future<void> _showNotificationSettingsSheet(
@@ -2391,6 +3147,30 @@ Future<bool> _canUnpinMessage(
   }
 }
 
+Future<ChannelOverridesMuteConfig?> _readChannelOverrideMuteConfig(
+  WidgetRef ref, {
+  required String guildId,
+  required String channelId,
+}) async {
+  final database = ref.read(fluxerDatabaseProvider);
+  final row = await database.userGuildSettingsDao.getByGuildId(guildId);
+  if (row == null) {
+    return null;
+  }
+  try {
+    final settings = UserGuildSettingsResponse.fromJson(
+      jsonDecode(row.data) as Map<String, dynamic>,
+    );
+    final override = settings.channelOverrides?[channelId];
+    if (override?.muted != true) {
+      return null;
+    }
+    return override?.muteConfig;
+  } on Object {
+    return null;
+  }
+}
+
 Future<void> _updateGuildChannelOverride(
   WidgetRef ref, {
   required String guildId,
@@ -2582,26 +3362,120 @@ String _formatDate(DateTime dateTime) {
   return '${local.month}/${local.day}/${local.year} $h:$m';
 }
 
-String _scopeLabel(MessageSearchScopeFilter value) => switch (value) {
-  MessageSearchScopeFilter.current => 'Current',
-  MessageSearchScopeFilter.openDms => 'Open DMs',
-  MessageSearchScopeFilter.allDms => 'All DMs',
-  MessageSearchScopeFilter.allGuilds => 'All communities',
-  MessageSearchScopeFilter.all => 'All',
+List<MessageSearchScopeFilter> _scopeOptionsFor({
+  required bool isGuildChannel,
+}) {
+  if (isGuildChannel) {
+    return const [
+      MessageSearchScopeFilter.current,
+      MessageSearchScopeFilter.allGuilds,
+      MessageSearchScopeFilter.allDms,
+      MessageSearchScopeFilter.openDms,
+      MessageSearchScopeFilter.all,
+      MessageSearchScopeFilter.openDmsAndAllGuilds,
+    ];
+  }
+  return const [
+    MessageSearchScopeFilter.current,
+    MessageSearchScopeFilter.allDms,
+    MessageSearchScopeFilter.openDms,
+    MessageSearchScopeFilter.all,
+    MessageSearchScopeFilter.openDmsAndAllGuilds,
+  ];
+}
+
+String _scopeLabel(
+  MessageSearchScopeFilter value, {
+  required bool isGuildChannel,
+}) => switch (value) {
+  MessageSearchScopeFilter.current =>
+    isGuildChannel ? 'Current Community' : 'Current DM',
+  MessageSearchScopeFilter.allGuilds => 'All Communities',
+  MessageSearchScopeFilter.allDms =>
+    isGuildChannel ? 'All DMs Only' : 'All DMs',
+  MessageSearchScopeFilter.openDms =>
+    isGuildChannel ? 'Open DMs Only' : 'Open DMs',
+  MessageSearchScopeFilter.all => 'All DMs + Communities',
+  MessageSearchScopeFilter.openDmsAndAllGuilds => 'Open DMs + Communities',
+};
+
+String _scopeDescription(
+  MessageSearchScopeFilter value, {
+  required bool isGuildChannel,
+}) => switch (value) {
+  MessageSearchScopeFilter.current => isGuildChannel
+      ? 'Search only in the current Community'
+      : 'Search only in the current DM',
+  MessageSearchScopeFilter.allGuilds =>
+    "Across all Communities you're currently in",
+  MessageSearchScopeFilter.allDms => isGuildChannel
+      ? "Across all DMs you've ever been in only"
+      : "Across all DMs you've ever been in",
+  MessageSearchScopeFilter.openDms => isGuildChannel
+      ? 'Across all DMs you currently have open only'
+      : 'Across all DMs you currently have open',
+  MessageSearchScopeFilter.all =>
+    "Across all DMs you've ever been in + all Communities you're currently in",
+  MessageSearchScopeFilter.openDmsAndAllGuilds =>
+    'Across all DMs you currently have open + all Communities '
+        "you're currently in",
+};
+
+IconData _scopeIcon(MessageSearchScopeFilter value) => switch (value) {
+  MessageSearchScopeFilter.current => PhosphorIconsRegular.hash,
+  MessageSearchScopeFilter.openDms => PhosphorIconsRegular.chatCenteredDots,
+  MessageSearchScopeFilter.allDms => PhosphorIconsRegular.envelopeSimple,
+  MessageSearchScopeFilter.allGuilds => PhosphorIconsRegular.globe,
+  MessageSearchScopeFilter.all => PhosphorIconsRegular.users,
+  MessageSearchScopeFilter.openDmsAndAllGuilds => PhosphorIconsRegular.users,
 };
 
 String _sortLabel(MessageSearchSortFilter value) => switch (value) {
-  MessageSearchSortFilter.newest => 'Newest',
-  MessageSearchSortFilter.oldest => 'Oldest',
-  MessageSearchSortFilter.relevance => 'Relevance',
+  MessageSearchSortFilter.newest => 'Newest First',
+  MessageSearchSortFilter.oldest => 'Oldest First',
+  MessageSearchSortFilter.relevance => 'Most Relevant',
+};
+
+String _sortDescription(MessageSearchSortFilter value) => switch (value) {
+  MessageSearchSortFilter.newest => 'Show most recent messages first',
+  MessageSearchSortFilter.oldest => 'Show oldest messages first',
+  MessageSearchSortFilter.relevance => 'Show most relevant messages first',
+};
+
+IconData _sortIcon(MessageSearchSortFilter value) => switch (value) {
+  MessageSearchSortFilter.newest => PhosphorIconsRegular.clockClockwise,
+  MessageSearchSortFilter.oldest =>
+    PhosphorIconsRegular.clockCounterClockwise,
+  MessageSearchSortFilter.relevance => PhosphorIconsRegular.sparkle,
 };
 
 String _contentLabel(MessageSearchContentFilter value) => switch (value) {
-  MessageSearchContentFilter.any => 'Any content',
-  MessageSearchContentFilter.images => 'Images',
-  MessageSearchContentFilter.videos => 'Videos',
-  MessageSearchContentFilter.files => 'Files',
-  MessageSearchContentFilter.links => 'Links',
-  MessageSearchContentFilter.embeds => 'Embeds',
-  MessageSearchContentFilter.stickers => 'Stickers',
+  MessageSearchContentFilter.image => 'Image Upload',
+  MessageSearchContentFilter.video => 'Video Upload',
+  MessageSearchContentFilter.audio => 'Audio Upload',
+  MessageSearchContentFilter.file => 'File Upload',
+  MessageSearchContentFilter.link => 'Link',
+  MessageSearchContentFilter.embed => 'Link Preview or Embed',
+  MessageSearchContentFilter.sticker => 'Sticker',
+};
+
+String _contentDescription(MessageSearchContentFilter value) => switch (value) {
+  MessageSearchContentFilter.image => 'Uploaded image files only',
+  MessageSearchContentFilter.video => 'Uploaded video files only',
+  MessageSearchContentFilter.audio => 'Uploaded audio files only',
+  MessageSearchContentFilter.file => 'Any uploaded attachment',
+  MessageSearchContentFilter.link => 'Typed URL in the message text',
+  MessageSearchContentFilter.embed =>
+    'Resolved previews and rich embeds, not uploads',
+  MessageSearchContentFilter.sticker => 'Sticker attached to the message',
+};
+
+IconData _contentIcon(MessageSearchContentFilter value) => switch (value) {
+  MessageSearchContentFilter.image => PhosphorIconsRegular.image,
+  MessageSearchContentFilter.video => PhosphorIconsRegular.videoCamera,
+  MessageSearchContentFilter.audio => PhosphorIconsRegular.musicNote,
+  MessageSearchContentFilter.file => PhosphorIconsRegular.file,
+  MessageSearchContentFilter.link => PhosphorIconsRegular.link,
+  MessageSearchContentFilter.embed => PhosphorIconsRegular.browser,
+  MessageSearchContentFilter.sticker => PhosphorIconsRegular.sticker,
 };
