@@ -385,6 +385,8 @@ class GatewayEventHandler {
       await database.guildEmojiDao.clearAll();
       await database.guildStickerDao.clearAll();
 
+      // Gateway never echoes the current user's own presence back.
+      final selfStatus = event.userSettings?.status ?? 'online';
       await database.userDao.upsertUser(
         db.UsersCompanion.insert(
           id: event.user.id,
@@ -394,6 +396,7 @@ class GatewayEventHandler {
           avatar: Value(event.user.avatar),
           avatarColor: Value(event.user.avatarColor),
           bot: Value(event.user.bot ?? false),
+          status: Value(selfStatus),
           memberSince: Value(dateTimeFromUserSnowflakeOrNull(event.user.id)),
         ),
       );
@@ -700,6 +703,7 @@ class GatewayEventHandler {
         data: Value(jsonEncode(event.settings.toJson())),
       ),
     );
+    await database.userDao.updateStatus(userId, event.settings.status);
     onUserSettingsHydrate?.call(event.settings);
   }
 
