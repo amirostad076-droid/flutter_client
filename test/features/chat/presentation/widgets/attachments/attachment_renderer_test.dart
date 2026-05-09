@@ -118,7 +118,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(AttachmentFileLabel), findsOneWidget);
+    expect(find.byType(AttachmentFile), findsOneWidget);
   });
 
   testWidgets('renders file label for image attachment without URL', (
@@ -138,7 +138,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(AttachmentFileLabel), findsOneWidget);
+    expect(find.byType(AttachmentFile), findsOneWidget);
     expect(find.byType(AttachmentImage), findsNothing);
   });
 
