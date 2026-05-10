@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
@@ -7,8 +8,24 @@ import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/swipe_to_reply.dart';
 import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
 
-Widget _buildApp(Widget child) {
+Widget _buildApp(
+  Widget child, {
+  Map<Type, GestureRecognizerFactory>? parentGestures,
+}) {
   final colorTheme = buildDarkColorTheme();
+  Widget viewport = SizedBox(
+    key: const ValueKey<void>('swipeViewport'),
+    width: 400,
+    height: 56,
+    child: child,
+  );
+  if (parentGestures != null) {
+    viewport = RawGestureDetector(
+      behavior: HitTestBehavior.opaque,
+      gestures: parentGestures,
+      child: viewport,
+    );
+  }
   return MaterialApp(
     theme: buildFluxerTheme(
       colorTheme: colorTheme,
@@ -17,18 +34,23 @@ Widget _buildApp(Widget child) {
     ),
     home: MediaQuery(
       data: const MediaQueryData(size: Size(400, 800)),
-      child: Scaffold(
-        body: Center(
-          child: SizedBox(
-            key: const ValueKey<void>('swipeViewport'),
-            width: 400,
-            height: 56,
-            child: child,
-          ),
-        ),
-      ),
+      child: Scaffold(body: Center(child: viewport)),
     ),
   );
+}
+
+Future<void> _slowDrag(
+  WidgetTester tester,
+  Offset start,
+  Offset totalDelta, {
+  int steps = 5,
+}) async {
+  final TestGesture gesture = await tester.startGesture(start);
+  final Offset step = totalDelta / steps.toDouble();
+  for (var i = 0; i < steps; i++) {
+    await gesture.moveBy(step);
+  }
+  await gesture.up();
 }
 
 void main() {
@@ -92,5 +114,99 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
     expect(replyCount, 1);
+  });
+
+  testWidgets('rightward drag yields to parent horizontal recognizer', (
+    tester,
+  ) async {
+    var replyCount = 0;
+    var parentStartCount = 0;
+    var parentDeltaX = 0.0;
+    await tester.pumpWidget(
+      _buildApp(
+        SwipeToReply(
+          onReply: () => replyCount++,
+          child: const ColoredBox(color: Color(0xFF112233)),
+        ),
+        parentGestures: <Type, GestureRecognizerFactory>{
+          HorizontalDragGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<
+                HorizontalDragGestureRecognizer
+              >(HorizontalDragGestureRecognizer.new, (recognizer) {
+                recognizer
+                  ..onStart = (_) {
+                    parentStartCount++;
+                  }
+                  ..onUpdate = (details) {
+                    parentDeltaX += details.delta.dx;
+                  };
+              }),
+        },
+      ),
+    );
+    final BuildContext ctx = tester.element(
+      find.byKey(const ValueKey<void>('swipeViewport')),
+    );
+    final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
+    final RenderBox viewport = tester.renderObject(
+      find.byKey(const ValueKey<void>('swipeViewport')),
+    ) as RenderBox;
+    final Offset startLocal = Offset(
+      reserve + 40,
+      viewport.size.height / 2,
+    );
+    await _slowDrag(
+      tester,
+      viewport.localToGlobal(startLocal),
+      const Offset(150, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(replyCount, 0);
+    expect(parentStartCount, 1);
+    expect(parentDeltaX, greaterThan(80));
+  });
+
+  testWidgets('leftward drag still wins over parent horizontal recognizer', (
+    tester,
+  ) async {
+    var replyCount = 0;
+    var parentStartCount = 0;
+    await tester.pumpWidget(
+      _buildApp(
+        SwipeToReply(
+          onReply: () => replyCount++,
+          child: const ColoredBox(color: Color(0xFF112233)),
+        ),
+        parentGestures: <Type, GestureRecognizerFactory>{
+          HorizontalDragGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<
+                HorizontalDragGestureRecognizer
+              >(HorizontalDragGestureRecognizer.new, (recognizer) {
+                recognizer.onStart = (_) {
+                  parentStartCount++;
+                };
+              }),
+        },
+      ),
+    );
+    final BuildContext ctx = tester.element(
+      find.byKey(const ValueKey<void>('swipeViewport')),
+    );
+    final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
+    final RenderBox viewport = tester.renderObject(
+      find.byKey(const ValueKey<void>('swipeViewport')),
+    ) as RenderBox;
+    final Offset startLocal = Offset(
+      reserve + 40,
+      viewport.size.height / 2,
+    );
+    await _slowDrag(
+      tester,
+      viewport.localToGlobal(startLocal),
+      const Offset(-150, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(replyCount, 1);
+    expect(parentStartCount, 0);
   });
 }

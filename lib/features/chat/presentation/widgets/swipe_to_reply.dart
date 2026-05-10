@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -158,12 +159,20 @@ class _SwipeToReplyState extends State<SwipeToReply>
           top: 0,
           end: 0,
           bottom: 0,
-          child: GestureDetector(
+          child: RawGestureDetector(
             behavior: HitTestBehavior.translucent,
-            onHorizontalDragStart: _handleDragStart,
-            onHorizontalDragUpdate: _handleDragUpdate,
-            onHorizontalDragEnd: _handleDragEnd,
-            onHorizontalDragCancel: _handleDragCancel,
+            gestures: <Type, GestureRecognizerFactory>{
+              _LeftwardHorizontalDragRecognizer:
+                  GestureRecognizerFactoryWithHandlers<
+                    _LeftwardHorizontalDragRecognizer
+                  >(_LeftwardHorizontalDragRecognizer.new, (recognizer) {
+                    recognizer
+                      ..onStart = _handleDragStart
+                      ..onUpdate = _handleDragUpdate
+                      ..onEnd = _handleDragEnd
+                      ..onCancel = _handleDragCancel;
+                  }),
+            },
             child: const SizedBox.expand(),
           ),
         ),
@@ -201,5 +210,54 @@ class _SwipeToReplyState extends State<SwipeToReply>
         ),
       ),
     );
+  }
+}
+
+/// Horizontal drag recognizer that drops out of the gesture arena as soon
+/// as the dominant drag direction is rightward, leaving the parent shell
+/// drawer free to claim the gesture and open the drawer.
+class _LeftwardHorizontalDragRecognizer
+    extends HorizontalDragGestureRecognizer {
+  _LeftwardHorizontalDragRecognizer({super.debugOwner});
+
+  final Map<int, Offset> _initialPositions = <int, Offset>{};
+  final Set<int> _resolved = <int>{};
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    _initialPositions[event.pointer] = event.position;
+    super.addAllowedPointer(event);
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (event is PointerMoveEvent && !_resolved.contains(event.pointer)) {
+      final start = _initialPositions[event.pointer];
+      if (start != null) {
+        final delta = event.position - start;
+        if (delta.dx.abs() >= kTouchSlop &&
+            delta.dx.abs() > delta.dy.abs() &&
+            delta.dx > 0) {
+          _resolved.add(event.pointer);
+          resolve(GestureDisposition.rejected);
+          return;
+        }
+      }
+    }
+    super.handleEvent(event);
+  }
+
+  @override
+  void didStopTrackingLastPointer(int pointer) {
+    _initialPositions.remove(pointer);
+    _resolved.remove(pointer);
+    super.didStopTrackingLastPointer(pointer);
+  }
+
+  @override
+  void rejectGesture(int pointer) {
+    _initialPositions.remove(pointer);
+    _resolved.remove(pointer);
+    super.rejectGesture(pointer);
   }
 }
