@@ -29,11 +29,11 @@ For updates, support, and discussion, [join the Fluxer Mobile server on Fluxer](
 
 **Google Play Store**: Coming soon!
 
-**Android APK**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](https://obtainium.imranr.dev) for auto updates.
+**Android APK**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](https://obtainium.imranr.dev) for auto updates. Requires Google Play Services (Firebase Messaging for Notifications).
 
-**Android APK OSS**: Coming soon! (this build will come without Firebase Messenger for push notification and will use [UnifiedPush](https://unifiedpush.org) for push notifications)
+**Android APK OSS**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](https://obtainium.imranr.dev) for auto updates. Will use [UnifiedPush](https://unifiedpush.org) for push notifications in the future (currently no notifications).
 
-Stable and beta Android release builds are signed with this SHA-256 certificate fingerprint:
+Stable, beta, and canary Android release builds on Github are signed with this SHA-256 certificate fingerprint:
 `91:E4:98:E1:B8:A6:C8:BA:99:41:5E:DB:29:78:29:6B:6C:58:BA:A5:E2:D2:A6:49:CE:C6:2D:A7:A8:29:C7:BC`
 
 ## Contributing
