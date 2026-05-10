@@ -32,26 +32,28 @@ class FriendsList extends ConsumerWidget {
 
     return ColoredBox(
       color: context.colors.chatBackground,
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                _buildTopBar(
-                  context,
-                  ref,
-                  activeTab,
-                  showActiveNow: showActiveNow,
-                ),
-                Divider(color: context.colors.borderColor, height: 1),
-                _buildSearchBar(context, ref, activeTab),
-                _buildSectionHeader(context, vm),
-                Expanded(child: _buildFriendsList(context, vm)),
-              ],
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  _buildTopBar(
+                    context,
+                    ref,
+                    activeTab,
+                    showActiveNow: showActiveNow,
+                  ),
+                  Divider(color: context.colors.borderColor, height: 1),
+                  _buildSearchBar(context, ref, activeTab),
+                  _buildSectionHeader(context, vm),
+                  Expanded(child: _buildFriendsList(context, vm)),
+                ],
+              ),
             ),
-          ),
-          if (showActiveNow) _buildActiveNowPanel(context),
-        ],
+            if (showActiveNow) _buildActiveNowPanel(context),
+          ],
+        ),
       ),
     );
   }
