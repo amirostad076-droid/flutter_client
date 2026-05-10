@@ -772,8 +772,11 @@ class _MembersTab extends ConsumerWidget {
                 isOwner: guildOwnerId != null && member.id == guildOwnerId,
                 customStatus: member.customStatus,
                 dimmed: group.dimMembers,
-                onTap: () =>
-                    FluxerUserProfileSheet.show(context, userId: member.id),
+                onTap: () => FluxerUserProfileSheet.show(
+                  context,
+                  userId: member.id,
+                  guildId: guildId,
+                ),
                 onLongPress: () => _showGuildMemberActionsSheet(
                   context,
                   ref: ref,
@@ -2498,6 +2501,7 @@ Future<void> _showGuildMemberActionsSheet(
                     () => FluxerUserProfileSheet.show(
                       context,
                       userId: member.id,
+                      guildId: guildId,
                     ),
                   ),
                 ),

@@ -45,6 +45,7 @@ class FluxerUserProfileSheet {
   static Future<void> show(
     BuildContext context, {
     required String userId,
+    String? guildId,
     bool autoFocusNote = false,
   }) {
     return FluxerBottomSheet.showScrollable<void>(
@@ -59,6 +60,7 @@ class FluxerUserProfileSheet {
         autoFocusNote: autoFocusNote,
         scrollController: scrollController,
         onClose: close,
+        guildId: guildId,
       ),
     );
   }
@@ -70,9 +72,11 @@ class _SheetBody extends ConsumerStatefulWidget {
     required this.autoFocusNote,
     required this.scrollController,
     required this.onClose,
+    this.guildId,
   });
 
   final String userId;
+  final String? guildId;
   final bool autoFocusNote;
   final ScrollController scrollController;
   final VoidCallback onClose;
@@ -272,7 +276,12 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
   Widget build(BuildContext context) {
     final layout = context.layout;
     final l10n = FluxerLocalizations.of(context);
-    final profileAsync = ref.watch(userProfileProvider(userId: widget.userId));
+    final profileAsync = ref.watch(
+      userProfileProvider(
+        userId: widget.userId,
+        guildId: widget.guildId,
+      ),
+    );
     final relationshipAsync = ref.watch(
       userRelationshipProvider(userId: widget.userId),
     );
@@ -287,15 +296,23 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
     return profileAsync.when(
       loading: () => const Center(child: FluxerLoadingSpinner()),
       error: (_, _) => _ErrorState(
-        onRetry: () =>
-            ref.invalidate(userProfileProvider(userId: widget.userId)),
+        onRetry: () => ref.invalidate(
+          userProfileProvider(
+            userId: widget.userId,
+            guildId: widget.guildId,
+          ),
+        ),
         message: l10n.userProfileLoadError,
       ),
       data: (response) {
         if (response == null) {
           return _ErrorState(
-            onRetry: () =>
-                ref.invalidate(userProfileProvider(userId: widget.userId)),
+            onRetry: () => ref.invalidate(
+              userProfileProvider(
+                userId: widget.userId,
+                guildId: widget.guildId,
+              ),
+            ),
             message: l10n.userProfileLoadError,
           );
         }

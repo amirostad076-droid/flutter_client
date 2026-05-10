@@ -8,7 +8,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'user_profile.g.dart';
 
 @riverpod
-Future<UserProfileFullResponse?> userProfile(Ref ref, {String? userId}) async {
+Future<UserProfileFullResponse?> userProfile(
+  Ref ref, {
+  String? userId,
+  String? guildId,
+}) async {
   final String resolvedId =
       userId ?? ref.read(userSettingsViewModelProvider).userId;
 
@@ -18,7 +22,10 @@ Future<UserProfileFullResponse?> userProfile(Ref ref, {String? userId}) async {
 
   final FluxerClient client = ref.read(fluxerClientProvider);
   try {
-    return await client.users.getUserProfile(targetId: resolvedId);
+    return await client.users.getUserProfile(
+      targetId: resolvedId,
+      guildId: guildId,
+    );
   } on Object {
     return null;
   }

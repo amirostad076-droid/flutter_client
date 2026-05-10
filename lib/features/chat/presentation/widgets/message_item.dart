@@ -28,13 +28,14 @@ import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.da
 import 'package:fluxer_app/features/chat/presentation/widgets/swipe_to_reply.dart';
 import 'package:fluxer_app/features/chat/providers/spoiler_reveal_provider.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
+import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:fluxer_app/shared/utils/emoji_utils.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
+import 'package:fluxer_app/shared/utils/emoji_utils.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -139,6 +140,28 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     }
 
     widget.onReaction?.call(emoji.surrogates);
+  }
+
+  bool _canOpenAuthorProfile(Message msg) {
+    if (widget.inboxPreviewMode || msg.isSystemMessage) {
+      return false;
+    }
+    return msg.authorId.isNotEmpty;
+  }
+
+  void _openAuthorProfile(BuildContext context, Message msg) {
+    if (!_canOpenAuthorProfile(msg)) {
+      return;
+    }
+    final String? guildId =
+        widget.previewRoleGuildId ?? ref.read(activeGuildIdProvider);
+    unawaited(
+      FluxerUserProfileSheet.show(
+        context,
+        userId: msg.authorId,
+        guildId: guildId,
+      ),
+    );
   }
 
   void _handleAction(MessageAction? action, {required bool isMobile}) {
@@ -612,24 +635,30 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   }) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      SizedBox(
-        width: _kAvatarColumnWidth,
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: AnimatedOpacity(
-            opacity: _isHovered ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 100),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _formatShortTimestamp(msg.timestamp.toLocal()),
-                  style: TextStyle(
-                    color: context.colors.textTertiaryMuted,
-                    fontSize: 10,
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _canOpenAuthorProfile(msg)
+            ? () => _openAuthorProfile(context, msg)
+            : null,
+        child: SizedBox(
+          width: _kAvatarColumnWidth,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: AnimatedOpacity(
+              opacity: _isHovered ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 100),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _formatShortTimestamp(msg.timestamp.toLocal()),
+                    style: TextStyle(
+                      color: context.colors.textTertiaryMuted,
+                      fontSize: 10,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -673,13 +702,19 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   }) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Padding(
-        padding: const EdgeInsets.only(top: 2),
-        child: FluxerAvatar.user(
-          fallbackText: msg.authorName,
-          userId: msg.authorId,
-          imageUrl: msg.authorAvatarUrl,
-          avatarColor: msg.authorAvatarColor,
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _canOpenAuthorProfile(msg)
+            ? () => _openAuthorProfile(context, msg)
+            : null,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: FluxerAvatar.user(
+            fallbackText: msg.authorName,
+            userId: msg.authorId,
+            imageUrl: msg.authorAvatarUrl,
+            avatarColor: msg.authorAvatarColor,
+          ),
         ),
       ),
       const SizedBox(width: 16),
@@ -690,15 +725,21 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             Row(
               children: [
                 Flexible(
-                  child: Text(
-                    msg.authorName,
-                    style: TextStyle(
-                      color: roleColor ?? context.colors.textChat,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _canOpenAuthorProfile(msg)
+                        ? () => _openAuthorProfile(context, msg)
+                        : null,
+                    child: Text(
+                      msg.authorName,
+                      style: TextStyle(
+                        color: roleColor ?? context.colors.textChat,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
                   ),
                 ),
                 if (msg.authorIsBot) ...[
