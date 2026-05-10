@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/shell/presentation/sidebar_drawer.dart';
-import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -52,16 +51,17 @@ void main() {
     });
   });
 
-  testWidgets('tracks opening drags from the leading edge strip', (tester) async {
+  testWidgets('tracks opening drags from anywhere on the surface', (
+    tester,
+  ) async {
     final router = _routerFor('/channels/guild/channel');
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
     await tester.pumpWidget(_buildDrawerApp(container: container));
 
-    final BuildContext ctx = tester.element(find.byType(SidebarDrawer));
-    final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
-    final gesture = await tester.startGesture(Offset(reserve / 2, 400));
+    // Mid-screen — not a leading edge strip — must still capture the drag.
+    final gesture = await tester.startGesture(const Offset(200, 400));
     await gesture.moveBy(const Offset(80, 0));
     await tester.pump();
 
@@ -74,26 +74,23 @@ void main() {
     expect(_sliderDx(tester), 400);
   });
 
-  testWidgets('allows closing from the leading edge when open', (tester) async {
+  testWidgets('allows closing with a swipe from anywhere when open', (
+    tester,
+  ) async {
     final router = _routerFor('/channels/guild/channel');
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
     await tester.pumpWidget(_buildDrawerApp(container: container));
     await tester.pump();
-    final BuildContext ctx = tester.element(find.byType(SidebarDrawer));
-    final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
-    final double startDx = reserve / 2;
 
-    await tester.dragFrom(
-      Offset(startDx, 400),
-      Offset(260, 0),
-    );
+    await tester.dragFrom(const Offset(10, 400), const Offset(260, 0));
     await tester.pumpAndSettle();
 
     expect(_sliderDx(tester), 400);
 
-    await tester.dragFrom(Offset(startDx, 400), const Offset(-260, 0));
+    // Closing drag starts mid-screen, not at the edge.
+    await tester.dragFrom(const Offset(240, 400), const Offset(-260, 0));
     await tester.pumpAndSettle();
 
     expect(_sliderDx(tester), 0);
@@ -106,9 +103,7 @@ void main() {
 
     await tester.pumpWidget(_buildDrawerApp(container: container));
     await tester.pump();
-    final BuildContext ctx = tester.element(find.byType(SidebarDrawer));
-    final double startDx = leadingEdgeHorizontalSwipeReserveWidth(ctx) / 2;
-    await tester.dragFrom(Offset(startDx, 400), const Offset(260, 0));
+    await tester.dragFrom(const Offset(10, 400), const Offset(260, 0));
     await tester.pumpAndSettle();
 
     expect(_sliderDx(tester), 400);
