@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/route_kind.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/guild_sidebar.dart';
@@ -29,6 +30,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // Left sidebars width is computed from layout theme in _buildDesktopBody.
 
+enum BottomNavBranch { home, notifications, you }
+
 class AppLayout extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -40,12 +43,9 @@ class AppLayout extends ConsumerStatefulWidget {
 
 class _AppLayoutState extends ConsumerState<AppLayout>
     with SingleTickerProviderStateMixin {
-  static const _youBranchIndex = 2;
-  static final _rootRoutePattern = RegExp(r'^/channels/[^/]+$');
-  static final _chatRoutePattern = RegExp('^/channels/[^/]+/.+');
   late final GoRouter _router;
   late final AnimationController _swipeController;
-  String? _lastSyncedChannelsLocation;
+  String _cachedLocation = '/';
 
   @override
   void initState() {
@@ -56,10 +56,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
       vsync: this,
       duration: kHorizontalSwipeRevealDuration,
     );
-    final initialLocation = _currentLocation;
-    if (_isChannelsRoute(initialLocation)) {
-      _lastSyncedChannelsLocation = initialLocation;
-    }
+    _cachedLocation = _readLocation();
   }
 
   @override
@@ -73,42 +70,15 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     if (!mounted) {
       return;
     }
+    _cachedLocation = _readLocation();
     _swipeController.value = 0;
     setState(() {});
-    _syncRevealSideToRoute();
+    ref.read(currentRevealSideProvider.notifier).syncForRoute(_cachedLocation);
   }
 
-  String get _currentLocation {
+  String _readLocation() {
     final config = _router.routerDelegate.currentConfiguration;
     return config.isNotEmpty ? config.last.matchedLocation : '/';
-  }
-
-  void _syncRevealSideToRoute() {
-    final config = _router.routerDelegate.currentConfiguration;
-    if (config.isEmpty) {
-      return;
-    }
-    final pathLocation = config.last.matchedLocation;
-    if (!_isChannelsRoute(pathLocation)) {
-      return;
-    }
-    // Returning to the same channels location (e.g., via a bottom-nav tab
-    // round-trip) must not overwrite a drawer state the user toggled
-    // manually. Only re-sync when the channels location actually changes.
-    if (pathLocation == _lastSyncedChannelsLocation) {
-      return;
-    }
-    _lastSyncedChannelsLocation = pathLocation;
-
-    final RevealSide desired;
-    if (_isRootRoute(pathLocation)) {
-      desired = RevealSide.left;
-    } else if (_isChatRoute(pathLocation)) {
-      desired = RevealSide.main;
-    } else {
-      return;
-    }
-    ref.read(currentRevealSideProvider.notifier).set(desired);
   }
 
   @override
@@ -138,7 +108,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   }
 
   Widget _buildDesktopBody() {
-    final location = _currentLocation;
+    final location = _cachedLocation;
     final isDm = location.startsWith('/channels/@me');
 
     final layout = context.layout;
@@ -175,7 +145,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   }
 
   Widget _buildMobileBody() {
-    final location = _currentLocation;
+    final location = _cachedLocation;
 
     if (_isChannelsRoute(location)) {
       return _buildMobileChannelBody(location);
@@ -423,13 +393,18 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     );
   }
 
-  /// Matches /channels/@me, /channels/@favorites, /channels/:guildId (no sub-path).
-  bool _isRootRoute(String location) => _rootRoutePattern.hasMatch(location);
+  bool _isRootRoute(String location) =>
+      classifyRoute(location) == RouteKind.channelsRoot;
 
-  bool _isChannelsRoute(String location) => location.startsWith('/channels/');
+  bool _isChannelsRoute(String location) => isChannelsRoute(location);
 
-  /// Matches any /channels/:x/:y path (DM channel, guild channel, message).
-  bool _isChatRoute(String location) => _chatRoutePattern.hasMatch(location);
+  /// Any `/channels/:x/:y(...)` path — chat, guild members, dm call.
+  bool _isChatRoute(String location) {
+    final kind = classifyRoute(location);
+    return kind == RouteKind.chat ||
+        kind == RouteKind.guildMembers ||
+        kind == RouteKind.dmCall;
+  }
 
   bool _canSwipePop(String location) {
     if (location == '/notifications' || location == '/you') {
@@ -442,7 +417,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     required UserSettingsViewState user,
     required int currentIndex,
   }) {
-    final isSelected = currentIndex == _youBranchIndex;
+    final isSelected = currentIndex == BottomNavBranch.you.index;
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),
       opacity: isSelected ? 1 : 0.5,

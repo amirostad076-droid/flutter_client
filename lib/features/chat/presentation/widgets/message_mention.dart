@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -19,7 +19,6 @@ import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod/src/providers/future_provider.dart';
 
@@ -46,7 +45,8 @@ class ChannelMention extends ConsumerWidget {
     return GestureDetector(
       onTap: channel == null
           ? null
-          : () => context.go(
+          : () => navigateToContent(
+              context,
               RoutePaths.guildChannel(channel.guildId, channel.id),
             ),
       child: _MentionPill(
@@ -272,22 +272,26 @@ class ChannelJumpLinkMention extends ConsumerWidget {
         );
         return;
       }
-      final router = ProviderScope.containerOf(
-        context,
-      ).read(fluxerRouterProvider);
       final messageId = isMessage ? (link as MessageJumpLink).messageId : null;
       if (link.isDm) {
         if (messageId != null) {
-          router.go(RoutePaths.dmChannelMessage(link.channelId, messageId));
+          navigateToContent(
+            context,
+            RoutePaths.dmChannelMessage(link.channelId, messageId),
+          );
         } else {
-          router.go(RoutePaths.dmChannel(link.channelId));
+          navigateToContent(context, RoutePaths.dmChannel(link.channelId));
         }
       } else if (messageId != null) {
-        router.go(
+        navigateToContent(
+          context,
           RoutePaths.guildChannelMessage(link.scope, link.channelId, messageId),
         );
       } else {
-        router.go(RoutePaths.guildChannel(link.scope, link.channelId));
+        navigateToContent(
+          context,
+          RoutePaths.guildChannel(link.scope, link.channelId),
+        );
       }
     }
 

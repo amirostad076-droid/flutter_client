@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
-import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -47,6 +47,5 @@ Future<void> acceptInvite({
 }) async {
   final client = ref.read(fluxerClientProvider);
   await client.invites.acceptInvite(inviteCode: code);
-  final router = ref.read(fluxerRouterProvider);
-  router.go(RoutePaths.guildChannel(guildId, channelId));
+  navigateToContentVia(ref, RoutePaths.guildChannel(guildId, channelId));
 }

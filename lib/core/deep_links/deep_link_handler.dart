@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_links/app_links.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
@@ -131,17 +132,21 @@ class DeepLinkHandler extends _$DeepLinkHandler {
 
   void _handleChannelDeepLink(GoRouter router, List<String> segments) {
     if (segments.length >= 3 && segments[1] == '@me') {
-      router.go(RoutePaths.dmChannel(segments[2]));
+      navigateToContentVia(ref, RoutePaths.dmChannel(segments[2]));
       return;
     }
     if (segments.length >= 4) {
-      router.go(
+      navigateToContentVia(
+        ref,
         RoutePaths.guildChannelMessage(segments[1], segments[2], segments[3]),
       );
       return;
     }
     if (segments.length >= 3) {
-      router.go(RoutePaths.guildChannel(segments[1], segments[2]));
+      navigateToContentVia(
+        ref,
+        RoutePaths.guildChannel(segments[1], segments[2]),
+      );
       return;
     }
     if (segments.length >= 2) {

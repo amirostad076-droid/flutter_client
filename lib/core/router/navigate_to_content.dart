@@ -1,25 +1,31 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
-import 'package:go_router/go_router.dart';
 
-final _chatRoutePattern = RegExp('^/channels/[^/]+/.+');
-
-/// Navigates to [path] using go() which declaratively updates the route stack.
+/// Navigates to [path] using `go()` and pre-sets the mobile drawer for
+/// chat-route targets so re-tapping the active channel still closes the
+/// drawer (`context.go` is a no-op when the location is unchanged, so the
+/// post-nav route listener never fires).
 ///
-/// Using go() ensures the [StatefulShellRoute] builder receives the updated
-/// location. Child routes maintain the parent in the stack, so pop() and
-/// system back gestures still work on mobile.
-///
-/// When [path] targets a chat route, the mobile sidebar drawer is forced to
-/// the main side before navigating. This guarantees the drawer closes even
-/// when the user re-taps the channel they are already viewing — go() is a
-/// no-op for an unchanged location, so the route-change listener never fires.
+/// Use this from widgets. For non-context call sites (notifiers,
+/// providers, deep-link handlers) use [navigateToContentVia].
 void navigateToContent(BuildContext context, String path) {
-  if (_chatRoutePattern.hasMatch(path)) {
-    ProviderScope.containerOf(context)
-        .read(currentRevealSideProvider.notifier)
-        .set(RevealSide.main);
+  final container = ProviderScope.containerOf(context);
+  final eager = eagerRevealSideFor(path);
+  if (eager != null) {
+    container.read(currentRevealSideProvider.notifier).set(eager);
   }
-  context.go(path);
+  container.read(fluxerRouterProvider).go(path);
+}
+
+/// Same as [navigateToContent] but for call sites that hold a Riverpod
+/// [Ref] instead of a [BuildContext] (e.g. notifiers, deep-link handlers,
+/// non-widget providers).
+void navigateToContentVia(Ref ref, String path) {
+  final eager = eagerRevealSideFor(path);
+  if (eager != null) {
+    ref.read(currentRevealSideProvider.notifier).set(eager);
+  }
+  ref.read(fluxerRouterProvider).go(path);
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
@@ -8,7 +9,6 @@ import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/emoji_utils.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
-import 'package:go_router/go_router.dart';
 
 final _internalLinkPattern = RegExp(
   r'https?://fluxer\.app/channels/'
@@ -70,9 +70,10 @@ FluxerMarkdownConfig createFluxerMarkdownConfig({
           return;
         }
         if (jump.isDm) {
-          context.go(RoutePaths.dmChannel(jump.channelId));
+          navigateToContent(context, RoutePaths.dmChannel(jump.channelId));
         } else if (jump is MessageJumpLink) {
-          context.go(
+          navigateToContent(
+            context,
             RoutePaths.guildChannelMessage(
               jump.scope,
               jump.channelId,
@@ -80,7 +81,10 @@ FluxerMarkdownConfig createFluxerMarkdownConfig({
             ),
           );
         } else {
-          context.go(RoutePaths.guildChannel(jump.scope, jump.channelId));
+          navigateToContent(
+            context,
+            RoutePaths.guildChannel(jump.scope, jump.channelId),
+          );
         }
         return;
       }

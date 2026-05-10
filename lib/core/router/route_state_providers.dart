@@ -1,105 +1,98 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/route_kind.dart';
+import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'route_state_providers.g.dart';
 
-/// Watches the router's matched location.
+/// Snapshot of the router's current location plus its derived classification.
 ///
-/// Prefer this over `GoRouterState.of(context)` — the app's shell is mounted
-/// via `StatefulShellRoute.indexedStack.pageBuilder`, and go_router's state
-/// lookup is not available for descendants of a `pageBuilder`.
-@Riverpod(keepAlive: true)
-class CurrentLocation extends _$CurrentLocation {
-  @override
-  String build() {
-    final router = ref.watch(fluxerRouterProvider);
+/// Consumers should prefer the dedicated providers ([currentLocationProvider],
+/// [activeGuildIdProvider], [activeChannelIdProvider]) which `select` from
+/// this state so they only rebuild when their field of interest changes.
+@immutable
+class RouteState {
+  final String location;
+  final RouteKind kind;
+  final String? guildId;
+  final String? channelId;
 
+  const RouteState({
+    required this.location,
+    required this.kind,
+    required this.guildId,
+    required this.channelId,
+  });
+
+  factory RouteState.fromLocation(String location) => RouteState(
+    location: location,
+    kind: classifyRoute(location),
+    guildId: extractGuildId(location),
+    channelId: extractChannelId(location),
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RouteState &&
+          location == other.location &&
+          kind == other.kind &&
+          guildId == other.guildId &&
+          channelId == other.channelId);
+
+  @override
+  int get hashCode => Object.hash(location, kind, guildId, channelId);
+}
+
+/// Single router-delegate listener that fans the matched location out
+/// into a classified [RouteState]. Replaces three independent listeners
+/// that previously each parsed the location with their own regex.
+///
+/// Prefer this over `GoRouterState.of(context)` — the app shell is
+/// mounted via `StatefulShellRoute.indexedStack.pageBuilder`, and
+/// go_router's state lookup is not available for descendants of a
+/// `pageBuilder`.
+@Riverpod(keepAlive: true)
+class RouteStateNotifier extends _$RouteStateNotifier {
+  @override
+  RouteState build() {
+    final router = ref.watch(fluxerRouterProvider);
     void listener() {
-      final config = router.routerDelegate.currentConfiguration;
-      final next = config.isNotEmpty ? config.last.matchedLocation : '/';
-      unawaited(Future(() => state = next));
+      // Per commit 2451be4: defer the state mutation by a microtask to
+      // prevent "modifying state during build" errors when go_router
+      // notifies its delegate while another widget is mid-build.
+      unawaited(
+        Future(() {
+          state = RouteState.fromLocation(_readLocation(router));
+        }),
+      );
     }
 
     router.routerDelegate.addListener(listener);
     ref.onDispose(() => router.routerDelegate.removeListener(listener));
+    return RouteState.fromLocation(_readLocation(router));
+  }
 
+  static String _readLocation(GoRouter router) {
     final config = router.routerDelegate.currentConfiguration;
     return config.isNotEmpty ? config.last.matchedLocation : '/';
   }
 }
 
-/// Watches the router location and extracts the active guild ID.
-/// Returns null for @me, @favorites, and non-channel routes.
 @Riverpod(keepAlive: true)
-class ActiveGuildId extends _$ActiveGuildId {
-  @override
-  String? build() {
-    final router = ref.watch(fluxerRouterProvider);
-
-    void listener() {
-      final location =
-          router.routerDelegate.currentConfiguration.last.matchedLocation;
-      unawaited(Future(() => state = _extractGuildId(location)));
-    }
-
-    router.routerDelegate.addListener(listener);
-    ref.onDispose(() => router.routerDelegate.removeListener(listener));
-
-    return null;
-  }
-
-  static String? _extractGuildId(String location) {
-    // Matches /channels/:guildId where guildId is NOT @me or @favorites
-    final match = RegExp('^/channels/([^@/][^/]*)').firstMatch(location);
-    return match?.group(1);
-  }
+String currentLocation(Ref ref) {
+  return ref.watch(routeStateProvider).location;
 }
 
-/// Watches the router location and extracts the active channel ID.
-/// Works for both guild channels and DM channels.
 @Riverpod(keepAlive: true)
-class ActiveChannelId extends _$ActiveChannelId {
-  @override
-  String? build() {
-    final router = ref.watch(fluxerRouterProvider);
+String? activeGuildId(Ref ref) {
+  return ref.watch(routeStateProvider).guildId;
+}
 
-    void listener() {
-      final location =
-          router.routerDelegate.currentConfiguration.last.matchedLocation;
-      unawaited(Future(() => state = _extractChannelId(location)));
-    }
-
-    router.routerDelegate.addListener(listener);
-    ref.onDispose(() => router.routerDelegate.removeListener(listener));
-
-    return null;
-  }
-
-  static String? _extractChannelId(String location) {
-    // /channels/@me/:channelId
-    final dmMatch = RegExp(r'^/channels/@me/([^/]+)$').firstMatch(location);
-    if (dmMatch != null) {
-      return dmMatch.group(1);
-    }
-
-    // /channels/@favorites/:channelId
-    final favMatch = RegExp(
-      r'^/channels/@favorites/([^/]+)$',
-    ).firstMatch(location);
-    if (favMatch != null) {
-      return favMatch.group(1);
-    }
-
-    // /channels/:guildId/:channelId (not "members")
-    final guildMatch = RegExp(
-      '^/channels/[^@/][^/]*/([^/]+)',
-    ).firstMatch(location);
-    if (guildMatch != null && guildMatch.group(1) != 'members') {
-      return guildMatch.group(1);
-    }
-
-    return null;
-  }
+@Riverpod(keepAlive: true)
+String? activeChannelId(Ref ref) {
+  return ref.watch(routeStateProvider).channelId;
 }

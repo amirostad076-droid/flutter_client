@@ -2,6 +2,7 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
@@ -18,7 +19,6 @@ import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
-import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ForwardedMessageContent extends ConsumerWidget {
@@ -288,7 +288,8 @@ class _ForwardedSourceButtonState
 
   void _jumpToOriginal(_ForwardedSourceData data) {
     if (data.guildId != null) {
-      context.go(
+      navigateToContent(
+        context,
         RoutePaths.guildChannelMessage(
           data.guildId!,
           data.channelId,
@@ -298,7 +299,10 @@ class _ForwardedSourceButtonState
       return;
     }
 
-    context.go(RoutePaths.dmChannelMessage(data.channelId, data.messageId));
+    navigateToContent(
+      context,
+      RoutePaths.dmChannelMessage(data.channelId, data.messageId),
+    );
   }
 
   @override

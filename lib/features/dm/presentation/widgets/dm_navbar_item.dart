@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
+import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
-import 'package:go_router/go_router.dart';
 
 class DmNavbarItem extends ConsumerStatefulWidget {
   final String channelId;
@@ -78,7 +79,10 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem> {
               onEnter: (_) => setState(() => _isHovered = true),
               onExit: (_) => setState(() => _isHovered = false),
               child: GestureDetector(
-                onTap: () => context.go('/channels/@me/${widget.channelId}'),
+                onTap: () => navigateToContent(
+                  context,
+                  RoutePaths.dmChannel(widget.channelId),
+                ),
                 onSecondaryTapDown: (details) =>
                     widget.onContextMenu?.call(details.globalPosition),
                 onLongPress: () => widget.onContextMenu?.call(Offset.zero),

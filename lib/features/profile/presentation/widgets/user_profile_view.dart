@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart' show RoutePaths;
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -114,7 +115,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
         return;
       }
       _requestClose();
-      context.go(RoutePaths.dmChannel(channelId));
+      navigateToContent(context, RoutePaths.dmChannel(channelId));
     } on Object catch (err, st) {
       talker.error('[UserProfileSheet] Failed to open DM: $err', err, st);
       ref
