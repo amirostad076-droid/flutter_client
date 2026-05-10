@@ -226,3 +226,7 @@ jobs:
           if [ -f "$KEYCHAIN_PATH" ]; then
             security delete-keychain "$KEYCHAIN_PATH" || true
           fi
+          if [ -f "$LOGIN_KEYCHAIN" ]; then
+            security default-keychain -d user -s "$LOGIN_KEYCHAIN" || true
+            security list-keychains -d user -s "$LOGIN_KEYCHAIN" || true
+          fi
