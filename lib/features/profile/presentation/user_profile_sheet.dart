@@ -484,6 +484,8 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
                     SizedBox(height: layout.s4),
                     UserProfileActionCardRow(
                       isCurrentUser: isCurrentUser,
+                      isFriend:
+                          relationship?.friendStatus == FriendStatus.accepted,
                       isBlocked: isBlocked,
                       onMessage: () =>
                           _handleMessage(user.id, isBlocked, user.username),

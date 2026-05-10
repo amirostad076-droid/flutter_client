@@ -8,6 +8,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 class UserProfileActionCardRow extends StatelessWidget {
   const UserProfileActionCardRow({
     required this.isCurrentUser,
+    required this.isFriend,
     required this.isBlocked,
     required this.onMessage,
     required this.onVoiceCall,
@@ -17,6 +18,7 @@ class UserProfileActionCardRow extends StatelessWidget {
   });
 
   final bool isCurrentUser;
+  final bool isFriend;
   final bool isBlocked;
   final Future<void> Function() onMessage;
   final Future<void> Function() onVoiceCall;
@@ -48,20 +50,22 @@ class UserProfileActionCardRow extends StatelessWidget {
             usesBrandPrimaryCircle: true,
           ),
         ),
-        Expanded(
-          child: _ProfileActionCard(
-            label: l10n.userProfileVoiceCall,
-            icon: PhosphorIconsFill.phone,
-            onTap: onVoiceCall,
+        if (isFriend) ...[
+          Expanded(
+            child: _ProfileActionCard(
+              label: l10n.userProfileVoiceCall,
+              icon: PhosphorIconsFill.phone,
+              onTap: onVoiceCall,
+            ),
           ),
-        ),
-        Expanded(
-          child: _ProfileActionCard(
-            label: l10n.userProfileVideoCall,
-            icon: PhosphorIconsFill.videoCamera,
-            onTap: onVideoCall,
+          Expanded(
+            child: _ProfileActionCard(
+              label: l10n.userProfileVideoCall,
+              icon: PhosphorIconsFill.videoCamera,
+              onTap: onVideoCall,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
