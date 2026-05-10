@@ -25,22 +25,12 @@ class FriendRepository {
   Future<List<Friend>> getRelationships() async {
     try {
       final relationships = await _client.users.listUserRelationships2();
-
       final companions = <db.RelationshipsCompanion>[];
       for (final rel in relationships) {
         await _db.userDao.upsertUser(userFromPartialSdk(rel.user));
-        companions.add(
-          db.RelationshipsCompanion.insert(
-            userId: rel.user.id,
-            type: _typeToInt(rel.type),
-            nickname: Value(rel.nickname),
-            since: Value(rel.since),
-          ),
-        );
+        companions.add(_relationshipToCompanion(rel));
       }
-
       await _db.relationshipDao.upsertRelationships(companions);
-
       return relationships.map(Friend.fromSdk).toList();
     } on DioException catch (e) {
       throw Exception(
@@ -51,10 +41,12 @@ class FriendRepository {
 
   Future<void> sendFriendRequest(String userId) async {
     try {
-      await _client.users.sendFriendRequest(
-        userId: userId,
-        body: const FriendRequestCreateRequest(),
-      );
+      final RelationshipResponse relationship = await _client.users
+          .sendFriendRequest(
+            userId: userId,
+            body: const FriendRequestCreateRequest(),
+          );
+      await _upsertRelationship(relationship);
     } on DioException catch (e) {
       throw Exception(
         e.response?.statusMessage ?? 'Failed to send friend request',
@@ -64,10 +56,12 @@ class FriendRepository {
 
   Future<void> acceptFriendRequest(String userId) async {
     try {
-      await _client.users.acceptOrUpdateFriendRequest(
-        userId: userId,
-        body: const RelationshipTypePutRequest(),
-      );
+      final RelationshipResponse relationship = await _client.users
+          .acceptOrUpdateFriendRequest(
+            userId: userId,
+            body: const RelationshipTypePutRequest(),
+          );
+      await _upsertRelationship(relationship);
     } on DioException catch (e) {
       throw Exception(
         e.response?.statusMessage ?? 'Failed to accept friend request',
@@ -78,6 +72,7 @@ class FriendRepository {
   Future<void> removeRelationship(String userId) async {
     try {
       await _client.users.removeRelationship(userId: userId);
+      await _db.relationshipDao.deleteRelationship(userId);
     } on DioException catch (e) {
       throw Exception(
         e.response?.statusMessage ?? 'Failed to remove relationship',
@@ -87,13 +82,35 @@ class FriendRepository {
 
   Future<void> blockUser(String userId) async {
     try {
-      await _client.users.acceptOrUpdateFriendRequest(
-        userId: userId,
-        body: const RelationshipTypePutRequest(type: RelationshipTypes.blocked),
-      );
+      final RelationshipResponse relationship = await _client.users
+          .acceptOrUpdateFriendRequest(
+            userId: userId,
+            body: const RelationshipTypePutRequest(
+              type: RelationshipTypes.blocked,
+            ),
+          );
+      await _upsertRelationship(relationship);
     } on DioException catch (e) {
       throw Exception(e.response?.statusMessage ?? 'Failed to block user');
     }
+  }
+
+  Future<void> _upsertRelationship(RelationshipResponse relationship) async {
+    await _db.userDao.upsertUser(userFromPartialSdk(relationship.user));
+    await _db.relationshipDao.upsertRelationships([
+      _relationshipToCompanion(relationship),
+    ]);
+  }
+
+  static db.RelationshipsCompanion _relationshipToCompanion(
+    RelationshipResponse relationship,
+  ) {
+    return db.RelationshipsCompanion.insert(
+      userId: relationship.user.id,
+      type: _typeToInt(relationship.type),
+      nickname: Value(relationship.nickname),
+      since: Value(relationship.since),
+    );
   }
 
   static int _typeToInt(RelationshipTypes type) => type.json ?? 1;

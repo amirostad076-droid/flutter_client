@@ -2454,6 +2454,57 @@
   "@userProfileEditProfile": {
     "description": "Action card label shown on the current user's own profile sheet."
   },
+  "userProfileStaffBadgeTooltip": "Fluxer Staff",
+  "@userProfileStaffBadgeTooltip": {
+    "description": "Tooltip and semantic label for the staff badge on a user profile."
+  },
+  "userProfileCtpBadgeTooltip": "Fluxer Community Team",
+  "@userProfileCtpBadgeTooltip": {
+    "description": "Tooltip and semantic label for the community team badge on a user profile."
+  },
+  "userProfilePartnerBadgeTooltip": "Fluxer Partner",
+  "@userProfilePartnerBadgeTooltip": {
+    "description": "Tooltip and semantic label for the partner badge on a user profile."
+  },
+  "userProfileBugHunterBadgeTooltip": "Fluxer Bug Hunter",
+  "@userProfileBugHunterBadgeTooltip": {
+    "description": "Tooltip and semantic label for the bug hunter badge on a user profile."
+  },
+  "userProfilePlutoniumBadgeTooltip": "Fluxer Plutonium",
+  "@userProfilePlutoniumBadgeTooltip": {
+    "description": "Tooltip and semantic label for the Plutonium badge on a user profile."
+  },
+  "userProfileMutualFriends": "Mutual Friends ({count})",
+  "@userProfileMutualFriends": {
+    "description": "Profile mutual friends entry label with count.",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "userProfileMutualCommunities": "Mutual Communities ({count})",
+  "@userProfileMutualCommunities": {
+    "description": "Profile mutual communities entry label with count.",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "userProfileMutualFriendsTitle": "Mutual Friends",
+  "@userProfileMutualFriendsTitle": {
+    "description": "Bottom sheet title for mutual friends."
+  },
+  "userProfileMutualCommunitiesTitle": "Mutual Communities",
+  "@userProfileMutualCommunitiesTitle": {
+    "description": "Bottom sheet title for mutual communities."
+  },
+  "userProfileNoMutualFriends": "No mutual friends found.",
+  "@userProfileNoMutualFriends": {
+    "description": "Empty state shown when a profile has no mutual friends."
+  },
+  "userProfileNoMutualCommunities": "No mutual communities found.",
+  "@userProfileNoMutualCommunities": {
+    "description": "Empty state shown when a profile has no mutual communities."
+  },
+  "userProfileMutualCommunityNickname": "Nickname: {nickname}",
+  "@userProfileMutualCommunityNickname": {
+    "description": "Subtitle showing the profiled user's nickname in a mutual community.",
+    "placeholders": {"nickname": {"type": "String"}}
+  },
   "userProfileOpenBlockedDmTitle": "Open DM",
   "@userProfileOpenBlockedDmTitle": {
     "description": "Title of the confirmation sheet shown when opening a DM with a blocked user."

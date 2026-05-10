@@ -80,10 +80,6 @@ class UserProfileConfirmationSheet {
         label: label,
         onPressed: onPressed,
       ),
-      FluxerButtonVariant.mediaOverlay => FluxerButton.mediaOverlay(
-        label: label,
-        onPressed: onPressed,
-      ),
     };
   }
 }

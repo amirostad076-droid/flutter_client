@@ -1961,6 +1961,48 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get userProfileEditProfile => 'Edit Profile';
 
   @override
+  String get userProfileStaffBadgeTooltip => 'Fluxer Staff';
+
+  @override
+  String get userProfileCtpBadgeTooltip => 'Fluxer Community Team';
+
+  @override
+  String get userProfilePartnerBadgeTooltip => 'Fluxer Partner';
+
+  @override
+  String get userProfileBugHunterBadgeTooltip => 'Fluxer Bug Hunter';
+
+  @override
+  String get userProfilePlutoniumBadgeTooltip => 'Fluxer Plutonium';
+
+  @override
+  String userProfileMutualFriends(int count) {
+    return 'Mutual Friends ($count)';
+  }
+
+  @override
+  String userProfileMutualCommunities(int count) {
+    return 'Mutual Communities ($count)';
+  }
+
+  @override
+  String get userProfileMutualFriendsTitle => 'Mutual Friends';
+
+  @override
+  String get userProfileMutualCommunitiesTitle => 'Mutual Communities';
+
+  @override
+  String get userProfileNoMutualFriends => 'No mutual friends found.';
+
+  @override
+  String get userProfileNoMutualCommunities => 'No mutual communities found.';
+
+  @override
+  String userProfileMutualCommunityNickname(String nickname) {
+    return 'Nickname: $nickname';
+  }
+
+  @override
   String get userProfileOpenBlockedDmTitle => 'Open DM';
 
   @override

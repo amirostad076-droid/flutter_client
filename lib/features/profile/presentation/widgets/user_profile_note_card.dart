@@ -26,7 +26,7 @@ class UserProfileNoteCard extends StatelessWidget {
       builder: (context, _) => DecoratedBox(
         decoration: BoxDecoration(
           color: colors.backgroundSecondary,
-          borderRadius: layout.radiusMd,
+          borderRadius: layout.radiusXl,
         ),
         child: Padding(
           padding: EdgeInsets.all(layout.s4),

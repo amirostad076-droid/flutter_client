@@ -1,26 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_view.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
-import 'package:fluxer_app/shared/widgets/profile_content.dart';
 
-class ProfilePage extends ConsumerWidget {
+class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends ConsumerState<ProfilePage> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final UserSettingsViewState state = ref.watch(
       userSettingsViewModelProvider,
     );
     return Scaffold(
       backgroundColor: context.colors.backgroundPrimary,
-      body: ProfileContent(
+      body: UserProfileView(
         userId: state.userId,
-        displayName: state.displayName,
-        username: state.username,
-        discriminator: state.discriminator,
-        avatarUrl: state.avatarUrl,
-        avatarColor: state.avatarColor,
+        autoFocusNote: false,
+        scrollController: _scrollController,
+        useCurrentUserCache: true,
       ),
     );
   }

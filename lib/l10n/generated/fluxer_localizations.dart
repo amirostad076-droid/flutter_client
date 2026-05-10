@@ -3472,6 +3472,78 @@ abstract class FluxerLocalizations {
   /// **'Edit Profile'**
   String get userProfileEditProfile;
 
+  /// Tooltip and semantic label for the staff badge on a user profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluxer Staff'**
+  String get userProfileStaffBadgeTooltip;
+
+  /// Tooltip and semantic label for the community team badge on a user profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluxer Community Team'**
+  String get userProfileCtpBadgeTooltip;
+
+  /// Tooltip and semantic label for the partner badge on a user profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluxer Partner'**
+  String get userProfilePartnerBadgeTooltip;
+
+  /// Tooltip and semantic label for the bug hunter badge on a user profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluxer Bug Hunter'**
+  String get userProfileBugHunterBadgeTooltip;
+
+  /// Tooltip and semantic label for the Plutonium badge on a user profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluxer Plutonium'**
+  String get userProfilePlutoniumBadgeTooltip;
+
+  /// Profile mutual friends entry label with count.
+  ///
+  /// In en, this message translates to:
+  /// **'Mutual Friends ({count})'**
+  String userProfileMutualFriends(int count);
+
+  /// Profile mutual communities entry label with count.
+  ///
+  /// In en, this message translates to:
+  /// **'Mutual Communities ({count})'**
+  String userProfileMutualCommunities(int count);
+
+  /// Bottom sheet title for mutual friends.
+  ///
+  /// In en, this message translates to:
+  /// **'Mutual Friends'**
+  String get userProfileMutualFriendsTitle;
+
+  /// Bottom sheet title for mutual communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Mutual Communities'**
+  String get userProfileMutualCommunitiesTitle;
+
+  /// Empty state shown when a profile has no mutual friends.
+  ///
+  /// In en, this message translates to:
+  /// **'No mutual friends found.'**
+  String get userProfileNoMutualFriends;
+
+  /// Empty state shown when a profile has no mutual communities.
+  ///
+  /// In en, this message translates to:
+  /// **'No mutual communities found.'**
+  String get userProfileNoMutualCommunities;
+
+  /// Subtitle showing the profiled user's nickname in a mutual community.
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname: {nickname}'**
+  String userProfileMutualCommunityNickname(String nickname);
+
   /// Title of the confirmation sheet shown when opening a DM with a blocked user.
   ///
   /// In en, this message translates to:

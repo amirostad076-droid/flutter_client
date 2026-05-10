@@ -11,12 +11,14 @@ class FluxerListSection extends StatelessWidget {
     this.header,
     this.headerColor,
     this.dividers = true,
+    this.backgroundColor,
     super.key,
   });
 
   final List<Widget> children;
   final String? header;
   final Color? headerColor;
+  final Color? backgroundColor;
 
   final bool dividers;
 
@@ -64,7 +66,7 @@ class FluxerListSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: colors.backgroundSecondaryAlt,
+                color: backgroundColor ?? colors.backgroundSecondaryAlt,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(

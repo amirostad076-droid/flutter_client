@@ -2,21 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_badges.dart';
 import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_custom_status.dart';
-import 'package:fluxer_dart/export.dart';
 
 class UserProfileHeader extends StatelessWidget {
   const UserProfileHeader({
-    required this.user,
-    required this.profile,
+    required this.username,
+    required this.discriminator,
+    required this.globalName,
+    required this.flags,
+    required this.hasPlutonium,
     required this.customStatus,
     super.key,
   });
 
-  final UserProfileFullResponseUser user;
-  final UserProfileFullResponseUserProfile profile;
+  final String username;
+  final String discriminator;
+  final String? globalName;
+  final int flags;
+  final bool hasPlutonium;
   final String? customStatus;
 
-  String _displayName() => user.globalName ?? user.username;
+  String _displayName() => globalName ?? username;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +29,7 @@ class UserProfileHeader extends StatelessWidget {
     final textStyles = context.textStyles;
     final layout = context.layout;
     final displayName = _displayName();
-    final isUsernameAsDisplay = displayName == user.username;
+    final isUsernameAsDisplay = displayName == username;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +48,7 @@ class UserProfileHeader extends StatelessWidget {
             ),
             if (isUsernameAsDisplay)
               Text(
-                '#${user.discriminator}',
+                '#$discriminator',
                 style: textStyles.heading.copyWith(
                   color: colors.textTertiary,
                   fontSize: 24,
@@ -60,13 +65,13 @@ class UserProfileHeader extends StatelessWidget {
           children: [
             if (!isUsernameAsDisplay)
               Text(
-                '${user.username}#${user.discriminator}',
+                '$username#$discriminator',
                 style: textStyles.bodySmall.copyWith(
                   color: colors.textTertiary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-            UserProfileBadges(flags: user.flags),
+            UserProfileBadges(flags: flags, hasPlutonium: hasPlutonium),
           ],
         ),
         SizedBox(height: layout.s1),

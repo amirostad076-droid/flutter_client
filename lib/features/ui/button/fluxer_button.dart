@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
@@ -26,6 +27,8 @@ class FluxerButton extends StatefulWidget {
     super.key,
   }) : _variant = FluxerButtonVariant.primary,
        _isCircle = false,
+       _isCircleAltStyle = false,
+       _isMediaOverlayStyle = false,
        _iconSizeOverride = null,
        assert(
          onPressed == null || onPressedAsync == null,
@@ -47,6 +50,8 @@ class FluxerButton extends StatefulWidget {
     super.key,
   }) : _variant = FluxerButtonVariant.secondary,
        _isCircle = false,
+       _isCircleAltStyle = false,
+       _isMediaOverlayStyle = false,
        _iconSizeOverride = null,
        assert(
          onPressed == null || onPressedAsync == null,
@@ -68,6 +73,8 @@ class FluxerButton extends StatefulWidget {
     super.key,
   }) : _variant = FluxerButtonVariant.dangerPrimary,
        _isCircle = false,
+       _isCircleAltStyle = false,
+       _isMediaOverlayStyle = false,
        _iconSizeOverride = null,
        assert(
          onPressed == null || onPressedAsync == null,
@@ -89,6 +96,8 @@ class FluxerButton extends StatefulWidget {
     super.key,
   }) : _variant = FluxerButtonVariant.dangerSecondary,
        _isCircle = false,
+       _isCircleAltStyle = false,
+       _isMediaOverlayStyle = false,
        _iconSizeOverride = null,
        assert(
          onPressed == null || onPressedAsync == null,
@@ -110,6 +119,8 @@ class FluxerButton extends StatefulWidget {
     super.key,
   }) : _variant = FluxerButtonVariant.inverted,
        _isCircle = false,
+       _isCircleAltStyle = false,
+       _isMediaOverlayStyle = false,
        _iconSizeOverride = null,
        assert(
          onPressed == null || onPressedAsync == null,
@@ -131,6 +142,8 @@ class FluxerButton extends StatefulWidget {
     super.key,
   }) : _variant = FluxerButtonVariant.invertedOutline,
        _isCircle = false,
+       _isCircleAltStyle = false,
+       _isMediaOverlayStyle = false,
        _iconSizeOverride = null,
        assert(
          onPressed == null || onPressedAsync == null,
@@ -152,6 +165,8 @@ class FluxerButton extends StatefulWidget {
     super.key,
   }) : _variant = FluxerButtonVariant.ghost,
        _isCircle = false,
+       _isCircleAltStyle = false,
+       _isMediaOverlayStyle = false,
        _iconSizeOverride = null,
        assert(
          onPressed == null || onPressedAsync == null,
@@ -171,8 +186,10 @@ class FluxerButton extends StatefulWidget {
     this.recording = false,
     this.child,
     super.key,
-  }) : _variant = FluxerButtonVariant.mediaOverlay,
+  }) : _variant = FluxerButtonVariant.secondary,
        _isCircle = false,
+       _isCircleAltStyle = false,
+       _isMediaOverlayStyle = true,
        _iconSizeOverride = null,
        assert(
          onPressed == null || onPressedAsync == null,
@@ -191,6 +208,32 @@ class FluxerButton extends StatefulWidget {
     super.key,
   }) : _variant = variant,
        _isCircle = true,
+       _isCircleAltStyle = false,
+       _isMediaOverlayStyle = false,
+       _iconSizeOverride = iconSize,
+       isSquare = true,
+       label = null,
+       trailingIcon = null,
+       fitContent = false,
+       child = null,
+       assert(
+         onPressed == null || onPressedAsync == null,
+         'Cannot provide both onPressed and onPressedAsync',
+       );
+
+  const FluxerButton.circleAlt({
+    required IconData this.icon,
+    this.onPressed,
+    this.onPressedAsync,
+    this.size = FluxerButtonSize.small,
+    double? iconSize = 20,
+    this.isLoading = false,
+    this.recording = false,
+    super.key,
+  }) : _variant = FluxerButtonVariant.secondary,
+       _isCircle = true,
+       _isCircleAltStyle = true,
+       _isMediaOverlayStyle = false,
        _iconSizeOverride = iconSize,
        isSquare = true,
        label = null,
@@ -204,6 +247,8 @@ class FluxerButton extends StatefulWidget {
 
   final FluxerButtonVariant _variant;
   final bool _isCircle;
+  final bool _isCircleAltStyle;
+  final bool _isMediaOverlayStyle;
   final double? _iconSizeOverride;
   final VoidCallback? onPressed;
   final Future<void> Function()? onPressedAsync;
@@ -230,8 +275,7 @@ class _FluxerButtonState extends State<FluxerButton> {
       !_effectiveLoading;
 
   BorderRadius get _borderRadius {
-    if (!widget._isCircle &&
-        widget._variant == FluxerButtonVariant.mediaOverlay) {
+    if (!widget._isCircle && widget._isMediaOverlayStyle) {
       return BorderRadius.circular(10);
     }
     return BorderRadius.circular(
@@ -263,7 +307,7 @@ class _FluxerButtonState extends State<FluxerButton> {
     final motion = context.motion;
     final foreground = widget.recording
         ? colors.brandPrimaryFill
-        : widget._variant.textColor(colors);
+        : _resolveTextColor(colors);
 
     return FluxerTappable(
       onTap: _enabled ? _handleTap : null,
@@ -274,11 +318,11 @@ class _FluxerButtonState extends State<FluxerButton> {
         final fill = widget.recording
             ? colors.accentSuccess
             : isHovered
-            ? widget._variant.activeFill(colors)
-            : widget._variant.fill(colors);
+            ? _resolveActiveFill(colors)
+            : _resolveFill(colors);
         final border = widget.recording
             ? null
-            : widget._variant.borderColor(colors);
+            : _resolveBorderColor(colors);
 
         Widget container = AnimatedContainer(
           duration: motion.fast,
@@ -311,6 +355,37 @@ class _FluxerButtonState extends State<FluxerButton> {
         return container;
       },
     );
+  }
+
+  Color _resolveFill(FluxerColorTheme colors) {
+    if (widget._isCircleAltStyle) {
+      return colors.backgroundTertiary;
+    }
+    if (widget._isMediaOverlayStyle) {
+      return colors.backgroundTextarea;
+    }
+    return widget._variant.fill(colors);
+  }
+
+  Color _resolveActiveFill(FluxerColorTheme colors) {
+    if (widget._isCircleAltStyle || widget._isMediaOverlayStyle) {
+      return colors.backgroundSecondaryAlt;
+    }
+    return widget._variant.activeFill(colors);
+  }
+
+  Color _resolveTextColor(FluxerColorTheme colors) {
+    if (widget._isCircleAltStyle || widget._isMediaOverlayStyle) {
+      return colors.textPrimary;
+    }
+    return widget._variant.textColor(colors);
+  }
+
+  Color? _resolveBorderColor(FluxerColorTheme colors) {
+    if (widget._isMediaOverlayStyle) {
+      return colors.backgroundModifierAccent;
+    }
+    return widget._variant.borderColor(colors);
   }
 
   Widget _buildContent(Color foreground) {
@@ -489,4 +564,12 @@ Widget fluxerButtonMediaOverlayPreview() {
 @FluxerWidgetPreview(name: 'Circle icon', group: 'FluxerButton')
 Widget fluxerButtonCirclePreview() {
   return FluxerButton.circle(onPressed: () {}, icon: PhosphorIconsBold.plus);
+}
+
+@FluxerWidgetPreview(name: 'Circle alt', group: 'FluxerButton')
+Widget fluxerButtonCircleAltPreview() {
+  return FluxerButton.circleAlt(
+    onPressed: () {},
+    icon: PhosphorIconsBold.gear,
+  );
 }

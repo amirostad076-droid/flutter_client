@@ -398,6 +398,18 @@ class GatewayEventHandler {
           bot: Value(event.user.bot ?? false),
           status: Value(selfStatus),
           memberSince: Value(dateTimeFromUserSnowflakeOrNull(event.user.id)),
+          bio: Value(event.user.bio),
+          pronouns: Value(event.user.pronouns),
+          accentColor: Value(event.user.accentColor),
+          banner: Value(event.user.banner),
+          premiumBadgeHidden: Value(event.user.premiumBadgeHidden),
+          premiumBadgeMasked: Value(event.user.premiumBadgeMasked),
+          premiumBadgeTimestampHidden: Value(
+            event.user.premiumBadgeTimestampHidden,
+          ),
+          premiumBadgeSequenceHidden: Value(
+            event.user.premiumBadgeSequenceHidden,
+          ),
         ),
       );
 

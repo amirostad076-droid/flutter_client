@@ -18,6 +18,7 @@ class FluxerGuildIconAvatar extends StatelessWidget {
     required this.abbreviation,
     this.imageUrl,
     this.isUnavailable = false,
+    this.isCircle = false,
     this.size = 36,
     super.key,
   });
@@ -25,12 +26,15 @@ class FluxerGuildIconAvatar extends StatelessWidget {
   final String abbreviation;
   final String? imageUrl;
   final bool isUnavailable;
+  final bool isCircle;
   final double size;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final BorderRadius radius = BorderRadius.circular(size * _kCornerRatio);
+    final BorderRadius radius = BorderRadius.circular(
+      isCircle ? size / 2 : size * _kCornerRatio,
+    );
     return SizedBox(
       width: size,
       height: size,

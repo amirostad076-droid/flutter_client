@@ -99,7 +99,7 @@ class _ProfileActionCard extends StatelessWidget {
       },
       builder: (context, _) => DecoratedBox(
         decoration: BoxDecoration(
-          color: colors.backgroundSecondaryAlt,
+          color: colors.backgroundSecondary,
           borderRadius: layout.radiusXl,
         ),
         child: Padding(

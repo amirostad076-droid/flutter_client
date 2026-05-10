@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluxer_app/core/constants/assets.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
+import 'package:fluxer_app/features/members/domain/member.dart';
+import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_connections_section.dart';
+import 'package:fluxer_app/features/ui/avatar/fluxer_guild_icon_avatar.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:intl/intl.dart';
 
@@ -10,11 +16,40 @@ class UserProfileBioCard extends StatelessWidget {
   const UserProfileBioCard({
     required this.bio,
     required this.userId,
+    this.connections = const <ConnectionResponse>[],
+    this.memberRoles = const <MemberRole>[],
+    this.accountMemberSince,
+    this.guildMemberSince,
+    this.guildName,
+    this.guildIconUrl,
     super.key,
   });
 
   final String? bio;
   final String userId;
+  final List<ConnectionResponse> connections;
+  final List<MemberRole> memberRoles;
+  final DateTime? accountMemberSince;
+  final DateTime? guildMemberSince;
+  final String? guildName;
+  final String? guildIconUrl;
+
+  String _buildGuildAbbreviation() {
+    final String source = (guildName ?? '').trim();
+    if (source.isEmpty) {
+      return '?';
+    }
+    final List<String> parts = source
+        .split(RegExp(r'\s+'))
+        .where((String token) => token.isNotEmpty)
+        .toList(growable: false);
+    if (parts.length == 1) {
+      return parts.first.characters.first.toUpperCase();
+    }
+    final String first = parts.first.characters.first.toUpperCase();
+    final String second = parts[1].characters.first.toUpperCase();
+    return '$first$second';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +59,13 @@ class UserProfileBioCard extends StatelessWidget {
     final l10n = FluxerLocalizations.of(context);
     final trimmedBio = bio?.trim();
     final hasBio = trimmedBio != null && trimmedBio.isNotEmpty;
-    final memberSince = userId.isEmpty
-        ? null
-        : dateTimeFromUserSnowflakeOrNull(userId);
+    final memberSince = accountMemberSince ??
+        (userId.isEmpty ? null : dateTimeFromUserSnowflakeOrNull(userId));
 
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.backgroundSecondary,
-        borderRadius: layout.radiusMd,
+        borderRadius: layout.radiusXl,
       ),
       child: Padding(
         padding: EdgeInsets.all(layout.s4),
@@ -63,15 +97,137 @@ class UserProfileBioCard extends StatelessWidget {
               Text(
                 l10n.userProfileMemberSince,
                 style: textStyles.label.copyWith(
-                  color: colors.textChat,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: layout.s2),
+              Wrap(
+                spacing: layout.s2,
+                runSpacing: layout.s1,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: <Widget>[
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 4,
+                    children: <Widget>[
+                      if (guildMemberSince != null)
+                      Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: colors.brandPrimary,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        alignment: Alignment.center,
+                        child: SvgPicture.asset(
+                          Assets.fluxerSymbol,
+                          width: 12,
+                          height: 12,
+                          colorFilter: ColorFilter.mode(
+                            colors.textPrimary,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        DateFormat.yMMMd().format(memberSince.toLocal()),
+                        style: textStyles.bodySmall.copyWith(
+                          color: colors.textChat,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (guildMemberSince != null)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 4,
+                      children: <Widget>[
+                        FluxerGuildIconAvatar(
+                          abbreviation: _buildGuildAbbreviation(),
+                          imageUrl: guildIconUrl,
+                          isCircle: true,
+                          size: 16,
+                        ),
+                        Text(
+                          DateFormat.yMMMd().format(guildMemberSince!.toLocal()),
+                          style: textStyles.bodySmall.copyWith(
+                            color: colors.textChat,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ],
+            if (memberRoles.isNotEmpty) ...[
+              SizedBox(height: layout.s3),
               Text(
-                DateFormat.yMMMd().format(memberSince.toLocal()),
-                style: textStyles.bodySmall.copyWith(color: colors.textChat),
+                'Roles',
+                style: textStyles.label.copyWith(
+                  color: colors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: memberRoles
+                    .map(
+                      (MemberRole role) => DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: colors.backgroundPrimary,
+                          border: Border.all(color: colors.backgroundHeaderSecondary),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 24),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              const SizedBox(width: 1),
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: role.color == 0
+                                      ? colors.textTertiary
+                                      : Color(0xFF000000 | role.color),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                role.name,
+                                style: textStyles.label.copyWith(
+                                  color: colors.textPrimary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.33,
+                                ),
+                              ),
+                              const SizedBox(width: 1),
+                            ],
+                          ),
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
+            ],
+            if (connections.isNotEmpty) ...[
+              SizedBox(height: layout.s4),
+              UserProfileConnectionsSection(
+                connections: connections,
+                embedded: true,
               ),
             ],
           ],
