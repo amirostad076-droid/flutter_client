@@ -2554,6 +2554,14 @@
   "@userProfileCopyUserId": {
     "description": "Three-dot menu item: copy user snowflake to clipboard."
   },
+  "userProfileViewMainProfile": "View Main Profile",
+  "@userProfileViewMainProfile": {
+    "description": "Three-dot menu item shown from a community profile that switches to the user's main profile."
+  },
+  "userProfileViewCommunityProfile": "View Community Profile",
+  "@userProfileViewCommunityProfile": {
+    "description": "Three-dot menu item shown from a main profile that switches back to the user's community profile."
+  },
   "userProfileBlockUser": "Block User",
   "@userProfileBlockUser": {
     "description": "Three-dot menu item to block the user."

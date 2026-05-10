@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart' show RoutePaths;
@@ -34,12 +33,12 @@ import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/utils/call_actions.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/user_profile.dart';
+import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-const int _kDefaultAccentColor = 0x4641D9;
 const double _kBannerHeight = 184;
 const double _kAvatarSize = 80;
 const double _kAvatarOverlap = _kAvatarSize / 2;
@@ -70,28 +69,15 @@ class UserProfileView extends ConsumerStatefulWidget {
 
 class _UserProfileViewState extends ConsumerState<UserProfileView> {
   bool _autoFocusTriggered = false;
+  bool _showGlobalProfile = false;
 
-  Color _resolveBannerColor({
-    required int? bannerColor,
-    required int? accentColor,
-    required int? avatarColor,
-  }) {
-    final List<int?> candidates = <int?>[bannerColor, accentColor, avatarColor];
-    for (final int? candidate in candidates) {
-      if (candidate != null) {
-        return Color(0xFF000000 | candidate);
-      }
+  @override
+  void didUpdateWidget(covariant UserProfileView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userId != widget.userId ||
+        oldWidget.guildId != widget.guildId) {
+      _showGlobalProfile = false;
     }
-    return const Color(0xFF000000 | _kDefaultAccentColor);
-  }
-
-  String? _resolveBannerUrl(String userId, String? banner) {
-    if (banner == null) {
-      return null;
-    }
-    final String hash = banner.startsWith('a_') ? banner.substring(2) : banner;
-    return '$fluxerMediaCdn/banners/$userId/$hash.webp'
-        '?size=${MediaProxySizes.profileBannerModal}';
   }
 
   void _requestClose() {
@@ -294,12 +280,11 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
     required String userId,
     required String username,
     required String discriminator,
-    required String? globalName,
-    required String? avatar,
+    required String displayName,
+    required String? avatarUrl,
     required int? avatarColor,
-    required int? bannerColor,
-    required int? accentColor,
-    required String? banner,
+    required Color bannerColor,
+    required String? bannerUrl,
     required String? bio,
     required DateTime? accountMemberSince,
     required DateTime? guildMemberSince,
@@ -317,20 +302,12 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
     required AsyncValue<db.User?> presenceAsync,
     required String? note,
     required bool isCurrentUser,
+    required bool hasGuildProfile,
+    required bool isShowingGlobalProfile,
   }) {
     final layout = context.layout;
     final colors = context.colors;
     final bool isBlocked = relationship?.friendStatus == FriendStatus.blocked;
-    final Color resolvedBannerColor = _resolveBannerColor(
-      bannerColor: bannerColor,
-      accentColor: accentColor,
-      avatarColor: avatarColor,
-    );
-    final String? resolvedBannerUrl = _resolveBannerUrl(userId, banner);
-    final String displayName = globalName ?? username;
-    final String? avatarUrl = avatar != null
-        ? '$fluxerMediaCdn/avatars/$userId/$avatar.png'
-        : null;
     return ColoredBox(
       color: colors.backgroundPrimary,
       child: CustomScrollView(
@@ -352,8 +329,8 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                         top: layout.radiusXxl.topLeft,
                       ),
                       child: UserProfileBanner(
-                        bannerUrl: resolvedBannerUrl,
-                        bannerColor: resolvedBannerColor,
+                        bannerUrl: bannerUrl,
+                        bannerColor: bannerColor,
                       ),
                     ),
                   ),
@@ -467,6 +444,15 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                                   user: actionUser,
                                   isCurrentUser: isCurrentUser,
                                   position: position,
+                                  hasGuildProfile: hasGuildProfile,
+                                  isShowingGlobalProfile:
+                                      isShowingGlobalProfile,
+                                  onShowGlobalProfile: () {
+                                    setState(() => _showGlobalProfile = true);
+                                  },
+                                  onShowCommunityProfile: () {
+                                    setState(() => _showGlobalProfile = false);
+                                  },
                                 ),
                               );
                             },
@@ -490,7 +476,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                 UserProfileHeader(
                   username: username,
                   discriminator: discriminator,
-                  globalName: globalName,
+                  displayName: displayName,
                   flags: flags,
                   hasPlutonium: hasPlutonium,
                   customStatus: customStatus,
@@ -597,12 +583,21 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
             userId: profile.id,
             username: profile.username,
             discriminator: profile.discriminator,
-            globalName: profile.globalName,
-            avatar: profile.avatar,
+            displayName: profile.globalName ?? profile.username,
+            avatarUrl: buildGlobalUserAvatarUrl(
+              userId: profile.id,
+              avatarHash: profile.avatar,
+            ),
             avatarColor: profile.avatarColor,
-            bannerColor: null,
-            accentColor: profile.accentColor,
-            banner: profile.banner,
+            bannerColor: resolveGuildProfileBannerColor(
+              bannerColor: null,
+              accentColor: profile.accentColor,
+              avatarColor: profile.avatarColor,
+            ),
+            bannerUrl: buildGlobalUserBannerUrl(
+              userId: profile.id,
+              bannerHash: profile.banner,
+            ),
             bio: profile.bio,
             accountMemberSince: dateTimeFromUserSnowflakeOrNull(profile.id),
             guildMemberSince: null,
@@ -622,6 +617,8 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
             presenceAsync: presenceAsync,
             note: noteAsync.value,
             isCurrentUser: ownUserId == profile.id,
+            hasGuildProfile: false,
+            isShowingGlobalProfile: false,
           );
         },
       );
@@ -677,17 +674,29 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                 return a.id.compareTo(b.id);
               });
         final bool isCurrentProfile = ownUserId == response.user.id;
+        final GuildUserDisplay profileDisplay =
+            resolveGuildUserDisplayFromProfile(
+              response: response,
+              guildId: guildId,
+              relationshipNickname: relationshipAsync.value?.nickname,
+              showGlobalProfile: _showGlobalProfile,
+            );
         return _buildLoadedView(
           userId: response.user.id,
           username: response.user.username,
           discriminator: response.user.discriminator,
-          globalName: response.user.globalName,
-          avatar: response.user.avatar,
+          displayName: profileDisplay.displayName,
+          avatarUrl: profileDisplay.avatarUrl,
           avatarColor: response.user.avatarColor,
-          bannerColor: response.userProfile.bannerColor,
-          accentColor: response.userProfile.accentColor,
-          banner: response.userProfile.banner,
-          bio: response.userProfile.bio,
+          bannerColor:
+              profileDisplay.bannerColor ??
+              resolveGuildProfileBannerColor(
+                bannerColor: null,
+                accentColor: response.userProfile.accentColor,
+                avatarColor: response.user.avatarColor,
+              ),
+          bannerUrl: profileDisplay.bannerUrl,
+          bio: profileDisplay.bio,
           accountMemberSince: dateTimeFromUserSnowflakeOrNull(response.user.id),
           guildMemberSince: response.guildMember?.joinedAt,
           guildName: guildInfo?.name,
@@ -713,6 +722,8 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
           presenceAsync: presenceAsync,
           note: noteAsync.value,
           isCurrentUser: isCurrentProfile,
+          hasGuildProfile: profileDisplay.hasGuildProfile,
+          isShowingGlobalProfile: profileDisplay.isShowingGlobalProfile,
         );
       },
     );

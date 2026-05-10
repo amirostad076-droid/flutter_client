@@ -2041,6 +2041,12 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get userProfileCopyUserId => 'Copy User ID';
 
   @override
+  String get userProfileViewMainProfile => 'View Main Profile';
+
+  @override
+  String get userProfileViewCommunityProfile => 'View Community Profile';
+
+  @override
   String get userProfileBlockUser => 'Block User';
 
   @override

@@ -1,7 +1,7 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart' as database;
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
-import 'package:fluxer_app/shared/utils/avatar_url_utils.dart';
+import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -56,10 +56,7 @@ class VoiceSidebarParticipant {
   final bool guildDeaf;
 }
 
-String _displayNameForSort(
-  String userId,
-  Map<String, database.User> byId,
-) {
+String _displayNameForSort(String userId, Map<String, database.User> byId) {
   final database.User? u = byId[userId];
   if (u == null) {
     return userId;
@@ -170,30 +167,16 @@ class _VoiceSidebarAgg {
   bool guildDeaf = false;
 }
 
-String _sidebarDisplayName({
-  required database.User user,
-  required database.Member? member,
-}) {
-  final String? nick = member?.nick;
-  if (nick != null && nick.isNotEmpty) {
-    return nick;
-  }
-  return user.globalName ?? user.username;
-}
-
-Map<String, _VoiceSidebarAgg> _aggregateVoiceByUserId(
-  List<VoiceState> states,
-) {
+Map<String, _VoiceSidebarAgg> _aggregateVoiceByUserId(List<VoiceState> states) {
   final Map<String, _VoiceSidebarAgg> byUser = <String, _VoiceSidebarAgg>{};
   for (final VoiceState vs in states) {
-    byUser
-        .putIfAbsent(vs.userId, _VoiceSidebarAgg.new)
-        ..selfMute |= vs.selfMute
-        ..selfDeaf |= vs.selfDeaf
-        ..selfVideo |= vs.selfVideo
-        ..selfStream |= vs.selfStream
-        ..guildMute |= vs.mute || vs.suppress
-        ..guildDeaf |= vs.deaf;
+    byUser.putIfAbsent(vs.userId, _VoiceSidebarAgg.new)
+      ..selfMute |= vs.selfMute
+      ..selfDeaf |= vs.selfDeaf
+      ..selfVideo |= vs.selfVideo
+      ..selfStream |= vs.selfStream
+      ..guildMute |= vs.mute || vs.suppress
+      ..guildDeaf |= vs.deaf;
   }
   return byUser;
 }
@@ -210,19 +193,23 @@ Future<List<VoiceSidebarParticipant>> voiceChannelSidebarParticipants(
   final String guildId = guildChannelKey.substring(0, sep);
   final String channelId = guildChannelKey.substring(sep + 1);
   final Map<String, VoiceState> map = ref.watch(voiceStatesMapProvider);
-  final List<VoiceState> inChannel =
-      _voiceStatesInGuildChannel(map, guildId, channelId);
+  final List<VoiceState> inChannel = _voiceStatesInGuildChannel(
+    map,
+    guildId,
+    channelId,
+  );
   if (inChannel.isEmpty) {
     return const <VoiceSidebarParticipant>[];
   }
-  final Map<String, _VoiceSidebarAgg> byUser =
-      _aggregateVoiceByUserId(inChannel);
+  final Map<String, _VoiceSidebarAgg> byUser = _aggregateVoiceByUserId(
+    inChannel,
+  );
   final List<String> userIds = byUser.keys.toList();
   final database.FluxerDatabase db = ref.watch(fluxerDatabaseProvider);
-  final List<database.User> userRows =
-      await db.userDao.getUsersByIds(userIds);
-  final List<database.Member> memberRows =
-      await db.memberDao.getMembers(guildId);
+  final List<database.User> userRows = await db.userDao.getUsersByIds(userIds);
+  final List<database.Member> memberRows = await db.memberDao.getMembers(
+    guildId,
+  );
   final Map<String, database.User> usersById = <String, database.User>{
     for (final database.User u in userRows) u.id: u,
   };
@@ -238,17 +225,17 @@ Future<List<VoiceSidebarParticipant>> voiceChannelSidebarParticipants(
     }
     final _VoiceSidebarAgg agg = byUser[userId]!;
     final database.Member? member = membersByUserId[userId];
-    final String displayName = _sidebarDisplayName(user: user, member: member);
-    final String? avatarUrl = buildUserAvatarUrl(
-      userId: user.id,
-      avatarHash: user.avatar,
+    final GuildUserDisplay display = resolveGuildUserDisplayFromRows(
+      user: user,
+      member: member,
+      guildId: guildId,
     );
     out.add(
       VoiceSidebarParticipant(
         userId: userId,
-        displayName: displayName,
-        avatarUrl: avatarUrl,
-        avatarColor: user.avatarColor,
+        displayName: display.displayName,
+        avatarUrl: display.avatarUrl,
+        avatarColor: display.avatarColor,
         selfMute: agg.selfMute,
         selfDeaf: agg.selfDeaf,
         selfVideo: agg.selfVideo,
@@ -260,8 +247,8 @@ Future<List<VoiceSidebarParticipant>> voiceChannelSidebarParticipants(
   }
   out.sort((VoiceSidebarParticipant a, VoiceSidebarParticipant b) {
     final int byName = a.displayName.toLowerCase().compareTo(
-          b.displayName.toLowerCase(),
-        );
+      b.displayName.toLowerCase(),
+    );
     if (byName != 0) {
       return byName;
     }

@@ -7,7 +7,7 @@ class UserProfileHeader extends StatelessWidget {
   const UserProfileHeader({
     required this.username,
     required this.discriminator,
-    required this.globalName,
+    required this.displayName,
     required this.flags,
     required this.hasPlutonium,
     required this.customStatus,
@@ -16,19 +16,16 @@ class UserProfileHeader extends StatelessWidget {
 
   final String username;
   final String discriminator;
-  final String? globalName;
+  final String displayName;
   final int flags;
   final bool hasPlutonium;
   final String? customStatus;
-
-  String _displayName() => globalName ?? username;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final textStyles = context.textStyles;
     final layout = context.layout;
-    final displayName = _displayName();
     final isUsernameAsDisplay = displayName == username;
 
     return Column(

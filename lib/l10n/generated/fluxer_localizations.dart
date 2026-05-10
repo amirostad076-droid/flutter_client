@@ -3616,6 +3616,18 @@ abstract class FluxerLocalizations {
   /// **'Copy User ID'**
   String get userProfileCopyUserId;
 
+  /// Three-dot menu item shown from a community profile that switches to the user's main profile.
+  ///
+  /// In en, this message translates to:
+  /// **'View Main Profile'**
+  String get userProfileViewMainProfile;
+
+  /// Three-dot menu item shown from a main profile that switches back to the user's community profile.
+  ///
+  /// In en, this message translates to:
+  /// **'View Community Profile'**
+  String get userProfileViewCommunityProfile;
+
   /// Three-dot menu item to block the user.
   ///
   /// In en, this message translates to:

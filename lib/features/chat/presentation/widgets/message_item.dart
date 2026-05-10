@@ -34,8 +34,10 @@ import 'package:fluxer_app/features/settings/providers/user_settings_view_model.
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
 import 'package:fluxer_app/shared/utils/emoji_utils.dart';
+import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -295,6 +297,20 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           .watch(memberRoleColorProvider((msg.authorId, guildId)))
           .value;
     }
+    final GuildUserDisplay fallbackAuthorDisplay =
+        resolveGuildUserDisplayFromMessage(
+          userId: msg.authorId,
+          fallbackDisplayName: msg.authorName,
+          fallbackAvatarHash: msg.authorAvatar,
+          fallbackAvatarColor: msg.authorAvatarColor,
+          member: null,
+          guildId: null,
+          animatedAvatar: false,
+        );
+    final GuildUserDisplay authorDisplay = guildId == null
+        ? fallbackAuthorDisplay
+        : ref.watch(guildUserDisplayProvider((msg.authorId, guildId))).value ??
+              fallbackAuthorDisplay;
     final bool shouldHighlightMention =
         msg.isMentioned && !widget.hideMentionHighlight;
     final bool isFailed = msg.hasFailed;
@@ -369,6 +385,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                     _buildMainRow(
                       context,
                       msg,
+                      authorDisplay,
                       authorRoleColor,
                       isMobile,
                       renderEmbeds: renderEmbeds,
@@ -692,6 +709,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   Widget _buildMainRow(
     BuildContext context,
     Message msg,
+    GuildUserDisplay authorDisplay,
     Color? roleColor,
     bool isMobile, {
     required bool renderEmbeds,
@@ -710,10 +728,10 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         child: Padding(
           padding: const EdgeInsets.only(top: 2),
           child: FluxerAvatar.user(
-            fallbackText: msg.authorName,
+            fallbackText: authorDisplay.displayName,
             userId: msg.authorId,
-            imageUrl: msg.authorAvatarUrl,
-            avatarColor: msg.authorAvatarColor,
+            imageUrl: authorDisplay.avatarUrl,
+            avatarColor: authorDisplay.avatarColor,
           ),
         ),
       ),
@@ -731,7 +749,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                         ? () => _openAuthorProfile(context, msg)
                         : null,
                     child: Text(
-                      msg.authorName,
+                      authorDisplay.displayName,
                       style: TextStyle(
                         color: roleColor ?? context.colors.textChat,
                         fontSize: 16,

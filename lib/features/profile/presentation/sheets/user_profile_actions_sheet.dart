@@ -20,6 +20,10 @@ class UserProfileActionsSheet {
     required UserProfileFullResponseUser user,
     required bool isCurrentUser,
     required Offset position,
+    bool hasGuildProfile = false,
+    bool isShowingGlobalProfile = false,
+    VoidCallback? onShowGlobalProfile,
+    VoidCallback? onShowCommunityProfile,
   }) {
     return FluxerActionMenu.show(
       context,
@@ -30,6 +34,23 @@ class UserProfileActionsSheet {
         final status = relationship?.friendStatus;
 
         return [
+          if (hasGuildProfile) ...[
+            FluxerMenuItem(
+              label: isShowingGlobalProfile
+                  ? l10n.userProfileViewCommunityProfile
+                  : l10n.userProfileViewMainProfile,
+              icon: PhosphorIconsFill.userCircle,
+              onPressed: () {
+                close();
+                if (isShowingGlobalProfile) {
+                  onShowCommunityProfile?.call();
+                  return;
+                }
+                onShowGlobalProfile?.call();
+              },
+            ),
+            const FluxerMenuDivider(),
+          ],
           FluxerMenuItem(
             label: l10n.userProfileCopyUsername,
             icon: PhosphorIconsFill.copy,
