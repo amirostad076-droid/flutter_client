@@ -4024,10 +4024,10 @@ abstract class FluxerLocalizations {
   /// **'Attachment expired'**
   String get chatAttachmentExpiredTooltip;
 
-  /// Option to pick images from the device gallery.
+  /// Option to pick photos and videos from the device gallery.
   ///
   /// In en, this message translates to:
-  /// **'Photo library'**
+  /// **'Gallery'**
   String get chatAttachmentSourceGallery;
 
   /// Option to capture a photo with the camera.

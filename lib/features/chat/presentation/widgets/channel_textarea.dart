@@ -822,15 +822,17 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                   onTap: () async {
                     Navigator.of(sheetContext).pop();
                     final ImagePicker picker = ImagePicker();
-                    final List<XFile> images = await picker.pickMultiImage();
-                    if (images.isEmpty) {
+                    final List<XFile> media = await picker.pickMultipleMedia(
+                      limit: kMaxAttachmentsPerMessage,
+                    );
+                    if (media.isEmpty) {
                       return;
                     }
                     if (!mounted) {
                       return;
                     }
-                    final FileUploadValidationResult r = await notifier
-                        .addFiles(images);
+                    final FileUploadValidationResult r =
+                        await notifier.addFiles(media);
                     if (mounted) {
                       _toastUploadValidation(r);
                     }

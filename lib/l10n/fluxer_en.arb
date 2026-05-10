@@ -2877,9 +2877,9 @@
   "@chatAttachmentExpiredTooltip": {
     "description": "Tooltip when a file attachment link is no longer available."
   },
-  "chatAttachmentSourceGallery": "Photo library",
+  "chatAttachmentSourceGallery": "Gallery",
   "@chatAttachmentSourceGallery": {
-    "description": "Option to pick images from the device gallery."
+    "description": "Option to pick photos and videos from the device gallery."
   },
   "chatAttachmentSourceCamera": "Camera",
   "@chatAttachmentSourceCamera": {

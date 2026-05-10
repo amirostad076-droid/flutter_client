@@ -2347,7 +2347,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatAttachmentExpiredTooltip => 'Attachment expired';
 
   @override
-  String get chatAttachmentSourceGallery => 'Photo library';
+  String get chatAttachmentSourceGallery => 'Gallery';
 
   @override
   String get chatAttachmentSourceCamera => 'Camera';
