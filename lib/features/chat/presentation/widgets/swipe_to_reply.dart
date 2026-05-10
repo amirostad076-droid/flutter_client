@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const double _kMaxDragFraction = 0.30;
@@ -136,27 +137,37 @@ class _SwipeToReplyState extends State<SwipeToReply>
         ? 0.0
         : (-_dragOffset / _maxDrag).clamp(0.0, 1.0);
     final cornerRadius = _kMaxCornerRadius * progress;
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onHorizontalDragStart: _handleDragStart,
-      onHorizontalDragUpdate: _handleDragUpdate,
-      onHorizontalDragEnd: _handleDragEnd,
-      onHorizontalDragCancel: _handleDragCancel,
-      child: Stack(
-        children: [
-          if (progress > 0) _buildReplyIcon(context, progress),
-          Transform.translate(
-            offset: Offset(_dragOffset, 0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.only(
-                topRight: Radius.circular(cornerRadius),
-                bottomRight: Radius.circular(cornerRadius),
-              ),
-              child: widget.child,
+    final double leadingReserve =
+        leadingEdgeHorizontalSwipeReserveWidth(context);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Transform.translate(
+          offset: Offset(_dragOffset, 0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(cornerRadius),
+              bottomRight: Radius.circular(cornerRadius),
             ),
+            child: widget.child,
           ),
-        ],
-      ),
+        ),
+        if (progress > 0) _buildReplyIcon(context, progress),
+        PositionedDirectional(
+          start: leadingReserve,
+          top: 0,
+          end: 0,
+          bottom: 0,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragStart: _handleDragStart,
+            onHorizontalDragUpdate: _handleDragUpdate,
+            onHorizontalDragEnd: _handleDragEnd,
+            onHorizontalDragCancel: _handleDragCancel,
+            child: const SizedBox.expand(),
+          ),
+        ),
+      ],
     );
   }
 

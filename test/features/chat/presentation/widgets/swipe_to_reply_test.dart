@@ -1,0 +1,96 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme.dart';
+import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/swipe_to_reply.dart';
+import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
+
+Widget _buildApp(Widget child) {
+  final colorTheme = buildDarkColorTheme();
+  return MaterialApp(
+    theme: buildFluxerTheme(
+      colorTheme: colorTheme,
+      textTheme: FluxerTextTheme.fromColors(colorTheme),
+      layoutTheme: FluxerLayoutTheme.scaled(),
+    ),
+    home: MediaQuery(
+      data: const MediaQueryData(size: Size(400, 800)),
+      child: Scaffold(
+        body: Center(
+          child: SizedBox(
+            key: const ValueKey<void>('swipeViewport'),
+            width: 400,
+            height: 56,
+            child: child,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+void main() {
+  testWidgets('horizontal drag starting in leading edge reserve does not reply', (
+    tester,
+  ) async {
+    var replyCount = 0;
+    await tester.pumpWidget(
+      _buildApp(
+        SwipeToReply(
+          onReply: () => replyCount++,
+          child: const ColoredBox(color: Color(0xFF112233)),
+        ),
+      ),
+    );
+    final BuildContext ctx = tester.element(
+      find.byKey(const ValueKey<void>('swipeViewport')),
+    );
+    final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
+    expect(reserve, greaterThan(0));
+    final RenderBox viewport = tester.renderObject(
+      find.byKey(const ValueKey<void>('swipeViewport')),
+    ) as RenderBox;
+    final Offset startLocal = Offset(reserve / 2, viewport.size.height / 2);
+    final TestGesture gesture = await tester.startGesture(
+      viewport.localToGlobal(startLocal),
+    );
+    await gesture.moveBy(const Offset(-120, 0));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(replyCount, 0);
+  });
+
+  testWidgets('horizontal drag past reserve past threshold invokes onReply', (
+    tester,
+  ) async {
+    var replyCount = 0;
+    await tester.pumpWidget(
+      _buildApp(
+        SwipeToReply(
+          onReply: () => replyCount++,
+          child: const ColoredBox(color: Color(0xFF112233)),
+        ),
+      ),
+    );
+    final BuildContext ctx = tester.element(
+      find.byKey(const ValueKey<void>('swipeViewport')),
+    );
+    final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
+    final RenderBox viewport = tester.renderObject(
+      find.byKey(const ValueKey<void>('swipeViewport')),
+    ) as RenderBox;
+    final Offset startLocal = Offset(
+      reserve + 40,
+      viewport.size.height / 2,
+    );
+    final TestGesture gesture = await tester.startGesture(
+      viewport.localToGlobal(startLocal),
+    );
+    await gesture.moveBy(const Offset(-150, 0));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(replyCount, 1);
+  });
+}

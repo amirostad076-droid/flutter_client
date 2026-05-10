@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb, visibleForTesting;
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
@@ -144,6 +143,13 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
     await _onApplyTranslation(details);
   }
 
+  Future<void> _handleDragCancel() async {
+    if (!mounted) {
+      return;
+    }
+    await _onApplyTranslation(DragEndDetails());
+  }
+
   void _onTranslate(double delta) {
     if (!mounted) {
       return;
@@ -185,34 +191,43 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
       }
     });
 
-    return RawGestureDetector(
-      gestures: <Type, GestureRecognizerFactory>{
-        HorizontalDragGestureRecognizer:
-            GestureRecognizerFactoryWithHandlers<
-              HorizontalDragGestureRecognizer
-            >(HorizontalDragGestureRecognizer.new, (recognizer) {
-              recognizer
-                ..onStart = _handleDragStart
-                ..onUpdate = _handleDragUpdate
-                ..onEnd = _handleDragEnd;
-            }),
-      },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          RepaintBoundary(child: widget.base),
-          AnimatedBuilder(
-            animation: _animationController,
-            child: RepaintBoundary(child: widget.slider),
-            builder: (context, slider) {
-              return Transform.translate(
-                offset: Offset(_animationController.value, 0),
-                child: slider,
-              );
+    final double leadingEdgeReserve =
+        leadingEdgeHorizontalSwipeReserveWidth(context);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Stack(
+          fit: StackFit.expand,
+          children: [
+            RepaintBoundary(child: widget.base),
+            AnimatedBuilder(
+              animation: _animationController,
+              child: RepaintBoundary(child: widget.slider),
+              builder: (context, slider) {
+                return Transform.translate(
+                  offset: Offset(_animationController.value, 0),
+                  child: slider,
+                );
+              },
+            ),
+          ],
+        ),
+        PositionedDirectional(
+          start: 0,
+          top: 0,
+          bottom: 0,
+          width: leadingEdgeReserve,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onHorizontalDragStart: _handleDragStart,
+            onHorizontalDragUpdate: _handleDragUpdate,
+            onHorizontalDragEnd: _handleDragEnd,
+            onHorizontalDragCancel: () {
+              unawaited(_handleDragCancel());
             },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

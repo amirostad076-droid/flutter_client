@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
@@ -287,13 +286,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   }
 
   double _backSwipeEdgeWidth(BuildContext context) {
-    final EdgeInsets padding = MediaQuery.paddingOf(context);
-    final bool isRtl = Directionality.of(context) == TextDirection.rtl;
-    final double startEdgePadding = isRtl ? padding.right : padding.left;
-    if (defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb) {
-      return math.max(kBackSwipeEdgeMinWidthCupertino, startEdgePadding);
-    }
-    return math.max(kBackSwipeEdgeMinWidthMaterial, startEdgePadding);
+    return leadingEdgeHorizontalSwipeReserveWidth(context);
   }
 
   double _backSwipeProgressThreshold() {
