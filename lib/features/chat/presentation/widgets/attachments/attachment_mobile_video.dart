@@ -39,7 +39,7 @@ class _AttachmentMobileFullscreenVideoPage extends StatefulWidget {
 class _AttachmentMobileFullscreenVideoPageState
     extends State<_AttachmentMobileFullscreenVideoPage> {
   static const Duration _hudHideDelay = Duration(seconds: 3);
-  static const double _kUnmutedVolume = 1;
+  static const double _kUnmutedVolume = 100;
 
   Player? _player;
   mkv.VideoController? _controller;
