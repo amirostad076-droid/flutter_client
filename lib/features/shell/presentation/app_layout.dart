@@ -45,6 +45,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   static final _chatRoutePattern = RegExp('^/channels/[^/]+/.+');
   late final GoRouter _router;
   late final AnimationController _swipeController;
+  String? _lastSyncedChannelsLocation;
 
   @override
   void initState() {
@@ -55,6 +56,10 @@ class _AppLayoutState extends ConsumerState<AppLayout>
       vsync: this,
       duration: kHorizontalSwipeRevealDuration,
     );
+    final initialLocation = _currentLocation;
+    if (_isChannelsRoute(initialLocation)) {
+      _lastSyncedChannelsLocation = initialLocation;
+    }
   }
 
   @override
@@ -87,6 +92,13 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     if (!_isChannelsRoute(pathLocation)) {
       return;
     }
+    // Returning to the same channels location (e.g., via a bottom-nav tab
+    // round-trip) must not overwrite a drawer state the user toggled
+    // manually. Only re-sync when the channels location actually changes.
+    if (pathLocation == _lastSyncedChannelsLocation) {
+      return;
+    }
+    _lastSyncedChannelsLocation = pathLocation;
 
     final RevealSide desired;
     if (_isRootRoute(pathLocation)) {
