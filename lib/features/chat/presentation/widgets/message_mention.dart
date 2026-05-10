@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.d
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/role_providers.dart';
+import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -136,9 +137,8 @@ class UserMention extends ConsumerWidget {
       fontWeight: FontWeight.w500,
     );
     return GestureDetector(
-      // TODO(users): open user profile popout
-      onTap: () => debugPrint(
-        'test userId=$userId guildId=$guildId channelId=$channelId',
+      onTap: () => unawaited(
+        FluxerUserProfileSheet.show(context, userId: userId, guildId: guildId),
       ),
       child: _MentionPill(child: Text('@$name', style: style)),
     );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
+import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 
 const _kPanelWidth = 264.0;
@@ -36,7 +39,12 @@ class ChannelMembers extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildGroupHeader(context, group),
-              ...group.members.map((m) => _MemberListItem(member: m)),
+              ...group.members.map(
+                (m) => _MemberListItem(
+                  member: m,
+                  guildId: memberState.selectedGuildId,
+                ),
+              ),
             ],
           );
         },
@@ -80,8 +88,9 @@ class _ChannelMembersPanel extends StatelessWidget {
 
 class _MemberListItem extends StatefulWidget {
   final Member member;
+  final String? guildId;
 
-  const _MemberListItem({required this.member});
+  const _MemberListItem({required this.member, required this.guildId});
 
   @override
   State<_MemberListItem> createState() => _MemberListItemState();
@@ -102,7 +111,13 @@ class _MemberListItemState extends State<_MemberListItem> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () {},
+        onTap: () => unawaited(
+          FluxerUserProfileSheet.show(
+            context,
+            userId: member.id,
+            guildId: widget.guildId,
+          ),
+        ),
         child: Opacity(
           opacity: isOffline ? 0.3 : 1.0,
           child: Padding(

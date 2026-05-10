@@ -22,6 +22,7 @@ import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart'
     show fluxerMediaCdn;
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -985,6 +986,9 @@ class _DMListState extends ConsumerState<DMList> {
     final rels = await db.relationshipDao.getRelationships();
     final rel = rels.where((r) => r.userId == convo.recipientId).firstOrNull;
     final devMode = ref.read(userSettingsViewModelProvider).developerMode;
+    if (!mounted || !context.mounted) {
+      return;
+    }
     final result = await FluxerBottomSheet.show<Object>(
       context,
       builder: (context, _) => _DmBottomSheet(
@@ -996,7 +1000,7 @@ class _DMListState extends ConsumerState<DMList> {
       ),
     );
 
-    if (result == null || !mounted) {
+    if (result == null || !mounted || !context.mounted) {
       return;
     }
 
@@ -1010,8 +1014,11 @@ class _DMListState extends ConsumerState<DMList> {
       case _DmAction.markAsRead:
         unawaited(ref.read(dmViewModelProvider.notifier).markAsRead(convo.id));
       case _DmAction.viewProfile:
-        // TODO(fluxer_app): navigate to user profile sheet
-        break;
+        if (!convo.isGroup) {
+          unawaited(
+            FluxerUserProfileSheet.show(context, userId: convo.recipientId),
+          );
+        }
       case _DmAction.voiceCall:
         unawaited(() async {
           final String? selfId = ref.read(currentUserIdProvider);

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -5,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -404,7 +407,8 @@ class FriendsList extends ConsumerWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(6),
         hoverColor: context.colors.backgroundModifierHover,
-        onTap: () {},
+        onTap: () =>
+            unawaited(FluxerUserProfileSheet.show(context, userId: friend.id)),
         child: Padding(
           padding: EdgeInsets.symmetric(
             vertical: context.layout.s3,
