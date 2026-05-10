@@ -2442,6 +2442,14 @@
   "@userProfileMessage": {
     "description": "Action card label that opens a DM with the user."
   },
+  "userProfileVoiceCall": "Voice Call",
+  "@userProfileVoiceCall": {
+    "description": "Action card label that starts a voice call with the user."
+  },
+  "userProfileVideoCall": "Video Call",
+  "@userProfileVideoCall": {
+    "description": "Action card label that starts a video call with the user."
+  },
   "userProfileEditProfile": "Edit Profile",
   "@userProfileEditProfile": {
     "description": "Action card label shown on the current user's own profile sheet."

@@ -9,16 +9,18 @@ class UserProfileActionCardRow extends StatelessWidget {
   const UserProfileActionCardRow({
     required this.isCurrentUser,
     required this.isBlocked,
-    required this.username,
     required this.onMessage,
+    required this.onVoiceCall,
+    required this.onVideoCall,
     required this.onEditProfile,
     super.key,
   });
 
   final bool isCurrentUser;
   final bool isBlocked;
-  final String username;
   final Future<void> Function() onMessage;
+  final Future<void> Function() onVoiceCall;
+  final Future<void> Function() onVideoCall;
   final VoidCallback onEditProfile;
 
   @override
@@ -36,11 +38,28 @@ class UserProfileActionCardRow extends StatelessWidget {
     }
 
     return Row(
+      spacing: 10,
       children: [
         Expanded(
-          child: _MessageCard(
+          child: _ProfileActionCard(
             label: isBlocked ? l10n.userProfileOpenDm : l10n.userProfileMessage,
+            icon: PhosphorIconsFill.chatTeardrop,
             onTap: onMessage,
+            usesBrandPrimaryCircle: true,
+          ),
+        ),
+        Expanded(
+          child: _ProfileActionCard(
+            label: l10n.userProfileVoiceCall,
+            icon: PhosphorIconsFill.phone,
+            onTap: onVoiceCall,
+          ),
+        ),
+        Expanded(
+          child: _ProfileActionCard(
+            label: l10n.userProfileVideoCall,
+            icon: PhosphorIconsFill.videoCamera,
+            onTap: onVideoCall,
           ),
         ),
       ],
@@ -48,16 +67,28 @@ class UserProfileActionCardRow extends StatelessWidget {
   }
 }
 
-class _MessageCard extends StatelessWidget {
-  const _MessageCard({required this.label, required this.onTap});
+class _ProfileActionCard extends StatelessWidget {
+  const _ProfileActionCard({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.usesBrandPrimaryCircle = false,
+  });
 
   final String label;
+  final IconData icon;
   final Future<void> Function() onTap;
+  final bool usesBrandPrimaryCircle;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final layout = context.layout;
+    final Color circleColor = usesBrandPrimaryCircle
+        ? colors.brandPrimary
+        : colors.backgroundTertiary;
+    final Color iconColor =
+        usesBrandPrimaryCircle ? colors.textPrimary : colors.interactiveNormal;
     return FluxerTappable(
       onTap: () async {
         await onTap();
@@ -77,13 +108,13 @@ class _MessageCard extends StatelessWidget {
                 height: 48,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: colors.brandPrimary,
+                  color: circleColor,
                   shape: BoxShape.circle,
                 ),
                 child: PhosphorIcon(
-                  PhosphorIconsFill.chatTeardrop,
+                  icon,
                   size: 24,
-                  color: colors.textPrimary,
+                  color: iconColor,
                 ),
               ),
               const SizedBox(height: 4),

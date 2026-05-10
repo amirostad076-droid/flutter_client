@@ -1952,6 +1952,12 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get userProfileMessage => 'Message';
 
   @override
+  String get userProfileVoiceCall => 'Voice Call';
+
+  @override
+  String get userProfileVideoCall => 'Video Call';
+
+  @override
   String get userProfileEditProfile => 'Edit Profile';
 
   @override

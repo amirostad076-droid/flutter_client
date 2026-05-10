@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart' show RoutePaths;
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -26,6 +27,7 @@ import 'package:fluxer_app/features/profile/providers/user_relationship_provider
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/features/voice/utils/call_actions.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/user_profile.dart';
 import 'package:fluxer_dart/export.dart';
@@ -136,6 +138,70 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
       context.go(RoutePaths.dmChannel(channelId));
     } on Object catch (e, st) {
       talker.error('[UserProfileSheet] Failed to open DM: $e', e, st);
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.userProfileFailedOpenDm,
+              variant: FluxerToastVariant.danger,
+            ),
+          );
+    }
+  }
+
+  Future<void> _handleOutboundDmCall({
+    required String peerUserId,
+    required bool isBlocked,
+    required String username,
+    required bool startWithVideo,
+  }) async {
+    final l10n = FluxerLocalizations.of(context);
+    if (isBlocked) {
+      final ok = await UserProfileConfirmationSheet.show(
+        context,
+        title: l10n.userProfileOpenBlockedDmTitle,
+        description: l10n.userProfileOpenBlockedDmDescription(username),
+        primaryLabel: l10n.userProfileOpenDm,
+        primaryVariant: FluxerButtonVariant.primary,
+      );
+      if (!ok) {
+        return;
+      }
+    }
+    try {
+      final channelId =
+          await ref.read(dmRepositoryProvider).ensureDmChannel(peerUserId);
+      if (!mounted) {
+        return;
+      }
+      final String? selfId = ref.read(currentUserIdProvider);
+      final List<String> ringTargets = <String>[peerUserId]
+          .where((String id) => selfId == null || id != selfId)
+          .toList();
+      final StartDirectVoiceCallResult r = await startDirectVoiceCall(
+        ref,
+        context,
+        channelId,
+        outboundRingRecipients: ringTargets.isEmpty ? null : ringTargets,
+        startWithVideo: startWithVideo,
+      );
+      if (!mounted) {
+        return;
+      }
+      if (!r.ok && !r.microphoneDenied && !r.cameraDenied) {
+        final String? snackMessage = r.notEligible
+            ? l10n.directVoiceCallNotEligible
+            : r.joinAttemptFailed
+            ? l10n.voiceJoinCallFailed
+            : null;
+        if (snackMessage != null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(snackMessage)));
+        }
+      }
+    } on Object catch (e, st) {
+      talker.error('[UserProfileSheet] Failed to start call: $e', e, st);
       ref
           .read(toastProvider.notifier)
           .show(
@@ -402,9 +468,20 @@ class _SheetBodyState extends ConsumerState<_SheetBody> {
                     UserProfileActionCardRow(
                       isCurrentUser: isCurrentUser,
                       isBlocked: isBlocked,
-                      username: user.username,
                       onMessage: () =>
                           _handleMessage(user.id, isBlocked, user.username),
+                      onVoiceCall: () => _handleOutboundDmCall(
+                        peerUserId: user.id,
+                        isBlocked: isBlocked,
+                        username: user.username,
+                        startWithVideo: false,
+                      ),
+                      onVideoCall: () => _handleOutboundDmCall(
+                        peerUserId: user.id,
+                        isBlocked: isBlocked,
+                        username: user.username,
+                        startWithVideo: true,
+                      ),
                       onEditProfile: () => UserSettingsModal.show(
                         context,
                         openProfileSection: true,

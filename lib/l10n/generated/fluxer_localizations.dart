@@ -3454,6 +3454,18 @@ abstract class FluxerLocalizations {
   /// **'Message'**
   String get userProfileMessage;
 
+  /// Action card label that starts a voice call with the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Call'**
+  String get userProfileVoiceCall;
+
+  /// Action card label that starts a video call with the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Video Call'**
+  String get userProfileVideoCall;
+
   /// Action card label shown on the current user's own profile sheet.
   ///
   /// In en, this message translates to:
