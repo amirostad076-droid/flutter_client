@@ -117,6 +117,18 @@ jobs:
           storeFile=$KEYSTORE_PATH
           EOF
 
+      - name: Write Android ADI registration file
+        env:
+          ANDROID_ADI_REGISTRATION_SNIPPET: ${{ vars.ANDROID_ADI_REGISTRATION_SNIPPET }}
+        run: |
+          set -euo pipefail
+          if [ -z "$ANDROID_ADI_REGISTRATION_SNIPPET" ]; then
+            echo "::warning::Repository variable ANDROID_ADI_REGISTRATION_SNIPPET is not set. Add the Play Console identifier under Settings -> Secrets and variables -> Actions -> Variables if you need adi-registration.properties in the APK."
+            exit 0
+          fi
+          mkdir -p android/app/src/main/assets
+          printf '%s\n' "$ANDROID_ADI_REGISTRATION_SNIPPET" > android/app/src/main/assets/adi-registration.properties
+
       - name: Configure Google services for canary
         env:
           GOOGLE_SERVICES_JSON_ANDROID_CANARY: ${{ secrets.GOOGLE_SERVICES_JSON_ANDROID_CANARY }}

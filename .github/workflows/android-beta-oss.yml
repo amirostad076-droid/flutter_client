@@ -116,6 +116,18 @@ jobs:
           storeFile=$KEYSTORE_PATH
           EOF
 
+      - name: Write Android ADI registration file
+        env:
+          ANDROID_ADI_REGISTRATION_SNIPPET: ${{ vars.ANDROID_ADI_REGISTRATION_SNIPPET }}
+        run: |
+          set -euo pipefail
+          if [ -z "$ANDROID_ADI_REGISTRATION_SNIPPET" ]; then
+            echo "::warning::Repository variable ANDROID_ADI_REGISTRATION_SNIPPET is not set. Add the Play Console identifier under Settings -> Secrets and variables -> Actions -> Variables if you need adi-registration.properties in the APK."
+            exit 0
+          fi
+          mkdir -p android/app/src/main/assets
+          printf '%s\n' "$ANDROID_ADI_REGISTRATION_SNIPPET" > android/app/src/main/assets/adi-registration.properties
+
       - name: Build beta OSS APK
         run: flutter build apk --release --flavor betaUnifiedpush --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/beta.json --dart-define=PUSH_PROVIDER=unifiedpush --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
