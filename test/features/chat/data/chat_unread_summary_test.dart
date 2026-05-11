@@ -82,4 +82,11 @@ void main() {
     expect(summary.isEstimated, isFalse);
     expect(summary.hasUnread, isFalse);
   });
+
+  test('formats exact and estimated unread count labels', () {
+    expect(unreadCountLabel(1, isEstimated: false), '1');
+    expect(unreadCountLabel(2, isEstimated: true), '2+');
+    expect(unreadCountLabel(100, isEstimated: false), '99+');
+    expect(unreadCountLabel(100, isEstimated: true), '99+');
+  });
 }

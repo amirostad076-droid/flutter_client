@@ -23,6 +23,13 @@ class ChatUnreadSummary {
   bool get hasUnread => displayUnreadCount > 0;
 }
 
+String unreadCountLabel(int count, {required bool isEstimated}) {
+  if (count > 99) {
+    return '99+';
+  }
+  return isEstimated ? '$count+' : '$count';
+}
+
 ChatUnreadSummary computeChatUnreadSummary({
   required Iterable<ChatUnreadMessageRef> messages,
   required String? ackLastMessageId,

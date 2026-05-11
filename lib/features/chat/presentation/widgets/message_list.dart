@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +7,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
-import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_item.dart';
@@ -270,11 +269,18 @@ class _MessageListState extends ConsumerState<MessageList> {
               .watch(_messageListReadStateProvider(state.channelId))
               .asData
               ?.value;
-    final oldestUnreadId = _oldestUnreadMessageId(
-      messages: messages,
+    final unreadSummary = computeChatUnreadSummary(
+      messages: messages.map(
+        (message) => ChatUnreadMessageRef(
+          id: message.id,
+          authorId: message.authorId,
+        ),
+      ),
       ackLastMessageId: readState?.lastMessageId,
+      mentionCount: readState?.mentionCount ?? 0,
       currentUserId: currentUserId,
     );
+    final oldestUnreadId = unreadSummary.oldestUnreadMessageId;
     final stickyUnreadId = state.stickyUnreadMessageId;
     final visualUnreadId = _visualUnreadId(
       messages: messages,
@@ -282,14 +288,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       oldestUnreadId: oldestUnreadId,
       currentUserId: currentUserId,
     );
-    final loadedUnreadCount = _loadedUnreadCount(
-      messages,
-      readState?.lastMessageId,
-      currentUserId,
-    );
-    final unreadCount = readState == null
-        ? 0
-        : math.max(loadedUnreadCount, readState.mentionCount);
+    final unreadCount = unreadSummary.displayUnreadCount;
     final unreadSince = _messageTimestamp(messages, visualUnreadId);
     final chatFontSize = ref.watch(
       themePreferenceProvider.select((s) => s.chatFontSize),
@@ -449,6 +448,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             child: _buildNewMessagesBar(
               context,
               count: unreadCount,
+              isEstimated: unreadSummary.isEstimated,
               since: unreadSince,
               onTap: _onUnreadBarTap,
             ),
@@ -462,19 +462,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     return MediaQuery(
       data: mediaQuery.copyWith(textScaler: combinedScaler),
       child: scaledBody,
-    );
-  }
-
-  String? _oldestUnreadMessageId({
-    required List<Message> messages,
-    required String? ackLastMessageId,
-    required String? currentUserId,
-  }) {
-    return oldestUnreadMessageId(
-      messageIds: messages
-          .where((message) => !_isOwnMessage(message, currentUserId))
-          .map((message) => message.id),
-      ackLastMessageId: ackLastMessageId,
     );
   }
 
@@ -493,23 +480,6 @@ class _MessageListState extends ConsumerState<MessageList> {
           !_isOwnMessage(message, currentUserId),
     );
     return hasVisibleSticky ? stickyUnreadId : oldestUnreadId;
-  }
-
-  int _loadedUnreadCount(
-    List<Message> messages,
-    String? ackLastMessageId,
-    String? currentUserId,
-  ) {
-    if (ackLastMessageId == null || ackLastMessageId.isEmpty) {
-      return 0;
-    }
-    return messages
-        .where(
-          (message) =>
-              !_isOwnMessage(message, currentUserId) &&
-              compareSnowflakeIds(message.id, ackLastMessageId) > 0,
-        )
-        .length;
   }
 
   bool _isOwnMessage(Message message, String? currentUserId) {
@@ -687,11 +657,14 @@ class _MessageListState extends ConsumerState<MessageList> {
   Widget _buildNewMessagesBar(
     BuildContext context, {
     required int count,
+    required bool isEstimated,
     required DateTime? since,
     required VoidCallback onTap,
   }) {
-    final displayCount = count > 99 ? '99+' : '$count';
-    final messageLabel = count == 1 ? '1 new message' : '$displayCount new';
+    final displayCount = unreadCountLabel(count, isEstimated: isEstimated);
+    final messageLabel = count == 1 && !isEstimated
+        ? '1 new message'
+        : '$displayCount new';
     final sinceLabel = since == null ? '' : ' since ${_formatTime(since)}';
 
     return Material(
