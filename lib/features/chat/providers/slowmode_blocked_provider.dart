@@ -1,29 +1,73 @@
-import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
-import 'package:fluxer_app/features/chat/providers/slowmode_immunity_provider.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'slowmode_blocked_provider.g.dart';
 
 @riverpod
-Stream<bool> isSlowmodeBlocked(Ref ref, String channelId) async* {
+Stream<bool> isSlowmodeBlocked(Ref ref, String channelId) {
   if (channelId.isEmpty) {
-    yield false;
+    return Stream<bool>.value(false);
+  }
+  var disposed = false;
+  ref
+    ..onDispose(() => disposed = true)
+    ..watch(slowmodeTrackerProvider);
+  final tracker = ref.read(slowmodeTrackerProvider.notifier);
+  final db = ref.watch(fluxerDatabaseProvider);
+  final permissions = ref.read(guildPermissionsProvider.notifier);
+
+  return _watchSlowmodeBlocked(
+    channelId: channelId,
+    db: db,
+    tracker: tracker,
+    permissions: permissions,
+    isDisposed: () => disposed,
+  );
+}
+
+Stream<bool> _watchSlowmodeBlocked({
+  required String channelId,
+  required FluxerDatabase db,
+  required SlowmodeTracker tracker,
+  required GuildPermissions permissions,
+  required bool Function() isDisposed,
+}) async* {
+  final channel = await db.channelDao.getChannelById(channelId);
+  if (isDisposed()) {
     return;
   }
-  final channel = await ref.watch(channelByIdProvider(channelId).future);
   final rate = channel?.rateLimitPerUser ?? 0;
-  final isImmune = await ref.watch(isSlowmodeImmuneProvider(channelId).future);
-  ref.watch(slowmodeTrackerProvider);
+  final guildId = channel?.guildId ?? '';
+  final isImmune =
+      guildId.isNotEmpty &&
+      await _hasSlowmodeBypassPermission(permissions, guildId);
+  if (isDisposed()) {
+    return;
+  }
   if (rate <= 0 || isImmune) {
     yield false;
     return;
   }
-  Duration remaining() =>
-      ref.read(slowmodeTrackerProvider.notifier).remainingFor(channelId, rate);
-  while (remaining() > Duration.zero) {
+  Duration remaining() => tracker.remainingFor(channelId, rate);
+  while (!isDisposed() && remaining() > Duration.zero) {
     yield true;
     await Future<void>.delayed(const Duration(seconds: 1));
   }
-  yield false;
+  if (!isDisposed()) {
+    yield false;
+  }
+}
+
+Future<bool> _hasSlowmodeBypassPermission(
+  GuildPermissions permissions,
+  String guildId,
+) async {
+  final bits = await permissions.getPermissions(guildId);
+  return hasPermission(bits, Permission.bypassSlowmode) ||
+      hasPermission(bits, Permission.manageChannels) ||
+      hasPermission(bits, Permission.manageMessages);
 }
