@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 abstract final class Breakpoints {
@@ -7,19 +9,25 @@ abstract final class Breakpoints {
 
 enum LayoutMode { mobile, tablet, desktop }
 
-LayoutMode layoutModeOf(double width) {
-  if (width < Breakpoints.mobile) {
+/// Classifies layout from a reference extent, typically the viewport’s shortest
+/// side so orientation does not flip phone vs tablet on rotation.
+LayoutMode layoutModeOf(double referenceExtent) {
+  if (referenceExtent < Breakpoints.mobile) {
     return LayoutMode.mobile;
   }
-  if (width < Breakpoints.tablet) {
+  if (referenceExtent < Breakpoints.tablet) {
     return LayoutMode.tablet;
   }
   return LayoutMode.desktop;
 }
 
-/// Whether the current layout is mobile (width < [Breakpoints.mobile]).
+double layoutReferenceExtentOf(Size size) => math.min(size.width, size.height);
+
+/// Whether the current layout is mobile ([layoutReferenceExtentOf] <
+/// [Breakpoints.mobile]).
 bool isMobileLayout(BuildContext context) =>
-    layoutModeOf(MediaQuery.sizeOf(context).width) == LayoutMode.mobile;
+    layoutModeOf(layoutReferenceExtentOf(MediaQuery.sizeOf(context))) ==
+    LayoutMode.mobile;
 
 class ResponsiveLayout extends StatelessWidget {
   final Widget Function(BuildContext context, LayoutMode mode) builder;
@@ -27,10 +35,10 @@ class ResponsiveLayout extends StatelessWidget {
   const ResponsiveLayout({required this.builder, super.key});
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final mode = layoutModeOf(constraints.maxWidth);
-      return builder(context, mode);
-    },
-  );
+  Widget build(BuildContext context) {
+    final LayoutMode mode = layoutModeOf(
+      layoutReferenceExtentOf(MediaQuery.sizeOf(context)),
+    );
+    return builder(context, mode);
+  }
 }

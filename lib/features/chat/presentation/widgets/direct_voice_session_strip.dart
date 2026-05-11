@@ -29,8 +29,9 @@ class DirectVoiceSessionStrip extends ConsumerWidget {
     if (!_isDmVoiceOnThisChannel(voice)) {
       return const SizedBox.shrink();
     }
-    final double width = MediaQuery.sizeOf(context).width;
-    final LayoutMode layout = layoutModeOf(width);
+    final LayoutMode layout = layoutModeOf(
+      layoutReferenceExtentOf(MediaQuery.sizeOf(context)),
+    );
     if (layout == LayoutMode.desktop && voice.isConnected) {
       return const SizedBox.shrink();
     }

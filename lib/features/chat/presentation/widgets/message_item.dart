@@ -269,7 +269,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     final isGrouped = widget.isGrouped;
     final isMobile = isMobileLayout(context);
     final isTouch =
-        layoutModeOf(MediaQuery.sizeOf(context).width) != LayoutMode.desktop;
+        layoutModeOf(layoutReferenceExtentOf(MediaQuery.sizeOf(context))) !=
+        LayoutMode.desktop;
     final guildId =
         widget.previewRoleGuildId ?? ref.watch(activeGuildIdProvider);
     final renderEmbeds = ref.watch(
