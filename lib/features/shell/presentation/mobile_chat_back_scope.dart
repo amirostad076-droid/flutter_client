@@ -26,6 +26,7 @@ class MobileChatBackScope extends ConsumerWidget {
         if (ref.read(currentRevealSideProvider) != RevealSide.main) {
           return;
         }
+        FocusManager.instance.primaryFocus?.unfocus();
         ref.read(currentRevealSideProvider.notifier).set(RevealSide.left);
       },
       child: child,

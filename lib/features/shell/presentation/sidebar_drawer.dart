@@ -104,6 +104,9 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
     _syncWidth(width);
     final goal = _goalForSide(side, width);
     final isReveal = side == RevealSide.left;
+    if (isReveal) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
     _currentSide = side;
     if (writeBack) {
       ref.read(currentRevealSideProvider.notifier).set(side);

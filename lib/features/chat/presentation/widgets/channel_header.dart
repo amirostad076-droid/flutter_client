@@ -120,6 +120,7 @@ class ChannelHeader extends ConsumerWidget {
             icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, size: 24),
             color: context.colors.textPrimaryMuted,
             onPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus();
               ref.read(currentRevealSideProvider.notifier).set(RevealSide.left);
             },
             padding: EdgeInsets.zero,

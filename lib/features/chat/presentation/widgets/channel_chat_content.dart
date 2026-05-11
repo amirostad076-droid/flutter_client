@@ -109,26 +109,31 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                       LayoutMode.desktop)
                     DmEmbeddedVoiceCallPanel(channelId: widget.channelId),
                   Expanded(
-                    child: Stack(
-                      children: [
-                        if (shouldLoadMessages)
-                          MessageList(targetMessageId: widget.targetMessageId)
-                        else
-                          const SizedBox.expand(),
-                        const Positioned(
-                          left: 8,
-                          right: 8,
-                          bottom: 8,
-                          child: Row(
-                            spacing: 8,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(child: TypingIndicatorBar()),
-                              SlowmodeIndicator(),
-                            ],
+                    child: Listener(
+                      behavior: HitTestBehavior.translucent,
+                      onPointerDown: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
+                      child: Stack(
+                        children: [
+                          if (shouldLoadMessages)
+                            MessageList(targetMessageId: widget.targetMessageId)
+                          else
+                            const SizedBox.expand(),
+                          const Positioned(
+                            left: 8,
+                            right: 8,
+                            bottom: 8,
+                            child: Row(
+                              spacing: 8,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(child: TypingIndicatorBar()),
+                                SlowmodeIndicator(),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const ChannelTextarea(),
