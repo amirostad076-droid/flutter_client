@@ -38,6 +38,16 @@ const double _kVoiceMicDeniedOpacity = 0.45;
 /// Visual weight for the message field when the user cannot send messages.
 const double _kMessageInputDisabledOpacity = 0.55;
 
+const double _kMobileComposerSuffixHorizontalPadding = 7;
+const double _kMobileComposerSuffixVerticalPadding = 4;
+const double _kMobileComposerSuffixButtonExtent = 32;
+const double _kMobileComposerSuffixWidth =
+    _kMobileComposerSuffixHorizontalPadding * 2 +
+    _kMobileComposerSuffixButtonExtent;
+const double _kMobileComposerSuffixHeight =
+    _kMobileComposerSuffixVerticalPadding * 2 +
+    _kMobileComposerSuffixButtonExtent;
+
 /// The chat input bar at the bottom of the chat area.
 class ChannelTextarea extends ConsumerStatefulWidget {
   const ChannelTextarea({super.key});
@@ -70,7 +80,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    _focusNode
+      ..unfocus()
+      ..dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -575,12 +587,17 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 isDense: true,
                 suffixIcon: Padding(
                   padding: const EdgeInsets.symmetric(
-                    vertical: 4,
-                    horizontal: 7,
+                    vertical: _kMobileComposerSuffixVerticalPadding,
+                    horizontal: _kMobileComposerSuffixHorizontalPadding,
                   ),
                   child: _buildMobilePickerButton(context, perms),
                 ),
-                suffixIconConstraints: const BoxConstraints(),
+                suffixIconConstraints: const BoxConstraints(
+                  minWidth: _kMobileComposerSuffixWidth,
+                  maxWidth: _kMobileComposerSuffixWidth,
+                  minHeight: _kMobileComposerSuffixHeight,
+                  maxHeight: _kMobileComposerSuffixHeight,
+                ),
               ),
             ),
           ),

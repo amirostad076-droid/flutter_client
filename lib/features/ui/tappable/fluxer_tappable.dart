@@ -92,6 +92,7 @@ class _FluxerTappableState extends State<FluxerTappable> {
           });
         },
         child: Focus(
+          includeSemantics: false,
           onFocusChange: (focused) => setState(() => _isFocused = focused),
           child: GestureDetector(
             behavior: widget.hitTestBehavior,
