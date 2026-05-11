@@ -19,6 +19,7 @@ class UserPreferencesTable extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get showActiveNow => boolean().withDefault(const Constant(true))();
   BoolColumn get showFavorites => boolean().withDefault(const Constant(true))();
+  BoolColumn get showNeko => boolean().withDefault(const Constant(false))();
   BoolColumn get hideKeyboardHints =>
       boolean().withDefault(const Constant(false))();
   TextColumn get embedMediaDimensionSize =>

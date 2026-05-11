@@ -2674,6 +2674,19 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'When enabled, shortcut badges are hidden in tooltip popups.';
 
   @override
+  String get lookAndFeelNekoTitle => 'Miscellaneous';
+
+  @override
+  String get lookAndFeelNekoDescription => 'Miscellaneous interface options.';
+
+  @override
+  String get lookAndFeelShowNekoLabel => 'Show Neko';
+
+  @override
+  String get lookAndFeelShowNekoDescription =>
+      'When enabled, Neko appears near the chat input bar.';
+
+  @override
   String get lookAndFeelVoiceChannelJoinTitle => 'Voice channel join behavior';
 
   @override

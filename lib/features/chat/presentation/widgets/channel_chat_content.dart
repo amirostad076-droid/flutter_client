@@ -10,12 +10,14 @@ import 'package:fluxer_app/features/chat/presentation/widgets/direct_voice_sessi
 import 'package:fluxer_app/features/chat/presentation/widgets/dm_embedded_voice_call_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/inline_expression_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_list.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/neko_sprite.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/slowmode_indicator.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/typing_indicator_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/upload_drop_overlay.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 
@@ -89,6 +91,9 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
       revealSide: revealSide,
     );
     final isPanelOpen = ref.watch(expressionPanelProvider);
+    final showNeko = ref.watch(
+      appearancePreferencesProvider.select((state) => state.showNeko),
+    );
     final panelBottomOffset = inlineExpressionPanelBottomOffset(
       keyboardInset: MediaQuery.viewInsetsOf(context).bottom,
     );
@@ -119,16 +124,26 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                             MessageList(targetMessageId: widget.targetMessageId)
                           else
                             const SizedBox.expand(),
-                          const Positioned(
+                          Positioned(
                             left: 8,
                             right: 8,
-                            bottom: 8,
+                            bottom: 0,
                             child: Row(
                               spacing: 8,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Flexible(child: TypingIndicatorBar()),
-                                SlowmodeIndicator(),
+                                const Flexible(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(bottom: 8),
+                                    child: TypingIndicatorBar(),
+                                  ),
+                                ),
+                                Column(
+                                  children: [
+                                    if (showNeko) const NekoSprite(),
+                                    const SlowmodeIndicator(),
+                                  ],
+                                ),
                               ],
                             ),
                           ),

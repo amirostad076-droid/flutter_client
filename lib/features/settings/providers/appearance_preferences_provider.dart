@@ -11,6 +11,7 @@ class AppearancePreferencesState {
   const AppearancePreferencesState({
     this.channelTypingIndicatorMode = ChannelTypingIndicatorMode.avatars,
     this.showSelectedChannelTypingIndicator = false,
+    this.showNeko = false,
     this.collapseDMs = false,
     this.showFadedUnreadOnMutedChannels = true,
     this.showActiveNow = true,
@@ -20,6 +21,7 @@ class AppearancePreferencesState {
 
   final ChannelTypingIndicatorMode channelTypingIndicatorMode;
   final bool showSelectedChannelTypingIndicator;
+  final bool showNeko;
   final bool collapseDMs;
   final bool showFadedUnreadOnMutedChannels;
   final bool showActiveNow;
@@ -29,6 +31,7 @@ class AppearancePreferencesState {
   AppearancePreferencesState copyWith({
     ChannelTypingIndicatorMode? channelTypingIndicatorMode,
     bool? showSelectedChannelTypingIndicator,
+    bool? showNeko,
     bool? collapseDMs,
     bool? showFadedUnreadOnMutedChannels,
     bool? showActiveNow,
@@ -41,6 +44,7 @@ class AppearancePreferencesState {
       showSelectedChannelTypingIndicator:
           showSelectedChannelTypingIndicator ??
           this.showSelectedChannelTypingIndicator,
+      showNeko: showNeko ?? this.showNeko,
       collapseDMs: collapseDMs ?? this.collapseDMs,
       showFadedUnreadOnMutedChannels:
           showFadedUnreadOnMutedChannels ?? this.showFadedUnreadOnMutedChannels,
@@ -71,6 +75,7 @@ class AppearancePreferences extends _$AppearancePreferences {
             ),
         showSelectedChannelTypingIndicator:
             prefs.showSelectedChannelTypingIndicator,
+        showNeko: prefs.showNeko,
         collapseDMs: prefs.collapseDMs,
         showFadedUnreadOnMutedChannels: prefs.showFadedUnreadOnMutedChannels,
         showActiveNow: prefs.showActiveNow,
@@ -96,6 +101,11 @@ class AppearancePreferences extends _$AppearancePreferences {
 
   Future<void> setCollapseDMs({required bool value}) async {
     state = state.copyWith(collapseDMs: value);
+    await _persist();
+  }
+
+  Future<void> setShowNeko({required bool value}) async {
+    state = state.copyWith(showNeko: value);
     await _persist();
   }
 
@@ -134,6 +144,7 @@ class AppearancePreferences extends _$AppearancePreferences {
         showSelectedChannelTypingIndicator: Value(
           state.showSelectedChannelTypingIndicator,
         ),
+        showNeko: Value(state.showNeko),
         collapseDMs: Value(state.collapseDMs),
         showFadedUnreadOnMutedChannels: Value(
           state.showFadedUnreadOnMutedChannels,

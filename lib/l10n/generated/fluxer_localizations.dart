@@ -4600,6 +4600,30 @@ abstract class FluxerLocalizations {
   /// **'When enabled, shortcut badges are hidden in tooltip popups.'**
   String get lookAndFeelHideKeyboardHintsDescription;
 
+  /// Subsection title under Interface for Neko appearance settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Miscellaneous'**
+  String get lookAndFeelNekoTitle;
+
+  /// Subsection description for Neko appearance settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Miscellaneous interface options.'**
+  String get lookAndFeelNekoDescription;
+
+  /// Toggle label for showing Neko in the chat footer.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Neko'**
+  String get lookAndFeelShowNekoLabel;
+
+  /// Toggle description for showing Neko in chat.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, Neko appears near the chat input bar.'**
+  String get lookAndFeelShowNekoDescription;
+
   /// Subsection title under Interface — voice channel join behavior.
   ///
   /// In en, this message translates to:

@@ -69,10 +69,13 @@ class _SlowmodeIndicatorState extends ConsumerState<SlowmodeIndicator> {
         .remainingFor(channelId, rateLimit);
     final showCountdown = remaining > Duration.zero && !isImmune;
     _ensureTicker(showCountdown);
-    return _SlowmodePill(
-      remaining: showCountdown ? remaining : null,
-      rateLimitSeconds: rateLimit,
-      isImmune: isImmune,
+    return Padding(
+      padding: const EdgeInsetsGeometry.only(bottom: 8),
+      child: _SlowmodePill(
+        remaining: showCountdown ? remaining : null,
+        rateLimitSeconds: rateLimit,
+        isImmune: isImmune,
+      ),
     );
   }
 }

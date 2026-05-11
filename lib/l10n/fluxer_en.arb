@@ -3280,6 +3280,22 @@
   "@lookAndFeelHideKeyboardHintsDescription": {
     "description": "Toggle description for the hide-keyboard-hints switch."
   },
+  "lookAndFeelNekoTitle": "Miscellaneous",
+  "@lookAndFeelNekoTitle": {
+    "description": "Subsection title under Interface for Neko appearance settings."
+  },
+  "lookAndFeelNekoDescription": "Miscellaneous interface options.",
+  "@lookAndFeelNekoDescription": {
+    "description": "Subsection description for Neko appearance settings."
+  },
+  "lookAndFeelShowNekoLabel": "Show Neko",
+  "@lookAndFeelShowNekoLabel": {
+    "description": "Toggle label for showing Neko in the chat footer."
+  },
+  "lookAndFeelShowNekoDescription": "When enabled, Neko appears near the chat input bar.",
+  "@lookAndFeelShowNekoDescription": {
+    "description": "Toggle description for showing Neko in chat."
+  },
   "lookAndFeelVoiceChannelJoinTitle": "Voice channel join behavior",
   "@lookAndFeelVoiceChannelJoinTitle": {
     "description": "Subsection title under Interface — voice channel join behavior."

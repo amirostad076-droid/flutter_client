@@ -129,7 +129,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 39;
+  int get schemaVersion => 40;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -457,6 +457,9 @@ class FluxerDatabase extends _$FluxerDatabase {
         await into(
           favoriteSettings,
         ).insert(const FavoriteSettingsCompanion(id: Value(1)));
+      }
+      if (from < 40) {
+        await m.addColumn(userPreferencesTable, userPreferencesTable.showNeko);
       }
     },
   );
