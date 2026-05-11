@@ -92,7 +92,7 @@ void main() {
     },
   );
 
-  test('serverUnread keeps message unread when channel badge setting '
+  test('serverUnread hides plain unread when channel badge setting '
       'is mentions only', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
@@ -136,9 +136,68 @@ void main() {
 
     final unread = await container.read(serverUnreadProvider('guild-1').future);
 
-    expect(unread.hasUnread, isTrue);
+    expect(unread.hasUnread, isFalse);
     expect(unread.mentionCount, 0);
   });
+
+  test(
+    'serverUnread hides mentions when channel badge setting is no messages',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5));
+      final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: channelId,
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(lastMessageId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: Value(channelId),
+          lastMessageId: Value(_snowflakeForUtc(DateTime.utc(2026, 5, 5))),
+          mentionCount: const Value(2),
+        ),
+      );
+      await db.userGuildSettingsDao.upsert(
+        UserGuildSettingsTableCompanion.insert(
+          guildId: 'guild-1',
+          data: jsonEncode(
+            _guildSettings(
+              channelOverrides: {
+                channelId: const ChannelOverrides(
+                  collapsed: false,
+                  messageNotifications: UserNotificationSettings.inherit,
+                  muted: false,
+                  muteConfig: null,
+                  unreadBadges: UserNotificationSettings.noMessages,
+                ),
+              },
+            ).toJson(),
+          ),
+        ),
+      );
+
+      final container = _container(db);
+      addTearDown(container.dispose);
+      final subscription = container.listen(
+        serverUnreadProvider('guild-1'),
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(subscription.close);
+
+      final unread = await container.read(
+        serverUnreadProvider('guild-1').future,
+      );
+
+      expect(unread.hasUnread, isFalse);
+      expect(unread.mentionCount, 0);
+    },
+  );
 
   test(
     'serverUnread honors expired category mute for child channels',

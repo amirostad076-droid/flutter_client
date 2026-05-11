@@ -1125,13 +1125,21 @@ class GatewayEventHandler {
     final messages = await database.messageDao.getAllMessagesForChannel(
       channelId,
     );
-    final mentionCount = messages
-        .where(
-          (message) =>
-              message.isMentioned &&
-              compareSnowflakeIds(message.id, readState.lastMessageId) > 0,
-        )
-        .length;
+    final dm = await database.dmChannelDao.getDmChannelById(channelId);
+    final mentionCount = dm != null
+        ? await _recalculateDmUnreadCount(
+            channelId: channelId,
+            ackMessageId: readState.lastMessageId,
+            messages: messages,
+          )
+        : messages
+              .where(
+                (message) =>
+                    message.isMentioned &&
+                    compareSnowflakeIds(message.id, readState.lastMessageId) >
+                        0,
+              )
+              .length;
     await database.readStateDao.upsertReadState(
       db.ReadStatesCompanion(
         channelId: Value(channelId),
@@ -1142,10 +1150,28 @@ class GatewayEventHandler {
       ),
     );
 
-    final dm = await database.dmChannelDao.getDmChannelById(channelId);
     if (dm != null) {
       await database.dmChannelDao.updateUnreadCount(channelId, mentionCount);
     }
+  }
+
+  Future<int> _recalculateDmUnreadCount({
+    required String channelId,
+    required String? ackMessageId,
+    required List<db.Message> messages,
+  }) async {
+    if (await _isDmMuted(channelId)) {
+      return 0;
+    }
+    final blockedUserIds = await database.relationshipDao.getBlockedUserIds();
+    return messages
+        .where(
+          (message) =>
+              compareSnowflakeIds(message.id, ackMessageId) > 0 &&
+              (currentUserId == null || message.authorId != currentUserId) &&
+              !blockedUserIds.contains(message.authorId),
+        )
+        .length;
   }
 
   void _handleTypingStart(TypingStartEvent event) {
@@ -1506,11 +1532,22 @@ class GatewayEventHandler {
   Future<void> _handleMessageAck(MessageAckEvent event) async {
     final mentionCount = event.mentionCount ?? 0;
     final manual = event.manual ?? false;
+    final current = await database.readStateDao.getReadState(event.channelId);
+    if (!manual && current?.lastMessageId != null) {
+      final comparison = compareSnowflakeIds(
+        event.messageId,
+        current!.lastMessageId,
+      );
+      if (comparison < 0) {
+        return;
+      }
+    }
     await database.readStateDao.upsertReadState(
       db.ReadStatesCompanion(
         channelId: Value(event.channelId),
         lastMessageId: Value(event.messageId),
         mentionCount: Value(mentionCount),
+        lastPinTimestamp: Value(current?.lastPinTimestamp),
         manual: Value(manual),
       ),
     );

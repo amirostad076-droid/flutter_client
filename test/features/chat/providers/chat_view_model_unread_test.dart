@@ -245,6 +245,46 @@ void main() {
     expect(adapter.ackedMessageIds, isEmpty);
   });
 
+  test('auto ack retries HTTP failure after applying local ack', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(1),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    )..failAckAttempts = 1;
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    notifier.setReadViewportActive(isActive: true);
+    await _flushAsync();
+    await Future<void>.delayed(const Duration(seconds: 6));
+    await _flushAsync();
+
+    expect(adapter.ackAttempts, greaterThanOrEqualTo(2));
+    expect(adapter.ackedMessageIds, contains(latestId));
+  });
+
   test(
     'manual read state suppresses auto ack until explicitly marked read',
     () async {
@@ -335,6 +375,8 @@ class _ChatAdapter implements HttpClientAdapter {
   final List<Uri> messageRequestUris = [];
   final List<String> afterQueries = [];
   final List<String> ackedMessageIds = [];
+  int failAckAttempts = 0;
+  int ackAttempts = 0;
 
   @override
   Future<ResponseBody> fetch(
@@ -360,6 +402,11 @@ class _ChatAdapter implements HttpClientAdapter {
     }
 
     if (options.method == 'POST' && options.uri.path.endsWith('/ack')) {
+      ackAttempts++;
+      if (failAckAttempts > 0) {
+        failAckAttempts--;
+        return ResponseBody.fromString('failed', 500);
+      }
       ackedMessageIds.add(options.uri.pathSegments[4]);
       return ResponseBody.fromString('', 204, statusMessage: 'No Content');
     }

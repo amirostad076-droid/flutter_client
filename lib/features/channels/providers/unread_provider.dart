@@ -44,7 +44,7 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
     final lastCachedMessage = await db.messageDao.getLastMessage(channelId);
     final latestMessageId = channel?.lastMessageId ?? lastCachedMessage?.id;
     final rawMentionCount = readState?.mentionCount ?? 0;
-    final mentionCount =
+    final visibleMentionCount =
         canShowMentionCount(
           channelLastMessageId: latestMessageId,
           isGuildChannel: channel != null,
@@ -76,6 +76,9 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
                 : decodeUserGuildSettings(guildSettings.data),
             now: DateTime.now(),
           );
+    final mentionCount = (unreadSettings?.allowsMentionUnread ?? true)
+        ? visibleMentionCount
+        : 0;
     final fallbackAckMs = channel == null
         ? snowflakeTimestampMs(channelId)
         : await guildChannelFallbackAckMs(
@@ -198,7 +201,7 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
 
       final readState = readStateMap[channel.id];
       final rawMentions = readState?.mentionCount ?? 0;
-      final mentions =
+      final visibleMentions =
           canShowMentionCount(
             channelLastMessageId: channel.lastMessageId,
             isGuildChannel: true,
@@ -212,12 +215,13 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
         guildSettings: guildSettings,
         now: DateTime.fromMillisecondsSinceEpoch(nowMs),
       );
+      final mentions = unreadSettings.allowsMentionUnread ? visibleMentions : 0;
 
-      if (isVoice && mentions == 0) {
+      if (isVoice) {
         continue;
       }
 
-      if (unreadSettings.isMuted && mentions == 0) {
+      if (!unreadSettings.allowsGuildMessageUnread && mentions == 0) {
         continue;
       }
 
@@ -246,7 +250,8 @@ Stream<UnreadState> serverUnread(Ref ref, String guildId) {
         fallbackAckMs: fallbackAckMs,
         mentionCount: 0,
       );
-      if (mentions > 0 || hasUnreadMessage) {
+      if (mentions > 0 ||
+          (unreadSettings.allowsGuildMessageUnread && hasUnreadMessage)) {
         anyUnread = true;
       }
     }

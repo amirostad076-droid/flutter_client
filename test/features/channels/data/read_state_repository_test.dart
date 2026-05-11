@@ -67,6 +67,36 @@ void main() {
   );
 
   test(
+    'ackLatest uses newer cached message when channel last message is stale',
+    () async {
+      final staleId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final newestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = _AckAdapter(
+          expectedPath: '/v1/channels/channel-1/messages/$newestId/ack',
+        );
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(staleId),
+        ),
+      );
+      await db.messageDao.upsertMessage(
+        _message(id: newestId, channelId: 'channel-1', authorId: 'other'),
+      );
+
+      await ReadStateRepository(FluxerClient(dio), db).ackLatest('channel-1');
+
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, newestId);
+    },
+  );
+
+  test(
     'ackLatestBulk acknowledges unread channels and clears manual state',
     () async {
       final firstId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));

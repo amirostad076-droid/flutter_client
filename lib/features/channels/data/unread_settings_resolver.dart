@@ -7,10 +7,14 @@ class ResolvedUnreadSettings {
   const ResolvedUnreadSettings({
     required this.isMuted,
     required this.allowsMessageUnread,
+    required this.allowsGuildMessageUnread,
+    required this.allowsMentionUnread,
   });
 
   final bool isMuted;
   final bool allowsMessageUnread;
+  final bool allowsGuildMessageUnread;
+  final bool allowsMentionUnread;
 }
 
 UserGuildSettingsResponse? decodeUserGuildSettings(String data) {
@@ -38,13 +42,20 @@ ResolvedUnreadSettings resolveUnreadSettings({
       _isChannelMuted(parentOverride, now) ||
       _isChannelMuted(directOverride, now);
 
+  final explicitBadgeLevel = _resolvedUnreadBadgeLevel(
+    directOverride: directOverride,
+    parentOverride: parentOverride,
+    guildSettings: guildSettings,
+  );
+  final badgeLevel = explicitBadgeLevel ?? UserNotificationSettings.allMessages;
+
   return ResolvedUnreadSettings(
     isMuted: isMuted,
-    allowsMessageUnread: _allowsMessageUnread(
-      directOverride: directOverride,
-      parentOverride: parentOverride,
-      guildSettings: guildSettings,
-    ),
+    allowsMessageUnread: badgeLevel == UserNotificationSettings.allMessages,
+    allowsGuildMessageUnread: explicitBadgeLevel == null
+        ? !isMuted
+        : explicitBadgeLevel == UserNotificationSettings.allMessages,
+    allowsMentionUnread: badgeLevel != UserNotificationSettings.noMessages,
   );
 }
 
@@ -77,17 +88,14 @@ bool _isMuteActive(String? endTime, DateTime now) {
   return parsed == null || parsed.isAfter(now);
 }
 
-bool _allowsMessageUnread({
+UserNotificationSettings? _resolvedUnreadBadgeLevel({
   required ChannelOverrides? directOverride,
   required ChannelOverrides? parentOverride,
   required UserGuildSettingsResponse? guildSettings,
 }) {
-  final badgeLevel =
-      _explicitLevel(directOverride?.unreadBadges) ??
+  return _explicitLevel(directOverride?.unreadBadges) ??
       _explicitLevel(parentOverride?.unreadBadges) ??
-      _explicitLevel(guildSettings?.unreadBadges) ??
-      UserNotificationSettings.allMessages;
-  return badgeLevel == UserNotificationSettings.allMessages;
+      _explicitLevel(guildSettings?.unreadBadges);
 }
 
 UserNotificationSettings? _explicitLevel(UserNotificationSettings? level) {

@@ -16,6 +16,9 @@ String _snowflakeForUtc(DateTime utc) {
   return internal.toString();
 }
 
+String _recentSnowflake() =>
+    _snowflakeForUtc(DateTime.now().toUtc().subtract(const Duration(hours: 1)));
+
 UserGuildSettingsResponse _guildSettings({
   Map<String, ChannelOverrides>? channelOverrides,
   UserNotificationSettings messageNotifications =
@@ -69,7 +72,7 @@ void main() {
           id: channelId,
           guildId: guildId,
           name: 'general',
-          lastMessageId: Value(_snowflakeForUtc(DateTime.utc(2026, 5))),
+          lastMessageId: Value(_recentSnowflake()),
         ),
       );
       await db.memberDao.upsertMember(
@@ -182,6 +185,156 @@ void main() {
     );
 
     expect(entries, isEmpty);
+  });
+
+  test(
+    'guild unread inbox includes channel when last message is newer than ack',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      const guildId = 'guild_test_1';
+      const userId = 'user_test_1';
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final lastId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.guildDao.upsertServer(
+        ServersCompanion.insert(id: guildId, name: 'Test Guild'),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: channelId,
+          guildId: guildId,
+          name: 'general',
+          lastMessageId: Value(lastId),
+        ),
+      );
+      await db.memberDao.upsertMember(
+        MembersCompanion.insert(
+          userId: userId,
+          guildId: guildId,
+          joinedAt: Value(DateTime.utc(2020, 1, 15)),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: Value(channelId),
+          lastMessageId: Value(ackId),
+        ),
+      );
+
+      final entries = await UnreadInboxCalculator.compute(
+        db,
+        collapsedByChannelId: <String, bool>{},
+        currentUserId: userId,
+      );
+
+      expect(entries.map((e) => e.channelId), contains(channelId));
+    },
+  );
+
+  test(
+    'guild unread inbox excludes channel when ack is newer than last message',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      const guildId = 'guild_test_1';
+      const userId = 'user_test_1';
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final lastId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.guildDao.upsertServer(
+        ServersCompanion.insert(id: guildId, name: 'Test Guild'),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: channelId,
+          guildId: guildId,
+          name: 'general',
+          lastMessageId: Value(lastId),
+        ),
+      );
+      await db.memberDao.upsertMember(
+        MembersCompanion.insert(
+          userId: userId,
+          guildId: guildId,
+          joinedAt: Value(DateTime.utc(2020, 1, 15)),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: Value(channelId),
+          lastMessageId: Value(ackId),
+        ),
+      );
+
+      final entries = await UnreadInboxCalculator.compute(
+        db,
+        collapsedByChannelId: <String, bool>{},
+        currentUserId: userId,
+      );
+
+      expect(entries.map((e) => e.channelId), isNot(contains(channelId)));
+    },
+  );
+
+  test('unread inbox sorts newer channels before older channels', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    const guildId = 'guild_test_1';
+    const userId = 'user_test_1';
+    final olderChannelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 8));
+    final newerChannelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 9));
+    final olderAckId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+    final olderLastId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final newerAckId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final newerLastId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+    await db.guildDao.upsertServer(
+      ServersCompanion.insert(id: guildId, name: 'Test Guild'),
+    );
+    await db.channelDao.upsertChannels([
+      ChannelsCompanion.insert(
+        id: olderChannelId,
+        guildId: guildId,
+        name: 'older',
+        lastMessageId: Value(olderLastId),
+      ),
+      ChannelsCompanion.insert(
+        id: newerChannelId,
+        guildId: guildId,
+        name: 'newer',
+        lastMessageId: Value(newerLastId),
+      ),
+    ]);
+    await db.memberDao.upsertMember(
+      MembersCompanion.insert(
+        userId: userId,
+        guildId: guildId,
+        joinedAt: Value(DateTime.utc(2020, 1, 15)),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: Value(olderChannelId),
+        lastMessageId: Value(olderAckId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: Value(newerChannelId),
+        lastMessageId: Value(newerAckId),
+      ),
+    );
+
+    final entries = await UnreadInboxCalculator.compute(
+      db,
+      collapsedByChannelId: <String, bool>{},
+      currentUserId: userId,
+    );
+
+    expect(entries.map((e) => e.channelId).toList(), [
+      newerChannelId,
+      olderChannelId,
+    ]);
   });
 
   test('guild channel with mentions-only unread badges is excluded from unread '
@@ -305,7 +458,7 @@ void main() {
           id: channelId,
           guildId: guildId,
           name: 'general',
-          lastMessageId: Value(_snowflakeForUtc(DateTime.utc(2026, 5))),
+          lastMessageId: Value(_recentSnowflake()),
         ),
       );
       await db.memberDao.upsertMember(

@@ -32,6 +32,8 @@ part 'chat_view_model.g.dart';
 const _kPageSize = 30;
 const _kReadAckMinInterval = Duration(seconds: 1);
 const _kOutgoingAckDebounce = Duration(seconds: 3);
+const _kOutgoingAckRetryBaseDelay = Duration(seconds: 5);
+const _kOutgoingAckRetryMaxDelay = Duration(minutes: 1);
 
 class ChatViewState {
   static const _unset = Object();
@@ -121,6 +123,8 @@ class ChatViewModel extends _$ChatViewModel {
   );
   Timer? _readAckRetryTimer;
   final Map<String, Timer> _outgoingAckTimers = <String, Timer>{};
+  final Map<String, String> _outgoingAckMessageIds = <String, String>{};
+  final Map<String, int> _outgoingAckAttempts = <String, int>{};
   final Set<String> _loadedUnreadBoundaryKeys = <String>{};
   bool _readViewportActive = false;
   bool _readViewportNearBottom = true;
@@ -146,6 +150,8 @@ class ChatViewModel extends _$ChatViewModel {
           timer.cancel();
         }
         _outgoingAckTimers.clear();
+        _outgoingAckMessageIds.clear();
+        _outgoingAckAttempts.clear();
         unawaited(_eventsSub?.cancel());
       });
     return const ChatViewState(
@@ -473,6 +479,8 @@ class ChatViewModel extends _$ChatViewModel {
     required bool immediate,
   }) {
     _outgoingAckTimers.remove(channelId)?.cancel();
+    _outgoingAckMessageIds[channelId] = messageId;
+    _outgoingAckAttempts[channelId] = 0;
     if (immediate) {
       unawaited(_dispatchOutgoingAck(repository, channelId, messageId));
       return;
@@ -488,11 +496,40 @@ class ChatViewModel extends _$ChatViewModel {
     String channelId,
     String messageId,
   ) async {
+    if (_outgoingAckMessageIds[channelId] != messageId) {
+      return;
+    }
     try {
       await repository.sendAckHttp(channelId, messageId);
+      if (_outgoingAckMessageIds[channelId] == messageId) {
+        _outgoingAckMessageIds.remove(channelId);
+        _outgoingAckAttempts.remove(channelId);
+      }
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to send ack HTTP: $e');
+      if (_outgoingAckMessageIds[channelId] != messageId) {
+        return;
+      }
+      final attempt = (_outgoingAckAttempts[channelId] ?? 0) + 1;
+      _outgoingAckAttempts[channelId] = attempt;
+      final delay = _outgoingAckRetryDelay(attempt);
+      _outgoingAckTimers.remove(channelId)?.cancel();
+      _outgoingAckTimers[channelId] = Timer(delay, () {
+        _outgoingAckTimers.remove(channelId);
+        unawaited(_dispatchOutgoingAck(repository, channelId, messageId));
+      });
     }
+  }
+
+  Duration _outgoingAckRetryDelay(int attempt) {
+    var delayMs = _kOutgoingAckRetryBaseDelay.inMilliseconds;
+    for (var i = 1; i < attempt; i++) {
+      delayMs *= 2;
+      if (delayMs >= _kOutgoingAckRetryMaxDelay.inMilliseconds) {
+        return _kOutgoingAckRetryMaxDelay;
+      }
+    }
+    return Duration(milliseconds: delayMs);
   }
 
   void _flushOutgoingAck(String channelId) {
@@ -500,6 +537,8 @@ class ChatViewModel extends _$ChatViewModel {
     if (timer != null) {
       timer.cancel();
     }
+    _outgoingAckMessageIds.remove(channelId);
+    _outgoingAckAttempts.remove(channelId);
   }
 
   void _scheduleReadAckRetry(Duration delay) {

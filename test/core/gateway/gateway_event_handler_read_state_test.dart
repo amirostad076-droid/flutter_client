@@ -283,6 +283,63 @@ void main() {
     expect(readState?.manual, isFalse);
   });
 
+  test('message ack ignores older non-manual ack', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final oldId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final currentId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(currentId),
+        mentionCount: const Value(0),
+        manual: const Value(false),
+      ),
+    );
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(
+      MessageAckEvent(
+        channelId: 'channel-1',
+        messageId: oldId,
+        mentionCount: 3,
+        manual: false,
+      ),
+    );
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.lastMessageId, currentId);
+    expect(readState?.mentionCount, 0);
+  });
+
+  test('message ack for same message updates mention count only', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final currentId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(currentId),
+        mentionCount: const Value(4),
+        manual: const Value(false),
+      ),
+    );
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(
+      MessageAckEvent(
+        channelId: 'channel-1',
+        messageId: currentId,
+        mentionCount: 1,
+        manual: false,
+      ),
+    );
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.lastMessageId, currentId);
+    expect(readState?.mentionCount, 1);
+  });
+
   test('role mentions increment guild channel mention count', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
@@ -538,6 +595,45 @@ void main() {
     final readState = await db.readStateDao.getReadState('channel-1');
     expect(channel?.lastMessageId, remainingId);
     expect(readState?.mentionCount, 0);
+  });
+
+  test('dm message delete recalculates unread count from remaining unread dm '
+      'messages', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+    final remainingId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final deletedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.dmChannelDao.upsertDmChannels([
+      DmChannelsCompanion.insert(
+        id: 'dm-1',
+        recipientId: 'other',
+        recipientIds: const Value('["other"]'),
+        unreadCount: const Value(2),
+      ),
+    ]);
+    await db.messageDao.upsertMessages([
+      _cachedMessage(id: ackId, channelId: 'dm-1', authorId: 'other'),
+      _cachedMessage(id: remainingId, channelId: 'dm-1', authorId: 'other'),
+      _cachedMessage(id: deletedId, channelId: 'dm-1', authorId: 'other'),
+    ]);
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('dm-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(2),
+      ),
+    );
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(
+      MessageDeleteEvent(channelId: 'dm-1', messageId: deletedId),
+    );
+
+    final readState = await db.readStateDao.getReadState('dm-1');
+    final dm = await db.dmChannelDao.getDmChannelById('dm-1');
+    expect(readState?.mentionCount, 1);
+    expect(dm?.unreadCount, 1);
   });
 
   test(

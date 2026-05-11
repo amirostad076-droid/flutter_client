@@ -10,19 +10,7 @@ const int _voiceType = 2;
 const int _categoryType = 4;
 const Duration _oldMessageThreshold = Duration(days: 7);
 const Duration _recentVisitThreshold = Duration(days: 3);
-final BigInt _zero = BigInt.zero;
-
-int snowflakeComparator(String? id) {
-  if (id == null || id.isEmpty) {
-    return 0;
-  }
-  final parsed = int.tryParse(id);
-  if (parsed == null) {
-    return 0;
-  }
-  final ms = (parsed >> 22) + kSnowflakeEpochMs;
-  return ms.clamp(0, 1 << 30);
-}
+int _snowflakeRecencyMs(String? id) => snowflakeTimestampMs(id);
 
 int _contentTimestampMs(String? snowflakeId) {
   if (snowflakeId == null || snowflakeId.isEmpty) {
@@ -30,12 +18,6 @@ int _contentTimestampMs(String? snowflakeId) {
   }
   final DateTime? utc = dateTimeFromUserSnowflakeOrNull(snowflakeId);
   return utc?.millisecondsSinceEpoch ?? 0;
-}
-
-int _compareBigIntSnowflakesDesc(String a, String b) {
-  final ai = BigInt.tryParse(a) ?? _zero;
-  final bi = BigInt.tryParse(b) ?? _zero;
-  return bi.compareTo(ai);
 }
 
 bool _hasGuildUnreadByWebRules({
@@ -50,7 +32,7 @@ bool _hasGuildUnreadByWebRules({
   final String lastSf = channelLastMessageId ?? '';
   final String ackSf = ackLastMessageId ?? '';
   if (lastSf.isNotEmpty && ackSf.isNotEmpty) {
-    return _compareBigIntSnowflakesDesc(lastSf, ackSf) > 0;
+    return compareSnowflakeIds(ackSf, lastSf) < 0;
   }
   final int contentMs = _contentTimestampMs(channelLastMessageId);
   final int ackMs = ackSf.isNotEmpty
@@ -164,7 +146,7 @@ class UnreadInboxCalculator {
         }
       }
 
-      final int tsLast = snowflakeComparator(channelLastMsg);
+      final int tsLast = _snowflakeRecencyMs(channelLastMsg);
       final int fallbackAckMs = await resolveFallbackAckMs(guildId, channel.id);
       final bool hasUnreadMessage = _hasGuildUnreadByWebRules(
         channelLastMessageId: channelLastMsg,
@@ -180,7 +162,7 @@ class UnreadInboxCalculator {
         continue;
       }
 
-      final int recency = tsLast != 0 ? tsLast : snowflakeComparator(ackId);
+      final int recency = tsLast != 0 ? tsLast : _snowflakeRecencyMs(ackId);
 
       entries.add(
         UnreadInboxEntry(
@@ -189,7 +171,7 @@ class UnreadInboxCalculator {
           isDm: false,
           mentionCount: mentions,
           isCollapsed: collapsedByChannelId[channel.id] ?? false,
-          recencyComparator: recency.clamp(0, 1 << 30),
+          recencyComparator: recency,
         ),
       );
     }
@@ -227,7 +209,7 @@ class UnreadInboxCalculator {
           isDm: true,
           mentionCount: unreadCount,
           isCollapsed: collapsedByChannelId[dm.id] ?? false,
-          recencyComparator: ms.clamp(0, 1 << 30),
+          recencyComparator: ms,
         ),
       );
     }
@@ -237,7 +219,7 @@ class UnreadInboxCalculator {
       if (byRecency != 0) {
         return byRecency;
       }
-      return _compareBigIntSnowflakesDesc(a.channelId, b.channelId);
+      return compareSnowflakeIds(b.channelId, a.channelId);
     });
 
     return entries;
