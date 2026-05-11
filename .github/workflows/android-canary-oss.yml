@@ -128,12 +128,12 @@ jobs:
           mkdir -p android/app/src/main/assets
           printf '%s\n' "$ANDROID_ADI_REGISTRATION_SNIPPET" > android/app/src/main/assets/adi-registration.properties
 
-      - name: Build canary OSS APK
-        run: flutter build apk --release --flavor canaryUnifiedpush --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/canary.json --dart-define=PUSH_PROVIDER=unifiedpush --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+      - name: Build canary OSS split APKs
+        run: flutter build apk --release --split-per-abi --flavor canaryUnifiedpush --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/canary.json --dart-define=PUSH_PROVIDER=unifiedpush --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-      - name: Upload canary OSS APK artifact
+      - name: Upload canary OSS APK artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: canary-oss-apk
-          path: build/app/outputs/flutter-apk/app-canaryunifiedpush-release.apk
+          path: build/app/outputs/flutter-apk/app-canaryunifiedpush-*-release.apk
           if-no-files-found: error

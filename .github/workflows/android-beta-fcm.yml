@@ -138,12 +138,12 @@ jobs:
             echo "::warning::GOOGLE_SERVICES_JSON_ANDROID secret is not set. Existing android/app/google-services.json will be used."
           fi
 
-      - name: Build beta APK
-        run: flutter build apk --release --flavor betaFcm --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/beta.json --dart-define=PUSH_PROVIDER=fcm --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+      - name: Build beta split APKs
+        run: flutter build apk --release --split-per-abi --flavor betaFcm --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/beta.json --dart-define=PUSH_PROVIDER=fcm --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-      - name: Upload beta APK artifact
+      - name: Upload beta APK artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: beta-fcm-apk
-          path: build/app/outputs/flutter-apk/app-betafcm-release.apk
+          path: build/app/outputs/flutter-apk/app-betafcm-*-release.apk
           if-no-files-found: error
