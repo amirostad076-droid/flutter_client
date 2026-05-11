@@ -368,6 +368,48 @@ void main() {
   });
 
   test(
+    'mark message unread applies local manual ack before HTTP completes',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final previousId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final targetId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(targetId),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: targetId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(
+            id: previousId,
+            channelId: 'channel-1',
+            authorId: 'other',
+          ),
+        ],
+      )..holdAck = true;
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      final future = notifier.markMessageUnread(targetId);
+      await _flushAsync();
+
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, previousId);
+      expect(readState?.manual, isTrue);
+
+      adapter.releaseAck(statusCode: 204);
+      await future;
+    },
+  );
+
+  test(
     'mark current channel read clears sticky unread and forces ack',
     () async {
       final db = FluxerDatabase.forTesting(NativeDatabase.memory());
@@ -506,7 +548,9 @@ class _ChatAdapter implements HttpClientAdapter {
   final List<String> afterQueries = [];
   final List<String> ackedMessageIds = [];
   bool holdMessageFetch = false;
+  bool holdAck = false;
   Completer<void>? _messageFetchCompleter;
+  Completer<int>? _ackCompleter;
   int failAckAttempts = 0;
   int ackAttempts = 0;
 
@@ -516,6 +560,14 @@ class _ChatAdapter implements HttpClientAdapter {
       return;
     }
     _messageFetchCompleter!.complete();
+  }
+
+  void releaseAck({required int statusCode}) {
+    holdAck = false;
+    if (_ackCompleter?.isCompleted ?? true) {
+      return;
+    }
+    _ackCompleter!.complete(statusCode);
   }
 
   @override
@@ -547,6 +599,13 @@ class _ChatAdapter implements HttpClientAdapter {
 
     if (options.method == 'POST' && options.uri.path.endsWith('/ack')) {
       ackAttempts++;
+      if (holdAck) {
+        _ackCompleter ??= Completer<int>();
+        final statusCode = await _ackCompleter!.future;
+        if (statusCode != 204) {
+          return ResponseBody.fromString('failed', statusCode);
+        }
+      }
       if (failAckAttempts > 0) {
         failAckAttempts--;
         return ResponseBody.fromString('failed', 500);

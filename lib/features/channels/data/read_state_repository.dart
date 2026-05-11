@@ -122,16 +122,16 @@ class ReadStateRepository {
       currentUserId: currentUserId,
     );
 
-    await _client.channels.acknowledgeMessage(
-      channelId: channelId,
-      messageId: ackMessageId,
-      body: MessageAckRequest(mentionCount: mentionCount, manual: true),
-    );
     await applyLocalAck(
       channelId: channelId,
       messageId: ackMessageId,
       mentionCount: mentionCount,
       manual: true,
+    );
+    await _client.channels.acknowledgeMessage(
+      channelId: channelId,
+      messageId: ackMessageId,
+      body: MessageAckRequest(mentionCount: mentionCount, manual: true),
     );
   }
 
