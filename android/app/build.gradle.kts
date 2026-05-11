@@ -81,6 +81,8 @@ android {
 
     buildTypes {
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = if (hasKeystoreProperties) {
                 signingConfigs.create("release") {
                     val storeFilePath = keystoreProperties["storeFile"] as String
