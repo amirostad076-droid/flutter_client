@@ -11,6 +11,7 @@ class UserProfileHeader extends StatelessWidget {
     required this.flags,
     required this.hasPlutonium,
     required this.customStatus,
+    this.pronouns,
     super.key,
   });
 
@@ -20,6 +21,7 @@ class UserProfileHeader extends StatelessWidget {
   final int flags;
   final bool hasPlutonium;
   final String? customStatus;
+  final String? pronouns;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +29,9 @@ class UserProfileHeader extends StatelessWidget {
     final textStyles = context.textStyles;
     final layout = context.layout;
     final isUsernameAsDisplay = displayName == username;
+    final String? pronounsTrimmed = pronouns?.trim();
+    final bool showPronouns =
+        pronounsTrimmed != null && pronounsTrimmed.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,6 +77,13 @@ class UserProfileHeader extends StatelessWidget {
           ],
         ),
         SizedBox(height: layout.s1),
+        if (showPronouns) ...[
+          Text(
+            pronounsTrimmed,
+            style: textStyles.bodySmall.copyWith(color: colors.textTertiary),
+          ),
+          SizedBox(height: layout.s1),
+        ],
         UserProfileCustomStatus(text: customStatus),
       ],
     );

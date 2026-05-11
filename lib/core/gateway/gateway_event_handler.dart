@@ -35,6 +35,12 @@ typedef UserSettingsHydrateCallback =
     void Function(UserSettingsResponse settings);
 typedef VoiceServerUpdateCallback = void Function(VoiceServerUpdateEvent event);
 
+String? _presenceCustomStatusTextFromMap(Map<String, dynamic> presence) {
+  final Map<String, dynamic>? customStatusMap =
+      presence['custom_status'] as Map<String, dynamic>?;
+  return customStatusMap?['text'] as String?;
+}
+
 class GatewayEventHandler {
   GatewayEventHandler({
     required this.database,
@@ -410,6 +416,7 @@ class GatewayEventHandler {
           premiumBadgeSequenceHidden: Value(
             event.user.premiumBadgeSequenceHidden,
           ),
+          customStatus: Value(event.userSettings?.customStatus?.text),
         ),
       );
 
@@ -590,7 +597,11 @@ class GatewayEventHandler {
         final userId = (p['user'] as Map<String, dynamic>?)?['id'] as String?;
         final status = p['status'] as String?;
         if (userId != null && status != null) {
-          await database.userDao.updateStatus(userId, status);
+          await database.userDao.updateUserPresence(
+            userId,
+            status: status,
+            customStatus: _presenceCustomStatusTextFromMap(p),
+          );
         }
       }
 
@@ -715,7 +726,11 @@ class GatewayEventHandler {
         data: Value(jsonEncode(event.settings.toJson())),
       ),
     );
-    await database.userDao.updateStatus(userId, event.settings.status);
+    await database.userDao.updateUserPresence(
+      userId,
+      status: event.settings.status,
+      customStatus: event.settings.customStatus?.text,
+    );
     onUserSettingsHydrate?.call(event.settings);
   }
 
@@ -1138,7 +1153,13 @@ class GatewayEventHandler {
   }
 
   void _handlePresenceUpdate(PresenceUpdateEvent event) {
-    unawaited(database.userDao.updateStatus(event.userId, event.status));
+    unawaited(
+      database.userDao.updateUserPresence(
+        event.userId,
+        status: event.status,
+        customStatus: event.customStatus,
+      ),
+    );
   }
 
   void _handleMemberUpsert(String guildId, GuildMemberResponse member) {
@@ -1264,7 +1285,13 @@ class GatewayEventHandler {
       final userId = (p['user'] as Map<String, dynamic>?)?['id'] as String?;
       final status = p['status'] as String?;
       if (userId != null && status != null) {
-        unawaited(database.userDao.updateStatus(userId, status));
+        unawaited(
+          database.userDao.updateUserPresence(
+            userId,
+            status: status,
+            customStatus: _presenceCustomStatusTextFromMap(p),
+          ),
+        );
       }
     }
   }

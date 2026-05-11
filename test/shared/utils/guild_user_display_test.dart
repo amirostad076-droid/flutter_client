@@ -7,7 +7,7 @@ void main() {
   group('resolveGuildUserDisplayFromProfile', () {
     test('uses global profile when guild data is absent', () {
       final GuildUserDisplay actual = resolveGuildUserDisplayFromProfile(
-        response: _profile(),
+        response: _profile(userPronouns: 'they/them'),
         guildId: null,
         relationshipNickname: null,
       );
@@ -15,13 +15,19 @@ void main() {
       expect(actual.avatarUrl, contains('/avatars/1/user_avatar.webp'));
       expect(actual.bannerUrl, contains('/banners/1/user_banner.webp'));
       expect(actual.bio, 'global bio');
+      expect(actual.pronouns, 'they/them');
     });
 
     test('uses guild nickname, avatar, banner, and bio', () {
       final GuildUserDisplay actual = resolveGuildUserDisplayFromProfile(
         response: _profile(
+          userPronouns: 'she/her',
           guildMember: _guildMember(nick: 'Guild Nick', avatar: 'guild_avatar'),
-          guildProfile: _guildProfile(bio: 'guild bio', banner: 'guild_banner'),
+          guildProfile: _guildProfile(
+            bio: 'guild bio',
+            banner: 'guild_banner',
+            pronouns: 'xe/xem',
+          ),
         ),
         guildId: '10',
         relationshipNickname: null,
@@ -36,6 +42,7 @@ void main() {
         contains('/guilds/10/users/1/banners/guild_banner.webp'),
       );
       expect(actual.bio, 'guild bio');
+      expect(actual.pronouns, 'xe/xem');
     });
 
     test('uses animated global avatar and banner urls', () {
@@ -121,6 +128,33 @@ void main() {
       );
       expect(actual.bio, 'global bio');
     });
+
+    test('guild profile pronouns fall back to global pronouns', () {
+      final GuildUserDisplay actual = resolveGuildUserDisplayFromProfile(
+        response: _profile(
+          userPronouns: 'she/her',
+          guildMember: _guildMember(),
+          guildProfile: _guildProfile(pronouns: null),
+        ),
+        guildId: '10',
+        relationshipNickname: null,
+      );
+      expect(actual.pronouns, 'she/her');
+    });
+
+    test('showGlobalProfile uses global pronouns only', () {
+      final GuildUserDisplay actual = resolveGuildUserDisplayFromProfile(
+        response: _profile(
+          userPronouns: 'they/them',
+          guildMember: _guildMember(),
+          guildProfile: _guildProfile(pronouns: 'he/him'),
+        ),
+        guildId: '10',
+        relationshipNickname: null,
+        showGlobalProfile: true,
+      );
+      expect(actual.pronouns, 'they/them');
+    });
   });
 
   group('resolveGuildUserDisplayFromMessage', () {
@@ -145,6 +179,7 @@ UserProfileFullResponse _profile({
   UserProfileFullResponseGuildMemberProfile? guildProfile,
   String? userAvatar,
   String? userBanner,
+  String? userPronouns,
 }) {
   return UserProfileFullResponse(
     user: UserProfileFullResponseUser(
@@ -158,7 +193,7 @@ UserProfileFullResponse _profile({
     ),
     userProfile: UserProfileFullResponseUserProfile(
       bio: 'global bio',
-      pronouns: null,
+      pronouns: userPronouns,
       banner: userBanner ?? 'user_banner',
       bannerColor: 0x445566,
       accentColor: 0x778899,
@@ -196,10 +231,11 @@ GuildMemberResponse _guildMember({
 UserProfileFullResponseGuildMemberProfile _guildProfile({
   String? bio,
   String? banner,
+  String? pronouns,
 }) {
   return UserProfileFullResponseGuildMemberProfile(
     bio: bio,
-    pronouns: null,
+    pronouns: pronouns,
     banner: banner,
     accentColor: 0x112233,
   );

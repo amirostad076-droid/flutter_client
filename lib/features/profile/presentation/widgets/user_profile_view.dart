@@ -299,6 +299,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
     required UserProfileFullResponseUser? actionUser,
     required List<ConnectionResponse> connections,
     required Friend? relationship,
+    required String? pronouns,
     required String? customStatus,
     required AsyncValue<db.User?> presenceAsync,
     required String? note,
@@ -481,6 +482,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                   flags: flags,
                   hasPlutonium: hasPlutonium,
                   customStatus: customStatus,
+                  pronouns: pronouns,
                 ),
                 SizedBox(height: layout.s4),
                 UserProfileActionCardRow(
@@ -614,6 +616,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
             actionUser: null,
             connections: connectionsAsync.value ?? const <ConnectionResponse>[],
             relationship: relationshipAsync.value,
+            pronouns: profile.pronouns,
             customStatus: presenceAsync.value?.customStatus,
             presenceAsync: presenceAsync,
             note: noteAsync.value,
@@ -719,6 +722,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
           connections:
               response.connectedAccounts ?? const <ConnectionResponse>[],
           relationship: relationshipAsync.value,
+          pronouns: profileDisplay.pronouns,
           customStatus: presenceAsync.value?.customStatus,
           presenceAsync: presenceAsync,
           note: noteAsync.value,

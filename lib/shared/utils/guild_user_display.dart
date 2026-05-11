@@ -26,6 +26,7 @@ class GuildUserDisplay {
     this.bannerUrl,
     this.bannerColor,
     this.bio,
+    this.pronouns,
     this.hasGuildProfile = false,
     this.isShowingGlobalProfile = false,
   });
@@ -36,6 +37,7 @@ class GuildUserDisplay {
   final String? bannerUrl;
   final Color? bannerColor;
   final String? bio;
+  final String? pronouns;
   final bool hasGuildProfile;
   final bool isShowingGlobalProfile;
 }
@@ -250,6 +252,7 @@ GuildUserDisplay resolveGuildUserDisplayFromProfile({
       avatarColor: user.avatarColor,
     ),
     bio: guildProfile?.bio ?? response.userProfile.bio,
+    pronouns: guildProfile?.pronouns ?? response.userProfile.pronouns,
     isShowingGlobalProfile: showGlobalProfile,
     hasGuildProfile: response.guildMemberProfile != null && guildId != null,
   );
