@@ -368,6 +368,54 @@ void main() {
   });
 
   test(
+    'mark current channel read clears sticky unread and forces ack',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final unreadId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(1),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: unreadId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      expect(
+        container.read(chatViewModelProvider).stickyUnreadMessageId,
+        unreadId,
+      );
+
+      await notifier.markCurrentChannelRead();
+      await _flushAsync();
+
+      expect(container.read(chatViewModelProvider).stickyUnreadMessageId, null);
+      expect(adapter.ackedMessageIds, [latestId]);
+    },
+  );
+
+  test(
     'manual read state suppresses auto ack until explicitly marked read',
     () async {
       final db = FluxerDatabase.forTesting(NativeDatabase.memory());
