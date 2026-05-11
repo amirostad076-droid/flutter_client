@@ -271,10 +271,8 @@ class _MessageListState extends ConsumerState<MessageList> {
               ?.value;
     final unreadSummary = computeChatUnreadSummary(
       messages: messages.map(
-        (message) => ChatUnreadMessageRef(
-          id: message.id,
-          authorId: message.authorId,
-        ),
+        (message) =>
+            ChatUnreadMessageRef(id: message.id, authorId: message.authorId),
       ),
       ackLastMessageId: readState?.lastMessageId,
       mentionCount: readState?.mentionCount ?? 0,
