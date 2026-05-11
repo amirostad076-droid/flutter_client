@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/presentation/widgets/guild_navbar.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
+import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -416,6 +417,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   Widget _buildProfileTabIcon({
     required UserSettingsViewState user,
     required int currentIndex,
+    String? presenceStatus,
   }) {
     final isSelected = currentIndex == BottomNavBranch.you.index;
     return AnimatedOpacity(
@@ -426,6 +428,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         userId: user.userId,
         imageUrl: user.avatarUrl,
         avatarColor: user.avatarColor,
+        status: presenceStatus,
         size: 24,
       ),
     );
@@ -434,6 +437,11 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   Widget _buildBottomNav(BuildContext context) {
     final user = ref.watch(userSettingsViewModelProvider);
     final currentIndex = widget.navigationShell.currentIndex;
+    final String? selfUserId =
+        user.userId.isEmpty ? null : user.userId;
+    final String? presenceStatus = selfUserId == null
+        ? null
+        : ref.watch(userPresenceProvider(selfUserId)).value?.status;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -467,6 +475,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
                 icon: _buildProfileTabIcon(
                   user: user,
                   currentIndex: currentIndex,
+                  presenceStatus: presenceStatus,
                 ),
                 label: 'You',
               ),
