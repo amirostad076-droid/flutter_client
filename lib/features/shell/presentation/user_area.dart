@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -14,6 +15,11 @@ class UserArea extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userSettingsViewModelProvider);
+    final String? selfUserId =
+        user.userId.isEmpty ? null : user.userId;
+    final String? presenceStatus = selfUserId == null
+        ? null
+        : ref.watch(userPresenceProvider(selfUserId)).value?.status;
     final layout = context.layout;
     final colors = context.colors;
 
@@ -45,6 +51,7 @@ class UserArea extends ConsumerWidget {
                           userId: user.userId,
                           imageUrl: user.avatarUrl,
                           avatarColor: user.avatarColor,
+                          status: presenceStatus,
                           size: 36,
                         ),
                         SizedBox(width: layout.s2),
