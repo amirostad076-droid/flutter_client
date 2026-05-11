@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
@@ -67,6 +68,81 @@ void main() {
     },
   );
 
+  test('auto ack does not run while channel messages are loading', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    final adapter = _ChatAdapter(initialMessages: const [])
+      ..holdMessageFetch = true;
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    final load = notifier.switchChannel('channel-1');
+    notifier.setReadViewportActive(isActive: true);
+    await _flushAsync();
+
+    expect(adapter.ackedMessageIds, isEmpty);
+    adapter.releaseMessageFetch();
+    await load;
+  });
+
+  test(
+    'opening unread channel exposes unread scroll target without acking',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final unreadId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: unreadId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await (notifier..setReadViewportActive(isActive: true)).switchChannel(
+        'channel-1',
+      );
+      await _flushAsync();
+
+      final state = container.read(chatViewModelProvider);
+      expect(state.scrollToMessageSignal?.$1, unreadId);
+      expect(state.stickyUnreadMessageId, unreadId);
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, ackId);
+      expect(adapter.ackedMessageIds, isEmpty);
+    },
+  );
+
   test('auto ack preserves sticky unread divider after ack advances', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
@@ -100,7 +176,9 @@ void main() {
 
     final notifier = container.read(chatViewModelProvider.notifier);
     await notifier.switchChannel('channel-1');
-    notifier.setReadViewportActive(isActive: true);
+    notifier
+      ..setReadViewportActive(isActive: true)
+      ..updateReadViewport(isNearBottom: true);
     await _flushAsync();
 
     final readState = await db.readStateDao.getReadState('channel-1');
@@ -144,7 +222,9 @@ void main() {
 
       final notifier = container.read(chatViewModelProvider.notifier);
       await notifier.switchChannel('channel-1');
-      notifier.setReadViewportActive(isActive: true);
+      notifier
+        ..setReadViewportActive(isActive: true)
+        ..updateReadViewport(isNearBottom: true);
       await _flushAsync();
 
       final readState = await db.readStateDao.getReadState('channel-1');
@@ -276,7 +356,9 @@ void main() {
 
     final notifier = container.read(chatViewModelProvider.notifier);
     await notifier.switchChannel('channel-1');
-    notifier.setReadViewportActive(isActive: true);
+    notifier
+      ..setReadViewportActive(isActive: true)
+      ..updateReadViewport(isNearBottom: true);
     await _flushAsync();
     await Future<void>.delayed(const Duration(seconds: 6));
     await _flushAsync();
@@ -375,8 +457,18 @@ class _ChatAdapter implements HttpClientAdapter {
   final List<Uri> messageRequestUris = [];
   final List<String> afterQueries = [];
   final List<String> ackedMessageIds = [];
+  bool holdMessageFetch = false;
+  Completer<void>? _messageFetchCompleter;
   int failAckAttempts = 0;
   int ackAttempts = 0;
+
+  void releaseMessageFetch() {
+    holdMessageFetch = false;
+    if (_messageFetchCompleter?.isCompleted ?? true) {
+      return;
+    }
+    _messageFetchCompleter!.complete();
+  }
 
   @override
   Future<ResponseBody> fetch(
@@ -390,6 +482,10 @@ class _ChatAdapter implements HttpClientAdapter {
       final after = options.uri.queryParameters['after'];
       if (after != null) {
         afterQueries.add(after);
+      }
+      if (holdMessageFetch) {
+        _messageFetchCompleter ??= Completer<void>();
+        await _messageFetchCompleter!.future;
       }
       final messages = after == null ? initialMessages : messagesAfterAck;
       return ResponseBody.fromString(

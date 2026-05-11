@@ -266,6 +266,9 @@ class ChatViewModel extends _$ChatViewModel {
     String? targetMessageId,
     bool loadMessages = true,
   }) async {
+    if (state.channelId != channelId) {
+      _readViewportNearBottom = false;
+    }
     if (state.channelId.isNotEmpty && state.channelId != channelId) {
       final previousChannelId = state.channelId;
       _readAckRetryTimer?.cancel();
@@ -352,6 +355,11 @@ class ChatViewModel extends _$ChatViewModel {
             .readStateDao
             .getReadState(channelId);
         await _ensureUnreadBoundaryLoaded(channelId, readState: readState);
+        final unreadId = _firstUnreadForCurrentMessages(readState: readState);
+        if (unreadId != null) {
+          _showInitialUnread(channelId, unreadId);
+          return;
+        }
         unawaited(ackCurrentChannel());
       }
     } on Exception catch (e) {
@@ -409,6 +417,9 @@ class ChatViewModel extends _$ChatViewModel {
 
   Future<void> ackCurrentChannel({bool force = false}) async {
     final channelId = state.channelId;
+    if (!force && state.isLoading) {
+      return;
+    }
     final now = DateTime.now();
     final isReadViewportEligible =
         _readViewportActive && ref.read(appUiForegroundProvider);
@@ -617,6 +628,30 @@ class ChatViewModel extends _$ChatViewModel {
     return currentUserId != null &&
         currentUserId.isNotEmpty &&
         message.authorId == currentUserId;
+  }
+
+  String? _firstUnreadForCurrentMessages({required db.ReadState? readState}) {
+    if (state.messages.isEmpty) {
+      return null;
+    }
+    final currentUserId = ref.read(currentUserIdProvider);
+    return oldestUnreadMessageId(
+      messageIds: state.messages
+          .where((message) => !_isOwnMessage(message, currentUserId))
+          .map((message) => message.id),
+      ackLastMessageId: readState?.lastMessageId,
+    );
+  }
+
+  void _showInitialUnread(String channelId, String unreadId) {
+    if (state.channelId != channelId) {
+      return;
+    }
+    final version = (state.scrollToMessageSignal?.$2 ?? 0) + 1;
+    state = state.copyWith(
+      stickyUnreadMessageId: unreadId,
+      scrollToMessageSignal: (unreadId, version),
+    );
   }
 
   List<Message> _mergeMessages(List<Message> current, List<Message> incoming) {
