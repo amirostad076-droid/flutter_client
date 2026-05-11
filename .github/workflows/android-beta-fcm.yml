@@ -145,5 +145,5 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: beta-fcm-apk
-          path: build/app/outputs/flutter-apk/app-beta-fcm-*-release.apk
+          path: build/app/outputs/flutter-apk/app-*-betafcm-release.apk
           if-no-files-found: error
