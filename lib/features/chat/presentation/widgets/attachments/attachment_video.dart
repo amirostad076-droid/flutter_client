@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_thumbhash/flutter_thumbhash.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -7,6 +8,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_mobile_video.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
+import 'package:fluxer_app/features/chat/utils/media_proxy_url.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
@@ -400,22 +402,55 @@ class _AttachmentVideoState extends State<AttachmentVideo> {
   }
 
   Widget _buildPoster() {
-    final String? placeholder = widget.attachment.placeholder;
-    if (placeholder != null && placeholder.isNotEmpty) {
-      return Image(
-        image: ThumbHash.fromBase64(placeholder).toImage(),
-        fit: BoxFit.cover,
-      );
+    final Attachment attachment = widget.attachment;
+    final String? placeholder = attachment.placeholder;
+    final FluxerMediaDimensions layoutDimensions = mediaDimensionsForSize(
+      widget.dimensionSize,
+    );
+    final String proxyOrUrl =
+        (attachment.proxyUrl != null &&
+                attachment.proxyUrl!.trim().isNotEmpty)
+            ? attachment.proxyUrl!.trim()
+            : attachment.url.trim();
+    final String? posterUrl = proxyOrUrl.isEmpty
+        ? null
+        : buildAttachmentVideoPosterUrl(
+            proxyOrUrl: proxyOrUrl,
+            attachmentWidth: attachment.width,
+            attachmentHeight: attachment.height,
+            layoutDimensions: layoutDimensions,
+          );
+    final Widget base = placeholder != null && placeholder.isNotEmpty
+        ? Image(
+            image: ThumbHash.fromBase64(placeholder).toImage(),
+            fit: BoxFit.cover,
+          )
+        : ColoredBox(
+            color: Colors.black,
+            child: Center(
+              child: Icon(
+                Icons.videocam_rounded,
+                color: Colors.white.withValues(alpha: 0.5),
+                size: 38,
+              ),
+            ),
+          );
+    if (posterUrl == null) {
+      return base;
     }
-    return ColoredBox(
-      color: Colors.black,
-      child: Center(
-        child: Icon(
-          Icons.videocam_rounded,
-          color: Colors.white.withValues(alpha: 0.5),
-          size: 38,
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        base,
+        Positioned.fill(
+          child: CachedNetworkImage(
+            imageUrl: posterUrl,
+            fit: BoxFit.cover,
+            placeholder: (_, _) => const SizedBox.shrink(),
+            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
