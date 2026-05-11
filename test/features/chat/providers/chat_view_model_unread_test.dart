@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/features/chat/providers/chat_auto_ack_allowed_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -325,6 +326,47 @@ void main() {
     expect(adapter.ackedMessageIds, isEmpty);
   });
 
+  test('auto ack waits while chat auto ack is disallowed', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(0),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    );
+    final container = _container(db, adapter, autoAckAllowed: false);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    notifier
+      ..setReadViewportActive(isActive: true)
+      ..updateReadViewport(isNearBottom: true);
+    await _flushAsync();
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.lastMessageId, ackId);
+    expect(adapter.ackedMessageIds, isEmpty);
+  });
+
   test('auto ack retries HTTP failure after applying local ack', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
@@ -514,6 +556,7 @@ ProviderContainer _container(
   FluxerDatabase db,
   _ChatAdapter adapter, {
   bool foreground = true,
+  bool? autoAckAllowed,
 }) {
   final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
     ..httpClientAdapter = adapter;
@@ -521,6 +564,8 @@ ProviderContainer _container(
     overrides: [
       fluxerDatabaseProvider.overrideWithValue(db),
       appUiForegroundProvider.overrideWithValue(foreground),
+      if (autoAckAllowed != null)
+        chatAutoAckAllowedProvider.overrideWithValue(autoAckAllowed),
       fluxerDioProvider.overrideWithValue(dio),
       fluxerClientProvider.overrideWithValue(
         FluxerClient(dio, baseUrl: 'https://api.fluxer.app/v1'),

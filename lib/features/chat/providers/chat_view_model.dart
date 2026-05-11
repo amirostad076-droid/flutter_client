@@ -5,7 +5,6 @@ import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
-import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
@@ -14,6 +13,7 @@ import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
+import 'package:fluxer_app/features/chat/providers/chat_auto_ack_allowed_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/chat_read_ack_gate.dart';
 import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
@@ -137,7 +137,7 @@ class ChatViewModel extends _$ChatViewModel {
     unawaited(_eventsSub?.cancel());
     _eventsSub = bus.stream.listen(_onRealtimeEvent);
     ref
-      ..listen<bool>(appUiForegroundProvider, (previous, next) {
+      ..listen<bool>(chatAutoAckAllowedProvider, (previous, next) {
         if (!next) {
           _readAckRetryTimer?.cancel();
           return;
@@ -422,7 +422,7 @@ class ChatViewModel extends _$ChatViewModel {
     }
     final now = DateTime.now();
     final isReadViewportEligible =
-        _readViewportActive && ref.read(appUiForegroundProvider);
+        _readViewportActive && ref.read(chatAutoAckAllowedProvider);
     final database = ref.read(fluxerDatabaseProvider);
     final readState = await database.readStateDao.getReadState(channelId);
     if (force) {
