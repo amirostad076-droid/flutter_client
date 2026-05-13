@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/push/push_notifications_coordinator.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_kind.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -84,17 +85,19 @@ class _AppLayoutState extends ConsumerState<AppLayout>
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(activeGuildIdProvider, (previous, next) {
-      if (next != null) {
-        final guilds = ref.read(guildListViewModelProvider).guilds;
-        final guild = guilds.where((g) => g.id == next).firstOrNull;
-        ref
-            .read(channelListViewModelProvider.notifier)
-            .loadChannels(next, guild: guild);
-        ref.read(memberListViewModelProvider.notifier).loadMembers(next);
-        ref.read(guildSyncProvider.notifier).syncIfNeeded(next);
-      }
-    });
+    ref
+      ..watch(pushNotificationsCoordinatorProvider)
+      ..listen(activeGuildIdProvider, (previous, next) {
+        if (next != null) {
+          final guilds = ref.read(guildListViewModelProvider).guilds;
+          final guild = guilds.where((g) => g.id == next).firstOrNull;
+          ref
+              .read(channelListViewModelProvider.notifier)
+              .loadChannels(next, guild: guild);
+          ref.read(memberListViewModelProvider.notifier).loadMembers(next);
+          ref.read(guildSyncProvider.notifier).syncIfNeeded(next);
+        }
+      });
 
     final isMobile = isMobileLayout(context);
 

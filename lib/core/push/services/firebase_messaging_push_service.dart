@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
 import 'package:fluxer_app/core/push/push_service.dart';
 
@@ -7,7 +8,7 @@ class FirebaseMessagingPushService implements PushService {
   const FirebaseMessagingPushService();
   @override
   Future<void> requestPermissions() async {
-    // TODO(developer): Implement FCM permission request.
+    await LocalPushNotifications().requestDisplayPermission();
   }
 
   @override

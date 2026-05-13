@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
 import 'package:fluxer_app/core/push/push_service.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ApplePushService implements PushService {
   const ApplePushService();
@@ -24,7 +24,7 @@ class ApplePushService implements PushService {
     if (!_shouldUseNativeChannel()) {
       return;
     }
-    await Permission.notification.request();
+    await LocalPushNotifications().requestDisplayPermission();
   }
 
   @override
