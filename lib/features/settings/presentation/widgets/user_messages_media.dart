@@ -224,6 +224,13 @@ class UserMessagesMedia extends ConsumerWidget {
                 onChanged: (value) =>
                     _handleTrustAllChange(context, ref, value),
               ),
+              FluxerSettingsSwitchItem(
+                label: l10n.externalLinkStripTrackingLabel,
+                description: l10n.externalLinkStripTrackingDescription,
+                value: chat.sanitizeUrls,
+                onChanged: (value) =>
+                    chatNotifier.setSanitizeUrls(value: value),
+              ),
             ],
           ),
           FluxerSettingsSection(

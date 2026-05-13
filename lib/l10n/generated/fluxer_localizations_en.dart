@@ -882,6 +882,14 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get externalLinkTrustAllLabel => 'Trust all external links';
 
   @override
+  String get externalLinkStripTrackingLabel =>
+      'Strip tracking parameters from URLs';
+
+  @override
+  String get externalLinkStripTrackingDescription =>
+      'Automatically remove tracking parameters (like utm_source, fbclid, gclid) from URLs in messages you send. Cleans the link before it reaches anyone else.';
+
+  @override
   String get externalLinkTrustAllConfirmTitle => 'Trust all external links?';
 
   @override

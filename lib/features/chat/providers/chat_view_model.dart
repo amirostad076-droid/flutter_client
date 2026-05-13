@@ -22,7 +22,9 @@ import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dar
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
+import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
+import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -803,6 +805,16 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> sendStandaloneMessage(String content) =>
       _sendContent(content.trim(), clearMessageText: false);
 
+  String _maybeSanitizeOutgoing(String text) {
+    if (text.isEmpty) {
+      return text;
+    }
+    if (!ref.read(chatPreferencesProvider).sanitizeUrls) {
+      return text;
+    }
+    return sanitizeUrlsInContent(text);
+  }
+
   Future<void> _sendContent(
     String text, {
     required bool clearMessageText,
@@ -824,6 +836,7 @@ class ChatViewModel extends _$ChatViewModel {
         pendingAttachments.isEmpty) {
       return;
     }
+    final String outgoingText = _maybeSanitizeOutgoing(text);
     final channelRow = await ref
         .read(fluxerDatabaseProvider)
         .channelDao
@@ -882,7 +895,7 @@ class ChatViewModel extends _$ChatViewModel {
     final String clientNonce = _createClientNonce(channelId);
     final Message optimisticMessage = _buildOptimisticMessage(
       channelId: channelId,
-      content: text,
+      content: outgoingText,
       replyToId: replyToId,
       stickerIds: stickerIds,
       currentUserId: currentUserId,
@@ -910,7 +923,7 @@ class ChatViewModel extends _$ChatViewModel {
       final repo = ref.read(messageRepositoryProvider);
       final Message sent = await repo.sendMessage(
         channelId: channelId,
-        content: text,
+        content: outgoingText,
         replyToId: replyToId,
         clientNonce: clientNonce,
         stickerIds: stickerIds,
@@ -1086,7 +1099,9 @@ class ChatViewModel extends _$ChatViewModel {
     if (editingMessage == null) {
       return;
     }
-    final String editedContent = state.messageText.trim();
+    final String editedContent = _maybeSanitizeOutgoing(
+      state.messageText.trim(),
+    );
     if (editedContent.isEmpty || editedContent == editingMessage.content) {
       state = state.copyWith(editingMessage: null, messageText: '');
       return;

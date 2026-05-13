@@ -17,6 +17,7 @@ class ChatPreferencesState {
     this.showStickersInExpressionAutocomplete = true,
     this.showMemesInExpressionAutocomplete = true,
     this.preserveEditDraft = false,
+    this.sanitizeUrls = true,
   });
 
   final MediaDimensionSize embedMediaDimensionSize;
@@ -27,6 +28,7 @@ class ChatPreferencesState {
   final bool showStickersInExpressionAutocomplete;
   final bool showMemesInExpressionAutocomplete;
   final bool preserveEditDraft;
+  final bool sanitizeUrls;
 
   ChatPreferencesState copyWith({
     MediaDimensionSize? embedMediaDimensionSize,
@@ -37,6 +39,7 @@ class ChatPreferencesState {
     bool? showStickersInExpressionAutocomplete,
     bool? showMemesInExpressionAutocomplete,
     bool? preserveEditDraft,
+    bool? sanitizeUrls,
   }) {
     return ChatPreferencesState(
       embedMediaDimensionSize:
@@ -57,6 +60,7 @@ class ChatPreferencesState {
           showMemesInExpressionAutocomplete ??
           this.showMemesInExpressionAutocomplete,
       preserveEditDraft: preserveEditDraft ?? this.preserveEditDraft,
+      sanitizeUrls: sanitizeUrls ?? this.sanitizeUrls,
     );
   }
 }
@@ -92,6 +96,7 @@ class ChatPreferences extends _$ChatPreferences {
         showMemesInExpressionAutocomplete:
             prefs.showMemesInExpressionAutocomplete,
         preserveEditDraft: prefs.preserveEditDraft,
+        sanitizeUrls: prefs.sanitizeUrls,
       );
     }
   }
@@ -144,6 +149,11 @@ class ChatPreferences extends _$ChatPreferences {
     await _persist();
   }
 
+  Future<void> setSanitizeUrls({required bool value}) async {
+    state = state.copyWith(sanitizeUrls: value);
+    await _persist();
+  }
+
   Future<void> _persist() async {
     final userId = _userId;
     if (userId == null) {
@@ -171,6 +181,7 @@ class ChatPreferences extends _$ChatPreferences {
           state.showMemesInExpressionAutocomplete,
         ),
         preserveEditDraft: Value(state.preserveEditDraft),
+        sanitizeUrls: Value(state.sanitizeUrls),
       ),
     );
   }

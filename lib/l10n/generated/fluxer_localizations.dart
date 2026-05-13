@@ -1672,6 +1672,18 @@ abstract class FluxerLocalizations {
   /// **'Trust all external links'**
   String get externalLinkTrustAllLabel;
 
+  /// Label for the setting that strips tracking parameters from URLs in outgoing messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Strip tracking parameters from URLs'**
+  String get externalLinkStripTrackingLabel;
+
+  /// Description for the setting that strips tracking parameters from URLs in outgoing messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically remove tracking parameters (like utm_source, fbclid, gclid) from URLs in messages you send. Cleans the link before it reaches anyone else.'**
+  String get externalLinkStripTrackingDescription;
+
   /// Title of the confirmation modal for trusting all external links.
   ///
   /// In en, this message translates to:

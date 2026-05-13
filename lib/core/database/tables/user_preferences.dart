@@ -38,6 +38,8 @@ class UserPreferencesTable extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get preserveEditDraft =>
       boolean().withDefault(const Constant(false))();
+  BoolColumn get sanitizeUrls =>
+      boolean().withDefault(const Constant(true))();
   TextColumn get favoriteEmojiKeysJson =>
       text().withDefault(const Constant('[]'))();
   TextColumn get favoriteStickerKeysJson =>

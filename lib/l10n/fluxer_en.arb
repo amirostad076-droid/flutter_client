@@ -1125,6 +1125,14 @@
   "@externalLinkTrustAllLabel": {
     "description": "Label for the setting that trusts all external links."
   },
+  "externalLinkStripTrackingLabel": "Strip tracking parameters from URLs",
+  "@externalLinkStripTrackingLabel": {
+    "description": "Label for the setting that strips tracking parameters from URLs in outgoing messages."
+  },
+  "externalLinkStripTrackingDescription": "Automatically remove tracking parameters (like utm_source, fbclid, gclid) from URLs in messages you send. Cleans the link before it reaches anyone else.",
+  "@externalLinkStripTrackingDescription": {
+    "description": "Description for the setting that strips tracking parameters from URLs in outgoing messages."
+  },
   "externalLinkTrustAllConfirmTitle": "Trust all external links?",
   "@externalLinkTrustAllConfirmTitle": {
     "description": "Title of the confirmation modal for trusting all external links."
