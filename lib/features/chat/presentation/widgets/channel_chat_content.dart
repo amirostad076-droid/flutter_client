@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel_header.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/channel_textarea.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_textarea.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/direct_voice_session_strip.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/dm_embedded_voice_call_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/inline_expression_panel.dart';
@@ -45,6 +46,18 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
   ({String channelId, String? targetMessageId, bool loadMessages})?
   _lastSwitchRequest;
   ({String channelId, String? targetMessageId})? _lastClosedPanelRequest;
+
+  final ComposerAutocompletePanelHost _composerAutocompletePanelHost =
+      ComposerAutocompletePanelHost(null);
+  final ScrollController _composerAutocompletePanelScroll =
+      ScrollController();
+
+  @override
+  void dispose() {
+    _composerAutocompletePanelScroll.dispose();
+    _composerAutocompletePanelHost.dispose();
+    super.dispose();
+  }
 
   void _scheduleChannelSync({required bool loadMessages}) {
     final request = (
@@ -116,44 +129,61 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                       LayoutMode.desktop)
                     DmEmbeddedVoiceCallPanel(channelId: widget.channelId),
                   Expanded(
-                    child: Listener(
-                      behavior: HitTestBehavior.translucent,
-                      onPointerDown: (_) =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
-                      child: Stack(
-                        children: [
-                          if (shouldLoadMessages)
-                            MessageList(targetMessageId: widget.targetMessageId)
-                          else
-                            const SizedBox.expand(),
-                          Positioned(
-                            left: 8,
-                            right: 8,
-                            bottom: 0,
-                            child: Row(
-                              spacing: 8,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Flexible(
-                                  child: Padding(
-                                    padding: EdgeInsets.only(bottom: 8),
-                                    child: TypingIndicatorBar(),
-                                  ),
-                                ),
-                                Column(
-                                  children: [
-                                    if (showNeko) const NekoSprite(),
-                                    const SlowmodeIndicator(),
-                                  ],
-                                ),
-                              ],
-                            ),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Listener(
+                            behavior: HitTestBehavior.translucent,
+                            onPointerDown: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
+                            child: shouldLoadMessages
+                                ? MessageList(
+                                    targetMessageId: widget.targetMessageId,
+                                  )
+                                : const SizedBox.expand(),
                           ),
-                        ],
-                      ),
+                        ),
+                        
+                        Positioned(
+                          left: 8,
+                          right: 8,
+                          bottom: 0,
+                          child: Row(
+                            spacing: 8,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Flexible(
+                                child: Padding(
+                                  padding: EdgeInsets.only(bottom: 8),
+                                  child: TypingIndicatorBar(),
+                                ),
+                              ),
+                              Column(
+                                children: [
+                                  if (showNeko) const NekoSprite(),
+                                  const SlowmodeIndicator(),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: ComposerAutocompletePanelStrip(
+                            host: _composerAutocompletePanelHost,
+                            scrollController: _composerAutocompletePanelScroll,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const ChannelTextarea(),
+                  ChannelTextarea(
+                    autocompletePanelHost: _composerAutocompletePanelHost,
+                    autocompletePanelScrollController:
+                        _composerAutocompletePanelScroll,
+                  ),
                   if (isMobile && isPanelOpen)
                     const SizedBox(height: kCollapsedPanelHeight),
                 ],

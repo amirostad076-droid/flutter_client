@@ -3303,4 +3303,8 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get chatAttachmentVideoProgress => 'Video progress';
+
+  @override
+  String get composerAutocompleteRoleMentionDescription =>
+      'Notify users with this role who have permission to view this channel.';
 }

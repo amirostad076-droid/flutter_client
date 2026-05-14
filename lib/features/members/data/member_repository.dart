@@ -4,10 +4,13 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/features/members/domain/member.dart';
+import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 
 class MemberRepository {
+  static const int _mentionAutocompleteMaxMatches = 100;
+
   final FluxerClient _client;
   final db.FluxerDatabase _db;
 
@@ -113,54 +116,87 @@ class MemberRepository {
   }
 
   Future<List<MemberRole>> getRoles(String guildId) async {
-    List<dynamic> rawList;
+    List<db.RolesCompanion> companions;
     try {
-      final roles = await _client.guilds.listGuildRoles(guildId: guildId);
-
-      rawList = roles
-          .map(
-            (sdk) => {
-              'id': sdk.id,
-              'name': sdk.name,
-              'color': sdk.color,
-              'position': sdk.position,
-              'hoist': sdk.hoist,
-              'permissions': sdk.permissions,
-            },
-          )
-          .toList();
+      final List<GuildRoleResponse> roles =
+          await _client.guilds.listGuildRoles(guildId: guildId);
+      companions =
+          roles.map((GuildRoleResponse r) => roleFromSdk(r, guildId)).toList();
     } on DioException catch (e) {
       if (e.response?.statusCode == 200 && e.response?.data != null) {
-        rawList = e.response!.data as List<dynamic>;
+        final List<dynamic> rawList = e.response!.data as List<dynamic>;
+        companions = rawList.map((dynamic item) {
+          final Map<String, dynamic> map = item as Map<String, dynamic>;
+          return db.RolesCompanion.insert(
+            id: map['id'] as String,
+            guildId: guildId,
+            name: map['name'] as String,
+            color: map['color'] != null
+                ? Value(map['color'] as int)
+                : const Value.absent(),
+            position: map['position'] != null
+                ? Value(map['position'] as int)
+                : const Value.absent(),
+            hoist: map['hoist'] != null
+                ? Value(map['hoist'] as bool)
+                : const Value.absent(),
+            mentionable: map['mentionable'] != null
+                ? Value(map['mentionable'] as bool)
+                : const Value.absent(),
+            permissions: map['permissions'] != null
+                ? Value(map['permissions'] as String)
+                : const Value.absent(),
+          );
+        }).toList();
       } else {
         throw Exception(e.response?.statusMessage ?? 'Failed to fetch roles');
       }
     }
-
-    final companions = rawList.map((item) {
-      final map = item as Map<String, dynamic>;
-      return db.RolesCompanion.insert(
-        id: map['id'] as String,
-        guildId: guildId,
-        name: map['name'] as String,
-        color: map['color'] != null
-            ? Value(map['color'] as int)
-            : const Value.absent(),
-        position: map['position'] != null
-            ? Value(map['position'] as int)
-            : const Value.absent(),
-        hoist: map['hoist'] != null
-            ? Value(map['hoist'] as bool)
-            : const Value.absent(),
-        permissions: map['permissions'] != null
-            ? Value(map['permissions'] as String)
-            : const Value.absent(),
-      );
-    }).toList();
 
     await _db.roleDao.upsertRoles(companions);
 
     final rows = await _db.roleDao.getRoles(guildId);
     return rows.map(MemberRole.fromRow).toList();
   }
+
+  /// Resolves mention matches from the local database.
+  ///
+  /// Callers should first send gateway opcode 8 (`requestGuildMembers`) with the
+  /// same [query] so `GUILD_MEMBERS_CHUNK` can populate rows. Do not use
+  /// `POST /guilds/:id/members-search`: that route requires moderation permissions.
+  Future<List<Member>> searchMembersForAutocomplete({
+    required String guildId,
+    required String query,
+  }) async {
+    final String trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const <Member>[];
+    }
+    final String qLower = trimmed.toLowerCase();
+    final List<db.Member> rows = await _db.memberDao.getMembers(guildId);
+    final List<db.Role> roles = await _db.roleDao.getRoles(guildId);
+    final List<String> userIds = rows.map((db.Member m) => m.userId).toList();
+    final List<db.User> userList = await _db.userDao.getUsersByIds(userIds);
+    final Map<String, db.User> users = <String, db.User>{
+      for (final db.User u in userList) u.id: u,
+    };
+    final List<Member> hits = <Member>[];
+    for (final db.Member row in rows) {
+      final Member m = Member.fromRow(row, users[row.userId], roles);
+      if (_mentionHaystackContainsQuery(m, qLower)) {
+        hits.add(m);
+        if (hits.length >= _mentionAutocompleteMaxMatches) {
+          break;
+        }
+      }
+    }
+    return hits;
+  }
+}
+
+bool _mentionHaystackContainsQuery(Member member, String queryLower) {
+  final String display = member.nickname ?? member.globalName ?? member.username;
+  final String haystack =
+      '$display ${member.username} ${member.globalName ?? ''}'.toLowerCase();
+  return haystack.contains(queryLower);
 }

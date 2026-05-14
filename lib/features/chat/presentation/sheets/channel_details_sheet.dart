@@ -47,15 +47,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kSheetLoadMoreThreshold = 160.0;
 
-// Riverpod does not expose the concrete family type through flutter_riverpod.
-// ignore: specify_nonobvious_property_types
-final _channelPermissionBitsProvider = FutureProvider.family<int, String>(
-  (ref, channelId) => computeEffectiveGuildChannelPermissionBits(
-    ref: ref,
-    channelId: channelId,
-  ),
-);
-
 enum ChannelDetailsInitialTab { members, pins }
 
 Future<void> showChannelDetailsSheet(
@@ -392,7 +383,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
     final selectedIndex = _selectedIndex.clamp(0, tabs.length - 1);
     if (widget.channel != null) {
       // Prefetch permission bits so the More menu has them ready on tap.
-      ref.watch(_channelPermissionBitsProvider(widget.channel!.id));
+      ref.watch(effectiveGuildChannelPermissionBitsProvider(widget.channel!.id));
     }
 
     return Column(
@@ -437,7 +428,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
                         ? 0
                         : ref
                                 .read(
-                                  _channelPermissionBitsProvider(
+                                  effectiveGuildChannelPermissionBitsProvider(
                                     widget.channel!.id,
                                   ),
                                 )
@@ -3142,7 +3133,7 @@ Future<bool> _canUnpinMessage(
   }
   try {
     final bits = await ref.read(
-      _channelPermissionBitsProvider(channelId).future,
+      effectiveGuildChannelPermissionBitsProvider(channelId).future,
     );
     return hasPermission(bits, Permission.pinMessages) ||
         hasPermission(bits, Permission.manageMessages);

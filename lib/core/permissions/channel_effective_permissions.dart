@@ -9,6 +9,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart'
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:riverpod/src/providers/future_provider.dart';
 
 Future<int> computeEffectiveGuildChannelPermissionBits({
   required Ref ref,
@@ -71,3 +72,13 @@ Future<int> computeEffectiveGuildChannelPermissionBits({
     overwriteJsonLayersRootToLeaf: layers,
   );
 }
+
+final FutureProviderFamily<int, String> effectiveGuildChannelPermissionBitsProvider =
+    FutureProvider.family<int, String>(
+  (Ref ref, String channelId) {
+    return computeEffectiveGuildChannelPermissionBits(
+      ref: ref,
+      channelId: channelId,
+    );
+  },
+);

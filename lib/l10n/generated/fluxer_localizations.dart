@@ -5685,6 +5685,12 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Video progress'**
   String get chatAttachmentVideoProgress;
+
+  /// Secondary line in the @ mention autocomplete when the row is a mentionable guild role.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify users with this role who have permission to view this channel.'**
+  String get composerAutocompleteRoleMentionDescription;
 }
 
 class _FluxerLocalizationsDelegate

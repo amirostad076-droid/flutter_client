@@ -12,6 +12,8 @@ import 'package:fluxer_app/features/chat/domain/cloud_composer_attachments.dart'
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel_attachment_area.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_mention_controller.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart'
     show kSkinToneSurrogates, skinToneToName;
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
@@ -50,15 +52,26 @@ const double _kMobileComposerSuffixHeight =
 
 /// The chat input bar at the bottom of the chat area.
 class ChannelTextarea extends ConsumerStatefulWidget {
-  const ChannelTextarea({super.key});
+  const ChannelTextarea({
+    required this.autocompletePanelHost,
+    required this.autocompletePanelScrollController,
+    super.key,
+  });
+
+  final ComposerAutocompletePanelHost autocompletePanelHost;
+  final ScrollController autocompletePanelScrollController;
 
   @override
   ConsumerState<ChannelTextarea> createState() => _ChannelTextareaState();
 }
 
 class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
-  final _controller = TextEditingController();
+  late final ComposerMentionController _controller;
   final _focusNode = FocusNode();
+  final GlobalKey<ComposerAutocompleteChatFieldState> _composerFieldKey =
+      GlobalKey<ComposerAutocompleteChatFieldState>();
+  final ComposerAutocompleteMenuNotifier _composerMenuOpen =
+      ComposerAutocompleteMenuNotifier(false);
   final _expressionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _gifPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _mediaPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
@@ -70,16 +83,18 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   @override
   void initState() {
     super.initState();
+    _controller = ComposerMentionController(ref: ref);
     _focusNode.onKeyEvent = _handleKeyEvent;
     _controller.addListener(() {
       ref
           .read(chatViewModelProvider.notifier)
-          .updateMessageText(_controller.text);
+          .updateMessageText(_controller.toWireText());
     });
   }
 
   @override
   void dispose() {
+    _composerMenuOpen.dispose();
     _focusNode
       ..unfocus()
       ..dispose();
@@ -94,6 +109,34 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     }
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
+    }
+    final ComposerAutocompleteChatFieldState? composer =
+        _composerFieldKey.currentState;
+    final bool menuOpen = composer?.hasOpenMenu ?? false;
+    if (menuOpen) {
+      if (event.logicalKey == LogicalKeyboardKey.escape) {
+        composer?.closeAutocompleteMenu();
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        composer?.moveSelection(1);
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        composer?.moveSelection(-1);
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.tab) {
+        composer?.applyCurrentSelection();
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.enter) {
+        if (HardwareKeyboard.instance.isShiftPressed) {
+          return KeyEventResult.ignored;
+        }
+        composer?.applyCurrentSelection();
+        return KeyEventResult.handled;
+      }
     }
     if (event.logicalKey == LogicalKeyboardKey.keyV &&
         (HardwareKeyboard.instance.isMetaPressed ||
@@ -126,14 +169,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     ref
       ..listen<String>(
         chatViewModelProvider.select((state) => state.messageText),
-        (_, messageText) {
-          if (_controller.text == messageText) {
+        (_, String messageText) {
+          if (_controller.toWireText() == messageText) {
             return;
           }
-          _controller.value = TextEditingValue(
-            text: messageText,
-            selection: TextSelection.collapsed(offset: messageText.length),
-          );
+          unawaited(_controller.applyWireText(messageText));
         },
       )
       ..listen<({String name, String surrogates})?>(
@@ -332,13 +372,18 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             opacity: perms.canSendMessages
                 ? 1.0
                 : _kMessageInputDisabledOpacity,
-            child: TextField(
+            child: ComposerAutocompleteChatField(
+              key: _composerFieldKey,
               controller: _controller,
               focusNode: _focusNode,
+              channelId: channelId,
               enabled: perms.canSendMessages,
               style: context.textStyles.inputText,
               minLines: 1,
               maxLines: 5,
+              menuOpenListenable: _composerMenuOpen,
+              panelHost: widget.autocompletePanelHost,
+              panelScrollController: widget.autocompletePanelScrollController,
               decoration: InputDecoration(
                 hintText: perms.canSendMessages
                     ? _resolveHintText()
@@ -547,13 +592,18 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             opacity: perms.canSendMessages
                 ? 1.0
                 : _kMessageInputDisabledOpacity,
-            child: TextField(
+            child: ComposerAutocompleteChatField(
+              key: _composerFieldKey,
               controller: _controller,
               focusNode: _focusNode,
+              channelId: channelId,
               enabled: perms.canSendMessages,
               style: context.textStyles.inputText,
               minLines: 1,
               maxLines: 6,
+              menuOpenListenable: _composerMenuOpen,
+              panelHost: widget.autocompletePanelHost,
+              panelScrollController: widget.autocompletePanelScrollController,
               decoration: InputDecoration(
                 hintText: perms.canSendMessages
                     ? _resolveHintText()
@@ -848,8 +898,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                     if (!mounted) {
                       return;
                     }
-                    final FileUploadValidationResult r =
-                        await notifier.addFiles(media);
+                    final FileUploadValidationResult r = await notifier
+                        .addFiles(media);
                     if (mounted) {
                       _toastUploadValidation(r);
                     }

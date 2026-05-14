@@ -4029,5 +4029,9 @@
   "chatAttachmentVideoProgress": "Video progress",
   "@chatAttachmentVideoProgress": {
     "description": "Accessibility label for the seek bar in mobile attachment fullscreen video."
+  },
+  "composerAutocompleteRoleMentionDescription": "Notify users with this role who have permission to view this channel.",
+  "@composerAutocompleteRoleMentionDescription": {
+    "description": "Secondary line in the @ mention autocomplete when the row is a mentionable guild role."
   }
 }

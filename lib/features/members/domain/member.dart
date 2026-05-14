@@ -9,6 +9,7 @@ class MemberRole {
   final int color;
   final int position;
   final bool hoist;
+  final bool mentionable;
   final int permissions;
 
   const MemberRole({
@@ -17,6 +18,7 @@ class MemberRole {
     required this.color,
     this.position = 0,
     this.hoist = false,
+    this.mentionable = false,
     this.permissions = 0,
   });
 
@@ -27,6 +29,7 @@ class MemberRole {
       color: row.color,
       position: row.position,
       hoist: row.hoist,
+      mentionable: row.mentionable,
       permissions: int.tryParse(row.permissions) ?? 0,
     );
   }
