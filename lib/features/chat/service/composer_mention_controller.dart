@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_inline_mention.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/composer_mention_query.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
@@ -375,7 +375,7 @@ class ComposerMentionController extends TextEditingController {
         children.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
-            child: _ComposerInlineMention(
+            child: ComposerInlineMention(
               visibleText: '@$label',
               baseStyle: style,
             ),
@@ -393,7 +393,7 @@ class ComposerMentionController extends TextEditingController {
         children.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
-            child: _ComposerInlineMention(
+            child: ComposerInlineMention(
               visibleText: '#$name',
               baseStyle: style,
             ),
@@ -411,7 +411,7 @@ class ComposerMentionController extends TextEditingController {
         children.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
-            child: _ComposerInlineMention(
+            child: ComposerInlineMention(
               visibleText: '@$label',
               baseStyle: style,
               foregroundArgb: colorArgb,
@@ -434,37 +434,5 @@ class ComposerMentionController extends TextEditingController {
       }
     }
     return TextSpan(style: style, children: children);
-  }
-}
-
-class _ComposerInlineMention extends StatelessWidget {
-  const _ComposerInlineMention({
-    required this.visibleText,
-    required this.baseStyle,
-    this.foregroundArgb,
-  });
-
-  final String visibleText;
-  final TextStyle? baseStyle;
-  final int? foregroundArgb;
-
-  Color _mentionColor(BuildContext context) {
-    if (foregroundArgb == null || (foregroundArgb! & 0xffffff) == 0) {
-      return context.colors.textLink;
-    }
-    return Color(0xff000000 | (foregroundArgb! & 0xffffff));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Color textColor = _mentionColor(context);
-    final TextStyle mentionStyle = baseStyle?.copyWith(color: textColor) ??
-        TextStyle(color: textColor);
-    return Text(
-      visibleText,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: mentionStyle,
-    );
   }
 }

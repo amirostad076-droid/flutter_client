@@ -8,12 +8,12 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_list_renderer.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/embed_image.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/embed_invite.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/embed_link.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/embed_rich.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/embed_theme.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/embed_video.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_image.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_invite.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_link.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_rich.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_theme.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_video.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/forward_indicator.dart';
