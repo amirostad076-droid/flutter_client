@@ -124,6 +124,42 @@ abstract class FluxerLocalizations {
   /// **'CONNECTING'**
   String get connectingCaps;
 
+  /// Fallback headline on splash when gateway is unavailable (web parity).
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost'**
+  String get splashConnectionLost;
+
+  /// Link under incident title on splash to open the status page.
+  ///
+  /// In en, this message translates to:
+  /// **'View on status page'**
+  String get splashViewOnStatusPage;
+
+  /// Prompt above status links on splash after a long wait.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection issues?'**
+  String get splashConnectionIssuesPrompt;
+
+  /// Link label to the public service status site.
+  ///
+  /// In en, this message translates to:
+  /// **'Status page'**
+  String get splashStatusPageLink;
+
+  /// Link label when an active incident exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Read incident'**
+  String get splashReadIncident;
+
+  /// Link label to incident history when no active incident.
+  ///
+  /// In en, this message translates to:
+  /// **'Incident history'**
+  String get splashIncidentHistory;
+
   /// Greeting on the login screen; usable wherever returning users are welcomed.
   ///
   /// In en, this message translates to:

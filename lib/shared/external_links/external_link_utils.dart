@@ -7,6 +7,7 @@ const implicitlyTrustedDomains = <String>[
   'fluxer.gift',
   'fluxerusercontent.com',
   'fluxerstatic.com',
+  'fluxerstatus.com',
 ];
 
 bool trustAllDomains(List<String> trustedDomains) {

@@ -27,6 +27,24 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get connectingCaps => 'CONNECTING';
 
   @override
+  String get splashConnectionLost => 'Connection lost';
+
+  @override
+  String get splashViewOnStatusPage => 'View on status page';
+
+  @override
+  String get splashConnectionIssuesPrompt => 'Connection issues?';
+
+  @override
+  String get splashStatusPageLink => 'Status page';
+
+  @override
+  String get splashReadIncident => 'Read incident';
+
+  @override
+  String get splashIncidentHistory => 'Incident history';
+
+  @override
   String get welcomeBack => 'Welcome back';
 
   @override

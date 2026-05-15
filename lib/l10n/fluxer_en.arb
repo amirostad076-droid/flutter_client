@@ -25,6 +25,30 @@
   "@connectingCaps": {
     "description": "Connecting text on the splash screen"
   },
+  "splashConnectionLost": "Connection lost",
+  "@splashConnectionLost": {
+    "description": "Fallback headline on splash when gateway is unavailable (web parity)."
+  },
+  "splashViewOnStatusPage": "View on status page",
+  "@splashViewOnStatusPage": {
+    "description": "Link under incident title on splash to open the status page."
+  },
+  "splashConnectionIssuesPrompt": "Connection issues?",
+  "@splashConnectionIssuesPrompt": {
+    "description": "Prompt above status links on splash after a long wait."
+  },
+  "splashStatusPageLink": "Status page",
+  "@splashStatusPageLink": {
+    "description": "Link label to the public service status site."
+  },
+  "splashReadIncident": "Read incident",
+  "@splashReadIncident": {
+    "description": "Link label when an active incident exists."
+  },
+  "splashIncidentHistory": "Incident history",
+  "@splashIncidentHistory": {
+    "description": "Link label to incident history when no active incident."
+  },
   "welcomeBack": "Welcome back",
   "@welcomeBack": {
     "description": "Greeting on the login screen; usable wherever returning users are welcomed."
