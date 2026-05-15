@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
-import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
