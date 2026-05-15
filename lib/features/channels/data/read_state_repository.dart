@@ -1,22 +1,40 @@
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:fluxer_dart/export.dart';
 
 class ReadStateRepository {
-  const ReadStateRepository(this._client, this._db);
+  const ReadStateRepository(this._client, this._db, {AckBatcher? batcher})
+    : _batcher = batcher;
 
   final FluxerClient _client;
   final FluxerDatabase _db;
+  final AckBatcher? _batcher;
 
   Future<void> ackLatest(String channelId) async {
+    final prior = await _db.readStateDao.getReadState(channelId);
+    final hadMentions = (prior?.mentionCount ?? 0) > 0;
     final messageId = await applyLocalAckLatest(channelId);
     if (messageId == null) {
       return;
     }
+    final batcher = _batcher;
+    if (batcher != null) {
+      batcher.queue(
+        channelId: channelId,
+        messageId: messageId,
+        immediate: false,
+        hadMentions: hadMentions,
+      );
+      return;
+    }
     await sendAckHttp(channelId, messageId);
   }
+
+  Future<void> clearSticky(String channelId) =>
+      _db.readStateDao.clearStickyUnread(channelId);
 
   Future<String?> applyLocalAckLatest(String channelId) async {
     final messageId = await latestAckableMessageId(channelId);
@@ -91,6 +109,7 @@ class ReadStateRepository {
     required String messageId,
     required int mentionCount,
     bool manual = false,
+    String? stickyUnreadMessageId,
   }) async {
     await _db.readStateDao.upsertReadState(
       ReadStatesCompanion(
@@ -98,6 +117,7 @@ class ReadStateRepository {
         lastMessageId: Value(messageId),
         mentionCount: Value(mentionCount),
         manual: Value(manual),
+        stickyUnreadMessageId: Value(stickyUnreadMessageId),
       ),
     );
     final dm = await _db.dmChannelDao.getDmChannelById(channelId);
@@ -127,6 +147,7 @@ class ReadStateRepository {
       messageId: ackMessageId,
       mentionCount: mentionCount,
       manual: true,
+      stickyUnreadMessageId: messageId,
     );
     await _client.channels.acknowledgeMessage(
       channelId: channelId,
@@ -242,6 +263,38 @@ class ReadStateRepository {
       return snowflakeAtPreviousMillisecond(messageId);
     }
     return null;
+  }
+
+  Future<void> recomputeMentionsAfterBackfill({
+    required String channelId,
+    required String? currentUserId,
+  }) async {
+    final current = await _db.readStateDao.getReadState(channelId);
+    if (current == null) {
+      return;
+    }
+    final ackMessageId = current.lastMessageId;
+    if (ackMessageId == null || ackMessageId.isEmpty) {
+      return;
+    }
+    final mentionCount = await _computeMentionCountAfterAck(
+      channelId: channelId,
+      ackMessageId: ackMessageId,
+      currentUserId: currentUserId,
+    );
+    if (mentionCount == current.mentionCount) {
+      return;
+    }
+    await _db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: Value(channelId),
+        lastMessageId: Value(current.lastMessageId),
+        mentionCount: Value(mentionCount),
+        lastPinTimestamp: Value(current.lastPinTimestamp),
+        manual: Value(current.manual),
+        stickyUnreadMessageId: Value(current.stickyUnreadMessageId),
+      ),
+    );
   }
 
   Future<int> _computeMentionCountAfterAck({

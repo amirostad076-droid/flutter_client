@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/chat/domain/api_attachment_metadata.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
@@ -103,6 +104,16 @@ class MessageRepository {
           last.content,
           last.authorId,
           last.timestamp,
+        );
+      }
+
+      if (messages.any((m) => m.isMentioned)) {
+        await ReadStateRepository(
+          _client,
+          _db,
+        ).recomputeMentionsAfterBackfill(
+          channelId: channelId,
+          currentUserId: _currentUserId,
         );
       }
 
@@ -241,6 +252,16 @@ class MessageRepository {
         last.content,
         last.authorId,
         last.timestamp,
+      );
+    }
+
+    if (messages.any((m) => m.isMentioned)) {
+      await ReadStateRepository(
+        _client,
+        _db,
+      ).recomputeMentionsAfterBackfill(
+        channelId: channelId,
+        currentUserId: _currentUserId,
       );
     }
 

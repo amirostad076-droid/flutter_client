@@ -291,6 +291,160 @@ void main() {
     expect(readState?.mentionCount, 1);
     expect(readState?.manual, isTrue);
   });
+
+  test('markMessageUnread persists stickyUnreadMessageId', () async {
+    final firstId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final secondId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12, 1));
+    final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+      ..httpClientAdapter = _AckAdapter(
+        expectedPath: '/v1/channels/channel-1/messages/$firstId/ack',
+      );
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    await db.messageDao.upsertMessages([
+      _message(id: firstId, channelId: 'channel-1', authorId: 'other'),
+      _message(id: secondId, channelId: 'channel-1', authorId: 'other'),
+    ]);
+
+    await ReadStateRepository(FluxerClient(dio), db).markMessageUnread(
+      channelId: 'channel-1',
+      messageId: secondId,
+      currentUserId: 'me',
+    );
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.stickyUnreadMessageId, secondId);
+    expect(readState?.manual, isTrue);
+  });
+
+  test(
+    'recomputeMentionsAfterBackfill refreshes mentionCount from cached messages',
+    () async {
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final m1 = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final m2 = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final m3 = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'));
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(m3),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+          stickyUnreadMessageId: const Value('sticky-1'),
+          manual: const Value(true),
+        ),
+      );
+      await db.messageDao.upsertMessages([
+        _message(id: m1, channelId: 'channel-1', authorId: 'other'),
+        _message(
+          id: m2,
+          channelId: 'channel-1',
+          authorId: 'other',
+          isMentioned: true,
+        ),
+        _message(
+          id: m3,
+          channelId: 'channel-1',
+          authorId: 'other',
+          isMentioned: true,
+        ),
+      ]);
+
+      await ReadStateRepository(FluxerClient(dio), db)
+          .recomputeMentionsAfterBackfill(
+        channelId: 'channel-1',
+        currentUserId: 'me',
+      );
+
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.mentionCount, 2);
+      expect(readState?.stickyUnreadMessageId, 'sticky-1');
+      expect(readState?.manual, isTrue);
+      expect(readState?.lastMessageId, ackId);
+    },
+  );
+
+  test(
+    'recomputeMentionsAfterBackfill is idempotent on repeated calls',
+    () async {
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final m1 = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'));
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+        ),
+      );
+      await db.messageDao.upsertMessages([
+        _message(
+          id: m1,
+          channelId: 'channel-1',
+          authorId: 'other',
+          isMentioned: true,
+        ),
+      ]);
+
+      final repo = ReadStateRepository(FluxerClient(dio), db);
+      await repo.recomputeMentionsAfterBackfill(
+        channelId: 'channel-1',
+        currentUserId: 'me',
+      );
+      await repo.recomputeMentionsAfterBackfill(
+        channelId: 'channel-1',
+        currentUserId: 'me',
+      );
+
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.mentionCount, 1);
+    },
+  );
+
+  test('ackLatest clears stickyUnreadMessageId after manual unread', () async {
+    final firstId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final secondId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12, 1));
+    final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+      ..httpClientAdapter = _AckAdapter(
+        expectedPath: '/v1/channels/channel-1/messages/$secondId/ack',
+      );
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(secondId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(firstId),
+        stickyUnreadMessageId: Value(secondId),
+        manual: const Value(true),
+      ),
+    );
+
+    await ReadStateRepository(FluxerClient(dio), db).ackLatest('channel-1');
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.lastMessageId, secondId);
+    expect(readState?.stickyUnreadMessageId, null);
+    expect(readState?.manual, isFalse);
+  });
 }
 
 class _RecordingAdapter implements HttpClientAdapter {

@@ -6,6 +6,7 @@ class ReadStates extends Table {
   IntColumn get mentionCount => integer().withDefault(const Constant(0))();
   TextColumn get lastPinTimestamp => text().nullable()();
   BoolColumn get manual => boolean().withDefault(const Constant(false))();
+  TextColumn get stickyUnreadMessageId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {channelId};

@@ -21,8 +21,6 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
-import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
-import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_context_menu.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_item.dart';
@@ -47,6 +45,7 @@ import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_scroll_indicator.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_read_state_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
@@ -204,7 +203,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
   }
 
   ScrollIndicatorSeverity? _getItemSeverity(String guildId) {
-    final unread = ref.read(serverUnreadProvider(guildId)).value;
+    final unread = ref.read(guildReadStateProvider)[guildId];
     if (unread == null) {
       return null;
     }
@@ -624,7 +623,9 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     final itemKey = _itemKeys.putIfAbsent(guild.id, GlobalKey.new);
     return Builder(
       builder: (context) {
-        final unread = ref.watch(serverUnreadProvider(guild.id)).value;
+        final unread = ref.watch(
+          guildReadStateProvider.select((s) => s[guild.id]),
+        );
         final muteState = ref.watch(guildMuteProvider(guild.id)).value;
         final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
         final voiceRows = ref
@@ -903,7 +904,9 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
     var totalMentions = 0;
     var folderVoiceActivity = VoiceActivityType.none;
     for (final guild in folder.guilds) {
-      final unread = ref.watch(serverUnreadProvider(guild.id)).value;
+      final unread = ref.watch(
+        guildReadStateProvider.select((s) => s[guild.id]),
+      );
       if (!guild.isUnavailable && (unread?.hasUnread ?? false)) {
         anyUnread = true;
       }
@@ -1139,7 +1142,9 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
   Widget _buildGuildItemInFolder(BuildContext context, Guild guild) {
     return Builder(
       builder: (context) {
-        final unread = ref.watch(serverUnreadProvider(guild.id)).value;
+        final unread = ref.watch(
+          guildReadStateProvider.select((s) => s[guild.id]),
+        );
         final muteState = ref.watch(guildMuteProvider(guild.id)).value;
         final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
         final voiceRows = ref

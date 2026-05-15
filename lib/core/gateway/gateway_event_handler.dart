@@ -978,6 +978,7 @@ class GatewayEventHandler {
           lastMessageId: Value(msg.id),
           mentionCount: const Value(0),
           manual: const Value(false),
+          stickyUnreadMessageId: const Value(null),
         ),
       );
       if (dm != null) {
@@ -1542,6 +1543,16 @@ class GatewayEventHandler {
         return;
       }
     }
+    final existingSticky = current?.stickyUnreadMessageId;
+    final String? newSticky;
+    if (manual) {
+      newSticky = existingSticky ?? event.messageId;
+    } else if (existingSticky != null &&
+        compareSnowflakeIds(event.messageId, existingSticky) < 0) {
+      newSticky = existingSticky;
+    } else {
+      newSticky = null;
+    }
     await database.readStateDao.upsertReadState(
       db.ReadStatesCompanion(
         channelId: Value(event.channelId),
@@ -1549,6 +1560,7 @@ class GatewayEventHandler {
         mentionCount: Value(mentionCount),
         lastPinTimestamp: Value(current?.lastPinTimestamp),
         manual: Value(manual),
+        stickyUnreadMessageId: Value(newSticky),
       ),
     );
     final dm = await database.dmChannelDao.getDmChannelById(event.channelId);

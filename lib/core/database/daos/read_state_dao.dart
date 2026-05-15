@@ -35,6 +35,7 @@ class ReadStateDao extends DatabaseAccessor<FluxerDatabase>
             mentionCount: Value((existing?.mentionCount ?? 0) + 1),
             lastPinTimestamp: Value(existing?.lastPinTimestamp),
             manual: Value(existing?.manual ?? false),
+            stickyUnreadMessageId: Value(existing?.stickyUnreadMessageId),
           ),
         );
       });
@@ -49,13 +50,35 @@ class ReadStateDao extends DatabaseAccessor<FluxerDatabase>
             mentionCount: Value(existing?.mentionCount ?? 0),
             lastPinTimestamp: Value(timestamp),
             manual: Value(existing?.manual ?? false),
+            stickyUnreadMessageId: Value(existing?.stickyUnreadMessageId),
           ),
         );
       });
 
   Future<void> setManual(String channelId, {required bool manual}) =>
+      setManualUnread(
+        channelId: channelId,
+        stickyMessageId: null,
+        manual: manual,
+      );
+
+  Future<void> setManualUnread({
+    required String channelId,
+    required String? stickyMessageId,
+    required bool manual,
+  }) => (update(readStates)..where((r) => r.channelId.equals(channelId))).write(
+    ReadStatesCompanion(
+      manual: Value(manual),
+      stickyUnreadMessageId: Value(stickyMessageId),
+    ),
+  );
+
+  Future<void> clearStickyUnread(String channelId) =>
       (update(readStates)..where((r) => r.channelId.equals(channelId))).write(
-        ReadStatesCompanion(manual: Value(manual)),
+        const ReadStatesCompanion(
+          manual: Value(false),
+          stickyUnreadMessageId: Value(null),
+        ),
       );
 
   Future<void> deleteReadState(String channelId) =>
