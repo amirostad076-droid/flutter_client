@@ -50,6 +50,7 @@ class Channel {
   final String? parentId;
   final int position;
   final int rateLimitPerUser;
+  final bool nsfw;
   final String? permissionOverwritesJson;
 
   const Channel({
@@ -62,6 +63,7 @@ class Channel {
     this.parentId,
     this.position = 0,
     this.rateLimitPerUser = 0,
+    this.nsfw = false,
     this.permissionOverwritesJson,
   });
 
@@ -76,6 +78,7 @@ class Channel {
       parentId: row.parentId,
       position: row.position,
       rateLimitPerUser: row.rateLimitPerUser,
+      nsfw: row.nsfw,
       permissionOverwritesJson: row.permissionOverwritesJson,
     );
   }
@@ -91,6 +94,7 @@ class Channel {
       parentId: Value(parentId),
       position: Value(position),
       rateLimitPerUser: Value(rateLimitPerUser),
+      nsfw: Value(nsfw),
       permissionOverwritesJson: Value(permissionOverwritesJson),
     );
   }
@@ -110,10 +114,10 @@ class ChannelCategory {
   });
 }
 
-/// Groups a flat list of [Channel]s into [ChannelCategory]s.
+/// Groups a flat list of channels into channel categories.
 ///
 /// Channels with type 4 (category) become group headers. Child channels
-/// reference their category via [parentId]. Channels without a parent
+/// reference their category via parentId. Channels without a parent
 /// are placed in a synthetic "Channels" category.
 List<ChannelCategory> groupChannelsIntoCategories(List<Channel> channels) {
   final categories = <Channel>[];

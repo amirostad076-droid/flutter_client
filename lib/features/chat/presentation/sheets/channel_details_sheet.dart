@@ -382,8 +382,10 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
     ];
     final selectedIndex = _selectedIndex.clamp(0, tabs.length - 1);
     if (widget.channel != null) {
-      // Prefetch permission bits so the More menu has them ready on tap.
-      ref.watch(effectiveGuildChannelPermissionBitsProvider(widget.channel!.id));
+      final String prefetchChannelId = widget.channel!.id;
+      ref.watch(
+        effectiveGuildChannelPermissionBitsProvider(prefetchChannelId),
+      );
     }
 
     return Column(
@@ -510,7 +512,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
   }
 }
 
-class _DetailsIdentityHeader extends StatelessWidget {
+class _DetailsIdentityHeader extends ConsumerWidget {
   const _DetailsIdentityHeader({
     required this.channel,
     required this.dm,
@@ -526,31 +528,43 @@ class _DetailsIdentityHeader extends StatelessWidget {
   final VoidCallback onClose;
 
   @override
-  Widget build(BuildContext context) {
-    final title = channel?.name ?? dm?.displayName ?? 'Details';
-    final subtitle = _detailsSubtitle(channel: channel, dm: dm);
-    final topic = channel?.topic?.trim();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final Channel? channelEntity = channel;
+    final title = channelEntity?.name ?? dm?.displayName ?? 'Details';
+    final subtitle = _detailsSubtitle(channel: channelEntity, dm: dm);
+    final topic = channelEntity?.topic?.trim();
     final isBot = dm != null && !dm!.isGroup && dm!.isBot;
-    final showInlineChannelIcon = channel != null;
     final hasTopic = topic != null && topic.isNotEmpty;
+    final int? effectivePermissionBits = channelEntity != null
+        ? ref
+              .watch(
+                effectiveGuildChannelPermissionBitsProvider(
+                  channelEntity.id,
+                ),
+              )
+              .value
+        : null;
 
     return FluxerSheetIdentityHeader(
-      leading: _DetailsAvatar(channel: channel, dm: dm),
+      leading: _DetailsAvatar(channel: channelEntity, dm: dm),
       title: title,
       subtitle: subtitle,
       onClose: onClose,
-      titlePrefix: showInlineChannelIcon
-          ? ChannelIcon(
-              type: channel!.type,
-              size: 16,
-              color: context.colors.textPrimary,
-            )
-          : null,
+      titlePrefix: switch (channelEntity) {
+        null => null,
+        final Channel c => ChannelIcon(
+            type: c.type,
+            channel: c,
+            effectivePermissionBits: effectivePermissionBits,
+            size: 16,
+            color: context.colors.textPrimary,
+          ),
+      },
       titleAdornments: [if (isBot) const FluxerBotBadge()],
       body: hasTopic
           ? _TopicCard(
               topic: topic,
-              channelId: channel?.id,
+              channelId: channelEntity?.id,
               expanded: topicExpanded,
               onToggle: onToggleTopic,
             )
@@ -683,9 +697,25 @@ class _DetailsAvatar extends ConsumerWidget {
       );
     }
     if (channel != null) {
-      return FluxerAvatar.icon(
-        icon: ChannelIcon.iconDataFor(channel.type),
-        size: _size,
+      final int? effectivePermissionBits = ref
+          .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
+          .value;
+      return Container(
+        width: _size,
+        height: _size,
+        decoration: BoxDecoration(
+          color: context.colors.backgroundTertiary,
+          borderRadius: BorderRadius.circular(_size / 2),
+        ),
+        child: Center(
+          child: ChannelIcon(
+            type: channel.type,
+            channel: channel,
+            effectivePermissionBits: effectivePermissionBits,
+            size: _size * 0.5,
+            color: context.colors.textPrimary,
+          ),
+        ),
       );
     }
     return const SizedBox.square(dimension: _size);

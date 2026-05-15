@@ -86,6 +86,7 @@ flutter:
     - assets/images/
     - assets/sounds/
     - assets/images/icons/
+    - assets/images/icons/channels/
     - assets/images/badges/
     - assets/images/connections/
     - assets/emojis.json

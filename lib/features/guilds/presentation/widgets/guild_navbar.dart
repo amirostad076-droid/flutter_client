@@ -10,7 +10,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/constants/assets.dart';
-import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' hide Channel;
+import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -20,6 +21,7 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
+import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_context_menu.dart';
@@ -3356,8 +3358,9 @@ class _GuildListItemState extends State<_GuildListItem> {
             children: [
               Row(
                 children: [
-                  ChannelIcon(
-                    type: channelTypeFromInt(channel.type),
+                  _GuildNotificationChannelIcon(
+                    channelId: channelId,
+                    fallbackType: channelTypeFromInt(channel.type),
                     color: colors.textTertiary,
                   ),
                   SizedBox(width: layout.s2),
@@ -4312,6 +4315,35 @@ class _PauseBadge extends StatelessWidget {
 const double _kArrowWidth = 5;
 const double _kArrowHeight = 10;
 const double _kBorderRadius = 8;
+
+class _GuildNotificationChannelIcon extends ConsumerWidget {
+  const _GuildNotificationChannelIcon({
+    required this.channelId,
+    required this.fallbackType,
+    required this.color,
+  });
+
+  final String channelId;
+  final ChannelType fallbackType;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final Channel? full = ref.watch(channelByIdProvider(channelId)).value;
+    final int? effectivePermissionBits = ref
+        .watch(effectiveGuildChannelPermissionBitsProvider(channelId))
+        .value;
+    if (full == null) {
+      return ChannelIcon(type: fallbackType, color: color);
+    }
+    return ChannelIcon(
+      type: full.type,
+      channel: full,
+      effectivePermissionBits: effectivePermissionBits,
+      color: color,
+    );
+  }
+}
 
 class _TooltipShapePainter extends CustomPainter {
   final Color fillColor;

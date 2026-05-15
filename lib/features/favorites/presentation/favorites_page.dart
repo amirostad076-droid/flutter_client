@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -246,18 +247,27 @@ class _FavoriteTile extends StatelessWidget {
   }
 }
 
-class _FavoriteIcon extends StatelessWidget {
+class _FavoriteIcon extends ConsumerWidget {
   const _FavoriteIcon({required this.entry});
 
   final _ResolvedFavorite entry;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final channel = entry.channel;
     if (channel != null) {
+      final int? effectivePermissionBits = ref
+          .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
+          .value;
       return SizedBox.square(
         dimension: 36,
-        child: Center(child: ChannelIcon(type: channel.type)),
+        child: Center(
+          child: ChannelIcon(
+            type: channel.type,
+            channel: channel,
+            effectivePermissionBits: effectivePermissionBits,
+          ),
+        ),
       );
     }
     final dm = entry.dm;

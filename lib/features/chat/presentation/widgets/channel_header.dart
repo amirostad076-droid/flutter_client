@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -141,7 +142,12 @@ class ChannelHeader extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      _buildLeadingIcon(context, channel: channel, dm: dm),
+                      _buildLeadingIcon(
+                        context,
+                        ref,
+                        channel: channel,
+                        dm: dm,
+                      ),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
@@ -261,7 +267,12 @@ class ChannelHeader extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildLeadingIcon(context, channel: channel, dm: dm),
+                    _buildLeadingIcon(
+                      context,
+                      ref,
+                      channel: channel,
+                      dm: dm,
+                    ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -388,12 +399,20 @@ class ChannelHeader extends ConsumerWidget {
   );
 
   Widget _buildLeadingIcon(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
     required Channel? channel,
     required DmConversation? dm,
   }) {
     if (channel != null) {
-      return ChannelIcon(type: channel.type);
+      final int? effectivePermissionBits = ref
+          .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
+          .value;
+      return ChannelIcon(
+        type: channel.type,
+        channel: channel,
+        effectivePermissionBits: effectivePermissionBits,
+      );
     }
     if (dm != null) {
       return FluxerAvatar.user(

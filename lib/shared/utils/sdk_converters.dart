@@ -52,6 +52,7 @@ db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String guildId) {
     lastMessageId: Value(sdk.lastMessageId),
     lastPinTimestamp: Value(sdk.lastPinTimestamp?.toIso8601String()),
     rateLimitPerUser: Value(sdk.rateLimitPerUser ?? 0),
+    nsfw: Value(sdk.nsfw ?? false),
     permissionOverwritesJson: Value(
       encodePermissionOverwritesJson(sdk.permissionOverwrites),
     ),

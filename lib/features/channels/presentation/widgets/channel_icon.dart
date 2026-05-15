@@ -1,27 +1,142 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/domain/channel_access_icon_flags.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+// Might be good to look into creating a custom font with icons embedded
+const String _kAssetText = 'assets/images/icons/channels/text.svg';
+const String _kAssetTextLocked = 'assets/images/icons/channels/text_locked.svg';
+const String _kAssetTextNsfw = 'assets/images/icons/channels/text_nsfw.svg';
+const String _kAssetVoice = 'assets/images/icons/channels/voice.svg';
+const String _kAssetVoiceLocked = 'assets/images/icons/channels/voice_locked.svg';
+const String _kAssetVoiceNsfw = 'assets/images/icons/channels/voice_nsfw.svg';
+const String _kAssetVoiceNoConnect =
+    'assets/images/icons/channels/voice_no_connect.svg';
+const String _kAssetLink = 'assets/images/icons/channels/link.svg';
+const String _kAssetLinkLocked = 'assets/images/icons/channels/link_locked.svg';
+const String _kAssetLinkNsfw = 'assets/images/icons/channels/link_nsfw.svg';
+
+enum ChannelIconAccessOverlay {
+  none,
+  nsfw,
+  lock,
+  noConnect,
+}
+
+ChannelIconAccessOverlay resolveChannelIconAccessOverlay({
+  required Channel channel,
+  int? effectivePermissionBits,
+}) {
+  if (channel.isCategory) {
+    return ChannelIconAccessOverlay.none;
+  }
+  if (channel.nsfw) {
+    return ChannelIconAccessOverlay.nsfw;
+  }
+  final bool isVoiceLike =
+      channel.type == ChannelType.voice || channel.type == ChannelType.stage;
+  if (isVoiceLike &&
+      effectivePermissionBits != null &&
+      !hasPermission(effectivePermissionBits, Permission.connect)) {
+    return ChannelIconAccessOverlay.noConnect;
+  }
+  if (isChannelEveryonePrivateForIcon(
+    type: channel.type,
+    guildId: channel.guildId,
+    permissionOverwritesJson: channel.permissionOverwritesJson,
+  )) {
+    return ChannelIconAccessOverlay.lock;
+  }
+  return ChannelIconAccessOverlay.none;
+}
+
+String? _svgAssetForChannelVisual({
+  required ChannelType type,
+  required ChannelIconAccessOverlay overlay,
+}) {
+  if (type == ChannelType.category) {
+    return null;
+  }
+  final bool isTextLike =
+      type == ChannelType.text || type == ChannelType.announcement;
+  final bool isVoiceLike =
+      type == ChannelType.voice || type == ChannelType.stage;
+  if (isTextLike) {
+    return switch (overlay) {
+      ChannelIconAccessOverlay.nsfw => _kAssetTextNsfw,
+      ChannelIconAccessOverlay.lock => _kAssetTextLocked,
+      ChannelIconAccessOverlay.noConnect => _kAssetText,
+      ChannelIconAccessOverlay.none => _kAssetText,
+    };
+  }
+  if (isVoiceLike) {
+    return switch (overlay) {
+      ChannelIconAccessOverlay.nsfw => _kAssetVoiceNsfw,
+      ChannelIconAccessOverlay.noConnect => _kAssetVoiceNoConnect,
+      ChannelIconAccessOverlay.lock => _kAssetVoiceLocked,
+      ChannelIconAccessOverlay.none => _kAssetVoice,
+    };
+  }
+  if (type == ChannelType.link) {
+    return switch (overlay) {
+      ChannelIconAccessOverlay.nsfw => _kAssetLinkNsfw,
+      ChannelIconAccessOverlay.lock => _kAssetLinkLocked,
+      ChannelIconAccessOverlay.noConnect => _kAssetLink,
+      ChannelIconAccessOverlay.none => _kAssetLink,
+    };
+  }
+  return null;
+}
 
 class ChannelIcon extends StatelessWidget {
   final ChannelType type;
+  final Channel? channel;
+  final int? effectivePermissionBits;
   final double size;
   final Color? color;
 
   const ChannelIcon({
     required this.type,
+    this.channel,
+    this.effectivePermissionBits,
     this.size = 20,
     this.color,
     super.key,
   });
 
   @override
-  Widget build(BuildContext context) => PhosphorIcon(
-    iconDataFor(type),
-    size: size,
-    color: color ?? context.colors.textTertiary,
-  );
+  Widget build(BuildContext context) {
+    final Color resolvedColor = color ?? context.colors.textTertiary;
+    final ChannelType displayType = channel?.type ?? type;
+    final ChannelIconAccessOverlay overlay = channel == null
+        ? ChannelIconAccessOverlay.none
+        : resolveChannelIconAccessOverlay(
+            channel: channel!,
+            effectivePermissionBits: effectivePermissionBits,
+          );
+    final String? asset = _svgAssetForChannelVisual(
+      type: displayType,
+      overlay: overlay,
+    );
+    if (asset != null) {
+      return SvgPicture.asset(
+        asset,
+        width: size,
+        height: size,
+        colorFilter: ColorFilter.mode(resolvedColor, BlendMode.srcIn),
+      );
+    }
+    // Backup Icon
+    return PhosphorIcon(
+      iconDataFor(displayType),
+      size: size,
+      color: resolvedColor,
+    );
+  }
 
   static PhosphorIconData iconDataFor(ChannelType type) {
     switch (type) {
