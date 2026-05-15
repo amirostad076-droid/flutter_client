@@ -1,4 +1,5 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_dart/export.dart';
@@ -174,6 +175,20 @@ class MessageSearchRepository {
     await _database.messageDao.upsertMessages(
       entries.map((entry) => entry.message.toCompanion()).toList(),
     );
+
+    final mentionedChannels = entries
+        .where((e) => e.message.isMentioned)
+        .map((e) => e.message.channelId)
+        .toSet();
+    if (mentionedChannels.isNotEmpty) {
+      final readStateRepo = ReadStateRepository(_client, _database);
+      for (final channelId in mentionedChannels) {
+        await readStateRepo.recomputeMentionsAfterBackfill(
+          channelId: channelId,
+          currentUserId: _currentUserId,
+        );
+      }
+    }
 
     return MessageSearchPage(
       results: entries,
