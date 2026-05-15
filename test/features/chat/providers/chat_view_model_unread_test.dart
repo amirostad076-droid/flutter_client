@@ -10,6 +10,8 @@ import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
+import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_auto_ack_allowed_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -550,6 +552,47 @@ void main() {
       expect(adapter.ackedMessageIds, [latestId]);
     },
   );
+
+  test('sending a message clears sticky unread divider', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final priorId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 9));
+    final stickyId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: '',
+        name: 'general',
+        lastMessageId: Value(priorId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(priorId),
+        mentionCount: const Value(0),
+        manual: const Value(true),
+        stickyUnreadMessageId: Value(stickyId),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: priorId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    unawaited(notifier.sendStandaloneMessage('hello'));
+    await _flushAsync();
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.stickyUnreadMessageId, null);
+    expect(readState?.manual, isFalse);
+    expect(container.read(chatViewModelProvider).stickyUnreadMessageId, null);
+  });
 }
 
 ProviderContainer _container(
@@ -560,6 +603,7 @@ ProviderContainer _container(
 }) {
   final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
     ..httpClientAdapter = adapter;
+  final client = FluxerClient(dio, baseUrl: 'https://api.fluxer.app/v1');
   return ProviderContainer(
     overrides: [
       fluxerDatabaseProvider.overrideWithValue(db),
@@ -567,10 +611,15 @@ ProviderContainer _container(
       if (autoAckAllowed != null)
         chatAutoAckAllowedProvider.overrideWithValue(autoAckAllowed),
       fluxerDioProvider.overrideWithValue(dio),
-      fluxerClientProvider.overrideWithValue(
-        FluxerClient(dio, baseUrl: 'https://api.fluxer.app/v1'),
-      ),
+      fluxerClientProvider.overrideWithValue(client),
       currentUserIdProvider.overrideWithValue('me'),
+      ackBatcherProvider.overrideWith((ref) {
+        final batcher = AckBatcher(client: client, batchDelay: Duration.zero);
+        ref.onDispose(() {
+          unawaited(batcher.dispose());
+        });
+        return batcher;
+      }),
     ],
   );
 }
@@ -642,6 +691,32 @@ class _ChatAdapter implements HttpClientAdapter {
       );
     }
 
+    if (options.method == 'POST' &&
+        options.uri.path.endsWith('/read-states/ack-bulk')) {
+      ackAttempts++;
+      if (holdAck) {
+        _ackCompleter ??= Completer<int>();
+        final statusCode = await _ackCompleter!.future;
+        if (statusCode != 204) {
+          return ResponseBody.fromString('failed', statusCode);
+        }
+      }
+      if (failAckAttempts > 0) {
+        failAckAttempts--;
+        return ResponseBody.fromString('failed', 500);
+      }
+      final raw = await _readRequestBody(requestStream, options.data);
+      if (raw != null && raw.isNotEmpty) {
+        final body = jsonDecode(raw) as Map<String, dynamic>;
+        final entries = (body['read_states'] as List<dynamic>? ?? const [])
+            .cast<Map<String, dynamic>>();
+        for (final entry in entries) {
+          ackedMessageIds.add(entry['message_id'] as String);
+        }
+      }
+      return ResponseBody.fromString('', 204, statusMessage: 'No Content');
+    }
+
     if (options.method == 'POST' && options.uri.path.endsWith('/ack')) {
       ackAttempts++;
       if (holdAck) {
@@ -664,4 +739,31 @@ class _ChatAdapter implements HttpClientAdapter {
 
   @override
   void close({bool force = false}) {}
+}
+
+Future<String?> _readRequestBody(
+  Stream<Uint8List>? requestStream,
+  dynamic data,
+) async {
+  if (requestStream != null) {
+    final chunks = await requestStream.toList();
+    if (chunks.isEmpty) {
+      return null;
+    }
+    final totalLength = chunks.fold<int>(0, (sum, c) => sum + c.length);
+    final bytes = Uint8List(totalLength);
+    var offset = 0;
+    for (final chunk in chunks) {
+      bytes.setRange(offset, offset + chunk.length, chunk);
+      offset += chunk.length;
+    }
+    return utf8.decode(bytes);
+  }
+  if (data is String) {
+    return data;
+  }
+  if (data is Map<String, dynamic>) {
+    return jsonEncode(data);
+  }
+  return null;
 }

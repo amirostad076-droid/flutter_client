@@ -9,6 +9,8 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
+import 'package:fluxer_app/features/channels/providers/read_state_repository_provider.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
@@ -33,9 +35,6 @@ part 'chat_view_model.g.dart';
 
 const _kPageSize = 30;
 const _kReadAckMinInterval = Duration(seconds: 1);
-const _kOutgoingAckDebounce = Duration(seconds: 3);
-const _kOutgoingAckRetryBaseDelay = Duration(seconds: 5);
-const _kOutgoingAckRetryMaxDelay = Duration(minutes: 1);
 
 class ChatViewState {
   static const _unset = Object();
@@ -124,9 +123,6 @@ class ChatViewModel extends _$ChatViewModel {
     minInterval: _kReadAckMinInterval,
   );
   Timer? _readAckRetryTimer;
-  final Map<String, Timer> _outgoingAckTimers = <String, Timer>{};
-  final Map<String, String> _outgoingAckMessageIds = <String, String>{};
-  final Map<String, int> _outgoingAckAttempts = <String, int>{};
   final Set<String> _loadedUnreadBoundaryKeys = <String>{};
   bool _readViewportActive = false;
   bool _readViewportNearBottom = true;
@@ -148,12 +144,6 @@ class ChatViewModel extends _$ChatViewModel {
       })
       ..onDispose(() {
         _readAckRetryTimer?.cancel();
-        for (final timer in _outgoingAckTimers.values) {
-          timer.cancel();
-        }
-        _outgoingAckTimers.clear();
-        _outgoingAckMessageIds.clear();
-        _outgoingAckAttempts.clear();
         unawaited(_eventsSub?.cancel());
       });
     return const ChatViewState(
@@ -462,20 +452,18 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       if (!force) {
         await _ensureUnreadBoundaryLoaded(channelId, readState: readState);
-        await _preserveStickyUnreadBeforeAck(channelId, readState: readState);
       }
-      final repository = ReadStateRepository(
-        ref.read(fluxerClientProvider),
-        database,
-      );
+      final repository = ref.read(readStateRepositoryProvider);
       final ackedMessageId = await repository.applyLocalAckLatest(channelId);
       if (ackedMessageId != null) {
-        _scheduleOutgoingAck(
-          repository: repository,
-          channelId: channelId,
-          messageId: ackedMessageId,
-          immediate: hadMentions || force,
-        );
+        ref
+            .read(ackBatcherProvider)
+            .queue(
+              channelId: channelId,
+              messageId: ackedMessageId,
+              immediate: force,
+              hadMentions: hadMentions,
+            );
       }
       _readAckGate.clearManualUnread(channelId);
     } on Exception catch (e) {
@@ -483,75 +471,6 @@ class ChatViewModel extends _$ChatViewModel {
     } finally {
       _readAckGate.markAttemptFinished(channelId);
     }
-  }
-
-  void _scheduleOutgoingAck({
-    required ReadStateRepository repository,
-    required String channelId,
-    required String messageId,
-    required bool immediate,
-  }) {
-    _outgoingAckTimers.remove(channelId)?.cancel();
-    _outgoingAckMessageIds[channelId] = messageId;
-    _outgoingAckAttempts[channelId] = 0;
-    if (immediate) {
-      unawaited(_dispatchOutgoingAck(repository, channelId, messageId));
-      return;
-    }
-    _outgoingAckTimers[channelId] = Timer(_kOutgoingAckDebounce, () {
-      _outgoingAckTimers.remove(channelId);
-      unawaited(_dispatchOutgoingAck(repository, channelId, messageId));
-    });
-  }
-
-  Future<void> _dispatchOutgoingAck(
-    ReadStateRepository repository,
-    String channelId,
-    String messageId,
-  ) async {
-    if (_outgoingAckMessageIds[channelId] != messageId) {
-      return;
-    }
-    try {
-      await repository.sendAckHttp(channelId, messageId);
-      if (_outgoingAckMessageIds[channelId] == messageId) {
-        _outgoingAckMessageIds.remove(channelId);
-        _outgoingAckAttempts.remove(channelId);
-      }
-    } on Exception catch (e) {
-      debugPrint('[ChatViewModel] Failed to send ack HTTP: $e');
-      if (_outgoingAckMessageIds[channelId] != messageId) {
-        return;
-      }
-      final attempt = (_outgoingAckAttempts[channelId] ?? 0) + 1;
-      _outgoingAckAttempts[channelId] = attempt;
-      final delay = _outgoingAckRetryDelay(attempt);
-      _outgoingAckTimers.remove(channelId)?.cancel();
-      _outgoingAckTimers[channelId] = Timer(delay, () {
-        _outgoingAckTimers.remove(channelId);
-        unawaited(_dispatchOutgoingAck(repository, channelId, messageId));
-      });
-    }
-  }
-
-  Duration _outgoingAckRetryDelay(int attempt) {
-    var delayMs = _kOutgoingAckRetryBaseDelay.inMilliseconds;
-    for (var i = 1; i < attempt; i++) {
-      delayMs *= 2;
-      if (delayMs >= _kOutgoingAckRetryMaxDelay.inMilliseconds) {
-        return _kOutgoingAckRetryMaxDelay;
-      }
-    }
-    return Duration(milliseconds: delayMs);
-  }
-
-  void _flushOutgoingAck(String channelId) {
-    final timer = _outgoingAckTimers.remove(channelId);
-    if (timer != null) {
-      timer.cancel();
-    }
-    _outgoingAckMessageIds.remove(channelId);
-    _outgoingAckAttempts.remove(channelId);
   }
 
   void _scheduleReadAckRetry(Duration delay) {
@@ -604,26 +523,6 @@ class ChatViewModel extends _$ChatViewModel {
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load unread boundary: $e');
     }
-  }
-
-  Future<void> _preserveStickyUnreadBeforeAck(
-    String channelId, {
-    required db.ReadState? readState,
-  }) async {
-    if (state.channelId != channelId || state.stickyUnreadMessageId != null) {
-      return;
-    }
-    final currentUserId = ref.read(currentUserIdProvider);
-    final stickyUnreadMessageId = oldestUnreadMessageId(
-      messageIds: state.messages
-          .where((message) => !_isOwnMessage(message, currentUserId))
-          .map((message) => message.id),
-      ackLastMessageId: readState?.lastMessageId,
-    );
-    if (stickyUnreadMessageId == null) {
-      return;
-    }
-    state = state.copyWith(stickyUnreadMessageId: stickyUnreadMessageId);
   }
 
   bool _isOwnMessage(Message message, String? currentUserId) {
@@ -717,13 +616,13 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void cancelPendingOutgoingAck(String channelId) =>
-      _flushOutgoingAck(channelId);
+      ref.read(ackBatcherProvider).cancel(channelId);
 
   void applyExternalAck(String channelId, {required bool manual}) {
     if (channelId.isEmpty) {
       return;
     }
-    _flushOutgoingAck(channelId);
+    ref.read(ackBatcherProvider).cancel(channelId);
     if (manual) {
       _readAckGate.markManualUnread(channelId);
     } else {
@@ -754,14 +653,11 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     _readAckRetryTimer?.cancel();
-    _flushOutgoingAck(channelId);
+    ref.read(ackBatcherProvider).cancel(channelId);
     _readAckGate.clearManualUnread(channelId);
     clearStickyUnread();
     try {
-      await ReadStateRepository(
-        ref.read(fluxerClientProvider),
-        ref.read(fluxerDatabaseProvider),
-      ).ackLatest(channelId);
+      await ref.read(readStateRepositoryProvider).ackLatest(channelId);
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to mark channel read: $e');
     }
@@ -773,7 +669,7 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     try {
-      _flushOutgoingAck(channelId);
+      ref.read(ackBatcherProvider).cancel(channelId);
       await ReadStateRepository(
         ref.read(fluxerClientProvider),
         ref.read(fluxerDatabaseProvider),
@@ -911,6 +807,10 @@ class ChatViewModel extends _$ChatViewModel {
       messageText: clearMessageText ? '' : state.messageText,
       messages: [...state.messages, optimisticMessage],
       errorMessage: null,
+    );
+    clearStickyUnread();
+    unawaited(
+      ref.read(readStateRepositoryProvider).clearSticky(channelId),
     );
 
     try {

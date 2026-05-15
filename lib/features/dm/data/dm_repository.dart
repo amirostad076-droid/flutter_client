@@ -14,8 +14,16 @@ import 'package:fluxer_dart/export.dart';
 class DmRepository {
   final FluxerClient _client;
   final db.FluxerDatabase _db;
+  final ReadStateRepository? _readStateRepository;
 
-  const DmRepository(this._client, this._db);
+  const DmRepository(
+    this._client,
+    this._db, {
+    ReadStateRepository? readStateRepository,
+  }) : _readStateRepository = readStateRepository;
+
+  ReadStateRepository get _readStateRepo =>
+      _readStateRepository ?? ReadStateRepository(_client, _db);
 
   Stream<List<DmConversation>> watchDmChannels() {
     final controller = StreamController<List<DmConversation>>();
@@ -229,7 +237,7 @@ class DmRepository {
   }
 
   Future<void> markAsRead(String channelId) =>
-      ReadStateRepository(_client, _db).ackLatest(channelId);
+      _readStateRepo.ackLatest(channelId);
 
   Future<void> closeDmChannel(String channelId) async {
     await _client.channels.deleteChannel(channelId: channelId);
