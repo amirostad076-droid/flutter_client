@@ -15,6 +15,10 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 typedef FluxerModalBuilder =
     Widget Function(BuildContext context, VoidCallback close);
 
+/// Builds footer actions with a [pop] callback tied to the dialog route.
+typedef FluxerModalActionsBuilder<T> =
+    List<Widget> Function(void Function([T? result]) pop);
+
 /// A styled dialog modal.
 ///
 /// Uses [showDialog] with a blurred backdrop matching the web app's
@@ -29,6 +33,7 @@ class FluxerModal {
     required String title,
     required FluxerModalBuilder builder,
     List<Widget>? actions,
+    FluxerModalActionsBuilder<T>? actionsBuilder,
     String? description,
     Widget? trailing,
     VoidCallback? onBack,
@@ -39,6 +44,9 @@ class FluxerModal {
       barrierColor: Colors.transparent,
       builder: (dialogContext) {
         void close() => Navigator.of(dialogContext).pop();
+        void pop([T? result]) => Navigator.of(dialogContext).pop(result);
+        final List<Widget> footerActions =
+            actions ?? actionsBuilder?.call(pop) ?? const <Widget>[];
 
         final colors = dialogContext.colors;
         final textStyles = dialogContext.textStyles;
@@ -97,13 +105,13 @@ class FluxerModal {
                   ),
                 ),
                 Flexible(child: body),
-                if (actions != null && actions.isNotEmpty)
+                if (footerActions.isNotEmpty)
                   FluxerBottomSheetFooter(
                     showTopBorder: mobileFullscreen,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisSize: MainAxisSize.min,
-                      children: actions,
+                      children: footerActions,
                     ),
                   ),
               ],
@@ -201,12 +209,12 @@ class FluxerConfirmModal {
           style: textStyles.bodySmall.copyWith(height: 1.4),
         );
       },
-      actions: [
+      actionsBuilder: (pop) => [
         if (isDanger)
           FluxerButton.dangerPrimary(
             onPressed: () {
               onConfirm();
-              Navigator.of(context).pop(true);
+              pop(true);
             },
             label: confirmLabel,
           )
@@ -214,13 +222,13 @@ class FluxerConfirmModal {
           FluxerButton.primary(
             onPressed: () {
               onConfirm();
-              Navigator.of(context).pop(true);
+              pop(true);
             },
             label: confirmLabel,
           ),
         const SizedBox(height: 8),
         FluxerButton.secondary(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => pop(false),
           label: 'Cancel',
         ),
       ],

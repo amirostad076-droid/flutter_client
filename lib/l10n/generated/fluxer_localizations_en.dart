@@ -3281,6 +3281,13 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatMessageDelete => 'Delete Message';
 
   @override
+  String get chatMessageDeleteConfirmTitle => 'Delete Message';
+
+  @override
+  String get chatMessageDeleteConfirmDescription =>
+      'Are you sure you want to delete this message?';
+
+  @override
   String get chatMessageMore => 'More';
 
   @override

@@ -87,6 +87,7 @@ class MessageItem extends ConsumerStatefulWidget {
   final VoidCallback? onForward;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final bool canDelete;
   final VoidCallback? onRetry;
   final VoidCallback? onDeleteFailed;
   final VoidCallback? onMarkAsUnread;
@@ -107,6 +108,7 @@ class MessageItem extends ConsumerStatefulWidget {
     this.onForward,
     this.onEdit,
     this.onDelete,
+    this.canDelete = false,
     this.onRetry,
     this.onDeleteFailed,
     this.onMarkAsUnread,
@@ -224,6 +226,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       context,
       message: widget.message,
       isOwnMessage: widget.message.authorId == widget.currentUserId,
+      canDelete: widget.canDelete,
     );
     if (!context.mounted) {
       return;
@@ -256,6 +259,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       position: position,
       message: widget.message,
       isOwnMessage: widget.message.authorId == widget.currentUserId,
+      canDelete: widget.canDelete,
       onQuickReaction: (emoji) => widget.onReaction?.call(emoji),
       quickEmojis: frecent,
     );

@@ -3987,6 +3987,14 @@
   "@chatMessageDelete": {
     "description": "Action label for deleting a message."
   },
+  "chatMessageDeleteConfirmTitle": "Delete Message",
+  "@chatMessageDeleteConfirmTitle": {
+    "description": "Title for the delete message confirmation dialog."
+  },
+  "chatMessageDeleteConfirmDescription": "Are you sure you want to delete this message?",
+  "@chatMessageDeleteConfirmDescription": {
+    "description": "Body text for the delete message confirmation dialog."
+  },
   "chatMessageMore": "More",
   "@chatMessageMore": {
     "description": "Tooltip label for additional message actions."

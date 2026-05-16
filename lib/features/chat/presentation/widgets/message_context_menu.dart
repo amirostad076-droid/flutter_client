@@ -14,6 +14,7 @@ Future<MessageAction?> showMessageContextMenu(
   required Offset position,
   required Message message,
   required bool isOwnMessage,
+  required bool canDelete,
   ValueChanged<String>? onQuickReaction,
   List<String>? quickEmojis,
 }) async {
@@ -30,6 +31,7 @@ Future<MessageAction?> showMessageContextMenu(
       overlaySize: overlay.size,
       message: message,
       isOwnMessage: isOwnMessage,
+      canDelete: canDelete,
       onQuickReaction: onQuickReaction,
       quickEmojis: quickEmojis,
     ),
@@ -63,6 +65,7 @@ class _ContextMenuRoute extends PopupRoute<MessageAction> {
   final Size overlaySize;
   final Message message;
   final bool isOwnMessage;
+  final bool canDelete;
   final ValueChanged<String>? onQuickReaction;
   final List<String>? quickEmojis;
 
@@ -71,6 +74,7 @@ class _ContextMenuRoute extends PopupRoute<MessageAction> {
     required this.overlaySize,
     required this.message,
     required this.isOwnMessage,
+    required this.canDelete,
     this.onQuickReaction,
     this.quickEmojis,
   });
@@ -98,6 +102,7 @@ class _ContextMenuRoute extends PopupRoute<MessageAction> {
     animation: animation,
     message: message,
     isOwnMessage: isOwnMessage,
+    canDelete: canDelete,
     onQuickReaction: onQuickReaction,
     quickEmojis: quickEmojis,
   );
@@ -109,6 +114,7 @@ class _ContextMenuPage extends StatelessWidget {
   final Animation<double> animation;
   final Message message;
   final bool isOwnMessage;
+  final bool canDelete;
   final ValueChanged<String>? onQuickReaction;
   final List<String>? quickEmojis;
 
@@ -118,6 +124,7 @@ class _ContextMenuPage extends StatelessWidget {
     required this.animation,
     required this.message,
     required this.isOwnMessage,
+    required this.canDelete,
     this.onQuickReaction,
     this.quickEmojis,
   });
@@ -243,7 +250,7 @@ class _ContextMenuPage extends StatelessWidget {
         icon: PhosphorIconsRegular.link,
         onTap: () => pop(MessageAction.copyMessageLink),
       ),
-      if (isOwnMessage) ...[
+      if (canDelete) ...[
         const _MenuDivider(),
         _MenuItem(
           label: l10n.chatMessageDelete,

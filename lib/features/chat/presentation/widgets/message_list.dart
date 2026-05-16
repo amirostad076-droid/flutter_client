@@ -10,11 +10,18 @@ import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
+    'widgets/delete_message_confirm_modal.dart';
+import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/system_message.dart';
+import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/utils/message_delete_permissions.dart';
+import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
+import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kLoadMoreThreshold = 200.0;
@@ -263,6 +270,28 @@ class _MessageListState extends ConsumerState<MessageList> {
     final currentUserId = ref.watch(currentUserIdProvider);
     final state = ref.watch(chatViewModelProvider);
     final messages = state.messages;
+    final String channelId = state.channelId;
+    final bool isDmChannel = channelId.isNotEmpty &&
+        ref.watch(
+          dmViewModelProvider.select(
+            (DmViewState dmState) =>
+                findDmById(dmState.conversations, channelId) != null,
+          ),
+        );
+    final String? guildId = isDmChannel || channelId.isEmpty
+        ? null
+        : findChannelById(ref.watch(channelListViewModelProvider), channelId)
+            ?.guildId;
+    final int? guildPermissionBits = guildId == null || guildId.isEmpty
+        ? null
+        : ref.watch(guildPermissionsProvider.select((s) => s[guildId]));
+    if (guildId != null &&
+        guildId.isNotEmpty &&
+        !ref.read(guildPermissionsProvider).containsKey(guildId)) {
+      unawaited(
+        ref.read(guildPermissionsProvider.notifier).getPermissions(guildId),
+      );
+    }
     final readState = state.channelId.isEmpty
         ? null
         : ref
@@ -386,17 +415,30 @@ class _MessageListState extends ConsumerState<MessageList> {
           final isGrouped = !isNewDay && _shouldGroup(msg, prevMsg);
 
           final itemKey = _itemKeys.putIfAbsent(msg.id, GlobalKey.new);
+          final bool canDelete = canDeleteMessage(
+            message: msg,
+            currentUserId: currentUserId,
+            isDmChannel: isDmChannel,
+            guildPermissionBits: guildPermissionBits,
+          );
           final bubble = MessageItem(
             key: itemKey,
             message: msg,
             isGrouped: isGrouped,
             currentUserId: currentUserId,
+            canDelete: canDelete,
             onReply: () =>
                 ref.read(chatViewModelProvider.notifier).startReply(msg),
             onForward: () =>
                 ref.read(chatViewModelProvider.notifier).startForward(msg),
             onEdit: () =>
                 ref.read(chatViewModelProvider.notifier).startEdit(msg),
+            onDelete: () => showDeleteMessageConfirmModal(
+              context,
+              ref,
+              message: msg,
+              guildId: guildId,
+            ),
             onRetry: () => ref
                 .read(chatViewModelProvider.notifier)
                 .retryMessageSend(msg.id),

@@ -5626,6 +5626,18 @@ abstract class FluxerLocalizations {
   /// **'Delete Message'**
   String get chatMessageDelete;
 
+  /// Title for the delete message confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Message'**
+  String get chatMessageDeleteConfirmTitle;
+
+  /// Body text for the delete message confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this message?'**
+  String get chatMessageDeleteConfirmDescription;
+
   /// Tooltip label for additional message actions.
   ///
   /// In en, this message translates to:

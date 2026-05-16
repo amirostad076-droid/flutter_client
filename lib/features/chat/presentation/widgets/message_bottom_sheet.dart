@@ -25,19 +25,25 @@ Future<MessageAction?> showMessageBottomSheet(
   BuildContext context, {
   required Message message,
   required bool isOwnMessage,
+  required bool canDelete,
 }) => showModalBottomSheet<MessageAction>(
   context: context,
-  builder: (_) =>
-      MessageBottomSheet(message: message, isOwnMessage: isOwnMessage),
+  builder: (_) => MessageBottomSheet(
+    message: message,
+    isOwnMessage: isOwnMessage,
+    canDelete: canDelete,
+  ),
 );
 
 class MessageBottomSheet extends StatelessWidget {
   final Message message;
   final bool isOwnMessage;
+  final bool canDelete;
 
   const MessageBottomSheet({
     required this.message,
     required this.isOwnMessage,
+    required this.canDelete,
     super.key,
   });
 
@@ -115,7 +121,7 @@ class MessageBottomSheet extends StatelessWidget {
             label: 'Mark as Unread',
             onTap: () => Navigator.pop(context, MessageAction.markAsUnread),
           ),
-          if (isOwnMessage)
+          if (canDelete)
             _ActionRow(
               icon: PhosphorIconsRegular.trash,
               label: l10n.chatMessageDelete,

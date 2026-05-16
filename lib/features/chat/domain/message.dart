@@ -623,7 +623,7 @@ class Message {
     final isMentioned =
         sdk.mentionEveryone ||
         (currentUserId != null &&
-            (sdk.mentions?.any((u) => u.id == currentUserId) ?? false));
+            (sdk.mentions.any((u) => u.id == currentUserId)));
 
     return Message(
       id: sdk.id,
@@ -663,7 +663,7 @@ class Message {
     final isMentioned =
         sdk.mentionEveryone ||
         (currentUserId != null &&
-            (sdk.mentions?.any((u) => u.id == currentUserId) ?? false));
+            (sdk.mentions.any((u) => u.id == currentUserId)));
 
     return Message(
       id: sdk.id,
@@ -702,7 +702,7 @@ class Message {
     final isMentioned =
         sdk.mentionEveryone ||
         (currentUserId != null &&
-            (sdk.mentions?.any((u) => u.id == currentUserId) ?? false));
+            (sdk.mentions.any((u) => u.id == currentUserId)));
 
     return Message(
       id: sdk.id,

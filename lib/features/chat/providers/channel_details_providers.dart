@@ -74,31 +74,63 @@ class ChannelPins extends _$ChannelPins {
   }
 
   void _onRealtimeEvent(MessageRealtimeEvent event) {
-    if (event is! MessageUpdated || event.event.message.channelId != channelId) {
-      return;
-    }
     final current = state.asData?.value;
     if (current == null) {
       return;
     }
-    final String messageId = event.event.message.id;
-    final int idx = current.items.indexWhere(
-      (entry) => entry.message.id == messageId,
-    );
-    if (idx == -1) {
+    switch (event) {
+      case MessageUpdated(:final event):
+        if (event.message.channelId != channelId) {
+          return;
+        }
+        final String messageId = event.message.id;
+        final int idx = current.items.indexWhere(
+          (entry) => entry.message.id == messageId,
+        );
+        if (idx == -1) {
+          return;
+        }
+        final Message merged = current.items[idx].message.applyGatewayUpdate(
+          event.message,
+          currentUserId: ref.read(currentUserIdProvider),
+        );
+        final List<PinnedMessageEntry> items = List<PinnedMessageEntry>.from(
+          current.items,
+        );
+        items[idx] = PinnedMessageEntry(
+          message: merged,
+          pinnedAt: current.items[idx].pinnedAt,
+        );
+        state = AsyncData(current.copyWith(items: items));
+      case MessageDeleted(:final event):
+        if (event.channelId != channelId) {
+          return;
+        }
+        _removePinnedMessages(current, {event.messageId});
+      case MessagesDeletedBulk(:final event):
+        if (event.channelId != channelId) {
+          return;
+        }
+        _removePinnedMessages(current, event.ids.toSet());
+      case MessageCreated():
+      case MessageReactionsChanged():
+        return;
+    }
+  }
+
+  void _removePinnedMessages(
+    ChannelPinsState current,
+    Set<String> messageIds,
+  ) {
+    if (messageIds.isEmpty) {
       return;
     }
-    final Message merged = current.items[idx].message.applyGatewayUpdate(
-      event.event.message,
-      currentUserId: ref.read(currentUserIdProvider),
-    );
-    final List<PinnedMessageEntry> items = List<PinnedMessageEntry>.from(
-      current.items,
-    );
-    items[idx] = PinnedMessageEntry(
-      message: merged,
-      pinnedAt: current.items[idx].pinnedAt,
-    );
+    final List<PinnedMessageEntry> items = current.items
+        .where((entry) => !messageIds.contains(entry.message.id))
+        .toList();
+    if (items.length == current.items.length) {
+      return;
+    }
     state = AsyncData(current.copyWith(items: items));
   }
 

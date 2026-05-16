@@ -409,4 +409,21 @@ class MessageRepository {
       throw Exception(e.response?.statusMessage ?? 'Failed to edit message');
     }
   }
+
+  Future<void> deleteMessage({
+    required String channelId,
+    required String messageId,
+  }) async {
+    try {
+      await _client.channels.deleteMessage2(
+        channelId: channelId,
+        messageId: messageId,
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return;
+      }
+      throw Exception(e.response?.statusMessage ?? 'Failed to delete message');
+    }
+  }
 }

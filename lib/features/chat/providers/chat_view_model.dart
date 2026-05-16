@@ -130,6 +130,7 @@ class ChatViewModel extends _$ChatViewModel {
   bool _readViewportNearBottom = true;
   int _nonceTimestampMs = 0;
   int _nonceSequence = 0;
+  final Map<String, Future<void>> _pendingDeleteFutures = <String, Future<void>>{};
 
   @override
   ChatViewState build() {
@@ -165,13 +166,24 @@ class ChatViewModel extends _$ChatViewModel {
 
   Future<void> _onRealtimeEvent(MessageRealtimeEvent ev) async {
     final next = await _nextMessagesFor(ev);
+    final Set<String> deletedIds = _deletedMessageIdsFor(ev);
     final bool clearEditing = ev is MessageUpdated &&
         state.editingMessage?.id == ev.event.message.id;
+    final bool clearComposerForDelete = deletedIds.isNotEmpty &&
+        ((state.replyingTo != null && deletedIds.contains(state.replyingTo!.id)) ||
+            (state.editingMessage != null &&
+                deletedIds.contains(state.editingMessage!.id)) ||
+            (state.forwardingFrom != null &&
+                deletedIds.contains(state.forwardingFrom!.id)));
     if (next != null) {
       state = state.copyWith(
         messages: next,
-        editingMessage: clearEditing ? null : state.editingMessage,
-        messageText: clearEditing ? '' : state.messageText,
+        editingMessage: clearEditing || clearComposerForDelete
+            ? null
+            : state.editingMessage,
+        messageText: clearEditing || clearComposerForDelete ? '' : state.messageText,
+        replyingTo: clearComposerForDelete ? null : state.replyingTo,
+        forwardingFrom: clearComposerForDelete ? null : state.forwardingFrom,
       );
       if (ev is MessageCreated) {
         if (ev.event.message.author.id == ref.read(currentUserIdProvider)) {
@@ -179,9 +191,22 @@ class ChatViewModel extends _$ChatViewModel {
         }
         unawaited(ackCurrentChannel());
       }
-    } else if (clearEditing) {
-      state = state.copyWith(editingMessage: null, messageText: '');
+    } else if (clearEditing || clearComposerForDelete) {
+      state = state.copyWith(
+        editingMessage: null,
+        messageText: '',
+        replyingTo: clearComposerForDelete ? null : state.replyingTo,
+        forwardingFrom: clearComposerForDelete ? null : state.forwardingFrom,
+      );
     }
+  }
+
+  Set<String> _deletedMessageIdsFor(MessageRealtimeEvent ev) {
+    return switch (ev) {
+      MessageDeleted(:final event) => {event.messageId},
+      MessagesDeletedBulk(:final event) => event.ids.toSet(),
+      _ => const {},
+    };
   }
 
   Future<List<Message>?> _nextMessagesFor(MessageRealtimeEvent ev) async {
@@ -1107,6 +1132,31 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     state = state.copyWith(messages: next);
+  }
+
+  Future<void> deleteMessage(String messageId) async {
+    if (state.channelId.isEmpty) {
+      return;
+    }
+    final pending = _pendingDeleteFutures[messageId];
+    if (pending != null) {
+      return pending;
+    }
+    final Future<void> deleteFuture = () async {
+      try {
+        await ref.read(messageRepositoryProvider).deleteMessage(
+          channelId: state.channelId,
+          messageId: messageId,
+        );
+      } on Exception catch (e) {
+        debugPrint('[ChatViewModel] Failed to delete message: $e');
+        state = state.copyWith(errorMessage: 'Failed to delete message');
+      } finally {
+        _pendingDeleteFutures.remove(messageId);
+      }
+    }();
+    _pendingDeleteFutures[messageId] = deleteFuture;
+    return deleteFuture;
   }
 
   void startReply(Message message) {
