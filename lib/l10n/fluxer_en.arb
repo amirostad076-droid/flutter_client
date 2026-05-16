@@ -4078,5 +4078,53 @@
   "composerAutocompleteRoleMentionDescription": "Notify users with this role who have permission to view this channel.",
   "@composerAutocompleteRoleMentionDescription": {
     "description": "Secondary line in the @ mention autocomplete when the row is a mentionable guild role."
+  },
+  "addGuildModalTitle": "Add a community",
+  "@addGuildModalTitle": {
+    "description": "Landing-view title of the add community modal."
+  },
+  "addGuildModalLandingDescription": "Create a new community or join an existing one.",
+  "@addGuildModalLandingDescription": {
+    "description": "Intro text on the add community modal landing view."
+  },
+  "addGuildCreateCommunity": "Create community",
+  "@addGuildCreateCommunity": {
+    "description": "Action button label to create a new community."
+  },
+  "addGuildJoinCommunity": "Join community",
+  "@addGuildJoinCommunity": {
+    "description": "Action button label to join a community via invite link."
+  },
+  "addGuildImportDiscordTemplate": "Import Discord template",
+  "@addGuildImportDiscordTemplate": {
+    "description": "Action button label to import a Discord community template."
+  },
+  "addGuildJoinTitle": "Join a community",
+  "@addGuildJoinTitle": {
+    "description": "Title of the join-by-invite sub-view in the add community modal."
+  },
+  "addGuildJoinDescription": "Enter the invite link to join a community.",
+  "@addGuildJoinDescription": {
+    "description": "Body text on the join-by-invite sub-view."
+  },
+  "addGuildInviteLinkLabel": "Invite link",
+  "@addGuildInviteLinkLabel": {
+    "description": "Label for the invite link input on the join sub-view."
+  },
+  "addGuildJoinSubmit": "Join community",
+  "@addGuildJoinSubmit": {
+    "description": "Primary button label to submit the join-by-invite form."
+  },
+  "addGuildInviteInvalid": "This invite is invalid or has expired.",
+  "@addGuildInviteInvalid": {
+    "description": "Error when the entered invite code cannot be resolved."
+  },
+  "addGuildJoinFailed": "Could not join community. Please try again.",
+  "@addGuildJoinFailed": {
+    "description": "Generic error when joining a community via invite fails."
+  },
+  "addGuildPackInstalled": "Pack installed successfully.",
+  "@addGuildPackInstalled": {
+    "description": "Toast shown after accepting an emoji or sticker pack invite."
   }
 }

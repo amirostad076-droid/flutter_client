@@ -275,11 +275,27 @@ class FluxerBottomSheetHeader extends StatelessWidget {
     this.after,
   });
 
+  bool _leadingOccupiesSpace(Widget? widget) {
+    if (widget == null) {
+      return false;
+    }
+    if (widget is SizedBox) {
+      final double? width = widget.width;
+      final double? height = widget.height;
+      if (widget.child == null &&
+          (width == null || width == 0) &&
+          (height == null || height == 0)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final layout = context.layout;
-    final effectiveLeading = onBack != null
+    final Widget? effectiveLeading = onBack != null
         ? IconButton(
             onPressed: onBack,
             icon: PhosphorIcon(
@@ -288,8 +304,11 @@ class FluxerBottomSheetHeader extends StatelessWidget {
               color: colors.textPrimary,
             ),
           )
-        : leading;
-    final alignStart = effectiveLeading != null;
+        : _leadingOccupiesSpace(leading)
+        ? leading
+        : null;
+
+    final bool alignStart = effectiveLeading != null || trailing != null;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: layout.s4),

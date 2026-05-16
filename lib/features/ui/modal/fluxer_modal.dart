@@ -99,7 +99,6 @@ class FluxerModal {
                   child: FluxerBottomSheetHeader(
                     title: title,
                     subtitle: headerSubtitle,
-                    leading: onBack == null ? const SizedBox.shrink() : null,
                     onBack: onBack,
                     trailing: trailing ?? closeButton,
                   ),

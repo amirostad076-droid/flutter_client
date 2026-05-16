@@ -1,0 +1,49 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/api/dio_error_message.dart';
+
+void main() {
+  group('apiMessageFromDioException', () {
+    test('returns message from response map', () {
+      final DioException error = DioException(
+        requestOptions: RequestOptions(path: '/test'),
+        response: Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          data: <String, dynamic>{'message': 'Invite expired'},
+        ),
+      );
+      expect(apiMessageFromDioException(error), 'Invite expired');
+    });
+
+    test('returns null when message is missing', () {
+      final DioException error = DioException(
+        requestOptions: RequestOptions(path: '/test'),
+        response: Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          data: <String, dynamic>{},
+        ),
+      );
+      expect(apiMessageFromDioException(error), isNull);
+    });
+  });
+
+  group('dioExceptionMessage', () {
+    test('prefers API message over fallback', () {
+      final DioException error = DioException(
+        requestOptions: RequestOptions(path: '/test'),
+        response: Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          data: <String, dynamic>{'message': 'Rate limited'},
+        ),
+      );
+      expect(dioExceptionMessage(error, 'fallback'), 'Rate limited');
+    });
+
+    test('uses fallback when response has no message', () {
+      final DioException error = DioException(
+        requestOptions: RequestOptions(path: '/test'),
+      );
+      expect(dioExceptionMessage(error, 'fallback'), 'fallback');
+    });
+  });
+}

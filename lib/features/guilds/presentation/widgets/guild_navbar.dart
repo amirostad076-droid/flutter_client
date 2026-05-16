@@ -42,6 +42,7 @@ import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_drag_wrapper.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_menu_data.dart';
+import 'package:fluxer_app/features/guilds/presentation/modals/add_guild_modal.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_scroll_indicator.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
@@ -414,14 +415,14 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           },
         _SidebarDivider(color: context.colors.backgroundModifierHover),
         _DashedGuildIcon(
-          label: 'Add a Server',
-          icon: PhosphorIconsRegular.plus,
-          onTap: () {},
-        ),
-        _DashedGuildIcon(
           label: 'Explore Discoverable Servers',
           icon: PhosphorIconsRegular.compass,
           onTap: () {},
+        ),
+        _DashedGuildIcon(
+          label: 'Add a Server',
+          icon: PhosphorIconsRegular.plus,
+          onTap: () => unawaited(showAddGuildModal(context)),
         ),
         _DashedGuildIcon(
           label: 'Help',
@@ -2256,12 +2257,11 @@ class _GuildListItemState extends State<_GuildListItem>
                                     children: [
                                       CachedNetworkImage(
                                         imageUrl: widget.iconUrl!,
-                                        errorBuilder:
-                                            (context, url, error) =>
-                                                _buildBackupIcon(
-                                                  context,
-                                                  isActive: isActive,
-                                                ),
+                                        errorBuilder: (context, url, error) =>
+                                            _buildBackupIcon(
+                                              context,
+                                              isActive: isActive,
+                                            ),
                                         progressIndicatorBuilder:
                                             (context, url, progress) =>
                                                 _buildBackupIcon(
@@ -2277,9 +2277,8 @@ class _GuildListItemState extends State<_GuildListItem>
                                           fadeInDuration: const Duration(
                                             milliseconds: 200,
                                           ),
-                                          errorBuilder:
-                                              (context, url, error) =>
-                                                  const SizedBox.shrink(),
+                                          errorBuilder: (context, url, error) =>
+                                              const SizedBox.shrink(),
                                           progressIndicatorBuilder:
                                               (context, url, progress) =>
                                                   const SizedBox.shrink(),

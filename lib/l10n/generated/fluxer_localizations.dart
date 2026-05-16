@@ -5751,6 +5751,78 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Notify users with this role who have permission to view this channel.'**
   String get composerAutocompleteRoleMentionDescription;
+
+  /// Landing-view title of the add community modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a community'**
+  String get addGuildModalTitle;
+
+  /// Intro text on the add community modal landing view.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new community or join an existing one.'**
+  String get addGuildModalLandingDescription;
+
+  /// Action button label to create a new community.
+  ///
+  /// In en, this message translates to:
+  /// **'Create community'**
+  String get addGuildCreateCommunity;
+
+  /// Action button label to join a community via invite link.
+  ///
+  /// In en, this message translates to:
+  /// **'Join community'**
+  String get addGuildJoinCommunity;
+
+  /// Action button label to import a Discord community template.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Discord template'**
+  String get addGuildImportDiscordTemplate;
+
+  /// Title of the join-by-invite sub-view in the add community modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a community'**
+  String get addGuildJoinTitle;
+
+  /// Body text on the join-by-invite sub-view.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the invite link to join a community.'**
+  String get addGuildJoinDescription;
+
+  /// Label for the invite link input on the join sub-view.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite link'**
+  String get addGuildInviteLinkLabel;
+
+  /// Primary button label to submit the join-by-invite form.
+  ///
+  /// In en, this message translates to:
+  /// **'Join community'**
+  String get addGuildJoinSubmit;
+
+  /// Error when the entered invite code cannot be resolved.
+  ///
+  /// In en, this message translates to:
+  /// **'This invite is invalid or has expired.'**
+  String get addGuildInviteInvalid;
+
+  /// Generic error when joining a community via invite fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not join community. Please try again.'**
+  String get addGuildJoinFailed;
+
+  /// Toast shown after accepting an emoji or sticker pack invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack installed successfully.'**
+  String get addGuildPackInstalled;
 }
 
 class _FluxerLocalizationsDelegate

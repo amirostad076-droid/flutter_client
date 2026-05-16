@@ -3346,4 +3346,43 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   @override
   String get composerAutocompleteRoleMentionDescription =>
       'Notify users with this role who have permission to view this channel.';
+
+  @override
+  String get addGuildModalTitle => 'Add a community';
+
+  @override
+  String get addGuildModalLandingDescription =>
+      'Create a new community or join an existing one.';
+
+  @override
+  String get addGuildCreateCommunity => 'Create community';
+
+  @override
+  String get addGuildJoinCommunity => 'Join community';
+
+  @override
+  String get addGuildImportDiscordTemplate => 'Import Discord template';
+
+  @override
+  String get addGuildJoinTitle => 'Join a community';
+
+  @override
+  String get addGuildJoinDescription =>
+      'Enter the invite link to join a community.';
+
+  @override
+  String get addGuildInviteLinkLabel => 'Invite link';
+
+  @override
+  String get addGuildJoinSubmit => 'Join community';
+
+  @override
+  String get addGuildInviteInvalid => 'This invite is invalid or has expired.';
+
+  @override
+  String get addGuildJoinFailed =>
+      'Could not join community. Please try again.';
+
+  @override
+  String get addGuildPackInstalled => 'Pack installed successfully.';
 }
