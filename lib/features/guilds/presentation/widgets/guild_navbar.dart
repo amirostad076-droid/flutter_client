@@ -67,6 +67,18 @@ String _guildTapPath(BuildContext context, String guildId) {
   return isMobileLayout(context) ? '$path?view=list' : path;
 }
 
+typedef _ScrollIndicatorView = ({
+  bool show,
+  ScrollIndicatorSeverity severity,
+  String? targetId,
+});
+
+const _ScrollIndicatorView _hiddenIndicator = (
+  show: false,
+  severity: ScrollIndicatorSeverity.unread,
+  targetId: null,
+);
+
 class GuildNavbar extends ConsumerStatefulWidget {
   const GuildNavbar({super.key});
 
@@ -77,12 +89,12 @@ class GuildNavbar extends ConsumerStatefulWidget {
 class _GuildNavbarState extends ConsumerState<GuildNavbar> {
   final _scrollController = ScrollController();
   final _itemKeys = <String, GlobalKey>{};
-  bool _showTopIndicator = false;
-  bool _showBottomIndicator = false;
-  ScrollIndicatorSeverity _topSeverity = ScrollIndicatorSeverity.unread;
-  ScrollIndicatorSeverity _bottomSeverity = ScrollIndicatorSeverity.unread;
-  String? _topTargetId;
-  String? _bottomTargetId;
+  final ValueNotifier<_ScrollIndicatorView> _topIndicator = ValueNotifier(
+    _hiddenIndicator,
+  );
+  final ValueNotifier<_ScrollIndicatorView> _bottomIndicator = ValueNotifier(
+    _hiddenIndicator,
+  );
   bool _scrollIndicatorUpdateScheduled = false;
 
   @override
@@ -96,6 +108,8 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     _scrollController
       ..removeListener(_scheduleScrollIndicatorUpdate)
       ..dispose();
+    _topIndicator.dispose();
+    _bottomIndicator.dispose();
     super.dispose();
   }
 
@@ -186,21 +200,16 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       }
     }
 
-    if (showTop != _showTopIndicator ||
-        showBottom != _showBottomIndicator ||
-        topSeverity != _topSeverity ||
-        bottomSeverity != _bottomSeverity ||
-        topTarget != _topTargetId ||
-        bottomTarget != _bottomTargetId) {
-      setState(() {
-        _showTopIndicator = showTop;
-        _showBottomIndicator = showBottom;
-        _topSeverity = topSeverity;
-        _bottomSeverity = bottomSeverity;
-        _topTargetId = topTarget;
-        _bottomTargetId = bottomTarget;
-      });
-    }
+    _topIndicator.value = (
+      show: showTop,
+      severity: topSeverity,
+      targetId: topTarget,
+    );
+    _bottomIndicator.value = (
+      show: showBottom,
+      severity: bottomSeverity,
+      targetId: bottomTarget,
+    );
   }
 
   ScrollIndicatorSeverity? _getItemSeverity(String guildId) {
@@ -438,18 +447,21 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
               left: 0,
               right: 0,
               child: Center(
-                child: IgnorePointer(
-                  ignoring: !_showTopIndicator,
-                  child: AnimatedSlide(
-                    offset: Offset(0, _showTopIndicator ? 0 : -1),
-                    duration: const Duration(milliseconds: 150),
-                    curve: Curves.easeOut,
-                    child: AnimatedOpacity(
-                      opacity: _showTopIndicator ? 1.0 : 0.0,
+                child: ValueListenableBuilder<_ScrollIndicatorView>(
+                  valueListenable: _topIndicator,
+                  builder: (context, view, _) => IgnorePointer(
+                    ignoring: !view.show,
+                    child: AnimatedSlide(
+                      offset: Offset(0, view.show ? 0 : -1),
                       duration: const Duration(milliseconds: 150),
-                      child: GuildScrollIndicator(
-                        severity: _topSeverity,
-                        onTap: () => _scrollToItem(_topTargetId),
+                      curve: Curves.easeOut,
+                      child: AnimatedOpacity(
+                        opacity: view.show ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 150),
+                        child: GuildScrollIndicator(
+                          severity: view.severity,
+                          onTap: () => _scrollToItem(view.targetId),
+                        ),
                       ),
                     ),
                   ),
@@ -461,18 +473,21 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
               left: 0,
               right: 0,
               child: Center(
-                child: IgnorePointer(
-                  ignoring: !_showBottomIndicator,
-                  child: AnimatedSlide(
-                    offset: Offset(0, _showBottomIndicator ? 0 : 1),
-                    duration: const Duration(milliseconds: 150),
-                    curve: Curves.easeOut,
-                    child: AnimatedOpacity(
-                      opacity: _showBottomIndicator ? 1.0 : 0.0,
+                child: ValueListenableBuilder<_ScrollIndicatorView>(
+                  valueListenable: _bottomIndicator,
+                  builder: (context, view, _) => IgnorePointer(
+                    ignoring: !view.show,
+                    child: AnimatedSlide(
+                      offset: Offset(0, view.show ? 0 : 1),
                       duration: const Duration(milliseconds: 150),
-                      child: GuildScrollIndicator(
-                        severity: _bottomSeverity,
-                        onTap: () => _scrollToItem(_bottomTargetId),
+                      curve: Curves.easeOut,
+                      child: AnimatedOpacity(
+                        opacity: view.show ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 150),
+                        child: GuildScrollIndicator(
+                          severity: view.severity,
+                          onTap: () => _scrollToItem(view.targetId),
+                        ),
                       ),
                     ),
                   ),
