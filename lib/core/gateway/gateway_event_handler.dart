@@ -1324,69 +1324,66 @@ class GatewayEventHandler {
   }
 
   void _handleGuildCreate(GuildCreateEvent event) {
-    unawaited(database.guildDao.upsertServer(guildFromSdk(event.guild.guild)));
-
-    for (final channel in event.guild.channels) {
-      final guildId = channel.guildId;
-      if (guildId != null) {
-        unawaited(
-          database.channelDao.upsertChannel(channelFromSdk(channel, guildId)),
-        );
-      }
-    }
-
-    if (event.guild.roles.isNotEmpty) {
-      unawaited(
-        database.roleDao.upsertRoles(
-          event.guild.roles
-              .map((r) => roleFromSdk(r, event.guild.guild.id))
-              .toList(),
-        ),
-      );
-    }
-
-    for (final member in event.guild.members) {
-      _handleMemberUpsert(event.guild.guild.id, member);
-    }
-
     final guildId = event.guild.guild.id;
-    if (event.guild.emojis.isNotEmpty) {
-      unawaited(
-        database.guildEmojiDao.replaceForGuild(
-          guildId,
-          event.guild.emojis
-              .map(
-                (e) => db.GuildEmojisCompanion.insert(
-                  id: e.id,
-                  guildId: guildId,
-                  name: e.name,
-                  animated: Value(e.animated),
-                ),
-              )
-              .toList(),
-        ),
-      );
-    }
 
-    if (event.guild.stickers.isNotEmpty) {
-      unawaited(
-        database.guildStickerDao.replaceForGuild(
-          guildId,
-          event.guild.stickers
-              .map(
-                (s) => db.GuildStickersCompanion.insert(
-                  id: s.id,
-                  guildId: guildId,
-                  name: s.name,
-                  description: Value(s.description),
-                  tagsJson: Value(jsonEncode(s.tags)),
-                  animated: Value(s.animated),
-                ),
-              )
-              .toList(),
-        ),
-      );
-    }
+    unawaited(
+      database.transaction(() async {
+        await database.guildDao.upsertServer(guildFromSdk(event.guild.guild));
+
+        for (final channel in event.guild.channels) {
+          final channelGuildId = channel.guildId;
+          if (channelGuildId != null) {
+            await database.channelDao.upsertChannel(
+              channelFromSdk(channel, channelGuildId),
+            );
+          }
+        }
+
+        if (event.guild.roles.isNotEmpty) {
+          await database.roleDao.upsertRoles(
+            event.guild.roles.map((r) => roleFromSdk(r, guildId)).toList(),
+          );
+        }
+
+        for (final member in event.guild.members) {
+          _handleMemberUpsert(guildId, member);
+        }
+
+        if (event.guild.emojis.isNotEmpty) {
+          await database.guildEmojiDao.replaceForGuild(
+            guildId,
+            event.guild.emojis
+                .map(
+                  (e) => db.GuildEmojisCompanion.insert(
+                    id: e.id,
+                    guildId: guildId,
+                    name: e.name,
+                    animated: Value(e.animated),
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        if (event.guild.stickers.isNotEmpty) {
+          await database.guildStickerDao.replaceForGuild(
+            guildId,
+            event.guild.stickers
+                .map(
+                  (s) => db.GuildStickersCompanion.insert(
+                    id: s.id,
+                    guildId: guildId,
+                    name: s.name,
+                    description: Value(s.description),
+                    tagsJson: Value(jsonEncode(s.tags)),
+                    animated: Value(s.animated),
+                  ),
+                )
+                .toList(),
+          );
+        }
+      }),
+    );
 
     if (event.guild.voiceStates.isNotEmpty) {
       onVoiceStatesBulk?.call(event.guild.voiceStates);
