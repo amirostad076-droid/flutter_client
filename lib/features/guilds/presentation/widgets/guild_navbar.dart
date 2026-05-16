@@ -298,7 +298,6 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
 
     _scheduleScrollIndicatorUpdate();
 
-    final isMobile = isMobileLayout(context);
     final topPadding = max<double>(MediaQuery.of(context).padding.top, 4);
     final guildListView = ListView(
       controller: _scrollController,
@@ -433,10 +432,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
         child: Stack(
           children: [
-            if (isMobile)
-              Scrollbar(controller: _scrollController, child: guildListView)
-            else
-              guildListView,
+            guildListView,
             Positioned(
               top: 8 + topPadding,
               left: 0,
