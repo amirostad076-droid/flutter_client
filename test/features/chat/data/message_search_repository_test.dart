@@ -69,6 +69,9 @@ void main() {
           timestamp: DateTime.utc(2026, 5, 9, 12),
           pinned: true,
           mentionEveryone: false,
+          tts: false,
+          mentions: const [],
+          mentionRoles: const [],
         ),
         currentUserId: 'current-user',
       );
@@ -94,6 +97,9 @@ void main() {
           timestamp: DateTime.utc(2026, 5, 9, 13),
           pinned: false,
           mentionEveryone: false,
+          tts: false,
+          mentions: const [],
+          mentionRoles: const [],
         ),
         currentUserId: 'current-user',
       );

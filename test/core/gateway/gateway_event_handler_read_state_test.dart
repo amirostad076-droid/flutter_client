@@ -68,6 +68,7 @@ UserPrivateResponse _privateUser(String id) => UserPrivateResponse(
   premiumEnabledOverride: false,
   passwordLastChangedAt: null,
   premiumBadgeHidden: false,
+  premiumPerksDisabled: false,
 );
 
 MessagesCompanion _cachedMessage({
@@ -89,7 +90,7 @@ MessageResponseSchema _message({
   required String channelId,
   required String authorId,
   bool mentionEveryone = false,
-  List<String>? mentionRoles,
+  List<String> mentionRoles = const [],
 }) => MessageResponseSchema(
   id: id,
   channelId: channelId,
@@ -100,6 +101,8 @@ MessageResponseSchema _message({
   timestamp: dateTimeFromUserSnowflakeOrNull(id)!,
   pinned: false,
   mentionEveryone: mentionEveryone,
+  tts: false,
+  mentions: const [],
   mentionRoles: mentionRoles,
 );
 

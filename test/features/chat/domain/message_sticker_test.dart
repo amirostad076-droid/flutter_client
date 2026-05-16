@@ -44,6 +44,9 @@ void main() {
         timestamp: DateTime.utc(2026),
         pinned: false,
         mentionEveryone: false,
+        tts: false,
+        mentions: const [],
+        mentionRoles: const [],
         stickers: const [
           sdk.MessageStickerResponse(
             id: 'sticker-1',
