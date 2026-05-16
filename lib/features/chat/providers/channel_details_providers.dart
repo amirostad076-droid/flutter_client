@@ -5,6 +5,9 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/chat/data/channel_pins_repository.dart';
 import 'package:fluxer_app/features/chat/data/message_search_repository.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
+import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'channel_details_providers.g.dart';
@@ -56,12 +59,47 @@ class ChannelPinsState {
 
 @riverpod
 class ChannelPins extends _$ChannelPins {
+  StreamSubscription<MessageRealtimeEvent>? _realtimeSub;
+
   @override
   Future<ChannelPinsState> build(String channelId) async {
+    final bus = ref.watch(messageRealtimeBusProvider);
+    unawaited(_realtimeSub?.cancel());
+    _realtimeSub = bus.stream.listen(_onRealtimeEvent);
+    ref.onDispose(() => unawaited(_realtimeSub?.cancel()));
     final page = await ref
         .read(channelPinsRepositoryProvider)
         .listPinnedMessages(channelId: channelId);
     return ChannelPinsState(items: page.items, hasMore: page.hasMore);
+  }
+
+  void _onRealtimeEvent(MessageRealtimeEvent event) {
+    if (event is! MessageUpdated || event.event.message.channelId != channelId) {
+      return;
+    }
+    final current = state.asData?.value;
+    if (current == null) {
+      return;
+    }
+    final String messageId = event.event.message.id;
+    final int idx = current.items.indexWhere(
+      (entry) => entry.message.id == messageId,
+    );
+    if (idx == -1) {
+      return;
+    }
+    final Message merged = current.items[idx].message.applyGatewayUpdate(
+      event.event.message,
+      currentUserId: ref.read(currentUserIdProvider),
+    );
+    final List<PinnedMessageEntry> items = List<PinnedMessageEntry>.from(
+      current.items,
+    );
+    items[idx] = PinnedMessageEntry(
+      message: merged,
+      pinnedAt: current.items[idx].pinnedAt,
+    );
+    state = AsyncData(current.copyWith(items: items));
   }
 
   Future<void> loadMore() async {

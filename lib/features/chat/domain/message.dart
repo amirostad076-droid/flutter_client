@@ -868,6 +868,38 @@ class Message {
     );
   }
 
+  /// Merges a gateway [MESSAGE_UPDATE] payload into this message.
+  Message applyGatewayUpdate(
+    MessageResponseSchema sdk, {
+    String? currentUserId,
+  }) {
+    final Message incoming = Message.fromSdk(sdk, currentUserId: currentUserId);
+    return copyWith(
+      authorId: incoming.authorId,
+      authorName: incoming.authorName,
+      authorAvatar: incoming.authorAvatar,
+      authorAvatarColor: incoming.authorAvatarColor,
+      authorIsBot: incoming.authorIsBot,
+      content: incoming.content,
+      editedTimestamp: incoming.editedTimestamp ?? editedTimestamp,
+      embeds: incoming.embeds.isNotEmpty ? incoming.embeds : embeds,
+      attachments: incoming.attachments.isNotEmpty
+          ? incoming.attachments
+          : attachments,
+      stickers: incoming.stickers.isNotEmpty ? incoming.stickers : stickers,
+      reactions: incoming.reactions.isNotEmpty ? incoming.reactions : reactions,
+      replyToId: incoming.replyToId ?? replyToId,
+      messageReference: incoming.messageReference ?? messageReference,
+      messageSnapshots: incoming.messageSnapshots.isNotEmpty
+          ? incoming.messageSnapshots
+          : messageSnapshots,
+      isPinned: incoming.isPinned,
+      isMentioned: incoming.isMentioned,
+      type: incoming.type,
+      flags: incoming.flags,
+    );
+  }
+
   String? get authorAvatarUrl {
     if (authorAvatar == null) {
       return null;

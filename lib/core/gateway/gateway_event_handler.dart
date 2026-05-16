@@ -113,7 +113,7 @@ class GatewayEventHandler {
         await _handleMessageCreate(event);
       case MessageUpdateEvent():
         talker.debug('[Gateway] MESSAGE_UPDATE: ${event.message.id}');
-        _handleMessageUpdate(event);
+        await _handleMessageUpdate(event);
       case MessageDeleteEvent():
         talker.debug('[Gateway] MESSAGE_DELETE: ${event.messageId}');
         await _handleMessageDelete(event);
@@ -347,7 +347,13 @@ class GatewayEventHandler {
       case GatewayErrorEvent():
         talker.warning('[Gateway] Error: [${event.code}] ${event.message}');
       case UnknownGatewayEvent():
-        talker.debug('[Gateway] Unknown event: ${event.eventType}');
+        if (event.eventType == 'MESSAGE_UPDATE') {
+          talker.warning(
+            '[Gateway] Failed to parse MESSAGE_UPDATE: ${event.data}',
+          );
+        } else {
+          talker.debug('[Gateway] Unknown event: ${event.eventType}');
+        }
     }
   }
 
@@ -1066,9 +1072,20 @@ class GatewayEventHandler {
     return roleIds.any(memberRoleIds.contains);
   }
 
-  void _handleMessageUpdate(MessageUpdateEvent event) {
+  Future<void> _handleMessageUpdate(MessageUpdateEvent event) async {
     final msg = Message.fromSdk(event.message, currentUserId: currentUserId);
-    unawaited(database.messageDao.upsertMessage(msg.toCompanion()));
+    await database.userDao.upsertUser(userFromPartialSdk(event.message.author));
+    await database.messageDao.upsertMessage(msg.toCompanion());
+    final dm = await database.dmChannelDao.getDmChannelById(msg.channelId);
+    if (dm != null && dm.lastMessageId == msg.id) {
+      await database.dmChannelDao.updateLastMessage(
+        msg.channelId,
+        msg.id,
+        msg.content,
+        msg.authorId,
+        msg.timestamp,
+      );
+    }
     onMessageUpdate?.call(event);
   }
 

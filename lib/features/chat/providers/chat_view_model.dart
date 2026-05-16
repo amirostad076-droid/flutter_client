@@ -165,14 +165,22 @@ class ChatViewModel extends _$ChatViewModel {
 
   Future<void> _onRealtimeEvent(MessageRealtimeEvent ev) async {
     final next = await _nextMessagesFor(ev);
+    final bool clearEditing = ev is MessageUpdated &&
+        state.editingMessage?.id == ev.event.message.id;
     if (next != null) {
-      state = state.copyWith(messages: next);
+      state = state.copyWith(
+        messages: next,
+        editingMessage: clearEditing ? null : state.editingMessage,
+        messageText: clearEditing ? '' : state.messageText,
+      );
       if (ev is MessageCreated) {
         if (ev.event.message.author.id == ref.read(currentUserIdProvider)) {
           clearStickyUnread();
         }
         unawaited(ackCurrentChannel());
       }
+    } else if (clearEditing) {
+      state = state.copyWith(editingMessage: null, messageText: '');
     }
   }
 
@@ -208,7 +216,27 @@ class ChatViewModel extends _$ChatViewModel {
         if (event.message.channelId != state.channelId) {
           return null;
         }
-        return _replaceById(state.messages, _toDomain(event.message));
+        final String messageId = event.message.id;
+        final int idx = state.messages.indexWhere((m) => m.id == messageId);
+        final String? currentUserId = ref.read(currentUserIdProvider);
+        if (idx != -1) {
+          final Message merged = state.messages[idx].applyGatewayUpdate(
+            event.message,
+            currentUserId: currentUserId,
+          );
+          return _replaceById(state.messages, merged);
+        }
+        if (!_isMessageInLoadedWindow(messageId)) {
+          return null;
+        }
+        final row = await ref
+            .read(fluxerDatabaseProvider)
+            .messageDao
+            .getMessage(messageId);
+        if (row == null) {
+          return null;
+        }
+        return _replaceById(state.messages, Message.fromRow(row));
       case MessageDeleted(:final event):
         if (event.channelId != state.channelId) {
           return null;
@@ -236,6 +264,16 @@ class ChatViewModel extends _$ChatViewModel {
 
   Message _toDomain(MessageResponseSchema schema) =>
       Message.fromSdk(schema, currentUserId: ref.read(currentUserIdProvider));
+
+  bool _isMessageInLoadedWindow(String messageId) {
+    if (state.messages.isEmpty) {
+      return false;
+    }
+    final String oldestId = state.messages.first.id;
+    final String newestId = state.messages.last.id;
+    return compareSnowflakeIds(messageId, oldestId) >= 0 &&
+        compareSnowflakeIds(messageId, newestId) <= 0;
+  }
 
   List<Message>? _replaceById(List<Message> list, Message msg) {
     final idx = list.indexWhere((m) => m.id == msg.id);
