@@ -43,7 +43,8 @@ bool memberMatchesMentionQuery(
     final String nick = (member.nickname ?? '').toLowerCase();
     final String un = member.username.toLowerCase();
     final String gn = (member.globalName ?? '').toLowerCase();
-    final bool matchesUsername = uq.isEmpty ||
+    final bool matchesUsername =
+        uq.isEmpty ||
         un.startsWith(uq) ||
         gn.startsWith(uq) ||
         nick.startsWith(uq);
@@ -60,9 +61,9 @@ bool memberMatchesMentionQuery(
   return haystack.contains(q);
 }
 
-int _memberSortKey(Member a, Member b) => memberDisplayLabel(a)
-    .toLowerCase()
-    .compareTo(memberDisplayLabel(b).toLowerCase());
+int _memberSortKey(Member a, Member b) => memberDisplayLabel(
+  a,
+).toLowerCase().compareTo(memberDisplayLabel(b).toLowerCase());
 
 List<Member> rankMembersForMentionQuery(
   List<Member> members,
@@ -73,11 +74,8 @@ List<Member> rankMembersForMentionQuery(
 }) {
   final List<Member> filtered = members
       .where(
-        (Member m) => memberMatchesMentionQuery(
-          m,
-          parsed,
-          discriminatorByUserId?[m.id],
-        ),
+        (Member m) =>
+            memberMatchesMentionQuery(m, parsed, discriminatorByUserId?[m.id]),
       )
       .toList();
   final Set<String> prefer = prioritizeMemberIds ?? const <String>{};
@@ -92,6 +90,7 @@ List<Member> rankMembersForMentionQuery(
       }
       return _memberSortKey(a, b);
     }
+
     filtered.sort(compare);
   }
   if (filtered.length <= limit) {

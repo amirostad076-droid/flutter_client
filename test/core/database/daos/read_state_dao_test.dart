@@ -29,24 +29,27 @@ void main() {
     },
   );
 
-  test('clearStickyUnread clears both stickyUnreadMessageId and manual', () async {
-    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-    addTearDown(db.close);
+  test(
+    'clearStickyUnread clears both stickyUnreadMessageId and manual',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
 
-    await db.readStateDao.upsertReadState(
-      const ReadStatesCompanion(
-        channelId: Value('channel-1'),
-        stickyUnreadMessageId: Value('msg-50'),
-        manual: Value(true),
-      ),
-    );
+      await db.readStateDao.upsertReadState(
+        const ReadStatesCompanion(
+          channelId: Value('channel-1'),
+          stickyUnreadMessageId: Value('msg-50'),
+          manual: Value(true),
+        ),
+      );
 
-    await db.readStateDao.clearStickyUnread('channel-1');
+      await db.readStateDao.clearStickyUnread('channel-1');
 
-    final state = await db.readStateDao.getReadState('channel-1');
-    expect(state?.stickyUnreadMessageId, null);
-    expect(state?.manual, isFalse);
-  });
+      final state = await db.readStateDao.getReadState('channel-1');
+      expect(state?.stickyUnreadMessageId, null);
+      expect(state?.manual, isFalse);
+    },
+  );
 
   test('incrementMentionCount preserves stickyUnreadMessageId', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());

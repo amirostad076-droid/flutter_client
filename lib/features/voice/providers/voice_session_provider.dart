@@ -778,9 +778,7 @@ class VoiceSession extends _$VoiceSession {
         await lp.setScreenShareEnabled(nextSelfStream);
       } on Object catch (e, st) {
         talker.error('[Voice] setScreenShareEnabled failed', e, st);
-        state = state.copyWith(
-          errorMessage: _classifyScreenShareException(e),
-        );
+        state = state.copyWith(errorMessage: _classifyScreenShareException(e));
         return;
       }
       talker.debug(
@@ -813,15 +811,14 @@ class VoiceSession extends _$VoiceSession {
   Future<bool> _requestScreenCapturePermission({
     required bool shouldEnableScreenShare,
   }) async {
-    final bool requiresCapturePermission = Platform.isAndroid || Platform.isMacOS;
+    final bool requiresCapturePermission =
+        Platform.isAndroid || Platform.isMacOS;
     if (!shouldEnableScreenShare || !requiresCapturePermission) {
       return true;
     }
     final bool hasCapturePermission = await Helper.requestCapturePermission();
     if (!hasCapturePermission) {
-      talker.warning(
-        '[Voice] Screen-share capture permission denied by user.',
-      );
+      talker.warning('[Voice] Screen-share capture permission denied by user.');
     }
     return hasCapturePermission;
   }

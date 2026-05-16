@@ -73,23 +73,26 @@ void main() {
       );
     });
 
-    test('text channel: member overwrite denies view but everyone does not', () {
-      expect(
-        isChannelEveryonePrivateForIcon(
-          type: ChannelType.text,
-          guildId: guildId,
-          permissionOverwritesJson: jsonEncode(<Map<String, Object>>[
-            <String, Object>{
-              'id': 'user-9',
-              'type': 1,
-              'allow': '0',
-              'deny': '1024',
-            },
-          ]),
-        ),
-        isFalse,
-      );
-    });
+    test(
+      'text channel: member overwrite denies view but everyone does not',
+      () {
+        expect(
+          isChannelEveryonePrivateForIcon(
+            type: ChannelType.text,
+            guildId: guildId,
+            permissionOverwritesJson: jsonEncode(<Map<String, Object>>[
+              <String, Object>{
+                'id': 'user-9',
+                'type': 1,
+                'allow': '0',
+                'deny': '1024',
+              },
+            ]),
+          ),
+          isFalse,
+        );
+      },
+    );
 
     test('link channel uses VIEW_CHANNEL deny on everyone', () {
       expect(

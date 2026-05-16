@@ -108,10 +108,7 @@ class MessageRepository {
       }
 
       if (messages.any((m) => m.isMentioned)) {
-        await ReadStateRepository(
-          _client,
-          _db,
-        ).recomputeMentionsAfterBackfill(
+        await ReadStateRepository(_client, _db).recomputeMentionsAfterBackfill(
           channelId: channelId,
           currentUserId: _currentUserId,
         );
@@ -256,10 +253,7 @@ class MessageRepository {
     }
 
     if (messages.any((m) => m.isMentioned)) {
-      await ReadStateRepository(
-        _client,
-        _db,
-      ).recomputeMentionsAfterBackfill(
+      await ReadStateRepository(_client, _db).recomputeMentionsAfterBackfill(
         channelId: channelId,
         currentUserId: _currentUserId,
       );

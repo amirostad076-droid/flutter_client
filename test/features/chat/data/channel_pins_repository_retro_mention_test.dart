@@ -118,11 +118,7 @@ void main() {
       );
       final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
         ..httpClientAdapter = _PinAdapter([
-          _pinJson(
-            id: pinId,
-            channelId: 'channel-1',
-            mentionEveryone: false,
-          ),
+          _pinJson(id: pinId, channelId: 'channel-1', mentionEveryone: false),
         ]);
       final repo = ChannelPinsRepository(FluxerClient(dio), db, 'me');
 

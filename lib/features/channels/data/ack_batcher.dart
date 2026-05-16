@@ -9,10 +9,7 @@ const Duration kAckRetryBaseDelay = Duration(seconds: 5);
 const Duration kAckRetryMaxDelay = Duration(seconds: 60);
 
 class _PendingAck {
-  _PendingAck({
-    required this.messageId,
-    required this.deadline,
-  });
+  _PendingAck({required this.messageId, required this.deadline});
 
   String messageId;
   DateTime deadline;
@@ -49,9 +46,7 @@ class AckBatcher {
       return;
     }
     final now = DateTime.now();
-    final deadline = (immediate || hadMentions)
-        ? now
-        : now.add(batchDelay);
+    final deadline = (immediate || hadMentions) ? now : now.add(batchDelay);
     final existing = _pending[channelId];
     if (existing == null) {
       _pending[channelId] = _PendingAck(
@@ -135,8 +130,8 @@ class AckBatcher {
 
   Future<void> _drainDueEntries({required bool force}) async {
     final now = DateTime.now();
-    final hasDue = force ||
-        _pending.values.any((e) => !e.deadline.isAfter(now));
+    final hasDue =
+        force || _pending.values.any((e) => !e.deadline.isAfter(now));
     if (!hasDue) {
       _rescheduleTimer();
       return;

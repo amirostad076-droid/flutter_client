@@ -152,9 +152,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
     final position = widget.scrollController.position;
     if (position.pixels >=
         position.maxScrollExtent - _kSheetLoadMoreThreshold) {
-      unawaited(
-        ref.read(channelPinsProvider(channelId).notifier).loadMore(),
-      );
+      unawaited(ref.read(channelPinsProvider(channelId).notifier).loadMore());
     }
   }
 
@@ -383,9 +381,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
     final selectedIndex = _selectedIndex.clamp(0, tabs.length - 1);
     if (widget.channel != null) {
       final String prefetchChannelId = widget.channel!.id;
-      ref.watch(
-        effectiveGuildChannelPermissionBitsProvider(prefetchChannelId),
-      );
+      ref.watch(effectiveGuildChannelPermissionBitsProvider(prefetchChannelId));
     }
 
     return Column(
@@ -429,13 +425,13 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
                     final bits = widget.channel == null
                         ? 0
                         : ref
-                                .read(
-                                  effectiveGuildChannelPermissionBitsProvider(
-                                    widget.channel!.id,
-                                  ),
-                                )
-                                .value ??
-                            0;
+                                  .read(
+                                    effectiveGuildChannelPermissionBitsProvider(
+                                      widget.channel!.id,
+                                    ),
+                                  )
+                                  .value ??
+                              0;
                     final developerMode = ref
                         .read(userSettingsViewModelProvider)
                         .developerMode;
@@ -445,7 +441,8 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
                         ref: ref,
                         channel: widget.channel,
                         dm: widget.dm,
-                        showFavorite: showFavorites &&
+                        showFavorite:
+                            showFavorites &&
                             targetChannelId != null &&
                             !(widget.dm?.isPersonalNotes ?? false),
                         isFavorite: isFavorite,
@@ -538,9 +535,7 @@ class _DetailsIdentityHeader extends ConsumerWidget {
     final int? effectivePermissionBits = channelEntity != null
         ? ref
               .watch(
-                effectiveGuildChannelPermissionBitsProvider(
-                  channelEntity.id,
-                ),
+                effectiveGuildChannelPermissionBitsProvider(channelEntity.id),
               )
               .value
         : null;
@@ -553,12 +548,12 @@ class _DetailsIdentityHeader extends ConsumerWidget {
       titlePrefix: switch (channelEntity) {
         null => null,
         final Channel c => ChannelIcon(
-            type: c.type,
-            channel: c,
-            effectivePermissionBits: effectivePermissionBits,
-            size: 16,
-            color: context.colors.textPrimary,
-          ),
+          type: c.type,
+          channel: c,
+          effectivePermissionBits: effectivePermissionBits,
+          size: 16,
+          color: context.colors.textPrimary,
+        ),
       },
       titleAdornments: [if (isBot) const FluxerBotBadge()],
       body: hasTopic
@@ -604,8 +599,7 @@ class _TopicCard extends StatelessWidget {
                 child: MessageMarkdown(
                   data: topic,
                   channelId: channelId,
-                  markdownContext:
-                      FluxerMarkdownContext.restrictedInlineReply,
+                  markdownContext: FluxerMarkdownContext.restrictedInlineReply,
                   baseStyle: context.textStyles.bodySmall.copyWith(
                     color: context.colors.textSecondary,
                   ),
@@ -737,10 +731,8 @@ class _MembersTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (dm != null) {
       final currentUserId = ref.watch(currentUserIdProvider);
-      final canShowNewGroupCta = !dm!.isGroup &&
-          !dm!.isPersonalNotes &&
-          !dm!.isBot &&
-          !dm!.isSystem;
+      final canShowNewGroupCta =
+          !dm!.isGroup && !dm!.isPersonalNotes && !dm!.isBot && !dm!.isSystem;
 
       return ListView(
         controller: scrollController,
@@ -843,7 +835,7 @@ class _PinsTab extends ConsumerWidget {
 
         final endStateDescription = guildId != null
             ? 'Members with the "Pin Messages" permission can pin messages '
-                'for everyone to see.'
+                  'for everyone to see.'
             : 'You can pin messages in this conversation for everyone to see.';
 
         return ListView.builder(
@@ -1179,9 +1171,8 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
                     onTap: _openHasSheet,
                     onRemove: hasContentFilter
                         ? () => _updateFilters(
-                              contentTypes:
-                                  const <MessageSearchContentFilter>{},
-                            )
+                            contentTypes: const <MessageSearchContentFilter>{},
+                          )
                         : null,
                   ),
                   _SearchFilterChip(
@@ -1289,16 +1280,18 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
       final ids = members.map((m) => m.userId).toList();
       final users = await database.userDao.getUsersByIds(ids);
       final memberByUserId = {for (final m in members) m.userId: m};
-      final pickers = <_PickerUser>[
-        for (final user in users)
-          _PickerUser.fromUserRow(
-            user,
-            nick: memberByUserId[user.id]?.nick,
-          ),
-      ]..sort(
-        (a, b) =>
-            a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()),
-      );
+      final pickers =
+          <_PickerUser>[
+            for (final user in users)
+              _PickerUser.fromUserRow(
+                user,
+                nick: memberByUserId[user.id]?.nick,
+              ),
+          ]..sort(
+            (a, b) => a.displayName.toLowerCase().compareTo(
+              b.displayName.toLowerCase(),
+            ),
+          );
       return pickers;
     }
 
@@ -1324,12 +1317,13 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
       }
     }
     final users = await database.userDao.getUsersByIds(ids.toList());
-    final pickers = <_PickerUser>[
-      for (final user in users) _PickerUser.fromUserRow(user),
-    ]..sort(
-      (a, b) =>
-          a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()),
-    );
+    final pickers =
+        <_PickerUser>[for (final user in users) _PickerUser.fromUserRow(user)]
+          ..sort(
+            (a, b) => a.displayName.toLowerCase().compareTo(
+              b.displayName.toLowerCase(),
+            ),
+          );
     return pickers;
   }
 
@@ -1339,16 +1333,16 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
     );
     final selected =
         await FluxerBottomSheet.showScrollable<Set<MessageSearchContentFilter>>(
-      context,
-      title: 'Filter by content',
-      initialChildSize: 0.85,
-      minChildSize: 0.5,
-      builder: (sheetContext, scrollController, close) => _HasFilterSheet(
-        initialSelected: state.query.contentTypes,
-        scrollController: scrollController,
-        onDone: (chosen) => Navigator.of(sheetContext).pop(chosen),
-      ),
-    );
+          context,
+          title: 'Filter by content',
+          initialChildSize: 0.85,
+          minChildSize: 0.5,
+          builder: (sheetContext, scrollController, close) => _HasFilterSheet(
+            initialSelected: state.query.contentTypes,
+            scrollController: scrollController,
+            onDone: (chosen) => Navigator.of(sheetContext).pop(chosen),
+          ),
+        );
     if (selected != null) {
       _updateFilters(contentTypes: selected);
     }
@@ -1571,18 +1565,17 @@ class _DmMemberGroups extends ConsumerWidget {
         final offlineRows = <Widget>[];
 
         Widget currentUserRow() => _SimpleMemberRow(
-              userId: userId,
-              name: currentUser?.globalName ?? currentUser?.username ?? 'You',
-              avatarUrl: currentUser?.avatar == null
-                  ? null
-                  : '$fluxerMediaCdn/avatars/$userId/${currentUser!.avatar}.png',
-              avatarColor: currentUser?.avatarColor,
-              status: currentUserStatus,
-              isBot: currentUser?.bot ?? false,
-              isCurrentUser: true,
-              onTap: () =>
-                  FluxerUserProfileSheet.show(context, userId: userId),
-            );
+          userId: userId,
+          name: currentUser?.globalName ?? currentUser?.username ?? 'You',
+          avatarUrl: currentUser?.avatar == null
+              ? null
+              : '$fluxerMediaCdn/avatars/$userId/${currentUser!.avatar}.png',
+          avatarColor: currentUser?.avatarColor,
+          status: currentUserStatus,
+          isBot: currentUser?.bot ?? false,
+          isCurrentUser: true,
+          onTap: () => FluxerUserProfileSheet.show(context, userId: userId),
+        );
 
         if (_isOnline(currentUserStatus)) {
           onlineRows.add(currentUserRow());
@@ -2010,11 +2003,7 @@ class _SearchOptionCard extends StatelessWidget {
               ),
               if (isSelected) ...[
                 const SizedBox(width: 12),
-                PhosphorIcon(
-                  PhosphorIconsBold.check,
-                  size: 20,
-                  color: accent,
-                ),
+                PhosphorIcon(PhosphorIconsBold.check, size: 20, color: accent),
               ],
             ],
           ),
@@ -2036,9 +2025,9 @@ class _PickerUser {
 
   factory _PickerUser.fromUserRow(db.User user, {String? nick}) {
     final display =
-        nick ?? user.globalName ?? (user.username.isNotEmpty
-            ? user.username
-            : user.id);
+        nick ??
+        user.globalName ??
+        (user.username.isNotEmpty ? user.username : user.id);
     return _PickerUser(
       id: user.id,
       username: user.username,
@@ -2279,11 +2268,7 @@ class _UserFilterRow extends StatelessWidget {
               ),
               if (isSelected) ...[
                 const SizedBox(width: 12),
-                PhosphorIcon(
-                  PhosphorIconsBold.check,
-                  size: 20,
-                  color: accent,
-                ),
+                PhosphorIcon(PhosphorIconsBold.check, size: 20, color: accent),
               ],
             ],
           ),
@@ -2484,9 +2469,9 @@ class _InlineRetry extends StatelessWidget {
 enum _PinnedMessageAction { jump, unpin, copyMessageId, copyMessageLink }
 
 void _stubComingSoon(BuildContext context, WidgetRef ref) {
-  ref.read(toastProvider.notifier).show(
-        const FluxerToast(message: 'Coming soon'),
-      );
+  ref
+      .read(toastProvider.notifier)
+      .show(const FluxerToast(message: 'Coming soon'));
 }
 
 Future<void> _showGuildMemberActionsSheet(
@@ -2533,7 +2518,9 @@ Future<void> _showGuildMemberActionsSheet(
                     unawaited(
                       Clipboard.setData(ClipboardData(text: member.id)),
                     );
-                    ref.read(toastProvider.notifier).show(
+                    ref
+                        .read(toastProvider.notifier)
+                        .show(
                           const FluxerToast(
                             message: 'Copied user ID',
                             variant: FluxerToastVariant.success,
@@ -2604,9 +2591,11 @@ Future<void> _showDetailsMoreSheet(
         unawaited(action());
       }
 
-      final canManageChannel = channel != null &&
+      final canManageChannel =
+          channel != null &&
           hasPermission(channelPermissionBits, Permission.manageChannels);
-      final canCreateInvite = channel != null &&
+      final canCreateInvite =
+          channel != null &&
           hasPermission(channelPermissionBits, Permission.createInstantInvite);
 
       final commonItems = <Widget>[
@@ -2671,11 +2660,7 @@ Future<void> _showDetailsMoreSheet(
             onTap: () {
               close();
               unawaited(
-                _showDebugChannelSheet(
-                  context,
-                  ref: ref,
-                  channelId: channelId,
-                ),
+                _showDebugChannelSheet(context, ref: ref, channelId: channelId),
               );
             },
           ),
@@ -2686,11 +2671,7 @@ Future<void> _showDetailsMoreSheet(
             onTap: () {
               close();
               unawaited(
-                _showDebugUserSheet(
-                  context,
-                  ref: ref,
-                  userId: dm.recipientId,
-                ),
+                _showDebugUserSheet(context, ref: ref, userId: dm.recipientId),
               );
             },
           ),
@@ -2797,11 +2778,10 @@ Future<void> _showDebugChannelSheet(
       context,
       title: FluxerLocalizations.of(context).dmDebugChannel,
       data: channel.toJson(),
-      onCopied: (message) => ref.read(toastProvider.notifier).show(
-            FluxerToast(
-              message: message,
-              variant: FluxerToastVariant.success,
-            ),
+      onCopied: (message) => ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(message: message, variant: FluxerToastVariant.success),
           ),
     );
   } on Exception catch (_) {
@@ -2824,11 +2804,10 @@ Future<void> _showDebugUserSheet(
       context,
       title: FluxerLocalizations.of(context).dmDebugUser,
       data: user.toJson(),
-      onCopied: (message) => ref.read(toastProvider.notifier).show(
-            FluxerToast(
-              message: message,
-              variant: FluxerToastVariant.success,
-            ),
+      onCopied: (message) => ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(message: message, variant: FluxerToastVariant.success),
           ),
     );
   } on Exception catch (_) {
@@ -3428,17 +3407,20 @@ String _scopeDescription(
   MessageSearchScopeFilter value, {
   required bool isGuildChannel,
 }) => switch (value) {
-  MessageSearchScopeFilter.current => isGuildChannel
-      ? 'Search only in the current Community'
-      : 'Search only in the current DM',
+  MessageSearchScopeFilter.current =>
+    isGuildChannel
+        ? 'Search only in the current Community'
+        : 'Search only in the current DM',
   MessageSearchScopeFilter.allGuilds =>
     "Across all Communities you're currently in",
-  MessageSearchScopeFilter.allDms => isGuildChannel
-      ? "Across all DMs you've ever been in only"
-      : "Across all DMs you've ever been in",
-  MessageSearchScopeFilter.openDms => isGuildChannel
-      ? 'Across all DMs you currently have open only'
-      : 'Across all DMs you currently have open',
+  MessageSearchScopeFilter.allDms =>
+    isGuildChannel
+        ? "Across all DMs you've ever been in only"
+        : "Across all DMs you've ever been in",
+  MessageSearchScopeFilter.openDms =>
+    isGuildChannel
+        ? 'Across all DMs you currently have open only'
+        : 'Across all DMs you currently have open',
   MessageSearchScopeFilter.all =>
     "Across all DMs you've ever been in + all Communities you're currently in",
   MessageSearchScopeFilter.openDmsAndAllGuilds =>
@@ -3469,8 +3451,7 @@ String _sortDescription(MessageSearchSortFilter value) => switch (value) {
 
 IconData _sortIcon(MessageSearchSortFilter value) => switch (value) {
   MessageSearchSortFilter.newest => PhosphorIconsRegular.clockClockwise,
-  MessageSearchSortFilter.oldest =>
-    PhosphorIconsRegular.clockCounterClockwise,
+  MessageSearchSortFilter.oldest => PhosphorIconsRegular.clockCounterClockwise,
   MessageSearchSortFilter.relevance => PhosphorIconsRegular.sparkle,
 };
 

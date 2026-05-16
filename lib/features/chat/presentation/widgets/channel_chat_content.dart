@@ -49,8 +49,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
 
   final ComposerAutocompletePanelHost _composerAutocompletePanelHost =
       ComposerAutocompletePanelHost(null);
-  final ScrollController _composerAutocompletePanelScroll =
-      ScrollController();
+  final ScrollController _composerAutocompletePanelScroll = ScrollController();
 
   @override
   void dispose() {
@@ -143,7 +142,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                                 : const SizedBox.expand(),
                           ),
                         ),
-                        
+
                         Positioned(
                           left: 8,
                           right: 8,

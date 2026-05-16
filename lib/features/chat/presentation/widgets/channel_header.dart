@@ -142,12 +142,7 @@ class ChannelHeader extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      _buildLeadingIcon(
-                        context,
-                        ref,
-                        channel: channel,
-                        dm: dm,
-                      ),
+                      _buildLeadingIcon(context, ref, channel: channel, dm: dm),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
@@ -267,12 +262,7 @@ class ChannelHeader extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildLeadingIcon(
-                      context,
-                      ref,
-                      channel: channel,
-                      dm: dm,
-                    ),
+                    _buildLeadingIcon(context, ref, channel: channel, dm: dm),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(

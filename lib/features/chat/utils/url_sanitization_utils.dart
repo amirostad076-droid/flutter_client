@@ -5,9 +5,7 @@ final RegExp _urlRegex = RegExp(
 
 final RegExp _trailingPunctRegex = RegExp(r'[.,;:!?]+$');
 
-final RegExp _codeSpanRegex = RegExp(
-  r'```[\s\S]*?```|``[^`]*``|`[^`\n]*`',
-);
+final RegExp _codeSpanRegex = RegExp(r'```[\s\S]*?```|``[^`]*``|`[^`\n]*`');
 
 final RegExp _youtubeHostRegex = RegExp(
   r'(?:^|\.)(?:youtube\.com|youtu\.be)$',

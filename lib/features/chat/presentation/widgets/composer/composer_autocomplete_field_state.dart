@@ -554,13 +554,13 @@ class ComposerAutocompleteChatFieldState
     if (widget.controller is ComposerMentionController &&
         trigger.kind == ComposerAutocompleteTriggerKind.mention) {
       (widget.controller as ComposerMentionController)
-        .insertRoleMentionPlaceholder(
-          matchStart: trigger.matchStart,
-          matchEnd: trigger.matchEnd,
-          roleId: roleId,
-          displayName: displayName,
-          colorArgb: colorArgb,
-        );
+          .insertRoleMentionPlaceholder(
+            matchStart: trigger.matchStart,
+            matchEnd: trigger.matchEnd,
+            roleId: roleId,
+            displayName: displayName,
+            colorArgb: colorArgb,
+          );
       _closeMenu();
       return;
     }

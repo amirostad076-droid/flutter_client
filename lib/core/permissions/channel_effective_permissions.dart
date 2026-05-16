@@ -73,12 +73,11 @@ Future<int> computeEffectiveGuildChannelPermissionBits({
   );
 }
 
-final FutureProviderFamily<int, String> effectiveGuildChannelPermissionBitsProvider =
-    FutureProvider.family<int, String>(
-  (Ref ref, String channelId) {
-    return computeEffectiveGuildChannelPermissionBits(
-      ref: ref,
-      channelId: channelId,
-    );
-  },
-);
+final FutureProviderFamily<int, String>
+effectiveGuildChannelPermissionBitsProvider =
+    FutureProvider.family<int, String>((Ref ref, String channelId) {
+      return computeEffectiveGuildChannelPermissionBits(
+        ref: ref,
+        channelId: channelId,
+      );
+    });

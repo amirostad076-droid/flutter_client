@@ -1,4 +1,5 @@
-import 'package:fluxer_app/features/guilds/domain/guild.dart' show fluxerMediaCdn;
+import 'package:fluxer_app/features/guilds/domain/guild.dart'
+    show fluxerMediaCdn;
 
 String? buildUserAvatarUrl({
   required String userId,

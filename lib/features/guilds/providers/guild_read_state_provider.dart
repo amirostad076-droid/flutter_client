@@ -89,9 +89,7 @@ class GuildReadState extends _$GuildReadState {
     final currentUserId = ref.watch(currentUserIdProvider);
 
     final readStateSub = db.readStateDao.watchReadStates().listen((rows) {
-      final next = <String, ReadState>{
-        for (final r in rows) r.channelId: r,
-      };
+      final next = <String, ReadState>{for (final r in rows) r.channelId: r};
       final touched = _diffReadStates(_readStateSnapshot, next);
       _readStateSnapshot = next;
       if (touched.isNotEmpty) {
@@ -151,11 +149,7 @@ class GuildReadState extends _$GuildReadState {
     final allReadStates = await db.readStateDao.getReadStates();
     _channelSnapshot = {for (final c in allChannels) c.id: c};
     _readStateSnapshot = {for (final r in allReadStates) r.channelId: r};
-    await _recomputeGuilds(
-      guilds.map((g) => g.id).toSet(),
-      db,
-      currentUserId,
-    );
+    await _recomputeGuilds(guilds.map((g) => g.id).toSet(), db, currentUserId);
   }
 
   void _queueChannelIds(
@@ -206,9 +200,7 @@ class GuildReadState extends _$GuildReadState {
       final entry = await _computeGuildEntry(guildId, db, currentUserId);
       final existing = next[guildId];
       if (existing == null || !entry.hasSameFields(existing)) {
-        next[guildId] = entry.copyWith(
-          sentinel: (existing?.sentinel ?? 0) + 1,
-        );
+        next[guildId] = entry.copyWith(sentinel: (existing?.sentinel ?? 0) + 1);
         mutated = true;
       }
     }

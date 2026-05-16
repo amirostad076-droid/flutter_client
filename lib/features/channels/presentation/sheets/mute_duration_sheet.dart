@@ -122,8 +122,7 @@ class MuteDurationSheetBody extends StatelessWidget {
               ? [
                   FluxerBottomSheetMenuItem(
                     label: l10n.dmUnmuteConversation,
-                    onTap: () =>
-                        onSelected(const MuteSelection(muted: false)),
+                    onTap: () => onSelected(const MuteSelection(muted: false)),
                   ),
                 ]
               : [
@@ -143,8 +142,7 @@ class MuteDurationSheetBody extends StatelessWidget {
                     ),
                   FluxerBottomSheetMenuItem(
                     label: l10n.dmMuteForever,
-                    trailing:
-                        muteConfig != null && muteConfig!.endTime == null
+                    trailing: muteConfig != null && muteConfig!.endTime == null
                         ? PhosphorIcon(
                             PhosphorIconsBold.check,
                             size: 20,
@@ -175,8 +173,7 @@ Future<MuteSelection?> showMuteDurationSheet(
       child: MuteDurationSheetBody(
         isMuted: isMuted,
         muteConfig: muteConfig,
-        onSelected: (selection) =>
-            Navigator.of(sheetContext).pop(selection),
+        onSelected: (selection) => Navigator.of(sheetContext).pop(selection),
       ),
     ),
   );

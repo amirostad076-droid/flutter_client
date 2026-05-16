@@ -440,8 +440,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   Widget _buildBottomNav(BuildContext context) {
     final user = ref.watch(userSettingsViewModelProvider);
     final currentIndex = widget.navigationShell.currentIndex;
-    final String? selfUserId =
-        user.userId.isEmpty ? null : user.userId;
+    final String? selfUserId = user.userId.isEmpty ? null : user.userId;
     final String? presenceStatus = selfUserId == null
         ? null
         : ref.watch(userPresenceProvider(selfUserId)).value?.status;

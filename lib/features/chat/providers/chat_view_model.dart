@@ -809,9 +809,7 @@ class ChatViewModel extends _$ChatViewModel {
       errorMessage: null,
     );
     clearStickyUnread();
-    unawaited(
-      ref.read(readStateRepositoryProvider).clearSticky(channelId),
-    );
+    unawaited(ref.read(readStateRepositoryProvider).clearSticky(channelId));
 
     try {
       final CloudUploadController uploadNotifier = ref.read(

@@ -143,4 +143,3 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
 
   return controller.stream;
 }
-

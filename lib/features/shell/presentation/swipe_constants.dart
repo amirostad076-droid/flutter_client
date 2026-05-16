@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/widgets.dart';
 
 const Curve kHorizontalSwipeCurve = Curves.fastEaseInToSlowEaseOut;

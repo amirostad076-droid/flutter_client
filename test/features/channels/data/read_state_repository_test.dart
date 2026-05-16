@@ -360,8 +360,10 @@ void main() {
         ),
       ]);
 
-      await ReadStateRepository(FluxerClient(dio), db)
-          .recomputeMentionsAfterBackfill(
+      await ReadStateRepository(
+        FluxerClient(dio),
+        db,
+      ).recomputeMentionsAfterBackfill(
         channelId: 'channel-1',
         currentUserId: 'me',
       );

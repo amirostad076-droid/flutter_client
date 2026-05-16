@@ -18,8 +18,7 @@ class VoiceChannelParticipantsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final String key =
-        voiceChannelParticipantsFamilyKey(guildId, channelId);
+    final String key = voiceChannelParticipantsFamilyKey(guildId, channelId);
     final AsyncValue<List<VoiceSidebarParticipant>> async = ref.watch(
       voiceChannelSidebarParticipantsProvider(key),
     );
@@ -55,13 +54,11 @@ class _VoiceChannelParticipantTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final VoiceSidebarParticipant p = participant;
-    final bool showMic =
-        p.guildMute || p.selfMute;
+    final bool showMic = p.guildMute || p.selfMute;
     final bool micDanger = p.guildMute;
     final bool showDeaf = p.guildDeaf || p.selfDeaf;
     final bool deafDanger = p.guildDeaf;
-    final bool hasIcons =
-        p.selfVideo || showMic || showDeaf || p.selfStream;
+    final bool hasIcons = p.selfVideo || showMic || showDeaf || p.selfStream;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(

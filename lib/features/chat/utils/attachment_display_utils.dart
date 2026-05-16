@@ -3,9 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 IconData phosphorFillIconForChatAttachmentFilename(String filename) {
   final List<String> segments = filename.split('.');
-  final String fileExt = segments.length > 1
-      ? segments.last.toLowerCase()
-      : '';
+  final String fileExt = segments.length > 1 ? segments.last.toLowerCase() : '';
   const Set<String> imageTypes = <String>{
     'jpg',
     'jpeg',

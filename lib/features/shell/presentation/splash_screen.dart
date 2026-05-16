@@ -91,9 +91,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return;
     }
     _timersStarted = true;
-    unawaited(
-      ref.read(serviceStatusIncidentReadProvider.notifier).refresh(),
-    );
+    unawaited(ref.read(serviceStatusIncidentReadProvider.notifier).refresh());
     _statusTimer = Timer(_statusPageDisplayDelay, () {
       if (mounted) {
         setState(() => _showStatusData = true);
@@ -104,9 +102,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         return;
       }
       setState(() => _showProblems = true);
-      unawaited(
-        ref.read(serviceStatusIncidentReadProvider.notifier).refresh(),
-      );
+      unawaited(ref.read(serviceStatusIncidentReadProvider.notifier).refresh());
     });
   }
 
@@ -141,24 +137,24 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         gatewayReadyProvider,
         (bool? previous, bool _) => _cancelSplashIfReady(),
       )
-      ..listen<AsyncValue<void>>(
-        appStartupProvider,
-        (AsyncValue<void>? previous, AsyncValue<void> next) {
-          if (next is AsyncError<dynamic>) {
-            _cancelSplashTimers();
-            _timersStarted = false;
-            if (mounted) {
-              setState(() {
-                _showStatusData = false;
-                _showProblems = false;
-              });
-            }
-            return;
+      ..listen<AsyncValue<void>>(appStartupProvider, (
+        AsyncValue<void>? previous,
+        AsyncValue<void> next,
+      ) {
+        if (next is AsyncError<dynamic>) {
+          _cancelSplashTimers();
+          _timersStarted = false;
+          if (mounted) {
+            setState(() {
+              _showStatusData = false;
+              _showProblems = false;
+            });
           }
-          _ensureSplashTimers();
-          _cancelSplashIfReady();
-        },
-      );
+          return;
+        }
+        _ensureSplashTimers();
+        _cancelSplashIfReady();
+      });
     final ServiceStatusIncident? liveIncident = _showStatusData
         ? ref.watch(serviceStatusIncidentReadProvider)
         : null;
@@ -173,8 +169,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         ? liveIncident
         : _frozenIncident;
     final String displayText = isReady ? liveText : _frozenDisplayText;
-    final ServiceStatusIncident? footerIncident =
-        ref.watch(serviceStatusIncidentReadProvider);
+    final ServiceStatusIncident? footerIncident = ref.watch(
+      serviceStatusIncidentReadProvider,
+    );
     final bool showConnectionFooter =
         _showProblems && !isReady && visibleIncident == null;
     final String secondLinkUrl =
@@ -344,10 +341,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           MouseRegion(
                             cursor: SystemMouseCursors.click,
                             child: GestureDetector(
-                              onTap: () => handleExternalLinkTap(
-                                context,
-                                secondLinkUrl,
-                              ),
+                              onTap: () =>
+                                  handleExternalLinkTap(context, secondLinkUrl),
                               child: Text(
                                 footerIncident != null
                                     ? strings.splashReadIncident
@@ -382,10 +377,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
-              onTap: () => handleExternalLinkTap(
-                context,
-                visibleIncident.url,
-              ),
+              onTap: () => handleExternalLinkTap(context, visibleIncident.url),
               child: Text(
                 displayText,
                 style: context.textStyles.quoteLink,
@@ -397,10 +389,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
-              onTap: () => handleExternalLinkTap(
-                context,
-                ExternalUrls.serviceStatus,
-              ),
+              onTap: () =>
+                  handleExternalLinkTap(context, ExternalUrls.serviceStatus),
               child: Text(
                 strings.splashViewOnStatusPage,
                 style: incidentCtaStyle,

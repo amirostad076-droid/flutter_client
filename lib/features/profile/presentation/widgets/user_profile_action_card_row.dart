@@ -91,8 +91,9 @@ class _ProfileActionCard extends StatelessWidget {
     final Color circleColor = usesBrandPrimaryCircle
         ? colors.brandPrimary
         : colors.backgroundTertiary;
-    final Color iconColor =
-        usesBrandPrimaryCircle ? colors.textPrimary : colors.interactiveNormal;
+    final Color iconColor = usesBrandPrimaryCircle
+        ? colors.textPrimary
+        : colors.interactiveNormal;
     return FluxerTappable(
       onTap: () async {
         await onTap();
@@ -115,11 +116,7 @@ class _ProfileActionCard extends StatelessWidget {
                   color: circleColor,
                   shape: BoxShape.circle,
                 ),
-                child: PhosphorIcon(
-                  icon,
-                  size: 24,
-                  color: iconColor,
-                ),
+                child: PhosphorIcon(icon, size: 24, color: iconColor),
               ),
               const SizedBox(height: 4),
               Text(

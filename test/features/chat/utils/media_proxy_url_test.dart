@@ -18,8 +18,7 @@ void main() {
     });
 
     test('merges with existing query parameters', () {
-      const String input =
-          'https://cdn.example.com/v.mp4?foo=bar&width=100';
+      const String input = 'https://cdn.example.com/v.mp4?foo=bar&width=100';
       final String actual = buildMediaProxyUrl(
         input,
         format: 'webp',

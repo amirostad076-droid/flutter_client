@@ -59,7 +59,8 @@ class UserProfileBioCard extends StatelessWidget {
     final l10n = FluxerLocalizations.of(context);
     final trimmedBio = bio?.trim();
     final hasBio = trimmedBio != null && trimmedBio.isNotEmpty;
-    final memberSince = accountMemberSince ??
+    final memberSince =
+        accountMemberSince ??
         (userId.isEmpty ? null : dateTimeFromUserSnowflakeOrNull(userId));
 
     return DecoratedBox(
@@ -113,24 +114,24 @@ class UserProfileBioCard extends StatelessWidget {
                     spacing: 4,
                     children: <Widget>[
                       if (guildMemberSince != null)
-                      Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: colors.brandPrimary,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        alignment: Alignment.center,
-                        child: SvgPicture.asset(
-                          Assets.fluxerSymbol,
-                          width: 12,
-                          height: 12,
-                          colorFilter: ColorFilter.mode(
-                            colors.textPrimary,
-                            BlendMode.srcIn,
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: colors.brandPrimary,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          alignment: Alignment.center,
+                          child: SvgPicture.asset(
+                            Assets.fluxerSymbol,
+                            width: 12,
+                            height: 12,
+                            colorFilter: ColorFilter.mode(
+                              colors.textPrimary,
+                              BlendMode.srcIn,
+                            ),
                           ),
                         ),
-                      ),
                       Text(
                         DateFormat.yMMMd().format(memberSince.toLocal()),
                         style: textStyles.bodySmall.copyWith(
@@ -152,7 +153,9 @@ class UserProfileBioCard extends StatelessWidget {
                           size: 16,
                         ),
                         Text(
-                          DateFormat.yMMMd().format(guildMemberSince!.toLocal()),
+                          DateFormat.yMMMd().format(
+                            guildMemberSince!.toLocal(),
+                          ),
                           style: textStyles.bodySmall.copyWith(
                             color: colors.textChat,
                             fontSize: 14,
@@ -182,40 +185,42 @@ class UserProfileBioCard extends StatelessWidget {
                       (MemberRole role) => DecoratedBox(
                         decoration: BoxDecoration(
                           color: colors.backgroundPrimary,
-                          border: Border.all(color: colors.backgroundHeaderSecondary),
+                          border: Border.all(
+                            color: colors.backgroundHeaderSecondary,
+                          ),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 24),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              const SizedBox(width: 1),
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: role.color == 0
-                                      ? colors.textTertiary
-                                      : Color(0xFF000000 | role.color),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                const SizedBox(width: 1),
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: role.color == 0
+                                        ? colors.textTertiary
+                                        : Color(0xFF000000 | role.color),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                role.name,
-                                style: textStyles.label.copyWith(
-                                  color: colors.textPrimary,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.33,
+                                const SizedBox(width: 4),
+                                Text(
+                                  role.name,
+                                  style: textStyles.label.copyWith(
+                                    color: colors.textPrimary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.33,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 1),
-                            ],
-                          ),
+                                const SizedBox(width: 1),
+                              ],
+                            ),
                           ),
                         ),
                       ),

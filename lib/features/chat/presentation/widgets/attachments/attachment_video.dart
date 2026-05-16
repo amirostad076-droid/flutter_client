@@ -408,10 +408,9 @@ class _AttachmentVideoState extends State<AttachmentVideo> {
       widget.dimensionSize,
     );
     final String proxyOrUrl =
-        (attachment.proxyUrl != null &&
-                attachment.proxyUrl!.trim().isNotEmpty)
-            ? attachment.proxyUrl!.trim()
-            : attachment.url.trim();
+        (attachment.proxyUrl != null && attachment.proxyUrl!.trim().isNotEmpty)
+        ? attachment.proxyUrl!.trim()
+        : attachment.url.trim();
     final String? posterUrl = proxyOrUrl.isEmpty
         ? null
         : buildAttachmentVideoPosterUrl(

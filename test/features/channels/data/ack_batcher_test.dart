@@ -25,8 +25,8 @@ class _BulkAckAdapter implements HttpClientAdapter {
         builder.add(chunk);
       }
     }
-    final body = jsonDecode(utf8.decode(builder.takeBytes()))
-        as Map<String, Object?>;
+    final body =
+        jsonDecode(utf8.decode(builder.takeBytes())) as Map<String, Object?>;
     final readStates = body['read_states']! as List<Object?>;
     recordedBatches.add(
       readStates.map((e) => Map<String, Object?>.from(e! as Map)).toList(),
@@ -53,38 +53,40 @@ FluxerClient _client(_BulkAckAdapter adapter) {
 }
 
 void main() {
-  test('coalesces multiple acks into a single bulk HTTP after the delay',
-      () async {
-    final adapter = _BulkAckAdapter();
-    final batcher = AckBatcher(
-      client: _client(adapter),
-      batchDelay: const Duration(milliseconds: 80),
-    );
-    addTearDown(batcher.dispose);
+  test(
+    'coalesces multiple acks into a single bulk HTTP after the delay',
+    () async {
+      final adapter = _BulkAckAdapter();
+      final batcher = AckBatcher(
+        client: _client(adapter),
+        batchDelay: const Duration(milliseconds: 80),
+      );
+      addTearDown(batcher.dispose);
 
-    batcher.queue(
-      channelId: 'c-1',
-      messageId: 'm-1',
-      immediate: false,
-      hadMentions: false,
-    );
-    batcher.queue(
-      channelId: 'c-2',
-      messageId: 'm-2',
-      immediate: false,
-      hadMentions: false,
-    );
+      batcher.queue(
+        channelId: 'c-1',
+        messageId: 'm-1',
+        immediate: false,
+        hadMentions: false,
+      );
+      batcher.queue(
+        channelId: 'c-2',
+        messageId: 'm-2',
+        immediate: false,
+        hadMentions: false,
+      );
 
-    expect(adapter.recordedBatches, isEmpty);
+      expect(adapter.recordedBatches, isEmpty);
 
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
 
-    expect(adapter.recordedBatches, hasLength(1));
-    expect(adapter.recordedBatches.first, [
-      {'channel_id': 'c-1', 'message_id': 'm-1'},
-      {'channel_id': 'c-2', 'message_id': 'm-2'},
-    ]);
-  });
+      expect(adapter.recordedBatches, hasLength(1));
+      expect(adapter.recordedBatches.first, [
+        {'channel_id': 'c-1', 'message_id': 'm-1'},
+        {'channel_id': 'c-2', 'message_id': 'm-2'},
+      ]);
+    },
+  );
 
   test('immediate flag flushes on the next event loop tick', () async {
     final adapter = _BulkAckAdapter();
@@ -152,31 +154,33 @@ void main() {
     expect(adapter.recordedBatches, hasLength(1));
   });
 
-  test('newer messageId for same channel replaces older queued entry',
-      () async {
-    final adapter = _BulkAckAdapter();
-    final batcher = AckBatcher(
-      client: _client(adapter),
-      batchDelay: const Duration(milliseconds: 50),
-    );
-    addTearDown(batcher.dispose);
+  test(
+    'newer messageId for same channel replaces older queued entry',
+    () async {
+      final adapter = _BulkAckAdapter();
+      final batcher = AckBatcher(
+        client: _client(adapter),
+        batchDelay: const Duration(milliseconds: 50),
+      );
+      addTearDown(batcher.dispose);
 
-    batcher.queue(
-      channelId: 'c-1',
-      messageId: '100',
-      immediate: false,
-      hadMentions: false,
-    );
-    batcher.queue(
-      channelId: 'c-1',
-      messageId: '200',
-      immediate: false,
-      hadMentions: false,
-    );
+      batcher.queue(
+        channelId: 'c-1',
+        messageId: '100',
+        immediate: false,
+        hadMentions: false,
+      );
+      batcher.queue(
+        channelId: 'c-1',
+        messageId: '200',
+        immediate: false,
+        hadMentions: false,
+      );
 
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
 
-    expect(adapter.recordedBatches, hasLength(1));
-    expect(adapter.recordedBatches.first.single['message_id'], '200');
-  });
+      expect(adapter.recordedBatches, hasLength(1));
+      expect(adapter.recordedBatches.first.single['message_id'], '200');
+    },
+  );
 }

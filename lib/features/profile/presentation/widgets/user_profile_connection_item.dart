@@ -33,7 +33,8 @@ class UserProfileConnectionItem extends StatelessWidget {
     final layout = context.layout;
     final textStyles = context.textStyles;
     final l10n = FluxerLocalizations.of(context);
-    final Widget platformIcon = connection.type == ConnectionResponseTypeType.bsky
+    final Widget platformIcon =
+        connection.type == ConnectionResponseTypeType.bsky
         ? const FluxerBlueskyIcon()
         : const PhosphorIcon(
             PhosphorIconsBold.globeSimple,
@@ -48,7 +49,10 @@ class UserProfileConnectionItem extends StatelessWidget {
           color: colors.backgroundTertiary,
           borderRadius: layout.radiusMd,
         ),
-        padding: EdgeInsets.symmetric(horizontal: layout.s2, vertical: layout.s2),
+        padding: EdgeInsets.symmetric(
+          horizontal: layout.s2,
+          vertical: layout.s2,
+        ),
         child: Row(
           children: <Widget>[
             Container(

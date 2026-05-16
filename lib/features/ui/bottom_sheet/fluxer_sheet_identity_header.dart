@@ -100,10 +100,7 @@ class FluxerSheetIdentityHeader extends StatelessWidget {
                 ),
             ],
           ),
-          if (body != null) ...[
-            SizedBox(height: context.layout.s3),
-            body!,
-          ],
+          if (body != null) ...[SizedBox(height: context.layout.s3), body!],
         ],
       ),
     );

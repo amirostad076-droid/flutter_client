@@ -83,9 +83,7 @@ int _maintenanceStatusPriority(String status) {
   };
 }
 
-_NormalizedMaintenance? _selectActiveMaintenance(
-  List<dynamic>? maintenances,
-) {
+_NormalizedMaintenance? _selectActiveMaintenance(List<dynamic>? maintenances) {
   _NormalizedMaintenance? selected;
   for (final Object? raw in maintenances ?? const <Object?>[]) {
     if (raw is! Map<String, dynamic>) {
@@ -115,14 +113,12 @@ bool _shouldFetchComponentMaintenances(
 
 List<Map<String, dynamic>> _extractComponentMaintenances(Object? data) {
   if (data is List<dynamic>) {
-    return data
-        .whereType<Map<String, dynamic>>()
-        .expand((Map<String, dynamic> c) {
-          final List<dynamic>? m = c['activeMaintenances'] as List<dynamic>?;
-          return (m ?? const <dynamic>[])
-              .whereType<Map<String, dynamic>>();
-        })
-        .toList();
+    return data.whereType<Map<String, dynamic>>().expand((
+      Map<String, dynamic> c,
+    ) {
+      final List<dynamic>? m = c['activeMaintenances'] as List<dynamic>?;
+      return (m ?? const <dynamic>[]).whereType<Map<String, dynamic>>();
+    }).toList();
   }
   if (data is Map<String, dynamic>) {
     final List<dynamic>? components = data['components'] as List<dynamic>?;
@@ -130,8 +126,7 @@ List<Map<String, dynamic>> _extractComponentMaintenances(Object? data) {
         .whereType<Map<String, dynamic>>()
         .expand((Map<String, dynamic> c) {
           final List<dynamic>? m = c['activeMaintenances'] as List<dynamic>?;
-          return (m ?? const <dynamic>[])
-              .whereType<Map<String, dynamic>>();
+          return (m ?? const <dynamic>[]).whereType<Map<String, dynamic>>();
         })
         .toList();
   }
@@ -164,8 +159,7 @@ class ServiceStatusClient {
       if (response.data is! Map<String, dynamic>) {
         return null;
       }
-      final Map<String, dynamic> data =
-          response.data as Map<String, dynamic>;
+      final Map<String, dynamic> data = response.data as Map<String, dynamic>;
       final List<dynamic>? incidents =
           data['activeIncidents'] as List<dynamic>?;
       Map<String, dynamic>? activeIncident;

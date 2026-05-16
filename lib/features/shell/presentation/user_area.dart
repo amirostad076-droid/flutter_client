@@ -15,8 +15,7 @@ class UserArea extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userSettingsViewModelProvider);
-    final String? selfUserId =
-        user.userId.isEmpty ? null : user.userId;
+    final String? selfUserId = user.userId.isEmpty ? null : user.userId;
     final String? presenceStatus = selfUserId == null
         ? null
         : ref.watch(userPresenceProvider(selfUserId)).value?.status;

@@ -54,35 +54,36 @@ Future<void> _slowDrag(
 }
 
 void main() {
-  testWidgets('horizontal drag starting in leading edge reserve does not reply', (
-    tester,
-  ) async {
-    var replyCount = 0;
-    await tester.pumpWidget(
-      _buildApp(
-        SwipeToReply(
-          onReply: () => replyCount++,
-          child: const ColoredBox(color: Color(0xFF112233)),
+  testWidgets(
+    'horizontal drag starting in leading edge reserve does not reply',
+    (tester) async {
+      var replyCount = 0;
+      await tester.pumpWidget(
+        _buildApp(
+          SwipeToReply(
+            onReply: () => replyCount++,
+            child: const ColoredBox(color: Color(0xFF112233)),
+          ),
         ),
-      ),
-    );
-    final BuildContext ctx = tester.element(
-      find.byKey(const ValueKey<void>('swipeViewport')),
-    );
-    final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
-    expect(reserve, greaterThan(0));
-    final RenderBox viewport = tester.renderObject(
-      find.byKey(const ValueKey<void>('swipeViewport')),
-    ) as RenderBox;
-    final Offset startLocal = Offset(reserve / 2, viewport.size.height / 2);
-    final TestGesture gesture = await tester.startGesture(
-      viewport.localToGlobal(startLocal),
-    );
-    await gesture.moveBy(const Offset(-120, 0));
-    await gesture.up();
-    await tester.pumpAndSettle();
-    expect(replyCount, 0);
-  });
+      );
+      final BuildContext ctx = tester.element(
+        find.byKey(const ValueKey<void>('swipeViewport')),
+      );
+      final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
+      expect(reserve, greaterThan(0));
+      final RenderBox viewport =
+          tester.renderObject(find.byKey(const ValueKey<void>('swipeViewport')))
+              as RenderBox;
+      final Offset startLocal = Offset(reserve / 2, viewport.size.height / 2);
+      final TestGesture gesture = await tester.startGesture(
+        viewport.localToGlobal(startLocal),
+      );
+      await gesture.moveBy(const Offset(-120, 0));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(replyCount, 0);
+    },
+  );
 
   testWidgets('horizontal drag past reserve past threshold invokes onReply', (
     tester,
@@ -100,13 +101,10 @@ void main() {
       find.byKey(const ValueKey<void>('swipeViewport')),
     );
     final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
-    final RenderBox viewport = tester.renderObject(
-      find.byKey(const ValueKey<void>('swipeViewport')),
-    ) as RenderBox;
-    final Offset startLocal = Offset(
-      reserve + 40,
-      viewport.size.height / 2,
-    );
+    final RenderBox viewport =
+        tester.renderObject(find.byKey(const ValueKey<void>('swipeViewport')))
+            as RenderBox;
+    final Offset startLocal = Offset(reserve + 40, viewport.size.height / 2);
     final TestGesture gesture = await tester.startGesture(
       viewport.localToGlobal(startLocal),
     );
@@ -148,13 +146,10 @@ void main() {
       find.byKey(const ValueKey<void>('swipeViewport')),
     );
     final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
-    final RenderBox viewport = tester.renderObject(
-      find.byKey(const ValueKey<void>('swipeViewport')),
-    ) as RenderBox;
-    final Offset startLocal = Offset(
-      reserve + 40,
-      viewport.size.height / 2,
-    );
+    final RenderBox viewport =
+        tester.renderObject(find.byKey(const ValueKey<void>('swipeViewport')))
+            as RenderBox;
+    final Offset startLocal = Offset(reserve + 40, viewport.size.height / 2);
     await _slowDrag(
       tester,
       viewport.localToGlobal(startLocal),
@@ -193,13 +188,10 @@ void main() {
       find.byKey(const ValueKey<void>('swipeViewport')),
     );
     final double reserve = leadingEdgeHorizontalSwipeReserveWidth(ctx);
-    final RenderBox viewport = tester.renderObject(
-      find.byKey(const ValueKey<void>('swipeViewport')),
-    ) as RenderBox;
-    final Offset startLocal = Offset(
-      reserve + 40,
-      viewport.size.height / 2,
-    );
+    final RenderBox viewport =
+        tester.renderObject(find.byKey(const ValueKey<void>('swipeViewport')))
+            as RenderBox;
+    final Offset startLocal = Offset(reserve + 40, viewport.size.height / 2);
     await _slowDrag(
       tester,
       viewport.localToGlobal(startLocal),

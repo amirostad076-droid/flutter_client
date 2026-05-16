@@ -1,12 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 /// Autocomplete triggers for @mentions, #channels, and colon emoji names.
-enum ComposerAutocompleteTriggerKind {
-  emojiReaction,
-  mention,
-  channel,
-  emoji,
-}
+enum ComposerAutocompleteTriggerKind { emojiReaction, mention, channel, emoji }
 
 @immutable
 class ComposerAutocompleteTrigger {

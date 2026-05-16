@@ -118,10 +118,12 @@ class MemberRepository {
   Future<List<MemberRole>> getRoles(String guildId) async {
     List<db.RolesCompanion> companions;
     try {
-      final List<GuildRoleResponse> roles =
-          await _client.guilds.listGuildRoles(guildId: guildId);
-      companions =
-          roles.map((GuildRoleResponse r) => roleFromSdk(r, guildId)).toList();
+      final List<GuildRoleResponse> roles = await _client.guilds.listGuildRoles(
+        guildId: guildId,
+      );
+      companions = roles
+          .map((GuildRoleResponse r) => roleFromSdk(r, guildId))
+          .toList();
     } on DioException catch (e) {
       if (e.response?.statusCode == 200 && e.response?.data != null) {
         final List<dynamic> rawList = e.response!.data as List<dynamic>;
@@ -195,7 +197,8 @@ class MemberRepository {
 }
 
 bool _mentionHaystackContainsQuery(Member member, String queryLower) {
-  final String display = member.nickname ?? member.globalName ?? member.username;
+  final String display =
+      member.nickname ?? member.globalName ?? member.username;
   final String haystack =
       '$display ${member.username} ${member.globalName ?? ''}'.toLowerCase();
   return haystack.contains(queryLower);

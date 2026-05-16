@@ -138,8 +138,9 @@ class _SwipeToReplyState extends State<SwipeToReply>
         ? 0.0
         : (-_dragOffset / _maxDrag).clamp(0.0, 1.0);
     final cornerRadius = _kMaxCornerRadius * progress;
-    final double leadingReserve =
-        leadingEdgeHorizontalSwipeReserveWidth(context);
+    final double leadingReserve = leadingEdgeHorizontalSwipeReserveWidth(
+      context,
+    );
     return Stack(
       clipBehavior: Clip.none,
       children: [

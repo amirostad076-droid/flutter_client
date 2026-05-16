@@ -78,10 +78,7 @@ String _composerMentionChannelLabel(WidgetRef ref, String targetChannelId) {
 /// Renders user, channel, and role mentions as inline text while [toWireText]
 /// preserves wire forms for sending.
 class ComposerMentionController extends TextEditingController {
-  ComposerMentionController({
-    required WidgetRef ref,
-    super.text,
-  }) : _ref = ref;
+  ComposerMentionController({required WidgetRef ref, super.text}) : _ref = ref;
 
   final WidgetRef _ref;
 
@@ -329,7 +326,8 @@ class ComposerMentionController extends TextEditingController {
   @override
   TextSpan buildTextSpan({
     required BuildContext context,
-    required bool withComposing, TextStyle? style,
+    required bool withComposing,
+    TextStyle? style,
   }) {
     if (withComposing &&
         value.composing.isValid &&

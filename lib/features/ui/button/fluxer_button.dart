@@ -320,9 +320,7 @@ class _FluxerButtonState extends State<FluxerButton> {
             : isHovered
             ? _resolveActiveFill(colors)
             : _resolveFill(colors);
-        final border = widget.recording
-            ? null
-            : _resolveBorderColor(colors);
+        final border = widget.recording ? null : _resolveBorderColor(colors);
 
         Widget container = AnimatedContainer(
           duration: motion.fast,
@@ -568,8 +566,5 @@ Widget fluxerButtonCirclePreview() {
 
 @FluxerWidgetPreview(name: 'Circle alt', group: 'FluxerButton')
 Widget fluxerButtonCircleAltPreview() {
-  return FluxerButton.circleAlt(
-    onPressed: () {},
-    icon: PhosphorIconsBold.gear,
-  );
+  return FluxerButton.circleAlt(onPressed: () {}, icon: PhosphorIconsBold.gear);
 }

@@ -12,7 +12,8 @@ const String _kAssetText = 'assets/images/icons/channels/text.svg';
 const String _kAssetTextLocked = 'assets/images/icons/channels/text_locked.svg';
 const String _kAssetTextNsfw = 'assets/images/icons/channels/text_nsfw.svg';
 const String _kAssetVoice = 'assets/images/icons/channels/voice.svg';
-const String _kAssetVoiceLocked = 'assets/images/icons/channels/voice_locked.svg';
+const String _kAssetVoiceLocked =
+    'assets/images/icons/channels/voice_locked.svg';
 const String _kAssetVoiceNsfw = 'assets/images/icons/channels/voice_nsfw.svg';
 const String _kAssetVoiceNoConnect =
     'assets/images/icons/channels/voice_no_connect.svg';
@@ -20,12 +21,7 @@ const String _kAssetLink = 'assets/images/icons/channels/link.svg';
 const String _kAssetLinkLocked = 'assets/images/icons/channels/link_locked.svg';
 const String _kAssetLinkNsfw = 'assets/images/icons/channels/link_nsfw.svg';
 
-enum ChannelIconAccessOverlay {
-  none,
-  nsfw,
-  lock,
-  noConnect,
-}
+enum ChannelIconAccessOverlay { none, nsfw, lock, noConnect }
 
 ChannelIconAccessOverlay resolveChannelIconAccessOverlay({
   required Channel channel,

@@ -29,8 +29,9 @@ class AttachmentFile extends StatelessWidget {
       isExpired: isExpired,
       proxyUrl: attachment.proxyUrl,
     );
-    final IconData fileIconData =
-        phosphorFillIconForChatAttachmentFilename(displayName);
+    final IconData fileIconData = phosphorFillIconForChatAttachmentFilename(
+      displayName,
+    );
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
@@ -150,9 +151,7 @@ class AttachmentFile extends StatelessWidget {
                 onPressed: downloadUrl == null
                     ? null
                     : () {
-                        unawaited(
-                          handleExternalLinkTap(context, downloadUrl),
-                        );
+                        unawaited(handleExternalLinkTap(context, downloadUrl));
                       },
                 icon: PhosphorIcon(
                   PhosphorIconsBold.downloadSimple,

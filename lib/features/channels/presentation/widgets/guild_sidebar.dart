@@ -198,25 +198,23 @@ class GuildSidebar extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildCategoryHeader(context, ref, category, isCollapsed),
-            if (!isCollapsed)
-              ...<Widget>[
-                for (final Channel channel in category.channels) ...<Widget>[
-                  _buildChannelTile(
-                    context,
-                    ref,
-                    channel,
-                    channel.id == selectedId,
-                    mutedSet: mutedSet,
-                    guildMuted: guildMuted,
+            if (!isCollapsed) ...<Widget>[
+              for (final Channel channel in category.channels) ...<Widget>[
+                _buildChannelTile(
+                  context,
+                  ref,
+                  channel,
+                  channel.id == selectedId,
+                  mutedSet: mutedSet,
+                  guildMuted: guildMuted,
+                ),
+                if (guildId != null && channel.type == ChannelType.voice)
+                  VoiceChannelParticipantsList(
+                    guildId: guildId,
+                    channelId: channel.id,
                   ),
-                  if (guildId != null &&
-                      channel.type == ChannelType.voice)
-                    VoiceChannelParticipantsList(
-                      guildId: guildId,
-                      channelId: channel.id,
-                    ),
-                ],
               ],
+            ],
           ],
         );
       },
@@ -366,8 +364,9 @@ class GuildSidebar extends ConsumerWidget {
 
           final String? guildId = ref.read(activeGuildIdProvider);
           if (guildId != null) {
-            final VoiceSessionState voiceSession =
-                ref.read(voiceSessionProvider);
+            final VoiceSessionState voiceSession = ref.read(
+              voiceSessionProvider,
+            );
             final bool isInCurrentVoiceChannel =
                 channel.type == ChannelType.voice &&
                 voiceSession.isInVoice &&
