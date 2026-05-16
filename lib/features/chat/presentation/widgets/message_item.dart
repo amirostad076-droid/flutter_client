@@ -28,6 +28,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.da
 import 'package:fluxer_app/features/chat/presentation/widgets/swipe_to_reply.dart';
 import 'package:fluxer_app/features/chat/providers/spoiler_reveal_provider.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
+import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -69,6 +70,7 @@ const _kReplyLineEndGap = 6.0;
 const _kMessageStickerSize = 160.0;
 const _kMessageStickerRequestSize = 320;
 const _kReactionEmojiSize = 16.0;
+const double _kMessageSendingOpacity = 0.5;
 
 /// A single message row -- avatar, username, timestamp,
 /// content, embeds, reactions, and action buttons on hover.
@@ -316,6 +318,12 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         msg.isMentioned && !widget.hideMentionHighlight;
     final bool isFailed = msg.hasFailed;
     final bool isSending = msg.isSending;
+    final bool hasUploadingPlaceholderAttachments =
+        _hasUploadingPlaceholderAttachments(msg);
+    final bool dimEntireMessage =
+        isSending && !hasUploadingPlaceholderAttachments;
+    final bool dimMessagePartsExceptAttachments =
+        isSending && hasUploadingPlaceholderAttachments;
 
     final body = GestureDetector(
       onLongPress: isMobile && !widget.inboxPreviewMode
@@ -362,20 +370,31 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (!isGrouped && msg.isReply) _buildReplyRow(msg),
+                  if (!isGrouped && msg.isReply)
+                    _wrapMessageSendingDim(
+                      dim: dimMessagePartsExceptAttachments,
+                      child: _buildReplyRow(msg),
+                    ),
                   if (!isGrouped &&
                       msg.isForwarded &&
                       !msg.hasForwardSnapshots &&
                       msg.forwardedFrom != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: _kAvatarColumnWidth),
-                      child: ForwardIndicator(source: msg.forwardedFrom!),
+                    _wrapMessageSendingDim(
+                      dim: dimMessagePartsExceptAttachments,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: _kAvatarColumnWidth,
+                        ),
+                        child: ForwardIndicator(source: msg.forwardedFrom!),
+                      ),
                     ),
                   if (isGrouped)
                     _buildGroupedRow(
                       context,
                       msg,
                       isMobile,
+                      dimMessagePartsExceptAttachments:
+                          dimMessagePartsExceptAttachments,
                       renderEmbeds: renderEmbeds,
                       renderReactions: renderReactions,
                       inlineAttachmentMedia: inlineAttachmentMedia,
@@ -389,6 +408,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                       authorDisplay,
                       authorRoleColor,
                       isMobile,
+                      dimMessagePartsExceptAttachments:
+                          dimMessagePartsExceptAttachments,
                       renderEmbeds: renderEmbeds,
                       renderReactions: renderReactions,
                       inlineAttachmentMedia: inlineAttachmentMedia,
@@ -409,12 +430,23 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     );
     final onReply = widget.onReply;
     if (!isTouch || onReply == null || widget.inboxPreviewMode) {
-      return Opacity(opacity: isSending ? 0.65 : 1, child: body);
+      return _wrapMessageSendingDim(dim: dimEntireMessage, child: body);
     }
-    return Opacity(
-      opacity: isSending ? 0.65 : 1,
+    return _wrapMessageSendingDim(
+      dim: dimEntireMessage,
       child: SwipeToReply(onReply: onReply, child: body),
     );
+  }
+
+  bool _hasUploadingPlaceholderAttachments(Message msg) {
+    return msg.attachments.any(isUploadingPlaceholderAttachment);
+  }
+
+  Widget _wrapMessageSendingDim({required bool dim, required Widget child}) {
+    if (!dim) {
+      return child;
+    }
+    return Opacity(opacity: _kMessageSendingOpacity, child: child);
   }
 
   /// Builds the reply preview row with space for the
@@ -460,12 +492,17 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     BuildContext context,
     Message msg,
     bool isMobile, {
+    required bool dimMessagePartsExceptAttachments,
     required bool renderEmbeds,
     required bool renderReactions,
     required bool inlineAttachmentMedia,
     required bool revealSpoilers,
     required ChatPreferencesState chatPreferences,
   }) {
+    Widget wrapPart(Widget child) => _wrapMessageSendingDim(
+      dim: dimMessagePartsExceptAttachments,
+      child: child,
+    );
     final spoileredUrls = extractSpoileredUrls(msg.content);
     final attachmentSize = msg.hasCompactAttachments
         ? MediaDimensionSize.small
@@ -474,43 +511,53 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     return [
       if (msg.content.isNotEmpty &&
           !msg.shouldHideContent(renderEmbeds: renderEmbeds))
-        _buildMessageTextWithEditedTag(
-          context,
-          msg,
-          isMobile: isMobile,
-          revealSpoilers: revealSpoilers,
+        wrapPart(
+          _buildMessageTextWithEditedTag(
+            context,
+            msg,
+            isMobile: isMobile,
+            revealSpoilers: revealSpoilers,
+          ),
         ),
       if (msg.hasForwardSnapshots)
-        ForwardedMessageContent(
-          message: msg,
-          snapshot: msg.messageSnapshots.first,
-          renderEmbeds: renderEmbeds,
-          inlineAttachmentMedia: inlineAttachmentMedia,
-          revealSpoilers: revealSpoilers,
-          chatPreferences: chatPreferences,
-          spoilerSyncController: _spoilerSyncController,
+        wrapPart(
+          ForwardedMessageContent(
+            message: msg,
+            snapshot: msg.messageSnapshots.first,
+            renderEmbeds: renderEmbeds,
+            inlineAttachmentMedia: inlineAttachmentMedia,
+            revealSpoilers: revealSpoilers,
+            chatPreferences: chatPreferences,
+            spoilerSyncController: _spoilerSyncController,
+          ),
         ),
       ...msg.invites.map(
-        (code) => Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: EmbedInvite(code: code),
+        (code) => wrapPart(
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: EmbedInvite(code: code),
+          ),
         ),
       ),
       ...msg.themes.map(
-        (_) => const Padding(
-          padding: EdgeInsets.only(top: 4),
-          child: EmbedTheme(),
+        (_) => wrapPart(
+          const Padding(
+            padding: EdgeInsets.only(top: 4),
+            child: EmbedTheme(),
+          ),
         ),
       ),
       if (renderEmbeds && !msg.suppressEmbeds)
         ...msg.embeds.map((embed) {
           final spoilerSyncKeys = spoilerSyncKeysForEmbed(embed, spoileredUrls);
-          return _buildEmbed(
-            embed,
-            isSpoiler: spoilerSyncKeys.isNotEmpty,
-            spoilerSyncKeys: spoilerSyncKeys,
-            revealSpoilers: revealSpoilers,
-            dimensionSize: chatPreferences.embedMediaDimensionSize,
+          return wrapPart(
+            _buildEmbed(
+              embed,
+              isSpoiler: spoilerSyncKeys.isNotEmpty,
+              spoilerSyncKeys: spoilerSyncKeys,
+              revealSpoilers: revealSpoilers,
+              dimensionSize: chatPreferences.embedMediaDimensionSize,
+            ),
           );
         }),
       if (msg.attachments.isNotEmpty)
@@ -519,28 +566,35 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           inlineAttachmentMedia: inlineAttachmentMedia,
           dimensionSize: attachmentSize,
           revealSpoilers: revealSpoilers,
+          messageId: msg.id,
+          messageNonce: msg.clientNonce,
+          channelId: msg.channelId,
         ),
       if (msg.hasStickers)
-        Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: msg.stickers.map(_buildSticker).toList(),
+        wrapPart(
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: msg.stickers.map(_buildSticker).toList(),
+            ),
           ),
         ),
       if (renderReactions && msg.reactions.isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: msg.reactions
-                .map((r) => _buildReaction(context, r))
-                .toList(),
+        wrapPart(
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: msg.reactions
+                  .map((r) => _buildReaction(context, r))
+                  .toList(),
+            ),
           ),
         ),
-      if (msg.hasFailed) _buildDeliveryStatus(context, msg),
+      if (msg.hasFailed) wrapPart(_buildDeliveryStatus(context, msg)),
     ];
   }
 
@@ -645,6 +699,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     BuildContext context,
     Message msg,
     bool isMobile, {
+    required bool dimMessagePartsExceptAttachments,
     required bool renderEmbeds,
     required bool renderReactions,
     required bool inlineAttachmentMedia,
@@ -653,29 +708,32 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   }) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _canOpenAuthorProfile(msg)
-            ? () => _openAuthorProfile(context, msg)
-            : null,
-        child: SizedBox(
-          width: _kAvatarColumnWidth,
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: AnimatedOpacity(
-              opacity: _isHovered ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 100),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _formatShortTimestamp(msg.timestamp.toLocal()),
-                    style: TextStyle(
-                      color: context.colors.textTertiaryMuted,
-                      fontSize: 10,
+      _wrapMessageSendingDim(
+        dim: dimMessagePartsExceptAttachments,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _canOpenAuthorProfile(msg)
+              ? () => _openAuthorProfile(context, msg)
+              : null,
+          child: SizedBox(
+            width: _kAvatarColumnWidth,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: AnimatedOpacity(
+                opacity: _isHovered ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 100),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _formatShortTimestamp(msg.timestamp.toLocal()),
+                      style: TextStyle(
+                        color: context.colors.textTertiaryMuted,
+                        fontSize: 10,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -688,6 +746,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             context,
             msg,
             isMobile,
+            dimMessagePartsExceptAttachments:
+                dimMessagePartsExceptAttachments,
             renderEmbeds: renderEmbeds,
             renderReactions: renderReactions,
             inlineAttachmentMedia: inlineAttachmentMedia,
@@ -713,6 +773,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     GuildUserDisplay authorDisplay,
     Color? roleColor,
     bool isMobile, {
+    required bool dimMessagePartsExceptAttachments,
     required bool renderEmbeds,
     required bool renderReactions,
     required bool inlineAttachmentMedia,
@@ -721,18 +782,21 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   }) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _canOpenAuthorProfile(msg)
-            ? () => _openAuthorProfile(context, msg)
-            : null,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: FluxerAvatar.user(
-            fallbackText: authorDisplay.displayName,
-            userId: msg.authorId,
-            imageUrl: authorDisplay.avatarUrl,
-            avatarColor: authorDisplay.avatarColor,
+      _wrapMessageSendingDim(
+        dim: dimMessagePartsExceptAttachments,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _canOpenAuthorProfile(msg)
+              ? () => _openAuthorProfile(context, msg)
+              : null,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: FluxerAvatar.user(
+              fallbackText: authorDisplay.displayName,
+              userId: msg.authorId,
+              imageUrl: authorDisplay.avatarUrl,
+              avatarColor: authorDisplay.avatarColor,
+            ),
           ),
         ),
       ),
@@ -741,43 +805,47 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Flexible(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _canOpenAuthorProfile(msg)
-                        ? () => _openAuthorProfile(context, msg)
-                        : null,
-                    child: Text(
-                      authorDisplay.displayName,
-                      style: TextStyle(
-                        color: roleColor ?? context.colors.textChat,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+            _wrapMessageSendingDim(
+              dim: dimMessagePartsExceptAttachments,
+              child: Row(
+                children: [
+                  Flexible(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _canOpenAuthorProfile(msg)
+                          ? () => _openAuthorProfile(context, msg)
+                          : null,
+                      child: Text(
+                        authorDisplay.displayName,
+                        style: TextStyle(
+                          color: roleColor ?? context.colors.textChat,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     ),
                   ),
-                ),
-                if (msg.authorIsBot) ...[
-                  const SizedBox(width: 6),
-                  const FluxerBotBadge(),
+                  if (msg.authorIsBot) ...[
+                    const SizedBox(width: 6),
+                    const FluxerBotBadge(),
+                  ],
+                  const SizedBox(width: 8),
+                  Text(
+                    _formatTimestamp(msg.timestamp.toLocal()),
+                    style: context.textStyles.timestamp,
+                  ),
                 ],
-
-                const SizedBox(width: 8),
-                Text(
-                  _formatTimestamp(msg.timestamp.toLocal()),
-                  style: context.textStyles.timestamp,
-                ),
-              ],
+              ),
             ),
             const SizedBox(height: 2),
             ..._buildMessageContent(
               context,
               msg,
               isMobile,
+              dimMessagePartsExceptAttachments:
+                  dimMessagePartsExceptAttachments,
               renderEmbeds: renderEmbeds,
               renderReactions: renderReactions,
               inlineAttachmentMedia: inlineAttachmentMedia,

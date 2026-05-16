@@ -2929,6 +2929,19 @@
   "@chatAttachmentSpoiler": {
     "description": "Badge text for spoiler attachments."
   },
+  "chatUploadingAttachmentsSummary": "Uploading {count, plural, one {# file} other {# files}}",
+  "@chatUploadingAttachmentsSummary": {
+    "description": "Filename-like progress label for a temporary message attachment while multiple selected files are uploading.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatCancelUpload": "Cancel upload",
+  "@chatCancelUpload": {
+    "description": "Button or menu action label for canceling an in-flight message attachment upload."
+  },
   "chatAttachmentExpiresOn": "Expires on {date}",
   "@chatAttachmentExpiresOn": {
     "description": "Footnote when attachment(s) share one expiry date. {date} is already formatted for the locale.",

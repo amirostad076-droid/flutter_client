@@ -24,7 +24,9 @@ import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dar
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
+import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -789,6 +791,23 @@ class ChatViewModel extends _$ChatViewModel {
         ? currentUser!.globalName!
         : currentUser?.username ?? 'You';
     final String clientNonce = _createClientNonce(channelId);
+    final CloudUploadController uploadNotifier = ref.read(
+      cloudUploadControllerProvider(channelId).notifier,
+    );
+    final bool hasPendingAttachments = pendingAttachments.isNotEmpty;
+    if (hasPendingAttachments) {
+      uploadNotifier.claimForMessage(clientNonce);
+    }
+    final FluxerLocalizations l10n = lookupFluxerLocalizations(
+      PlatformDispatcher.instance.locale,
+    );
+    final List<Attachment> optimisticAttachments = hasPendingAttachments
+        ? buildUploadingPlaceholderAttachments(
+            claimed: pendingAttachments,
+            labelForMultiple: (int count) =>
+                l10n.chatUploadingAttachmentsSummary(count),
+          )
+        : const <Attachment>[];
     final Message optimisticMessage = _buildOptimisticMessage(
       channelId: channelId,
       content: outgoingText,
@@ -799,6 +818,7 @@ class ChatViewModel extends _$ChatViewModel {
       authorAvatar: currentUser?.avatar,
       authorAvatarColor: currentUser?.avatarColor,
       clientNonce: clientNonce,
+      attachments: optimisticAttachments,
     );
 
     state = state.copyWith(
@@ -810,36 +830,64 @@ class ChatViewModel extends _$ChatViewModel {
     );
     clearStickyUnread();
     unawaited(ref.read(readStateRepositoryProvider).clearSticky(channelId));
+    ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);
 
+    if (!hasPendingAttachments) {
+      unawaited(
+        _completeSendWithoutAttachments(
+          channelId: channelId,
+          outgoingText: outgoingText,
+          replyToId: replyToId,
+          clientNonce: clientNonce,
+          stickerIds: stickerIds,
+          favoriteMemeId: favoriteMemeId,
+          optimisticMessageId: optimisticMessage.id,
+        ),
+      );
+      return;
+    }
+
+    unawaited(
+      _completeSendWithAttachments(
+        channelId: channelId,
+        outgoingText: outgoingText,
+        replyToId: replyToId,
+        clientNonce: clientNonce,
+        stickerIds: stickerIds,
+        favoriteMemeId: favoriteMemeId,
+        optimisticMessageId: optimisticMessage.id,
+        uploadNotifier: uploadNotifier,
+      ),
+    );
+  }
+
+  Future<void> _completeSendWithoutAttachments({
+    required String channelId,
+    required String outgoingText,
+    required String? replyToId,
+    required String clientNonce,
+    required List<String> stickerIds,
+    required String? favoriteMemeId,
+    required String optimisticMessageId,
+  }) async {
     try {
-      final CloudUploadController uploadNotifier = ref.read(
-        cloudUploadControllerProvider(channelId).notifier,
-      );
-      final prepared = await uploadNotifier.prepareForSend(
-        favoriteMemePayload: favoriteMemeId != null,
-      );
-      final repo = ref.read(messageRepositoryProvider);
-      final Message sent = await repo.sendMessage(
+      final Message sent = await ref.read(messageRepositoryProvider).sendMessage(
         channelId: channelId,
         content: outgoingText,
         replyToId: replyToId,
         clientNonce: clientNonce,
         stickerIds: stickerIds,
         favoriteMemeId: favoriteMemeId,
-        attachmentMetadata: prepared.attachmentMetadata,
-        attachmentFiles: prepared.attachmentFiles,
       );
-      uploadNotifier.clearComposerAttachments();
-      ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);
       if (state.channelId != channelId) {
         return;
       }
       final int optimisticIndex = state.messages.indexWhere(
-        (m) => m.id == optimisticMessage.id,
+        (Message m) => m.id == optimisticMessageId,
       );
       final List<Message> nextMessages = _replaceOptimisticWithDelivered(
         messages: state.messages,
-        optimisticId: optimisticIndex == -1 ? null : optimisticMessage.id,
+        optimisticId: optimisticIndex == -1 ? null : optimisticMessageId,
         delivered: sent.copyWith(
           deliveryState: MessageDeliveryState.sent,
           sendError: null,
@@ -851,23 +899,103 @@ class ChatViewModel extends _$ChatViewModel {
       );
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to send: $e');
-      final int optimisticIndex = state.messages.indexWhere(
-        (m) => m.id == optimisticMessage.id,
+      _markOptimisticSendFailed(optimisticMessageId);
+    }
+  }
+
+  Future<void> _completeSendWithAttachments({
+    required String channelId,
+    required String outgoingText,
+    required String? replyToId,
+    required String clientNonce,
+    required List<String> stickerIds,
+    required String? favoriteMemeId,
+    required String optimisticMessageId,
+    required CloudUploadController uploadNotifier,
+  }) async {
+    try {
+      final prepared = await uploadNotifier.prepareSessionForSend(
+        nonce: clientNonce,
+        favoriteMemePayload: favoriteMemeId != null,
       );
-      if (optimisticIndex == -1) {
-        state = state.copyWith(errorMessage: 'Failed to send message');
+      final Message sent = await ref.read(messageRepositoryProvider).sendMessage(
+        channelId: channelId,
+        content: outgoingText,
+        replyToId: replyToId,
+        clientNonce: clientNonce,
+        stickerIds: stickerIds,
+        favoriteMemeId: favoriteMemeId,
+        attachmentMetadata: prepared.attachmentMetadata,
+        attachmentFiles: prepared.attachmentFiles,
+      );
+      uploadNotifier.removeMessageUpload(clientNonce);
+      if (state.channelId != channelId) {
         return;
       }
-      final List<Message> nextMessages = List<Message>.from(state.messages);
-      nextMessages[optimisticIndex] = nextMessages[optimisticIndex].copyWith(
-        deliveryState: MessageDeliveryState.failed,
-        sendError: 'Failed to send message',
+      final int optimisticIndex = state.messages.indexWhere(
+        (Message m) => m.id == optimisticMessageId,
+      );
+      final List<Message> nextMessages = _replaceOptimisticWithDelivered(
+        messages: state.messages,
+        optimisticId: optimisticIndex == -1 ? null : optimisticMessageId,
+        delivered: sent.copyWith(
+          deliveryState: MessageDeliveryState.sent,
+          sendError: null,
+        ),
       );
       state = state.copyWith(
         messages: nextMessages,
-        errorMessage: 'Failed to send message',
+        scrollToBottomSignal: state.scrollToBottomSignal + 1,
       );
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to send: $e');
+      uploadNotifier.restoreToComposer(clientNonce);
+      uploadNotifier.removeMessageUpload(clientNonce);
+      _markOptimisticSendFailed(optimisticMessageId);
     }
+  }
+
+  void _markOptimisticSendFailed(String optimisticMessageId) {
+    final int optimisticIndex = state.messages.indexWhere(
+      (Message m) => m.id == optimisticMessageId,
+    );
+    if (optimisticIndex == -1) {
+      state = state.copyWith(errorMessage: 'Failed to send message');
+      return;
+    }
+    final List<Message> nextMessages = List<Message>.from(state.messages);
+    nextMessages[optimisticIndex] = nextMessages[optimisticIndex].copyWith(
+      deliveryState: MessageDeliveryState.failed,
+      sendError: 'Failed to send message',
+    );
+    state = state.copyWith(
+      messages: nextMessages,
+      errorMessage: 'Failed to send message',
+    );
+  }
+
+  void cancelSendingMessage(String messageId) {
+    final int messageIndex = state.messages.indexWhere(
+      (Message m) => m.id == messageId,
+    );
+    if (messageIndex == -1) {
+      return;
+    }
+    final Message message = state.messages[messageIndex];
+    if (!message.isSending) {
+      return;
+    }
+    final String? nonce = message.clientNonce;
+    if (nonce != null) {
+      ref
+          .read(cloudUploadControllerProvider(message.channelId).notifier)
+          .cancelMessageUpload(nonce);
+    }
+    final List<Message>? next = _removeIds(state.messages, {messageId});
+    if (next == null) {
+      return;
+    }
+    state = state.copyWith(messages: next);
   }
 
   Future<void> retryMessageSend(String messageId) async {
@@ -1123,6 +1251,7 @@ class ChatViewModel extends _$ChatViewModel {
     required String? authorAvatar,
     required int? authorAvatarColor,
     required String clientNonce,
+    List<Attachment> attachments = const <Attachment>[],
   }) {
     final DateTime now = DateTime.now();
     return Message(
@@ -1135,6 +1264,7 @@ class ChatViewModel extends _$ChatViewModel {
       content: content,
       timestamp: now,
       replyToId: replyToId,
+      attachments: attachments,
       stickers: stickerIds
           .map(
             (String stickerId) =>

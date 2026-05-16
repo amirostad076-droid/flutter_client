@@ -4102,6 +4102,18 @@ abstract class FluxerLocalizations {
   /// **'Spoiler'**
   String get chatAttachmentSpoiler;
 
+  /// Filename-like progress label for a temporary message attachment while multiple selected files are uploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading {count, plural, one {# file} other {# files}}'**
+  String chatUploadingAttachmentsSummary(int count);
+
+  /// Button or menu action label for canceling an in-flight message attachment upload.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel upload'**
+  String get chatCancelUpload;
+
   /// Footnote when attachment(s) share one expiry date. {date} is already formatted for the locale.
   ///
   /// In en, this message translates to:

@@ -2388,6 +2388,20 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatAttachmentSpoiler => 'Spoiler';
 
   @override
+  String chatUploadingAttachmentsSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# files',
+      one: '# file',
+    );
+    return 'Uploading $_temp0';
+  }
+
+  @override
+  String get chatCancelUpload => 'Cancel upload';
+
+  @override
   String chatAttachmentExpiresOn(String date) {
     return 'Expires on $date';
   }

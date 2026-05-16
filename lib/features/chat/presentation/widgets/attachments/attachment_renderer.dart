@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_audio.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/message_upload_progress.dart';
+import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_expiry_footnote.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_file.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_image.dart';
@@ -19,6 +21,9 @@ class AttachmentRenderer extends StatelessWidget {
     required this.revealSpoilers,
     this.imageGallery,
     this.imageGalleryIndex = 0,
+    this.messageId,
+    this.messageNonce,
+    this.channelId,
     super.key,
   });
 
@@ -28,6 +33,9 @@ class AttachmentRenderer extends StatelessWidget {
   final bool revealSpoilers;
   final List<Attachment>? imageGallery;
   final int imageGalleryIndex;
+  final String? messageId;
+  final String? messageNonce;
+  final String? channelId;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +69,17 @@ class AttachmentRenderer extends StatelessWidget {
   }
 
   Widget _buildContent(AttachmentRenderState renderState) {
+    if (isUploadingPlaceholderAttachment(attachment) &&
+        messageId != null &&
+        messageNonce != null &&
+        channelId != null) {
+      return MessageUploadProgress(
+        attachment: attachment,
+        messageId: messageId!,
+        messageNonce: messageNonce!,
+        channelId: channelId!,
+      );
+    }
     if (renderState.shouldRenderAsFile) {
       return AttachmentFile(attachment: attachment);
     }

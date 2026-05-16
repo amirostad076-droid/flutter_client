@@ -28,7 +28,9 @@ class ChannelAttachmentArea extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
+        const Divider(),
+        Container(
+          margin: const EdgeInsets.only(bottom: 6, top: 8),
           height: 130,
           child: ReorderableListView.builder(
             scrollDirection: Axis.horizontal,
@@ -132,19 +134,6 @@ class _AttachmentChip extends ConsumerWidget {
                       color: colors.textPrimary,
                       fontWeight: FontWeight.w700,
                     ),
-                  ),
-                ),
-              ),
-            if (attachment.status == PendingAttachmentStatus.uploading)
-              ColoredBox(
-                color: colors.backgroundPrimary.withValues(alpha: 0.55),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    value:
-                        attachment.uploadProgress > 0 &&
-                            attachment.uploadProgress < 1
-                        ? attachment.uploadProgress
-                        : null,
                   ),
                 ),
               ),

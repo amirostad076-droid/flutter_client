@@ -11,6 +11,9 @@ class AttachmentListRenderer extends StatelessWidget {
     required this.dimensionSize,
     required this.revealSpoilers,
     this.topPadding = 0,
+    this.messageId,
+    this.messageNonce,
+    this.channelId,
     super.key,
   });
 
@@ -19,6 +22,9 @@ class AttachmentListRenderer extends StatelessWidget {
   final MediaDimensionSize dimensionSize;
   final bool revealSpoilers;
   final double topPadding;
+  final String? messageId;
+  final String? messageNonce;
+  final String? channelId;
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +73,9 @@ class AttachmentListRenderer extends StatelessWidget {
           imageGalleryIndex: isImageAttachment
               ? imageAttachments.indexOf(attachment)
               : 0,
+          messageId: messageId,
+          messageNonce: messageNonce,
+          channelId: channelId,
         ),
       );
     }
