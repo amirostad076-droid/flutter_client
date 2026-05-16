@@ -31,7 +31,7 @@ Future<void> _seedGuild(
     MembersCompanion.insert(
       userId: 'me',
       guildId: guildId,
-      joinedAt: Value(DateTime.utc(2026, 1, 1)),
+      joinedAt: Value(DateTime.utc(2026)),
     ),
   );
   for (final c in channels) {

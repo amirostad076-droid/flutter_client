@@ -14,12 +14,12 @@ AckBatcher ackBatcher(Ref ref) {
   final batcher = AckBatcher(client: client);
 
   ref.listen<bool>(appUiForegroundProvider, (prev, next) {
-    if (prev == true && next == false) {
+    if ((prev ?? false) && !next) {
       unawaited(batcher.flushPending(force: true));
     }
   });
   ref.listen<bool>(gatewayReadyProvider, (prev, next) {
-    if (prev == true && next == false) {
+    if ((prev ?? false) && !next) {
       unawaited(batcher.flushPending(force: true));
     }
   });

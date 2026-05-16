@@ -46,10 +46,7 @@ class _VolumePopoutControlState extends State<VolumePopoutControl> {
     if (_isOpen) {
       return;
     }
-    final OverlayState? overlay = Overlay.of(context, rootOverlay: true);
-    if (overlay == null) {
-      return;
-    }
+    final OverlayState overlay = Overlay.of(context, rootOverlay: true);
     _overlayEntry = OverlayEntry(builder: _buildOverlayEntry);
     setState(() {
       _isOpen = true;
@@ -172,7 +169,6 @@ class _VolumePopoutControlState extends State<VolumePopoutControl> {
                               children: [
                                 Positioned.fill(
                                   child: Align(
-                                    alignment: Alignment.center,
                                     child: Container(
                                       width: 4,
                                       decoration: BoxDecoration(

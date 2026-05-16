@@ -134,7 +134,7 @@ void main() {
         response: _profile(
           userPronouns: 'she/her',
           guildMember: _guildMember(),
-          guildProfile: _guildProfile(pronouns: null),
+          guildProfile: _guildProfile(),
         ),
         guildId: '10',
         relationshipNickname: null,

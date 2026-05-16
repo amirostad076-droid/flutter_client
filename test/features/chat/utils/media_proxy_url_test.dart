@@ -62,7 +62,7 @@ void main() {
         layoutDimensions: compactMediaDimensions,
       );
       expect(actual, isNotNull);
-      expect(actual!, contains('format=webp'));
+      expect(actual, contains('format=webp'));
     });
   });
 }

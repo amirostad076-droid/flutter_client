@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -7,8 +6,8 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
-import 'package:fluxer_app/shared/widgets/volume_popout_control.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
+import 'package:fluxer_app/shared/widgets/volume_popout_control.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class AttachmentAudio extends StatefulWidget {
@@ -376,7 +375,6 @@ class _AudioPlayButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FluxerButton.circle(
       onPressed: onPressed,
-      variant: FluxerButtonVariant.primary,
       size: FluxerButtonSize.compact,
       isLoading: isLoading,
       icon: isPlaying ? PhosphorIconsFill.pause : PhosphorIconsFill.play,
