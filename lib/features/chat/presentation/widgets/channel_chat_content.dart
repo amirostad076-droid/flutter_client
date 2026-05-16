@@ -158,6 +158,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                                 ),
                               ),
                               Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   if (showNeko) const NekoSprite(),
                                   const SlowmodeIndicator(),
