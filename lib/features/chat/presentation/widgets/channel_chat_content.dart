@@ -150,6 +150,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                           child: Row(
                             spacing: 8,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               const Flexible(
                                 child: Padding(
