@@ -245,14 +245,6 @@ class GuildReadState extends _$GuildReadState {
         continue;
       }
 
-      if (!await canReadChannelForUnread(
-        database: db,
-        channel: channel,
-        currentUserId: currentUserId,
-      )) {
-        continue;
-      }
-
       final readState = _readStateSnapshot[channel.id];
       final contribution = await _computeChannelContribution(
         channel: channel,
