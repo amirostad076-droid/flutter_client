@@ -78,6 +78,9 @@ class Guild {
     if (icon == null) {
       return null;
     }
+    if (hasAnimatedIcon) {
+      return '$fluxerMediaCdn/icons/$id/$icon.webp?animated=false';
+    }
     return '$fluxerMediaCdn/icons/$id/$icon.png';
   }
 

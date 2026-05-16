@@ -2251,24 +2251,40 @@ class _GuildListItemState extends State<_GuildListItem>
                                     ),
                                   )
                                 : widget.iconUrl != null
-                                ? CachedNetworkImage(
-                                    imageUrl:
-                                        isActive &&
-                                            widget.guild?.animatedIconUrl !=
-                                                null
-                                        ? widget.guild!.animatedIconUrl!
-                                        : widget.iconUrl!,
-                                    errorBuilder: (context, url, error) =>
-                                        _buildBackupIcon(
-                                          context,
-                                          isActive: isActive,
+                                ? Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      CachedNetworkImage(
+                                        imageUrl: widget.iconUrl!,
+                                        errorBuilder:
+                                            (context, url, error) =>
+                                                _buildBackupIcon(
+                                                  context,
+                                                  isActive: isActive,
+                                                ),
+                                        progressIndicatorBuilder:
+                                            (context, url, progress) =>
+                                                _buildBackupIcon(
+                                                  context,
+                                                  isActive: isActive,
+                                                ),
+                                      ),
+                                      if (isActive &&
+                                          widget.guild?.animatedIconUrl != null)
+                                        CachedNetworkImage(
+                                          imageUrl:
+                                              widget.guild!.animatedIconUrl!,
+                                          fadeInDuration: const Duration(
+                                            milliseconds: 200,
+                                          ),
+                                          errorBuilder:
+                                              (context, url, error) =>
+                                                  const SizedBox.shrink(),
+                                          progressIndicatorBuilder:
+                                              (context, url, progress) =>
+                                                  const SizedBox.shrink(),
                                         ),
-                                    progressIndicatorBuilder:
-                                        (context, url, progress) =>
-                                            _buildBackupIcon(
-                                              context,
-                                              isActive: isActive,
-                                            ),
+                                    ],
                                   )
                                 : _buildBackupIcon(context, isActive: isActive),
                           ),
