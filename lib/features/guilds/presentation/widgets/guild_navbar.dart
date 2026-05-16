@@ -2111,8 +2111,12 @@ class _GuildListItem extends StatefulWidget {
   State<_GuildListItem> createState() => _GuildListItemState();
 }
 
-class _GuildListItemState extends State<_GuildListItem> {
+class _GuildListItemState extends State<_GuildListItem>
+    with AutomaticKeepAliveClientMixin {
   var _isHovered = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   Widget _buildBackupIcon(BuildContext context, {required bool isActive}) {
     final iconColor = isActive
@@ -2141,6 +2145,7 @@ class _GuildListItemState extends State<_GuildListItem> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final isActive = widget.isSelected || _isHovered;
     final borderRadius = isActive ? 13.0 : 22.0;
     final hasImage = widget.iconUrl != null && !widget.isUnavailable;

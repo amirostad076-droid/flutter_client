@@ -35,13 +35,18 @@ class DmNavbarItem extends ConsumerStatefulWidget {
   ConsumerState<DmNavbarItem> createState() => _DmNavbarItemState();
 }
 
-class _DmNavbarItemState extends ConsumerState<DmNavbarItem> {
+class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
+    with AutomaticKeepAliveClientMixin {
   bool _isHovered = false;
 
   bool get _hasUnread => widget.hasUnread || widget.mentionCount > 0;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final colors = context.colors;
 
     final indicatorHeight = widget.isSelected
