@@ -259,6 +259,70 @@ void main() {
     fail('expected loading state for unread channel');
   });
 
+  test(
+    'cache-first sync removes deleted messages from memory and drift',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final anchorId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 10));
+      final deletedId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 11));
+      final keptId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 12));
+      await db.messageDao.upsertMessages([
+        _cachedMessage(id: anchorId, channelId: 'channel-1', authorId: 'other'),
+        _cachedMessage(
+          id: deletedId,
+          channelId: 'channel-1',
+          authorId: 'other',
+        ),
+        _cachedMessage(id: keptId, channelId: 'channel-1', authorId: 'other'),
+      ]);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(keptId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(keptId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: keptId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: anchorId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      )..holdMessageFetch = true;
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      expect(
+        container.read(chatViewModelProvider).messages.map((m) => m.id),
+        containsAll([anchorId, deletedId, keptId]),
+      );
+
+      adapter.releaseMessageFetch();
+      for (var i = 0; i < 30; i++) {
+        await _flushAsync();
+        if (!container.read(chatViewModelProvider).isSyncingMessages) {
+          break;
+        }
+      }
+
+      final state = container.read(chatViewModelProvider);
+      expect(state.isSyncingMessages, isFalse);
+      expect(state.messages.map((m) => m.id), [anchorId, keptId]);
+      expect(await db.messageDao.getMessage(deletedId), null);
+      expect(await db.messageDao.getMessage(keptId), isNot(null));
+    },
+  );
+
   test('cache miss keeps loading state until network returns', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);

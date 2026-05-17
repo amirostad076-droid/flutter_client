@@ -28,6 +28,7 @@ import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
+import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -458,8 +459,15 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId != channelId) {
         return;
       }
+      final String? syncBaselineOldestId = state.messages.isEmpty
+          ? null
+          : state.messages.first.id;
       state = state.copyWith(
-        messages: messages,
+        messages: reconcileMessagesWithNetworkPage(
+          current: state.messages,
+          networkPage: messages,
+          syncBaselineOldestId: syncBaselineOldestId,
+        ),
         isLoading: false,
         isSyncingMessages: false,
         hasMoreMessages: messages.length >= _kPageSize,

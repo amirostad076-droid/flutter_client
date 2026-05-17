@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/chat/domain/api_attachment_metadata.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -103,6 +104,7 @@ class MessageRepository {
       await _db.messageDao.upsertMessages(
         messages.map((m) => m.toCompanion()).toList(),
       );
+      await _pruneStaleMessagesForNetworkPage(channelId, messages);
 
       if (messages.isNotEmpty) {
         final last = messages.last;
@@ -249,6 +251,7 @@ class MessageRepository {
       await _db.messageDao.upsertMessages(
         messages.map((m) => m.toCompanion()).toList(),
       );
+      await _pruneStaleMessagesForNetworkPage(channelId, messages);
 
       final last = messages.last;
       await _db.dmChannelDao.updateLastMessage(
@@ -268,6 +271,24 @@ class MessageRepository {
     }
 
     return messages;
+  }
+
+  Future<void> _pruneStaleMessagesForNetworkPage(
+    String channelId,
+    List<Message> networkPage,
+  ) async {
+    if (networkPage.isEmpty) {
+      return;
+    }
+    final DateTime oldest = networkPage.first.timestamp;
+    final DateTime newest = networkPage.last.timestamp;
+    final List<db.Message> localRows = await _db.messageDao
+        .getMessagesInTimestampRange(channelId, oldest, newest);
+    final List<String> staleIds = networkPageStaleLocalIds(
+      localMessageIds: localRows.map((db.Message row) => row.id),
+      networkPage: networkPage,
+    );
+    await _db.messageDao.deleteMessages(staleIds);
   }
 
   bool _isMentionedFromJson(Map<String, dynamic> map) {

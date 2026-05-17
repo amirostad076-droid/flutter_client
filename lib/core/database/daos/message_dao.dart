@@ -66,6 +66,21 @@ class MessageDao extends DatabaseAccessor<FluxerDatabase>
             ..limit(1))
           .getSingleOrNull();
 
+  Future<List<Message>> getMessagesInTimestampRange(
+    String channelId,
+    DateTime oldest,
+    DateTime newest,
+  ) =>
+      (select(messages)
+            ..where(
+              (m) =>
+                  m.channelId.equals(channelId) &
+                  m.timestamp.isBiggerOrEqualValue(oldest) &
+                  m.timestamp.isSmallerOrEqualValue(newest),
+            )
+            ..orderBy([(m) => OrderingTerm.asc(m.timestamp)]))
+          .get();
+
   Future<Message?> getPreviousMessage(String channelId, String beforeId) async {
     final reference = await (select(
       messages,
