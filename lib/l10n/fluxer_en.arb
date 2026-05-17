@@ -971,6 +971,154 @@
   "@dmIgnoreFriendRequestFailed": {
     "description": "Toast message when ignoring a friend request fails."
   },
+  "dmAddFriends": "Add friends",
+  "@dmAddFriends": {
+    "description": "Mobile DM list header button to open the add friends sheet."
+  },
+  "addFriendSheetTitle": "Add friend",
+  "@addFriendSheetTitle": {
+    "description": "Title for the mobile add friends bottom sheet."
+  },
+  "addFriendUsernameHint": "Username#0000",
+  "@addFriendUsernameHint": {
+    "description": "Placeholder for the add friend username input."
+  },
+  "addFriendUsernameLabel": "Friend's username",
+  "@addFriendUsernameLabel": {
+    "description": "Accessibility label for the add friend username input."
+  },
+  "addFriendSendRequest": "Send request",
+  "@addFriendSendRequest": {
+    "description": "Submit button on the add friend form."
+  },
+  "addFriendNoUserFound": "No user found with that username.",
+  "@addFriendNoUserFound": {
+    "description": "Error when no user matches the entered FluxerTag."
+  },
+  "addFriendInvalidUsername": "Enter a valid username (Username#0000).",
+  "@addFriendInvalidUsername": {
+    "description": "Error when the FluxerTag format is invalid."
+  },
+  "addFriendOutgoingSuccess": "Friend request sent",
+  "@addFriendOutgoingSuccess": {
+    "description": "Success message after sending a friend request by tag."
+  },
+  "addFriendClaimTitle": "Claim your account",
+  "@addFriendClaimTitle": {
+    "description": "Title when unclaimed users try to send friend requests."
+  },
+  "addFriendClaimDescription": "Claim your account to send friend requests.",
+  "@addFriendClaimDescription": {
+    "description": "Description when unclaimed users try to send friend requests."
+  },
+  "addFriendVerifyTitle": "Verify your email",
+  "@addFriendVerifyTitle": {
+    "description": "Title when unverified users try to send friend requests."
+  },
+  "addFriendVerifyDescription": "You need to verify your email address before you can send friend requests.",
+  "@addFriendVerifyDescription": {
+    "description": "Description when unverified users try to send friend requests."
+  },
+  "addFriendVerifyEmail": "Verify email",
+  "@addFriendVerifyEmail": {
+    "description": "Button to open settings for email verification."
+  },
+  "addFriendIncomingRequests": "Incoming friend requests ({count})",
+  "@addFriendIncomingRequests": {
+    "description": "Section header for incoming friend requests in the add friend sheet.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFriendOutgoingRequests": "Outgoing friend requests ({count})",
+  "@addFriendOutgoingRequests": {
+    "description": "Section header for outgoing friend requests in the add friend sheet.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFriendIncomingStatus": "Incoming friend request",
+  "@addFriendIncomingStatus": {
+    "description": "Subtitle on an incoming friend request row in the add friend sheet."
+  },
+  "addFriendOutgoingStatus": "Friend request sent",
+  "@addFriendOutgoingStatus": {
+    "description": "Subtitle on an outgoing friend request row in the add friend sheet."
+  },
+  "addFriendViewProfile": "View profile",
+  "@addFriendViewProfile": {
+    "description": "Menu action to open a user's profile from a friend request row."
+  },
+  "addFriendAccept": "Accept",
+  "@addFriendAccept": {
+    "description": "Menu action to accept an incoming friend request."
+  },
+  "addFriendIgnore": "Ignore",
+  "@addFriendIgnore": {
+    "description": "Menu action to ignore an incoming friend request."
+  },
+  "addFriendAcceptTitle": "Accept friend request",
+  "@addFriendAcceptTitle": {
+    "description": "Title for the accept friend request confirmation modal."
+  },
+  "addFriendIgnoreTitle": "Ignore friend request",
+  "@addFriendIgnoreTitle": {
+    "description": "Title for the ignore friend request confirmation modal."
+  },
+  "addFriendAcceptConfirmDescription": "Accept the friend request from {userName}?",
+  "@addFriendAcceptConfirmDescription": {
+    "description": "Confirmation body before accepting a friend request from the add friend sheet.",
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "addFriendIgnoreConfirmDescription": "Ignore the friend request from {displayName}?",
+  "@addFriendIgnoreConfirmDescription": {
+    "description": "Confirmation body before ignoring a friend request from the add friend sheet.",
+    "placeholders": {
+      "displayName": {
+        "type": "String"
+      }
+    }
+  },
+  "addFriendCancelRequest": "Cancel request",
+  "@addFriendCancelRequest": {
+    "description": "Menu action to cancel an outgoing friend request."
+  },
+  "addFriendCancelRequestFailed": "Couldn't cancel the friend request. Try again.",
+  "@addFriendCancelRequestFailed": {
+    "description": "Toast when canceling an outgoing friend request fails."
+  },
+  "addFriendNotAcceptingRequests": "They're not accepting friend requests right now.",
+  "@addFriendNotAcceptingRequests": {
+    "description": "Error when the target user has disabled friend requests."
+  },
+  "addFriendUnblockFirst": "Unblock them first to send a friend request.",
+  "@addFriendUnblockFirst": {
+    "description": "Error when trying to friend a blocked user."
+  },
+  "addFriendCannotSendToSelf": "You can't send a friend request to yourself.",
+  "@addFriendCannotSendToSelf": {
+    "description": "Error when trying to friend yourself."
+  },
+  "addFriendAlreadyFriends": "You're already friends with this user.",
+  "@addFriendAlreadyFriends": {
+    "description": "Error when users are already friends."
+  },
+  "addFriendClaimToSend": "Finish signing up to send friend requests.",
+  "@addFriendClaimToSend": {
+    "description": "Error when an unclaimed account tries to send a friend request."
+  },
+  "addFriendSendFailedGeneric": "Couldn't send the friend request. Try again.",
+  "@addFriendSendFailedGeneric": {
+    "description": "Generic error when sending a friend request fails."
+  },
   "userTagBot": "BOT",
   "@userTagBot": {
     "description": "Tag label shown next to bot user names."

@@ -15,6 +15,8 @@ import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod/src/framework.dart' show Override;
@@ -44,6 +46,25 @@ void main() {
 
       expect(find.text('Messages'), findsOneWidget);
       expect(find.byType(Divider), findsOneWidget);
+    });
+
+    testWidgets('opens add friends sheet when tapping Add friends', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(conversations: const []),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.text('Add friends'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add friend'), findsOneWidget);
+      expect(find.text("Friend's username"), findsOneWidget);
     });
 
     testWidgets('places the pin icon before the DM title on mobile rows', (
@@ -232,7 +253,32 @@ List<Override> _buildOverrides({
       (ref) => Stream.value(const <String>{}),
     ),
     pendingFriendRequestCountProvider.overrideWith((ref) => Stream.value(0)),
+    friendsListProvider.overrideWith(
+      (ref) => Stream.value(friendsList),
+    ),
+    userSettingsViewModelProvider.overrideWith(_VerifiedUserSettingsViewModel.new),
   ];
+}
+
+class _VerifiedUserSettingsViewModel extends UserSettingsViewModel {
+  @override
+  UserSettingsViewState build() {
+    return UserSettingsViewState(
+      userId: '1',
+      username: 'user',
+      displayName: 'user',
+      discriminator: '0001',
+      avatar: null,
+      avatarColor: null,
+      memberSince: null,
+      status: 'online',
+      messageDisplayCompact: false,
+      developerMode: false,
+      trustedDomains: const <String>[],
+      email: 'user@example.com',
+      verified: true,
+    );
+  }
 }
 
 Widget _buildTestApp({required List<Override> overrides}) {
@@ -241,6 +287,8 @@ Widget _buildTestApp({required List<Override> overrides}) {
   return ProviderScope(
     overrides: overrides,
     child: MaterialApp.router(
+      localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+      supportedLocales: FluxerLocalizations.supportedLocales,
       theme: buildFluxerTheme(
         colorTheme: colorTheme,
         textTheme: FluxerTextTheme.fromColors(colorTheme),

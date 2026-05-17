@@ -754,6 +754,120 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get dmIgnoreFriendRequestFailed => 'Failed to ignore friend request';
 
   @override
+  String get dmAddFriends => 'Add friends';
+
+  @override
+  String get addFriendSheetTitle => 'Add friend';
+
+  @override
+  String get addFriendUsernameHint => 'Username#0000';
+
+  @override
+  String get addFriendUsernameLabel => 'Friend\'s username';
+
+  @override
+  String get addFriendSendRequest => 'Send request';
+
+  @override
+  String get addFriendNoUserFound => 'No user found with that username.';
+
+  @override
+  String get addFriendInvalidUsername =>
+      'Enter a valid username (Username#0000).';
+
+  @override
+  String get addFriendOutgoingSuccess => 'Friend request sent';
+
+  @override
+  String get addFriendClaimTitle => 'Claim your account';
+
+  @override
+  String get addFriendClaimDescription =>
+      'Claim your account to send friend requests.';
+
+  @override
+  String get addFriendVerifyTitle => 'Verify your email';
+
+  @override
+  String get addFriendVerifyDescription =>
+      'You need to verify your email address before you can send friend requests.';
+
+  @override
+  String get addFriendVerifyEmail => 'Verify email';
+
+  @override
+  String addFriendIncomingRequests(int count) {
+    return 'Incoming friend requests ($count)';
+  }
+
+  @override
+  String addFriendOutgoingRequests(int count) {
+    return 'Outgoing friend requests ($count)';
+  }
+
+  @override
+  String get addFriendIncomingStatus => 'Incoming friend request';
+
+  @override
+  String get addFriendOutgoingStatus => 'Friend request sent';
+
+  @override
+  String get addFriendViewProfile => 'View profile';
+
+  @override
+  String get addFriendAccept => 'Accept';
+
+  @override
+  String get addFriendIgnore => 'Ignore';
+
+  @override
+  String get addFriendAcceptTitle => 'Accept friend request';
+
+  @override
+  String get addFriendIgnoreTitle => 'Ignore friend request';
+
+  @override
+  String addFriendAcceptConfirmDescription(String userName) {
+    return 'Accept the friend request from $userName?';
+  }
+
+  @override
+  String addFriendIgnoreConfirmDescription(String displayName) {
+    return 'Ignore the friend request from $displayName?';
+  }
+
+  @override
+  String get addFriendCancelRequest => 'Cancel request';
+
+  @override
+  String get addFriendCancelRequestFailed =>
+      'Couldn\'t cancel the friend request. Try again.';
+
+  @override
+  String get addFriendNotAcceptingRequests =>
+      'They\'re not accepting friend requests right now.';
+
+  @override
+  String get addFriendUnblockFirst =>
+      'Unblock them first to send a friend request.';
+
+  @override
+  String get addFriendCannotSendToSelf =>
+      'You can\'t send a friend request to yourself.';
+
+  @override
+  String get addFriendAlreadyFriends =>
+      'You\'re already friends with this user.';
+
+  @override
+  String get addFriendClaimToSend =>
+      'Finish signing up to send friend requests.';
+
+  @override
+  String get addFriendSendFailedGeneric =>
+      'Couldn\'t send the friend request. Try again.';
+
+  @override
   String get userTagBot => 'BOT';
 
   @override

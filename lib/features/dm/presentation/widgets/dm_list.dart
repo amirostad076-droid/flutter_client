@@ -18,6 +18,7 @@ import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
+import 'package:fluxer_app/shared/sheets/add_friend_sheet.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart'
     show fluxerMediaCdn;
@@ -361,6 +362,7 @@ class _DMListState extends ConsumerState<DMList> {
   );
 
   Widget _buildMobileHeader(BuildContext context) {
+    final l10n = FluxerLocalizations.of(context);
     final pendingCount =
         ref.watch(pendingFriendRequestCountProvider).value ?? 0;
 
@@ -386,7 +388,7 @@ class _DMListState extends ConsumerState<DMList> {
           ),
           const SizedBox(width: 8),
           InkWell(
-            onTap: () => context.go(RoutePaths.me),
+            onTap: () => AddFriendSheet.show(context),
             borderRadius: BorderRadius.circular(16),
             child: Stack(
               clipBehavior: Clip.none,
@@ -410,7 +412,7 @@ class _DMListState extends ConsumerState<DMList> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Add Friends',
+                        l10n.dmAddFriends,
                         style: TextStyle(
                           color: context.colors.textPrimary,
                           fontSize: 14,

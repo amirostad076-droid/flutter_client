@@ -1456,6 +1456,198 @@ abstract class FluxerLocalizations {
   /// **'Failed to ignore friend request'**
   String get dmIgnoreFriendRequestFailed;
 
+  /// Mobile DM list header button to open the add friends sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add friends'**
+  String get dmAddFriends;
+
+  /// Title for the mobile add friends bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add friend'**
+  String get addFriendSheetTitle;
+
+  /// Placeholder for the add friend username input.
+  ///
+  /// In en, this message translates to:
+  /// **'Username#0000'**
+  String get addFriendUsernameHint;
+
+  /// Accessibility label for the add friend username input.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend\'s username'**
+  String get addFriendUsernameLabel;
+
+  /// Submit button on the add friend form.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get addFriendSendRequest;
+
+  /// Error when no user matches the entered FluxerTag.
+  ///
+  /// In en, this message translates to:
+  /// **'No user found with that username.'**
+  String get addFriendNoUserFound;
+
+  /// Error when the FluxerTag format is invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid username (Username#0000).'**
+  String get addFriendInvalidUsername;
+
+  /// Success message after sending a friend request by tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request sent'**
+  String get addFriendOutgoingSuccess;
+
+  /// Title when unclaimed users try to send friend requests.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim your account'**
+  String get addFriendClaimTitle;
+
+  /// Description when unclaimed users try to send friend requests.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim your account to send friend requests.'**
+  String get addFriendClaimDescription;
+
+  /// Title when unverified users try to send friend requests.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get addFriendVerifyTitle;
+
+  /// Description when unverified users try to send friend requests.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to verify your email address before you can send friend requests.'**
+  String get addFriendVerifyDescription;
+
+  /// Button to open settings for email verification.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify email'**
+  String get addFriendVerifyEmail;
+
+  /// Section header for incoming friend requests in the add friend sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming friend requests ({count})'**
+  String addFriendIncomingRequests(int count);
+
+  /// Section header for outgoing friend requests in the add friend sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Outgoing friend requests ({count})'**
+  String addFriendOutgoingRequests(int count);
+
+  /// Subtitle on an incoming friend request row in the add friend sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming friend request'**
+  String get addFriendIncomingStatus;
+
+  /// Subtitle on an outgoing friend request row in the add friend sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request sent'**
+  String get addFriendOutgoingStatus;
+
+  /// Menu action to open a user's profile from a friend request row.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get addFriendViewProfile;
+
+  /// Menu action to accept an incoming friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get addFriendAccept;
+
+  /// Menu action to ignore an incoming friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore'**
+  String get addFriendIgnore;
+
+  /// Title for the accept friend request confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept friend request'**
+  String get addFriendAcceptTitle;
+
+  /// Title for the ignore friend request confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore friend request'**
+  String get addFriendIgnoreTitle;
+
+  /// Confirmation body before accepting a friend request from the add friend sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept the friend request from {userName}?'**
+  String addFriendAcceptConfirmDescription(String userName);
+
+  /// Confirmation body before ignoring a friend request from the add friend sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore the friend request from {displayName}?'**
+  String addFriendIgnoreConfirmDescription(String displayName);
+
+  /// Menu action to cancel an outgoing friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get addFriendCancelRequest;
+
+  /// Toast when canceling an outgoing friend request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t cancel the friend request. Try again.'**
+  String get addFriendCancelRequestFailed;
+
+  /// Error when the target user has disabled friend requests.
+  ///
+  /// In en, this message translates to:
+  /// **'They\'re not accepting friend requests right now.'**
+  String get addFriendNotAcceptingRequests;
+
+  /// Error when trying to friend a blocked user.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock them first to send a friend request.'**
+  String get addFriendUnblockFirst;
+
+  /// Error when trying to friend yourself.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t send a friend request to yourself.'**
+  String get addFriendCannotSendToSelf;
+
+  /// Error when users are already friends.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re already friends with this user.'**
+  String get addFriendAlreadyFriends;
+
+  /// Error when an unclaimed account tries to send a friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish signing up to send friend requests.'**
+  String get addFriendClaimToSend;
+
+  /// Generic error when sending a friend request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the friend request. Try again.'**
+  String get addFriendSendFailedGeneric;
+
   /// Tag label shown next to bot user names.
   ///
   /// In en, this message translates to:
