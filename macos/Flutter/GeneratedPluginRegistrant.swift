@@ -23,6 +23,7 @@ import package_info_plus
 import passkeys_darwin
 import path_provider_foundation
 import screen_retriever_macos
+import share_plus
 import sqlite3_flutter_libs
 import super_native_extensions
 import url_launcher_macos
@@ -48,6 +49,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   PasskeysPlugin.register(with: registry.registrar(forPlugin: "PasskeysPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
   ScreenRetrieverMacosPlugin.register(with: registry.registrar(forPlugin: "ScreenRetrieverMacosPlugin"))
+  SharePlusMacosPlugin.register(with: registry.registrar(forPlugin: "SharePlusMacosPlugin"))
   Sqlite3FlutterLibsPlugin.register(with: registry.registrar(forPlugin: "Sqlite3FlutterLibsPlugin"))
   SuperNativeExtensionsPlugin.register(with: registry.registrar(forPlugin: "SuperNativeExtensionsPlugin"))
   UrlLauncherPlugin.register(with: registry.registrar(forPlugin: "UrlLauncherPlugin"))

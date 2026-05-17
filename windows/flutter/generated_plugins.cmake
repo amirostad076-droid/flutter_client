@@ -17,6 +17,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   passkeys_windows
   permission_handler_windows
   screen_retriever_windows
+  share_plus
   sqlite3_flutter_libs
   super_native_extensions
   url_launcher_windows

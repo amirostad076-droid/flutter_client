@@ -45,8 +45,9 @@ dependencies:
   riverpod_annotation: ^4.0.2
   web_socket_channel: ^3.0.2
   window_manager: ^0.5.1
-  talker: ^5.1.15
-  talker_dio_logger: ^5.1.15
+  talker: 5.1.16
+  talker_flutter: 5.1.16
+  talker_dio_logger: 5.1.16
   app_links: ^7.0.0
   media_kit: ^1.2.6
   media_kit_libs_video: ^1.0.7

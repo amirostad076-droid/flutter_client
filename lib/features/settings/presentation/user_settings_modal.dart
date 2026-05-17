@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:fluxer_app/core/build/app_diagnostic_clipboard_text.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/providers/account_manager_provider.dart';
 import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
@@ -32,7 +32,6 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.d
 import 'package:fluxer_app/features/settings/presentation/widgets/user_security_login.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/relative_time.dart';
@@ -470,6 +469,11 @@ class _MobileSettingsNavBodyState
               icon: PhosphorIconsFill.code,
               onTap: () => _openSettingsPage('Applications'),
             ),
+            FluxerSettingsNavItem(
+              label: 'App Logs',
+              icon: PhosphorIconsFill.list,
+              onTap: _openAppLogs,
+            ),
           ],
         ),
         FluxerSettingsNavGroup(
@@ -529,6 +533,10 @@ class _MobileSettingsNavBodyState
             ),
       ),
     );
+  }
+
+  void _openAppLogs() {
+    unawaited(pushTalkerLogScreen(context));
   }
 
   Future<void> _logout() async {
