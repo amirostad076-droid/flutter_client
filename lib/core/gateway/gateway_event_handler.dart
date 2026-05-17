@@ -59,6 +59,7 @@ class GatewayEventHandler {
     this.onInviteDelete,
     this.onGuildPermissionsChanged,
     this.onGuildPermissionsEvict,
+    this.onChannelPermissionChanged,
     this.onPermissionsClearAll,
     this.onMessageCreate,
     this.onMessageUpdate,
@@ -88,6 +89,7 @@ class GatewayEventHandler {
   final InviteDeleteCallback? onInviteDelete;
   final GuildCallback? onGuildPermissionsChanged;
   final GuildCallback? onGuildPermissionsEvict;
+  final ChannelCallback? onChannelPermissionChanged;
   final void Function()? onPermissionsClearAll;
   final MessageCreateCallback? onMessageCreate;
   final MessageUpdateCallback? onMessageUpdate;
@@ -1233,6 +1235,7 @@ class GatewayEventHandler {
       unawaited(
         database.channelDao.upsertChannel(channelFromSdk(channel, guildId)),
       );
+      onChannelPermissionChanged?.call(channel.id);
       return;
     }
 

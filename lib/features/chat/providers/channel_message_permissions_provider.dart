@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
+import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
@@ -15,6 +15,7 @@ part 'channel_message_permissions_provider.g.dart';
 /// Effective flags for the message composer from guild base bits, roles, and
 /// channel/category permission overwrites stored on local channel rows.
 class ChannelMessagePermissions {
+  final bool isResolved;
   final bool canSendMessages;
   final bool canAttachFiles;
   final bool canEmbedLinks;
@@ -22,6 +23,7 @@ class ChannelMessagePermissions {
   final bool canUseExternalStickers;
 
   const ChannelMessagePermissions({
+    required this.isResolved,
     required this.canSendMessages,
     required this.canAttachFiles,
     required this.canEmbedLinks,
@@ -29,7 +31,19 @@ class ChannelMessagePermissions {
     required this.canUseExternalStickers,
   });
 
+  /// Guild channel permissions are not loaded yet; composer stays enabled.
+  static const ChannelMessagePermissions unresolved =
+      ChannelMessagePermissions(
+        isResolved: false,
+        canSendMessages: true,
+        canAttachFiles: true,
+        canEmbedLinks: true,
+        canUseExternalEmojis: true,
+        canUseExternalStickers: true,
+      );
+
   static const ChannelMessagePermissions none = ChannelMessagePermissions(
+    isResolved: true,
     canSendMessages: false,
     canAttachFiles: false,
     canEmbedLinks: false,
@@ -38,11 +52,48 @@ class ChannelMessagePermissions {
   );
 
   static const ChannelMessagePermissions all = ChannelMessagePermissions(
+    isResolved: true,
     canSendMessages: true,
     canAttachFiles: true,
     canEmbedLinks: true,
     canUseExternalEmojis: true,
     canUseExternalStickers: true,
+  );
+
+  bool get isComposerEnabled => !isResolved || canSendMessages;
+
+  bool get showsNoSendPermissionHint => isResolved && !canSendMessages;
+
+  /// Attach controls follow the same send gate as the text field
+  bool get canShowAttachControls =>
+      isComposerEnabled && (!isResolved || canAttachFiles);
+
+  bool get isAttachEnabled => canShowAttachControls;
+
+  bool get canShowEmbedControls =>
+      isComposerEnabled && (!isResolved || canEmbedLinks);
+
+  bool get isVoiceEnabled => isComposerEnabled;
+}
+
+ChannelMessagePermissions channelMessagePermissionsFromBits({
+  required int bits,
+  required ChannelType channelType,
+}) {
+  final bool canSendMessages =
+      hasPermission(bits, Permission.sendMessages) ||
+      (channelType == ChannelType.voice &&
+          hasPermission(bits, Permission.useTextInVoice));
+  return ChannelMessagePermissions(
+    isResolved: true,
+    canSendMessages: canSendMessages,
+    canAttachFiles: hasPermission(bits, Permission.attachFiles),
+    canEmbedLinks: hasPermission(bits, Permission.embedLinks),
+    canUseExternalEmojis: hasPermission(bits, Permission.useExternalEmojis),
+    canUseExternalStickers: hasPermission(
+      bits,
+      Permission.useExternalStickers,
+    ),
   );
 }
 
@@ -71,31 +122,37 @@ Future<ChannelMessagePermissions> channelMessagePermissions(
     return ChannelMessagePermissions.none;
   }
   final Channel channel = Channel.fromRow(channelRow);
-  if (channel.guildId.isNotEmpty) {
-    final String guildId = channel.guildId;
-    ref
-      ..watch(guildListViewModelProvider)
-      ..watch(guildMemberRowCountProvider(guildId));
-    final int bits = await computeEffectiveGuildChannelPermissionBits(
-      ref: ref,
-      channelId: channelId,
-    );
-    final bool canSendMessages =
-        hasPermission(bits, Permission.sendMessages) ||
-        (channel.type == ChannelType.voice &&
-            hasPermission(bits, Permission.useTextInVoice));
-    return ChannelMessagePermissions(
-      canSendMessages: canSendMessages,
-      canAttachFiles: hasPermission(bits, Permission.attachFiles),
-      canEmbedLinks: hasPermission(bits, Permission.embedLinks),
-      canUseExternalEmojis: hasPermission(bits, Permission.useExternalEmojis),
-      canUseExternalStickers: hasPermission(
-        bits,
-        Permission.useExternalStickers,
-      ),
+  if (channel.guildId.isEmpty) {
+    return ChannelMessagePermissions.none;
+  }
+  final String guildId = channel.guildId;
+  ref
+    ..watch(guildListViewModelProvider)
+    ..watch(currentUserMemberIdentityProvider(guildId))
+    ..watch(guildRolePermissionsIdentityProvider(guildId))
+    ..watch(channelPermissionCacheProvider);
+  final int? cachedBits = ref
+      .read(channelPermissionCacheProvider.notifier)
+      .getChannelBits(channelId);
+  if (cachedBits == null) {
+    await ref
+        .read(channelPermissionCacheProvider.notifier)
+        .rebuildChannel(channelId);
+    final int? bitsAfterRebuild = ref
+        .read(channelPermissionCacheProvider.notifier)
+        .getChannelBits(channelId);
+    if (bitsAfterRebuild == null) {
+      return ChannelMessagePermissions.unresolved;
+    }
+    return channelMessagePermissionsFromBits(
+      bits: bitsAfterRebuild,
+      channelType: channel.type,
     );
   }
-  return ChannelMessagePermissions.none;
+  return channelMessagePermissionsFromBits(
+    bits: cachedBits,
+    channelType: channel.type,
+  );
 }
 
 ChannelMessagePermissions channelMessagePermissionsForComposer(
@@ -104,7 +161,7 @@ ChannelMessagePermissions channelMessagePermissionsForComposer(
   return async.when(
     skipLoadingOnReload: true,
     data: (ChannelMessagePermissions value) => value,
-    error: (Object _, StackTrace stackTrace) => ChannelMessagePermissions.none,
-    loading: () => ChannelMessagePermissions.none,
+    error: (Object _, StackTrace _) => ChannelMessagePermissions.unresolved,
+    loading: () => ChannelMessagePermissions.unresolved,
   );
 }

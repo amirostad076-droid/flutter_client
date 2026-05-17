@@ -14,6 +14,11 @@ class MemberDao extends DatabaseAccessor<FluxerDatabase> with _$MemberDaoMixin {
             ..where((m) => m.userId.equals(userId) & m.guildId.equals(guildId)))
           .getSingleOrNull();
 
+  Stream<Member?> watchMemberByUserId(String userId, String guildId) =>
+      (select(members)
+            ..where((m) => m.userId.equals(userId) & m.guildId.equals(guildId)))
+          .watchSingleOrNull();
+
   Future<List<Member>> getMembers(String guildId) =>
       (select(members)..where((m) => m.guildId.equals(guildId))).get();
 

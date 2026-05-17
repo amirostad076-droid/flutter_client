@@ -11,7 +11,12 @@ import 'package:fluxer_app/features/settings/providers/user_settings_view_model.
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/src/providers/future_provider.dart';
 
-Future<int> computeEffectiveGuildChannelPermissionBits({
+/// Result of channel permission resolution. When [shouldCache] is false, [value]
+/// may be 0 only because guild membership or roles are not loaded yet.
+typedef ChannelPermissionBitsOutcome = ({int value, bool shouldCache});
+
+Future<ChannelPermissionBitsOutcome>
+computeEffectiveGuildChannelPermissionBitsOutcome({
   required Ref ref,
   required String channelId,
 }) async {
@@ -19,7 +24,7 @@ Future<int> computeEffectiveGuildChannelPermissionBits({
   final String currentUserId = ref.read(userSettingsViewModelProvider).userId;
   final channelRow = await db.channelDao.getChannelById(channelId);
   if (channelRow == null || channelRow.guildId.isEmpty) {
-    return 0;
+    return (value: 0, shouldCache: true);
   }
   final String guildId = channelRow.guildId;
   final List<Guild> guilds = ref.read(guildListViewModelProvider).guilds;
@@ -31,10 +36,10 @@ Future<int> computeEffectiveGuildChannelPermissionBits({
     }
   }
   if (guild == null) {
-    return 0;
+    return (value: 0, shouldCache: false);
   }
   if (currentUserId == guild.ownerId) {
-    return allPermissions;
+    return (value: allPermissions, shouldCache: true);
   }
   final allRoles = await db.roleDao.getRoles(guildId);
   final memberRow = await db.memberDao.getMemberByUserId(
@@ -42,7 +47,7 @@ Future<int> computeEffectiveGuildChannelPermissionBits({
     guildId,
   );
   if (memberRow == null) {
-    return 0;
+    return (value: 0, shouldCache: false);
   }
   final List<String> memberRoleIds = memberRow.roleIdsJson.isNotEmpty
       ? List<String>.from(jsonDecode(memberRow.roleIdsJson) as List<dynamic>)
@@ -62,7 +67,7 @@ Future<int> computeEffectiveGuildChannelPermissionBits({
       .toList();
   final List<String?> layers = await db.channelDao
       .getPermissionOverwriteLayersRootToLeaf(channelId);
-  return evaluateChannelEffectivePermissionBits(
+  final int value = evaluateChannelEffectivePermissionBits(
     guildOwnerId: guild.ownerId ?? '',
     guildId: guildId,
     currentUserId: currentUserId,
@@ -71,6 +76,19 @@ Future<int> computeEffectiveGuildChannelPermissionBits({
     memberRecordPresent: true,
     overwriteJsonLayersRootToLeaf: layers,
   );
+  return (value: value, shouldCache: true);
+}
+
+Future<int> computeEffectiveGuildChannelPermissionBits({
+  required Ref ref,
+  required String channelId,
+}) async {
+  final ChannelPermissionBitsOutcome outcome =
+      await computeEffectiveGuildChannelPermissionBitsOutcome(
+        ref: ref,
+        channelId: channelId,
+      );
+  return outcome.value;
 }
 
 final FutureProviderFamily<int, String>

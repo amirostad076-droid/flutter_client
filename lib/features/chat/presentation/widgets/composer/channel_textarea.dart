@@ -157,7 +157,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         channelMessagePermissionsForComposer(
           ref.read(channelMessagePermissionsProvider(channelId)),
         );
-    if (!perms.canSendMessages) {
+    if (!perms.isComposerEnabled) {
       return KeyEventResult.ignored;
     }
     unawaited(ref.read(chatViewModelProvider.notifier).sendMessage());
@@ -341,12 +341,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final bool hasText = hasMessageText || hasPendingUploads;
     return Row(
       children: [
-        if (perms.canAttachFiles) ...[
+        if (perms.canShowAttachControls) ...[
           FluxerButton.secondary(
             icon: PhosphorIconsFill.plusCircle,
             isSquare: true,
             size: FluxerButtonSize.compact,
-            onPressed: perms.canSendMessages
+            onPressed: perms.isAttachEnabled
                 ? () => unawaited(_pickAttachments(context))
                 : null,
           ),
@@ -358,7 +358,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               tooltip: FluxerLocalizations.of(
                 context,
               ).chatAttachmentPasteTooltip,
-              onPressed: perms.canSendMessages
+              onPressed: perms.isAttachEnabled
                   ? () => unawaited(_pasteClipboardAttachments())
                   : null,
               padding: EdgeInsets.zero,
@@ -369,7 +369,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         ],
         Expanded(
           child: Opacity(
-            opacity: perms.canSendMessages
+            opacity: perms.isComposerEnabled
                 ? 1.0
                 : _kMessageInputDisabledOpacity,
             child: ComposerAutocompleteChatField(
@@ -377,7 +377,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               controller: _controller,
               focusNode: _focusNode,
               channelId: channelId,
-              enabled: perms.canSendMessages,
+              enabled: perms.isComposerEnabled,
               style: context.textStyles.inputText,
               minLines: 1,
               maxLines: 5,
@@ -385,11 +385,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               panelHost: widget.autocompletePanelHost,
               panelScrollController: widget.autocompletePanelScrollController,
               decoration: InputDecoration(
-                hintText: perms.canSendMessages
-                    ? _resolveHintText()
-                    : FluxerLocalizations.of(
+                hintText: perms.showsNoSendPermissionHint
+                    ? FluxerLocalizations.of(
                         context,
-                      ).channelNoSendPermissionHint,
+                      ).channelNoSendPermissionHint
+                    : _resolveHintText(),
                 hintMaxLines: 1,
                 hintStyle: TextStyle(
                   color: context.colors.textTertiaryMuted,
@@ -423,11 +423,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           IconButton(
             icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
             color: context.colors.interactiveNormal,
-            onPressed: perms.canSendMessages ? () {} : null,
+            onPressed: perms.isComposerEnabled ? () {} : null,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           ),
-          if (perms.canEmbedLinks)
+          if (perms.canShowEmbedControls)
             FluxerEmojiPickerPopout(
               key: _gifPickerKey,
               initialTab: ExpressionPickerTab.gifs,
@@ -448,14 +448,14 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               child: IconButton(
                 icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
                 color: context.colors.interactiveNormal,
-                onPressed: perms.canSendMessages
+                onPressed: perms.isComposerEnabled
                     ? () => _gifPickerKey.currentState?.toggle()
                     : null,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               ),
             ),
-          if (perms.canAttachFiles)
+          if (perms.canShowAttachControls)
             FluxerEmojiPickerPopout(
               key: _mediaPickerKey,
               initialTab: ExpressionPickerTab.memes,
@@ -476,7 +476,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               child: IconButton(
                 icon: const PhosphorIcon(PhosphorIconsFill.image, size: 24),
                 color: context.colors.interactiveNormal,
-                onPressed: perms.canSendMessages
+                onPressed: perms.isComposerEnabled
                     ? () => _mediaPickerKey.currentState?.toggle()
                     : null,
                 padding: EdgeInsets.zero,
@@ -503,7 +503,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             child: IconButton(
               icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
               color: context.colors.interactiveNormal,
-              onPressed: perms.canSendMessages
+              onPressed: perms.isComposerEnabled
                   ? () => _stickerPickerKey.currentState?.toggle()
                   : null,
               padding: EdgeInsets.zero,
@@ -529,7 +529,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             child: IconButton(
               icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
               color: context.colors.interactiveNormal,
-              onPressed: perms.canSendMessages
+              onPressed: perms.isComposerEnabled
                   ? () => _expressionPickerKey.currentState?.toggle()
                   : null,
               padding: EdgeInsets.zero,
@@ -575,13 +575,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
     return Row(
       children: [
-        if (perms.canAttachFiles) ...[
+        if (perms.canShowAttachControls) ...[
           FluxerButton.circle(
             icon: PhosphorIconsBold.plus,
             variant: FluxerButtonVariant.secondary,
             size: FluxerButtonSize.small,
             iconSize: 20,
-            onPressed: perms.canSendMessages
+            onPressed: perms.isAttachEnabled
                 ? () => unawaited(_pickAttachments(context))
                 : null,
           ),
@@ -589,7 +589,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         ],
         Expanded(
           child: Opacity(
-            opacity: perms.canSendMessages
+            opacity: perms.isComposerEnabled
                 ? 1.0
                 : _kMessageInputDisabledOpacity,
             child: ComposerAutocompleteChatField(
@@ -597,7 +597,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               controller: _controller,
               focusNode: _focusNode,
               channelId: channelId,
-              enabled: perms.canSendMessages,
+              enabled: perms.isComposerEnabled,
               style: context.textStyles.inputText,
               minLines: 1,
               maxLines: 6,
@@ -605,11 +605,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               panelHost: widget.autocompletePanelHost,
               panelScrollController: widget.autocompletePanelScrollController,
               decoration: InputDecoration(
-                hintText: perms.canSendMessages
-                    ? _resolveHintText()
-                    : FluxerLocalizations.of(
+                hintText: perms.showsNoSendPermissionHint
+                    ? FluxerLocalizations.of(
                         context,
-                      ).channelNoSendPermissionHint,
+                      ).channelNoSendPermissionHint
+                    : _resolveHintText(),
                 hintMaxLines: 1,
                 hintStyle: TextStyle(
                   color: context.colors.textTertiaryMuted,
@@ -708,7 +708,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       await ref
           .read(chatViewModelProvider.notifier)
           .sendStandaloneMessage(meme.shareUrl);
-    } else if (perms.canAttachFiles && perms.canEmbedLinks) {
+    } else if (perms.canShowAttachControls && perms.canShowEmbedControls) {
       await ref
           .read(chatViewModelProvider.notifier)
           .sendFavoriteMemeMessage(meme);
@@ -814,7 +814,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       icon: isPanelOpen ? PhosphorIconsFill.keyboard : PhosphorIconsFill.smiley,
       isSquare: true,
       size: FluxerButtonSize.compact,
-      onPressed: !perms.canSendMessages
+      onPressed: !perms.isComposerEnabled
           ? null
           : () {
               if (isPanelOpen) {
@@ -840,7 +840,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     final isBlocked =
         ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false;
-    final canPressSend = perms.canSendMessages && !isBlocked;
+    final bool canPressSend = perms.isComposerEnabled && !isBlocked;
+    final bool canUseVoice = perms.isVoiceEnabled && !isBlocked;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) =>
@@ -855,13 +856,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             )
           : Opacity(
               key: const ValueKey('voice'),
-              opacity: perms.canSendMessages ? 1.0 : _kVoiceMicDeniedOpacity,
+              opacity: canUseVoice ? 1.0 : _kVoiceMicDeniedOpacity,
               child: FluxerButton.circle(
                 icon: PhosphorIconsFill.microphone,
                 variant: FluxerButtonVariant.secondary,
                 iconSize: 20,
                 size: size,
-                onPressed: perms.canSendMessages ? () {} : null,
+                onPressed: canUseVoice ? () {} : null,
               ),
             ),
     );

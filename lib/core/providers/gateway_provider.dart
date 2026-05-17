@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
+import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
@@ -62,6 +63,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     currentUserId: currentUserId,
     onReady: () {
       talker.info('[Gateway] Setting gatewayReady = true');
+      unawaited(
+        ref.read(channelPermissionCacheProvider.notifier).rebuildAll(),
+      );
       ref.read(gatewayReadyProvider.notifier).setReady();
     },
     onTypingStart: (channelId, userId) {
@@ -119,12 +123,26 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       unawaited(
         ref.read(guildPermissionsProvider.notifier).refreshPermissions(guildId),
       );
+      unawaited(
+        ref.read(channelPermissionCacheProvider.notifier).rebuildGuild(guildId),
+      );
     },
     onGuildPermissionsEvict: (guildId) {
       ref.read(guildPermissionsProvider.notifier).evict(guildId);
+      unawaited(
+        ref.read(channelPermissionCacheProvider.notifier).evictGuild(guildId),
+      );
+    },
+    onChannelPermissionChanged: (channelId) {
+      unawaited(
+        ref
+            .read(channelPermissionCacheProvider.notifier)
+            .rebuildChannel(channelId),
+      );
     },
     onPermissionsClearAll: () {
       ref.read(guildPermissionsProvider.notifier).clearAll();
+      ref.read(channelPermissionCacheProvider.notifier).clearAll();
     },
     onMessageCreate: (event) => messageBus.emit(MessageCreated(event)),
     onMessageUpdate: (event) => messageBus.emit(MessageUpdated(event)),
