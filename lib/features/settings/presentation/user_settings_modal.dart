@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:fluxer_app/core/build/app_diagnostic_clipboard_text.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
@@ -30,6 +32,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.d
 import 'package:fluxer_app/features/settings/presentation/widgets/user_security_login.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/relative_time.dart';
@@ -39,7 +42,7 @@ String _userSettingsFooterText(AppRuntimeInfo info, FluxerLocalizations l10n) {
   final base =
       'v${info.version} (${info.buildNumber})'
       ' • ${info.environment.name}'
-      ' • ${_formatUserSettingsPushProviderLabel(info.pushProvider.name)}';
+      ' • ${formatPushProviderLabel(info.pushProvider)}';
   if (info.buildTimestamp.isEmpty) {
     return base;
   }
@@ -48,19 +51,6 @@ String _userSettingsFooterText(AppRuntimeInfo info, FluxerLocalizations l10n) {
     return '$base • ${info.buildTimestamp}';
   }
   return '$base • ${relativeTime(builtAt, l10n)}';
-}
-
-String _formatUserSettingsPushProviderLabel(String providerName) {
-  switch (providerName) {
-    case 'firebaseMessaging':
-      return 'fcm';
-    case 'unifiedPush':
-      return 'unifiedpush';
-    case 'apple':
-      return 'apns';
-    default:
-      return providerName;
-  }
 }
 
 class UserSettingsModal extends ConsumerStatefulWidget {
@@ -217,7 +207,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
                       ),
                     ),
                     Expanded(child: _buildContent(state)),
-                    _buildBuildInfoFooter(),
+                    const _SettingsBuildInfoFooter(),
                   ],
                 ),
               ),
@@ -333,28 +323,6 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
     ),
   );
 
-  Widget _buildBuildInfoFooter() {
-    final runtimeInfoAsync = ref.watch(appRuntimeInfoProvider);
-    final text = runtimeInfoAsync.when(
-      data: (AppRuntimeInfo info) =>
-          _userSettingsFooterText(info, FluxerLocalizations.of(context)),
-      loading: () => '',
-      error: (_, _) => '',
-    );
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-      child: Align(
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 11,
-            color: context.colors.textPrimaryMuted,
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -540,7 +508,7 @@ class _MobileSettingsNavBodyState
           ],
         ),
       ],
-      footer: _MobileBuildInfoFooter(),
+      footer: const _SettingsBuildInfoFooter(),
     );
   }
 
@@ -664,28 +632,57 @@ class _MobileSettingsContentBody extends ConsumerWidget {
   }
 }
 
-class _MobileBuildInfoFooter extends ConsumerWidget {
+class _SettingsBuildInfoFooter extends ConsumerWidget {
+  const _SettingsBuildInfoFooter();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final runtimeInfoAsync = ref.watch(appRuntimeInfoProvider);
-    final text = runtimeInfoAsync.when(
-      data: (AppRuntimeInfo info) =>
-          _userSettingsFooterText(info, FluxerLocalizations.of(context)),
-      loading: () => '',
-      error: (_, _) => '',
-    );
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-      child: Align(
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 11,
-            color: context.colors.textPrimaryMuted,
+    final l10n = FluxerLocalizations.of(context);
+    return runtimeInfoAsync.when(
+      data: (AppRuntimeInfo info) {
+        final text = _userSettingsFooterText(info, l10n);
+        if (text.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+          child: Align(
+            child: Semantics(
+              button: true,
+              label: 'Copy app info',
+              child: GestureDetector(
+                onTap: () => _copyBuildInfoToClipboard(context, ref, info),
+                child: Text(
+                  text,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: context.colors.textPrimaryMuted,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
+  }
+
+  void _copyBuildInfoToClipboard(
+    BuildContext context,
+    WidgetRef ref,
+    AppRuntimeInfo info,
+  ) {
+    final clipboardText = formatAppDiagnosticClipboardText(info);
+    unawaited(Clipboard.setData(ClipboardData(text: clipboardText)));
+    ref.read(toastProvider.notifier).show(
+          FluxerToast(
+            message: FluxerLocalizations.of(context).copiedToClipboard,
+            variant: FluxerToastVariant.success,
+          ),
+        );
   }
 }

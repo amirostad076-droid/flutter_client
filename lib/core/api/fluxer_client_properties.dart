@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/core/build/app_build_environment.dart';
-import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
+import 'package:fluxer_app/core/providers/app_runtime_info.dart';
 
 const int fluxerClientPropertiesSchemaVersion = 1;
 
