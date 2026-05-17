@@ -16,6 +16,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_video
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
@@ -581,7 +582,7 @@ class _ForwardedSourceData {
   }) {
     final avatarUrl = avatar == null
         ? null
-        : '$fluxerMediaCdn/avatars/$userId/$avatar.png';
+        : FluxerMediaUrl.userAvatar(userId: userId, hash: avatar);
     return _ForwardedSourceData(
       kind: _ForwardedSourceKind.dm,
       channelId: channelId,

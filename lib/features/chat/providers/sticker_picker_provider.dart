@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
-import 'package:fluxer_app/shared/utils/sticker_utils.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:riverpod/riverpod.dart' as rp;
 
 const int kMaxFrecentStickers = 42;
@@ -37,7 +37,7 @@ class StickerEntry {
   String get url => urlForSize(320);
 
   String urlForSize(int size) =>
-      getStickerUrl(id: id, animated: animated, size: size);
+      FluxerMediaUrl.sticker(id: id, animated: animated, size: size);
 
   String cacheKeyForSize(int size) =>
       'sticker_${id}_${animated ? 'a' : 's'}_$size';

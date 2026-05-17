@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_item.dart'
     show MessageItem;
@@ -48,7 +49,10 @@ class InlineReplyPreview extends ConsumerWidget {
             FluxerAvatar.user(
               fallbackText: replyMsg.authorName,
               userId: replyMsg.authorId,
-              imageUrl: replyMsg.authorAvatarUrl,
+              imageUrl: FluxerMediaUrl.userAvatar(
+                userId: replyMsg.authorId,
+                hash: replyMsg.authorAvatar,
+              ),
               avatarColor: replyMsg.authorAvatarColor,
               size: 16,
               showStatus: false,

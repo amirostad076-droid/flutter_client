@@ -7,6 +7,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/message_alert.dart
 import 'package:fluxer_app/features/chat/presentation/widgets/message_mention.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/shared/utils/emoji_utils.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 
@@ -35,7 +36,7 @@ FluxerMarkdownConfig createFluxerMarkdownConfig({
   return FluxerMarkdownConfig(
     resolveEmojiShortcode: EmojiRegistry.resolveSync,
     unicodeEmojiUrlBuilder: getTwemojiUrl,
-    customEmojiUrlBuilder: getCustomEmojiUrl,
+    customEmojiUrlBuilder: FluxerMediaUrl.customEmoji,
     unicodeEmojiPattern: EmojiRegistry.unicodeEmojiRegexSync,
     linkColor: context?.colors.textLink,
     blockquoteBorderColor: context?.colors.bgBlockquote,

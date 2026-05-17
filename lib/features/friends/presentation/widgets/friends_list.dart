@@ -6,7 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -421,7 +421,10 @@ class FriendsList extends ConsumerWidget {
               FluxerAvatar.user(
                 fallbackText: friend.displayName,
                 userId: friend.id,
-                imageUrl: _friendAvatarUrl(friend),
+                imageUrl: FluxerMediaUrl.userAvatar(
+                  userId: friend.id,
+                  hash: friend.avatar,
+                ),
                 avatarColor: friend.avatarColor,
                 status: friend.status,
                 size: 36,
@@ -505,15 +508,6 @@ class FriendsList extends ConsumerWidget {
       ),
     ),
   );
-
-  String? _friendAvatarUrl(Friend friend) {
-    final avatar = friend.avatar;
-    if (avatar == null) {
-      return null;
-    }
-    return '$fluxerMediaCdn'
-        '/avatars/${friend.id}/$avatar.png';
-  }
 
   Widget _actionButton(
     BuildContext context, {

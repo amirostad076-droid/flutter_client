@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/domain/stored_account.dart';
 import 'package:fluxer_app/features/ui/action_menu/fluxer_action_menu.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -22,14 +23,6 @@ class AccountRow extends StatelessWidget {
   final bool isCurrent;
   final VoidCallback onTap;
   final VoidCallback onSignOut;
-
-  String? get _avatarUrl {
-    final av = account.avatar;
-    if (av == null) {
-      return null;
-    }
-    return 'https://fluxermedia.com/avatars/${account.userId}/$av.png';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +51,10 @@ class AccountRow extends StatelessWidget {
           child: Row(
             children: [
               FluxerAvatar.user(
-                imageUrl: _avatarUrl,
+                imageUrl: FluxerMediaUrl.userAvatar(
+                  userId: account.userId,
+                  hash: account.avatar,
+                ),
                 fallbackText: account.displayName,
                 size: 36,
                 showStatus: false,

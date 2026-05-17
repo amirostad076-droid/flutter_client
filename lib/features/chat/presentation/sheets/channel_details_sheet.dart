@@ -31,7 +31,7 @@ import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
@@ -658,7 +658,10 @@ class _DetailsAvatar extends ConsumerWidget {
               userId: currentUserId,
               imageUrl: user?.avatar == null
                   ? null
-                  : '$fluxerMediaCdn/avatars/$currentUserId/${user!.avatar}.png',
+                  : FluxerMediaUrl.userAvatar(
+                      userId: currentUserId,
+                      hash: user!.avatar,
+                    ),
               avatarColor: user?.avatarColor,
               status: user?.status ?? 'online',
               size: _size,
@@ -669,7 +672,7 @@ class _DetailsAvatar extends ConsumerWidget {
       if (dm.isGroup) {
         return FluxerAvatarCluster(
           channelId: dm.id,
-          iconUrl: _groupIconUrl(dm),
+          iconUrl: FluxerMediaUrl.guildIcon(guildId: dm.id, hash: dm.icon),
           status: dm.groupStatus,
           size: _size,
           members: [
@@ -677,7 +680,10 @@ class _DetailsAvatar extends ConsumerWidget {
               AvatarClusterMember(
                 userId: member.id,
                 fallbackText: member.name,
-                imageUrl: _memberAvatarUrl(member),
+                imageUrl: FluxerMediaUrl.userAvatar(
+                  userId: member.id,
+                  hash: member.avatar,
+                ),
               ),
           ],
         );
@@ -685,7 +691,10 @@ class _DetailsAvatar extends ConsumerWidget {
       return FluxerAvatar.user(
         fallbackText: dm.recipientName,
         userId: dm.recipientId,
-        imageUrl: _dmAvatarUrl(dm),
+        imageUrl: FluxerMediaUrl.userAvatar(
+          userId: dm.recipientId,
+          hash: dm.recipientAvatar,
+        ),
         status: dm.recipientStatus,
         size: _size,
       );
@@ -778,7 +787,10 @@ class _MembersTab extends ConsumerWidget {
               _SimpleMemberRow(
                 userId: member.id,
                 name: member.displayName,
-                avatarUrl: member.avatarUrl,
+                avatarUrl: FluxerMediaUrl.userAvatar(
+                  userId: member.id,
+                  hash: member.avatar,
+                ),
                 avatarColor: member.avatarColor,
                 status: member.status,
                 isBot: member.isBot,
@@ -1569,7 +1581,10 @@ class _DmMemberGroups extends ConsumerWidget {
           name: currentUser?.globalName ?? currentUser?.username ?? 'You',
           avatarUrl: currentUser?.avatar == null
               ? null
-              : '$fluxerMediaCdn/avatars/$userId/${currentUser!.avatar}.png',
+              : FluxerMediaUrl.userAvatar(
+                  userId: userId,
+                  hash: currentUser!.avatar,
+                ),
           avatarColor: currentUser?.avatarColor,
           status: currentUserStatus,
           isBot: currentUser?.bot ?? false,
@@ -1590,7 +1605,10 @@ class _DmMemberGroups extends ConsumerWidget {
               _SimpleMemberRow(
                 userId: member.id,
                 name: member.name,
-                avatarUrl: _memberAvatarUrl(member),
+                avatarUrl: FluxerMediaUrl.userAvatar(
+                  userId: member.id,
+                  hash: member.avatar,
+                ),
                 isCurrentUser: member.id == userId,
                 onTap: () =>
                     FluxerUserProfileSheet.show(context, userId: member.id),
@@ -1601,7 +1619,10 @@ class _DmMemberGroups extends ConsumerWidget {
           final recipientRow = _SimpleMemberRow(
             userId: dm.recipientId,
             name: dm.recipientName,
-            avatarUrl: _dmAvatarUrl(dm),
+            avatarUrl: FluxerMediaUrl.userAvatar(
+              userId: dm.recipientId,
+              hash: dm.recipientAvatar,
+            ),
             status: dm.recipientStatus,
             isBot: dm.isBot,
             isSystem: dm.isSystem,
@@ -2045,9 +2066,6 @@ class _PickerUser {
   final int? avatarColor;
   final String status;
 
-  String? get avatarUrl =>
-      avatar == null ? null : '$fluxerMediaCdn/avatars/$id/$avatar.png';
-
   String get tag => username.isNotEmpty ? '@$username' : '@$id';
 }
 
@@ -2228,7 +2246,10 @@ class _UserFilterRow extends StatelessWidget {
           child: Row(
             children: [
               FluxerAvatar.user(
-                imageUrl: user.avatarUrl,
+                imageUrl: FluxerMediaUrl.userAvatar(
+                  userId: user.id,
+                  hash: user.avatar,
+                ),
                 fallbackText: user.displayName,
                 avatarColor: user.avatarColor,
                 size: 36,
@@ -3292,30 +3313,6 @@ String? _detailsSubtitle({
     };
   }
   return null;
-}
-
-String? _dmAvatarUrl(DmConversation dm) {
-  final avatar = dm.recipientAvatar;
-  if (avatar == null) {
-    return null;
-  }
-  return '$fluxerMediaCdn/avatars/${dm.recipientId}/$avatar.png';
-}
-
-String? _groupIconUrl(DmConversation dm) {
-  final icon = dm.icon;
-  if (icon == null) {
-    return null;
-  }
-  return '$fluxerMediaCdn/icons/${dm.id}/$icon.png';
-}
-
-String? _memberAvatarUrl(GroupMemberInfo member) {
-  final avatar = member.avatar;
-  if (avatar == null) {
-    return null;
-  }
-  return '$fluxerMediaCdn/avatars/${member.id}/$avatar.png';
 }
 
 String _channelLink(String channelId, String? guildId) {

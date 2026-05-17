@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart'
-    show fluxerMediaCdn;
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/settings/providers/authorized_apps_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -204,15 +203,6 @@ class _AuthorizedAppCard extends StatelessWidget {
   static const double _iconSize = 32;
   static const double _iconPlaceholderSize = 18;
 
-  String? _buildIconUrl() {
-    final icon = authorization.application.icon;
-    if (icon == null) {
-      return null;
-    }
-    return '$fluxerMediaCdn/avatars/'
-        '${authorization.application.id}/$icon.png';
-  }
-
   Widget _buildAppIcon(
     BuildContext context,
     FluxerColorTheme colors,
@@ -281,7 +271,10 @@ class _AuthorizedAppCard extends StatelessWidget {
     FluxerColorTheme colors,
     FluxerLayoutTheme layout,
   ) {
-    final iconUrl = _buildIconUrl();
+    final iconUrl = FluxerMediaUrl.userAvatar(
+      userId: authorization.application.id,
+      hash: authorization.application.icon,
+    );
     final l10n = FluxerLocalizations.of(context);
 
     return InkWell(

@@ -11,8 +11,8 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart'
-    show fluxerMediaCdn;
+import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/profile/presentation/sheets/user_profile_actions_sheet.dart';
 import 'package:fluxer_app/features/profile/presentation/sheets/user_profile_confirmation_sheet.dart';
@@ -587,9 +587,10 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
             username: profile.username,
             discriminator: profile.discriminator,
             displayName: profile.globalName ?? profile.username,
-            avatarUrl: buildGlobalUserAvatarUrl(
+            avatarUrl: FluxerMediaUrl.userAvatar(
               userId: profile.id,
-              avatarHash: profile.avatar,
+              hash: profile.avatar,
+              size: MediaProxySizes.avatarProfile,
             ),
             avatarColor: profile.avatarColor,
             bannerColor: resolveGuildProfileBannerColor(
@@ -597,9 +598,11 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
               accentColor: profile.accentColor,
               avatarColor: profile.avatarColor,
             ),
-            bannerUrl: buildGlobalUserBannerUrl(
+            bannerUrl: FluxerMediaUrl.userBanner(
               userId: profile.id,
-              bannerHash: profile.banner,
+              hash: profile.banner,
+              size: MediaProxySizes.profileBannerModal,
+              animated: true,
             ),
             bio: profile.bio,
             accountMemberSince: dateTimeFromUserSnowflakeOrNull(profile.id),
@@ -704,9 +707,12 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
           accountMemberSince: dateTimeFromUserSnowflakeOrNull(response.user.id),
           guildMemberSince: response.guildMember?.joinedAt,
           guildName: guildInfo?.name,
-          guildIconUrl: guildInfo?.icon == null
+          guildIconUrl: guildInfo == null
               ? null
-              : '$fluxerMediaCdn/icons/${guildInfo!.id}/${guildInfo.icon}.png',
+              : FluxerMediaUrl.guildIcon(
+                  guildId: guildInfo.id,
+                  hash: guildInfo.icon,
+                ),
           memberRoles: memberRoles,
           flags: response.user.flags,
           hasPlutonium:

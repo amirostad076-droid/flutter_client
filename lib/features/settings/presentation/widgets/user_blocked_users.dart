@@ -6,8 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart'
-    show fluxerMediaCdn;
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/blocked_users_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -216,14 +215,6 @@ class _BlockedUserCard extends StatelessWidget {
 
   final GlobalKey _moreButtonKey = GlobalKey();
 
-  String? _avatarUrl() {
-    final avatar = friend.avatar;
-    if (avatar == null) {
-      return null;
-    }
-    return '$fluxerMediaCdn/avatars/${friend.id}/$avatar.png';
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -243,7 +234,10 @@ class _BlockedUserCard extends StatelessWidget {
             FluxerAvatar.user(
               fallbackText: friend.displayName,
               userId: friend.id,
-              imageUrl: _avatarUrl(),
+              imageUrl: FluxerMediaUrl.userAvatar(
+                userId: friend.id,
+                hash: friend.avatar,
+              ),
               avatarColor: friend.avatarColor,
               showStatus: false,
             ),

@@ -1,6 +1,6 @@
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
-import 'package:fluxer_app/shared/utils/emoji_utils.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 
 class CachedEmojiImage extends StatelessWidget {
   const CachedEmojiImage({
@@ -20,7 +20,7 @@ class CachedEmojiImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = getCustomEmojiUrl(
+    final url = FluxerMediaUrl.customEmoji(
       id: emojiId,
       animated: animated,
       size: requestSize,

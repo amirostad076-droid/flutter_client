@@ -37,7 +37,7 @@ import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
-import 'package:fluxer_app/shared/utils/emoji_utils.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
@@ -967,7 +967,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               children: [
                 if (reaction.isCustom)
                   CachedNetworkImage(
-                    imageUrl: getCustomEmojiUrl(
+                    imageUrl: FluxerMediaUrl.customEmoji(
                       id: reaction.emojiId!,
                       animated: reaction.animated,
                       size: _kReactionEmojiSize.toInt(),

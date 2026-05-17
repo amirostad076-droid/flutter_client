@@ -482,7 +482,9 @@ class ComposerAutocompleteChatFieldState
           onTap: r.onApply,
           channelRowType: r.channelRowType,
           userAvatarUserId: m?.id,
-          userAvatarImageUrl: m?.avatarUrl,
+          userAvatarImageUrl: m == null
+              ? null
+              : FluxerMediaUrl.userAvatar(userId: m.id, hash: m.avatar),
           userAvatarFallbackText: m != null ? memberDisplayLabel(m) : null,
           userAvatarColor: m?.avatarColor,
           userAvatarRoleColor: m?.roleColor,

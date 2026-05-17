@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/ui/status_indicator/fluxer_status_indicator.dart';
 
 const _kDefaultAvatarCount = 6;
@@ -87,11 +87,10 @@ class FluxerAvatar extends StatelessWidget {
     double size = 40,
     bool showStatus = true,
   }) {
-    final avatar = user.avatar;
-    String? url;
-    if (avatar != null) {
-      url = '$fluxerMediaCdn/avatars/${user.id}/$avatar.png';
-    }
+    final String? url = FluxerMediaUrl.userAvatar(
+      userId: user.id,
+      hash: user.avatar,
+    );
     return FluxerAvatar.user(
       imageUrl: url,
       fallbackText: user.globalName ?? user.username,

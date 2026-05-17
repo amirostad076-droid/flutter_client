@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
-
 class MemberRole {
   final String id;
   final String name;
@@ -97,13 +95,6 @@ class Member {
   }
 
   String get displayName => nickname ?? globalName ?? username;
-
-  String? get avatarUrl {
-    if (avatar == null) {
-      return null;
-    }
-    return '$fluxerMediaCdn/avatars/$id/$avatar.png';
-  }
 
   /// Color of the highest-positioned role, or null.
   int? get roleColor {

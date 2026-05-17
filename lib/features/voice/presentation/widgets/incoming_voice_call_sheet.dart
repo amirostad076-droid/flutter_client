@@ -5,8 +5,7 @@ import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart'
-    show fluxerMediaCdn;
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar_cluster.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
@@ -18,34 +17,16 @@ const String kIncomingVoiceResultAccept = 'accept';
 const String kIncomingVoiceResultReject = 'reject';
 const String kIncomingVoiceResultIgnore = 'ignore';
 
-String? _groupIconUrl(DmConversation convo) {
-  final String? icon = convo.icon;
-  if (icon == null) {
-    return null;
-  }
-  return '$fluxerMediaCdn/icons/${convo.id}/$icon.png';
-}
-
 List<AvatarClusterMember> _clusterMembers(DmConversation convo) {
   return convo.groupMembers
       .map(
         (GroupMemberInfo m) => AvatarClusterMember(
           userId: m.id,
-          imageUrl: m.avatar != null
-              ? '$fluxerMediaCdn/avatars/${m.id}/${m.avatar}.png'
-              : null,
+          imageUrl: FluxerMediaUrl.userAvatar(userId: m.id, hash: m.avatar),
           fallbackText: m.name,
         ),
       )
       .toList();
-}
-
-String? _dmRecipientAvatarUrl(DmConversation dm) {
-  final String? avatar = dm.recipientAvatar;
-  if (avatar == null) {
-    return null;
-  }
-  return '$fluxerMediaCdn/avatars/${dm.recipientId}/$avatar.png';
 }
 
 String _resolveSheetHeaderTitle({
@@ -223,7 +204,7 @@ class _IncomingVoiceCallSheetBody extends ConsumerWidget {
     if (dm != null && dm.isGroup) {
       return FluxerAvatarCluster(
         channelId: dm.id,
-        iconUrl: _groupIconUrl(dm),
+        iconUrl: FluxerMediaUrl.guildIcon(guildId: dm.id, hash: dm.icon),
         status: dm.groupStatus,
         members: _clusterMembers(dm),
         size: size,
@@ -233,7 +214,10 @@ class _IncomingVoiceCallSheetBody extends ConsumerWidget {
       return FluxerAvatar.user(
         fallbackText: dm.recipientName,
         userId: dm.recipientId,
-        imageUrl: _dmRecipientAvatarUrl(dm),
+        imageUrl: FluxerMediaUrl.userAvatar(
+          userId: dm.recipientId,
+          hash: dm.recipientAvatar,
+        ),
         status: dm.recipientStatus,
         size: size,
       );

@@ -1,22 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
-import 'package:fluxer_app/features/guilds/domain/guild.dart'
-    show fluxerMediaCdn;
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_dart/export.dart';
 
 const int guildProfileDefaultAccentColor = 0x4641D9;
 const int guildProfileAvatarUnsetFlag = 1 << 0;
 const int guildProfileBannerUnsetFlag = 1 << 1;
-
-enum GuildMemberMediaType {
-  avatar('avatars'),
-  banner('banners');
-
-  const GuildMemberMediaType(this.path);
-
-  final String path;
-}
 
 class GuildUserDisplay {
   const GuildUserDisplay({
@@ -57,62 +47,6 @@ Color resolveGuildProfileBannerColor({
   return Color(0xFF000000 | defaultAccentColor);
 }
 
-String? buildGlobalUserAvatarUrl({
-  required String userId,
-  required String? avatarHash,
-  int size = MediaProxySizes.avatarProfile,
-  bool animated = true,
-}) {
-  if (avatarHash == null || avatarHash.isEmpty) {
-    return null;
-  }
-  if (animated && isAnimatedMediaHash(avatarHash)) {
-    return '$fluxerMediaCdn/avatars/$userId/$avatarHash.gif'
-        '?animated=true&size=$size';
-  }
-  final String hash = normalizeMediaHash(avatarHash);
-  return '$fluxerMediaCdn/avatars/$userId/$hash.webp?size=$size';
-}
-
-String? buildGlobalUserBannerUrl({
-  required String userId,
-  required String? bannerHash,
-  int size = MediaProxySizes.profileBannerModal,
-}) {
-  if (bannerHash == null || bannerHash.isEmpty) {
-    return null;
-  }
-  if (isAnimatedMediaHash(bannerHash)) {
-    return '$fluxerMediaCdn/banners/$userId/$bannerHash.gif'
-        '?animated=true&size=$size';
-  }
-  final String hash = normalizeMediaHash(bannerHash);
-  return '$fluxerMediaCdn/banners/$userId/$hash.webp?size=$size';
-}
-
-String buildGuildMemberMediaUrl({
-  required String guildId,
-  required String userId,
-  required GuildMemberMediaType mediaType,
-  required String hash,
-  required int size,
-  bool animated = true,
-}) {
-  if (animated && isAnimatedMediaHash(hash)) {
-    return '$fluxerMediaCdn/guilds/$guildId/users/$userId/${mediaType.path}/'
-        '$hash.gif?animated=true&size=$size';
-  }
-  final String normalizedHash = normalizeMediaHash(hash);
-  return '$fluxerMediaCdn/guilds/$guildId/users/$userId/${mediaType.path}/'
-      '$normalizedHash.webp?size=$size';
-}
-
-bool isAnimatedMediaHash(String hash) => hash.startsWith('a_');
-
-String normalizeMediaHash(String hash) {
-  return isAnimatedMediaHash(hash) ? hash.substring(2) : hash;
-}
-
 GuildUserDisplay resolveGuildUserDisplayFromRows({
   required db.User user,
   required db.Member? member,
@@ -128,16 +62,17 @@ GuildUserDisplay resolveGuildUserDisplayFromRows({
   final String? memberAvatar = member?.serverAvatar;
   final String? avatarUrl =
       guildId != null && memberAvatar != null && memberAvatar.isNotEmpty
-      ? buildGuildMemberMediaUrl(
+      ? FluxerMediaUrl.guildMemberMedia(
           guildId: guildId,
           userId: user.id,
-          mediaType: GuildMemberMediaType.avatar,
+          type: GuildMemberMediaType.avatar,
           hash: memberAvatar,
           size: MediaProxySizes.avatarProfile,
         )
-      : buildGlobalUserAvatarUrl(
+      : FluxerMediaUrl.userAvatar(
           userId: user.id,
-          avatarHash: fallbackAvatarHash ?? user.avatar,
+          hash: fallbackAvatarHash ?? user.avatar,
+          size: MediaProxySizes.avatarProfile,
         );
   return GuildUserDisplay(
     displayName: displayName,
@@ -162,17 +97,18 @@ GuildUserDisplay resolveGuildUserDisplayFromMessage({
   final String? memberAvatar = member?.serverAvatar;
   final String? avatarUrl =
       guildId != null && memberAvatar != null && memberAvatar.isNotEmpty
-      ? buildGuildMemberMediaUrl(
+      ? FluxerMediaUrl.guildMemberMedia(
           guildId: guildId,
           userId: userId,
-          mediaType: GuildMemberMediaType.avatar,
+          type: GuildMemberMediaType.avatar,
           hash: memberAvatar,
           size: MediaProxySizes.avatarProfile,
           animated: animatedAvatar,
         )
-      : buildGlobalUserAvatarUrl(
+      : FluxerMediaUrl.userAvatar(
           userId: userId,
-          avatarHash: fallbackAvatarHash,
+          hash: fallbackAvatarHash,
+          size: MediaProxySizes.avatarProfile,
           animated: animatedAvatar,
         );
   return GuildUserDisplay(
@@ -207,27 +143,33 @@ GuildUserDisplay resolveGuildUserDisplayFromProfile({
   final String? avatarUrl = isAvatarUnset
       ? null
       : canUseGuildProfile && guildAvatar != null
-      ? buildGuildMemberMediaUrl(
+      ? FluxerMediaUrl.guildMemberMedia(
           guildId: guildId,
           userId: user.id,
-          mediaType: GuildMemberMediaType.avatar,
+          type: GuildMemberMediaType.avatar,
           hash: guildAvatar,
           size: MediaProxySizes.avatarProfile,
         )
-      : buildGlobalUserAvatarUrl(userId: user.id, avatarHash: user.avatar);
+      : FluxerMediaUrl.userAvatar(
+          userId: user.id,
+          hash: user.avatar,
+          size: MediaProxySizes.avatarProfile,
+        );
   final String? bannerUrl = isBannerUnset
       ? null
       : guildBanner != null && guildId != null
-      ? buildGuildMemberMediaUrl(
+      ? FluxerMediaUrl.guildMemberMedia(
           guildId: guildId,
           userId: user.id,
-          mediaType: GuildMemberMediaType.banner,
+          type: GuildMemberMediaType.banner,
           hash: guildBanner,
           size: MediaProxySizes.profileBannerModal,
         )
-      : buildGlobalUserBannerUrl(
+      : FluxerMediaUrl.userBanner(
           userId: user.id,
-          bannerHash: response.userProfile.banner,
+          hash: response.userProfile.banner,
+          size: MediaProxySizes.profileBannerModal,
+          animated: true,
         );
   final int? bannerColor = isBannerUnset
       ? null

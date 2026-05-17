@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
-import 'package:fluxer_app/shared/utils/sticker_utils.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 
 void main() {
   group('StickerEntry', () {
@@ -21,7 +21,7 @@ void main() {
       expect(sticker.tags, ['party', 'blob']);
       expect(
         sticker.urlForSize(320),
-        getStickerUrl(id: 'sticker-1', animated: true),
+        FluxerMediaUrl.sticker(id: 'sticker-1', animated: true),
       );
       expect(sticker.cacheKeyForSize(160), 'sticker_sticker-1_a_160');
     });

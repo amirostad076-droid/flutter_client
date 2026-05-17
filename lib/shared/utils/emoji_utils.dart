@@ -1,5 +1,3 @@
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
-
 const _kTwemojiCdn = 'https://fluxerstatic.com/emoji';
 
 String emojiToCodePoints(String emoji) {
@@ -17,25 +15,6 @@ String? getTwemojiUrl(String unicode) {
     return null;
   }
   return '$_kTwemojiCdn/$codePoints.svg';
-}
-
-String getCustomEmojiUrl({
-  required String id,
-  bool animated = false,
-  int? size,
-}) {
-  final base = '$fluxerMediaCdn/emojis/$id.webp';
-  final params = <String>[];
-  if (animated) {
-    params.add('animated=true');
-  }
-  if (size != null) {
-    params.add('size=$size');
-  }
-  if (params.isEmpty) {
-    return base;
-  }
-  return '$base?${params.join('&')}';
 }
 
 String getCustomEmojiMarkdown({

@@ -11,6 +11,7 @@ import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -277,7 +278,10 @@ class _FavoriteIcon extends ConsumerWidget {
         userId: dm.recipientId,
         imageUrl: dm.recipientAvatar == null
             ? null
-            : '$fluxerMediaCdn/avatars/${dm.recipientId}/${dm.recipientAvatar}.png',
+            : FluxerMediaUrl.userAvatar(
+                userId: dm.recipientId,
+                hash: dm.recipientAvatar,
+              ),
         status: dm.recipientStatus,
         size: 36,
       );

@@ -4,7 +4,7 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
-import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -76,7 +76,10 @@ class _GuildInviteCard extends StatelessWidget {
     if (icon == null) {
       return null;
     }
-    return 'https://fluxerusercontent.com/icons/${invite.guild.id}/$icon.png';
+    return FluxerMediaUrl.guildIcon(
+      guildId: invite.guild.id,
+      hash: icon,
+    );
   }
 
   String? get _splashUrl {
@@ -84,7 +87,10 @@ class _GuildInviteCard extends StatelessWidget {
     if (splash == null) {
       return null;
     }
-    return 'https://fluxerusercontent.com/embed-splashes/${invite.guild.id}/$splash.webp?size=${MediaProxySizes.guildEmbedSplashDefault}';
+    return FluxerMediaUrl.guildEmbedSplash(
+      guildId: invite.guild.id,
+      hash: splash,
+    );
   }
 
   double? get _splashAspectRatio {

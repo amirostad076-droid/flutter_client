@@ -2,8 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
-import 'package:fluxer_app/shared/utils/sticker_utils.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_dart/export.dart';
 
 enum EmbedType { rich, image, gifv, link, video }
@@ -367,7 +366,7 @@ class MessageSticker {
   String get url => urlForSize(320);
 
   String urlForSize(int size) =>
-      getStickerUrl(id: id, animated: animated, size: size);
+      FluxerMediaUrl.sticker(id: id, animated: animated, size: size);
 
   String cacheKeyForSize(int size) =>
       'message_sticker_${id}_${animated ? 'a' : 's'}_$size';
@@ -898,13 +897,6 @@ class Message {
       type: incoming.type,
       flags: incoming.flags,
     );
-  }
-
-  String? get authorAvatarUrl {
-    if (authorAvatar == null) {
-      return null;
-    }
-    return '$fluxerMediaCdn/avatars/$authorId/$authorAvatar.png';
   }
 
   bool get hasEmbeds => embeds.isNotEmpty;

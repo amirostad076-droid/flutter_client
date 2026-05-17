@@ -33,6 +33,7 @@ import 'package:fluxer_app/features/dm/providers/unread_dm_provider.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_bottom_sheet.dart';
@@ -1459,7 +1460,7 @@ List<_InviteRecipient> _buildRecipientList(
   for (final friend in accepted) {
     final dm = dmByRecipient[friend.id];
     final avatarUrl = friend.avatar != null
-        ? '$fluxerMediaCdn/avatars/${friend.id}/${friend.avatar}.png'
+        ? FluxerMediaUrl.userAvatar(userId: friend.id, hash: friend.avatar)
         : null;
     recipients.add(
       _InviteRecipient(

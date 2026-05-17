@@ -20,8 +20,7 @@ import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/shared/sheets/add_friend_sheet.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart'
-    show fluxerMediaCdn;
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -587,7 +586,10 @@ class _DMListState extends ConsumerState<DMList> {
               FluxerAvatar.user(
                 fallbackText: friend.displayName,
                 userId: friend.id,
-                imageUrl: _friendAvatarUrl(friend),
+                imageUrl: FluxerMediaUrl.userAvatar(
+                  userId: friend.id,
+                  hash: friend.avatar,
+                ),
                 avatarColor: friend.avatarColor,
                 status: friend.status,
               ),
@@ -880,7 +882,10 @@ class _DMListState extends ConsumerState<DMList> {
                 if (c.isGroup)
                   FluxerAvatarCluster(
                     channelId: c.id,
-                    iconUrl: _groupIconUrl(c),
+                    iconUrl: FluxerMediaUrl.guildIcon(
+                      guildId: c.id,
+                      hash: c.icon,
+                    ),
                     status: c.groupStatus,
                     members: _clusterMembers(c),
                     size: avatarSize,
@@ -889,7 +894,10 @@ class _DMListState extends ConsumerState<DMList> {
                   FluxerAvatar.user(
                     fallbackText: c.recipientName,
                     userId: c.recipientId,
-                    imageUrl: _dmAvatarUrl(c),
+                    imageUrl: FluxerMediaUrl.userAvatar(
+                      userId: c.recipientId,
+                      hash: c.recipientAvatar,
+                    ),
                     status: c.recipientStatus,
                     size: avatarSize,
                   ),
@@ -1468,39 +1476,12 @@ class _DMListState extends ConsumerState<DMList> {
   );
 }
 
-String? _dmAvatarUrl(DmConversation convo) {
-  final avatar = convo.recipientAvatar;
-  if (avatar == null) {
-    return null;
-  }
-  return '$fluxerMediaCdn'
-      '/avatars/${convo.recipientId}/$avatar.png';
-}
-
-String? _friendAvatarUrl(Friend friend) {
-  final avatar = friend.avatar;
-  if (avatar == null) {
-    return null;
-  }
-  return '$fluxerMediaCdn/avatars/${friend.id}/$avatar.png';
-}
-
-String? _groupIconUrl(DmConversation convo) {
-  final icon = convo.icon;
-  if (icon == null) {
-    return null;
-  }
-  return '$fluxerMediaCdn/icons/${convo.id}/$icon.png';
-}
-
 List<AvatarClusterMember> _clusterMembers(DmConversation convo) {
   return convo.groupMembers
       .map(
         (m) => AvatarClusterMember(
           userId: m.id,
-          imageUrl: m.avatar != null
-              ? '$fluxerMediaCdn/avatars/${m.id}/${m.avatar}.png'
-              : null,
+          imageUrl: FluxerMediaUrl.userAvatar(userId: m.id, hash: m.avatar),
           fallbackText: m.name,
         ),
       )
@@ -1799,7 +1780,10 @@ class _DmBottomSheet extends StatelessWidget {
                     : FluxerAvatar.user(
                         fallbackText: convo.recipientName,
                         userId: convo.recipientId,
-                        imageUrl: _dmAvatarUrl(convo),
+                        imageUrl: FluxerMediaUrl.userAvatar(
+                          userId: convo.recipientId,
+                          hash: convo.recipientAvatar,
+                        ),
                         status: convo.recipientStatus,
                         size: 48,
                       ),

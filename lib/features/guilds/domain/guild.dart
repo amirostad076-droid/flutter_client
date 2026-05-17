@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
-import 'package:fluxer_app/core/media/fluxer_media_cdn.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 
 export 'package:fluxer_app/core/media/fluxer_media_cdn.dart' show fluxerMediaCdn;
 
@@ -76,29 +76,29 @@ class Guild {
   bool get hasAnimatedBanner => banner?.startsWith('a_') ?? false;
 
   String? get iconUrl {
-    if (icon == null) {
-      return null;
-    }
-    if (hasAnimatedIcon) {
-      return '$fluxerMediaCdn/icons/$id/$icon.webp?animated=false';
-    }
-    return '$fluxerMediaCdn/icons/$id/$icon.png';
+    return FluxerMediaUrl.guildIcon(
+      guildId: id,
+      hash: icon,
+      animated: false,
+    );
   }
 
   String? get animatedIconUrl {
-    if (icon == null || !hasAnimatedIcon) {
+    if (!hasAnimatedIcon) {
       return null;
     }
-    return '$fluxerMediaCdn/icons/$id/$icon.gif?animated=true';
+    return FluxerMediaUrl.guildIcon(
+      guildId: id,
+      hash: icon,
+      animated: true,
+    );
   }
 
   String? get bannerUrl {
-    if (banner == null) {
-      return null;
-    }
-    if (hasAnimatedBanner) {
-      return '$fluxerMediaCdn/banners/$id/$banner.gif?animated=true&size=1024';
-    }
-    return '$fluxerMediaCdn/banners/$id/$banner.png?size=1024';
+    return FluxerMediaUrl.guildBanner(
+      guildId: id,
+      hash: banner,
+      animated: hasAnimatedBanner,
+    );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
@@ -41,7 +42,7 @@ class GuildEmojiEntry {
   String get url => urlForSize(48);
 
   String urlForSize(int size) =>
-      getCustomEmojiUrl(id: id, animated: animated, size: size);
+      FluxerMediaUrl.customEmoji(id: id, animated: animated, size: size);
 
   String cacheKeyForSize(int size) =>
       'emoji_${id}_${animated ? 'a' : 's'}_$size';

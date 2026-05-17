@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
@@ -138,7 +139,10 @@ class _MemberListItemState extends State<_MemberListItem> {
                   FluxerAvatar.user(
                     fallbackText: member.displayName,
                     userId: member.id,
-                    imageUrl: member.avatarUrl,
+                    imageUrl: FluxerMediaUrl.userAvatar(
+                      userId: member.id,
+                      hash: member.avatar,
+                    ),
                     avatarColor: member.avatarColor,
                     roleColor: member.roleColor,
                     status: member.status,

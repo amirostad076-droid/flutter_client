@@ -1,6 +1,6 @@
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -89,7 +89,7 @@ Future<List<VoiceParticipantRow>> guildVoiceParticipants(
     if (user?.avatar == null) {
       return null;
     }
-    return '$fluxerMediaCdn/avatars/${user!.id}/${user.avatar}.png';
+    return FluxerMediaUrl.userAvatar(userId: user!.id, hash: user.avatar);
   }
 
   final rows = <VoiceParticipantRow>[];

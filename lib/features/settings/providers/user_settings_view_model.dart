@@ -8,8 +8,7 @@ import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart'
-    show fluxerMediaCdn;
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/settings/domain/guild_asset_mode.dart';
 import 'package:fluxer_app/shared/external_links/external_link_utils.dart'
@@ -307,19 +306,11 @@ class UserSettingsViewState {
   bool get hasPerGuildProfiles => isPremium;
 
   String? get avatarUrl {
-    if (avatar == null) {
-      return null;
-    }
-    return '$fluxerMediaCdn'
-        '/avatars/$userId/$avatar.png';
+    return FluxerMediaUrl.userAvatar(userId: userId, hash: avatar);
   }
 
   String? get bannerUrl {
-    if (banner == null) {
-      return null;
-    }
-    return '$fluxerMediaCdn'
-        '/banners/$userId/$banner.png';
+    return FluxerMediaUrl.userBanner(userId: userId, hash: banner);
   }
 
   DateTime get resolvedMemberSince {

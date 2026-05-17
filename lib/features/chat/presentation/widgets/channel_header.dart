@@ -15,7 +15,7 @@ import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
@@ -408,7 +408,11 @@ class ChannelHeader extends ConsumerWidget {
       return FluxerAvatar.user(
         fallbackText: dm.recipientName,
         userId: dm.recipientId,
-        imageUrl: _dmAvatarUrl(dm),
+        imageUrl: FluxerMediaUrl.userAvatar(
+          userId: dm.recipientId,
+          hash: dm.recipientAvatar,
+          animated: true,
+        ),
         status: dm.recipientStatus,
         size: 32,
       );
@@ -418,15 +422,6 @@ class ChannelHeader extends ConsumerWidget {
       size: 20,
       color: context.colors.interactiveNormal,
     );
-  }
-
-  String? _dmAvatarUrl(DmConversation dm) {
-    final avatar = dm.recipientAvatar;
-    if (avatar == null) {
-      return null;
-    }
-    return '$fluxerMediaCdn/avatars/'
-        '${dm.recipientId}/$avatar.png';
   }
 
   /// Builds the current voice connection status for voice channels.
