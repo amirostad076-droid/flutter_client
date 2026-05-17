@@ -84,6 +84,13 @@ class GuildSidebar extends ConsumerWidget {
     final Widget headerContent = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
+        if (isMobileLayout(context)) {
+          ref
+              .read(toastProvider.notifier)
+              .show(const FluxerToast(message: 'Coming soon'));
+          return;
+        }
+        
         final guildId = ref.read(activeGuildIdProvider);
         if (guildId != null) {
           unawaited(context.push(RoutePaths.guildSettingsPath(guildId)));

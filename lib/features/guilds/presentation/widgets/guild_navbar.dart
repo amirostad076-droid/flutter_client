@@ -57,6 +57,7 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:fluxer_app/shared/utils/guild_name_abbreviation.dart';
 import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
 import 'package:fluxer_dart/export.dart';
@@ -417,7 +418,11 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         _DashedGuildIcon(
           label: 'Explore Discoverable Servers',
           icon: PhosphorIconsRegular.compass,
-          onTap: () {},
+          onTap: () {
+            ref
+                .read(toastProvider.notifier)
+                .show(const FluxerToast(message: 'Coming soon'));
+          },
         ),
         _DashedGuildIcon(
           label: 'Add a Server',
@@ -427,7 +432,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         _DashedGuildIcon(
           label: 'Help',
           icon: PhosphorIconsRegular.question,
-          onTap: () {},
+          onTap: () => handleExternalLinkTap(context, 'https://help.fluxer.app'),
         ),
       ],
     );

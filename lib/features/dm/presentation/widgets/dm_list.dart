@@ -185,12 +185,16 @@ class _DMListState extends ConsumerState<DMList> {
     width: 56,
     height: 56,
     child: FloatingActionButton(
-      onPressed: () => context.go(RoutePaths.me),
+      onPressed: () {
+        ref
+            .read(toastProvider.notifier)
+            .show(const FluxerToast(message: 'Coming soon'));
+      },
       backgroundColor: context.colors.brandPrimary,
       elevation: 4,
       shape: const CircleBorder(),
       child: PhosphorIcon(
-        PhosphorIconsFill.paperPlaneTilt,
+        PhosphorIconsFill.paperPlane,
         size: 24,
         color: context.colors.textPrimary,
       ),
