@@ -155,6 +155,9 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
     final dialogTheme = DialogTheme.of(context);
     final themeShape = dialogTheme.shape as RoundedRectangleBorder?;
     final mediaQuery = MediaQuery.of(context);
+    final double keyboardInset = mediaQuery.viewInsets.bottom;
+    final double maxModalHeight =
+        mediaQuery.size.height - mediaQuery.viewPadding.top - layout.s2;
     final closeButton = Opacity(
       opacity: 0.7,
       child: FluxerButton.ghost(
@@ -203,8 +206,7 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
       return ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 400,
-          maxHeight:
-              mediaQuery.size.height - mediaQuery.viewPadding.top - layout.s2,
+          maxHeight: maxModalHeight,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -241,6 +243,17 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
       );
     }
 
+    final Widget dialog = Dialog(
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 24,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: layout.radiusXxl,
+        side: themeShape?.side ?? BorderSide.none,
+      ),
+      child: buildModalContent(),
+    );
     return Stack(
       children: <Widget>[
         Positioned.fill(
@@ -258,19 +271,16 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
         AnimatedPadding(
           duration: context.motion.normal,
           curve: context.motion.curve,
-          padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
-          child: Center(
-            child: Dialog(
-              insetPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 24,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: layout.radiusXxl,
-                side: themeShape?.side ?? BorderSide.none,
-              ),
-              child: buildModalContent(),
-            ),
+          padding: EdgeInsets.only(bottom: keyboardInset),
+          child: MediaQuery.removeViewInsets(
+            context: context,
+            removeBottom: true,
+            child: keyboardInset > 0
+                ? Align(
+                    alignment: Alignment.bottomCenter,
+                    child: dialog,
+                  )
+                : Center(child: dialog),
           ),
         ),
       ],
