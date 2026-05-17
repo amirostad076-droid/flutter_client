@@ -32,6 +32,7 @@ import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
 import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
+import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
@@ -1052,7 +1053,7 @@ class ChatViewModel extends _$ChatViewModel {
     if (hasPendingAttachments) {
       uploadNotifier.claimForMessage(clientNonce);
     }
-    final FluxerLocalizations l10n = lookupFluxerLocalizations(
+    final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
       PlatformDispatcher.instance.locale,
     );
     final List<Attachment> optimisticAttachments = hasPendingAttachments
@@ -1223,7 +1224,7 @@ class ChatViewModel extends _$ChatViewModel {
       case _SendBlockReason.empty:
         return;
       case _SendBlockReason.noPermission:
-        final FluxerLocalizations l10n = lookupFluxerLocalizations(
+        final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
           PlatformDispatcher.instance.locale,
         );
         ref.read(toastProvider.notifier).show(
@@ -1235,7 +1236,7 @@ class ChatViewModel extends _$ChatViewModel {
       case _SendBlockReason.slowmode:
         ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
       case _SendBlockReason.channelNotReady:
-        final FluxerLocalizations l10n = lookupFluxerLocalizations(
+        final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
           PlatformDispatcher.instance.locale,
         );
         ref.read(toastProvider.notifier).show(
@@ -1248,7 +1249,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void _showUnexpectedSendError() {
-    final FluxerLocalizations l10n = lookupFluxerLocalizations(
+    final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
       PlatformDispatcher.instance.locale,
     );
     ref.read(toastProvider.notifier).show(
@@ -1260,7 +1261,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void _markOptimisticSendFailed(String optimisticMessageId) {
-    final FluxerLocalizations l10n = lookupFluxerLocalizations(
+    final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
       PlatformDispatcher.instance.locale,
     );
     final String failedMessage = l10n.chatMessageFailedToSend;
@@ -1473,7 +1474,7 @@ class ChatViewModel extends _$ChatViewModel {
         '[ChatViewModel] edit save noop messageId=${editingMessage.id}',
       );
       state = state.copyWith(editingMessage: null, messageText: '');
-      final FluxerLocalizations l10n = lookupFluxerLocalizations(
+      final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
         PlatformDispatcher.instance.locale,
       );
       ref.read(toastProvider.notifier).show(
