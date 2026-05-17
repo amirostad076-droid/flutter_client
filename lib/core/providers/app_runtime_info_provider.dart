@@ -10,6 +10,7 @@ final FutureProvider<AppRuntimeInfo> appRuntimeInfoProvider =
     FutureProvider<AppRuntimeInfo>((Ref ref) async {
       final PackageInfo packageInfo = await PackageInfo.fromPlatform();
       final String deviceModel = await resolveDeviceModelName();
+      final String osVersionLabel = await resolveOsVersionLabel();
       return AppRuntimeInfo(
         appName: packageInfo.appName,
         packageName: packageInfo.packageName,
@@ -19,5 +20,6 @@ final FutureProvider<AppRuntimeInfo> appRuntimeInfoProvider =
         pushProvider: AppBuildConfig.pushProvider,
         buildTimestamp: AppBuildConfig.buildTimestamp,
         deviceModel: deviceModel,
+        osVersionLabel: osVersionLabel,
       );
     });

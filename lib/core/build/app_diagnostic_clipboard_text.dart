@@ -39,6 +39,41 @@ Future<String> resolveDeviceModelName() async {
   return '';
 }
 
+Future<String> resolveOsVersionLabel() async {
+  if (kIsWeb) {
+    return '';
+  }
+  final DeviceInfoPlugin plugin = DeviceInfoPlugin();
+  try {
+    if (Platform.isAndroid) {
+      final AndroidDeviceInfo info = await plugin.androidInfo;
+      return info.version.release;
+    }
+    if (Platform.isIOS) {
+      final IosDeviceInfo info = await plugin.iosInfo;
+      return info.systemVersion;
+    }
+    if (Platform.isMacOS) {
+      final MacOsDeviceInfo info = await plugin.macOsInfo;
+      return '${info.majorVersion}.${info.minorVersion}.${info.patchVersion}';
+    }
+    if (Platform.isWindows) {
+      final WindowsDeviceInfo info = await plugin.windowsInfo;
+      return '${info.majorVersion}.${info.minorVersion}';
+    }
+    if (Platform.isLinux) {
+      final LinuxDeviceInfo info = await plugin.linuxInfo;
+      final String version = info.version?.trim() ?? '';
+      if (version.isNotEmpty) {
+        return version;
+      }
+    }
+  } on Object {
+    return normalizeOsVersion(Platform.operatingSystemVersion);
+  }
+  return normalizeOsVersion(Platform.operatingSystemVersion);
+}
+
 String formatPushProviderLabel(PushProviderKind provider) {
   return switch (provider) {
     PushProviderKind.firebaseMessaging => 'fcm',
@@ -110,9 +145,10 @@ String formatAppDiagnosticClipboardText(AppRuntimeInfo info) {
     properties.releaseChannel ?? info.environment.name,
   );
   final String osLabel = formatOsDisplayName(properties.os);
-  final String osVersion = normalizeOsVersion(
-    properties.osVersion ?? Platform.operatingSystemVersion,
-  );
+  final String osVersionRaw = info.osVersionLabel.trim().isNotEmpty
+      ? info.osVersionLabel
+      : (properties.osVersion ?? Platform.operatingSystemVersion);
+  final String osVersion = normalizeOsVersion(osVersionRaw);
   final String? architecture = properties.architecture;
   final String osPart = architecture != null && architecture.isNotEmpty
       ? '$osLabel $osVersion ($architecture)'

@@ -11,6 +11,7 @@ class AppRuntimeInfo {
     required this.pushProvider,
     required this.buildTimestamp,
     this.deviceModel,
+    this.osVersionLabel = '',
   });
   final String appName;
   final String packageName;
@@ -20,6 +21,7 @@ class AppRuntimeInfo {
   final PushProviderKind pushProvider;
   final String buildTimestamp;
   final String? deviceModel;
+  final String osVersionLabel;
 
   String get deviceModelLabel => deviceModel ?? '';
 }
