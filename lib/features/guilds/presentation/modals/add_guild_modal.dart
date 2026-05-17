@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/guilds/presentation/modals/add_guild_landing_view.dart';
 import 'package:fluxer_app/features/guilds/services/join_community_service.dart';
+import 'package:fluxer_app/features/guilds/utils/invite_link_parser.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
@@ -40,6 +41,7 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
   String? _inviteErrorText;
   bool _isSubmitting = false;
   String _invitePlaceholder = '';
+  List<String> _instanceInviteUrlBases = const <String>[];
 
   @override
   void initState() {
@@ -57,9 +59,11 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
   }
 
   void _onInviteInputChanged() {
-    if (_inviteErrorText != null) {
-      setState(() => _inviteErrorText = null);
-    }
+    setState(() {
+      if (_inviteErrorText != null) {
+        _inviteErrorText = null;
+      }
+    });
   }
 
   Future<void> _loadInvitePlaceholder() async {
@@ -71,6 +75,7 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
         return;
       }
       setState(() {
+        _instanceInviteUrlBases = <String>[wellKnown.endpoints.invite];
         _invitePlaceholder = '${wellKnown.endpoints.invite}/$randomCode';
       });
     } on Object {
@@ -109,8 +114,16 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
     _AddGuildModalView.join => l10n.addGuildJoinTitle,
   };
 
-  bool get _canSubmitJoin =>
-      !_isSubmitting && _inviteController.text.trim().isNotEmpty;
+  bool get _canSubmitJoin {
+    if (_isSubmitting) {
+      return false;
+    }
+    return parseInviteCode(
+          _inviteController.text,
+          inviteUrlBases: _instanceInviteUrlBases,
+        ) !=
+        null;
+  }
 
   Future<void> _submitJoin() async {
     if (!_canSubmitJoin) {
