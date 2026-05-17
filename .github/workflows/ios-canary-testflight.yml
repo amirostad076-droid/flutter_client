@@ -68,6 +68,7 @@ jobs:
         with:
           channel: stable
       - name: Restore pub cache
+        if: runner.environment != 'self-hosted'
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: ~/.pub-cache
@@ -194,6 +195,7 @@ jobs:
         with:
           ruby-version: "4.0"
       - name: Restore Bundler cache
+        if: runner.environment != 'self-hosted'
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: vendor/bundle
