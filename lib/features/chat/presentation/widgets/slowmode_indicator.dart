@@ -6,11 +6,13 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_immunity_provider.dart';
+import 'package:fluxer_app/features/chat/providers/slowmode_indicator_shake_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const Duration _kTickInterval = Duration(seconds: 1);
+const Duration _kShakeDuration = Duration(milliseconds: 300);
 const int _kSecondsPerMinute = 60;
 const int _kSecondsPerHour = 3600;
 
@@ -22,13 +24,54 @@ class SlowmodeIndicator extends ConsumerStatefulWidget {
   ConsumerState<SlowmodeIndicator> createState() => _SlowmodeIndicatorState();
 }
 
-class _SlowmodeIndicatorState extends ConsumerState<SlowmodeIndicator> {
+class _SlowmodeIndicatorState extends ConsumerState<SlowmodeIndicator>
+    with SingleTickerProviderStateMixin {
   Timer? _ticker;
+  late final AnimationController _shakeController;
+  late final Animation<double> _shakeOffset;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: _kShakeDuration,
+    );
+    _shakeOffset = TweenSequence<double>(<TweenSequenceItem<double>>[
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 0, end: -5),
+        weight: 1,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: -5, end: 5),
+        weight: 2,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 5, end: -4),
+        weight: 2,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: -4, end: 4),
+        weight: 2,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 4, end: 0),
+        weight: 1,
+      ),
+    ]).animate(
+      CurvedAnimation(parent: _shakeController, curve: Curves.easeInOut),
+    );
+  }
 
   @override
   void dispose() {
     _ticker?.cancel();
+    _shakeController.dispose();
     super.dispose();
+  }
+
+  void _playShake() {
+    unawaited(_shakeController.forward(from: 0));
   }
 
   void _ensureTicker(bool active) {
@@ -48,6 +91,7 @@ class _SlowmodeIndicatorState extends ConsumerState<SlowmodeIndicator> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<int>(slowmodeIndicatorShakeProvider, (_, _) => _playShake());
     final channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
@@ -71,10 +115,19 @@ class _SlowmodeIndicatorState extends ConsumerState<SlowmodeIndicator> {
     _ensureTicker(showCountdown);
     return Padding(
       padding: const EdgeInsetsGeometry.only(bottom: 8),
-      child: _SlowmodePill(
-        remaining: showCountdown ? remaining : null,
-        rateLimitSeconds: rateLimit,
-        isImmune: isImmune,
+      child: AnimatedBuilder(
+        animation: _shakeOffset,
+        builder: (BuildContext context, Widget? child) {
+          return Transform.translate(
+            offset: Offset(_shakeOffset.value, 0),
+            child: child,
+          );
+        },
+        child: _SlowmodePill(
+          remaining: showCountdown ? remaining : null,
+          rateLimitSeconds: rateLimit,
+          isImmune: isImmune,
+        ),
       ),
     );
   }

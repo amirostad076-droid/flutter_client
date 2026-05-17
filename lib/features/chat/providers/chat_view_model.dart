@@ -21,8 +21,10 @@ import 'package:fluxer_app/features/chat/providers/chat_read_ack_gate.dart';
 import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
+import 'package:fluxer_app/features/chat/providers/slowmode_indicator_shake_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
@@ -37,6 +39,8 @@ part 'chat_view_model.g.dart';
 
 const _kPageSize = 30;
 const _kReadAckMinInterval = Duration(seconds: 1);
+
+enum _SendBlockReason { empty, noPermission, slowmode }
 
 class ChatViewState {
   static const _unset = Object();
@@ -751,8 +755,10 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  Future<void> sendMessage() =>
-      _sendContent(state.messageText.trim(), clearMessageText: true);
+  Future<void> sendMessage({String? text}) => _sendContent(
+    text ?? state.messageText.trim(),
+    clearMessageText: true,
+  );
 
   Future<void> sendStickerMessage(StickerEntry sticker) => _sendContent(
     state.messageText.trim(),
@@ -795,6 +801,7 @@ class ChatViewModel extends _$ChatViewModel {
         stickerIds.isEmpty &&
         favoriteMemeId == null &&
         pendingAttachments.isEmpty) {
+      _notifySendBlocked(_SendBlockReason.empty);
       return;
     }
     final String outgoingText = _maybeSanitizeOutgoing(text);
@@ -805,18 +812,24 @@ class ChatViewModel extends _$ChatViewModel {
     final guildId = channelRow?.guildId ?? '';
     int? guildBits;
     if (guildId.isNotEmpty) {
-      final int effectiveBits =
-          await computeEffectiveGuildChannelPermissionBits(
+      final ChannelPermissionBitsOutcome permissionOutcome =
+          await computeEffectiveGuildChannelPermissionBitsOutcome(
             ref: ref,
             channelId: channelId,
           );
-      final bool canSendMessages =
-          hasPermission(effectiveBits, Permission.sendMessages) ||
-          (channelRow != null &&
-              channelTypeFromInt(channelRow.type) == ChannelType.voice &&
-              hasPermission(effectiveBits, Permission.useTextInVoice));
-      if (!canSendMessages) {
-        return;
+      if (permissionOutcome.shouldCache) {
+        final bool canSendMessages =
+            hasPermission(permissionOutcome.value, Permission.sendMessages) ||
+            (channelRow != null &&
+                channelTypeFromInt(channelRow.type) == ChannelType.voice &&
+                hasPermission(
+                  permissionOutcome.value,
+                  Permission.useTextInVoice,
+                ));
+        if (!canSendMessages) {
+          _notifySendBlocked(_SendBlockReason.noPermission);
+          return;
+        }
       }
       guildBits = await ref
           .read(guildPermissionsProvider.notifier)
@@ -836,6 +849,7 @@ class ChatViewModel extends _$ChatViewModel {
             .read(slowmodeTrackerProvider.notifier)
             .remainingFor(channelId, rateLimit);
         if (remaining > Duration.zero) {
+          _notifySendBlocked(_SendBlockReason.slowmode);
           return;
         }
       }
@@ -1018,22 +1032,45 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
+  void _notifySendBlocked(_SendBlockReason reason) {
+    switch (reason) {
+      case _SendBlockReason.empty:
+        return;
+      case _SendBlockReason.noPermission:
+        final FluxerLocalizations l10n = lookupFluxerLocalizations(
+          PlatformDispatcher.instance.locale,
+        );
+        ref.read(toastProvider.notifier).show(
+          FluxerToast(
+            message: l10n.channelNoSendPermissionHint,
+            variant: FluxerToastVariant.warning,
+          ),
+        );
+      case _SendBlockReason.slowmode:
+        ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
+    }
+  }
+
   void _markOptimisticSendFailed(String optimisticMessageId) {
+    final FluxerLocalizations l10n = lookupFluxerLocalizations(
+      PlatformDispatcher.instance.locale,
+    );
+    final String failedMessage = l10n.chatMessageFailedToSend;
     final int optimisticIndex = state.messages.indexWhere(
       (Message m) => m.id == optimisticMessageId,
     );
     if (optimisticIndex == -1) {
-      state = state.copyWith(errorMessage: 'Failed to send message');
+      state = state.copyWith(errorMessage: failedMessage);
       return;
     }
     final List<Message> nextMessages = List<Message>.from(state.messages);
     nextMessages[optimisticIndex] = nextMessages[optimisticIndex].copyWith(
       deliveryState: MessageDeliveryState.failed,
-      sendError: 'Failed to send message',
+      sendError: failedMessage,
     );
     state = state.copyWith(
       messages: nextMessages,
-      errorMessage: 'Failed to send message',
+      errorMessage: failedMessage,
     );
   }
 
@@ -1178,6 +1215,13 @@ class ChatViewModel extends _$ChatViewModel {
   void scrollToMessage(String messageId) {
     final version = (state.scrollToMessageSignal?.$2 ?? 0) + 1;
     state = state.copyWith(scrollToMessageSignal: (messageId, version));
+  }
+
+  void clearErrorMessage() {
+    if (state.errorMessage == null) {
+      return;
+    }
+    state = state.copyWith(errorMessage: null);
   }
 
   void updateMessageText(String text) {

@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/typing_indicator_b
 import 'package:fluxer_app/features/chat/presentation/widgets/upload_drop_overlay.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -110,6 +111,18 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
       keyboardInset: MediaQuery.viewInsetsOf(context).bottom,
     );
     _scheduleChannelSync(loadMessages: shouldLoadMessages);
+    ref.listen<String?>(
+      chatViewModelProvider.select((ChatViewState s) => s.errorMessage),
+      (String? previous, String? next) {
+        if (next == null || next == previous) {
+          return;
+        }
+        ref.read(toastProvider.notifier).show(
+          FluxerToast(message: next, variant: FluxerToastVariant.danger),
+        );
+        ref.read(chatViewModelProvider.notifier).clearErrorMessage();
+      },
+    );
 
     return ColoredBox(
       color: context.colors.chatBackground,

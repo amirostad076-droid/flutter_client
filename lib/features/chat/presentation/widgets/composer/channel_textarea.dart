@@ -22,6 +22,7 @@ import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_blocked_provider.dart';
+import 'package:fluxer_app/features/chat/providers/slowmode_indicator_shake_provider.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
 import 'package:fluxer_app/features/chat/utils/clipboard_attachment_reader.dart';
@@ -160,7 +161,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (!perms.isComposerEnabled) {
       return KeyEventResult.ignored;
     }
-    unawaited(ref.read(chatViewModelProvider.notifier).sendMessage());
+    _onSendPressed();
     return KeyEventResult.handled;
   }
 
@@ -331,7 +332,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       chatViewModelProvider.select((s) => s.channelId),
     );
     final bool hasMessageText = ref.watch(
-      chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
+      chatViewModelProvider.select((s) => s.messageText.trim().isNotEmpty),
     );
     final bool hasPendingUploads = ref.watch(
       cloudUploadControllerProvider(
@@ -564,7 +565,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       chatViewModelProvider.select((s) => s.channelId),
     );
     final bool hasMessageText = ref.watch(
-      chatViewModelProvider.select((s) => s.messageText.isNotEmpty),
+      chatViewModelProvider.select((s) => s.messageText.trim().isNotEmpty),
     );
     final bool hasPendingUploads = ref.watch(
       cloudUploadControllerProvider(
@@ -804,6 +805,22 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return ':$name:';
   }
 
+  void _onSendPressed() {
+    final String channelId = ref.read(
+      chatViewModelProvider.select((s) => s.channelId),
+    );
+    final bool isSlowmodeBlocked =
+        ref.read(isSlowmodeBlockedProvider(channelId)).value ?? false;
+    if (isSlowmodeBlocked) {
+      ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
+      return;
+    }
+    final String text = _controller.toWireText().trim();
+    unawaited(
+      ref.read(chatViewModelProvider.notifier).sendMessage(text: text),
+    );
+  }
+
   Widget _buildMobilePickerButton(
     BuildContext context,
     ChannelMessagePermissions perms,
@@ -838,21 +855,24 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final isBlocked =
+    final bool isSlowmodeBlocked =
         ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false;
-    final bool canPressSend = perms.isComposerEnabled && !isBlocked;
-    final bool canUseVoice = perms.isVoiceEnabled && !isBlocked;
+    final bool canPressSend = perms.isComposerEnabled;
+    final bool canUseVoice = perms.isVoiceEnabled && !isSlowmodeBlocked;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) =>
           FadeTransition(opacity: animation, child: child),
       child: hasText
-          ? FluxerButton.circle(
+          ? Opacity(
               key: const ValueKey('send'),
-              icon: PhosphorIconsBold.arrowUp,
-              iconSize: 20,
-              size: size,
-              onPressed: canPressSend ? chatNotifier.sendMessage : null,
+              opacity: isSlowmodeBlocked ? _kMessageInputDisabledOpacity : 1.0,
+              child: FluxerButton.circle(
+                icon: PhosphorIconsBold.arrowUp,
+                iconSize: 20,
+                size: size,
+                onPressed: canPressSend ? _onSendPressed : null,
+              ),
             )
           : Opacity(
               key: const ValueKey('voice'),
