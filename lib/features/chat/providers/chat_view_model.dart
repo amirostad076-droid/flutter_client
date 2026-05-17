@@ -9,6 +9,8 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
+import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/channels/providers/read_state_repository_provider.dart';
@@ -55,6 +57,7 @@ class ChatViewState {
   final (String messageId, int version)? scrollToMessageSignal;
   final String? stickyUnreadMessageId;
   final bool isLoading;
+  final bool isSyncingMessages;
   final bool isLoadingMore;
   final bool hasMoreMessages;
   final String? errorMessage;
@@ -68,6 +71,7 @@ class ChatViewState {
     required this.messageText,
     required this.scrollToBottomSignal,
     required this.isLoading,
+    required this.isSyncingMessages,
     required this.isLoadingMore,
     required this.hasMoreMessages,
     required this.errorMessage,
@@ -88,6 +92,7 @@ class ChatViewState {
     Object? scrollToMessageSignal = _unset,
     Object? stickyUnreadMessageId = _unset,
     bool? isLoading,
+    bool? isSyncingMessages,
     bool? isLoadingMore,
     bool? hasMoreMessages,
     Object? errorMessage = _unset,
@@ -113,6 +118,7 @@ class ChatViewState {
           ? this.stickyUnreadMessageId
           : stickyUnreadMessageId as String?,
       isLoading: isLoading ?? this.isLoading,
+      isSyncingMessages: isSyncingMessages ?? this.isSyncingMessages,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMoreMessages: hasMoreMessages ?? this.hasMoreMessages,
       errorMessage: errorMessage == _unset
@@ -162,6 +168,7 @@ class ChatViewModel extends _$ChatViewModel {
       messageText: '',
       scrollToBottomSignal: 0,
       isLoading: false,
+      isSyncingMessages: false,
       isLoadingMore: false,
       hasMoreMessages: true,
       errorMessage: null,
@@ -349,6 +356,7 @@ class ChatViewModel extends _$ChatViewModel {
         messageText: '',
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: false,
+        isSyncingMessages: false,
         isLoadingMore: false,
         hasMoreMessages: true,
         errorMessage: null,
@@ -368,6 +376,7 @@ class ChatViewModel extends _$ChatViewModel {
         messageText: '',
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: true,
+        isSyncingMessages: false,
         isLoadingMore: false,
         hasMoreMessages: true,
         errorMessage: null,
@@ -375,7 +384,29 @@ class ChatViewModel extends _$ChatViewModel {
       await _loadMessages(channelId, targetMessageId: targetMessageId);
       return;
     }
-    if (state.channelId == channelId && state.isLoading) {
+    if (state.channelId == channelId &&
+        (state.isLoading || state.isSyncingMessages)) {
+      return;
+    }
+    final repo = ref.read(messageRepositoryProvider);
+    final cached = await repo.getCachedMessages(channelId, limit: _kPageSize);
+    final hasUnread = await _channelHasNewUnreadMessages(channelId);
+    if (cached.isNotEmpty && !hasUnread) {
+      state = ChatViewState(
+        channelId: channelId,
+        messages: cached,
+        replyingTo: null,
+        forwardingFrom: null,
+        editingMessage: null,
+        messageText: '',
+        scrollToBottomSignal: state.scrollToBottomSignal,
+        isLoading: false,
+        isSyncingMessages: true,
+        isLoadingMore: false,
+        hasMoreMessages: cached.length >= _kPageSize,
+        errorMessage: null,
+      );
+      unawaited(_refreshMessagesFromNetwork(channelId));
       return;
     }
     state = ChatViewState(
@@ -387,49 +418,151 @@ class ChatViewModel extends _$ChatViewModel {
       messageText: '',
       scrollToBottomSignal: state.scrollToBottomSignal,
       isLoading: true,
+      isSyncingMessages: false,
       isLoadingMore: false,
       hasMoreMessages: true,
       errorMessage: null,
     );
-    await _loadMessages(channelId, targetMessageId: targetMessageId);
+    await _refreshMessagesFromNetwork(channelId, showLoadingSpinner: true);
   }
 
   Future<void> _loadMessages(
     String channelId, {
     String? targetMessageId,
   }) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    await _refreshMessagesFromNetwork(
+      channelId,
+      targetMessageId: targetMessageId,
+      showLoadingSpinner: true,
+    );
+  }
+
+  Future<void> _refreshMessagesFromNetwork(
+    String channelId, {
+    String? targetMessageId,
+    bool showLoadingSpinner = false,
+  }) async {
+    if (showLoadingSpinner) {
+      state = state.copyWith(
+        isLoading: true,
+        isSyncingMessages: false,
+        errorMessage: null,
+      );
+    }
     try {
       final repo = ref.read(messageRepositoryProvider);
       final messages = await repo.getMessages(
         channelId: channelId,
         around: targetMessageId,
       );
+      if (state.channelId != channelId) {
+        return;
+      }
       state = state.copyWith(
         messages: messages,
         isLoading: false,
+        isSyncingMessages: false,
         hasMoreMessages: messages.length >= _kPageSize,
+        errorMessage: null,
       );
       if (targetMessageId == null) {
-        final readState = await ref
-            .read(fluxerDatabaseProvider)
-            .readStateDao
-            .getReadState(channelId);
-        await _ensureUnreadBoundaryLoaded(channelId, readState: readState);
-        final unreadId = _firstUnreadForCurrentMessages(readState: readState);
-        if (unreadId != null) {
-          _showInitialUnread(channelId, unreadId);
-          return;
-        }
-        unawaited(ackCurrentChannel());
+        await _onMessagesLoaded(channelId);
       }
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load messages: $e');
+      if (state.channelId != channelId) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Failed to load messages',
+        isSyncingMessages: false,
+        errorMessage: state.messages.isEmpty ? 'Failed to load messages' : null,
       );
     }
+  }
+
+  Future<bool> _channelHasNewUnreadMessages(String channelId) async {
+    final database = ref.read(fluxerDatabaseProvider);
+    final currentUserId = ref.read(currentUserIdProvider);
+    final channel = await database.channelDao.getChannelById(channelId);
+    final readState = await database.readStateDao.getReadState(channelId);
+    if (readState?.manual ?? false) {
+      return true;
+    }
+    final stickyUnreadId = readState?.stickyUnreadMessageId;
+    if (stickyUnreadId != null && stickyUnreadId.isNotEmpty) {
+      return true;
+    }
+    final lastCachedMessage = await database.messageDao.getLastMessage(channelId);
+    final latestMessageId = channel?.lastMessageId ?? lastCachedMessage?.id;
+    final rawMentionCount = readState?.mentionCount ?? 0;
+    final visibleMentionCount = canShowMentionCount(
+      channelLastMessageId: latestMessageId,
+      isGuildChannel: channel != null,
+      now: DateTime.now(),
+    )
+        ? rawMentionCount
+        : 0;
+    if (visibleMentionCount > 0) {
+      return true;
+    }
+    final fallbackAckMs = channel == null
+        ? snowflakeTimestampMs(channelId)
+        : await guildChannelFallbackAckMs(
+            database: database,
+            channel: channel,
+            currentUserId: currentUserId,
+          );
+    final now = DateTime.now();
+    final staleSuppressed = shouldSuppressStaleUnread(
+      channelLastMessageId: latestMessageId,
+      ackLastMessageId: readState?.lastMessageId,
+      fallbackAckMs: fallbackAckMs,
+      mentionCount: visibleMentionCount,
+      now: now,
+    );
+    final hasUnreadMessage =
+        !staleSuppressed &&
+        hasUnreadByReadState(
+          channelLastMessageId: latestMessageId,
+          ackLastMessageId: readState?.lastMessageId,
+          fallbackAckMs: fallbackAckMs,
+          mentionCount: 0,
+        );
+    if (!hasUnreadMessage) {
+      return false;
+    }
+    if (channel == null) {
+      return true;
+    }
+    final guildSettings = await database.userGuildSettingsDao.getByGuildId(
+      channel.guildId,
+    );
+    final unreadSettings = resolveUnreadSettings(
+      channel: channel,
+      guildSettings: guildSettings == null
+          ? null
+          : decodeUserGuildSettings(guildSettings.data),
+      now: now,
+    );
+    return unreadSettings.allowsMessageUnread;
+  }
+
+  Future<void> _onMessagesLoaded(String channelId) async {
+    if (state.channelId != channelId) {
+      return;
+    }
+    final readState = await ref
+        .read(fluxerDatabaseProvider)
+        .readStateDao
+        .getReadState(channelId);
+    await _ensureUnreadBoundaryLoaded(channelId, readState: readState);
+    final unreadId = _firstUnreadForCurrentMessages(readState: readState);
+    if (unreadId != null) {
+      _showInitialUnread(channelId, unreadId);
+      return;
+    }
+    unawaited(ackCurrentChannel());
   }
 
   Future<void> loadMore() async {
@@ -478,7 +611,7 @@ class ChatViewModel extends _$ChatViewModel {
 
   Future<void> ackCurrentChannel({bool force = false}) async {
     final channelId = state.channelId;
-    if (!force && state.isLoading) {
+    if (!force && (state.isLoading || state.isSyncingMessages)) {
       return;
     }
     final now = DateTime.now();

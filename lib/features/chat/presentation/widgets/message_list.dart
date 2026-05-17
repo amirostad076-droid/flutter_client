@@ -335,7 +335,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
 
     final Widget body;
-    if (state.isLoading) {
+    if (state.isLoading && messages.isEmpty) {
       body = Center(
         child: FluxerLoadingSpinner(color: context.colors.brandPrimary),
       );

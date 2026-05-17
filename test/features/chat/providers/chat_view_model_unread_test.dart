@@ -40,11 +40,27 @@ Map<String, Object?> _messageJson({
   },
   'type': 0,
   'flags': 0,
+  'tts': false,
   'content': 'message $id',
   'timestamp': dateTimeFromUserSnowflakeOrNull(id)!.toIso8601String(),
   'pinned': false,
   'mention_everyone': false,
+  'tts': false,
+  'mentions': <Object?>[],
+  'mention_roles': <Object?>[],
 };
+
+MessagesCompanion _cachedMessage({
+  required String id,
+  required String channelId,
+  required String authorId,
+}) => MessagesCompanion.insert(
+  id: id,
+  channelId: channelId,
+  authorId: authorId,
+  content: 'message $id',
+  timestamp: dateTimeFromUserSnowflakeOrNull(id)!,
+);
 
 void main() {
   test(
@@ -96,6 +112,279 @@ void main() {
     expect(adapter.ackedMessageIds, isEmpty);
     adapter.releaseMessageFetch();
     await load;
+  });
+
+  test(
+    'cache hit shows messages immediately without loading spinner state',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final cachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      await db.messageDao.upsertMessage(
+        _cachedMessage(id: cachedId, channelId: 'channel-1', authorId: 'other'),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(cachedId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(cachedId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final networkId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: networkId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      )..holdMessageFetch = true;
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      unawaited(notifier.switchChannel('channel-1'));
+      await _flushAsync();
+
+      final state = container.read(chatViewModelProvider);
+      expect(state.isLoading, isFalse);
+      expect(state.isSyncingMessages, isTrue);
+      expect(state.messages.map((m) => m.id), [cachedId]);
+      expect(adapter.messageRequestUris, isNotEmpty);
+
+      adapter.releaseMessageFetch();
+      await _flushAsync();
+      expect(container.read(chatViewModelProvider).isSyncingMessages, isFalse);
+      expect(
+        container.read(chatViewModelProvider).messages.last.id,
+        networkId,
+      );
+    },
+  );
+
+  test('auto ack does not run while cache-first messages are syncing', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.messageDao.upsertMessage(
+      _cachedMessage(id: latestId, channelId: 'channel-1', authorId: 'other'),
+    );
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(latestId),
+        mentionCount: const Value(0),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    )..holdMessageFetch = true;
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    notifier.setReadViewportActive(isActive: true);
+    await _flushAsync();
+
+    expect(adapter.ackedMessageIds, isEmpty);
+    expect(container.read(chatViewModelProvider).isSyncingMessages, isTrue);
+    adapter.releaseMessageFetch();
+    await _flushAsync();
+    expect(container.read(chatViewModelProvider).isSyncingMessages, isFalse);
+  });
+
+  test('unread channel skips cache-first and shows loading spinner', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 10));
+    final unreadId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 11));
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 17, 12));
+    await db.messageDao.upsertMessage(
+      _cachedMessage(id: ackId, channelId: 'channel-1', authorId: 'other'),
+    );
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(0),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: unreadId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    )..holdMessageFetch = true;
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    final load = notifier.switchChannel('channel-1');
+    for (var i = 0; i < 20; i++) {
+      await _flushAsync();
+      final state = container.read(chatViewModelProvider);
+      if (state.channelId == 'channel-1' && state.isLoading) {
+        expect(state.isSyncingMessages, isFalse);
+        expect(state.messages, isEmpty);
+        adapter.releaseMessageFetch();
+        await load;
+        return;
+      }
+    }
+    fail('expected loading state for unread channel');
+  });
+
+  test('cache miss keeps loading state until network returns', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    )..holdMessageFetch = true;
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    final load = notifier.switchChannel('channel-1');
+    await _flushAsync();
+
+    final loadingState = container.read(chatViewModelProvider);
+    expect(loadingState.isLoading, isTrue);
+    expect(loadingState.isSyncingMessages, isFalse);
+    expect(loadingState.messages, isEmpty);
+
+    adapter.releaseMessageFetch();
+    await load;
+    final loadedState = container.read(chatViewModelProvider);
+    expect(loadedState.isLoading, isFalse);
+    expect(loadedState.isSyncingMessages, isFalse);
+    expect(loadedState.messages.last.id, latestId);
+  });
+
+  test('stale channel fetch does not overwrite active channel state', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final channel1CachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+    final channel1NetworkId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final channel2CachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 20));
+    final channel2NetworkId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 21));
+    await db.messageDao.upsertMessages([
+      _cachedMessage(
+        id: channel1CachedId,
+        channelId: 'channel-1',
+        authorId: 'other',
+      ),
+      _cachedMessage(
+        id: channel2CachedId,
+        channelId: 'channel-2',
+        authorId: 'other',
+      ),
+    ]);
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general-1',
+        lastMessageId: Value(channel1CachedId),
+      ),
+    );
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-2',
+        guildId: 'guild-1',
+        name: 'general-2',
+        lastMessageId: Value(channel2CachedId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(channel1CachedId),
+        mentionCount: const Value(0),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-2'),
+        lastMessageId: Value(channel2CachedId),
+        mentionCount: const Value(0),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      messagesByChannel: {
+        'channel-1': [
+          _messageJson(
+            id: channel1NetworkId,
+            channelId: 'channel-1',
+            authorId: 'other',
+          ),
+        ],
+        'channel-2': [
+          _messageJson(
+            id: channel2NetworkId,
+            channelId: 'channel-2',
+            authorId: 'other',
+          ),
+        ],
+      },
+    )..holdMessageFetch = true;
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    unawaited(notifier.switchChannel('channel-1'));
+    await _flushAsync();
+    await notifier.switchChannel('channel-2');
+    await _flushAsync();
+
+    expect(container.read(chatViewModelProvider).channelId, 'channel-2');
+    expect(
+      container.read(chatViewModelProvider).messages.last.id,
+      channel2CachedId,
+    );
+
+    adapter.releaseMessageFetch();
+    await _flushAsync();
+
+    final state = container.read(chatViewModelProvider);
+    expect(state.channelId, 'channel-2');
+    expect(state.messages.last.id, channel2NetworkId);
+    expect(state.messages.any((m) => m.id == channel1NetworkId), isFalse);
   });
 
   test(
@@ -632,11 +921,13 @@ Future<void> _flushAsync() async {
 
 class _ChatAdapter implements HttpClientAdapter {
   _ChatAdapter({
-    required this.initialMessages,
+    this.initialMessages = const [],
+    this.messagesByChannel = const {},
     this.messagesAfterAck = const [],
   });
 
   final List<Map<String, Object?>> initialMessages;
+  final Map<String, List<Map<String, Object?>>> messagesByChannel;
   final List<Map<String, Object?>> messagesAfterAck;
   final List<Uri> messageRequestUris = [];
   final List<String> afterQueries = [];
@@ -670,8 +961,11 @@ class _ChatAdapter implements HttpClientAdapter {
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
   ) async {
-    if (options.method == 'GET' &&
-        options.uri.path.endsWith('/channels/channel-1/messages')) {
+    final channelMessagesMatch = RegExp(
+      r'/channels/([^/]+)/messages$',
+    ).firstMatch(options.uri.path);
+    if (options.method == 'GET' && channelMessagesMatch != null) {
+      final channelId = channelMessagesMatch.group(1)!;
       messageRequestUris.add(options.uri);
       final after = options.uri.queryParameters['after'];
       if (after != null) {
@@ -681,7 +975,9 @@ class _ChatAdapter implements HttpClientAdapter {
         _messageFetchCompleter ??= Completer<void>();
         await _messageFetchCompleter!.future;
       }
-      final messages = after == null ? initialMessages : messagesAfterAck;
+      final messages = after == null
+          ? (messagesByChannel[channelId] ?? initialMessages)
+          : messagesAfterAck;
       return ResponseBody.fromString(
         jsonEncode(messages),
         200,

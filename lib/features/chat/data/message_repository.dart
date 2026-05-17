@@ -67,6 +67,14 @@ class MessageRepository {
         .map((rows) => rows.map(Message.fromRow).toList());
   }
 
+  Future<List<Message>> getCachedMessages(
+    String channelId, {
+    int limit = 30,
+  }) async {
+    final rows = await _db.messageDao.getMessages(channelId, limit: limit);
+    return rows.map(Message.fromRow).toList();
+  }
+
   Future<List<Message>> getMessages({
     required String channelId,
     int limit = 30,
