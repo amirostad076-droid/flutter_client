@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
@@ -43,7 +44,7 @@ part 'chat_view_model.g.dart';
 const _kPageSize = 30;
 const _kReadAckMinInterval = Duration(seconds: 1);
 
-enum _SendBlockReason { empty, noPermission, slowmode }
+enum _SendBlockReason { empty, noPermission, slowmode, channelNotReady }
 
 class ChatViewState {
   static const _unset = Object();
@@ -896,10 +897,12 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  Future<void> sendMessage({String? text}) => _sendContent(
-    text ?? state.messageText.trim(),
-    clearMessageText: true,
-  );
+  Future<void> sendMessage({String? text}) async {
+    await _sendContent(
+      text ?? state.messageText.trim(),
+      clearMessageText: true,
+    );
+  }
 
   Future<void> sendStickerMessage(StickerEntry sticker) => _sendContent(
     state.messageText.trim(),
@@ -929,11 +932,35 @@ class ChatViewModel extends _$ChatViewModel {
     List<String> stickerIds = const [],
     String? favoriteMemeId,
   }) async {
-    if (state.editingMessage != null) {
-      await saveEditedMessage();
+    try {
+      await _sendContentInner(
+        text,
+        clearMessageText: clearMessageText,
+        stickerIds: stickerIds,
+        favoriteMemeId: favoriteMemeId,
+      );
+    } on Object catch (error, st) {
+      talker.error('[ChatViewModel] send failed unexpectedly', error, st);
+      _showUnexpectedSendError();
+    }
+  }
+
+  Future<void> _sendContentInner(
+    String text, {
+    required bool clearMessageText,
+    List<String> stickerIds = const [],
+    String? favoriteMemeId,
+  }) async {
+    final String channelId = state.channelId;
+    if (channelId.isEmpty) {
+      talker.debug('[ChatViewModel] send blocked: channel_not_ready');
+      _notifySendBlocked(_SendBlockReason.channelNotReady);
       return;
     }
-    final String channelId = state.channelId;
+    if (state.editingMessage != null) {
+      await saveEditedMessage(text: text);
+      return;
+    }
     final String? currentUserId = ref.read(currentUserIdProvider);
     final List<PendingAttachment> pendingAttachments = ref
         .read(cloudUploadControllerProvider(channelId))
@@ -942,6 +969,9 @@ class ChatViewModel extends _$ChatViewModel {
         stickerIds.isEmpty &&
         favoriteMemeId == null &&
         pendingAttachments.isEmpty) {
+      talker.debug(
+        '[ChatViewModel] send blocked: empty channelId=$channelId',
+      );
       _notifySendBlocked(_SendBlockReason.empty);
       return;
     }
@@ -968,6 +998,9 @@ class ChatViewModel extends _$ChatViewModel {
                   Permission.useTextInVoice,
                 ));
         if (!canSendMessages) {
+          talker.debug(
+            '[ChatViewModel] send blocked: no_permission channelId=$channelId',
+          );
           _notifySendBlocked(_SendBlockReason.noPermission);
           return;
         }
@@ -990,6 +1023,9 @@ class ChatViewModel extends _$ChatViewModel {
             .read(slowmodeTrackerProvider.notifier)
             .remainingFor(channelId, rateLimit);
         if (remaining > Duration.zero) {
+          talker.debug(
+            '[ChatViewModel] send blocked: slowmode channelId=$channelId',
+          );
           _notifySendBlocked(_SendBlockReason.slowmode);
           return;
         }
@@ -1039,6 +1075,7 @@ class ChatViewModel extends _$ChatViewModel {
       attachments: optimisticAttachments,
     );
 
+    talker.debug('[ChatViewModel] send optimistic channelId=$channelId');
     state = state.copyWith(
       replyingTo: null,
       forwardingFrom: null,
@@ -1115,8 +1152,12 @@ class ChatViewModel extends _$ChatViewModel {
         messages: nextMessages,
         scrollToBottomSignal: state.scrollToBottomSignal + 1,
       );
-    } on Exception catch (e) {
-      debugPrint('[ChatViewModel] Failed to send: $e');
+    } on Object catch (error, st) {
+      talker.error(
+        '[ChatViewModel] send api_error channelId=$channelId',
+        error,
+        st,
+      );
       _markOptimisticSendFailed(optimisticMessageId);
     }
   }
@@ -1165,8 +1206,12 @@ class ChatViewModel extends _$ChatViewModel {
         messages: nextMessages,
         scrollToBottomSignal: state.scrollToBottomSignal + 1,
       );
-    } on Exception catch (e) {
-      debugPrint('[ChatViewModel] Failed to send: $e');
+    } on Object catch (error, st) {
+      talker.error(
+        '[ChatViewModel] send api_error channelId=$channelId',
+        error,
+        st,
+      );
       uploadNotifier.restoreToComposer(clientNonce);
       uploadNotifier.removeMessageUpload(clientNonce);
       _markOptimisticSendFailed(optimisticMessageId);
@@ -1189,7 +1234,29 @@ class ChatViewModel extends _$ChatViewModel {
         );
       case _SendBlockReason.slowmode:
         ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
+      case _SendBlockReason.channelNotReady:
+        final FluxerLocalizations l10n = lookupFluxerLocalizations(
+          PlatformDispatcher.instance.locale,
+        );
+        ref.read(toastProvider.notifier).show(
+          FluxerToast(
+            message: l10n.chatChannelNotReady,
+            variant: FluxerToastVariant.warning,
+          ),
+        );
     }
+  }
+
+  void _showUnexpectedSendError() {
+    final FluxerLocalizations l10n = lookupFluxerLocalizations(
+      PlatformDispatcher.instance.locale,
+    );
+    ref.read(toastProvider.notifier).show(
+      FluxerToast(
+        message: l10n.chatMessageFailedToSend,
+        variant: FluxerToastVariant.danger,
+      ),
+    );
   }
 
   void _markOptimisticSendFailed(String optimisticMessageId) {
@@ -1393,16 +1460,28 @@ class ChatViewModel extends _$ChatViewModel {
     state = state.copyWith(editingMessage: null, messageText: '');
   }
 
-  Future<void> saveEditedMessage() async {
+  Future<void> saveEditedMessage({String? text}) async {
     final Message? editingMessage = state.editingMessage;
     if (editingMessage == null) {
       return;
     }
     final String editedContent = _maybeSanitizeOutgoing(
-      state.messageText.trim(),
+      (text ?? state.messageText).trim(),
     );
     if (editedContent.isEmpty || editedContent == editingMessage.content) {
+      talker.debug(
+        '[ChatViewModel] edit save noop messageId=${editingMessage.id}',
+      );
       state = state.copyWith(editingMessage: null, messageText: '');
+      final FluxerLocalizations l10n = lookupFluxerLocalizations(
+        PlatformDispatcher.instance.locale,
+      );
+      ref.read(toastProvider.notifier).show(
+        FluxerToast(
+          message: l10n.chatEditNoChanges,
+          variant: FluxerToastVariant.warning,
+        ),
+      );
       return;
     }
     try {

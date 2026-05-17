@@ -26,6 +26,7 @@ import 'package:fluxer_app/features/chat/providers/slowmode_indicator_shake_prov
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
 import 'package:fluxer_app/features/chat/utils/clipboard_attachment_reader.dart';
+import 'package:fluxer_app/features/chat/utils/composer_sendable_content.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_constants.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
@@ -159,6 +160,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           ref.read(channelMessagePermissionsProvider(channelId)),
         );
     if (!perms.isComposerEnabled) {
+      return KeyEventResult.ignored;
+    }
+    if (!composerHasSendableContent(
+      ref,
+      channelId,
+      _controller.toWireText(),
+    )) {
       return KeyEventResult.ignored;
     }
     _onSendPressed();
@@ -331,17 +339,21 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final String channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final bool hasMessageText = ref.watch(
-      chatViewModelProvider.select((s) => s.messageText.trim().isNotEmpty),
+    ref.watch(
+      cloudUploadControllerProvider(channelId).select(
+        (CloudComposerAttachments a) => a.items.length,
+      ),
     );
-    final bool hasPendingUploads = ref.watch(
-      cloudUploadControllerProvider(
-        channelId,
-      ).select((CloudComposerAttachments a) => a.items.isNotEmpty),
-    );
-    final bool hasText = hasMessageText || hasPendingUploads;
-    return Row(
-      children: [
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (BuildContext context, Widget? child) {
+        final bool hasSendable = composerHasSendableContent(
+          ref,
+          channelId,
+          _controller.toWireText(),
+        );
+        return Row(
+          children: [
         if (perms.canShowAttachControls) ...[
           FluxerButton.secondary(
             icon: PhosphorIconsFill.plusCircle,
@@ -420,7 +432,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           ),
         ),
         const SizedBox(width: 4),
-        if (!hasText) ...[
+        if (!hasSendable) ...[
           IconButton(
             icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
             color: context.colors.interactiveNormal,
@@ -550,9 +562,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           context,
           chatNotifier,
           perms: perms,
-          hasText: hasText,
+          hasSendable: hasSendable,
         ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -564,18 +578,22 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final String channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final bool hasMessageText = ref.watch(
-      chatViewModelProvider.select((s) => s.messageText.trim().isNotEmpty),
+    ref.watch(
+      cloudUploadControllerProvider(channelId).select(
+        (CloudComposerAttachments a) => a.items.length,
+      ),
     );
-    final bool hasPendingUploads = ref.watch(
-      cloudUploadControllerProvider(
-        channelId,
-      ).select((CloudComposerAttachments a) => a.items.isNotEmpty),
-    );
-    final bool hasText = hasMessageText || hasPendingUploads;
 
-    return Row(
-      children: [
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (BuildContext context, Widget? child) {
+        final bool hasSendable = composerHasSendableContent(
+          ref,
+          channelId,
+          _controller.toWireText(),
+        );
+        return Row(
+          children: [
         if (perms.canShowAttachControls) ...[
           FluxerButton.circle(
             icon: PhosphorIconsBold.plus,
@@ -660,11 +678,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             context,
             chatNotifier,
             perms: perms,
-            hasText: hasText,
+            hasSendable: hasSendable,
             size: FluxerButtonSize.small,
           ),
         ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -805,19 +825,34 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return ':$name:';
   }
 
+  void _showNoSendPermissionToast() {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    ref.read(toastProvider.notifier).show(
+      FluxerToast(
+        message: l10n.channelNoSendPermissionHint,
+        variant: FluxerToastVariant.warning,
+      ),
+    );
+  }
+
   void _onSendPressed() {
     final String channelId = ref.read(
       chatViewModelProvider.select((s) => s.channelId),
     );
+    final String wireText = _controller.toWireText();
+    if (!composerHasSendableContent(ref, channelId, wireText)) {
+      return;
+    }
     final bool isSlowmodeBlocked =
         ref.read(isSlowmodeBlockedProvider(channelId)).value ?? false;
     if (isSlowmodeBlocked) {
       ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
       return;
     }
-    final String text = _controller.toWireText().trim();
     unawaited(
-      ref.read(chatViewModelProvider.notifier).sendMessage(text: text),
+      ref
+          .read(chatViewModelProvider.notifier)
+          .sendMessage(text: wireText.trim()),
     );
   }
 
@@ -849,7 +884,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     BuildContext context,
     ChatViewModel chatNotifier, {
     required ChannelMessagePermissions perms,
-    required bool hasText,
+    required bool hasSendable,
     FluxerButtonSize size = FluxerButtonSize.compact,
   }) {
     final channelId = ref.watch(
@@ -857,13 +892,17 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     final bool isSlowmodeBlocked =
         ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false;
-    final bool canPressSend = perms.isComposerEnabled;
     final bool canUseVoice = perms.isVoiceEnabled && !isSlowmodeBlocked;
+    final VoidCallback? sendOnPressed = !hasSendable
+        ? null
+        : perms.isComposerEnabled
+        ? _onSendPressed
+        : _showNoSendPermissionToast;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) =>
           FadeTransition(opacity: animation, child: child),
-      child: hasText
+      child: hasSendable
           ? Opacity(
               key: const ValueKey('send'),
               opacity: isSlowmodeBlocked ? _kMessageInputDisabledOpacity : 1.0,
@@ -871,7 +910,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 icon: PhosphorIconsBold.arrowUp,
                 iconSize: 20,
                 size: size,
-                onPressed: canPressSend ? _onSendPressed : null,
+                onPressed: sendOnPressed,
               ),
             )
           : Opacity(

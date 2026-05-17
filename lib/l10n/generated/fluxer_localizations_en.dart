@@ -3297,6 +3297,13 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatEditMessageHint => 'Edit message';
 
   @override
+  String get chatEditNoChanges => 'No changes to save';
+
+  @override
+  String get chatChannelNotReady =>
+      'This channel is not ready yet. Try again in a moment.';
+
+  @override
   String get chatMessageEdited => '(edited)';
 
   @override

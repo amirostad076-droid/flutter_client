@@ -4007,6 +4007,14 @@
   "@chatEditMessageHint": {
     "description": "Composer hint text while editing a message."
   },
+  "chatEditNoChanges": "No changes to save",
+  "@chatEditNoChanges": {
+    "description": "Toast when the user tries to save an edit without changing the message."
+  },
+  "chatChannelNotReady": "This channel is not ready yet. Try again in a moment.",
+  "@chatChannelNotReady": {
+    "description": "Toast when send is attempted before the channel has finished loading."
+  },
   "chatMessageEdited": "(edited)",
   "@chatMessageEdited": {
     "description": "Message metadata label displayed after edited messages."

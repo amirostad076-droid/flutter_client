@@ -5656,6 +5656,18 @@ abstract class FluxerLocalizations {
   /// **'Edit message'**
   String get chatEditMessageHint;
 
+  /// Toast when the user tries to save an edit without changing the message.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes to save'**
+  String get chatEditNoChanges;
+
+  /// Toast when send is attempted before the channel has finished loading.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel is not ready yet. Try again in a moment.'**
+  String get chatChannelNotReady;
+
   /// Message metadata label displayed after edited messages.
   ///
   /// In en, this message translates to:
