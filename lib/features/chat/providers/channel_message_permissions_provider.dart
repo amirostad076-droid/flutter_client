@@ -32,15 +32,14 @@ class ChannelMessagePermissions {
   });
 
   /// Guild channel permissions are not loaded yet; composer stays enabled.
-  static const ChannelMessagePermissions unresolved =
-      ChannelMessagePermissions(
-        isResolved: false,
-        canSendMessages: true,
-        canAttachFiles: true,
-        canEmbedLinks: true,
-        canUseExternalEmojis: true,
-        canUseExternalStickers: true,
-      );
+  static const ChannelMessagePermissions unresolved = ChannelMessagePermissions(
+    isResolved: false,
+    canSendMessages: true,
+    canAttachFiles: true,
+    canEmbedLinks: true,
+    canUseExternalEmojis: true,
+    canUseExternalStickers: true,
+  );
 
   static const ChannelMessagePermissions none = ChannelMessagePermissions(
     isResolved: true,
@@ -73,7 +72,8 @@ class ChannelMessagePermissions {
   bool get canShowEmbedControls =>
       isComposerEnabled && (!isResolved || canEmbedLinks);
 
-  bool get isVoiceEnabled => isComposerEnabled;
+  bool get isVoiceEnabled =>
+      isComposerEnabled && (!isResolved || canAttachFiles);
 }
 
 ChannelMessagePermissions channelMessagePermissionsFromBits({
@@ -90,10 +90,7 @@ ChannelMessagePermissions channelMessagePermissionsFromBits({
     canAttachFiles: hasPermission(bits, Permission.attachFiles),
     canEmbedLinks: hasPermission(bits, Permission.embedLinks),
     canUseExternalEmojis: hasPermission(bits, Permission.useExternalEmojis),
-    canUseExternalStickers: hasPermission(
-      bits,
-      Permission.useExternalStickers,
-    ),
+    canUseExternalStickers: hasPermission(bits, Permission.useExternalStickers),
   );
 }
 
