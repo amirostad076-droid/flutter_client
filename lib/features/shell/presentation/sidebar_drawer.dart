@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 
@@ -147,6 +149,10 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
     await _onApplyTranslation(details);
   }
 
+  bool _isDmListDrawerLocked() {
+    return ref.read(currentLocationProvider) == RoutePaths.me;
+  }
+
   void _onTranslate(double delta) {
     if (!mounted) {
       return;
@@ -155,7 +161,11 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
     if (width <= 0) {
       return;
     }
-    final newTranslate = (_animationController.value + delta).clamp(0.0, width);
+    final minTranslate = _isDmListDrawerLocked() ? width : 0.0;
+    final newTranslate = (_animationController.value + delta).clamp(
+      minTranslate,
+      width,
+    );
     _animationController.value = newTranslate;
   }
 
@@ -177,7 +187,10 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
       primaryVelocity: details.primaryVelocity ?? 0,
       completionThreshold: completionThreshold,
     );
-    await _moveToState(targetSide);
+    final resolvedSide = _isDmListDrawerLocked() && targetSide == RevealSide.main
+        ? RevealSide.left
+        : targetSide;
+    await _moveToState(resolvedSide);
   }
 
   @override
