@@ -140,5 +140,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: canary-oss-apk
-          path: build/app/outputs/flutter-apk/app-*-canaryunifiedpush-release.apk
+          path: |
+            build/app/outputs/flutter-apk/app-*-canaryunifiedpush-release.apk
+            build/app/outputs/flutter-apk/app-canaryunifiedpush-release.apk
           if-no-files-found: error
