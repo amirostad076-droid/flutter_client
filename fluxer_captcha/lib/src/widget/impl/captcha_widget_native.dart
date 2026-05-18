@@ -11,6 +11,7 @@ import 'package:fluxer_captcha/src/captcha_validation.dart';
 import 'package:fluxer_captcha/src/controller/captcha_controller.dart';
 import 'package:fluxer_captcha/src/controller/impl/captcha_controller_native.dart'
     as native_ctrl;
+import 'package:fluxer_captcha/src/widget/captcha_content_size.dart';
 import 'package:fluxer_captcha/src/widget/captcha_options.dart';
 import 'package:fluxer_captcha/src/widget/captcha_styling.dart';
 import 'package:fluxer_captcha/src/widget/interface.dart' as i;
@@ -72,12 +73,11 @@ const String _turnstileSource = """
 
    </script>
    <style>
-      * {
-         overflow: hidden;
-         margin: 0;
-         padding: 0;
-      }
+      $captchaDocumentStyles
    </style>
+   <script>
+      $captchaResizeHandlerScript
+   </script>
 </body>
 
 </html>
@@ -118,8 +118,11 @@ const String _hcaptchaSource = """
    </script>
    <script src="https://js.hcaptcha.com/1/api.js?render=explicit&onload=onHCaptchaLoaded" async defer></script>
    <style>
-      * { overflow: hidden; margin: 0; padding: 0; }
+      $captchaDocumentStyles
    </style>
+   <script>
+      $captchaResizeHandlerScript
+   </script>
 </body>
 </html>
 
@@ -412,6 +415,8 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
 }
 
 class _FluxerCaptchaState extends State<FluxerCaptcha> {
+  static const double _maxHeightScreenRatio = 0.7;
+
   final GlobalKey webViewKey = GlobalKey();
 
   final InAppWebViewSettings _settings = InAppWebViewSettings(
@@ -436,6 +441,57 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
   CaptchaException? _hasError;
   bool _isRendered = false;
   Timer? _scriptLoadTimer;
+  Timer? _heightPollTimer;
+  double? _contentHeight;
+
+  double get _minContentHeight => widget.options!.size.height;
+
+  double _maxContentHeight(BuildContext context) {
+    return MediaQuery.sizeOf(context).height * _maxHeightScreenRatio;
+  }
+
+  double _resolvedContentHeight(BuildContext context) {
+    return _contentHeight ?? _minContentHeight;
+  }
+
+  void _applyMeasuredHeight(double height) {
+    if (!mounted) return;
+    final clamped = clampCaptchaContentHeight(
+      height: height,
+      minHeight: _minContentHeight,
+      maxHeight: _maxContentHeight(context),
+    );
+    if (_contentHeight == null || (_contentHeight! - clamped).abs() > 1) {
+      setState(() => _contentHeight = clamped);
+    }
+  }
+
+  void _scheduleContentHeightPolling(InAppWebViewController controller) {
+    _heightPollTimer?.cancel();
+    Future<void> measure() async {
+      if (!mounted) return;
+      final result = await controller.evaluateJavascript(
+        source: captchaMeasureHeightJs,
+      );
+      if (!mounted) return;
+      final parsed = switch (result) {
+        final num value => value.toDouble(),
+        final String value => double.tryParse(value),
+        _ => null,
+      };
+      if (parsed != null && parsed > 0) {
+        _applyMeasuredHeight(parsed);
+      }
+    }
+
+    for (final delayMs in [0, 300, 800, 1500, 2500, 4000]) {
+      Future<void>.delayed(Duration(milliseconds: delayMs), measure);
+    }
+    _heightPollTimer = Timer.periodic(
+      const Duration(milliseconds: 500),
+      (_) => measure(),
+    );
+  }
 
   @override
   void initState() {
@@ -510,12 +566,27 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
           if (!mounted) return;
           widget.onTokenExpired?.call();
         },
+      )
+      ..addJavaScriptHandler(
+        handlerName: 'CaptchaResize',
+        callback: (List<dynamic> args) {
+          if (!mounted || args.isEmpty) return;
+          final height = switch (args.first) {
+            final num value => value.toDouble(),
+            final String value => double.tryParse(value),
+            _ => null,
+          };
+          if (height != null && height > 0) {
+            _applyMeasuredHeight(height);
+          }
+        },
       );
   }
 
   void _resetWidget() {
     _hasError = null;
     _isWidgetReady = false;
+    _contentHeight = null;
     widget.controller?.error = null;
     widget.controller?.isWidgetReady = false;
     if (!mounted) return;
@@ -599,6 +670,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
 
       _isCaptchaLoaded = true;
       _ready(true);
+      _scheduleContentHeightPolling(controller);
       _scriptLoadTimer?.cancel();
       _scriptLoadTimer = Timer(const Duration(milliseconds: 8000), () {
         if (!mounted) return;
@@ -621,6 +693,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
   @override
   void dispose() {
     _scriptLoadTimer?.cancel();
+    _heightPollTimer?.cancel();
     super.dispose();
   }
 
@@ -643,9 +716,11 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
         duration: widget.options!.animationDuration!,
         curve: widget.options!.curves!,
         opacity: _isWidgetReady ? 1.0 : 0.0,
-        child: Container(
+        child: AnimatedContainer(
+          duration: widget.options!.animationDuration!,
+          curve: widget.options!.curves!,
           width: widget.options!.size.width,
-          height: widget.options!.size.height,
+          height: _resolvedContentHeight(context),
           decoration: BoxDecoration(
             color: styling.primaryColor,
             borderRadius: widget.options!.borderRadius,
@@ -748,6 +823,10 @@ class _CaptchaInvisible extends FluxerCaptcha {
   Completer<String?>? _completer;
   bool _isRendered = false;
   Timer? _scriptLoadTimer;
+  Timer? _tokenTimer;
+
+  static const Duration _renderTimeout = Duration(seconds: 5);
+  static const Duration _tokenTimeout = Duration(seconds: 7);
 
   void _createChannels(InAppWebViewController wController) {
     wController
@@ -755,6 +834,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
         handlerName: 'CaptchaToken',
         callback: (List<dynamic> args) {
           final token = args[0] as String;
+          _tokenTimer?.cancel();
           controller?.token = token;
           onTokenReceived?.call(token);
           if (_completer != null && !_completer!.isCompleted) {
@@ -773,6 +853,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
             CaptchaProvider.hcaptcha => CaptchaException.fromHCaptchaCode(code),
           };
 
+          _tokenTimer?.cancel();
           if (_completer != null && !_completer!.isCompleted) {
             _completer?.completeError(error);
           }
@@ -784,17 +865,36 @@ class _CaptchaInvisible extends FluxerCaptcha {
           controller!.widgetId = args[0] as String;
           _isRendered = true;
           _scriptLoadTimer?.cancel();
+          _startTokenTimer();
         },
       )
       ..addJavaScriptHandler(
         handlerName: 'TokenExpired',
         callback: (List<dynamic> message) {
+          _tokenTimer?.cancel();
           onTokenExpired?.call();
           if (_completer != null && !_completer!.isCompleted) {
             _completer?.complete(null);
           }
         },
       );
+  }
+
+  void _startTokenTimer() {
+    _tokenTimer?.cancel();
+    _tokenTimer = Timer(_tokenTimeout, () {
+      if (_completer != null && !_completer!.isCompleted) {
+        onTimeout?.call();
+        _completer!.complete(null);
+      }
+    });
+  }
+
+  void _completeWithNullOnTimeout() {
+    onTimeout?.call();
+    if (_completer != null && !_completer!.isCompleted) {
+      _completer!.complete(null);
+    }
   }
 
   @override
@@ -813,13 +913,10 @@ class _CaptchaInvisible extends FluxerCaptcha {
     }
 
     _scriptLoadTimer?.cancel();
-    _scriptLoadTimer = Timer(const Duration(milliseconds: 8000), () {
+    _tokenTimer?.cancel();
+    _scriptLoadTimer = Timer(_renderTimeout, () {
       if (!_isRendered) {
-        onTimeout?.call();
-        // Complete with null so the caller can fall back to visible mode.
-        if (_completer != null && !_completer!.isCompleted) {
-          _completer!.complete(null);
-        }
+        _completeWithNullOnTimeout();
       }
     });
 
@@ -864,6 +961,7 @@ class _CaptchaInvisible extends FluxerCaptcha {
   @override
   Future<void> dispose() async {
     _scriptLoadTimer?.cancel();
+    _tokenTimer?.cancel();
     await _view.dispose();
   }
 }

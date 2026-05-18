@@ -11,6 +11,7 @@ import 'package:fluxer_captcha/src/captcha_validation.dart';
 import 'package:fluxer_captcha/src/controller/captcha_controller.dart';
 import 'package:fluxer_captcha/src/controller/impl/captcha_controller_web.dart'
     as web_ctrl;
+import 'package:fluxer_captcha/src/widget/captcha_content_size.dart';
 import 'package:fluxer_captcha/src/widget/captcha_options.dart';
 import 'package:fluxer_captcha/src/widget/captcha_styling.dart';
 import 'package:fluxer_captcha/src/widget/interface.dart' as i;
@@ -94,7 +95,9 @@ class _DartCaptcha {
   }) {
     final widget = web.HTMLDivElement()
       ..style.width = '100%'
-      ..style.height = '100%'
+      ..style.height = 'auto'
+      ..style.minHeight = '${options.size.height}px'
+      ..style.overflow = 'visible'
       ..setAttribute('data-sitekey', siteKey)
       ..setAttribute('data-theme', _resolveTheme(options))
       ..setAttribute('data-size', options.size.name)
@@ -273,6 +276,8 @@ class FluxerCaptcha extends StatefulWidget implements i.FluxerCaptcha {
 }
 
 class _FluxerCaptchaState extends State<FluxerCaptcha> {
+  static const double _maxHeightScreenRatio = 0.7;
+
   late web.HTMLDivElement _widget;
   late String _widgetViewId;
   late _DartCaptcha _captcha;
@@ -282,8 +287,55 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
   bool _isWidgetReady = false;
   CaptchaException? _hasError;
   Timer? _scriptLoadTimer;
+  Timer? _heightPollTimer;
   bool _isDisposed = false;
   bool _viewCreated = false;
+  double? _contentHeight;
+
+  double get _minContentHeight => widget.options!.size.height;
+
+  double _maxContentHeight(BuildContext context) {
+    return MediaQuery.sizeOf(context).height * _maxHeightScreenRatio;
+  }
+
+  double _resolvedContentHeight(BuildContext context) {
+    return _contentHeight ?? _minContentHeight;
+  }
+
+  void _updateContentHeight(double height) {
+    if (_isDisposed || !mounted) return;
+    final clamped = clampCaptchaContentHeight(
+      height: height,
+      minHeight: _minContentHeight,
+      maxHeight: _maxContentHeight(context),
+    );
+    if (_contentHeight == null || (_contentHeight! - clamped).abs() > 1) {
+      setState(() => _contentHeight = clamped);
+    }
+  }
+
+  double _measureWidgetHeight() {
+    return _widget.scrollHeight.toDouble();
+  }
+
+  void _scheduleContentHeightPolling() {
+    _heightPollTimer?.cancel();
+    void measure() {
+      if (_isDisposed || !mounted) return;
+      final height = _measureWidgetHeight();
+      if (height > 0) {
+        _updateContentHeight(height);
+      }
+    }
+
+    for (final delayMs in [0, 300, 800, 1500, 2500, 4000]) {
+      Future<void>.delayed(Duration(milliseconds: delayMs), measure);
+    }
+    _heightPollTimer = Timer.periodic(
+      const Duration(milliseconds: 500),
+      (_) => measure(),
+    );
+  }
 
   @override
   void initState() {
@@ -360,6 +412,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
     }
     widget.controller?.isWidgetReady = _isWidgetReady;
     _scriptLoadTimer?.cancel();
+    _scheduleContentHeightPolling();
   }
 
   void _registerView(String viewType) {
@@ -410,6 +463,8 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
     _isDisposed = true;
     _scriptLoadTimer?.cancel();
     _scriptLoadTimer = null;
+    _heightPollTimer?.cancel();
+    _heightPollTimer = null;
     _widget.remove();
     globalContext
       ..delete('onCaptchaTokenReceived_$_widgetViewId'.toJS)
@@ -435,7 +490,7 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
       child: AnimatedContainer(
         duration: widget.options!.animationDuration!,
         width: _isWidgetReady ? widget.options!.size.width : 0.1,
-        height: _isWidgetReady ? widget.options!.size.height : 0.1,
+        height: _isWidgetReady ? _resolvedContentHeight(context) : 0.1,
         curve: widget.options!.curves!,
         foregroundDecoration: BoxDecoration(
           border: Border.all(color: adaptiveBorderColor),
