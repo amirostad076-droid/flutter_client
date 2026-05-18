@@ -7,6 +7,17 @@ import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
+  group('isSidebarDrawerLockedForLocation', () {
+    test('locks DM list and guild root without a channel', () {
+      expect(isSidebarDrawerLockedForLocation('/channels/@me'), isTrue);
+      expect(isSidebarDrawerLockedForLocation('/channels/guild'), isTrue);
+      expect(
+        isSidebarDrawerLockedForLocation('/channels/guild/channel'),
+        isFalse,
+      );
+    });
+  });
+
   group('sidebarDrawerTargetForDrag', () {
     test('uses fling velocity before position threshold', () {
       expect(
@@ -58,7 +69,7 @@ void main() {
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
-    await tester.pumpWidget(_buildDrawerApp(container: container));
+    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
 
     // Mid-screen — not a leading edge strip — must still capture the drag.
     final gesture = await tester.startGesture(const Offset(200, 400));
@@ -74,6 +85,24 @@ void main() {
     expect(_sliderDx(tester), 400);
   });
 
+  testWidgets('blocks closing swipe on guild root without a channel', (
+    tester,
+  ) async {
+    final router = _routerFor('/channels/guild');
+    addTearDown(router.dispose);
+    final container = _containerFor(router);
+
+    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
+    await tester.pumpAndSettle();
+
+    expect(_sliderDx(tester), 400);
+
+    await tester.dragFrom(const Offset(240, 400), const Offset(-260, 0));
+    await tester.pumpAndSettle();
+
+    expect(_sliderDx(tester), 400);
+  });
+
   testWidgets('allows closing with a swipe from anywhere when open', (
     tester,
   ) async {
@@ -81,7 +110,7 @@ void main() {
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
-    await tester.pumpWidget(_buildDrawerApp(container: container));
+    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
     await tester.pump();
 
     await tester.dragFrom(const Offset(10, 400), const Offset(260, 0));
@@ -101,7 +130,7 @@ void main() {
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
-    await tester.pumpWidget(_buildDrawerApp(container: container));
+    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
     await tester.pump();
     await tester.dragFrom(const Offset(10, 400), const Offset(260, 0));
     await tester.pumpAndSettle();
@@ -109,7 +138,11 @@ void main() {
     expect(_sliderDx(tester), 400);
 
     await tester.pumpWidget(
-      _buildDrawerApp(container: container, size: const Size(800, 800)),
+      _buildDrawerApp(
+        container: container,
+        router: router,
+        size: const Size(800, 800),
+      ),
     );
     await tester.pump();
 
@@ -121,7 +154,7 @@ void main() {
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
-    await tester.pumpWidget(_buildDrawerApp(container: container));
+    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
 
     expect(find.byType(RepaintBoundary), findsAtLeastNWidgets(2));
   });
@@ -134,10 +167,25 @@ GoRouter _routerFor(String initialLocation) {
     initialLocation: initialLocation,
     routes: [
       GoRoute(
-        path: '/channels/:guildId/:channelId',
-        builder: (context, state) => const SizedBox.shrink(),
+        path: '/channels/:guildId',
+        builder: (context, state) => _drawerHarness(),
+        routes: [
+          GoRoute(
+            path: ':channelId',
+            builder: (context, state) => _drawerHarness(),
+          ),
+        ],
       ),
     ],
+  );
+}
+
+Widget _drawerHarness() {
+  return const SidebarDrawer(
+    revealDuration: Duration.zero,
+    snapBackDuration: Duration.zero,
+    base: ColoredBox(color: Colors.blue),
+    slider: ColoredBox(key: _sliderKey, color: Colors.red),
   );
 }
 
@@ -151,23 +199,16 @@ ProviderContainer _containerFor(GoRouter router) {
 
 Widget _buildDrawerApp({
   required ProviderContainer container,
+  required GoRouter router,
   Size size = const Size(400, 800),
 }) {
   return UncontrolledProviderScope(
     container: container,
-    child: MaterialApp(
-      home: MediaQuery(
+    child: MaterialApp.router(
+      routerConfig: router,
+      builder: (context, child) => MediaQuery(
         data: MediaQueryData(size: size),
-        child: SizedBox(
-          width: size.width,
-          height: size.height,
-          child: const SidebarDrawer(
-            revealDuration: Duration.zero,
-            snapBackDuration: Duration.zero,
-            base: ColoredBox(color: Colors.blue),
-            slider: ColoredBox(key: _sliderKey, color: Colors.red),
-          ),
-        ),
+        child: child ?? const SizedBox.shrink(),
       ),
     ),
   );

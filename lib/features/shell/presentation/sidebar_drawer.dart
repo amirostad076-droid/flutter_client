@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/router/route_kind.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
@@ -149,8 +150,8 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
     await _onApplyTranslation(details);
   }
 
-  bool _isDmListDrawerLocked() {
-    return ref.read(currentLocationProvider) == RoutePaths.me;
+  bool _isSidebarDrawerLocked() {
+    return isSidebarDrawerLockedForLocation(ref.read(currentLocationProvider));
   }
 
   void _onTranslate(double delta) {
@@ -161,7 +162,7 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
     if (width <= 0) {
       return;
     }
-    final minTranslate = _isDmListDrawerLocked() ? width : 0.0;
+    final minTranslate = _isSidebarDrawerLocked() ? width : 0.0;
     final newTranslate = (_animationController.value + delta).clamp(
       minTranslate,
       width,
@@ -187,7 +188,7 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
       primaryVelocity: details.primaryVelocity ?? 0,
       completionThreshold: completionThreshold,
     );
-    final resolvedSide = _isDmListDrawerLocked() && targetSide == RevealSide.main
+    final resolvedSide = _isSidebarDrawerLocked() && targetSide == RevealSide.main
         ? RevealSide.left
         : targetSide;
     await _moveToState(resolvedSide);
@@ -231,6 +232,16 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
       ),
     );
   }
+}
+
+@visibleForTesting
+bool isSidebarDrawerLockedForLocation(String location) {
+  if (location == RoutePaths.me) {
+    return true;
+  }
+  return classifyRoute(location) == RouteKind.channelsRoot &&
+      extractGuildId(location) != null &&
+      extractChannelId(location) == null;
 }
 
 @visibleForTesting
