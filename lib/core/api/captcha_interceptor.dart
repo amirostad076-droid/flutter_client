@@ -14,6 +14,10 @@ const _kCaptchaCodes = {'CAPTCHA_REQUIRED', 'INVALID_CAPTCHA'};
 /// captcha solving.
 const _kCaptchaInternalKey = '_captchaInternal';
 
+/// Headless invisible attempt; falls back to the visible dialog when exceeded.
+/// Kept short because users cannot interact with a headless WebView.
+const Duration _kInvisibleSolveTimeout = Duration(seconds: 12);
+
 /// Captcha configuration extracted from the `.well-known/fluxer` response.
 class _CaptchaConfig {
   const _CaptchaConfig({
@@ -50,6 +54,8 @@ class _CaptchaConfig {
     throw StateError('No captcha provider configured');
   }
 }
+
+enum _CaptchaTokenSource { invisible, dialog }
 
 /// Dio interceptor that handles captcha challenges from the Fluxer API.
 ///
@@ -103,76 +109,121 @@ class CaptchaInterceptor extends Interceptor {
       '[CaptchaInterceptor] Challenge received: $code '
       'for ${err.requestOptions.path}',
     );
-    unawaited(_solveCaptchaAndRetry(err, handler));
+    unawaited(
+      _solveCaptchaAndRetry(err, handler).catchError((Object e, StackTrace st) {
+        talker.error('[CaptchaInterceptor] Unhandled error: $e\n$st');
+        handler.next(err);
+      }),
+    );
   }
 
   Future<void> _solveCaptchaAndRetry(
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    try {
-      final config = await _fetchCaptchaConfig();
-      if (config == null) {
-        talker.warning('[CaptchaInterceptor] Config fetch returned null');
-        handler.next(err);
-        return;
-      }
+    final config = await _fetchCaptchaConfig();
+    if (config == null) {
+      talker.warning('[CaptchaInterceptor] Config fetch returned null');
+      handler.next(err);
+      return;
+    }
 
-      final (provider, siteKey) = config.initial;
+    final (provider, siteKey) = config.initial;
 
-      talker.debug('[CaptchaInterceptor] Config: provider=${provider.name}');
+    talker.debug('[CaptchaInterceptor] Config: provider=${provider.name}');
 
-      var token = await _solveInvisible(
-        provider: provider,
-        siteKey: siteKey,
+    var token = await _solveInvisible(
+      provider: provider,
+      siteKey: siteKey,
+      baseUrl: config.baseUrl,
+    );
+    talker.debug(
+      '[CaptchaInterceptor] Invisible solve: '
+      '${_hasUsableToken(token) ? 'success' : 'failed, trying dialog'}',
+    );
+
+    var finalProvider = provider;
+    var tokenSource = _CaptchaTokenSource.invisible;
+
+    if (!_hasUsableToken(token)) {
+      tokenSource = _CaptchaTokenSource.dialog;
+      final result = await showCaptchaDialog(
+        preferredProvider: provider,
+        turnstileSiteKey: config.turnstileSiteKey,
+        hcaptchaSiteKey: config.hcaptchaSiteKey,
         baseUrl: config.baseUrl,
       );
-      talker.debug(
-        '[CaptchaInterceptor] Invisible solve: '
-        '${token != null ? 'success' : 'failed, trying dialog'}',
-      );
 
-      var finalProvider = provider;
+      if (result != null) {
+        token = result.$1;
+        finalProvider = result.$2;
+      }
+    }
 
-      if (token == null) {
-        final result = await showCaptchaDialog(
+    if (!_hasUsableToken(token)) {
+      talker.warning('[CaptchaInterceptor] No token obtained');
+      handler.next(err);
+      return;
+    }
+
+    final opts = err.requestOptions;
+    opts.headers['X-Captcha-Token'] = token!.trim();
+    opts.headers['X-Captcha-Type'] = finalProvider.name;
+    opts.extra[_kCaptchaInternalKey] = true;
+
+    try {
+      talker.debug('[CaptchaInterceptor] Retrying with captcha token');
+      final retryResponse = await dio.fetch<dynamic>(opts);
+      handler.resolve(retryResponse);
+    } on DioException catch (retryError) {
+      if (_isCaptchaChallenge(retryError) &&
+          tokenSource == _CaptchaTokenSource.invisible) {
+        talker.debug(
+          '[CaptchaInterceptor] Invisible token rejected, trying dialog',
+        );
+        final dialogResult = await showCaptchaDialog(
           preferredProvider: provider,
           turnstileSiteKey: config.turnstileSiteKey,
           hcaptchaSiteKey: config.hcaptchaSiteKey,
           baseUrl: config.baseUrl,
         );
-
-        if (result != null) {
-          token = result.$1;
-          finalProvider = result.$2;
+        if (dialogResult != null && _hasUsableToken(dialogResult.$1)) {
+          opts.headers['X-Captcha-Token'] = dialogResult.$1.trim();
+          opts.headers['X-Captcha-Type'] = dialogResult.$2.name;
+          try {
+            final retryResponse = await dio.fetch<dynamic>(opts);
+            handler.resolve(retryResponse);
+            return;
+          } on DioException catch (dialogRetryError) {
+            talker.warning(
+              '[CaptchaInterceptor] Dialog retry failed: '
+              '${dialogRetryError.response?.statusCode} '
+              '${dialogRetryError.message}',
+            );
+            handler.next(dialogRetryError);
+            return;
+          }
         }
       }
-
-      if (token == null || token.isEmpty) {
-        talker.warning('[CaptchaInterceptor] No token obtained');
-        handler.next(err);
-        return;
-      }
-
-      final opts = err.requestOptions;
-      opts.headers['X-Captcha-Token'] = token;
-      opts.headers['X-Captcha-Type'] = finalProvider.name;
-      opts.extra[_kCaptchaInternalKey] = true;
-
-      talker.debug('[CaptchaInterceptor] Retrying with captcha token');
-      final retryResponse = await dio.fetch<dynamic>(opts);
-      handler.resolve(retryResponse);
-    } on DioException catch (retryError) {
       talker.warning(
         '[CaptchaInterceptor] Retry failed: '
         '${retryError.response?.statusCode} ${retryError.message}',
       );
       handler.next(retryError);
-      // ignore: avoid_catches_without_on_clauses, WebView errors aren't Exception subtypes
-    } catch (e) {
-      talker.error('[CaptchaInterceptor] Unexpected error: $e');
-      handler.next(err);
     }
+  }
+
+  bool _hasUsableToken(String? token) {
+    return token != null && token.trim().isNotEmpty;
+  }
+
+  bool _isCaptchaChallenge(DioException error) {
+    final response = error.response;
+    if (response == null || response.statusCode != 400) {
+      return false;
+    }
+    final code = _extractErrorCode(response);
+    return code != null && _kCaptchaCodes.contains(code);
   }
 
   Future<_CaptchaConfig?> _fetchCaptchaConfig() async {
@@ -247,7 +298,13 @@ class CaptchaInterceptor extends Interceptor {
         siteKey: siteKey,
         baseUrl: baseUrl,
       );
-      final token = await captcha.getToken();
+      final token = await captcha.getToken().timeout(
+        _kInvisibleSolveTimeout,
+        onTimeout: () {
+          talker.warning('[CaptchaInterceptor] Invisible solve timed out');
+          return null;
+        },
+      );
       return token;
       // ignore: avoid_catches_without_on_clauses, WebView errors aren't Exception subtypes
     } catch (_) {

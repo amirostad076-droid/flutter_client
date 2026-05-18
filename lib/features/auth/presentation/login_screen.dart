@@ -35,7 +35,7 @@ class LoginScreen extends ConsumerWidget {
     if (vm.mfaChallenge != null) {
       return MfaScreen(
         challenge: vm.mfaChallenge!,
-        onAuthorized: notifier.completeMfa,
+        onAuthorized: () => unawaited(notifier.completeMfa()),
         onBack: notifier.clearMfaChallenge,
       );
     }
@@ -43,7 +43,7 @@ class LoginScreen extends ConsumerWidget {
     if (vm.ipAuthChallenge != null) {
       return IpAuthorizationScreen(
         challenge: vm.ipAuthChallenge!,
-        onAuthorized: notifier.completeIpAuth,
+        onAuthorized: () => unawaited(notifier.completeIpAuth()),
         onBack: notifier.clearIpAuthChallenge,
       );
     }

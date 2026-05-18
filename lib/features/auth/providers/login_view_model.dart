@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/auth/data/webauthn_service.dart';
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
+import 'package:fluxer_app/features/auth/domain/auth_session.dart';
 import 'package:fluxer_app/features/auth/domain/ban_view.dart';
 import 'package:fluxer_app/features/auth/domain/ip_authorization_challenge.dart';
 import 'package:fluxer_app/features/auth/domain/login_result.dart';
@@ -17,6 +20,8 @@ import 'package:passkeys/exceptions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'login_view_model.g.dart';
+
+const Duration _kPostAuthStartupTimeout = Duration(seconds: 20);
 
 enum LoginError {
   invalidEmail,
@@ -250,7 +255,7 @@ class LoginViewModel extends _$LoginViewModel {
 
     try {
       final inviteCode = ref.read(pendingInviteCodeProvider.notifier).consume();
-      await ref
+      final session = await ref
           .read(authRepositoryProvider)
           .register(
             email: email,
@@ -262,7 +267,15 @@ class LoginViewModel extends _$LoginViewModel {
           );
 
       ref.read(registrationDraftProvider.notifier).clear();
-      ref.invalidate(appStartupProvider);
+      ref.read(fluxerAuthTokenProvider.notifier).setToken(session.token);
+      final restored = await _restoreAuthenticatedSession();
+      if (!restored) {
+        state = state.copyWith(
+          errorType: LoginError.unableToCreateAccount,
+          isLoggingIn: false,
+        );
+        return;
+      }
       state = state.copyWith(showRegister: false, isLoggingIn: false);
     } on AuthFailure catch (error) {
       state = state.copyWith(
@@ -287,22 +300,38 @@ class LoginViewModel extends _$LoginViewModel {
     state = state.copyWith(showAccountSelector: true);
   }
 
-  void completeMfa() {
-    ref.invalidate(appStartupProvider);
-    state = state.copyWith(
-      email: '',
-      password: '',
-      mfaChallenge: null,
-      isLoggingIn: false,
-    );
+  Future<void> completeMfa() async {
+    await _finalizeSavedSession(clearMfaChallenge: true);
   }
 
-  void completeIpAuth() {
-    ref.invalidate(appStartupProvider);
+  Future<void> completeIpAuth() async {
+    await _finalizeSavedSession(clearIpAuthChallenge: true);
+  }
+
+  Future<void> _finalizeSavedSession({
+    bool clearMfaChallenge = false,
+    bool clearIpAuthChallenge = false,
+  }) async {
+    final session = await ref
+        .read(fluxerDatabaseProvider)
+        .authSessionDao
+        .getActiveSession();
+    if (session != null) {
+      ref.read(fluxerAuthTokenProvider.notifier).setToken(session.token);
+    }
+    final restored = await _restoreAuthenticatedSession();
+    if (!restored) {
+      state = state.copyWith(
+        errorType: LoginError.unableToSignIn,
+        isLoggingIn: false,
+      );
+      return;
+    }
     state = state.copyWith(
       email: '',
       password: '',
-      ipAuthChallenge: null,
+      mfaChallenge: clearMfaChallenge ? null : state.mfaChallenge,
+      ipAuthChallenge: clearIpAuthChallenge ? null : state.ipAuthChallenge,
       isLoggingIn: false,
     );
   }
@@ -394,8 +423,11 @@ class LoginViewModel extends _$LoginViewModel {
           .resetPassword(token: token, password: password);
 
       switch (result) {
-        case LoginSuccess():
-          ref.invalidate(appStartupProvider);
+        case LoginSuccess(:final session):
+          final restored = await _completeLoginSuccess(session);
+          if (!restored) {
+            return;
+          }
           state = state.copyWith(
             email: '',
             password: '',
@@ -451,17 +483,18 @@ class LoginViewModel extends _$LoginViewModel {
 
     try {
       final inviteCode = ref.read(pendingInviteCodeProvider.notifier).consume();
-      final result = await ref
-          .read(authRepositoryProvider)
-          .login(
-            email: state.email,
-            password: state.password,
-            inviteCode: inviteCode,
-          );
+      final result = await ref.read(authRepositoryProvider).login(
+        email: state.email,
+        password: state.password,
+        inviteCode: inviteCode,
+      );
 
       switch (result) {
-        case LoginSuccess():
-          ref.invalidate(appStartupProvider);
+        case LoginSuccess(:final session):
+          final restored = await _completeLoginSuccess(session);
+          if (!restored) {
+            return false;
+          }
           state = state.copyWith(email: '', password: '', isLoggingIn: false);
           return true;
         case LoginIpAuthRequired(:final challenge):
@@ -495,6 +528,35 @@ class LoginViewModel extends _$LoginViewModel {
     }
   }
 
+  Future<bool> _completeLoginSuccess(AuthSession session) async {
+    ref.read(fluxerAuthTokenProvider.notifier).setToken(session.token);
+    final restored = await _restoreAuthenticatedSession();
+    if (!restored) {
+      state = state.copyWith(
+        errorType: LoginError.unableToSignIn,
+        isLoggingIn: false,
+      );
+    }
+    return restored;
+  }
+
+  Future<bool> _restoreAuthenticatedSession() async {
+    ref.invalidate(appStartupProvider);
+    try {
+      await ref
+          .read(appStartupProvider.future)
+          .timeout(_kPostAuthStartupTimeout);
+    } on Exception catch (e) {
+      talker.error('[LoginViewModel] Post-auth startup failed: $e');
+      return false;
+    }
+    final session = await ref
+        .read(fluxerDatabaseProvider)
+        .authSessionDao
+        .getActiveSession();
+    return session != null && session.isValid;
+  }
+
   Future<void> loginWithPasskey() async {
     state = state.copyWith(
       errorMessage: null,
@@ -517,9 +579,11 @@ class LoginViewModel extends _$LoginViewModel {
       );
 
       switch (result) {
-        case LoginSuccess():
-          ref.invalidate(appStartupProvider);
-          state = state.copyWith(email: '', password: '', isLoggingIn: false);
+        case LoginSuccess(:final session):
+          final restored = await _completeLoginSuccess(session);
+          if (restored) {
+            state = state.copyWith(email: '', password: '', isLoggingIn: false);
+          }
         case LoginIpAuthRequired(:final challenge):
           state = state.copyWith(
             ipAuthChallenge: challenge,

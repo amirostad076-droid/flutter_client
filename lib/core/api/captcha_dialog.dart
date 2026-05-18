@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_captcha/fluxer_captcha.dart';
+
+const Duration _kNavigatorContextPollInterval = Duration(milliseconds: 100);
+const int _kNavigatorContextMaxAttempts = 10;
 
 /// Shows a captcha verification modal that supports error display and provider
 /// switching.
@@ -16,12 +20,31 @@ Future<(String, CaptchaProvider)?> showCaptchaDialog({
   required String? turnstileSiteKey,
   required String? hcaptchaSiteKey,
   required String baseUrl,
-}) {
-  final context = navigatorKey.currentState?.context;
-  if (context == null) {
-    return Future.value();
+}) async {
+  for (var attempt = 0; attempt < _kNavigatorContextMaxAttempts; attempt++) {
+    final context = navigatorKey.currentState?.context;
+    if (context != null && context.mounted) {
+      return _showCaptchaDialogWithContext(
+        context: context,
+        preferredProvider: preferredProvider,
+        turnstileSiteKey: turnstileSiteKey,
+        hcaptchaSiteKey: hcaptchaSiteKey,
+        baseUrl: baseUrl,
+      );
+    }
+    await Future<void>.delayed(_kNavigatorContextPollInterval);
+    await SchedulerBinding.instance.endOfFrame;
   }
+  return null;
+}
 
+Future<(String, CaptchaProvider)?> _showCaptchaDialogWithContext({
+  required BuildContext context,
+  required CaptchaProvider preferredProvider,
+  required String? turnstileSiteKey,
+  required String? hcaptchaSiteKey,
+  required String baseUrl,
+}) {
   final l10n = FluxerLocalizations.of(context);
 
   return FluxerModal.show<(String, CaptchaProvider)>(
