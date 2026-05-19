@@ -3837,6 +3837,26 @@
   "@voiceChannelJoinConnect": {
     "description": "Primary action in the mobile bottom sheet before joining a voice channel from the channel list."
   },
+  "voiceChannelE2eeEncrypted": "This voice channel is end-to-end encrypted.",
+  "@voiceChannelE2eeEncrypted": {
+    "description": "Pre-join banner on a guild voice channel where every connected participant supports E2EE."
+  },
+  "voiceCallE2eeEncrypted": "This call is end-to-end encrypted.",
+  "@voiceCallE2eeEncrypted": {
+    "description": "Pre-join banner on a DM or group DM call where every connected participant supports E2EE."
+  },
+  "voiceChannelE2eeBroken": "End-to-end encryption is unavailable because an unsupported participant is in this voice channel.",
+  "@voiceChannelE2eeBroken": {
+    "description": "Pre-join banner on a guild voice channel where E2EE capability is mixed among participants."
+  },
+  "voiceCallE2eeBroken": "End-to-end encryption is unavailable because an unsupported participant is in this call.",
+  "@voiceCallE2eeBroken": {
+    "description": "Pre-join banner on a DM or group DM call where E2EE capability is mixed among participants."
+  },
+  "voiceE2eeUpdateRequired": "This client must be updated before joining this encrypted call.",
+  "@voiceE2eeUpdateRequired": {
+    "description": "Shown when the gateway rejects a voice join with VOICE_E2EE_REQUIRED."
+  },
   "voiceChannelStatusConnecting": "Connecting…",
   "@voiceChannelStatusConnecting": {
     "description": "Status in the in-page voice view while LiveKit is connecting."

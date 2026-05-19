@@ -3159,6 +3159,25 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get voiceChannelJoinConnect => 'Connect to Voice';
 
   @override
+  String get voiceChannelE2eeEncrypted =>
+      'This voice channel is end-to-end encrypted.';
+
+  @override
+  String get voiceCallE2eeEncrypted => 'This call is end-to-end encrypted.';
+
+  @override
+  String get voiceChannelE2eeBroken =>
+      'End-to-end encryption is unavailable because an unsupported participant is in this voice channel.';
+
+  @override
+  String get voiceCallE2eeBroken =>
+      'End-to-end encryption is unavailable because an unsupported participant is in this call.';
+
+  @override
+  String get voiceE2eeUpdateRequired =>
+      'This client must be updated before joining this encrypted call.';
+
+  @override
   String get voiceChannelStatusConnecting => 'Connecting…';
 
   @override

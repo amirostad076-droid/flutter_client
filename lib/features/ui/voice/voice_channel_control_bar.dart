@@ -38,7 +38,7 @@ class VoiceChannelControlBar extends ConsumerWidget {
         .watch(screenShareCapabilityProvider)
         .maybeWhen(data: (bool value) => value, orElse: () => false);
     return Material(
-      color: const Color(0xFF000000),
+      color: context.colors.backgroundSecondary,
       child: SafeArea(
         top: false,
         child: Padding(

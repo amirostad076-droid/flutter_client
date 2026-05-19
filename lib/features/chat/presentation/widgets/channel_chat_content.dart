@@ -8,6 +8,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/channel_header.dar
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_textarea.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/direct_voice_session_strip.dart';
+import 'package:fluxer_app/features/voice/presentation/widgets/dm_call_e2ee_footer.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/dm_embedded_voice_call_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/inline_expression_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_list.dart';
@@ -134,6 +135,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
               Column(
                 children: [
                   if (widget.showTopBar) const ChannelHeader(),
+                  DmCallE2eeFooter(channelId: widget.channelId),
                   DirectVoiceSessionStrip(channelId: widget.channelId),
                   if (layoutModeOf(
                         layoutReferenceExtentOf(MediaQuery.sizeOf(context)),

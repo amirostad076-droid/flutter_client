@@ -16,6 +16,9 @@ const String kVoiceSessionErrorScreenSharePermissionDenied =
 const String kVoiceSessionErrorScreenShareUnsupported =
     'VOICE_ERR_SCREEN_SHARE_UNSUPPORTED';
 
+/// Join rejected because the channel requires an E2EE-capable client.
+const String kVoiceSessionErrorE2eeRequired = 'VOICE_ERR_E2EE_REQUIRED';
+
 /// Maps a stored `VoiceSessionState.errorMessage` to a localized
 /// human-readable string.
 String resolveVoiceSessionErrorMessage(
@@ -31,6 +34,8 @@ String resolveVoiceSessionErrorMessage(
       return l10n.voiceErrorScreenSharePermissionDenied;
     case kVoiceSessionErrorScreenShareUnsupported:
       return l10n.voiceErrorScreenShareUnsupported;
+    case kVoiceSessionErrorE2eeRequired:
+      return l10n.voiceE2eeUpdateRequired;
     default:
       return message;
   }

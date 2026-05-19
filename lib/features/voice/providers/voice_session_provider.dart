@@ -8,10 +8,12 @@ import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_screen_share_watch_tile_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/camera_permission.dart';
+import 'package:fluxer_app/features/voice/utils/channel_e2ee_status.dart';
 import 'package:fluxer_app/features/voice/utils/microphone_permission.dart';
 import 'package:fluxer_app/features/voice/voice_session_errors.dart';
 import 'package:fluxer_dart/export.dart';
@@ -53,6 +55,7 @@ class VoiceSession extends _$VoiceSession {
   EventsListener<RoomEvent>? _roomSfxListener;
   String? _voiceMovePreviousChannelId;
   bool _intentionalLiveKitTeardown = false;
+  ChannelE2eeStatus? _lastLoggedE2eeChannelStatus;
 
   @override
   VoiceSessionState build() {
@@ -278,12 +281,6 @@ class VoiceSession extends _$VoiceSession {
         '(channelId=$resolvedChannelId).',
       );
     }
-    if (event.e2eeEnabled ?? false) {
-      talker.warning(
-        '[Voice] Server requested E2EE; Flutter client does not support '
-        'voice E2EE yet.',
-      );
-    }
     if (event.token.isEmpty || event.endpoint.isEmpty) {
       talker.warning(
         '[Voice] VOICE_SERVER_UPDATE missing token or endpoint '
@@ -306,9 +303,12 @@ class VoiceSession extends _$VoiceSession {
       talker.debug('[Voice] Ignoring duplicate VOICE_SERVER_UPDATE in-flight.');
       return;
     }
+    final bool hasE2eeKey =
+        event.e2eeKey != null && event.e2eeKey!.isNotEmpty;
     talker.info(
       '[Voice] VOICE_SERVER_UPDATE accepted; starting LiveKit '
-      '(channelId=$resolvedChannelId, connectionId=${event.connectionId}).',
+      '(channelId=$resolvedChannelId, connectionId=${event.connectionId}, '
+      'e2eeKey=$hasE2eeKey).',
     );
     _cancelConnectWatchdog();
     final int attempt = _connectGeneration;
@@ -318,6 +318,126 @@ class VoiceSession extends _$VoiceSession {
         resolvedChannelId: resolvedChannelId,
         attempt: attempt,
       ),
+    );
+  }
+
+  bool _guildHasVoiceE2ee(String? guildId) {
+    if (guildId == null) {
+      return true;
+    }
+    return ref.read(guildListViewModelProvider).guilds.any(
+      (g) => g.id == guildId && g.hasVoiceE2ee,
+    );
+  }
+
+  void _logVoiceE2eeSnapshot(
+    String reason, {
+    Room? room,
+    String? channelId,
+    String? guildId,
+  }) {
+    final Room? activeRoom = room ?? state.liveKitRoom;
+    final String? resolvedChannelId = channelId ?? state.channelId;
+    final String? resolvedGuildId = guildId ?? state.guildId;
+    final bool hasServerKey =
+        state.e2eeKey != null && state.e2eeKey!.isNotEmpty;
+    final bool liveKitManagerReady = activeRoom?.e2eeManager != null;
+    ChannelE2eeStatus? channelStatus;
+    if (resolvedChannelId != null) {
+      channelStatus = computeChannelE2eeStatus(
+        voiceStates: ref.read(voiceStatesMapProvider),
+        guildId: resolvedGuildId,
+        channelId: resolvedChannelId,
+        guildHasVoiceE2ee: _guildHasVoiceE2ee(resolvedGuildId),
+      );
+    }
+    talker.info(
+      '[Voice][E2EE] $reason | '
+      'serverKey=$hasServerKey '
+      'liveKitManager=$liveKitManagerReady '
+      'channelStatus=${channelStatus?.name ?? 'n/a'} '
+      'connected=${state.isConnected} '
+      'channelId=$resolvedChannelId',
+    );
+  }
+
+  void syncE2eeFromVoiceStates() {
+    if (!state.isConnected || state.channelId == null) {
+      return;
+    }
+    final Room? room = state.liveKitRoom;
+    if (room == null) {
+      return;
+    }
+    final String channelId = state.channelId!;
+    final String? guildId = state.guildId;
+    final ChannelE2eeStatus status = computeChannelE2eeStatus(
+      voiceStates: ref.read(voiceStatesMapProvider),
+      guildId: guildId,
+      channelId: channelId,
+      guildHasVoiceE2ee: _guildHasVoiceE2ee(guildId),
+    );
+    if (_lastLoggedE2eeChannelStatus != status) {
+      _lastLoggedE2eeChannelStatus = status;
+      switch (status) {
+        case ChannelE2eeStatus.encrypted:
+          talker.info(
+            '[Voice][E2EE] Channel is fully E2EE-capable; '
+            'ensuring LiveKit encryption stays on.',
+          );
+        case ChannelE2eeStatus.broken:
+          talker.warning(
+            '[Voice][E2EE] Mixed E2EE capability in channel; '
+            'falling back to plaintext for interop.',
+          );
+        case ChannelE2eeStatus.none:
+          talker.debug('[Voice][E2EE] Channel has no active E2EE mix.');
+      }
+    }
+    if (status == ChannelE2eeStatus.encrypted && state.e2eeKey != null) {
+      unawaited(
+        room.setE2EEEnabled(true).then((_) {
+          talker.info('[Voice][E2EE] LiveKit encryption enabled (runtime sync).');
+        }).catchError((Object error) {
+          talker.warning('[Voice][E2EE] Failed to enable LiveKit E2EE: $error');
+        }),
+      );
+    } else if (status == ChannelE2eeStatus.broken) {
+      unawaited(
+        room.setE2EEEnabled(false).then((_) {
+          talker.info(
+            '[Voice][E2EE] LiveKit encryption disabled (runtime sync).',
+          );
+        }).catchError((Object error) {
+          talker.warning('[Voice][E2EE] Failed to disable LiveKit E2EE: $error');
+        }),
+      );
+    }
+  }
+
+  void handleGatewayError(GatewayErrorEvent event) {
+    if (event.code != 'VOICE_E2EE_REQUIRED') {
+      return;
+    }
+    if (!state.isConnecting || state.isConnected) {
+      return;
+    }
+    talker.warning('[Voice] Join rejected: ${event.code}');
+    _cancelConnectWatchdog();
+    _connectGeneration++;
+    _expectedGuildId = null;
+    _expectedChannelId = null;
+    _pendingRingAfterConnect = false;
+    _pendingRingSilently = false;
+    _outboundRingRecipients = null;
+    _detachLocalParticipantListener();
+    unawaited(_disconnectRoomOnly());
+    state = state.copyWith(
+      isConnecting: false,
+      isConnected: false,
+      errorMessage: kVoiceSessionErrorE2eeRequired,
+      clearRoom: true,
+      clearE2eeKey: true,
     );
   }
 
@@ -339,25 +459,48 @@ class VoiceSession extends _$VoiceSession {
         ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.userMove),
       );
     }
-    final Room room = Room(
-      roomOptions: const RoomOptions(
-        adaptiveStream: true,
-        dynacast: true,
-        defaultCameraCaptureOptions: CameraCaptureOptions(
-          params: VideoParametersPresets.h1080_169,
-        ),
-        defaultScreenShareCaptureOptions: ScreenShareCaptureOptions(
-          useiOSBroadcastExtension: true,
-          captureScreenAudio: true,
-          params: VideoParametersPresets.screenShareH1080FPS30,
-        ),
+    final String? e2eeKey = event.e2eeKey;
+    final bool useE2ee = e2eeKey != null && e2eeKey.isNotEmpty;
+    BaseKeyProvider? keyProvider;
+    if (useE2ee) {
+      try {
+        keyProvider = await BaseKeyProvider.create(sharedKey: true);
+        await keyProvider.setSharedKey(e2eeKey);
+        talker.info('[Voice][E2EE] Shared key configured on BaseKeyProvider.');
+      } on Object catch (e) {
+        talker.error('[Voice][E2EE] Key provider setup failed: $e');
+        if (attempt == _connectGeneration) {
+          _cancelConnectWatchdog();
+          state = state.copyWith(
+            isConnecting: false,
+            errorMessage: 'Could not connect to voice.',
+          );
+        }
+        return;
+      }
+    }
+    final RoomOptions roomOptions = RoomOptions(
+      adaptiveStream: true,
+      dynacast: true,
+      encryption: keyProvider != null
+          ? E2EEOptions(keyProvider: keyProvider)
+          : null,
+      defaultCameraCaptureOptions: const CameraCaptureOptions(
+        params: VideoParametersPresets.h1080_169,
+      ),
+      defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
+        useiOSBroadcastExtension: true,
+        captureScreenAudio: true,
+        params: VideoParametersPresets.screenShareH1080FPS30,
       ),
     );
+    final Room room = Room(roomOptions: roomOptions);
     state = state.copyWith(
       isConnecting: true,
       voiceServerEndpoint: event.endpoint,
       activeConnectionId: event.connectionId,
       liveKitRoom: room,
+      e2eeKey: e2eeKey,
     );
     try {
       await room.connect(
@@ -365,6 +508,23 @@ class VoiceSession extends _$VoiceSession {
         event.token,
         connectOptions: const ConnectOptions(),
       );
+      if (keyProvider != null) {
+        await room.setE2EEEnabled(true);
+        _logVoiceE2eeSnapshot(
+          'LiveKit connect + E2EE enabled',
+          room: room,
+          channelId: resolvedChannelId,
+          guildId: _normalizeVoiceGuildId(event.guildId) ?? _expectedGuildId,
+        );
+        talker.info(
+          '[Voice][E2EE] Join successful: end-to-end encryption is active.',
+        );
+      } else {
+        talker.info(
+          '[Voice][E2EE] Join successful: plaintext voice '
+          '(gateway did not send e2ee_key).',
+        );
+      }
       if (attempt != _connectGeneration) {
         talker.warning(
           '[Voice] LiveKit connect superseded after room.connect '
@@ -432,6 +592,12 @@ class VoiceSession extends _$VoiceSession {
       }
     } on Object catch (e) {
       talker.error('[Voice] LiveKit connect failed: $e');
+      if (useE2ee) {
+        talker.error(
+          '[Voice][E2EE] Encrypted join failed. '
+          'Check logs above for key setup or LiveKit E2EE errors.',
+        );
+      }
       _detachRoomSfxListener();
       _detachLocalParticipantListener();
       if (attempt == _connectGeneration) {
@@ -543,6 +709,7 @@ class VoiceSession extends _$VoiceSession {
     _pendingRingAfterConnect = false;
     _pendingRingSilently = false;
     _outboundRingRecipients = null;
+    _lastLoggedE2eeChannelStatus = null;
     if (channelId != null) {
       _clearOutgoingCallInitiator(channelId);
     }
@@ -575,7 +742,7 @@ class VoiceSession extends _$VoiceSession {
       guildId: guildId ?? sessionState.guildId,
       connectionId: connectionId ?? sessionState.activeConnectionId,
     );
-    state = state.copyWith(clearRoom: true);
+    state = state.copyWith(clearRoom: true, clearE2eeKey: true);
     try {
       await roomToDisconnect.disconnect();
     } on Object catch (e) {
@@ -982,9 +1149,9 @@ class VoiceSession extends _$VoiceSession {
     final EventsListener<RoomEvent> listener = room.createListener();
     _roomSfxListener = listener;
     final String? selfIdentity = room.localParticipant?.identity;
-    listener.on<ParticipantConnectedEvent>((
+    listener..on<ParticipantConnectedEvent>((
       ParticipantConnectedEvent evt,
-    ) async {
+    ) {
       if (_intentionalLiveKitTeardown) {
         return;
       }
@@ -1003,10 +1170,10 @@ class VoiceSession extends _$VoiceSession {
                   : FluxerSfxClip.viewerJoin,
             ),
       );
-    });
-    listener.on<ParticipantDisconnectedEvent>((
+    })
+    ..on<ParticipantDisconnectedEvent>((
       ParticipantDisconnectedEvent evt,
-    ) async {
+    ) {
       if (_intentionalLiveKitTeardown) {
         return;
       }

@@ -5386,6 +5386,36 @@ abstract class FluxerLocalizations {
   /// **'Connect to Voice'**
   String get voiceChannelJoinConnect;
 
+  /// Pre-join banner on a guild voice channel where every connected participant supports E2EE.
+  ///
+  /// In en, this message translates to:
+  /// **'This voice channel is end-to-end encrypted.'**
+  String get voiceChannelE2eeEncrypted;
+
+  /// Pre-join banner on a DM or group DM call where every connected participant supports E2EE.
+  ///
+  /// In en, this message translates to:
+  /// **'This call is end-to-end encrypted.'**
+  String get voiceCallE2eeEncrypted;
+
+  /// Pre-join banner on a guild voice channel where E2EE capability is mixed among participants.
+  ///
+  /// In en, this message translates to:
+  /// **'End-to-end encryption is unavailable because an unsupported participant is in this voice channel.'**
+  String get voiceChannelE2eeBroken;
+
+  /// Pre-join banner on a DM or group DM call where E2EE capability is mixed among participants.
+  ///
+  /// In en, this message translates to:
+  /// **'End-to-end encryption is unavailable because an unsupported participant is in this call.'**
+  String get voiceCallE2eeBroken;
+
+  /// Shown when the gateway rejects a voice join with VOICE_E2EE_REQUIRED.
+  ///
+  /// In en, this message translates to:
+  /// **'This client must be updated before joining this encrypted call.'**
+  String get voiceE2eeUpdateRequired;
+
   /// Status in the in-page voice view while LiveKit is connecting.
   ///
   /// In en, this message translates to:

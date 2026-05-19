@@ -19,6 +19,7 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_dart/gateway.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -29,6 +30,7 @@ import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_join
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_connection_actions.dart';
+import 'package:fluxer_app/features/voice/utils/voice_e2ee_display.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -328,6 +330,21 @@ class GuildSidebar extends ConsumerWidget {
     final int? effectivePermissionBits = ref
         .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
         .value;
+    final VoiceSessionState voiceSession = ref.watch(voiceSessionProvider);
+    final Map<String, VoiceState> voiceStates = ref.watch(voiceStatesMapProvider);
+    final Guild? guild = ref.watch(channelListViewModelProvider).guild;
+    final bool showE2eeVoiceIcon =
+        channel.type == ChannelType.voice &&
+        guildId != null &&
+        guild != null &&
+        isVoiceChannelE2eeEncryptedForIcon(
+          voiceStates: voiceStates,
+          guildId: guildId!,
+          channelId: channel.id,
+          connectedVoiceGuildId: voiceSession.guildId,
+          connectedVoiceChannelId: voiceSession.channelId,
+          guildHasVoiceE2ee: guild.hasVoiceE2ee,
+        );
 
     final textColor = isSelected
         ? context.colors.textPrimary
@@ -391,6 +408,8 @@ class GuildSidebar extends ConsumerWidget {
                   await showVoiceChannelJoinBottomSheet(
                     context,
                     channelName: channel.name,
+                    guildId: guildId,
+                    channelId: channel.id,
                   );
               if (!context.mounted || joinOutcome == null) {
                 return;
@@ -443,6 +462,7 @@ class GuildSidebar extends ConsumerWidget {
                 channel: channel,
                 effectivePermissionBits: effectivePermissionBits,
                 color: textColor,
+                e2eeEncrypted: showE2eeVoiceIcon,
               ),
               const SizedBox(width: 6),
               Expanded(

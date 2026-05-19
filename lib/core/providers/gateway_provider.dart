@@ -78,9 +78,14 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     },
     onVoiceStateUpdate: (state) {
       ref.read(voiceStatesMapProvider.notifier).update(state);
+      ref.read(voiceSessionProvider.notifier).syncE2eeFromVoiceStates();
     },
     onVoiceStatesBulk: (states) {
       ref.read(voiceStatesMapProvider.notifier).updateBulk(states);
+      ref.read(voiceSessionProvider.notifier).syncE2eeFromVoiceStates();
+    },
+    onGatewayError: (event) {
+      ref.read(voiceSessionProvider.notifier).handleGatewayError(event);
     },
     onVoiceServerUpdate: (event) {
       ref.read(voiceSessionProvider.notifier).handleVoiceServerUpdate(event);

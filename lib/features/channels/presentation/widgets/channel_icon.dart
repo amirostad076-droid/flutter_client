@@ -17,6 +17,7 @@ const String _kAssetVoiceLocked =
 const String _kAssetVoiceNsfw = 'assets/images/icons/channels/voice_nsfw.svg';
 const String _kAssetVoiceNoConnect =
     'assets/images/icons/channels/voice_no_connect.svg';
+const String _kAssetVoiceE2ee = 'assets/images/icons/channels/voice_e2ee.svg';
 const String _kAssetLink = 'assets/images/icons/channels/link.svg';
 const String _kAssetLinkLocked = 'assets/images/icons/channels/link_locked.svg';
 const String _kAssetLinkNsfw = 'assets/images/icons/channels/link_nsfw.svg';
@@ -53,6 +54,7 @@ ChannelIconAccessOverlay resolveChannelIconAccessOverlay({
 String? _svgAssetForChannelVisual({
   required ChannelType type,
   required ChannelIconAccessOverlay overlay,
+  bool e2eeEncrypted = false,
 }) {
   if (type == ChannelType.category) {
     return null;
@@ -70,6 +72,9 @@ String? _svgAssetForChannelVisual({
     };
   }
   if (isVoiceLike) {
+    if (e2eeEncrypted) {
+      return _kAssetVoiceE2ee;
+    }
     return switch (overlay) {
       ChannelIconAccessOverlay.nsfw => _kAssetVoiceNsfw,
       ChannelIconAccessOverlay.noConnect => _kAssetVoiceNoConnect,
@@ -94,6 +99,7 @@ class ChannelIcon extends StatelessWidget {
   final int? effectivePermissionBits;
   final double size;
   final Color? color;
+  final bool e2eeEncrypted;
 
   const ChannelIcon({
     required this.type,
@@ -101,6 +107,7 @@ class ChannelIcon extends StatelessWidget {
     this.effectivePermissionBits,
     this.size = 20,
     this.color,
+    this.e2eeEncrypted = false,
     super.key,
   });
 
@@ -117,6 +124,7 @@ class ChannelIcon extends StatelessWidget {
     final String? asset = _svgAssetForChannelVisual(
       type: displayType,
       overlay: overlay,
+      e2eeEncrypted: e2eeEncrypted,
     );
     if (asset != null) {
       return SvgPicture.asset(

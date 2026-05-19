@@ -69,6 +69,7 @@ class Guild {
   bool get isVerified => features.contains('VERIFIED');
   bool get isPartnered => features.contains('PARTNERED');
   bool get isDiscoverable => features.contains('DISCOVERABLE');
+  bool get hasVoiceE2ee => features.contains('VOICE_E2EE');
   bool get isUnavailable =>
       unavailable || features.contains('UNAVAILABLE_FOR_EVERYONE_BUT_STAFF');
 

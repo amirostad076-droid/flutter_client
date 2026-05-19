@@ -10,6 +10,7 @@ import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.da
 import 'package:fluxer_app/features/ui/voice/voice_channel_control_bar.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_join_button.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_participant_grid.dart';
+import 'package:fluxer_app/features/voice/presentation/widgets/voice_e2ee_indicator.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_connection_actions.dart';
@@ -164,6 +165,11 @@ class _VoiceChannelPageViewState extends ConsumerState<VoiceChannelPageView> {
                       ),
                     );
                   },
+                ),
+                VoiceE2eeIndicator(
+                  guildId: widget.guildId,
+                  channelId: widget.channelId,
+                  variant: VoiceE2eeIndicatorVariant.voiceChannel,
                 ),
               ],
             ),

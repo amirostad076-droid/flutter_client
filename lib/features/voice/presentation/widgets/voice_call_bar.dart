@@ -162,12 +162,10 @@ class VoiceCallBar extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Divider(height: 1, color: context.colors.borderColor),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-          child: Material(
-            elevation: 6,
-            borderRadius: BorderRadius.circular(12),
-            color: context.colors.backgroundSecondary,
+        Material(
+          color: context.colors.backgroundSecondary,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {

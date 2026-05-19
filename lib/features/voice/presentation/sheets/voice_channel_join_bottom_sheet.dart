@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/voice/presentation/widgets/voice_e2ee_indicator.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -29,18 +30,29 @@ class VoiceChannelJoinOutcome {
 Future<VoiceChannelJoinOutcome?> showVoiceChannelJoinBottomSheet(
   BuildContext context, {
   required String channelName,
+  required String guildId,
+  required String channelId,
 }) {
   return FluxerBottomSheet.show<VoiceChannelJoinOutcome?>(
     context,
     title: channelName,
     builder: (BuildContext sheetContext, VoidCallback _) {
-      return const _VoiceChannelJoinSheetContent();
+      return _VoiceChannelJoinSheetContent(
+        guildId: guildId,
+        channelId: channelId,
+      );
     },
   );
 }
 
 class _VoiceChannelJoinSheetContent extends ConsumerStatefulWidget {
-  const _VoiceChannelJoinSheetContent();
+  const _VoiceChannelJoinSheetContent({
+    required this.guildId,
+    required this.channelId,
+  });
+
+  final String guildId;
+  final String channelId;
 
   @override
   ConsumerState<_VoiceChannelJoinSheetContent> createState() =>
@@ -77,6 +89,14 @@ class _VoiceChannelJoinSheetContentState
           child: FluxerButton.primary(
             label: l10n.voiceChannelJoinConnect,
             onPressed: () => _onConnect(inVoice: inVoice, selfVs: selfVs),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+          child: VoiceE2eeIndicator(
+            guildId: widget.guildId,
+            channelId: widget.channelId,
+            variant: VoiceE2eeIndicatorVariant.voiceChannel,
           ),
         ),
         SizedBox(height: context.layout.s4),

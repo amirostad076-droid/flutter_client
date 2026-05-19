@@ -10,6 +10,7 @@ class VoiceSessionState {
     this.voiceServerEndpoint,
     this.activeConnectionId,
     this.liveKitRoom,
+    this.e2eeKey,
   });
 
   final bool isConnecting;
@@ -20,6 +21,7 @@ class VoiceSessionState {
   final String? voiceServerEndpoint;
   final String? activeConnectionId;
   final Room? liveKitRoom;
+  final String? e2eeKey;
 
   bool get isInVoice =>
       (isConnecting || isConnected) &&
@@ -35,8 +37,10 @@ class VoiceSessionState {
     String? voiceServerEndpoint,
     String? activeConnectionId,
     Room? liveKitRoom,
+    String? e2eeKey,
     bool clearError = false,
     bool clearRoom = false,
+    bool clearE2eeKey = false,
   }) {
     return VoiceSessionState(
       isConnecting: isConnecting ?? this.isConnecting,
@@ -47,6 +51,9 @@ class VoiceSessionState {
       voiceServerEndpoint: voiceServerEndpoint ?? this.voiceServerEndpoint,
       activeConnectionId: activeConnectionId ?? this.activeConnectionId,
       liveKitRoom: clearRoom ? null : (liveKitRoom ?? this.liveKitRoom),
+      e2eeKey: (clearRoom || clearE2eeKey)
+          ? null
+          : (e2eeKey ?? this.e2eeKey),
     );
   }
 }

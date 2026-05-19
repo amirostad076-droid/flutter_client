@@ -34,6 +34,7 @@ typedef ConnectionsUpdateCallback =
 typedef UserSettingsHydrateCallback =
     void Function(UserSettingsResponse settings);
 typedef VoiceServerUpdateCallback = void Function(VoiceServerUpdateEvent event);
+typedef GatewayErrorCallback = void Function(GatewayErrorEvent event);
 
 String? _presenceCustomStatusTextFromMap(Map<String, dynamic> presence) {
   final Map<String, dynamic>? customStatusMap =
@@ -52,6 +53,7 @@ class GatewayEventHandler {
     this.onVoiceStateUpdate,
     this.onVoiceStatesBulk,
     this.onVoiceServerUpdate,
+    this.onGatewayError,
     this.onCallCreate,
     this.onCallUpdate,
     this.onCallDelete,
@@ -82,6 +84,7 @@ class GatewayEventHandler {
   final VoiceStateCallback? onVoiceStateUpdate;
   final VoiceBulkCallback? onVoiceStatesBulk;
   final VoiceServerUpdateCallback? onVoiceServerUpdate;
+  final GatewayErrorCallback? onGatewayError;
   final CallCreateCallback? onCallCreate;
   final CallUpdateCallback? onCallUpdate;
   final ChannelCallback? onCallDelete;
@@ -346,8 +349,9 @@ class GatewayEventHandler {
         unawaited(_handleFavoriteMemeDelete(event));
       case SessionsReplaceEvent():
         talker.debug('[Gateway] SESSIONS_REPLACE');
-      case GatewayErrorEvent():
-        talker.warning('[Gateway] Error: [${event.code}] ${event.message}');
+      case final GatewayErrorEvent e:
+        talker.warning('[Gateway] Error: [${e.code}] ${e.message}');
+        onGatewayError?.call(e);
       case UnknownGatewayEvent():
         if (event.eventType == 'MESSAGE_UPDATE') {
           talker.warning(

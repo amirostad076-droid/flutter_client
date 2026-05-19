@@ -33,6 +33,7 @@ GatewayConnection gatewayConnection(Ref ref) {
       browserVersion: '1.0.0',
       desktopAppVersion: isDesktop ? '1.0.0' : null,
       desktopOs: isDesktop ? Platform.operatingSystem : null,
+      e2eeCapable: true,
     ),
   );
 
