@@ -24,10 +24,12 @@ class FileUploadValidator {
   const FileUploadValidator({
     required this.maxAttachments,
     required this.maxFileBytes,
+    required this.maxMultipartRequestBytes,
   });
 
   final int maxAttachments;
   final int maxFileBytes;
+  final int maxMultipartRequestBytes;
 
   Future<FileUploadValidationResult> validateAddFiles({
     required int currentCount,
@@ -65,6 +67,7 @@ class FileUploadValidator {
       if (isMultipartMessageRequestTooLarge(
         payload: multipartPayloadPreview,
         files: descriptors,
+        maxRequestBytes: maxMultipartRequestBytes,
       )) {
         return const FileUploadValidationResult.failure(
           FileUploadValidationError.multipartRequestTooLarge,

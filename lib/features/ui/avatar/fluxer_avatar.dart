@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/media/fluxer_media_cdn.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/ui/status_indicator/fluxer_status_indicator.dart';
 
 const _kDefaultAvatarCount = 6;
-const _kStaticCdnUrl = 'https://fluxerstatic.com';
+String get _kStaticCdnUrl => fluxerStaticCdn;
 
 const _kFallbackColors = [
   Color(0xFF5865F2),

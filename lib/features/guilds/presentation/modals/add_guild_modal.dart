@@ -4,7 +4,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/instance/instance_endpoints.dart';
+import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/guilds/presentation/modals/add_guild_landing_view.dart';
 import 'package:fluxer_app/features/guilds/services/join_community_service.dart';
@@ -69,21 +70,21 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
   Future<void> _loadInvitePlaceholder() async {
     final String randomCode = _randomInviteCode();
     try {
-      final client = ref.read(fluxerClientProvider);
-      final wellKnown = await client.instance.getWellKnownFluxer();
+      await ref.read(wellKnownProvider.future);
+      final String inviteBase = ref.read(instanceInviteBaseUrlProvider);
       if (!mounted) {
         return;
       }
       setState(() {
-        _instanceInviteUrlBases = <String>[wellKnown.endpoints.invite];
-        _invitePlaceholder = '${wellKnown.endpoints.invite}/$randomCode';
+        _instanceInviteUrlBases = <String>[inviteBase];
+        _invitePlaceholder = '$inviteBase/$randomCode';
       });
     } on Object {
       if (!mounted) {
         return;
       }
       setState(() {
-        _invitePlaceholder = 'https://fluxer.app/invite/$randomCode';
+        _invitePlaceholder = '${InstanceEndpoints.defaultInvite}/$randomCode';
       });
     }
   }

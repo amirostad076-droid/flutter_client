@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/api/dio_error_message.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
@@ -35,10 +36,11 @@ Future<void> joinCommunityViaInvite({
   required FluxerLocalizations l10n,
 }) async {
   final client = ref.read(fluxerClientProvider);
-  final wellKnown = await client.instance.getWellKnownFluxer();
+  await ref.read(wellKnownProvider.future);
+  final String inviteBase = ref.read(instanceInviteBaseUrlProvider);
   final String? parsedCode = parseInviteCode(
     rawInput,
-    inviteUrlBases: <String>[wellKnown.endpoints.invite],
+    inviteUrlBases: <String>[inviteBase],
   );
   if (parsedCode == null || parsedCode.isEmpty) {
     throw JoinCommunityException(

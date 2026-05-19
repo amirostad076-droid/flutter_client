@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/features/chat/utils/file_upload_constants.dart';
 import 'package:fluxer_app/features/chat/utils/multipart_utils.dart';
 
 void main() {
@@ -42,6 +43,7 @@ void main() {
       final bool actual = isMultipartMessageRequestTooLarge(
         payload: const <String, dynamic>{'content': 'x'},
         files: const <({String name, int size, String contentType})>[],
+        maxRequestBytes: kNonPremiumMaxAttachmentBytes,
       );
       expect(actual, false);
     });
@@ -68,6 +70,7 @@ void main() {
       final bool actual = isMultipartMessageRequestTooLarge(
         payload: const <String, dynamic>{'content': 'hello'},
         files: inputFiles,
+        maxRequestBytes: kNonPremiumMaxAttachmentBytes,
       );
       expect(actual, true);
     });

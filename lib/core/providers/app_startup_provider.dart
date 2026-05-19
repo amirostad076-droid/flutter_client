@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
+import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -40,6 +41,7 @@ class AppStartup extends _$AppStartup {
     await Future.wait<void>([
       EmojiRegistry.preload(),
       ref.read(appRuntimeInfoProvider.future),
+      ref.read(wellKnownProvider.future),
     ]);
     unawaited(EmojiSpriteSheet.preload());
     final database = ref.read(fluxerDatabaseProvider);

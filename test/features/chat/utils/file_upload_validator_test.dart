@@ -10,6 +10,7 @@ void main() {
       const FileUploadValidator validator = FileUploadValidator(
         maxAttachments: 10,
         maxFileBytes: 25 * 1024 * 1024,
+        maxMultipartRequestBytes: 25 * 1024 * 1024,
       );
       final FileUploadValidationResult actual = await validator
           .validateAddFiles(currentCount: 0, newFiles: const <XFile>[]);
@@ -21,6 +22,7 @@ void main() {
       const FileUploadValidator validator = FileUploadValidator(
         maxAttachments: 2,
         maxFileBytes: 1024,
+        maxMultipartRequestBytes: 1024,
       );
       final List<XFile> inputFiles = <XFile>[
         XFile.fromData(Uint8List(1), name: 'a.bin'),
@@ -36,6 +38,7 @@ void main() {
       const FileUploadValidator validator = FileUploadValidator(
         maxAttachments: 10,
         maxFileBytes: 10,
+        maxMultipartRequestBytes: 10,
       );
       final List<XFile> inputFiles = <XFile>[
         XFile.fromData(Uint8List(11), name: 'big.bin'),
@@ -50,6 +53,7 @@ void main() {
       const FileUploadValidator validator = FileUploadValidator(
         maxAttachments: 10,
         maxFileBytes: 1024,
+        maxMultipartRequestBytes: 1024,
       );
       final List<XFile> inputFiles = <XFile>[
         XFile.fromData(Uint8List(100), name: 'ok.bin'),

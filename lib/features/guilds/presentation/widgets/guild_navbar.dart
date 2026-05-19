@@ -14,6 +14,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart' hide Channel;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -759,7 +760,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                 if (invitable == null) {
                   return null;
                 }
-                final wellKnown = await client.instance.getWellKnownFluxer();
+                final String inviteBase = ref.read(instanceInviteBaseUrlProvider);
                 final invite = await client.invites.createChannelInvite(
                   channelId: invitable.id,
                   body: ChannelInviteCreateRequest(
@@ -770,7 +771,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                 );
                 final code = invite.toGuildInviteMetadataResponse().code;
                 return (
-                  url: '${wellKnown.endpoints.invite}/$code',
+                  url: '$inviteBase/$code',
                   channelName: invitable.name,
                 );
               },
@@ -1281,7 +1282,9 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                   if (invitable == null) {
                     return null;
                   }
-                  final wellKnown = await client.instance.getWellKnownFluxer();
+                  final String inviteBase = ref.read(
+                    instanceInviteBaseUrlProvider,
+                  );
                   final invite = await client.invites.createChannelInvite(
                     channelId: invitable.id,
                     body: ChannelInviteCreateRequest(
@@ -1292,7 +1295,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                   );
                   final code = invite.toGuildInviteMetadataResponse().code;
                   return (
-                    url: '${wellKnown.endpoints.invite}/$code',
+                    url: '$inviteBase/$code',
                     channelName: invitable.name,
                   );
                 },

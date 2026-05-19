@@ -796,6 +796,9 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         premiumBillingCycle: profile.premiumBillingCycle,
         isProfileLoaded: true,
       );
+      ref
+          .read(currentUserPremiumTypeProvider.notifier)
+          .set(profile.premiumType?.json ?? 0);
     } on Exception catch (e) {
       talker.error('Failed to load profile', e);
       state = state.copyWith(error: 'Failed to load profile');

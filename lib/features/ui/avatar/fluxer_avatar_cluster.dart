@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluxer_app/core/media/fluxer_media_cdn.dart';
 import 'package:fluxer_app/features/ui/status_indicator/fluxer_status_indicator.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -16,7 +17,7 @@ const _kAccentColors = [
 ];
 
 const _kDefaultAvatarCount = 6;
-const _kStaticCdnUrl = 'https://fluxerstatic.com';
+String get _kStaticCdnUrl => fluxerStaticCdn;
 const _kAvatarBorderSize = 2.0;
 
 @visibleForTesting

@@ -36,10 +36,11 @@ int estimateMultipartMessageRequestBytes({
 bool isMultipartMessageRequestTooLarge({
   required Map<String, dynamic> payload,
   required List<({String name, int size, String contentType})> files,
+  required int maxRequestBytes,
 }) {
   if (files.isEmpty) {
     return false;
   }
   return estimateMultipartMessageRequestBytes(payload: payload, files: files) >
-      kForcedMultipartMessageMaxRequestBytes;
+      maxRequestBytes;
 }

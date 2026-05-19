@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/chat/domain/message_upload_session.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
 import 'package:fluxer_app/features/chat/providers/attachment_upload_client_provider.dart';
 import 'package:fluxer_app/features/chat/providers/message_upload_sessions_provider.dart';
+import 'package:fluxer_app/features/chat/providers/user_upload_limits_provider.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_filename_utils.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_constants.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart'
@@ -49,9 +50,11 @@ class CloudUploadController extends _$CloudUploadController {
         FileUploadValidationError.noFiles,
       );
     }
-    const FileUploadValidator validator = FileUploadValidator(
+    final int maxFileBytes = ref.read(maxAttachmentFileBytesProvider);
+    final FileUploadValidator validator = FileUploadValidator(
       maxAttachments: kMaxAttachmentsPerMessage,
-      maxFileBytes: kDefaultMaxAttachmentBytes,
+      maxFileBytes: maxFileBytes,
+      maxMultipartRequestBytes: maxFileBytes,
     );
     final FileUploadValidationResult validation = await validator
         .validateAddFiles(
