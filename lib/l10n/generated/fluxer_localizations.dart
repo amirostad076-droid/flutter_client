@@ -5338,6 +5338,30 @@ abstract class FluxerLocalizations {
   /// **'Preserve edit draft on cancel'**
   String get messagesMediaEditingPreserveDraftLabel;
 
+  /// Section title for unread-indicator accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread indicators'**
+  String get accessibilityUnreadGroupTitle;
+
+  /// Section description for unread-indicator accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how unread message indicators are displayed.'**
+  String get accessibilityUnreadGroupDescription;
+
+  /// Toggle label for showing a faded unread indicator on muted channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Show faded unread indicator on muted channels'**
+  String get accessibilityShowFadedUnreadOnMutedChannelsLabel;
+
+  /// Toggle description for showing a faded unread indicator on muted channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Display a dimmed unread indicator next to muted direct messages and channels so you can still see at a glance when there\'s activity.'**
+  String get accessibilityShowFadedUnreadOnMutedChannelsDescription;
+
   /// Title of the multi-device voice join confirmation dialog.
   ///
   /// In en, this message translates to:

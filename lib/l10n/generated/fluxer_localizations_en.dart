@@ -3122,6 +3122,21 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Preserve edit draft on cancel';
 
   @override
+  String get accessibilityUnreadGroupTitle => 'Unread indicators';
+
+  @override
+  String get accessibilityUnreadGroupDescription =>
+      'Control how unread message indicators are displayed.';
+
+  @override
+  String get accessibilityShowFadedUnreadOnMutedChannelsLabel =>
+      'Show faded unread indicator on muted channels';
+
+  @override
+  String get accessibilityShowFadedUnreadOnMutedChannelsDescription =>
+      'Display a dimmed unread indicator next to muted direct messages and channels so you can still see at a glance when there\'s activity.';
+
+  @override
   String get voiceConnectionConfirmTitle => 'Voice Connection Confirmation';
 
   @override

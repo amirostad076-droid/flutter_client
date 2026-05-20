@@ -48,6 +48,12 @@ class UserSettingsViewState {
   final RenderSpoilers renderSpoilers;
   final bool defaultHideMutedChannels;
 
+  // TODO(sdk): server-sync once the SDK ships
+  // `show_faded_unread_on_muted_channels`. For now this is an in-memory
+  // accessibility toggle (resets on app restart) so we can ship the indicator
+  // parity work without blocking on the SDK regen.
+  final bool showFadedUnreadOnMutedChannels;
+
   final int publicFlags;
 
   final String? bio;
@@ -134,6 +140,7 @@ class UserSettingsViewState {
     this.renderReactions = true,
     this.renderSpoilers = RenderSpoilers.onClick,
     this.defaultHideMutedChannels = false,
+    this.showFadedUnreadOnMutedChannels = false,
     this.publicFlags = 0,
     this.bio,
     this.pronouns,
@@ -410,6 +417,7 @@ class UserSettingsViewState {
     bool? renderReactions,
     RenderSpoilers? renderSpoilers,
     bool? defaultHideMutedChannels,
+    bool? showFadedUnreadOnMutedChannels,
     int? publicFlags,
     Object? bio = _unset,
     Object? pronouns = _unset,
@@ -496,6 +504,8 @@ class UserSettingsViewState {
       renderSpoilers: renderSpoilers ?? this.renderSpoilers,
       defaultHideMutedChannels:
           defaultHideMutedChannels ?? this.defaultHideMutedChannels,
+      showFadedUnreadOnMutedChannels:
+          showFadedUnreadOnMutedChannels ?? this.showFadedUnreadOnMutedChannels,
       publicFlags: publicFlags ?? this.publicFlags,
       bio: bio == _unset ? this.bio : bio as String?,
       pronouns: pronouns == _unset ? this.pronouns : pronouns as String?,
@@ -1358,6 +1368,13 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       talker.error('Failed to update renderSpoilers', e, st);
       rethrow;
     }
+  }
+
+  // TODO(sdk): switch to server-sync once the SDK exposes
+  // `show_faded_unread_on_muted_channels` on `UserSettingsUpdateRequest` /
+  // `UserSettingsResponse`. Until then this is an in-memory toggle.
+  void setShowFadedUnreadOnMutedChannels({required bool value}) {
+    state = state.copyWith(showFadedUnreadOnMutedChannels: value);
   }
 
   Future<void> setDefaultHideMutedChannels({required bool value}) async {

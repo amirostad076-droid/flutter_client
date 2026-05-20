@@ -20,6 +20,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart'
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_accessibility.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_appearance.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_authorized_apps.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_blocked_users.dart';
@@ -285,6 +286,8 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
         return const UserSecurityLogin();
       case 'Privacy Dashboard':
         return const UserPrivacyDashboard();
+      case 'Accessibility':
+        return const UserAccessibility();
       case 'Messages & Media':
         return const UserMessagesMedia();
       case 'Authorized Apps':
@@ -616,6 +619,8 @@ class _MobileSettingsContentBody extends ConsumerWidget {
         return UserSecurityLogin(scrollController: scrollController);
       case 'Privacy Dashboard':
         return UserPrivacyDashboard(scrollController: scrollController);
+      case 'Accessibility':
+        return UserAccessibility(scrollController: scrollController);
       case 'Messages & Media':
         return UserMessagesMedia(scrollController: scrollController);
       case 'Authorized Apps':
