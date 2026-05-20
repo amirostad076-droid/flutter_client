@@ -25,7 +25,7 @@ class FriendRepository {
 
   Future<List<Friend>> getRelationships() async {
     try {
-      final relationships = await _client.users.listUserRelationships2();
+      final relationships = await _client.users.listUserRelationships();
       final companions = <db.RelationshipsCompanion>[];
       for (final rel in relationships) {
         await _db.userDao.upsertUser(userFromPartialSdk(rel.user));

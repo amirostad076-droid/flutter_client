@@ -67,6 +67,7 @@ UserPrivateResponse _privateUser(String id) => UserPrivateResponse(
   premiumPurchaseDisabled: false,
   premiumEnabledOverride: false,
   passwordLastChangedAt: null,
+  lastVoiceActivitySharingChangeAt: null,
   premiumBadgeHidden: false,
   premiumPerksDisabled: false,
 );

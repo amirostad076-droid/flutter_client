@@ -32,7 +32,7 @@ class MemberRepository {
   Future<List<Member>> getMembers(String guildId, {int limit = 100}) async {
     List<dynamic> rawList;
     try {
-      final members = await _client.guilds.listGuildMembers2(
+      final members = await _client.guilds.listGuildMembers(
         guildId: guildId,
         limit: limit,
       );

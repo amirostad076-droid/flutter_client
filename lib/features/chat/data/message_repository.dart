@@ -444,7 +444,7 @@ class MessageRepository {
     required String messageId,
   }) async {
     try {
-      await _client.channels.deleteMessage2(
+      await _client.channels.deleteMessage(
         channelId: channelId,
         messageId: messageId,
       );

@@ -633,7 +633,7 @@ class PrivacyDashboardViewModel extends _$PrivacyDashboardViewModel {
   Future<void> cancelBulkMessageDeletion() async {
     try {
       final client = ref.read(fluxerClientProvider);
-      await client.users.cancelBulkMessageDeletion2();
+      await client.users.cancelBulkMessageDeletion();
 
       state = state.copyWith(pendingDeletion: null);
 

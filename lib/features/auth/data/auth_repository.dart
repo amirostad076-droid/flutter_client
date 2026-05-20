@@ -444,7 +444,11 @@ class AuthRepository {
         if (validationErrors != null && validationErrors.isNotEmpty) {
           final fieldErrors = <String, String>{};
           for (final e in validationErrors) {
-            fieldErrors.putIfAbsent(e.path, () => e.message);
+            final key = e.path ?? e.field;
+            if (key == null) {
+              continue;
+            }
+            fieldErrors.putIfAbsent(key, () => e.message);
           }
           return AuthFailure(apiError.message, fieldErrors: fieldErrors);
         }
