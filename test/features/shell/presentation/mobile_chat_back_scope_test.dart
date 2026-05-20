@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/shell/presentation/mobile_chat_back_scope.dart';
+import 'package:fluxer_app/core/router/shell_popup_route_observer.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
+import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
@@ -43,11 +47,58 @@ void main() {
       );
     },
   );
+
+  testWidgets('mobile back dismisses an open bottom sheet before the drawer', (
+    tester,
+  ) async {
+    late final ProviderContainer container;
+    final ShellPopupRouteObserver popupObserver = ShellPopupRouteObserver(
+      ({required bool hasOverlay}) {
+        container
+            .read(shellHasPopupOverlayProvider.notifier)
+            .setHasOverlay(value: hasOverlay);
+      },
+    );
+    final router = _routerFor(
+      '/channels/guild/channel',
+      navigatorObservers: [popupObserver],
+    );
+    addTearDown(router.dispose);
+    container = _containerFor(router);
+
+    await tester.pumpWidget(_buildBackScopeApp(container, router));
+    await tester.pumpAndSettle();
+
+    final BuildContext chatContext = tester.element(find.text('chat'));
+    unawaited(
+      showModalBottomSheet<void>(
+        context: chatContext,
+        builder: (BuildContext context) => const Text('sheet'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('sheet'), findsOneWidget);
+    expect(container.read(shellHasPopupOverlayProvider), isTrue);
+    expect(container.read(currentRevealSideProvider), RevealSide.main);
+
+    final bool handled = await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(handled, isTrue);
+    expect(find.text('sheet'), findsNothing);
+    expect(container.read(shellHasPopupOverlayProvider), isFalse);
+    expect(container.read(currentRevealSideProvider), RevealSide.main);
+  });
 }
 
-GoRouter _routerFor(String initialLocation) {
+GoRouter _routerFor(
+  String initialLocation, {
+  List<NavigatorObserver> navigatorObservers = const <NavigatorObserver>[],
+}) {
   return GoRouter(
     initialLocation: initialLocation,
+    observers: navigatorObservers,
     routes: [
       GoRoute(
         path: '/channels/:guildId',

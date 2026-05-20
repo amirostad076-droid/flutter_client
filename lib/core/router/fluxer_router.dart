@@ -3,6 +3,8 @@ import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/router/channel_persistence_observer.dart';
+import 'package:fluxer_app/core/router/shell_popup_route_observer.dart';
+import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/login_screen.dart';
@@ -114,11 +116,11 @@ class ServerReachable extends _$ServerReachable {
 }
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
-final _homeBranchKey = GlobalKey<NavigatorState>(debugLabel: 'home');
-final _notificationsBranchKey = GlobalKey<NavigatorState>(
+final homeBranchNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
+final notificationsBranchNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'notifications',
 );
-final _youBranchKey = GlobalKey<NavigatorState>(debugLabel: 'you');
+final youBranchNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'you');
 
 class _RouterRefreshNotifier extends ChangeNotifier {
   void notify() => notifyListeners();
@@ -135,11 +137,22 @@ GoRouter fluxerRouter(Ref ref) {
     ..listen(gatewayReadyProvider, (_, _) => refreshNotifier.notify())
     ..listen(appStartupProvider, (_, _) => refreshNotifier.notify());
 
+  final shellPopupRouteObserver = ShellPopupRouteObserver(
+    ({required bool hasOverlay}) {
+      ref
+          .read(shellHasPopupOverlayProvider.notifier)
+          .setHasOverlay(value: hasOverlay);
+    },
+  );
+
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/login',
     refreshListenable: refreshNotifier,
-    observers: [ChannelPersistenceObserver(db)],
+    observers: [
+      ChannelPersistenceObserver(db),
+      shellPopupRouteObserver,
+    ],
     redirect: (context, state) {
       final location = state.matchedLocation;
       final isOnLoading = location == '/loading';
@@ -239,7 +252,8 @@ GoRouter fluxerRouter(Ref ref) {
         branches: [
           // Branch 0: Home
           StatefulShellBranch(
-            navigatorKey: _homeBranchKey,
+            navigatorKey: homeBranchNavigatorKey,
+            observers: [shellPopupRouteObserver],
             routes: [
               // /channels/@me
               GoRoute(
@@ -420,7 +434,8 @@ GoRouter fluxerRouter(Ref ref) {
 
           // Branch 1: Notifications
           StatefulShellBranch(
-            navigatorKey: _notificationsBranchKey,
+            navigatorKey: notificationsBranchNavigatorKey,
+            observers: [shellPopupRouteObserver],
             routes: [
               GoRoute(
                 path: '/notifications',
@@ -435,7 +450,8 @@ GoRouter fluxerRouter(Ref ref) {
 
           // Branch 2: You
           StatefulShellBranch(
-            navigatorKey: _youBranchKey,
+            navigatorKey: youBranchNavigatorKey,
+            observers: [shellPopupRouteObserver],
             routes: [
               GoRoute(
                 path: '/you',

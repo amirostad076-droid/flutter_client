@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/shell/presentation/sidebar_drawer.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
+import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
@@ -147,6 +148,28 @@ void main() {
     await tester.pump();
 
     expect(_sliderDx(tester), 800);
+  });
+
+  testWidgets('ignores horizontal drag while a popup overlay is open', (
+    tester,
+  ) async {
+    final router = _routerFor('/channels/guild/channel');
+    addTearDown(router.dispose);
+    final container = ProviderContainer(
+      overrides: [
+        fluxerRouterProvider.overrideWithValue(router),
+        shellHasPopupOverlayProvider.overrideWithValue(true),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
+    await tester.pump();
+
+    await tester.dragFrom(const Offset(20, 400), const Offset(200, 0));
+    await tester.pump();
+
+    expect(_sliderDx(tester), 0);
   });
 
   testWidgets('wraps drawer layers in repaint boundaries', (tester) async {

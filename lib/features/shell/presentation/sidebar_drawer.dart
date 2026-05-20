@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
+import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 
 /// Mobile shell drawer that draws a foreground [slider] over a static [base].
 ///
@@ -196,24 +197,34 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
 
   @override
   Widget build(BuildContext context) {
+    final bool hasPopupOverlay = ref.watch(shellHasPopupOverlayProvider);
     ref.listen<RevealSide>(currentRevealSideProvider, (prev, next) {
       if (next != _currentSide) {
         unawaited(_moveToState(next, writeBack: false));
       }
     });
+    ref.listen<bool>(shellHasPopupOverlayProvider, (prev, next) {
+      if (next) {
+        _animationController.stop();
+      }
+    });
+    final Map<Type, GestureRecognizerFactory> drawerGestures =
+        hasPopupOverlay
+        ? <Type, GestureRecognizerFactory>{}
+        : <Type, GestureRecognizerFactory>{
+            HorizontalDragGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<
+                  HorizontalDragGestureRecognizer
+                >(HorizontalDragGestureRecognizer.new, (recognizer) {
+                  recognizer
+                    ..onStart = _handleDragStart
+                    ..onUpdate = _handleDragUpdate
+                    ..onEnd = _handleDragEnd;
+                }),
+          };
 
     return RawGestureDetector(
-      gestures: <Type, GestureRecognizerFactory>{
-        HorizontalDragGestureRecognizer:
-            GestureRecognizerFactoryWithHandlers<
-              HorizontalDragGestureRecognizer
-            >(HorizontalDragGestureRecognizer.new, (recognizer) {
-              recognizer
-                ..onStart = _handleDragStart
-                ..onUpdate = _handleDragUpdate
-                ..onEnd = _handleDragEnd;
-            }),
-      },
+      gestures: drawerGestures,
       child: Stack(
         fit: StackFit.expand,
         children: [

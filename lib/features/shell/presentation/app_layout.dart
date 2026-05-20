@@ -24,6 +24,7 @@ import 'package:fluxer_app/features/shell/presentation/sidebar_drawer.dart';
 import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
 import 'package:fluxer_app/features/shell/presentation/user_area.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
+import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 import 'package:fluxer_app/features/shell/utils/mobile_scaffold_resize_policy.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/voice_call_bar.dart';
@@ -206,7 +207,13 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     String location, {
     required bool showBottomNav,
   }) {
-    final canSwipePop = _canSwipePop(location);
+    ref.listen<bool>(shellHasPopupOverlayProvider, (prev, next) {
+      if (next && _swipeController.value > 0) {
+        _swipeController.value = 0;
+      }
+    });
+    final bool hasPopupOverlay = ref.watch(shellHasPopupOverlayProvider);
+    final canSwipePop = _canSwipePop(location) && !hasPopupOverlay;
     final mainContent = AnimatedBuilder(
       animation: _swipeController,
       builder: (context, child) {

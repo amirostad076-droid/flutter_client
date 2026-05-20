@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
+import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
+import 'package:fluxer_app/features/shell/utils/shell_popup_navigation.dart';
 
 class MobileChatBackScope extends ConsumerWidget {
   final Widget child;
@@ -18,6 +20,10 @@ class MobileChatBackScope extends ConsumerWidget {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) {
+          return;
+        }
+        if (ref.read(shellHasPopupOverlayProvider)) {
+          popTopShellPopupRoute(context);
           return;
         }
         // Reading inside the callback (instead of `ref.watch` in build)
