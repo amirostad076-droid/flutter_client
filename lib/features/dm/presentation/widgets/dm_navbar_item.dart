@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/dm/domain/dm_unread_state.dart';
+import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
+import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 
 class DmNavbarItem extends ConsumerStatefulWidget {
   final String channelId;
   final String recipientId;
   final String displayName;
-  final String? avatarUrl;
-  final int? avatarColor;
   final int type;
   final int mentionCount;
   final bool hasUnread;
@@ -22,8 +25,6 @@ class DmNavbarItem extends ConsumerStatefulWidget {
     required this.recipientId,
     required this.displayName,
     required this.type,
-    this.avatarUrl,
-    this.avatarColor,
     this.mentionCount = 0,
     this.hasUnread = false,
     this.isSelected = false,
@@ -39,8 +40,6 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
     with AutomaticKeepAliveClientMixin {
   bool _isHovered = false;
 
-  bool get _hasUnread => widget.hasUnread || widget.mentionCount > 0;
-
   @override
   bool get wantKeepAlive => true;
 
@@ -49,13 +48,46 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
     super.build(context);
     final colors = context.colors;
 
+    final isMuted =
+        ref
+            .watch(mutedDmChannelIdsProvider)
+            .value
+            ?.contains(widget.channelId) ??
+        false;
+    final showFadedOnMuted = ref.watch(
+      userSettingsViewModelProvider.select(
+        (s) => s.showFadedUnreadOnMutedChannels,
+      ),
+    );
+    final unreadState = computeDmUnreadIndicator(
+      unreadCount: widget.hasUnread ? 1 : 0,
+      mentionCount: widget.mentionCount,
+      isMuted: isMuted,
+      showFadedUnreadOnMutedChannels: showFadedOnMuted,
+    );
+
+    final isGroup = widget.type == 3;
+    final recipient = isGroup
+        ? null
+        : ref.watch(userPresenceProvider(widget.recipientId)).value;
+    final avatarImageUrl = isGroup
+        ? null
+        : FluxerMediaUrl.userAvatar(
+            userId: widget.recipientId,
+            hash: recipient?.avatar,
+          );
+    final avatarColor = recipient?.avatarColor;
+
     final indicatorHeight = widget.isSelected
         ? 40.0
         : _isHovered
         ? 20.0
-        : _hasUnread
+        : unreadState.show
         ? 8.0
         : 0.0;
+    final indicatorColor = colors.textPrimary.withValues(
+      alpha: unreadState.faded && !widget.isSelected && !_isHovered ? 0.5 : 1.0,
+    );
 
     final borderRadius = (widget.isSelected || _isHovered) ? 13.0 : 22.0;
 
@@ -69,7 +101,7 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
             width: 6,
             height: indicatorHeight,
             decoration: BoxDecoration(
-              color: colors.textPrimary,
+              color: indicatorColor,
               borderRadius: const BorderRadius.only(
                 topRight: Radius.circular(4),
                 bottomRight: Radius.circular(4),
@@ -107,7 +139,7 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(borderRadius),
                           ),
-                          child: widget.type == 3
+                          child: isGroup
                               ? FluxerAvatarCluster(
                                   channelId: widget.channelId,
                                   size: 44,
@@ -115,17 +147,25 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
                               : FluxerAvatar.user(
                                   fallbackText: widget.displayName,
                                   userId: widget.recipientId,
-                                  imageUrl: widget.avatarUrl,
-                                  avatarColor: widget.avatarColor,
+                                  imageUrl: avatarImageUrl,
+                                  avatarColor: avatarColor,
                                   size: 44,
                                 ),
                         ),
                       ),
-                      if (widget.mentionCount > 0 && !widget.isSelected)
+                      if (widget.mentionCount > 0 &&
+                          !widget.isSelected &&
+                          unreadState.show)
                         Positioned(
                           bottom: -4,
                           right: -4,
-                          child: FluxerBadge.count(count: widget.mentionCount),
+                          child: Opacity(
+                            opacity: unreadState.faded ? 0.5 : 1.0,
+                            child: FluxerBadge.count(
+                              count: widget.mentionCount,
+                              cutoutColor: colors.backgroundSecondary,
+                            ),
+                          ),
                         ),
                     ],
                   ),
