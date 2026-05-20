@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
 import 'package:fluxer_app/core/push/push_notification_permission.dart';
 import 'package:fluxer_app/core/push/push_service.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_message_mapper.dart';
+import 'package:fluxer_app/core/push/unified_push/unified_push_vapid_cache.dart';
 import 'package:unifiedpush/unifiedpush.dart' as up;
 
 /// Fixed UnifiedPush instance id for this app.
@@ -48,8 +48,24 @@ class UnifiedPushService implements PushService {
     _backgroundMode = true;
     await requestPushNotificationPermission();
     await LocalPushNotifications().ensureInitialized();
+    await instance.loadCachedVapidPublicKey();
     await instance._ensureUnifiedPushInitialized();
-    await instance.syncRegistration();
+  }
+
+  void setPendingVapid(String? vapid) {
+    if (vapid != null && vapid.isNotEmpty) {
+      _pendingVapid = vapid;
+    }
+  }
+
+  Future<void> loadCachedVapidPublicKey() async {
+    final String? cached = await readCachedUnifiedPushVapidPublicKey();
+    if (cached != null && cached.isNotEmpty) {
+      _pendingVapid = cached;
+      if (kDebugMode) {
+        debugPrint('[UnifiedPushService] loaded cached VAPID key');
+      }
+    }
   }
 
   @override
@@ -66,8 +82,9 @@ class UnifiedPushService implements PushService {
     if (!PushProviderGuard.isUnifiedPush || !Platform.isAndroid) {
       return;
     }
-    if (vapid != null) {
-      _pendingVapid = vapid;
+    setPendingVapid(vapid);
+    if (_pendingVapid == null) {
+      await loadCachedVapidPublicKey();
     }
     await _ensureUnifiedPushInitialized();
   }
@@ -91,7 +108,7 @@ class UnifiedPushService implements PushService {
     if (await _waitForEndpoint()) {
       return;
     }
-    if (hasPersistedSubscription && !force) {
+    if (!force && hasPersistedSubscription && _endpoint != null) {
       return;
     }
     if (kDebugMode) {
@@ -225,22 +242,19 @@ class UnifiedPushService implements PushService {
     if (kDebugMode) {
       debugPrint(
         '[UnifiedPushService] onMessage decrypted=${message.decrypted} '
-        'title=${mapped.title} body=${mapped.body} '
-        'bg=$_backgroundMode showLocal=${_shouldShowLocalNotification()}',
+        'title=${mapped.title} body=${mapped.body} bg=$_backgroundMode',
       );
     }
-    if (!_shouldShowLocalNotification()) {
+    final LocalPushNotifications localPush = LocalPushNotifications();
+    final bool ready = await localPush.ensureInitialized();
+    if (!ready) {
+      if (kDebugMode) {
+        debugPrint(
+          '[UnifiedPushService] local notifications not initialized',
+        );
+      }
       return;
     }
-    await LocalPushNotifications().ensureInitialized();
-    await LocalPushNotifications().showPushMessage(mapped);
-  }
-
-  bool _shouldShowLocalNotification() {
-    if (_backgroundMode) {
-      return true;
-    }
-    final AppLifecycleState? state = WidgetsBinding.instance.lifecycleState;
-    return state != AppLifecycleState.resumed;
+    await localPush.showPushMessage(mapped);
   }
 }

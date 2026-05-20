@@ -4,8 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
-import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/push_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/apns/apple_push_notification_tap_binding.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
@@ -82,9 +83,7 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
       _messageSubscription = pushService.watchMessages().listen(
         (PushMessage message) {
           if (PushProviderGuard.isUnifiedPush) {
-            if (!ref.read(appUiForegroundProvider)) {
-              return;
-            }
+            return;
           }
           unawaited(_localPush.showPushMessage(message));
         },
@@ -111,6 +110,14 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
       if (kDebugMode) {
         debugPrint('[PushNotificationsCoordinator] VAPID fetch failed: $e');
       }
+    }
+    pushService.setPendingVapid(vapid);
+    final String? userId = ref.read(currentUserIdProvider);
+    if (userId != null && vapid != null && vapid.isNotEmpty) {
+      await ref
+          .read(fluxerDatabaseProvider)
+          .mobilePushRegistrationDao
+          .saveVapidForUser(userId: userId, vapidPublicKey: vapid);
     }
     await pushService.initializeWithOptions(vapid: vapid);
     if (pushService.needsDistributorPicker) {

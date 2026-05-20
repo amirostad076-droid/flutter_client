@@ -18,6 +18,7 @@ final class FluxerUnifiedPushFunctions extends UnifiedPushFunctions {
 
   @override
   Future<void> registerApp(String instance) async {
+    await UnifiedPushService.instance.loadCachedVapidPublicKey();
     await UnifiedPushService.instance.registerWithSavedDistributor();
   }
 

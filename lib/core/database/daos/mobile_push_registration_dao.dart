@@ -38,4 +38,45 @@ class MobilePushRegistrationDao extends DatabaseAccessor<FluxerDatabase>
         mobilePushRegistrations,
       )..where((t) => t.userId.equals(userId)))
           .go();
+
+  /// Last known VAPID key from any logged-in user (for the UP background isolate).
+  Future<void> saveVapidForUser({
+    required String userId,
+    required String vapidPublicKey,
+  }) async {
+    final MobilePushRegistration? existing = await getForUser(userId);
+    if (existing != null) {
+      await (update(mobilePushRegistrations)
+            ..where((t) => t.userId.equals(userId)))
+          .write(
+        MobilePushRegistrationsCompanion(
+          vapidPublicKey: Value(vapidPublicKey),
+        ),
+      );
+      return;
+    }
+    await into(mobilePushRegistrations).insert(
+      MobilePushRegistrationsCompanion.insert(
+        userId: userId,
+        pushSubscriptionId: '',
+        endpointUrl: '',
+        encryptionKey: '',
+        authSecret: '',
+        vapidPublicKey: Value(vapidPublicKey),
+      ),
+    );
+  }
+
+  Future<String?> getCachedVapidPublicKey() async {
+    final MobilePushRegistration? row = await (select(
+          mobilePushRegistrations,
+        )..where((t) => t.vapidPublicKey.isNotNull())
+          ..limit(1))
+        .getSingleOrNull();
+    final String? key = row?.vapidPublicKey;
+    if (key == null || key.isEmpty) {
+      return null;
+    }
+    return key;
+  }
 }

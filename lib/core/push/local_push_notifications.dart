@@ -80,6 +80,7 @@ final class LocalPushNotifications {
       _channelId,
       _channelName,
       description: _channelDescription,
+      importance: Importance.high,
     );
     await android.createNotificationChannel(channel);
   }
@@ -104,8 +105,19 @@ final class LocalPushNotifications {
   }
 
   Future<void> showPushMessage(PushMessage message) async {
-    if (kIsWeb || !_initialized) {
+    if (kIsWeb) {
       return;
+    }
+    if (!_initialized) {
+      final bool ready = await ensureInitialized();
+      if (!ready) {
+        if (kDebugMode) {
+          debugPrint(
+            '[LocalPushNotifications] show skipped: not initialized',
+          );
+        }
+        return;
+      }
     }
     final String title = message.title ?? _channelName;
     final String body = (message.body != null && message.body!.isNotEmpty)
@@ -140,6 +152,8 @@ final class LocalPushNotifications {
             importance: Importance.high,
             priority: Priority.high,
             icon: _androidNotificationIcon,
+            playSound: true,
+            enableVibration: true,
           ),
         );
       case TargetPlatform.iOS:

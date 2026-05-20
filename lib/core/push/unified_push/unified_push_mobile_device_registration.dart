@@ -96,6 +96,7 @@ class UnifiedPushMobileDeviceRegistration
         await _loadPersistedForUser(userId);
     final bool hasPersistedSubscription =
         persisted?.pushSubscriptionId.isNotEmpty ?? false;
+    await UnifiedPushService.instance.loadCachedVapidPublicKey();
     await UnifiedPushService.instance.syncRegistration(
       hasPersistedSubscription: hasPersistedSubscription,
     );
@@ -241,6 +242,9 @@ class UnifiedPushMobileDeviceRegistration
             authSecret: auth,
             vapidPublicKey: vapid,
           );
+      if (vapid != null && vapid.isNotEmpty) {
+        UnifiedPushService.instance.setPendingVapid(vapid);
+      }
       if (kDebugMode) {
         debugPrint(
           '[UnifiedPushMobileDeviceRegistration] registered device '
