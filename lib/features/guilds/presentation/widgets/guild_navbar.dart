@@ -1093,7 +1093,10 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
               Positioned(
                 bottom: -4,
                 right: -4,
-                child: FluxerBadge.count(count: totalMentions),
+                child: FluxerBadge.count(
+                  count: totalMentions,
+                  cutoutColor: context.colors.backgroundSecondary,
+                ),
               ),
             if (!isExpanded && folderVoiceActivity != VoiceActivityType.none)
               Positioned(
@@ -2308,7 +2311,10 @@ class _GuildListItemState extends State<_GuildListItem>
                 Positioned(
                   bottom: -4,
                   right: -4,
-                  child: FluxerBadge.count(count: widget.mentionCount),
+                  child: FluxerBadge.count(
+                    count: widget.mentionCount,
+                    cutoutColor: context.colors.backgroundSecondary,
+                  ),
                 ),
               if (!widget.isUnavailable &&
                   widget.voiceActivity != VoiceActivityType.none)

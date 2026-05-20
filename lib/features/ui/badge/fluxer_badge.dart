@@ -4,23 +4,37 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerBadge extends StatelessWidget {
-  const FluxerBadge.count({required this.count, this.size = 16, super.key})
-    : text = null,
-      isDot = false;
+  const FluxerBadge.count({
+    required this.count,
+    this.cutoutColor,
+    super.key,
+  }) : text = null,
+       size = 20,
+       isDot = false;
 
   const FluxerBadge.dot({this.size = 8, super.key})
     : count = null,
       text = null,
+      cutoutColor = null,
       isDot = true;
 
-  const FluxerBadge.label({required this.text, this.size = 16, super.key})
-    : count = null,
-      isDot = false;
+  const FluxerBadge.label({
+    required this.text,
+    this.cutoutColor,
+    super.key,
+  }) : count = null,
+       size = 20,
+       isDot = false;
 
   final int? count;
   final String? text;
   final double size;
   final bool isDot;
+
+  /// Renders a hard 3px ring outside the badge in this color, creating a
+  /// "cutout" notch when the badge is overlaid on an avatar or icon. Set to
+  /// the surface color the badge sits on (e.g. the sidebar background).
+  final Color? cutoutColor;
 
   @override
   Widget build(BuildContext context) {
@@ -41,11 +55,17 @@ class FluxerBadge extends StatelessWidget {
   Widget _buildPill(BuildContext context) {
     final label = text ?? _formattedCount;
     return Container(
-      constraints: BoxConstraints(minWidth: size, minHeight: size),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      height: 20,
+      constraints: const BoxConstraints(minWidth: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       decoration: BoxDecoration(
         color: context.colors.statusDanger,
-        borderRadius: BorderRadius.circular(size / 2),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: context.colors.backgroundSecondary,
+          width: 3,
+          strokeAlign: BorderSide.strokeAlignOutside,
+        ),
       ),
       child: Center(
         child: Text(
@@ -53,7 +73,8 @@ class FluxerBadge extends StatelessWidget {
           style: TextStyle(
             color: context.colors.textOnBrandPrimary,
             fontSize: 11,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
+            height: 1,
           ),
         ),
       ),
