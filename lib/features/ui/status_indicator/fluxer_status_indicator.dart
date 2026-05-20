@@ -6,7 +6,7 @@ import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 class FluxerStatusIndicator extends StatelessWidget {
   const FluxerStatusIndicator({
     required this.status,
-    this.size = 12,
+    this.size = 15,
     this.borderColor,
     super.key,
   });
@@ -18,8 +18,8 @@ class FluxerStatusIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final border = borderColor ?? colors.backgroundPrimary;
-    final borderWidth = size * 0.15;
+    final border = borderColor ?? colors.backgroundSecondary;
+    final borderWidth = size * 0.05;
 
     return SizedBox(
       width: size,
@@ -36,7 +36,7 @@ class FluxerStatusIndicator extends StatelessWidget {
   }
 
   Widget? _buildInner(BuildContext context) {
-    final cutoutColor = borderColor ?? context.colors.backgroundPrimary;
+    final cutoutColor = borderColor ?? context.colors.backgroundSecondary;
 
     if (status == 'dnd') {
       final barHeight = size * 0.2;
