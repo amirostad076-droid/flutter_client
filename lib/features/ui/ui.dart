@@ -30,6 +30,7 @@ export 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 // Lists
 export 'package:fluxer_app/features/ui/list/fluxer_list_row.dart';
 export 'package:fluxer_app/features/ui/list/fluxer_list_section.dart';
+export 'package:fluxer_app/features/ui/list/fluxer_unread_bar.dart';
 export 'package:fluxer_app/features/ui/media_viewer/attachment_media_viewer.dart';
 export 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
 export 'package:fluxer_app/features/ui/plutonium_upsell/fluxer_plutonium_upsell.dart';
