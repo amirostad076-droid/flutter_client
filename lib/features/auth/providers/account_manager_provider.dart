@@ -1,9 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' hide AuthSession;
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
+import 'package:fluxer_app/core/push/services/unified_push_service.dart';
+import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
@@ -96,6 +100,12 @@ class AccountManager extends _$AccountManager {
         ),
       );
 
+      if (PushProviderGuard.isApple) {
+        await ref
+            .read(apnsMobileDeviceRegistrationProvider.notifier)
+            .unregisterCurrentToken();
+      }
+
       // Trigger full app restart with new session.
       ref.invalidate(appStartupProvider);
 
@@ -136,6 +146,17 @@ class AccountManager extends _$AccountManager {
   Future<void> signOut(String userId) async {
     final repo = ref.read(authRepositoryProvider);
 
+    if (PushProviderGuard.isApple) {
+      await ref
+          .read(apnsMobileDeviceRegistrationProvider.notifier)
+          .unregisterCurrentToken();
+    }
+    if (PushProviderGuard.isUnifiedPush) {
+      await ref
+          .read(unifiedPushMobileDeviceRegistrationProvider.notifier)
+          .unregisterCurrentEndpoint();
+      await UnifiedPushService.instance.unregisterFromDistributor();
+    }
     await repo.logout(userId);
     await loadAccounts();
 

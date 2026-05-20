@@ -10,7 +10,10 @@ class ShellPopupRouteObserver extends NavigatorObserver {
   final ShellPopupOverlayChanged _onOverlayChanged;
 
   void reconcile() {
-    _onOverlayChanged(hasOverlay: shellNavigatorsHavePopupOverlay());
+    final bool hasOverlay =
+        navigatorShowsPopupOverlay(navigator) ||
+        shellNavigatorsHavePopupOverlay();
+    _onOverlayChanged(hasOverlay: hasOverlay);
   }
 
   @override

@@ -7,13 +7,18 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
 
   private static let methodChannelName = "fluxer_app/apple_push"
   private static let eventChannelName = "fluxer_app/apple_push/messages"
+  private static let tapEventChannelName = "fluxer_app/apple_push/taps"
 
   private var deviceTokenHex: String?
   private var eventSink: FlutterEventSink?
+  fileprivate var tapEventSink: FlutterEventSink?
+  fileprivate var pendingTapPayload: [String: String]?
   private var isRegisteredWithEngine = false
+  private let tapStreamHandler = ApplePushTapStreamHandler()
 
   private override init() {
     super.init()
+    tapStreamHandler.bridge = self
   }
 
   func configureNotificationCenterDelegate() {
@@ -38,6 +43,11 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
       binaryMessenger: messenger
     )
     eventChannel.setStreamHandler(self)
+    let tapEventChannel = FlutterEventChannel(
+      name: Self.tapEventChannelName,
+      binaryMessenger: messenger
+    )
+    tapEventChannel.setStreamHandler(tapStreamHandler)
   }
 
   func setDeviceToken(_ deviceToken: Data) {
@@ -58,6 +68,17 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
       DispatchQueue.main.async {
         self.deviceTokenHex = nil
       }
+    }
+  }
+
+  func emitNotificationTap(userInfo: [AnyHashable: Any]) {
+    let payload = Self.flattenUserInfo(userInfo)
+    DispatchQueue.main.async {
+      guard let sink = self.tapEventSink else {
+        self.pendingTapPayload = payload
+        return
+      }
+      sink(payload)
     }
   }
 
@@ -94,12 +115,33 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     }
   }
 
+  private static func requestAuthorizationIfNeeded(completion: @escaping () -> Void) {
+    UNUserNotificationCenter.current().getNotificationSettings { settings in
+      switch settings.authorizationStatus {
+      case .notDetermined:
+        UNUserNotificationCenter.current().requestAuthorization(
+          options: [.alert, .badge, .sound]
+        ) { _, _ in
+          DispatchQueue.main.async {
+            completion()
+          }
+        }
+      default:
+        DispatchQueue.main.async {
+          completion()
+        }
+      }
+    }
+  }
+
   private func handleMethodCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "registerRemoteNotifications":
       DispatchQueue.main.async {
-        UIApplication.shared.registerForRemoteNotifications()
-        result(nil)
+        Self.requestAuthorizationIfNeeded {
+          UIApplication.shared.registerForRemoteNotifications()
+          result(nil)
+        }
       }
     case "getDeviceToken":
       DispatchQueue.main.async {
@@ -162,5 +204,35 @@ extension ApplePushBridge: UNUserNotificationCenterDelegate {
     let userInfo = notification.request.content.userInfo
     emitPushMessage(userInfo: userInfo, messageId: notification.request.identifier)
     completionHandler([.banner, .badge, .sound])
+  }
+
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    let userInfo = response.notification.request.content.userInfo
+    emitNotificationTap(userInfo: userInfo)
+    completionHandler()
+  }
+}
+
+private final class ApplePushTapStreamHandler: NSObject, FlutterStreamHandler {
+  weak var bridge: ApplePushBridge?
+
+  func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
+    -> FlutterError?
+  {
+    bridge?.tapEventSink = events
+    if let pending = bridge?.pendingTapPayload {
+      events(pending)
+      bridge?.pendingTapPayload = nil
+    }
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    bridge?.tapEventSink = nil
+    return nil
   }
 }

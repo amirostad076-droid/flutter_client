@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
 import 'package:fluxer_app/core/push/push_notification_ids.dart';
+import 'package:fluxer_app/core/push/push_notification_permission.dart';
 
 final class LocalPushNotifications {
   factory LocalPushNotifications() => _instance;
@@ -13,12 +14,20 @@ final class LocalPushNotifications {
   static const String _channelId = 'fluxer_default_push';
   static const String _channelName = 'Fluxer';
   static const String _channelDescription = 'Messages and alerts';
+  static const String _androidNotificationIcon =
+      '@drawable/fluxer_logo_monochrome';
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  void Function(String? payloadJson)? _onNotificationTap;
 
-  Future<bool> ensureInitialized() async {
+  Future<bool> ensureInitialized({
+    void Function(String? payloadJson)? onNotificationTap,
+  }) async {
+    if (onNotificationTap != null) {
+      _onNotificationTap = onNotificationTap;
+    }
     if (kIsWeb) {
       return true;
     }
@@ -33,7 +42,7 @@ final class LocalPushNotifications {
       );
       final InitializationSettings settings = InitializationSettings(
         android: defaultTargetPlatform == TargetPlatform.android
-            ? const AndroidInitializationSettings('@mipmap/ic_launcher')
+            ? const AndroidInitializationSettings(_androidNotificationIcon)
             : null,
         iOS: defaultTargetPlatform == TargetPlatform.iOS ? darwin : null,
         macOS: defaultTargetPlatform == TargetPlatform.macOS ? darwin : null,
@@ -41,8 +50,14 @@ final class LocalPushNotifications {
             ? const LinuxInitializationSettings(defaultActionName: 'Open')
             : null,
       );
-      final bool? ok = await _plugin.initialize(settings: settings);
+      final bool? ok = await _plugin.initialize(
+        settings: settings,
+        onDidReceiveNotificationResponse: _onNotificationResponse,
+      );
       _initialized = ok ?? false;
+      if (_initialized) {
+        await _handleLaunchNotification();
+      }
       if (defaultTargetPlatform == TargetPlatform.android) {
         await _ensureAndroidChannel();
       }
@@ -70,43 +85,22 @@ final class LocalPushNotifications {
   }
 
   Future<void> requestDisplayPermission() async {
-    if (kIsWeb) {
+    await requestPushNotificationPermission();
+  }
+
+  void _onNotificationResponse(NotificationResponse response) {
+    _onNotificationTap?.call(response.payload);
+  }
+
+  Future<void> _handleLaunchNotification() async {
+    final NotificationAppLaunchDetails? details =
+        await _plugin.getNotificationAppLaunchDetails();
+    if (details == null ||
+        !details.didNotificationLaunchApp ||
+        details.notificationResponse == null) {
       return;
     }
-    await ensureInitialized();
-    if (!_initialized) {
-      return;
-    }
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      final AndroidFlutterLocalNotificationsPlugin? android = _plugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
-      if (android == null) {
-        return;
-      }
-      final bool? enabled = await android.areNotificationsEnabled();
-      if (enabled ?? false) {
-        return;
-      }
-      await android.requestNotificationsPermission();
-      return;
-    }
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final IOSFlutterLocalNotificationsPlugin? ios = _plugin
-          .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin
-          >();
-      await ios?.requestPermissions(alert: true, badge: true, sound: true);
-      return;
-    }
-    if (defaultTargetPlatform == TargetPlatform.macOS) {
-      final MacOSFlutterLocalNotificationsPlugin? mac = _plugin
-          .resolvePlatformSpecificImplementation<
-            MacOSFlutterLocalNotificationsPlugin
-          >();
-      await mac?.requestPermissions(alert: true, badge: true, sound: true);
-    }
+    _onNotificationTap?.call(details.notificationResponse!.payload);
   }
 
   Future<void> showPushMessage(PushMessage message) async {
@@ -140,7 +134,7 @@ final class LocalPushNotifications {
             channelDescription: _channelDescription,
             importance: Importance.high,
             priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
+            icon: _androidNotificationIcon,
           ),
         );
       case TargetPlatform.iOS:

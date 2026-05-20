@@ -1,11 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/providers/push_provider.dart';
+import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
+import 'package:fluxer_app/core/push/apns/apple_push_notification_tap_binding.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
-import 'package:fluxer_app/core/router/route_names.dart';
-import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/core/push/push_notification_permission.dart';
+import 'package:fluxer_app/core/push/push_notification_tap_handler.dart';
+import 'package:fluxer_app/core/push/push_service.dart';
+import 'package:fluxer_app/core/push/services/unified_push_service.dart';
+import 'package:fluxer_app/core/push/unified_push/unified_push_distributor_setup.dart';
+import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'push_notifications_coordinator.g.dart';
@@ -14,14 +23,17 @@ part 'push_notifications_coordinator.g.dart';
 class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
   StreamSubscription<PushMessage>? _messageSubscription;
   final LocalPushNotifications _localPush = LocalPushNotifications();
-  bool _homeBootstrapScheduled = false;
+  bool _bootstrapScheduled = false;
 
   @override
   bool build() {
-    ref.listen(routeStateProvider, (RouteState? previous, RouteState next) {
-      _maybeBootstrap(next.location);
-    });
-    _maybeBootstrap(ref.read(routeStateProvider).location);
+    ref.read(applePushNotificationTapBindingProvider);
+    if (!_bootstrapScheduled) {
+      _bootstrapScheduled = true;
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        unawaited(_runBootstrap());
+      });
+    }
     ref.onDispose(() {
       unawaited(_messageSubscription?.cancel());
       _messageSubscription = null;
@@ -29,27 +41,42 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
     return false;
   }
 
-  void _maybeBootstrap(String location) {
-    if (_homeBootstrapScheduled) {
-      return;
-    }
-    if (location != RoutePaths.me) {
-      return;
-    }
-    _homeBootstrapScheduled = true;
-    unawaited(_runBootstrap());
-  }
-
   Future<void> _runBootstrap() async {
     if (kIsWeb) {
       return;
     }
     try {
-      await _localPush.ensureInitialized();
-      await _localPush.requestDisplayPermission();
-      final pushService = ref.read(pushServiceProvider);
-      await pushService.requestPermissions();
-      await pushService.initialize();
+      final bool granted = await requestPushNotificationPermission();
+      if (kDebugMode) {
+        debugPrint(
+          '[PushNotificationsCoordinator] notification permission: $granted',
+        );
+      }
+      await _localPush.ensureInitialized(
+        onNotificationTap: ref
+            .read(pushNotificationTapHandlerProvider.notifier)
+            .handlePayloadJson,
+      );
+      final PushService pushService = ref.read(pushServiceProvider);
+      if (PushProviderGuard.isUnifiedPush) {
+        final UnifiedPushService unifiedPush =
+            pushService as UnifiedPushService;
+        await _initializeUnifiedPush(unifiedPush);
+      } else {
+        await pushService.initialize();
+      }
+      if (PushProviderGuard.isApple) {
+        unawaited(
+          ref.read(apnsMobileDeviceRegistrationProvider.notifier).sync(),
+        );
+      }
+      if (PushProviderGuard.isUnifiedPush) {
+        unawaited(
+          ref
+              .read(unifiedPushMobileDeviceRegistrationProvider.notifier)
+              .syncFromCurrentEndpoint(),
+        );
+      }
       await _messageSubscription?.cancel();
       _messageSubscription = pushService.watchMessages().listen(
         _localPush.showPushMessage,
@@ -63,6 +90,30 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
       if (kDebugMode) {
         debugPrint('[PushNotificationsCoordinator] bootstrap failed: $e\n$st');
       }
+    }
+  }
+
+  Future<void> _initializeUnifiedPush(UnifiedPushService pushService) async {
+    String? vapid;
+    try {
+      final wellKnown =
+          await ref.read(fluxerClientProvider).instance.getWellKnownFluxer();
+      vapid = wellKnown.push.publicVapidKey;
+    } on Object catch (e) {
+      if (kDebugMode) {
+        debugPrint('[PushNotificationsCoordinator] VAPID fetch failed: $e');
+      }
+    }
+    await pushService.initializeWithOptions(vapid: vapid);
+    if (pushService.needsDistributorPicker) {
+      ref.read(unifiedPushDistributorSetupProvider.notifier).requestPicker();
+    } else {
+      final bool hasPersisted = await ref
+          .read(unifiedPushMobileDeviceRegistrationProvider.notifier)
+          .hasPersistedSubscriptionForCurrentUser();
+      await pushService.syncRegistration(
+        hasPersistedSubscription: hasPersisted,
+      );
     }
   }
 }

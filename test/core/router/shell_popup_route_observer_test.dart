@@ -1,52 +1,80 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/router/shell_navigator_keys.dart';
 import 'package:fluxer_app/core/router/shell_popup_route_observer.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('ShellPopupRouteObserver', () {
-    test('tracks popup routes across push and pop', () {
+    testWidgets('tracks popup routes across push and pop', (tester) async {
       final List<bool> states = <bool>[];
       final ShellPopupRouteObserver observer = ShellPopupRouteObserver(
         ({required bool hasOverlay}) => states.add(hasOverlay),
       );
-      final Route<void> pageRoute = _FakePageRoute<void>();
-      final Route<void> popupRoute = _FakePopupRoute<void>();
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: homeBranchNavigatorKey,
+          navigatorObservers: <NavigatorObserver>[observer],
+          home: const SizedBox.shrink(),
+        ),
+      );
 
-      observer.didPush(pageRoute, null);
-      expect(states, isEmpty);
+      homeBranchNavigatorKey.currentState!.push(_FakePopupRoute<void>());
+      await tester.pumpAndSettle();
+      expect(states, contains(true));
 
-      observer.didPush(popupRoute, pageRoute);
-      expect(states, <bool>[true]);
-
-      observer.didPop(popupRoute, pageRoute);
-      expect(states, <bool>[true, false]);
+      homeBranchNavigatorKey.currentState!.pop();
+      await tester.pumpAndSettle();
+      expect(states.last, isFalse);
     });
 
-    test('remove decrements popup tracking', () {
+    testWidgets('remove decrements popup tracking', (tester) async {
       final List<bool> states = <bool>[];
       final ShellPopupRouteObserver observer = ShellPopupRouteObserver(
         ({required bool hasOverlay}) => states.add(hasOverlay),
       );
-      final Route<void> popupRoute = _FakePopupRoute<void>();
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: homeBranchNavigatorKey,
+          navigatorObservers: <NavigatorObserver>[observer],
+          home: const SizedBox.shrink(),
+        ),
+      );
 
-      observer.didPush(popupRoute, null);
-      observer.didRemove(popupRoute, null);
-      expect(states, <bool>[true, false]);
+      final Route<void> popupRoute = _FakePopupRoute<void>();
+      homeBranchNavigatorKey.currentState!.push(popupRoute);
+      await tester.pumpAndSettle();
+      expect(states, contains(true));
+
+      homeBranchNavigatorKey.currentState!.removeRoute(popupRoute);
+      await tester.pumpAndSettle();
+      expect(states.last, isFalse);
     });
 
-    test('replace swaps popup tracking', () {
+    testWidgets('replace keeps popup tracking when swapping popups', (
+      tester,
+    ) async {
       final List<bool> states = <bool>[];
       final ShellPopupRouteObserver observer = ShellPopupRouteObserver(
         ({required bool hasOverlay}) => states.add(hasOverlay),
       );
-      final Route<void> oldPopup = _FakePopupRoute<void>();
-      final Route<void> newPopup = _FakePopupRoute<void>();
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: homeBranchNavigatorKey,
+          navigatorObservers: <NavigatorObserver>[observer],
+          home: const SizedBox.shrink(),
+        ),
+      );
 
-      observer.didPush(oldPopup, null);
-      expect(states, <bool>[true]);
+      final NavigatorState navigator = homeBranchNavigatorKey.currentState!;
+      navigator.push(_FakePopupRoute<void>());
+      await tester.pumpAndSettle();
+      expect(states, contains(true));
 
-      observer.didReplace(newRoute: newPopup, oldRoute: oldPopup);
-      expect(states, <bool>[true, false, true]);
+      navigator.pushReplacement(_FakePopupRoute<void>());
+      await tester.pumpAndSettle();
+      expect(states.last, isTrue);
     });
   });
 }

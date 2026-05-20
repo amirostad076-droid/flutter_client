@@ -108,6 +108,16 @@ class DeepLinkHandler extends _$DeepLinkHandler {
     }
   }
 
+  /// Routes an in-app path (e.g. from a push notification tap).
+  void handlePath(String path) {
+    if (path.isEmpty || !path.startsWith('/')) {
+      return;
+    }
+    final Uri uri = Uri(path: path);
+    talker.info('[DeepLink] Push path: $path');
+    _handleDeepLink(uri);
+  }
+
   void _processDeepLink(Uri uri) {
     final router = ref.read(fluxerRouterProvider);
     final segments = uri.pathSegments;
@@ -131,6 +141,13 @@ class DeepLinkHandler extends _$DeepLinkHandler {
   }
 
   void _handleChannelDeepLink(GoRouter router, List<String> segments) {
+    if (segments.length >= 4 && segments[1] == '@me') {
+      navigateToContentVia(
+        ref,
+        RoutePaths.dmChannelMessage(segments[2], segments[3]),
+      );
+      return;
+    }
     if (segments.length >= 3 && segments[1] == '@me') {
       navigateToContentVia(ref, RoutePaths.dmChannel(segments[2]));
       return;

@@ -3,6 +3,7 @@ import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/router/channel_persistence_observer.dart';
+import 'package:fluxer_app/core/router/shell_navigator_keys.dart';
 import 'package:fluxer_app/core/router/shell_popup_route_observer.dart';
 import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
@@ -22,6 +23,8 @@ import 'package:fluxer_app/features/voice/presentation/dm_voice_call_fullscreen_
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+export 'package:fluxer_app/core/router/shell_navigator_keys.dart';
 
 part 'fluxer_router.g.dart';
 
@@ -115,13 +118,6 @@ class ServerReachable extends _$ServerReachable {
   }
 }
 
-final rootNavigatorKey = GlobalKey<NavigatorState>();
-final homeBranchNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
-final notificationsBranchNavigatorKey = GlobalKey<NavigatorState>(
-  debugLabel: 'notifications',
-);
-final youBranchNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'you');
-
 class _RouterRefreshNotifier extends ChangeNotifier {
   void notify() => notifyListeners();
 }
@@ -137,13 +133,21 @@ GoRouter fluxerRouter(Ref ref) {
     ..listen(gatewayReadyProvider, (_, _) => refreshNotifier.notify())
     ..listen(appStartupProvider, (_, _) => refreshNotifier.notify());
 
-  final shellPopupRouteObserver = ShellPopupRouteObserver(
-    ({required bool hasOverlay}) {
-      ref
-          .read(shellHasPopupOverlayProvider.notifier)
-          .setHasOverlay(value: hasOverlay);
-    },
-  );
+  void setShellPopupOverlay({required bool hasOverlay}) {
+    ref
+        .read(shellHasPopupOverlayProvider.notifier)
+        .setHasOverlay(value: hasOverlay);
+  }
+
+  ShellPopupRouteObserver createShellPopupRouteObserver() {
+    return ShellPopupRouteObserver(setShellPopupOverlay);
+  }
+
+  final rootShellPopupRouteObserver = createShellPopupRouteObserver();
+  final homeShellPopupRouteObserver = createShellPopupRouteObserver();
+  final notificationsShellPopupRouteObserver =
+      createShellPopupRouteObserver();
+  final youShellPopupRouteObserver = createShellPopupRouteObserver();
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -151,7 +155,7 @@ GoRouter fluxerRouter(Ref ref) {
     refreshListenable: refreshNotifier,
     observers: [
       ChannelPersistenceObserver(db),
-      shellPopupRouteObserver,
+      rootShellPopupRouteObserver,
     ],
     redirect: (context, state) {
       final location = state.matchedLocation;
@@ -253,7 +257,7 @@ GoRouter fluxerRouter(Ref ref) {
           // Branch 0: Home
           StatefulShellBranch(
             navigatorKey: homeBranchNavigatorKey,
-            observers: [shellPopupRouteObserver],
+            observers: [homeShellPopupRouteObserver],
             routes: [
               // /channels/@me
               GoRoute(
@@ -435,7 +439,7 @@ GoRouter fluxerRouter(Ref ref) {
           // Branch 1: Notifications
           StatefulShellBranch(
             navigatorKey: notificationsBranchNavigatorKey,
-            observers: [shellPopupRouteObserver],
+            observers: [notificationsShellPopupRouteObserver],
             routes: [
               GoRoute(
                 path: '/notifications',
@@ -451,7 +455,7 @@ GoRouter fluxerRouter(Ref ref) {
           // Branch 2: You
           StatefulShellBranch(
             navigatorKey: youBranchNavigatorKey,
-            observers: [shellPopupRouteObserver],
+            observers: [youShellPopupRouteObserver],
             routes: [
               GoRoute(
                 path: '/you',

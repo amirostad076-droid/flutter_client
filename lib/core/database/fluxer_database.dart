@@ -16,6 +16,7 @@ import 'package:fluxer_app/core/database/daos/guild_emoji_dao.dart';
 import 'package:fluxer_app/core/database/daos/guild_last_channel_dao.dart';
 import 'package:fluxer_app/core/database/daos/guild_sticker_dao.dart';
 import 'package:fluxer_app/core/database/daos/member_dao.dart';
+import 'package:fluxer_app/core/database/daos/mobile_push_registration_dao.dart';
 import 'package:fluxer_app/core/database/daos/message_dao.dart';
 import 'package:fluxer_app/core/database/daos/notification_dao.dart';
 import 'package:fluxer_app/core/database/daos/pinned_dms_dao.dart';
@@ -42,6 +43,7 @@ import 'package:fluxer_app/core/database/tables/guild_emojis.dart';
 import 'package:fluxer_app/core/database/tables/guild_last_channels.dart';
 import 'package:fluxer_app/core/database/tables/guild_stickers.dart';
 import 'package:fluxer_app/core/database/tables/members.dart';
+import 'package:fluxer_app/core/database/tables/mobile_push_registrations.dart';
 import 'package:fluxer_app/core/database/tables/messages.dart';
 import 'package:fluxer_app/core/database/tables/notification_mention_feed.dart';
 import 'package:fluxer_app/core/database/tables/notification_mention_prefs.dart';
@@ -94,9 +96,11 @@ part 'fluxer_database.g.dart';
     FavoriteChannels,
     FavoriteCategories,
     FavoriteSettings,
+    MobilePushRegistrations,
   ],
   daos: [
     AuthSessionDao,
+    MobilePushRegistrationDao,
     UserDao,
     GuildDao,
     ChannelDao,
@@ -129,7 +133,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 44;
+  int get schemaVersion => 45;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -475,6 +479,9 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 44) {
         await m.addColumn(readStates, readStates.stickyUnreadMessageId);
+      }
+      if (from < 45) {
+        await m.createTable(mobilePushRegistrations);
       }
     },
   );

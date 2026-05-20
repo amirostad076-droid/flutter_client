@@ -7,7 +7,7 @@ final notificationsBranchNavigatorKey = GlobalKey<NavigatorState>(
 );
 final youBranchNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'you');
 
-const List<GlobalKey<NavigatorState>> shellBranchNavigatorKeys =
+final List<GlobalKey<NavigatorState>> shellBranchNavigatorKeys =
     <GlobalKey<NavigatorState>>[
       homeBranchNavigatorKey,
       notificationsBranchNavigatorKey,

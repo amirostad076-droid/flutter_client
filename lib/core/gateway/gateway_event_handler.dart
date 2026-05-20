@@ -1041,7 +1041,7 @@ class GatewayEventHandler {
     if (await database.relationshipDao.isBlocked(message.author.id)) {
       return false;
     }
-    if (message.mentions?.any((u) => u.id == userId) ?? false) {
+    if (message.mentions.any((u) => u.id == userId)) {
       return true;
     }
     final channel = await database.channelDao.getChannelById(message.channelId);
@@ -1060,8 +1060,7 @@ class GatewayEventHandler {
       return !(settings?.suppressEveryone ?? false);
     }
     final roleIds = message.mentionRoles;
-    if (roleIds == null ||
-        roleIds.isEmpty ||
+    if (roleIds.isEmpty ||
         (settings?.suppressRoles ?? false)) {
       return false;
     }

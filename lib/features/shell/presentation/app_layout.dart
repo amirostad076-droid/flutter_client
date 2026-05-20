@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/push/push_notifications_coordinator.dart';
+import 'package:fluxer_app/core/push/unified_push/unified_push_distributor_setup.dart';
+import 'package:fluxer_app/core/push/unified_push/unified_push_distributor_ui.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_kind.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -86,19 +89,34 @@ class _AppLayoutState extends ConsumerState<AppLayout>
 
   @override
   Widget build(BuildContext context) {
-    ref
-      ..watch(pushNotificationsCoordinatorProvider)
-      ..listen(activeGuildIdProvider, (previous, next) {
-        if (next != null) {
-          final guilds = ref.read(guildListViewModelProvider).guilds;
-          final guild = guilds.where((g) => g.id == next).firstOrNull;
-          ref
-              .read(channelListViewModelProvider.notifier)
-              .loadChannels(next, guild: guild);
-          ref.read(memberListViewModelProvider.notifier).loadMembers(next);
-          ref.read(guildSyncProvider.notifier).syncIfNeeded(next);
+    ref.watch(pushNotificationsCoordinatorProvider);
+    if (PushProviderGuard.isUnifiedPush) {
+      ref.listen(unifiedPushDistributorSetupProvider, (
+        bool? previous,
+        bool next,
+      ) {
+        if (!next) {
+          return;
         }
+        final BuildContext? rootContext = rootNavigatorKey.currentContext;
+        if (rootContext == null || !rootContext.mounted) {
+          return;
+        }
+        ref.read(unifiedPushDistributorSetupProvider.notifier).clearRequest();
+        unawaited(showUnifiedPushDistributorSetup(rootContext));
       });
+    }
+    ref.listen(activeGuildIdProvider, (previous, next) {
+      if (next != null) {
+        final guilds = ref.read(guildListViewModelProvider).guilds;
+        final guild = guilds.where((g) => g.id == next).firstOrNull;
+        ref
+            .read(channelListViewModelProvider.notifier)
+            .loadChannels(next, guild: guild);
+        ref.read(memberListViewModelProvider.notifier).loadMembers(next);
+        ref.read(guildSyncProvider.notifier).syncIfNeeded(next);
+      }
+    });
 
     final isMobile = isMobileLayout(context);
 

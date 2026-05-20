@@ -19,10 +19,10 @@ PushService createPushService() {
     return const ApplePushService();
   }
   if (AppBuildConfig.pushProvider == PushProviderKind.unifiedPush) {
-    return const UnifiedPushService();
+    return UnifiedPushService.instance;
   }
   if (AppBuildConfig.pushProvider == PushProviderKind.firebaseMessaging) {
     return const FirebaseMessagingPushService();
   }
-  return const UnifiedPushService();
+  return UnifiedPushService.instance;
 }

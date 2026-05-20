@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_handler.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/providers/well_known_provider.dart';
+import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
+import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -109,6 +112,13 @@ class AppStartup extends _$AppStartup {
       ..read(fluxerMessageSfxBindingProvider);
 
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
+
+    if (PushProviderGuard.isApple) {
+      ref.read(apnsMobileDeviceRegistrationProvider);
+    }
+    if (PushProviderGuard.isUnifiedPush) {
+      ref.read(unifiedPushMobileDeviceRegistrationProvider);
+    }
 
     debugPrint(
       '[AppStartup] Session restored '

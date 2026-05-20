@@ -1,0 +1,67 @@
+import 'package:fluxer_app/core/router/route_kind.dart';
+import 'package:fluxer_app/core/router/route_names.dart';
+
+/// Resolves a push notification data payload to an in-app route path.
+String? resolvePushNotificationPath(Map<String, String> payload) {
+  final String? fromUrl = _pathFromUrl(payload['url']);
+  if (fromUrl != null) {
+    return fromUrl;
+  }
+  return _pathFromIds(payload);
+}
+
+String? _pathFromUrl(String? rawUrl) {
+  if (rawUrl == null || rawUrl.isEmpty) {
+    return null;
+  }
+  String path = rawUrl.trim();
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    final Uri? uri = Uri.tryParse(path);
+    if (uri == null) {
+      return null;
+    }
+    path = uri.path;
+  }
+  if (!path.startsWith('/')) {
+    path = '/$path';
+  }
+  if (!_isNavigableChannelPath(path)) {
+    return null;
+  }
+  return path;
+}
+
+String? _pathFromIds(Map<String, String> payload) {
+  final String? channelId = _nonEmpty(payload['channel_id']);
+  if (channelId == null) {
+    return null;
+  }
+  final String? messageId = _nonEmpty(payload['message_id']);
+  final String? guildId = _nonEmpty(payload['guild_id']);
+  final bool isDm = guildId == null || guildId == '@me';
+  if (isDm) {
+    if (messageId != null) {
+      return RoutePaths.dmChannelMessage(channelId, messageId);
+    }
+    return RoutePaths.dmChannel(channelId);
+  }
+  if (messageId != null) {
+    return RoutePaths.guildChannelMessage(guildId, channelId, messageId);
+  }
+  return RoutePaths.guildChannel(guildId, channelId);
+}
+
+bool _isNavigableChannelPath(String path) {
+  if (!path.startsWith('/channels/')) {
+    return false;
+  }
+  final RouteKind kind = classifyRoute(path);
+  return kind == RouteKind.chat || kind == RouteKind.dmCall;
+}
+
+String? _nonEmpty(String? value) {
+  if (value == null || value.isEmpty) {
+    return null;
+  }
+  return value;
+}

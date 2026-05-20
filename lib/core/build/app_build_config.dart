@@ -54,6 +54,19 @@ class AppBuildConfig {
   static bool get isCanary => environment == AppBuildEnvironment.canary;
   static bool get isBeta => environment == AppBuildEnvironment.beta;
   static bool get isStable => environment == AppBuildEnvironment.stable;
+
+  /// Value for `RegisterMobileDeviceRequest.appId` / mobile-devices API.
+  static String get mobilePushAppId {
+    switch (environment) {
+      case AppBuildEnvironment.canary:
+        return 'canary';
+      case AppBuildEnvironment.beta:
+        return 'beta';
+      case AppBuildEnvironment.stable:
+        return 'stable';
+    }
+  }
+
   static bool get isFirebaseMessagingEnabled =>
       pushProvider == PushProviderKind.firebaseMessaging;
   static bool get isBlueskyEnabled => _blueskyEnabled;
