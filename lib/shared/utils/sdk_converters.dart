@@ -74,16 +74,29 @@ db.RolesCompanion roleFromSdk(GuildRoleResponse sdk, String guildId) {
 }
 
 /// Converts SDK [UserPartialResponse] to a Drift companion.
+///
+/// Null source fields are written as [Value.absent] so a partial payload
+/// (e.g. the author embedded in `MESSAGE_CREATE`) cannot overwrite a
+/// previously-stored avatar/global name when upserted via
+/// `insertOnConflictUpdate`. Use the full `UserResponse` mapping in
+/// `USER_UPDATE` to intentionally clear fields.
 db.UsersCompanion userFromPartialSdk(UserPartialResponse sdk) {
+  final globalName = sdk.globalName;
+  final avatar = sdk.avatar;
+  final avatarColor = sdk.avatarColor;
+  final bot = sdk.bot;
+  final system = sdk.system;
   return db.UsersCompanion.insert(
     id: sdk.id,
     username: sdk.username,
     discriminator: Value(sdk.discriminator),
-    globalName: Value(sdk.globalName),
-    avatar: Value(sdk.avatar),
-    avatarColor: Value(sdk.avatarColor),
-    bot: Value(sdk.bot ?? false),
-    system: Value(sdk.system ?? false),
+    globalName: globalName == null ? const Value.absent() : Value(globalName),
+    avatar: avatar == null ? const Value.absent() : Value(avatar),
+    avatarColor: avatarColor == null
+        ? const Value.absent()
+        : Value(avatarColor),
+    bot: bot == null ? const Value.absent() : Value(bot),
+    system: system == null ? const Value.absent() : Value(system),
     memberSince: Value(dateTimeFromUserSnowflakeOrNull(sdk.id)),
   );
 }
