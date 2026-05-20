@@ -108,7 +108,9 @@ final class LocalPushNotifications {
       return;
     }
     final String title = message.title ?? _channelName;
-    final String body = message.body ?? '';
+    final String body = (message.body != null && message.body!.isNotEmpty)
+        ? message.body!
+        : 'New message';
     final int id = pushMessageNotificationId(message.id);
     final NotificationDetails details = _notificationDetailsForPlatform();
     try {
@@ -119,7 +121,10 @@ final class LocalPushNotifications {
         notificationDetails: details,
         payload: jsonEncode(message.payload),
       );
-    } on Object {
+    } on Object catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('[LocalPushNotifications] show failed: $e\n$st');
+      }
       return;
     }
   }

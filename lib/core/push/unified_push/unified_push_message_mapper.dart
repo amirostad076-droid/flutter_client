@@ -11,7 +11,7 @@ PushMessage mapUnifiedPushMessage(up.PushMessage message) {
     return PushMessage(
       id: id,
       title: kUnifiedPushDefaultTitle,
-      body: null,
+      body: 'New notification',
       payload: const <String, String>{},
     );
   }
@@ -56,7 +56,7 @@ PushMessage _mapJsonPayload(Map<String, Object?> json, String fallbackId) {
   return PushMessage(
     id: id,
     title: title ?? kUnifiedPushDefaultTitle,
-    body: body,
+    body: body ?? 'New message',
     payload: payload,
   );
 }

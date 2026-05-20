@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
@@ -45,6 +46,7 @@ class UnifiedPushService implements PushService {
       return;
     }
     _backgroundMode = true;
+    await requestPushNotificationPermission();
     await LocalPushNotifications().ensureInitialized();
     await instance._ensureUnifiedPushInitialized();
     await instance.syncRegistration();
@@ -220,10 +222,25 @@ class UnifiedPushService implements PushService {
     }
     final PushMessage mapped = mapUnifiedPushMessage(message);
     _messages.add(mapped);
-    if (!_backgroundMode) {
+    if (kDebugMode) {
+      debugPrint(
+        '[UnifiedPushService] onMessage decrypted=${message.decrypted} '
+        'title=${mapped.title} body=${mapped.body} '
+        'bg=$_backgroundMode showLocal=${_shouldShowLocalNotification()}',
+      );
+    }
+    if (!_shouldShowLocalNotification()) {
       return;
     }
     await LocalPushNotifications().ensureInitialized();
     await LocalPushNotifications().showPushMessage(mapped);
+  }
+
+  bool _shouldShowLocalNotification() {
+    if (_backgroundMode) {
+      return true;
+    }
+    final AppLifecycleState? state = WidgetsBinding.instance.lifecycleState;
+    return state != AppLifecycleState.resumed;
   }
 }

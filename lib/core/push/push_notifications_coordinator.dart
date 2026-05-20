@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
+import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/push_provider.dart';
 import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/apns/apple_push_notification_tap_binding.dart';
@@ -79,7 +80,14 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
       }
       await _messageSubscription?.cancel();
       _messageSubscription = pushService.watchMessages().listen(
-        _localPush.showPushMessage,
+        (PushMessage message) {
+          if (PushProviderGuard.isUnifiedPush) {
+            if (!ref.read(appUiForegroundProvider)) {
+              return;
+            }
+          }
+          unawaited(_localPush.showPushMessage(message));
+        },
         onError: (Object err, StackTrace st) {
           if (kDebugMode) {
             debugPrint('[PushNotificationsCoordinator] message stream: $err');
