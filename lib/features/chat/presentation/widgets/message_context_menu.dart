@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_bottom_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/quick_reaction_row.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -25,7 +25,7 @@ Future<MessageAction?> showMessageContextMenu(
 
   final local = overlay.globalToLocal(position);
 
-  final result = await Navigator.of(context).push<MessageAction>(
+  return Navigator.of(context).push<MessageAction>(
     _ContextMenuRoute(
       position: local,
       overlaySize: overlay.size,
@@ -36,28 +36,6 @@ Future<MessageAction?> showMessageContextMenu(
       quickEmojis: quickEmojis,
     ),
   );
-
-  switch (result) {
-    case MessageAction.copyText:
-      await Clipboard.setData(ClipboardData(text: message.content));
-    case MessageAction.copyMessageId:
-      await Clipboard.setData(ClipboardData(text: message.id));
-    case MessageAction.addReaction:
-    case MessageAction.retry:
-    case MessageAction.edit:
-    case MessageAction.reply:
-    case MessageAction.forward:
-    case MessageAction.pin:
-    case MessageAction.bookmark:
-    case MessageAction.markAsUnread:
-    case MessageAction.copyMessageLink:
-    case MessageAction.delete:
-    case MessageAction.deleteFailed:
-    case null:
-      break;
-  }
-
-  return result;
 }
 
 class _ContextMenuRoute extends PopupRoute<MessageAction> {
@@ -173,7 +151,7 @@ class _ContextMenuPage extends StatelessWidget {
     for (final item in items) {
       if (item is _MenuDivider) {
         height += 13; // 1px + 6px * 2
-      } else if (item is _QuickReactionRow) {
+      } else if (item is QuickReactionRow) {
         height += 40; // emoji row
       } else {
         height += 38; // 36px + 1px * 2 margin
@@ -187,8 +165,8 @@ class _ContextMenuPage extends StatelessWidget {
     void pop(MessageAction action) => Navigator.of(context).pop(action);
 
     return [
-      _QuickReactionRow(
-        emojis: quickEmojis ?? _QuickReactionRow.defaultEmojis,
+      QuickReactionRow(
+        emojis: quickEmojis ?? kQuickReactionDefaultEmojis,
         onReaction: (emoji) {
           onQuickReaction?.call(emoji);
           Navigator.of(context).pop();
@@ -390,89 +368,6 @@ class _MenuItemState extends State<_MenuItem> {
                 color: activeColor,
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickReactionRow extends StatelessWidget {
-  final ValueChanged<String> onReaction;
-  final List<String> emojis;
-
-  static const defaultEmojis = [
-    '\u{1F44D}', // thumbsup
-    '\u{1F44C}', // ok_hand
-    '\u{1F389}', // tada
-    '\u{2764}\u{FE0F}', // heart
-  ];
-
-  const _QuickReactionRow({
-    required this.onReaction,
-    this.emojis = defaultEmojis,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final layout = context.layout;
-    return Padding(
-      padding: EdgeInsets.only(
-        left: layout.s1_5,
-        right: layout.s1_5,
-        top: layout.s1,
-        bottom: layout.s1_5,
-      ),
-      child: Row(
-        spacing: layout.s1,
-        children: emojis
-            .map(
-              (emoji) => Expanded(
-                child: _QuickReactionButton(
-                  emoji: emoji,
-                  onTap: () => onReaction(emoji),
-                ),
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
-}
-
-class _QuickReactionButton extends StatefulWidget {
-  final String emoji;
-  final VoidCallback onTap;
-
-  const _QuickReactionButton({required this.emoji, required this.onTap});
-
-  @override
-  State<_QuickReactionButton> createState() => _QuickReactionButtonState();
-}
-
-class _QuickReactionButtonState extends State<_QuickReactionButton> {
-  var _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: _isHovered
-                  ? context.colors.backgroundModifierSelected
-                  : context.colors.backgroundModifierHover,
-              borderRadius: context.layout.radiusLg,
-            ),
-            child: Center(
-              child: Text(widget.emoji, style: const TextStyle(fontSize: 24)),
-            ),
           ),
         ),
       ),
