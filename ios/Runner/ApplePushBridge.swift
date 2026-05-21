@@ -8,21 +8,21 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
   private static let methodChannelName = "fluxer_app/apple_push"
   private static let eventChannelName = "fluxer_app/apple_push/messages"
   private static let tapEventChannelName = "fluxer_app/apple_push/taps"
+  private static let defaultNotificationTitle = "Fluxer"
+  private static let defaultNotificationBody = "New message"
+  private static let maxPendingPushEvents = 32
 
   private var deviceTokenHex: String?
   private var eventSink: FlutterEventSink?
   fileprivate var tapEventSink: FlutterEventSink?
   fileprivate var pendingTapPayload: [String: String]?
+  private var pendingPushEvents: [[String: Any]] = []
   private var isRegisteredWithEngine = false
   private let tapStreamHandler = ApplePushTapStreamHandler()
 
   private override init() {
     super.init()
     tapStreamHandler.bridge = self
-  }
-
-  func configureNotificationCenterDelegate() {
-    UNUserNotificationCenter.current().delegate = self
   }
 
   func register(engineBridge: FlutterImplicitEngineBridge) {
@@ -71,6 +71,25 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     }
   }
 
+  func handleRemoteNotification(
+    userInfo: [AnyHashable: Any],
+    applicationState: UIApplication.State
+  ) {
+    emitPushMessage(userInfo: userInfo, messageId: nil)
+    if !Self.hasApsAlert(userInfo), applicationState != .active {
+      scheduleLocalNotification(userInfo: userInfo)
+    }
+  }
+
+  func handleWillPresent(
+    notification: UNNotification,
+    completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    let userInfo = notification.request.content.userInfo
+    emitPushMessage(userInfo: userInfo, messageId: notification.request.identifier)
+    completionHandler([.banner, .badge, .sound])
+  }
+
   func emitNotificationTap(userInfo: [AnyHashable: Any]) {
     let payload = Self.flattenUserInfo(userInfo)
     DispatchQueue.main.async {
@@ -83,7 +102,77 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
   }
 
   func emitPushMessage(userInfo: [AnyHashable: Any], messageId: String?) {
-    let payload = Self.flattenUserInfo(userInfo)
+    let event = Self.buildPushEvent(userInfo: userInfo, messageId: messageId)
+    DispatchQueue.main.async {
+      if let sink = self.eventSink {
+        sink(event)
+        return
+      }
+      self.enqueuePendingPushEvent(event)
+    }
+  }
+
+  private func enqueuePendingPushEvent(_ event: [String: Any]) {
+    pendingPushEvents.append(event)
+    if pendingPushEvents.count > Self.maxPendingPushEvents {
+      pendingPushEvents.removeFirst(pendingPushEvents.count - Self.maxPendingPushEvents)
+    }
+  }
+
+  private func flushPendingPushEvents() {
+    guard let sink = eventSink else {
+      return
+    }
+    let events = pendingPushEvents
+    pendingPushEvents.removeAll()
+    for event in events {
+      sink(event)
+    }
+  }
+
+  private func scheduleLocalNotification(userInfo: [AnyHashable: Any]) {
+    let content = UNMutableNotificationContent()
+    let display = Self.resolveDisplayContent(from: userInfo)
+    content.title = display.title
+    content.body = display.body
+    content.sound = .default
+    content.userInfo = Self.userInfoDictionary(userInfo)
+    let identifier = Self.resolveMessageId(from: userInfo) ?? UUID().uuidString
+    let request = UNNotificationRequest(
+      identifier: identifier,
+      content: content,
+      trigger: nil
+    )
+    UNUserNotificationCenter.current().add(request)
+  }
+
+  private static func buildPushEvent(
+    userInfo: [AnyHashable: Any],
+    messageId: String?
+  ) -> [String: Any] {
+    let payload = flattenUserInfo(userInfo)
+    let display = resolveDisplayContent(from: userInfo)
+    var notification: [String: Any] = [:]
+    notification["title"] = display.title
+    notification["body"] = display.body
+    let id = messageId ?? resolveMessageId(from: userInfo) ?? UUID().uuidString
+    return [
+      "messageId": id,
+      "notification": notification,
+      "data": payload,
+    ]
+  }
+
+  private static func hasApsAlert(_ userInfo: [AnyHashable: Any]) -> Bool {
+    guard let aps = userInfo["aps"] as? [String: Any] else {
+      return false
+    }
+    return aps["alert"] != nil
+  }
+
+  private static func resolveDisplayContent(
+    from userInfo: [AnyHashable: Any]
+  ) -> (title: String, body: String) {
     var title: String?
     var body: String?
     if let aps = userInfo["aps"] as? [String: Any] {
@@ -94,25 +183,50 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
         body = alert
       }
     }
-    let id = messageId ?? UUID().uuidString
-    var notification: [String: Any] = [:]
-    if let title = title {
-      notification["title"] = title
+    if title == nil {
+      title = userInfo["title"] as? String
     }
-    if let body = body {
-      notification["body"] = body
+    if body == nil {
+      body = userInfo["body"] as? String
     }
-    let event: [String: Any] = [
-      "messageId": id,
-      "notification": notification,
-      "data": payload,
-    ]
-    DispatchQueue.main.async {
-      guard let sink = self.eventSink else {
-        return
+    if let data = userInfo["data"] as? [String: Any] {
+      if title == nil {
+        title = data["title"] as? String
       }
-      sink(event)
+      if body == nil {
+        body = data["body"] as? String
+      }
     }
+    return (
+      title: title ?? defaultNotificationTitle,
+      body: body ?? defaultNotificationBody
+    )
+  }
+
+  private static func resolveMessageId(from userInfo: [AnyHashable: Any]) -> String? {
+    if let messageId = userInfo["message_id"] as? String, !messageId.isEmpty {
+      return messageId
+    }
+    if let id = userInfo["id"] as? String, !id.isEmpty {
+      return id
+    }
+    if let data = userInfo["data"] as? [String: Any] {
+      if let messageId = data["message_id"] as? String, !messageId.isEmpty {
+        return messageId
+      }
+      if let id = data["id"] as? String, !id.isEmpty {
+        return id
+      }
+    }
+    return nil
+  }
+
+  private static func userInfoDictionary(_ userInfo: [AnyHashable: Any]) -> [AnyHashable: Any] {
+    var out: [AnyHashable: Any] = [:]
+    for (key, value) in userInfo {
+      out[key] = value
+    }
+    return out
   }
 
   private static func requestAuthorizationIfNeeded(completion: @escaping () -> Void) {
@@ -186,34 +300,13 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     -> FlutterError?
   {
     eventSink = events
+    flushPendingPushEvents()
     return nil
   }
 
   func onCancel(withArguments arguments: Any?) -> FlutterError? {
     eventSink = nil
     return nil
-  }
-}
-
-extension ApplePushBridge: UNUserNotificationCenterDelegate {
-  func userNotificationCenter(
-    _ center: UNUserNotificationCenter,
-    willPresent notification: UNNotification,
-    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
-  ) {
-    let userInfo = notification.request.content.userInfo
-    emitPushMessage(userInfo: userInfo, messageId: notification.request.identifier)
-    completionHandler([.banner, .badge, .sound])
-  }
-
-  func userNotificationCenter(
-    _ center: UNUserNotificationCenter,
-    didReceive response: UNNotificationResponse,
-    withCompletionHandler completionHandler: @escaping () -> Void
-  ) {
-    let userInfo = response.notification.request.content.userInfo
-    emitNotificationTap(userInfo: userInfo)
-    completionHandler()
   }
 }
 

@@ -8,8 +8,9 @@ import UserNotifications
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    ApplePushBridge.shared.configureNotificationCenterDelegate()
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    UNUserNotificationCenter.current().delegate = self
+    return result
   }
 
   override func application(
@@ -33,17 +34,40 @@ import UserNotifications
     didReceiveRemoteNotification userInfo: [AnyHashable: Any],
     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
   ) {
-    if application.applicationState == .active {
-      let aps = userInfo["aps"] as? [String: Any]
-      let hasAlert = aps?["alert"] != nil
-      if !hasAlert {
-        ApplePushBridge.shared.emitPushMessage(userInfo: userInfo, messageId: nil)
-      }
-    }
+    ApplePushBridge.shared.handleRemoteNotification(
+      userInfo: userInfo,
+      applicationState: application.applicationState
+    )
     super.application(
       application,
       didReceiveRemoteNotification: userInfo,
       fetchCompletionHandler: completionHandler
+    )
+  }
+
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    ApplePushBridge.shared.handleWillPresent(
+      notification: notification,
+      completionHandler: completionHandler
+    )
+  }
+
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    ApplePushBridge.shared.emitNotificationTap(
+      userInfo: response.notification.request.content.userInfo
+    )
+    super.userNotificationCenter(
+      center,
+      didReceive: response,
+      withCompletionHandler: completionHandler
     )
   }
 
