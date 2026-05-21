@@ -10,6 +10,10 @@ import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
+    'sheets/message_reactions_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/'
+    'sheets/report_message_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/'
     'widgets/delete_message_confirm_modal.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_item.dart';
@@ -448,6 +452,15 @@ class _MessageListState extends ConsumerState<MessageList> {
             onMarkAsUnread: () => ref
                 .read(chatViewModelProvider.notifier)
                 .markMessageUnread(msg.id),
+            onViewReactions: () =>
+                unawaited(showMessageReactionsSheet(context, message: msg)),
+            onReport: () => unawaited(
+              showReportMessageSheet(
+                context,
+                channelId: msg.channelId,
+                messageId: msg.id,
+              ),
+            ),
             onReaction: (emoji, {String? emojiId, bool animated = false}) => ref
                 .read(chatViewModelProvider.notifier)
                 .toggleReaction(

@@ -74,6 +74,24 @@ class ChannelPinsRepository {
     return PinnedMessagesPage(items: entries, hasMore: response.hasMore);
   }
 
+  Future<void> pinMessage({
+    required String channelId,
+    required String messageId,
+  }) async {
+    await _client.channels.pinMessage(
+      channelId: channelId,
+      messageId: messageId,
+    );
+
+    final row = await _database.messageDao.getMessage(messageId);
+    if (row == null) {
+      return;
+    }
+    await _database.messageDao.upsertMessage(
+      Message.fromRow(row).copyWith(isPinned: true).toCompanion(),
+    );
+  }
+
   Future<void> unpinMessage({
     required String channelId,
     required String messageId,

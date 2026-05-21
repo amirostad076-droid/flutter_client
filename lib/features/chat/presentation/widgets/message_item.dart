@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -23,10 +24,14 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_context_menu.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/quick_reaction_row.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/swipe_to_reply.dart';
+import 'package:fluxer_app/features/chat/providers/channel_details_providers.dart';
+import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/spoiler_reveal_provider.dart';
+import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
@@ -91,6 +96,8 @@ class MessageItem extends ConsumerStatefulWidget {
   final VoidCallback? onRetry;
   final VoidCallback? onDeleteFailed;
   final VoidCallback? onMarkAsUnread;
+  final VoidCallback? onViewReactions;
+  final VoidCallback? onReport;
   final void Function(String emoji, {String? emojiId, bool animated})?
   onReaction;
   final bool inboxPreviewMode;
@@ -112,6 +119,8 @@ class MessageItem extends ConsumerStatefulWidget {
     this.onRetry,
     this.onDeleteFailed,
     this.onMarkAsUnread,
+    this.onViewReactions,
+    this.onReport,
     this.onReaction,
     this.inboxPreviewMode = false,
     this.hideMentionHighlight = false,
@@ -185,8 +194,45 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       case MessageAction.deleteFailed:
         widget.onDeleteFailed?.call();
       case MessageAction.copyText:
+        unawaited(
+          Clipboard.setData(ClipboardData(text: widget.message.content)),
+        );
       case MessageAction.copyMessageId:
-        break;
+        unawaited(Clipboard.setData(ClipboardData(text: widget.message.id)));
+      case MessageAction.copyMessageLink:
+        final guildId =
+            widget.previewRoleGuildId ?? ref.read(activeGuildIdProvider);
+        unawaited(
+          Clipboard.setData(
+            ClipboardData(
+              text: messageLink(
+                channelId: widget.message.channelId,
+                messageId: widget.message.id,
+                guildId: guildId,
+              ),
+            ),
+          ),
+        );
+      case MessageAction.bookmark:
+        final dao = ref.read(fluxerDatabaseProvider).savedMessageDao;
+        final messageId = widget.message.id;
+        unawaited(() async {
+          if (await dao.isSaved(messageId)) {
+            await dao.removeSavedMessage(messageId);
+          } else {
+            await dao.addSavedMessage(messageId);
+          }
+        }());
+      case MessageAction.pin:
+        final repo = ref.read(channelPinsRepositoryProvider);
+        final channelId = widget.message.channelId;
+        final messageId = widget.message.id;
+        final isPinned = widget.message.isPinned;
+        unawaited(
+          isPinned
+              ? repo.unpinMessage(channelId: channelId, messageId: messageId)
+              : repo.pinMessage(channelId: channelId, messageId: messageId),
+        );
       case MessageAction.addReaction:
         if (isMobile) {
           unawaited(
@@ -211,22 +257,66 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             }
           });
         }
-      case MessageAction.pin:
-      case MessageAction.bookmark:
-      case MessageAction.copyMessageLink:
-      case null:
-        break;
       case MessageAction.markAsUnread:
         widget.onMarkAsUnread?.call();
+      case MessageAction.suppressEmbeds:
+        final repo = ref.read(messageRepositoryProvider);
+        final channelId = widget.message.channelId;
+        final messageId = widget.message.id;
+        final nextFlags = widget.message.suppressEmbeds
+            ? widget.message.flags & ~messageFlagSuppressEmbeds
+            : widget.message.flags | messageFlagSuppressEmbeds;
+        unawaited(
+          repo.setMessageFlags(
+            channelId: channelId,
+            messageId: messageId,
+            flags: nextFlags,
+          ),
+        );
+      case MessageAction.viewReactions:
+        widget.onViewReactions?.call();
+      case MessageAction.report:
+        widget.onReport?.call();
+      case null:
+        break;
+    }
+  }
+
+  bool get _canReportThisMessage {
+    if (widget.message.hasFailed) {
+      return false;
+    }
+    if (widget.message.authorId == widget.currentUserId) {
+      return false;
+    }
+    return widget.message.type == 0 || widget.message.type == 19;
+  }
+
+  Future<List<String>?> _loadQuickEmojis() async {
+    try {
+      final db = ref.read(fluxerDatabaseProvider);
+      return await db.emojiUsageDao.getQuickReactionEmojis(
+        4,
+        kQuickReactionDefaultEmojis,
+      );
+    } on Object {
+      return null;
     }
   }
 
   Future<void> _showActions(BuildContext context) async {
+    final frecent = await _loadQuickEmojis();
+    if (!context.mounted) {
+      return;
+    }
     final action = await showMessageBottomSheet(
       context,
       message: widget.message,
       isOwnMessage: widget.message.authorId == widget.currentUserId,
       canDelete: widget.canDelete,
+      canReport: _canReportThisMessage,
+      quickEmojis: frecent,
+      onQuickReaction: (emoji) => widget.onReaction?.call(emoji),
     );
     if (!context.mounted) {
       return;
@@ -235,21 +325,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   }
 
   Future<void> _showContextMenu(BuildContext context, Offset position) async {
-    List<String>? frecent;
-    try {
-      final db = ProviderScope.containerOf(
-        context,
-      ).read(fluxerDatabaseProvider);
-      frecent = await db.emojiUsageDao.getQuickReactionEmojis(4, const [
-        '\u{1F44D}',
-        '\u{1F44C}',
-        '\u{1F389}',
-        '\u{2764}\u{FE0F}',
-      ]);
-    } on Object {
-      // Fall back to defaults.
-    }
-
+    final frecent = await _loadQuickEmojis();
     if (!context.mounted) {
       return;
     }

@@ -12,6 +12,11 @@ class SavedMessageDao extends DatabaseAccessor<FluxerDatabase>
 
   Stream<List<SavedMessage>> watchAll() => select(savedMessages).watch();
 
+  Stream<bool> watchIsSaved(String messageId) =>
+      (select(savedMessages)..where((s) => s.messageId.equals(messageId)))
+          .watch()
+          .map((rows) => rows.isNotEmpty);
+
   Future<bool> isSaved(String messageId) async {
     final row = await (select(
       savedMessages,

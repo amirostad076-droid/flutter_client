@@ -2309,8 +2309,8 @@ class _GuildListItemState extends State<_GuildListItem>
                   !widget.isSelected &&
                   widget.mentionCount > 0)
                 Positioned(
-                  bottom: -4,
-                  right: -4,
+                  bottom: -2,
+                  right: -2,
                   child: FluxerBadge.count(
                     count: widget.mentionCount,
                     cutoutColor: context.colors.backgroundSecondary,

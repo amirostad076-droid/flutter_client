@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/quick_reaction_row.dart';
+import 'package:fluxer_app/features/chat/providers/saved_message_provider.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum MessageAction {
   addReaction,
+  viewReactions,
   retry,
   edit,
   reply,
@@ -16,9 +19,11 @@ enum MessageAction {
   bookmark,
   markAsUnread,
   copyMessageLink,
+  suppressEmbeds,
   delete,
   deleteFailed,
   copyMessageId,
+  report,
 }
 
 Future<MessageAction?> showMessageBottomSheet(
@@ -26,147 +31,217 @@ Future<MessageAction?> showMessageBottomSheet(
   required Message message,
   required bool isOwnMessage,
   required bool canDelete,
-}) => showModalBottomSheet<MessageAction>(
-  context: context,
-  builder: (_) => MessageBottomSheet(
-    message: message,
-    isOwnMessage: isOwnMessage,
-    canDelete: canDelete,
-  ),
-);
+  required bool canReport,
+  List<String>? quickEmojis,
+  ValueChanged<String>? onQuickReaction,
+}) {
+  return FluxerBottomSheet.show<MessageAction>(
+    context,
+    variant: FluxerBottomSheetVariant.menu,
+    builder: (sheetContext, _) => _MessageBottomSheetBody(
+      message: message,
+      isOwnMessage: isOwnMessage,
+      canDelete: canDelete,
+      canReport: canReport,
+      quickEmojis: quickEmojis ?? kQuickReactionDefaultEmojis,
+      onQuickReaction: onQuickReaction,
+    ),
+  );
+}
 
-class MessageBottomSheet extends StatelessWidget {
+class _MessageBottomSheetBody extends ConsumerWidget {
   final Message message;
   final bool isOwnMessage;
   final bool canDelete;
+  final bool canReport;
+  final List<String> quickEmojis;
+  final ValueChanged<String>? onQuickReaction;
 
-  const MessageBottomSheet({
+  const _MessageBottomSheetBody({
     required this.message,
     required this.isOwnMessage,
     required this.canDelete,
-    super.key,
+    required this.canReport,
+    required this.quickEmojis,
+    required this.onQuickReaction,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Center(
-            child: Container(
-              width: 32,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: context.colors.textTertiaryMuted,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          _ActionRow(
-            icon: PhosphorIconsRegular.smiley,
-            label: l10n.chatMessageAddReaction,
-            onTap: () => Navigator.pop(context, MessageAction.addReaction),
-          ),
-          if (message.hasFailed)
-            _ActionRow(
-              icon: PhosphorIconsRegular.arrowClockwise,
-              label: l10n.retry,
-              onTap: () => Navigator.pop(context, MessageAction.retry),
-            ),
-          if (isOwnMessage)
-            _ActionRow(
-              icon: PhosphorIconsRegular.pencilSimple,
-              label: l10n.chatMessageEdit,
-              onTap: () => Navigator.pop(context, MessageAction.edit),
-            ),
-          _ActionRow(
-            icon: PhosphorIconsRegular.arrowBendUpLeft,
-            label: l10n.chatMessageReply,
-            onTap: () => Navigator.pop(context, MessageAction.reply),
-          ),
-          _ActionRow(
-            icon: PhosphorIconsRegular.shareFat,
-            label: l10n.chatMessageForward,
-            onTap: () => Navigator.pop(context, MessageAction.forward),
-          ),
-          if (message.content.isNotEmpty)
-            _ActionRow(
-              icon: PhosphorIconsRegular.copy,
-              label: l10n.chatMessageCopyText,
-              onTap: () async {
-                await Clipboard.setData(ClipboardData(text: message.content));
-                if (!context.mounted) {
-                  return;
-                }
-                Navigator.pop(context, MessageAction.copyText);
-              },
-            ),
-          _ActionRow(
-            icon: PhosphorIconsRegular.pushPin,
-            label: message.isPinned
-                ? l10n.chatMessageUnpin
-                : l10n.chatMessagePin,
-            onTap: () => Navigator.pop(context, MessageAction.pin),
-          ),
-          _ActionRow(
-            icon: PhosphorIconsRegular.bookmarkSimple,
-            label: 'Bookmark Message',
-            onTap: () => Navigator.pop(context, MessageAction.bookmark),
-          ),
-          _ActionRow(
-            icon: PhosphorIconsRegular.envelopeSimple,
-            label: 'Mark as Unread',
-            onTap: () => Navigator.pop(context, MessageAction.markAsUnread),
-          ),
-          if (canDelete)
-            _ActionRow(
-              icon: PhosphorIconsRegular.trash,
-              label: l10n.chatMessageDelete,
-              color: context.colors.textDanger,
-              onTap: () => Navigator.pop(context, MessageAction.delete),
-            ),
-          if (message.hasFailed)
-            _ActionRow(
-              icon: PhosphorIconsRegular.trash,
-              label: l10n.chatMessageDeleteFailed,
-              color: context.colors.textDanger,
-              onTap: () => Navigator.pop(context, MessageAction.deleteFailed),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActionRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color? color;
-  final VoidCallback onTap;
-
-  const _ActionRow({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.color,
-  });
+  void _pop(BuildContext context, MessageAction action) =>
+      Navigator.of(context).pop(action);
 
   @override
-  Widget build(BuildContext context) {
-    final rowColor = color ?? context.colors.textPrimary;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = FluxerLocalizations.of(context);
 
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
+    if (message.hasFailed) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: FluxerBottomSheetGroupColumn(
           children: [
-            PhosphorIcon(icon, size: 22, color: rowColor),
-            const SizedBox(width: 16),
-            Text(label, style: TextStyle(color: rowColor, fontSize: 16)),
+            FluxerMenuGroup(
+              children: [
+                FluxerBottomSheetMenuItem(
+                  icon: PhosphorIconsRegular.arrowClockwise,
+                  label: l10n.retry,
+                  onTap: () => _pop(context, MessageAction.retry),
+                ),
+              ],
+            ),
+            FluxerMenuGroup(
+              children: [
+                FluxerBottomSheetMenuItem(
+                  icon: PhosphorIconsRegular.trash,
+                  label: l10n.chatMessageDeleteFailed,
+                  isDanger: true,
+                  onTap: () => _pop(context, MessageAction.deleteFailed),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    final isSaved =
+        ref.watch(isMessageSavedProvider(message.id)).value ?? false;
+
+    final hasReactions = message.reactions.isNotEmpty;
+    final hasEmbeds = message.embeds.isNotEmpty;
+    final isEmbedsSuppressed = message.suppressEmbeds;
+
+    final reactionsGroup = FluxerMenuGroup(
+      children: [
+        FluxerBottomSheetMenuItem(
+          icon: PhosphorIconsRegular.smiley,
+          label: l10n.chatMessageAddReaction,
+          onTap: () => _pop(context, MessageAction.addReaction),
+        ),
+        if (hasReactions)
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsRegular.users,
+            label: l10n.chatMessageViewReactions,
+            onTap: () => _pop(context, MessageAction.viewReactions),
+          ),
+      ],
+    );
+
+    final interactionsGroup = FluxerMenuGroup(
+      children: [
+        FluxerBottomSheetMenuItem(
+          icon: PhosphorIconsFill.envelopeOpen,
+          label: l10n.chatMessageMarkAsUnread,
+          onTap: () => _pop(context, MessageAction.markAsUnread),
+        ),
+        FluxerBottomSheetMenuItem(
+          icon: PhosphorIconsRegular.arrowBendUpLeft,
+          label: l10n.chatMessageReply,
+          onTap: () => _pop(context, MessageAction.reply),
+        ),
+        FluxerBottomSheetMenuItem(
+          icon: PhosphorIconsRegular.shareFat,
+          label: l10n.chatMessageForward,
+          onTap: () => _pop(context, MessageAction.forward),
+        ),
+        if (isOwnMessage)
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsRegular.pencilSimple,
+            label: l10n.chatMessageEdit,
+            onTap: () => _pop(context, MessageAction.edit),
+          ),
+      ],
+    );
+
+    final managementGroup = FluxerMenuGroup(
+      children: [
+        FluxerBottomSheetMenuItem(
+          icon: PhosphorIconsRegular.pushPin,
+          label: message.isPinned
+              ? l10n.chatMessageUnpin
+              : l10n.chatMessagePin,
+          onTap: () => _pop(context, MessageAction.pin),
+        ),
+        FluxerBottomSheetMenuItem(
+          icon: isSaved
+              ? PhosphorIconsFill.bookmarkSimple
+              : PhosphorIconsRegular.bookmarkSimple,
+          label: isSaved
+              ? l10n.chatMessageRemoveBookmark
+              : l10n.chatMessageBookmark,
+          onTap: () => _pop(context, MessageAction.bookmark),
+        ),
+        if (isOwnMessage && (hasEmbeds || isEmbedsSuppressed))
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsRegular.eyeSlash,
+            label: isEmbedsSuppressed
+                ? l10n.chatMessageUnsuppressEmbeds
+                : l10n.chatMessageSuppressEmbeds,
+            onTap: () => _pop(context, MessageAction.suppressEmbeds),
+          ),
+        if (canDelete)
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsRegular.trash,
+            label: l10n.chatMessageDelete,
+            isDanger: true,
+            onTap: () => _pop(context, MessageAction.delete),
+          ),
+      ],
+    );
+
+    final utilityGroup = FluxerMenuGroup(
+      children: [
+        FluxerBottomSheetMenuItem(
+          icon: PhosphorIconsRegular.link,
+          label: l10n.chatMessageCopyMessageLink,
+          onTap: () => _pop(context, MessageAction.copyMessageLink),
+        ),
+        if (message.content.isNotEmpty)
+          FluxerBottomSheetMenuItem(
+            icon: PhosphorIconsFill.copy,
+            label: l10n.chatMessageCopyText,
+            onTap: () => _pop(context, MessageAction.copyText),
+          ),
+        FluxerBottomSheetMenuItem(
+          icon: PhosphorIconsRegular.snowflake,
+          label: l10n.chatMessageCopyMessageId,
+          onTap: () => _pop(context, MessageAction.copyMessageId),
+        ),
+      ],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            QuickReactionRow(
+              emojis: quickEmojis,
+              onReaction: (emoji) {
+                onQuickReaction?.call(emoji);
+                Navigator.of(context).pop();
+              },
+              onAddMore: () => _pop(context, MessageAction.addReaction),
+            ),
+            const SizedBox(height: 8),
+            FluxerBottomSheetGroupColumn(
+              children: [
+                reactionsGroup,
+                interactionsGroup,
+                managementGroup,
+                utilityGroup,
+                if (canReport)
+                  FluxerMenuGroup(
+                    children: [
+                      FluxerBottomSheetMenuItem(
+                        icon: PhosphorIconsRegular.flag,
+                        label: l10n.chatMessageReport,
+                        isDanger: true,
+                        onTap: () => _pop(context, MessageAction.report),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
           ],
         ),
       ),

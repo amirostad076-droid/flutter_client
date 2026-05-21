@@ -439,6 +439,30 @@ class MessageRepository {
     }
   }
 
+  Future<Message> setMessageFlags({
+    required String channelId,
+    required String messageId,
+    required int flags,
+  }) async {
+    try {
+      final MessageResponseSchema schema = await _client.channels.editMessage(
+        channelId: channelId,
+        messageId: messageId,
+        flags: flags,
+      );
+      final Message message = Message.fromSdk(
+        schema,
+        currentUserId: _currentUserId,
+      );
+      await _db.messageDao.upsertMessage(message.toCompanion());
+      return message;
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.statusMessage ?? 'Failed to update message flags',
+      );
+    }
+  }
+
   Future<void> deleteMessage({
     required String channelId,
     required String messageId,
