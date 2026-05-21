@@ -13,8 +13,13 @@ platform :ios do
   lane :testflight_beta do
     profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision")
     extension_profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/broadcast_extension.mobileprovision")
+    notification_service_profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/notification_service.mobileprovision")
     runner_profile_uuid = fetchRequiredEnvironmentValue("PROFILE_UUID")
     extension_profile_uuid = fetchOptionalEnvironmentValue("BROADCAST_EXTENSION_PROFILE_UUID", runner_profile_uuid)
+    notification_service_profile_uuid = fetchOptionalEnvironmentValue("NOTIFICATION_SERVICE_PROFILE_UUID", extension_profile_uuid)
+    unless File.exist?(notification_service_profile_path)
+      notification_service_profile_path = extension_profile_path
+    end
 
     api_key = app_store_connect_api_key(
       key_id: ENV.fetch("APPSTORE_KEY_ID"),
@@ -41,6 +46,13 @@ platform :ios do
       xcodeproj: "ios/Runner.xcodeproj",
       profile: extension_profile_path,
       target_filter: "^BroadcastExtension$",
+      build_configuration: "Release-beta",
+      code_signing_identity: "Apple Distribution"
+    )
+    update_project_provisioning(
+      xcodeproj: "ios/Runner.xcodeproj",
+      profile: notification_service_profile_path,
+      target_filter: "^NotificationService$",
       build_configuration: "Release-beta",
       code_signing_identity: "Apple Distribution"
     )
@@ -77,7 +89,8 @@ platform :ios do
         signingCertificate: "Apple Distribution",
         provisioningProfiles: {
           "com.fluxer" => runner_profile_uuid,
-          "com.fluxer.BroadcastExtension" => extension_profile_uuid
+          "com.fluxer.BroadcastExtension" => extension_profile_uuid,
+          "com.fluxer.NotificationService" => notification_service_profile_uuid
         }
       },
       xcargs: [
@@ -114,8 +127,13 @@ platform :ios do
   lane :testflight_canary do
     profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision")
     extension_profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/broadcast_extension.mobileprovision")
+    notification_service_profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/notification_service.mobileprovision")
     runner_profile_uuid = fetchRequiredEnvironmentValue("PROFILE_UUID")
     extension_profile_uuid = fetchOptionalEnvironmentValue("BROADCAST_EXTENSION_PROFILE_UUID", runner_profile_uuid)
+    notification_service_profile_uuid = fetchOptionalEnvironmentValue("NOTIFICATION_SERVICE_PROFILE_UUID", extension_profile_uuid)
+    unless File.exist?(notification_service_profile_path)
+      notification_service_profile_path = extension_profile_path
+    end
 
     api_key = app_store_connect_api_key(
       key_id: ENV.fetch("APPSTORE_KEY_ID"),
@@ -142,6 +160,13 @@ platform :ios do
       xcodeproj: "ios/Runner.xcodeproj",
       profile: extension_profile_path,
       target_filter: "^BroadcastExtension$",
+      build_configuration: "Release-canary",
+      code_signing_identity: "Apple Distribution"
+    )
+    update_project_provisioning(
+      xcodeproj: "ios/Runner.xcodeproj",
+      profile: notification_service_profile_path,
+      target_filter: "^NotificationService$",
       build_configuration: "Release-canary",
       code_signing_identity: "Apple Distribution"
     )
@@ -178,7 +203,8 @@ platform :ios do
         signingCertificate: "Apple Distribution",
         provisioningProfiles: {
           "com.fluxer.canary" => runner_profile_uuid,
-          "com.fluxer.canary.BroadcastExtension" => extension_profile_uuid
+          "com.fluxer.canary.BroadcastExtension" => extension_profile_uuid,
+          "com.fluxer.canary.NotificationService" => notification_service_profile_uuid
         }
       },
       xcargs: [
@@ -215,8 +241,13 @@ platform :ios do
   lane :stable_release do
     profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision")
     extension_profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/broadcast_extension.mobileprovision")
+    notification_service_profile_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/notification_service.mobileprovision")
     runner_profile_uuid = fetchRequiredEnvironmentValue("PROFILE_UUID")
     extension_profile_uuid = fetchOptionalEnvironmentValue("BROADCAST_EXTENSION_PROFILE_UUID", runner_profile_uuid)
+    notification_service_profile_uuid = fetchOptionalEnvironmentValue("NOTIFICATION_SERVICE_PROFILE_UUID", extension_profile_uuid)
+    unless File.exist?(notification_service_profile_path)
+      notification_service_profile_path = extension_profile_path
+    end
 
     api_key = app_store_connect_api_key(
       key_id: ENV.fetch("APPSTORE_KEY_ID"),
@@ -243,6 +274,13 @@ platform :ios do
       xcodeproj: "ios/Runner.xcodeproj",
       profile: extension_profile_path,
       target_filter: "^BroadcastExtension$",
+      build_configuration: "Release-stable",
+      code_signing_identity: "Apple Distribution"
+    )
+    update_project_provisioning(
+      xcodeproj: "ios/Runner.xcodeproj",
+      profile: notification_service_profile_path,
+      target_filter: "^NotificationService$",
       build_configuration: "Release-stable",
       code_signing_identity: "Apple Distribution"
     )
@@ -279,7 +317,8 @@ platform :ios do
         signingCertificate: "Apple Distribution",
         provisioningProfiles: {
           "com.fluxer" => runner_profile_uuid,
-          "com.fluxer.BroadcastExtension" => extension_profile_uuid
+          "com.fluxer.BroadcastExtension" => extension_profile_uuid,
+          "com.fluxer.NotificationService" => notification_service_profile_uuid
         }
       },
       xcargs: [
