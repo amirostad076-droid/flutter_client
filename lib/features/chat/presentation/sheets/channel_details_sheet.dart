@@ -25,6 +25,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
 import 'package:fluxer_app/features/chat/providers/channel_details_providers.dart';
+import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
@@ -2654,7 +2655,7 @@ Future<void> _showDetailsMoreSheet(
             label: 'Copy Link',
             icon: PhosphorIconsBold.link,
             onTap: () =>
-                run(() => onCopy(_channelLink(channel.id, channel.guildId))),
+                run(() => onCopy(channelLink(channel.id, channel.guildId))),
           ),
         if (channel != null)
           FluxerBottomSheetSubmenuItem(
@@ -3051,7 +3052,7 @@ Future<void> _showPinnedMessageActions(
     case _PinnedMessageAction.copyMessageLink:
       await Clipboard.setData(
         ClipboardData(
-          text: _messageLink(
+          text: messageLink(
             channelId: entry.message.channelId,
             messageId: entry.message.id,
             guildId: guildId,
@@ -3133,7 +3134,7 @@ Future<void> _showSearchMessageActions(
     case _PinnedMessageAction.copyMessageLink:
       await Clipboard.setData(
         ClipboardData(
-          text: _messageLink(
+          text: messageLink(
             channelId: entry.message.channelId,
             messageId: entry.message.id,
             guildId: entry.guildId,
@@ -3313,19 +3314,6 @@ String? _detailsSubtitle({
     };
   }
   return null;
-}
-
-String _channelLink(String channelId, String? guildId) {
-  final scope = guildId == null || guildId.isEmpty ? '@me' : guildId;
-  return 'https://fluxer.app/channels/$scope/$channelId';
-}
-
-String _messageLink({
-  required String channelId,
-  required String messageId,
-  required String? guildId,
-}) {
-  return '${_channelLink(channelId, guildId)}/$messageId';
 }
 
 Future<void> _jumpToMessage(
