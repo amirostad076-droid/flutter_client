@@ -4155,7 +4155,7 @@
   "@chatMessageForward": {
     "description": "Action label for forwarding a message."
   },
-  "chatMessageCopyText": "Copy Text",
+  "chatMessageCopyText": "Copy Message",
   "@chatMessageCopyText": {
     "description": "Action label for copying message text."
   },
@@ -4166,6 +4166,114 @@
   "chatMessageUnpin": "Unpin Message",
   "@chatMessageUnpin": {
     "description": "Action label for unpinning a message."
+  },
+  "chatMessageBookmark": "Bookmark Message",
+  "@chatMessageBookmark": {
+    "description": "Action label for bookmarking a message."
+  },
+  "chatMessageRemoveBookmark": "Remove Bookmark",
+  "@chatMessageRemoveBookmark": {
+    "description": "Action label for removing a message bookmark."
+  },
+  "chatMessageMarkAsUnread": "Mark as Unread",
+  "@chatMessageMarkAsUnread": {
+    "description": "Action label for marking a message as unread."
+  },
+  "chatMessageCopyMessageLink": "Copy Message Link",
+  "@chatMessageCopyMessageLink": {
+    "description": "Action label for copying a message's deep link."
+  },
+  "chatMessageCopyMessageId": "Copy Message ID",
+  "@chatMessageCopyMessageId": {
+    "description": "Action label for copying the message's snowflake ID to the clipboard."
+  },
+  "chatMessageViewReactions": "View reactions",
+  "@chatMessageViewReactions": {
+    "description": "Action label that opens the message reactions list sheet showing who reacted with each emoji."
+  },
+  "chatReactionsSheetTitle": "Reactions",
+  "@chatReactionsSheetTitle": {
+    "description": "Title shown at the top of the message reactions sheet that lists who reacted with each emoji."
+  },
+  "chatReactionsSheetEmpty": "Nobody has reacted with this yet.",
+  "@chatReactionsSheetEmpty": {
+    "description": "Empty state shown in the message reactions sheet when no users have reacted with the currently selected emoji."
+  },
+  "chatMessageReport": "Report Message",
+  "@chatMessageReport": {
+    "description": "Action label that opens the report-message sheet so the user can flag the message to moderators."
+  },
+  "chatReportSheetTitle": "Report message",
+  "@chatReportSheetTitle": {
+    "description": "Title of the message report sheet asking the user to pick a reason."
+  },
+  "chatReportSheetSubtitle": "Why are you reporting this message?",
+  "@chatReportSheetSubtitle": {
+    "description": "Subtitle of the message report sheet prompting the user to pick a reporting category."
+  },
+  "chatReportCategoryHarassment": "Harassment",
+  "@chatReportCategoryHarassment": {
+    "description": "Report category label for harassment."
+  },
+  "chatReportCategoryHateSpeech": "Hate speech",
+  "@chatReportCategoryHateSpeech": {
+    "description": "Report category label for hate speech."
+  },
+  "chatReportCategoryViolentContent": "Violent content",
+  "@chatReportCategoryViolentContent": {
+    "description": "Report category label for violent content."
+  },
+  "chatReportCategorySpam": "Spam",
+  "@chatReportCategorySpam": {
+    "description": "Report category label for spam."
+  },
+  "chatReportCategoryNsfwViolation": "NSFW violation",
+  "@chatReportCategoryNsfwViolation": {
+    "description": "Report category label for NSFW content in a non-NSFW channel."
+  },
+  "chatReportCategoryIllegalActivity": "Illegal activity",
+  "@chatReportCategoryIllegalActivity": {
+    "description": "Report category label for illegal activity."
+  },
+  "chatReportCategoryDoxxing": "Doxxing",
+  "@chatReportCategoryDoxxing": {
+    "description": "Report category label for doxxing (sharing personal information without consent)."
+  },
+  "chatReportCategorySelfHarm": "Self harm",
+  "@chatReportCategorySelfHarm": {
+    "description": "Report category label for content promoting or depicting self-harm."
+  },
+  "chatReportCategoryChildSafety": "Child safety",
+  "@chatReportCategoryChildSafety": {
+    "description": "Report category label for content that endangers minors."
+  },
+  "chatReportCategoryMaliciousLinks": "Malicious links",
+  "@chatReportCategoryMaliciousLinks": {
+    "description": "Report category label for malicious links / phishing / malware."
+  },
+  "chatReportCategoryImpersonation": "Impersonation",
+  "@chatReportCategoryImpersonation": {
+    "description": "Report category label for impersonating another person."
+  },
+  "chatReportCategoryOther": "Other",
+  "@chatReportCategoryOther": {
+    "description": "Report category label for reports that don't fit any other category."
+  },
+  "chatReportSubmittedToast": "Report submitted",
+  "@chatReportSubmittedToast": {
+    "description": "Success toast shown after a message report is submitted."
+  },
+  "chatReportFailedToast": "Failed to submit report",
+  "@chatReportFailedToast": {
+    "description": "Error toast shown when a message report fails to submit."
+  },
+  "chatMessageSuppressEmbeds": "Suppress Embeds",
+  "@chatMessageSuppressEmbeds": {
+    "description": "Action label that hides link previews / embeds on the message."
+  },
+  "chatMessageUnsuppressEmbeds": "Unsuppress Embeds",
+  "@chatMessageUnsuppressEmbeds": {
+    "description": "Action label that re-enables previously hidden link previews / embeds on the message."
   },
   "chatMessageDelete": "Delete Message",
   "@chatMessageDelete": {

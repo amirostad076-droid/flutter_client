@@ -3417,13 +3417,94 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatMessageForward => 'Forward';
 
   @override
-  String get chatMessageCopyText => 'Copy Text';
+  String get chatMessageCopyText => 'Copy Message';
 
   @override
   String get chatMessagePin => 'Pin Message';
 
   @override
   String get chatMessageUnpin => 'Unpin Message';
+
+  @override
+  String get chatMessageBookmark => 'Bookmark Message';
+
+  @override
+  String get chatMessageRemoveBookmark => 'Remove Bookmark';
+
+  @override
+  String get chatMessageMarkAsUnread => 'Mark as Unread';
+
+  @override
+  String get chatMessageCopyMessageLink => 'Copy Message Link';
+
+  @override
+  String get chatMessageCopyMessageId => 'Copy Message ID';
+
+  @override
+  String get chatMessageViewReactions => 'View reactions';
+
+  @override
+  String get chatReactionsSheetTitle => 'Reactions';
+
+  @override
+  String get chatReactionsSheetEmpty => 'Nobody has reacted with this yet.';
+
+  @override
+  String get chatMessageReport => 'Report Message';
+
+  @override
+  String get chatReportSheetTitle => 'Report message';
+
+  @override
+  String get chatReportSheetSubtitle => 'Why are you reporting this message?';
+
+  @override
+  String get chatReportCategoryHarassment => 'Harassment';
+
+  @override
+  String get chatReportCategoryHateSpeech => 'Hate speech';
+
+  @override
+  String get chatReportCategoryViolentContent => 'Violent content';
+
+  @override
+  String get chatReportCategorySpam => 'Spam';
+
+  @override
+  String get chatReportCategoryNsfwViolation => 'NSFW violation';
+
+  @override
+  String get chatReportCategoryIllegalActivity => 'Illegal activity';
+
+  @override
+  String get chatReportCategoryDoxxing => 'Doxxing';
+
+  @override
+  String get chatReportCategorySelfHarm => 'Self harm';
+
+  @override
+  String get chatReportCategoryChildSafety => 'Child safety';
+
+  @override
+  String get chatReportCategoryMaliciousLinks => 'Malicious links';
+
+  @override
+  String get chatReportCategoryImpersonation => 'Impersonation';
+
+  @override
+  String get chatReportCategoryOther => 'Other';
+
+  @override
+  String get chatReportSubmittedToast => 'Report submitted';
+
+  @override
+  String get chatReportFailedToast => 'Failed to submit report';
+
+  @override
+  String get chatMessageSuppressEmbeds => 'Suppress Embeds';
+
+  @override
+  String get chatMessageUnsuppressEmbeds => 'Unsuppress Embeds';
 
   @override
   String get chatMessageDelete => 'Delete Message';

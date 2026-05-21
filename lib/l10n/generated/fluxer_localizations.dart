@@ -5851,7 +5851,7 @@ abstract class FluxerLocalizations {
   /// Action label for copying message text.
   ///
   /// In en, this message translates to:
-  /// **'Copy Text'**
+  /// **'Copy Message'**
   String get chatMessageCopyText;
 
   /// Action label for pinning a message.
@@ -5865,6 +5865,168 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Unpin Message'**
   String get chatMessageUnpin;
+
+  /// Action label for bookmarking a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmark Message'**
+  String get chatMessageBookmark;
+
+  /// Action label for removing a message bookmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Bookmark'**
+  String get chatMessageRemoveBookmark;
+
+  /// Action label for marking a message as unread.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Unread'**
+  String get chatMessageMarkAsUnread;
+
+  /// Action label for copying a message's deep link.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Message Link'**
+  String get chatMessageCopyMessageLink;
+
+  /// Action label for copying the message's snowflake ID to the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Message ID'**
+  String get chatMessageCopyMessageId;
+
+  /// Action label that opens the message reactions list sheet showing who reacted with each emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'View reactions'**
+  String get chatMessageViewReactions;
+
+  /// Title shown at the top of the message reactions sheet that lists who reacted with each emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactions'**
+  String get chatReactionsSheetTitle;
+
+  /// Empty state shown in the message reactions sheet when no users have reacted with the currently selected emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody has reacted with this yet.'**
+  String get chatReactionsSheetEmpty;
+
+  /// Action label that opens the report-message sheet so the user can flag the message to moderators.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Message'**
+  String get chatMessageReport;
+
+  /// Title of the message report sheet asking the user to pick a reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Report message'**
+  String get chatReportSheetTitle;
+
+  /// Subtitle of the message report sheet prompting the user to pick a reporting category.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you reporting this message?'**
+  String get chatReportSheetSubtitle;
+
+  /// Report category label for harassment.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment'**
+  String get chatReportCategoryHarassment;
+
+  /// Report category label for hate speech.
+  ///
+  /// In en, this message translates to:
+  /// **'Hate speech'**
+  String get chatReportCategoryHateSpeech;
+
+  /// Report category label for violent content.
+  ///
+  /// In en, this message translates to:
+  /// **'Violent content'**
+  String get chatReportCategoryViolentContent;
+
+  /// Report category label for spam.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam'**
+  String get chatReportCategorySpam;
+
+  /// Report category label for NSFW content in a non-NSFW channel.
+  ///
+  /// In en, this message translates to:
+  /// **'NSFW violation'**
+  String get chatReportCategoryNsfwViolation;
+
+  /// Report category label for illegal activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Illegal activity'**
+  String get chatReportCategoryIllegalActivity;
+
+  /// Report category label for doxxing (sharing personal information without consent).
+  ///
+  /// In en, this message translates to:
+  /// **'Doxxing'**
+  String get chatReportCategoryDoxxing;
+
+  /// Report category label for content promoting or depicting self-harm.
+  ///
+  /// In en, this message translates to:
+  /// **'Self harm'**
+  String get chatReportCategorySelfHarm;
+
+  /// Report category label for content that endangers minors.
+  ///
+  /// In en, this message translates to:
+  /// **'Child safety'**
+  String get chatReportCategoryChildSafety;
+
+  /// Report category label for malicious links / phishing / malware.
+  ///
+  /// In en, this message translates to:
+  /// **'Malicious links'**
+  String get chatReportCategoryMaliciousLinks;
+
+  /// Report category label for impersonating another person.
+  ///
+  /// In en, this message translates to:
+  /// **'Impersonation'**
+  String get chatReportCategoryImpersonation;
+
+  /// Report category label for reports that don't fit any other category.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get chatReportCategoryOther;
+
+  /// Success toast shown after a message report is submitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Report submitted'**
+  String get chatReportSubmittedToast;
+
+  /// Error toast shown when a message report fails to submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to submit report'**
+  String get chatReportFailedToast;
+
+  /// Action label that hides link previews / embeds on the message.
+  ///
+  /// In en, this message translates to:
+  /// **'Suppress Embeds'**
+  String get chatMessageSuppressEmbeds;
+
+  /// Action label that re-enables previously hidden link previews / embeds on the message.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsuppress Embeds'**
+  String get chatMessageUnsuppressEmbeds;
 
   /// Action label for deleting a message.
   ///
