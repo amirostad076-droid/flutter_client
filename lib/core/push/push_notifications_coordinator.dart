@@ -95,6 +95,10 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
           if (PushProviderGuard.isUnifiedPush) {
             return;
           }
+          // APNs + NotificationService extension already show rich notifications.
+          if (PushProviderGuard.isApple) {
+            return;
+          }
           unawaited(_localPush.showPushMessage(message));
         },
         onError: (Object err, StackTrace st) {

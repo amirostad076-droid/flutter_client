@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 import UserNotifications
 
 final class NotificationService: UNNotificationServiceExtension {
@@ -39,19 +40,21 @@ final class NotificationService: UNNotificationServiceExtension {
                 }
                 return
             }
+            var tempFilesToRemove: [URL] = []
             if let mutableContent = self.bestAttemptContent, let fileURL = localFileUrl {
-                do {
-                    let attachment = try UNNotificationAttachment(identifier: "fluxer.message.image", url: fileURL, options: nil)
+                let attachmentResult = Self.makeImageAttachment(fileURL: fileURL)
+                tempFilesToRemove = attachmentResult.filesToRemove
+                if let attachment = attachmentResult.attachment {
                     mutableContent.attachments = [attachment]
-                } catch {
-                    // Deliver without attachment.
                 }
-                try? FileManager.default.removeItem(at: fileURL)
             }
             if let mutable = self.bestAttemptContent {
                 self.deliver(content: mutable)
             } else if let fallback = self.fallbackContent {
                 self.deliver(content: fallback)
+            }
+            for tempURL in tempFilesToRemove {
+                try? FileManager.default.removeItem(at: tempURL)
             }
         }
     }
@@ -76,17 +79,36 @@ final class NotificationService: UNNotificationServiceExtension {
 
 private extension NotificationService {
     static func resolveImageUrl(from userInfo: [AnyHashable: Any]) -> URL? {
-        if let hasMedia = userInfo["has_media"] as? Bool, !hasMedia {
+        if isMediaDisabled(in: userInfo) {
             return nil
         }
-        if let hasMedia = userInfo["has_media"] as? NSNumber, !hasMedia.boolValue {
-            return nil
+        if let nested = userInfo["data"] as? [AnyHashable: Any] {
+            if isMediaDisabled(in: nested) {
+                return nil
+            }
+            if let url = imageUrl(in: nested) {
+                return url
+            }
         }
-        if let hasMediaString = userInfo["has_media"] as? String, hasMediaString.lowercased() == "false" {
-            return nil
+        return imageUrl(in: userInfo)
+    }
+
+    static func isMediaDisabled(in payload: [AnyHashable: Any]) -> Bool {
+        if let hasMedia = payload["has_media"] as? Bool, !hasMedia {
+            return true
         }
+        if let hasMedia = payload["has_media"] as? NSNumber, !hasMedia.boolValue {
+            return true
+        }
+        if let hasMediaString = payload["has_media"] as? String, hasMediaString.lowercased() == "false" {
+            return true
+        }
+        return false
+    }
+
+    static func imageUrl(in payload: [AnyHashable: Any]) -> URL? {
         for key in ["image_url", "image"] {
-            guard let raw = userInfo[key] as? String else {
+            guard let raw = payload[key] as? String else {
                 continue
             }
             let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -101,6 +123,62 @@ private extension NotificationService {
             }
         }
         return nil
+    }
+
+    static func makeImageAttachment(fileURL: URL) -> (attachment: UNNotificationAttachment?, filesToRemove: [URL]) {
+        var filesToRemove: [URL] = [fileURL]
+        let attachmentURL: URL
+        if let convertedURL = normalizedAttachmentFileURL(fileURL) {
+            attachmentURL = convertedURL
+            filesToRemove.append(convertedURL)
+        } else {
+            attachmentURL = fileURL
+        }
+        let typeHint = typeHintIdentifier(for: attachmentURL)
+        var options: [String: Any] = [:]
+        if let typeHint {
+            options[UNNotificationAttachmentOptionsTypeHintKey] = typeHint
+        }
+        let attachment = try? UNNotificationAttachment(
+            identifier: "fluxer.message.image",
+            url: attachmentURL,
+            options: options.isEmpty ? nil : options
+        )
+        return (attachment, filesToRemove)
+    }
+
+    static func normalizedAttachmentFileURL(_ fileURL: URL) -> URL? {
+        let ext = fileURL.pathExtension.lowercased()
+        if ext != "webp" && ext != "heic" && ext != "heif" {
+            return nil
+        }
+        guard let data = try? Data(contentsOf: fileURL), let image = UIImage(data: data) else {
+            return nil
+        }
+        guard let pngData = image.pngData() else {
+            return nil
+        }
+        let destination = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString + ".png")
+        do {
+            try pngData.write(to: destination, options: .atomic)
+            return destination
+        } catch {
+            return nil
+        }
+    }
+
+    static func typeHintIdentifier(for fileURL: URL) -> String? {
+        switch fileURL.pathExtension.lowercased() {
+        case "png":
+            return "public.png"
+        case "gif":
+            return "public.gif"
+        case "jpg", "jpeg":
+            return "public.jpeg"
+        default:
+            return "public.png"
+        }
     }
 
     static func downloadImage(from url: URL, completion: @escaping (URL?) -> Void) {
