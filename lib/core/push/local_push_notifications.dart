@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:fluxer_app/core/badge/push_badge_count_parser.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
 import 'package:fluxer_app/core/push/push_notification_ids.dart';
 import 'package:fluxer_app/core/push/push_notification_permission.dart';
@@ -124,7 +125,10 @@ final class LocalPushNotifications {
         ? message.body!
         : 'New message';
     final int id = pushMessageNotificationId(message.id);
-    final NotificationDetails details = _notificationDetailsForPlatform();
+    final int? badgeCount = parsePushBadgeCount(message.payload);
+    final NotificationDetails details = _notificationDetailsForPlatform(
+      badgeCount: badgeCount,
+    );
     try {
       await _plugin.show(
         id: id,
@@ -141,10 +145,10 @@ final class LocalPushNotifications {
     }
   }
 
-  NotificationDetails _notificationDetailsForPlatform() {
+  NotificationDetails _notificationDetailsForPlatform({int? badgeCount}) {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return const NotificationDetails(
+        return NotificationDetails(
           android: AndroidNotificationDetails(
             _channelId,
             _channelName,
@@ -152,8 +156,7 @@ final class LocalPushNotifications {
             importance: Importance.high,
             priority: Priority.high,
             icon: _androidNotificationIcon,
-            playSound: true,
-            enableVibration: true,
+            number: badgeCount,
           ),
         );
       case TargetPlatform.iOS:

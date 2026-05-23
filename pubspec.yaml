@@ -72,6 +72,7 @@ dependencies:
   image: ^4.8.0
   unifiedpush: ^6.2.0
   unifiedpush_ui: ^0.2.0
+  app_badge_plus: ^1.2.10
 
 dependency_overrides:
   device_info_plus: ^12.4.0

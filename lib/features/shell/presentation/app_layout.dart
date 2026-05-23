@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/badge/app_icon_badge_coordinator.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/push/push_notifications_coordinator.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_distributor_setup.dart';
@@ -90,6 +91,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   @override
   Widget build(BuildContext context) {
     ref.watch(pushNotificationsCoordinatorProvider);
+    ref.watch(appIconBadgeCoordinatorProvider);
     if (PushProviderGuard.isUnifiedPush) {
       ref.listen(unifiedPushDistributorSetupProvider, (
         bool? previous,
