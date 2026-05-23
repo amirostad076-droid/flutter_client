@@ -824,7 +824,7 @@ packages:
   fluxer_captcha:
     dependency: "direct main"
     description:
-      path: fluxer_captcha
+      path: "packages/fluxer_captcha"
       relative: true
     source: path
     version: "1.0.0"
@@ -838,7 +838,7 @@ packages:
   fluxer_markdown:
     dependency: "direct main"
     description:
-      path: fluxer_markdown
+      path: "packages/fluxer_markdown"
       relative: true
     source: path
     version: "1.0.0"

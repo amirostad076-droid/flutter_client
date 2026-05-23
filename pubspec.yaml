@@ -14,9 +14,9 @@ dependencies:
   flutter_local_notifications: ^21.0.0
   cupertino_icons: ^1.0.8
   fluxer_captcha:
-    path: fluxer_captcha
+    path: packages/fluxer_captcha
   fluxer_markdown:
-    path: fluxer_markdown
+    path: packages/fluxer_markdown
   dio: ^5.7.0
   drift: ^2.31.0
   drift_flutter: ^0.2.8
