@@ -45,6 +45,8 @@
 	<string>Leave voice messages, audio, and video calls.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Share photos from your library in a chat.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Fluxer does not use your location. A bundled library references location APIs, which requires this entry for App Store submission.</string>
 	<key>RTCAppGroupIdentifier</key>
 	<string>group.com.fluxer</string>
 	<key>RTCScreenSharingExtension</key>
