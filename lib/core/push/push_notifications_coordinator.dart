@@ -4,9 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
-import 'package:fluxer_app/core/providers/push_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/providers/push_provider.dart';
 import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/apns/apple_push_notification_tap_binding.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_mobile_device_registration.dart';
@@ -19,6 +18,8 @@ import 'package:fluxer_app/core/push/push_service.dart';
 import 'package:fluxer_app/core/push/services/unified_push_service.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_distributor_setup.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
+import 'package:fluxer_app/core/push/unified_push/unified_push_vapid_cache.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'push_notifications_coordinator.g.dart';
@@ -120,15 +121,22 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
         debugPrint('[PushNotificationsCoordinator] VAPID fetch failed: $e');
       }
     }
-    pushService.setPendingVapid(vapid);
-    final String? userId = ref.read(currentUserIdProvider);
-    if (userId != null && vapid != null && vapid.isNotEmpty) {
+    if (vapid != null && vapid.isNotEmpty) {
+      await writeCachedUnifiedPushVapidPublicKey(vapid);
+      final String? userId = ref.read(currentUserIdProvider);
+      if (userId != null) {
+        await ref
+            .read(fluxerDatabaseProvider)
+            .mobilePushRegistrationDao
+            .saveVapidForUser(userId: userId, vapidPublicKey: vapid);
+      }
       await ref
           .read(fluxerDatabaseProvider)
           .mobilePushRegistrationDao
-          .saveVapidForUser(userId: userId, vapidPublicKey: vapid);
+          .saveGlobalVapidPublicKey(vapid);
     }
     await pushService.initializeWithOptions(vapid: vapid);
+    await pushService.applyVapidAndReregisterIfNeeded(vapid);
     if (pushService.needsDistributorPicker) {
       ref.read(unifiedPushDistributorSetupProvider.notifier).requestPicker();
     } else {

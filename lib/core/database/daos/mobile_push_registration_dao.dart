@@ -4,6 +4,9 @@ import 'package:fluxer_app/core/database/tables/mobile_push_registrations.dart';
 
 part 'mobile_push_registration_dao.g.dart';
 
+/// Drift row used only to cache the well-known VAPID key for UnifiedPush.
+const String kUnifiedPushGlobalVapidUserId = '__unified_push_vapid__';
+
 @DriftAccessor(tables: [MobilePushRegistrations])
 class MobilePushRegistrationDao extends DatabaseAccessor<FluxerDatabase>
     with _$MobilePushRegistrationDaoMixin {
@@ -67,7 +70,20 @@ class MobilePushRegistrationDao extends DatabaseAccessor<FluxerDatabase>
     );
   }
 
+  Future<void> saveGlobalVapidPublicKey(String vapidPublicKey) {
+    return saveVapidForUser(
+      userId: kUnifiedPushGlobalVapidUserId,
+      vapidPublicKey: vapidPublicKey,
+    );
+  }
+
   Future<String?> getCachedVapidPublicKey() async {
+    final MobilePushRegistration? globalRow =
+        await getForUser(kUnifiedPushGlobalVapidUserId);
+    final String? globalKey = globalRow?.vapidPublicKey;
+    if (globalKey != null && globalKey.isNotEmpty) {
+      return globalKey;
+    }
     final MobilePushRegistration? row = await (select(
           mobilePushRegistrations,
         )..where((t) => t.vapidPublicKey.isNotNull())

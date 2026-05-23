@@ -243,7 +243,12 @@ class UnifiedPushMobileDeviceRegistration
             vapidPublicKey: vapid,
           );
       if (vapid != null && vapid.isNotEmpty) {
-        UnifiedPushService.instance.setPendingVapid(vapid);
+        await UnifiedPushService.instance.persistVapidPublicKey(vapid);
+        await ref
+            .read(fluxerDatabaseProvider)
+            .mobilePushRegistrationDao
+            .saveGlobalVapidPublicKey(vapid);
+        await UnifiedPushService.instance.applyVapidAndReregisterIfNeeded(vapid);
       }
       if (kDebugMode) {
         debugPrint(

@@ -15,4 +15,5 @@ Future<void> showUnifiedPushDistributorSetup(BuildContext context) async {
     showNoDistribDialog: true,
     onNoDistribDialogDismissed: () {},
   ).registerAppWithDialog();
+  await UnifiedPushService.instance.syncRegistration(force: true);
 }

@@ -14,8 +14,9 @@ import 'package:unifiedpush/unifiedpush.dart' as up;
 /// Fixed UnifiedPush instance id for this app.
 const String kFluxerUnifiedPushInstance = 'fluxer';
 
-const Duration _kEndpointWaitTimeout = Duration(seconds: 3);
+const Duration _kEndpointWaitTimeout = Duration(seconds: 12);
 const Duration _kEndpointPollInterval = Duration(milliseconds: 100);
+const Duration _kRegistrationRetryDelay = Duration(seconds: 5);
 
 class UnifiedPushService implements PushService {
   factory UnifiedPushService() => instance;
@@ -33,6 +34,8 @@ class UnifiedPushService implements PushService {
   bool _initialized = false;
   bool _needsDistributorPicker = false;
   String? _pendingVapid;
+  String? _lastRegisteredVapid;
+  bool _registrationRetryScheduled = false;
   static bool _backgroundMode = false;
 
   Stream<up.PushEndpoint> get endpointStream => _endpoints.stream;
@@ -68,6 +71,35 @@ class UnifiedPushService implements PushService {
     }
   }
 
+  Future<void> persistVapidPublicKey(String vapidPublicKey) async {
+    if (vapidPublicKey.isEmpty) {
+      return;
+    }
+    setPendingVapid(vapidPublicKey);
+    await writeCachedUnifiedPushVapidPublicKey(vapidPublicKey);
+  }
+
+  /// Updates cached VAPID and re-registers with the distributor when needed.
+  Future<void> applyVapidAndReregisterIfNeeded(String? vapid) async {
+    if (!PushProviderGuard.isUnifiedPush || !Platform.isAndroid) {
+      return;
+    }
+    if (vapid == null || vapid.isEmpty) {
+      return;
+    }
+    await persistVapidPublicKey(vapid);
+    final String? distributor = await up.UnifiedPush.getDistributor();
+    if (distributor == null || distributor.isEmpty) {
+      return;
+    }
+    final bool vapidChanged = _lastRegisteredVapid != vapid;
+    if (!vapidChanged && _endpoint != null && _endpoint!.url.isNotEmpty) {
+      return;
+    }
+    await _ensureUnifiedPushInitialized();
+    await registerWithSavedDistributor(vapid: vapid);
+  }
+
   @override
   Future<void> requestPermissions() async {
     await requestPushNotificationPermission();
@@ -85,6 +117,9 @@ class UnifiedPushService implements PushService {
     setPendingVapid(vapid);
     if (_pendingVapid == null) {
       await loadCachedVapidPublicKey();
+    }
+    if (vapid != null && vapid.isNotEmpty) {
+      await persistVapidPublicKey(vapid);
     }
     await _ensureUnifiedPushInitialized();
   }
@@ -126,13 +161,18 @@ class UnifiedPushService implements PushService {
     if (!PushProviderGuard.isUnifiedPush || !Platform.isAndroid) {
       return;
     }
-    if (vapid != null) {
-      _pendingVapid = vapid;
+    if (vapid != null && vapid.isNotEmpty) {
+      await persistVapidPublicKey(vapid);
+    } else if (_pendingVapid == null) {
+      await loadCachedVapidPublicKey();
     }
     await up.UnifiedPush.register(
       instance: kFluxerUnifiedPushInstance,
       vapid: _pendingVapid,
     );
+    if (_pendingVapid != null && _pendingVapid!.isNotEmpty) {
+      _lastRegisteredVapid = _pendingVapid;
+    }
     _needsDistributorPicker = false;
   }
 
@@ -143,6 +183,7 @@ class UnifiedPushService implements PushService {
     await _ensureUnifiedPushInitialized();
     await up.UnifiedPush.unregister(kFluxerUnifiedPushInstance);
     _endpoint = null;
+    _lastRegisteredVapid = null;
     _needsDistributorPicker = false;
   }
 
@@ -163,6 +204,7 @@ class UnifiedPushService implements PushService {
       onRegistrationFailed: _onRegistrationFailed,
       onUnregistered: _onUnregistered,
       onMessage: _onMessage,
+      onTempUnavailable: _onTempUnavailable,
     );
     _initialized = true;
     if (hasDistributor) {
@@ -221,6 +263,48 @@ class UnifiedPushService implements PushService {
       debugPrint('[UnifiedPushService] registration failed: $reason');
     }
     _onUnregistered(instance);
+    switch (reason) {
+      case up.FailedReason.network:
+      case up.FailedReason.internalError:
+      case up.FailedReason.vapidRequired:
+        unawaited(_retryRegistrationAfterFailure(reason));
+      case up.FailedReason.actionRequired:
+        _needsDistributorPicker = true;
+    }
+  }
+
+  Future<void> _retryRegistrationAfterFailure(up.FailedReason reason) async {
+    if (reason == up.FailedReason.vapidRequired) {
+      await loadCachedVapidPublicKey();
+      if (_pendingVapid != null && _pendingVapid!.isNotEmpty) {
+        await applyVapidAndReregisterIfNeeded(_pendingVapid);
+      }
+    }
+    _scheduleRegistrationRetry();
+  }
+
+  void _onTempUnavailable(String instance) {
+    if (instance != kFluxerUnifiedPushInstance) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint('[UnifiedPushService] distributor temporarily unavailable');
+    }
+    _scheduleRegistrationRetry();
+  }
+
+  void _scheduleRegistrationRetry() {
+    if (_registrationRetryScheduled) {
+      return;
+    }
+    _registrationRetryScheduled = true;
+    Future<void>.delayed(_kRegistrationRetryDelay, () async {
+      _registrationRetryScheduled = false;
+      if (!PushProviderGuard.isUnifiedPush || !Platform.isAndroid) {
+        return;
+      }
+      await syncRegistration(force: true);
+    });
   }
 
   void _onUnregistered(String instance) {
