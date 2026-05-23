@@ -108,6 +108,8 @@ class AppStartup extends _$AppStartup {
       ..read(gatewayConnectBindingProvider)
       ..read(gatewayEventListenerProvider)
       ..read(gatewayStateListenerProvider)
+      ..read(gatewayForegroundListenerProvider)
+      ..read(gatewayReconnectToastListenerProvider)
       ..read(connectivityListenerProvider)
       ..read(fluxerSfxIncomingRingBindingProvider)
       ..read(fluxerMessageSfxBindingProvider);

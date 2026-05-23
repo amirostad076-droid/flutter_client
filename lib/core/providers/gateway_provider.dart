@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
@@ -16,7 +15,6 @@ import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
-import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/settings/providers/connections_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
@@ -24,6 +22,7 @@ import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 export 'gateway_connection_provider.dart';
+export 'gateway_reconnect_provider.dart';
 
 part 'gateway_provider.g.dart';
 
@@ -189,49 +188,6 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       talker.error('[Gateway] Event stream error: $error');
     },
   );
-
-  ref.onDispose(subscription.cancel);
-  return subscription;
-}
-
-@Riverpod(keepAlive: true)
-Raw<StreamSubscription<GatewayState>?> gatewayStateListener(Ref ref) {
-  final connection = ref.watch(gatewayConnectionProvider);
-
-  final subscription = connection.stateChanges.listen((state) {
-    final reachable = ref.read(serverReachableProvider.notifier);
-    switch (state) {
-      case GatewayState.connected:
-        reachable.setReachable(value: true);
-      case GatewayState.disconnected:
-        reachable.setReachable(value: false);
-        ref.read(guildSyncProvider.notifier).clearAll();
-      case GatewayState.connecting:
-      case GatewayState.reconnecting:
-        break;
-    }
-  });
-
-  ref.onDispose(subscription.cancel);
-  return subscription;
-}
-
-/// Monitors network connectivity and triggers immediate gateway reconnect
-/// when the device comes back online.
-@Riverpod(keepAlive: true)
-Raw<StreamSubscription<List<ConnectivityResult>>?> connectivityListener(
-  Ref ref,
-) {
-  final connection = ref.watch(gatewayConnectionProvider);
-
-  final subscription = Connectivity().onConnectivityChanged.listen((results) {
-    final hasConnection = results.any((r) => r != ConnectivityResult.none);
-
-    if (hasConnection && connection.state == GatewayState.disconnected) {
-      talker.info('[Gateway] Network restored, reconnecting immediately');
-      unawaited(connection.connect());
-    }
-  });
 
   ref.onDispose(subscription.cancel);
   return subscription;

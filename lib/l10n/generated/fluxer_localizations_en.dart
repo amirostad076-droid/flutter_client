@@ -16,6 +16,12 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Something is wrong with the servers.\nShould be fixed in a second!';
 
   @override
+  String get gatewayReconnectingToast => 'Reconnecting…';
+
+  @override
+  String get gatewayConnectedToast => 'Connected';
+
+  @override
   String splashStartupFailed(String error) {
     return 'Failed to start: $error';
   }

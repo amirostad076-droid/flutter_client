@@ -18,6 +18,17 @@ class AppUiForeground extends _$AppUiForeground {
   }
 }
 
+/// When the app last entered [AppLifecycleState.paused] or [hidden].
+@Riverpod(keepAlive: true)
+class AppLastBackgroundedAt extends _$AppLastBackgroundedAt {
+  @override
+  DateTime? build() => null;
+
+  void set(DateTime? value) {
+    state = value;
+  }
+}
+
 /// Pushes [WidgetsBindingObserver] lifecycle into [appUiForegroundProvider].
 class AppUiLifecycleObserver extends ConsumerStatefulWidget {
   const AppUiLifecycleObserver({required this.child, super.key});
@@ -58,6 +69,12 @@ class _AppUiLifecycleObserverState extends ConsumerState<AppUiLifecycleObserver>
   void _syncLifecycle(AppLifecycleState? state) {
     if (!mounted || state == null) {
       return;
+    }
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      ref
+          .read(appLastBackgroundedAtProvider.notifier)
+          .set(DateTime.now());
     }
     ref
         .read(appUiForegroundProvider.notifier)

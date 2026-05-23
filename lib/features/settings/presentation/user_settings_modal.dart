@@ -237,6 +237,9 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
       ..invalidate(gatewayConnectionProvider)
       ..invalidate(gatewayEventListenerProvider)
       ..invalidate(gatewayStateListenerProvider)
+      ..invalidate(gatewayForegroundListenerProvider)
+      ..invalidate(gatewayReconnectToastListenerProvider)
+      ..invalidate(gatewayConnectionFailedProvider)
       ..invalidate(connectivityListenerProvider)
       // Gateway event state
       ..invalidate(typingIndicatorsProvider)
@@ -553,6 +556,9 @@ class _MobileSettingsNavBodyState
       ..invalidate(gatewayConnectionProvider)
       ..invalidate(gatewayEventListenerProvider)
       ..invalidate(gatewayStateListenerProvider)
+      ..invalidate(gatewayForegroundListenerProvider)
+      ..invalidate(gatewayReconnectToastListenerProvider)
+      ..invalidate(gatewayConnectionFailedProvider)
       ..invalidate(connectivityListenerProvider)
       // Gateway event state
       ..invalidate(typingIndicatorsProvider)

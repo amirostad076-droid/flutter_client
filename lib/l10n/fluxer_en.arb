@@ -8,6 +8,14 @@
   "@reconnectingBody": {
     "description": "Subtitle on the reconnecting screen explaining temporary server issues."
   },
+  "gatewayReconnectingToast": "Reconnecting…",
+  "@gatewayReconnectingToast": {
+    "description": "Toast shown when the gateway connection is lost and reconnecting."
+  },
+  "gatewayConnectedToast": "Connected",
+  "@gatewayConnectedToast": {
+    "description": "Toast shown when the gateway connection is restored."
+  },
   "splashStartupFailed": "Failed to start: {error}",
   "@splashStartupFailed": {
     "description": "Error message on the splash screen when app startup fails.",

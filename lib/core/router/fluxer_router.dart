@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
 import 'package:fluxer_app/core/router/channel_persistence_observer.dart';
 import 'package:fluxer_app/core/router/shell_navigator_keys.dart';
 import 'package:fluxer_app/core/router/shell_popup_route_observer.dart';
@@ -130,6 +131,7 @@ GoRouter fluxerRouter(Ref ref) {
   ref
     ..listen(authStateProvider, (_, _) => refreshNotifier.notify())
     ..listen(serverReachableProvider, (_, _) => refreshNotifier.notify())
+    ..listen(gatewayConnectionFailedProvider, (_, _) => refreshNotifier.notify())
     ..listen(gatewayReadyProvider, (_, _) => refreshNotifier.notify())
     ..listen(appStartupProvider, (_, _) => refreshNotifier.notify());
 
@@ -162,13 +164,20 @@ GoRouter fluxerRouter(Ref ref) {
       final isOnLoading = location == '/loading';
 
       final isAuthenticated = ref.read(authStateProvider);
-      final isReachable = ref.read(serverReachableProvider);
+      final isConnectionFailed = ref.read(gatewayConnectionFailedProvider);
       final isGatewayReady = ref.read(gatewayReadyProvider);
       final isStartupComplete = ref.read(appStartupProvider) is AsyncData;
 
       // Still starting up — stay on splash.
       if (!isStartupComplete) {
         return isOnLoading ? null : '/loading';
+      }
+
+      final isLoggingIn = location == '/login';
+      final isOnReconnecting = location == '/reconnecting';
+
+      if (isAuthenticated && isConnectionFailed && !isOnReconnecting) {
+        return '/reconnecting';
       }
 
       // Authenticated but gateway hasn't delivered READY yet — stay on splash.
@@ -180,22 +189,15 @@ GoRouter fluxerRouter(Ref ref) {
         if (!isAuthenticated) {
           return '/login';
         }
-        if (!isReachable) {
-          return '/reconnecting';
-        }
         return RoutePaths.me;
       }
-
-      final isLoggingIn = location == '/login';
-      final isOnReconnecting = location == '/reconnecting';
 
       if (!isAuthenticated && !isLoggingIn) {
         return '/login';
       }
-      if (isAuthenticated && !isReachable && !isOnReconnecting) {
-        return '/reconnecting';
-      }
-      if (isAuthenticated && isReachable && (isLoggingIn || isOnReconnecting)) {
+      if (isAuthenticated &&
+          !isConnectionFailed &&
+          (isLoggingIn || isOnReconnecting)) {
         return RoutePaths.me;
       }
 

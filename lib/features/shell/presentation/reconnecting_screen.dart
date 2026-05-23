@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -23,7 +24,18 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      unawaited(_retryConnection());
+    });
     _scheduleRetry();
+  }
+
+  Future<void> _retryConnection() async {
+    await ref.read(gatewayConnectionProvider).reconnectNow();
+    await ref.read(appStartupProvider.notifier).retry();
   }
 
   @override
@@ -34,7 +46,7 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
 
   void _scheduleRetry() {
     _retryTimer = Timer(_kRetryDelay, () async {
-      await ref.read(appStartupProvider.notifier).retry();
+      await _retryConnection();
       if (mounted) {
         _scheduleRetry();
       }

@@ -2379,9 +2379,10 @@ packages:
   zstd_dart:
     dependency: transitive
     description:
-      path: "dart_sdk/zstd_dart"
-      relative: true
-    source: path
+      name: zstd_dart
+      sha256: f819f6a7dcfed47f3eac07f830a7cf58c2dbb9fd4863c96db334f90e4261bfd4
+      url: "https://pub.dev"
+    source: hosted
     version: "1.0.0"
 sdks:
   dart: ">=3.11.1 <4.0.0"

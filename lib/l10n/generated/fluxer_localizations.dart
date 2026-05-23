@@ -106,6 +106,18 @@ abstract class FluxerLocalizations {
   /// **'Something is wrong with the servers.\nShould be fixed in a second!'**
   String get reconnectingBody;
 
+  /// Toast shown when the gateway connection is lost and reconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting…'**
+  String get gatewayReconnectingToast;
+
+  /// Toast shown when the gateway connection is restored.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get gatewayConnectedToast;
+
   /// Error message on the splash screen when app startup fails.
   ///
   /// In en, this message translates to:
