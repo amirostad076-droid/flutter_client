@@ -48,5 +48,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Firebase (FCM flavor builds)
+/android/app/google-services.json
+packages/fluxer_fcm/lib/firebase_options.dart
+
 # Git worktrees
 .worktrees/
+packages/fluxer_fcm/build/
+packages/fluxer_fcm/pubspec.lock

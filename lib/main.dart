@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/app.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
+import 'package:fluxer_app/core/push/fcm/fcm_entrypoint.dart';
 import 'package:fluxer_app/core/push/services/unified_push_service.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
@@ -24,6 +25,7 @@ void _configureImagePicker() {
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  bootstrapFcmIfNeeded();
   _configureImagePicker();
   final bool isUnifiedPushBackground = args.contains('--unifiedpush-bg') &&
       Platform.isAndroid &&

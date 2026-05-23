@@ -7,6 +7,11 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val requestedTasks = gradle.startParameter.taskNames.joinToString(" ").lowercase()
+if (requestedTasks.contains("fcm")) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 val hasKeystoreProperties = keystorePropertiesFile.exists()

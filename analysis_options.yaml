@@ -9,6 +9,9 @@ analyzer:
     - "**/*.freezed.dart"
     - "cloudflare_turnstile/**"
     - "dart_sdk/**"
+    - "lib/core/push/**/*.fcm.dart"
+    - "lib/core/push/services/firebase_messaging_push_service.fcm.dart"
+    - "packages/fluxer_fcm/**"
 
 language:
   strict-casts: true

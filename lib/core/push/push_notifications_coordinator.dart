@@ -9,6 +9,8 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/apns/apple_push_notification_tap_binding.dart';
+import 'package:fluxer_app/core/push/fcm/fcm_mobile_device_registration.dart';
+import 'package:fluxer_app/core/push/fcm/fcm_notification_tap_binding.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
 import 'package:fluxer_app/core/push/push_notification_permission.dart';
@@ -29,7 +31,9 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
 
   @override
   bool build() {
-    ref.read(applePushNotificationTapBindingProvider);
+    ref
+      ..read(applePushNotificationTapBindingProvider)
+      ..read(fcmNotificationTapBindingProvider);
     if (!_bootstrapScheduled) {
       _bootstrapScheduled = true;
       SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -70,6 +74,11 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
       if (PushProviderGuard.isApple) {
         unawaited(
           ref.read(apnsMobileDeviceRegistrationProvider.notifier).sync(),
+        );
+      }
+      if (PushProviderGuard.isFirebaseMessaging) {
+        unawaited(
+          ref.read(fcmMobileDeviceRegistrationProvider.notifier).sync(),
         );
       }
       if (PushProviderGuard.isUnifiedPush) {

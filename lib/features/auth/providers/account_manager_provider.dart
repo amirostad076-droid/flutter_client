@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart' hide AuthSession;
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
+import 'package:fluxer_app/core/push/fcm/fcm_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/services/unified_push_service.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -105,6 +106,11 @@ class AccountManager extends _$AccountManager {
             .read(apnsMobileDeviceRegistrationProvider.notifier)
             .unregisterCurrentToken();
       }
+      if (PushProviderGuard.isFirebaseMessaging) {
+        await ref
+            .read(fcmMobileDeviceRegistrationProvider.notifier)
+            .unregisterCurrentToken();
+      }
 
       // Trigger full app restart with new session.
       ref.invalidate(appStartupProvider);
@@ -149,6 +155,11 @@ class AccountManager extends _$AccountManager {
     if (PushProviderGuard.isApple) {
       await ref
           .read(apnsMobileDeviceRegistrationProvider.notifier)
+          .unregisterCurrentToken();
+    }
+    if (PushProviderGuard.isFirebaseMessaging) {
+      await ref
+          .read(fcmMobileDeviceRegistrationProvider.notifier)
           .unregisterCurrentToken();
     }
     if (PushProviderGuard.isUnifiedPush) {
