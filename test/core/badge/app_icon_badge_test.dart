@@ -10,20 +10,28 @@ void main() {
         dmMentionCount: 2,
         pendingFriendRequestCount: 1,
         guildHasPlainUnread: false,
-        dmHasPlainUnread: false,
       );
       expect(badge.count, 6);
     });
 
-    test('shows 1 for plain unread when no mentions', () {
+    test('shows 1 for guild plain unread when no mentions', () {
       final badge = computeAppIconBadge(
         guildMentionCount: 0,
         dmMentionCount: 0,
         pendingFriendRequestCount: 0,
         guildHasPlainUnread: true,
-        dmHasPlainUnread: false,
       );
       expect(badge.count, 1);
+    });
+
+    test('dm plain unread does not show dot badge', () {
+      final badge = computeAppIconBadge(
+        guildMentionCount: 0,
+        dmMentionCount: 0,
+        pendingFriendRequestCount: 0,
+        guildHasPlainUnread: false,
+      );
+      expect(badge.count, 0);
     });
 
     test('clears when no unread and unread badge disabled', () {
@@ -32,7 +40,6 @@ void main() {
         dmMentionCount: 0,
         pendingFriendRequestCount: 0,
         guildHasPlainUnread: true,
-        dmHasPlainUnread: false,
         unreadMessageBadgeEnabled: false,
       );
       expect(badge.count, 0);
@@ -44,26 +51,8 @@ void main() {
         dmMentionCount: 0,
         pendingFriendRequestCount: 0,
         guildHasPlainUnread: true,
-        dmHasPlainUnread: true,
       );
       expect(badge.count, 1);
-    });
-  });
-
-  group('guildEntryHasPlainUnread', () {
-    test('true only when unread without mentions', () {
-      expect(
-        guildEntryHasPlainUnread(hasUnread: true, mentionCount: 0),
-        isTrue,
-      );
-      expect(
-        guildEntryHasPlainUnread(hasUnread: true, mentionCount: 2),
-        isFalse,
-      );
-      expect(
-        guildEntryHasPlainUnread(hasUnread: false, mentionCount: 0),
-        isFalse,
-      );
     });
   });
 

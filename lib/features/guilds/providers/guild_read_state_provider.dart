@@ -20,6 +20,7 @@ const int _categoryType = 4;
 class GuildReadStateEntry {
   const GuildReadStateEntry({
     required this.hasUnread,
+    required this.hasPlainUnread,
     required this.mentionCount,
     required this.mentionChannels,
     required this.unreadChannelId,
@@ -28,6 +29,7 @@ class GuildReadStateEntry {
 
   static const GuildReadStateEntry empty = GuildReadStateEntry(
     hasUnread: false,
+    hasPlainUnread: false,
     mentionCount: 0,
     mentionChannels: <String>{},
     unreadChannelId: null,
@@ -35,6 +37,7 @@ class GuildReadStateEntry {
   );
 
   final bool hasUnread;
+  final bool hasPlainUnread;
   final int mentionCount;
   final Set<String> mentionChannels;
   final String? unreadChannelId;
@@ -42,6 +45,9 @@ class GuildReadStateEntry {
 
   bool hasSameFields(GuildReadStateEntry other) {
     if (hasUnread != other.hasUnread) {
+      return false;
+    }
+    if (hasPlainUnread != other.hasPlainUnread) {
       return false;
     }
     if (mentionCount != other.mentionCount) {
@@ -58,12 +64,14 @@ class GuildReadStateEntry {
 
   GuildReadStateEntry copyWith({
     bool? hasUnread,
+    bool? hasPlainUnread,
     int? mentionCount,
     Set<String>? mentionChannels,
     Object? unreadChannelId = _sentinel,
     int? sentinel,
   }) => GuildReadStateEntry(
     hasUnread: hasUnread ?? this.hasUnread,
+    hasPlainUnread: hasPlainUnread ?? this.hasPlainUnread,
     mentionCount: mentionCount ?? this.mentionCount,
     mentionChannels: mentionChannels ?? this.mentionChannels,
     unreadChannelId: identical(unreadChannelId, _sentinel)
@@ -228,6 +236,7 @@ class GuildReadState extends _$GuildReadState {
 
     final now = DateTime.now();
     var anyUnread = false;
+    var anyPlainUnread = false;
     var totalMentions = 0;
     String? firstUnreadChannelId;
     final mentionChannels = <String>{};
@@ -256,10 +265,14 @@ class GuildReadState extends _$GuildReadState {
         anyUnread = true;
         firstUnreadChannelId ??= channel.id;
       }
+      if (contribution.hasPlainUnread) {
+        anyPlainUnread = true;
+      }
     }
 
     return GuildReadStateEntry(
       hasUnread: anyUnread || totalMentions > 0,
+      hasPlainUnread: anyPlainUnread,
       mentionCount: totalMentions,
       mentionChannels: mentionChannels,
       unreadChannelId: firstUnreadChannelId,
@@ -294,11 +307,19 @@ class GuildReadState extends _$GuildReadState {
     final mentions = unreadSettings.allowsMentionUnread ? visibleMentions : 0;
 
     if (isVoice) {
-      return _Contribution(unreadEligible: false, mentions: mentions);
+      return _Contribution(
+        unreadEligible: false,
+        hasPlainUnread: false,
+        mentions: mentions,
+      );
     }
 
     if (!unreadSettings.allowsGuildMessageUnread && mentions == 0) {
-      return const _Contribution(unreadEligible: false, mentions: 0);
+      return const _Contribution(
+        unreadEligible: false,
+        hasPlainUnread: false,
+        mentions: 0,
+      );
     }
 
     final fallbackAckMs = await guildChannelFallbackAckMs(
@@ -314,7 +335,11 @@ class GuildReadState extends _$GuildReadState {
       now: now,
     );
     if (staleSuppressed) {
-      return _Contribution(unreadEligible: false, mentions: mentions);
+      return _Contribution(
+        unreadEligible: false,
+        hasPlainUnread: false,
+        mentions: mentions,
+      );
     }
 
     final hasUnreadMessage = hasUnreadByReadState(
@@ -323,11 +348,17 @@ class GuildReadState extends _$GuildReadState {
       fallbackAckMs: fallbackAckMs,
       mentionCount: 0,
     );
-    final eligible =
-        mentions > 0 ||
-        (unreadSettings.allowsGuildMessageUnread && hasUnreadMessage);
+    final bool hasPlainUnread =
+        mentions == 0 &&
+        unreadSettings.allowsGuildMessageUnread &&
+        hasUnreadMessage;
+    final eligible = mentions > 0 || hasPlainUnread;
 
-    return _Contribution(unreadEligible: eligible, mentions: mentions);
+    return _Contribution(
+      unreadEligible: eligible,
+      hasPlainUnread: hasPlainUnread,
+      mentions: mentions,
+    );
   }
 }
 
@@ -384,8 +415,13 @@ bool _channelEquals(Channel a, Channel b) =>
     a.parentId == b.parentId;
 
 class _Contribution {
-  const _Contribution({required this.unreadEligible, required this.mentions});
+  const _Contribution({
+    required this.unreadEligible,
+    required this.hasPlainUnread,
+    required this.mentions,
+  });
 
   final bool unreadEligible;
+  final bool hasPlainUnread;
   final int mentions;
 }

@@ -6,16 +6,15 @@ class AppIconBadgeValue {
   final int count;
 }
 
-/// Default matches web Notification.unreadMessageBadgeEnabled.
 const bool kDefaultUnreadMessageBadgeEnabled = true;
 
-/// Computes the app-icon badge count
+/// Plain-unread dot applies to guild channels only. 
+/// DM plain unread does not contribute to the dot.
 AppIconBadgeValue computeAppIconBadge({
   required int guildMentionCount,
   required int dmMentionCount,
   required int pendingFriendRequestCount,
   required bool guildHasPlainUnread,
-  required bool dmHasPlainUnread,
   bool unreadMessageBadgeEnabled = kDefaultUnreadMessageBadgeEnabled,
 }) {
   final int mentionTotal = guildMentionCount + dmMentionCount;
@@ -23,15 +22,8 @@ AppIconBadgeValue computeAppIconBadge({
   if (totalCount > 0) {
     return AppIconBadgeValue(count: totalCount);
   }
-  final bool hasPlainUnread = guildHasPlainUnread || dmHasPlainUnread;
-  if (hasPlainUnread && unreadMessageBadgeEnabled) {
+  if (guildHasPlainUnread && unreadMessageBadgeEnabled) {
     return const AppIconBadgeValue(count: 1);
   }
   return const AppIconBadgeValue(count: 0);
 }
-
-/// Whether a guild entry contributes plain unread (not mentions).
-bool guildEntryHasPlainUnread({
-  required bool hasUnread,
-  required int mentionCount,
-}) => hasUnread && mentionCount == 0;
