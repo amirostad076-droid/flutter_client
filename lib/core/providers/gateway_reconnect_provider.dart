@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
@@ -16,8 +17,25 @@ part 'gateway_reconnect_provider.g.dart';
 
 const Duration kGatewayReconnectFailureTimeout = Duration(seconds: 30);
 const Duration kForegroundStaleReconnectThreshold = Duration(seconds: 30);
+const Duration kResumeReconnectDelay = Duration(milliseconds: 500);
 
 final FluxerLocalizationsEn _gatewayL10n = FluxerLocalizationsEn();
+
+/// Waits for the network stack after resume, then nudges the gateway socket.
+Future<void> nudgeGatewayReconnectAfterResume(GatewayConnection connection) async {
+  await Future<void>.delayed(kResumeReconnectDelay);
+  final List<ConnectivityResult> results =
+      await Connectivity().checkConnectivity();
+  final bool hasConnection = results.any(
+    (ConnectivityResult r) => r != ConnectivityResult.none,
+  );
+  if (!hasConnection) {
+    talker.warning('[Gateway] Resume reconnect skipped: no connectivity');
+    return;
+  }
+  talker.info('[Gateway] Resume reconnect starting');
+  await connection.reconnectNow();
+}
 
 @Riverpod(keepAlive: true)
 class GatewayConnectionFailed extends _$GatewayConnectionFailed {
@@ -73,8 +91,13 @@ Raw<StreamSubscription<GatewayState>?> gatewayStateListener(Ref ref) {
       case GatewayState.connecting:
       case GatewayState.reconnecting:
         ref.read(serverReachableProvider.notifier).setReachable(value: true);
-        ref.read(gatewayConnectionFailedProvider.notifier).reset();
-        scheduleFailureTimeout();
+        final bool onFailureScreen = ref.read(gatewayConnectionFailedProvider);
+        if (onFailureScreen) {
+          clearFailureTimer();
+        } else {
+          ref.read(gatewayConnectionFailedProvider.notifier).reset();
+          scheduleFailureTimeout();
+        }
       case GatewayState.disconnected:
         break;
       case GatewayState.failed:
@@ -98,14 +121,22 @@ void gatewayForegroundListener(Ref ref) {
     }
     final GatewayConnection connection = ref.read(gatewayConnectionProvider);
     final DateTime? backgroundedAt = ref.read(appLastBackgroundedAtProvider);
+    final Duration? backgroundDuration = backgroundedAt != null
+        ? DateTime.now().difference(backgroundedAt)
+        : null;
     final bool isStaleConnected =
         connection.state == GatewayState.connected &&
-        backgroundedAt != null &&
-        DateTime.now().difference(backgroundedAt) >
-            kForegroundStaleReconnectThreshold;
-    if (connection.state != GatewayState.connected || isStaleConnected) {
-      talker.info('[Gateway] App resumed, nudging reconnect');
-      unawaited(connection.reconnectNow());
+        backgroundDuration != null &&
+        backgroundDuration > kForegroundStaleReconnectThreshold;
+    final bool forceAndroidReconnect =
+        Platform.isAndroid &&
+        (backgroundDuration == null ||
+            backgroundDuration > const Duration(seconds: 5));
+    if (forceAndroidReconnect ||
+        connection.state != GatewayState.connected ||
+        isStaleConnected) {
+      talker.info('[Gateway] App resumed, scheduling reconnect');
+      unawaited(nudgeGatewayReconnectAfterResume(connection));
     }
   });
 }

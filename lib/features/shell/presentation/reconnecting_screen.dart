@@ -1,15 +1,20 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
+import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_dart/gateway.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-const _kRetryDelay = Duration(seconds: 5);
+const Duration _kRetryDelay = Duration(seconds: 3);
 
 class ReconnectingScreen extends ConsumerStatefulWidget {
   const ReconnectingScreen({super.key});
@@ -20,6 +25,7 @@ class ReconnectingScreen extends ConsumerStatefulWidget {
 
 class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
   Timer? _retryTimer;
+  var _retryInFlight = false;
 
   @override
   void initState() {
@@ -33,15 +39,31 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
     _scheduleRetry();
   }
 
-  Future<void> _retryConnection() async {
-    await ref.read(gatewayConnectionProvider).reconnectNow();
-    await ref.read(appStartupProvider.notifier).retry();
-  }
-
   @override
   void dispose() {
     _retryTimer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _retryConnection() async {
+    if (_retryInFlight) {
+      return;
+    }
+    _retryInFlight = true;
+    try {
+      final List<ConnectivityResult> results =
+          await Connectivity().checkConnectivity();
+      final bool hasConnection = results.any(
+        (ConnectivityResult r) => r != ConnectivityResult.none,
+      );
+      if (!hasConnection) {
+        return;
+      }
+      await ref.read(gatewayConnectionProvider).reconnectNow();
+      await ref.read(appStartupProvider.notifier).retry();
+    } finally {
+      _retryInFlight = false;
+    }
   }
 
   void _scheduleRetry() {
@@ -56,6 +78,20 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
   @override
   Widget build(BuildContext context) {
     final FluxerLocalizations strings = FluxerLocalizations.of(context);
+    ref.listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
+      if (previous == false && next) {
+        unawaited(_retryConnection());
+      }
+    });
+    ref.listen<GatewayConnection>(gatewayConnectionProvider, (
+      GatewayConnection? _,
+      GatewayConnection next,
+    ) {
+      if (next.state == GatewayState.connected) {
+        ref.read(gatewayConnectionFailedProvider.notifier).reset();
+        ref.read(serverReachableProvider.notifier).setReachable(value: true);
+      }
+    });
     return Scaffold(
       backgroundColor: context.colors.backgroundPrimary,
       body: Center(

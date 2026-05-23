@@ -70,11 +70,10 @@ class _AppUiLifecycleObserverState extends ConsumerState<AppUiLifecycleObserver>
     if (!mounted || state == null) {
       return;
     }
-    if (state == AppLifecycleState.paused ||
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
-      ref
-          .read(appLastBackgroundedAtProvider.notifier)
-          .set(DateTime.now());
+      ref.read(appLastBackgroundedAtProvider.notifier).set(DateTime.now());
     }
     ref
         .read(appUiForegroundProvider.notifier)

@@ -197,7 +197,13 @@ GoRouter fluxerRouter(Ref ref) {
       }
       if (isAuthenticated &&
           !isConnectionFailed &&
-          (isLoggingIn || isOnReconnecting)) {
+          isLoggingIn) {
+        return RoutePaths.me;
+      }
+      if (isAuthenticated &&
+          !isConnectionFailed &&
+          isOnReconnecting &&
+          isGatewayReady) {
         return RoutePaths.me;
       }
 
