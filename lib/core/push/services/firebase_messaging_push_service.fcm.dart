@@ -44,6 +44,8 @@ final class _FcmTapBindingHostAdapter implements FcmTapBindingHost {
 
   @override
   void setNotificationTapCallback(FcmNotificationTapCallback? callback) {
-    _delegate.setNotificationTapCallback(callback);
+    _delegate.setNotificationTapCallback(
+      callback == null ? null : (Map<String, String> payload) => callback(payload),
+    );
   }
 }

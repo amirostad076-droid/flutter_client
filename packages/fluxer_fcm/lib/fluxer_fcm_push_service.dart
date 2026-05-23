@@ -7,8 +7,6 @@ import 'package:fluxer_fcm/fcm_message_mapper.dart';
 import 'package:fluxer_fcm/fcm_push_message.dart';
 import 'package:fluxer_fcm/firebase_options.dart';
 
-typedef FcmNotificationTapCallback = void Function(Map<String, String> payload);
-
 class FluxerFcmPushService {
   factory FluxerFcmPushService() => instance;
 
@@ -22,11 +20,13 @@ class FluxerFcmPushService {
       StreamController<String>.broadcast();
 
   bool _initialized = false;
-  FcmNotificationTapCallback? _onNotificationTap;
+  void Function(Map<String, String> payload)? _onNotificationTap;
 
   Stream<String> get tokenRefreshStream => _tokenRefresh.stream;
 
-  void setNotificationTapCallback(FcmNotificationTapCallback? callback) {
+  void setNotificationTapCallback(
+    void Function(Map<String, String> payload)? callback,
+  ) {
     _onNotificationTap = callback;
   }
 
