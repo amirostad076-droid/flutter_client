@@ -46,6 +46,7 @@ part 'chat_view_model.g.dart';
 
 const _kPageSize = 30;
 const _kReadAckMinInterval = Duration(seconds: 1);
+const _kDraftSaveDebounce = Duration(milliseconds: 400);
 
 enum _SendBlockReason { empty, noPermission, slowmode, channelNotReady }
 
@@ -148,6 +149,7 @@ class ChatViewModel extends _$ChatViewModel {
     minInterval: _kReadAckMinInterval,
   );
   Timer? _readAckRetryTimer;
+  Timer? _draftSaveTimer;
   final Set<String> _loadedUnreadBoundaryKeys = <String>{};
   bool _readViewportActive = false;
   bool _readViewportNearBottom = true;
@@ -170,6 +172,7 @@ class ChatViewModel extends _$ChatViewModel {
       })
       ..onDispose(() {
         _readAckRetryTimer?.cancel();
+        _draftSaveTimer?.cancel();
         unawaited(_eventsSub?.cancel());
       });
     return const ChatViewState(
@@ -212,6 +215,9 @@ class ChatViewModel extends _$ChatViewModel {
         replyingTo: clearComposerForDelete ? null : state.replyingTo,
         forwardingFrom: clearComposerForDelete ? null : state.forwardingFrom,
       );
+      if (clearComposerForDelete) {
+        unawaited(_flushComposerDraftSave());
+      }
       if (ev is MessageCreated) {
         if (ev.event.message.author.id == ref.read(currentUserIdProvider)) {
           clearStickyUnread();
@@ -225,6 +231,9 @@ class ChatViewModel extends _$ChatViewModel {
         replyingTo: clearComposerForDelete ? null : state.replyingTo,
         forwardingFrom: clearComposerForDelete ? null : state.forwardingFrom,
       );
+      if (clearComposerForDelete) {
+        unawaited(_flushComposerDraftSave());
+      }
     }
   }
 
@@ -379,6 +388,116 @@ class ChatViewModel extends _$ChatViewModel {
     return filtered.length == list.length ? null : filtered;
   }
 
+  Future<void> _flushComposerDraftSave() async {
+    _draftSaveTimer?.cancel();
+    _draftSaveTimer = null;
+    await _persistComposerDraft();
+  }
+
+  void _scheduleComposerDraftSave() {
+    if (state.editingMessage != null || state.channelId.isEmpty) {
+      return;
+    }
+    _draftSaveTimer?.cancel();
+    _draftSaveTimer = Timer(_kDraftSaveDebounce, () {
+      unawaited(_persistComposerDraft());
+    });
+  }
+
+  Future<void> _persistComposerDraft() async {
+    if (state.editingMessage != null || state.channelId.isEmpty) {
+      return;
+    }
+    final String content = state.messageText;
+    final String? replyId = state.replyingTo?.id;
+    final String? forwardId = state.forwardingFrom?.id;
+    final bool hasDraft =
+        content.isNotEmpty || replyId != null || forwardId != null;
+    final dao = ref.read(fluxerDatabaseProvider).composerDraftDao;
+    if (!hasDraft) {
+      await dao.deleteDraft(state.channelId);
+      return;
+    }
+    await dao.upsertDraft(
+      channelId: state.channelId,
+      content: content,
+      replyToMessageId: replyId,
+      forwardFromMessageId: forwardId,
+    );
+  }
+
+  Future<({String text, Message? reply, Message? forward})> _loadComposerDraft(
+    String channelId,
+  ) async {
+    final row = await ref
+        .read(fluxerDatabaseProvider)
+        .composerDraftDao
+        .getDraft(channelId);
+    if (row == null) {
+      return (text: '', reply: null, forward: null);
+    }
+    final messageDao = ref.read(fluxerDatabaseProvider).messageDao;
+    Message? reply;
+    if (row.replyToMessageId != null) {
+      final db.Message? dbMsg = await messageDao.getMessage(
+        row.replyToMessageId!,
+      );
+      reply = dbMsg == null ? null : Message.fromRow(dbMsg);
+    }
+    Message? forward;
+    if (row.forwardFromMessageId != null) {
+      final db.Message? dbMsg = await messageDao.getMessage(
+        row.forwardFromMessageId!,
+      );
+      forward = dbMsg == null ? null : Message.fromRow(dbMsg);
+    }
+    return (text: row.content, reply: reply, forward: forward);
+  }
+
+  Future<void> _restoreComposerDraftFromDb() async {
+    final String channelId = state.channelId;
+    if (channelId.isEmpty) {
+      return;
+    }
+    final draft = await _loadComposerDraft(channelId);
+    state = state.copyWith(
+      messageText: draft.text,
+      replyingTo: draft.reply,
+      forwardingFrom: draft.forward,
+    );
+  }
+
+  ChatViewState _switchedChannelState({
+    required String channelId,
+    required List<Message> messages,
+    required ({String text, Message? reply, Message? forward}) draft,
+    required int scrollToBottomSignal,
+    required bool isLoading,
+    required bool isSyncingMessages,
+    required bool isLoadingMore,
+    required bool isLoadingNewer,
+    required bool hasMoreMessages,
+    required bool hasMoreNewerMessages,
+    String? errorMessage,
+  }) {
+    return ChatViewState(
+      channelId: channelId,
+      messages: messages,
+      replyingTo: draft.reply,
+      forwardingFrom: draft.forward,
+      editingMessage: null,
+      messageText: draft.text,
+      scrollToBottomSignal: scrollToBottomSignal,
+      isLoading: isLoading,
+      isSyncingMessages: isSyncingMessages,
+      isLoadingMore: isLoadingMore,
+      isLoadingNewer: isLoadingNewer,
+      hasMoreMessages: hasMoreMessages,
+      hasMoreNewerMessages: hasMoreNewerMessages,
+      errorMessage: errorMessage,
+    );
+  }
+
   Future<void> switchChannel(
     String channelId, {
     String? targetMessageId,
@@ -388,6 +507,7 @@ class ChatViewModel extends _$ChatViewModel {
       _readViewportNearBottom = false;
     }
     if (state.channelId.isNotEmpty && state.channelId != channelId) {
+      await _flushComposerDraftSave();
       final previousChannelId = state.channelId;
       _readAckRetryTimer?.cancel();
       _clearManualUnread(previousChannelId);
@@ -396,17 +516,15 @@ class ChatViewModel extends _$ChatViewModel {
           .read(messageReferencesProvider.notifier)
           .clearChannel(previousChannelId);
     }
+    final draft = await _loadComposerDraft(channelId);
     if (!loadMessages) {
       if (state.channelId == channelId) {
         return;
       }
-      state = ChatViewState(
+      state = _switchedChannelState(
         channelId: channelId,
         messages: const [],
-        replyingTo: null,
-        forwardingFrom: null,
-        editingMessage: null,
-        messageText: '',
+        draft: draft,
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: false,
         isSyncingMessages: false,
@@ -414,7 +532,6 @@ class ChatViewModel extends _$ChatViewModel {
         isLoadingNewer: false,
         hasMoreMessages: true,
         hasMoreNewerMessages: false,
-        errorMessage: null,
       );
       return;
     }
@@ -422,13 +539,10 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId == channelId && state.isLoading) {
         return;
       }
-      state = ChatViewState(
+      state = _switchedChannelState(
         channelId: channelId,
         messages: const [],
-        replyingTo: null,
-        forwardingFrom: null,
-        editingMessage: null,
-        messageText: '',
+        draft: draft,
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: true,
         isSyncingMessages: false,
@@ -436,7 +550,6 @@ class ChatViewModel extends _$ChatViewModel {
         isLoadingNewer: false,
         hasMoreMessages: true,
         hasMoreNewerMessages: false,
-        errorMessage: null,
       );
       await _loadMessages(channelId, targetMessageId: targetMessageId);
       return;
@@ -449,13 +562,10 @@ class ChatViewModel extends _$ChatViewModel {
     final cached = await repo.getCachedMessages(channelId, limit: _kPageSize);
     final hasUnread = await _channelHasNewUnreadMessages(channelId);
     if (cached.isNotEmpty && !hasUnread) {
-      state = ChatViewState(
+      state = _switchedChannelState(
         channelId: channelId,
         messages: cached,
-        replyingTo: null,
-        forwardingFrom: null,
-        editingMessage: null,
-        messageText: '',
+        draft: draft,
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: false,
         isSyncingMessages: true,
@@ -463,7 +573,6 @@ class ChatViewModel extends _$ChatViewModel {
         isLoadingNewer: false,
         hasMoreMessages: cached.length >= _kPageSize,
         hasMoreNewerMessages: false,
-        errorMessage: null,
       );
       _notifyMessageReferencesLoaded(
         channelId: channelId,
@@ -472,13 +581,10 @@ class ChatViewModel extends _$ChatViewModel {
       unawaited(_refreshMessagesFromNetwork(channelId));
       return;
     }
-    state = ChatViewState(
+    state = _switchedChannelState(
       channelId: channelId,
       messages: const [],
-      replyingTo: null,
-      forwardingFrom: null,
-      editingMessage: null,
-      messageText: '',
+      draft: draft,
       scrollToBottomSignal: state.scrollToBottomSignal,
       isLoading: true,
       isSyncingMessages: false,
@@ -486,7 +592,6 @@ class ChatViewModel extends _$ChatViewModel {
       isLoadingNewer: false,
       hasMoreMessages: true,
       hasMoreNewerMessages: false,
-      errorMessage: null,
     );
     await _refreshMessagesFromNetwork(channelId, showLoadingSpinner: true);
   }
@@ -1248,6 +1353,11 @@ class ChatViewModel extends _$ChatViewModel {
       messages: [...state.messages, optimisticMessage],
       errorMessage: null,
     );
+    if (clearMessageText) {
+      unawaited(
+        ref.read(fluxerDatabaseProvider).composerDraftDao.deleteDraft(channelId),
+      );
+    }
     clearStickyUnread();
     unawaited(ref.read(readStateRepositoryProvider).clearSticky(channelId));
     ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);
@@ -1571,18 +1681,22 @@ class ChatViewModel extends _$ChatViewModel {
 
   void startReply(Message message) {
     state = state.copyWith(replyingTo: message, editingMessage: null);
+    unawaited(_flushComposerDraftSave());
   }
 
   void cancelReply() {
     state = state.copyWith(replyingTo: null);
+    unawaited(_flushComposerDraftSave());
   }
 
   void startForward(Message message) {
     state = state.copyWith(forwardingFrom: message, editingMessage: null);
+    unawaited(_flushComposerDraftSave());
   }
 
   void cancelForward() {
     state = state.copyWith(forwardingFrom: null);
+    unawaited(_flushComposerDraftSave());
   }
 
   void scrollToMessage(String messageId) {
@@ -1671,6 +1785,11 @@ class ChatViewModel extends _$ChatViewModel {
   void updateMessageText(String text) {
     final previous = state.messageText;
     state = state.copyWith(messageText: text);
+    if (state.editingMessage == null && state.channelId.isNotEmpty) {
+      if (text != previous) {
+        _scheduleComposerDraftSave();
+      }
+    }
     if (text.isEmpty || text == previous) {
       return;
     }
@@ -1694,6 +1813,7 @@ class ChatViewModel extends _$ChatViewModel {
 
   void cancelEdit() {
     state = state.copyWith(editingMessage: null, messageText: '');
+    unawaited(_restoreComposerDraftFromDb());
   }
 
   Future<void> saveEditedMessage({String? text}) async {
@@ -1708,7 +1828,7 @@ class ChatViewModel extends _$ChatViewModel {
       talker.debug(
         '[ChatViewModel] edit save noop messageId=${editingMessage.id}',
       );
-      state = state.copyWith(editingMessage: null, messageText: '');
+      state = state.copyWith(editingMessage: null);
       final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
         PlatformDispatcher.instance.locale,
       );
@@ -1718,6 +1838,7 @@ class ChatViewModel extends _$ChatViewModel {
           variant: FluxerToastVariant.warning,
         ),
       );
+      await _restoreComposerDraftFromDb();
       return;
     }
     try {
@@ -1735,9 +1856,9 @@ class ChatViewModel extends _$ChatViewModel {
       state = state.copyWith(
         messages: nextMessages ?? state.messages,
         editingMessage: null,
-        messageText: '',
         errorMessage: null,
       );
+      await _restoreComposerDraftFromDb();
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to edit message: $e');
       state = state.copyWith(errorMessage: 'Failed to edit message');

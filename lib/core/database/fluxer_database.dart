@@ -6,6 +6,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/database/daos/auth_session_dao.dart';
 import 'package:fluxer_app/core/database/daos/channel_dao.dart';
+import 'package:fluxer_app/core/database/daos/composer_draft_dao.dart';
 import 'package:fluxer_app/core/database/daos/dm_channel_dao.dart';
 import 'package:fluxer_app/core/database/daos/dm_folder_settings_dao.dart';
 import 'package:fluxer_app/core/database/daos/emoji_usage_dao.dart';
@@ -32,6 +33,7 @@ import 'package:fluxer_app/core/database/daos/user_preferences_dao.dart';
 import 'package:fluxer_app/core/database/daos/user_settings_dao.dart';
 import 'package:fluxer_app/core/database/tables/auth_sessions.dart';
 import 'package:fluxer_app/core/database/tables/channels.dart';
+import 'package:fluxer_app/core/database/tables/composer_drafts.dart';
 import 'package:fluxer_app/core/database/tables/dm_channels.dart';
 import 'package:fluxer_app/core/database/tables/dm_folder_settings.dart';
 import 'package:fluxer_app/core/database/tables/emoji_usage.dart';
@@ -97,6 +99,7 @@ part 'fluxer_database.g.dart';
     FavoriteCategories,
     FavoriteSettings,
     MobilePushRegistrations,
+    ComposerDrafts,
   ],
   daos: [
     AuthSessionDao,
@@ -113,6 +116,7 @@ part 'fluxer_database.g.dart';
     UserPreferencesDao,
     EmojiUsageDao,
     GuildLastChannelDao,
+    ComposerDraftDao,
     UserSettingsDao,
     UserGuildSettingsDao,
     UserNotesDao,
@@ -133,7 +137,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 45;
+  int get schemaVersion => 46;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -483,6 +487,9 @@ class FluxerDatabase extends _$FluxerDatabase {
       if (from < 45) {
         await m.createTable(mobilePushRegistrations);
       }
+      if (from < 46) {
+        await m.createTable(composerDrafts);
+      }
     },
   );
 
@@ -501,6 +508,7 @@ class FluxerDatabase extends _$FluxerDatabase {
       await readStateDao.clearAll();
       await emojiUsageDao.clearAll();
       await guildLastChannelDao.clearAll();
+      await composerDraftDao.clearAll();
       await userSettingsDao.clearAll();
       await userGuildSettingsDao.clearAll();
       await userNotesDao.clearAll();
