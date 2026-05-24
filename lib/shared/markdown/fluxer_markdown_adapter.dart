@@ -11,11 +11,6 @@ import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/shared/utils/emoji_utils.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 
-final _internalLinkPattern = RegExp(
-  r'https?://fluxer\.app/channels/'
-  r'(?:@me|\d{15,21})/\d{15,21}(?:/\d{15,21})?',
-);
-
 String? _normalizeSpoilerSyncUrl(String url) {
   final uri = Uri.tryParse(url);
   if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
@@ -44,7 +39,7 @@ FluxerMarkdownConfig createFluxerMarkdownConfig({
     inlineCodeBackgroundColor: context?.colors.bgCodeBlock,
     inlineCodeTextColor: context?.colors.textSecondary,
     spoilerBackgroundColor: context?.colors.spoilerBackground,
-    internalLinkPattern: _internalLinkPattern,
+    internalLinkPattern: buildChannelJumpLinkPattern(channelJumpLinkHosts()),
     userMentionBuilder: (context, id, style) {
       return UserMention(userId: id, channelId: channelId, baseStyle: style);
     },

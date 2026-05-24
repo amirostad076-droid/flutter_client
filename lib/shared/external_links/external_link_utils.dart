@@ -1,6 +1,8 @@
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 const implicitlyTrustedDomains = <String>[
+  'fluxer.com',
+  '*.fluxer.com',
   'fluxer.app',
   '*.fluxer.app',
   'fluxer.gg',
