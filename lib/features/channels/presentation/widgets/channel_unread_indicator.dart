@@ -6,11 +6,13 @@ class ChannelUnreadIndicator extends StatelessWidget {
 
   final bool faded;
 
+  static const double size = 8;
+
   @override
   Widget build(BuildContext context) {
     final Widget indicator = Container(
-      width: 4,
-      height:8,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: context.colors.textPrimary,
         borderRadius: const BorderRadius.only(
