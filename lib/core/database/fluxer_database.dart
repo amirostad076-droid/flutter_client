@@ -137,7 +137,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 46;
+  int get schemaVersion => 47;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -489,6 +489,21 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 46) {
         await m.createTable(composerDrafts);
+      }
+      if (from < 47) {
+        final List<QueryRow> messageColumns = await customSelect(
+          'PRAGMA table_info(messages)',
+        ).get();
+        final bool hasReactionsJson = messageColumns.any(
+          (QueryRow row) => row.read<String?>('name') == 'reactions_json',
+        );
+        if (!hasReactionsJson) {
+          await m.addColumn(messages, messages.reactionsJson);
+        }
+        await customStatement(
+          'UPDATE messages SET reactions_json = ? WHERE reactions_json IS NULL',
+          ['[]'],
+        );
       }
     },
   );
