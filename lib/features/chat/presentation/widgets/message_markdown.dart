@@ -12,6 +12,8 @@ class MessageMarkdown extends StatelessWidget {
     this.markdownContext = FluxerMarkdownContext.standardWithJumbo,
     this.revealSpoilers = false,
     this.spoilerSyncController,
+    this.maxLines,
+    this.overflow,
     super.key,
   });
 
@@ -22,6 +24,8 @@ class MessageMarkdown extends StatelessWidget {
   final FluxerMarkdownContext markdownContext;
   final bool revealSpoilers;
   final FluxerSpoilerSyncController? spoilerSyncController;
+  final int? maxLines;
+  final TextOverflow? overflow;
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +40,8 @@ class MessageMarkdown extends StatelessWidget {
       baseStyle: baseStyle ?? context.textStyles.messageText,
       selectable: selectable,
       context: markdownContext,
+      maxLines: maxLines,
+      overflow: overflow,
     );
   }
 }

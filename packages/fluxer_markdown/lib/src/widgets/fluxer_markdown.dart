@@ -15,6 +15,8 @@ class FluxerMarkdown extends StatelessWidget {
     this.baseStyle,
     this.selectable = false,
     this.context = FluxerMarkdownContext.standardWithJumbo,
+    this.maxLines,
+    this.overflow,
     super.key,
   });
 
@@ -23,6 +25,8 @@ class FluxerMarkdown extends StatelessWidget {
   final TextStyle? baseStyle;
   final bool selectable;
   final FluxerMarkdownContext context;
+  final int? maxLines;
+  final TextOverflow? overflow;
 
   @override
   Widget build(BuildContext context) {
@@ -128,6 +132,8 @@ class FluxerMarkdown extends StatelessWidget {
       features: features,
       selectable: selectable,
       isDark: isDark,
+      maxLines: maxLines,
+      overflow: overflow,
     );
   }
 }

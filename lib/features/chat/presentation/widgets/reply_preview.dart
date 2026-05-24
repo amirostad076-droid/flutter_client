@@ -2,19 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/core/utils/channel_jump_link.dart';
-import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_item.dart'
     show MessageItem;
-import 'package:fluxer_app/features/chat/presentation/widgets/message_mention.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/message_references_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
+import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The inline reply indicator shown above a message that
@@ -64,75 +64,81 @@ class InlineReplyPreview extends ConsumerWidget {
     );
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: resolution.state == MessageReferenceState.deleted
           ? null
           : () => unawaited(
-              ref.read(chatViewModelProvider.notifier).goToRepliedMessage(
-                channelId: parentChannelId,
-                messageId: parentMessageId,
-              ),
+              ref
+                  .read(chatViewModelProvider.notifier)
+                  .goToRepliedMessage(
+                    channelId: parentChannelId,
+                    messageId: parentMessageId,
+                  ),
             ),
-      child: Row(
-        children: [
-          if (resolution.state == MessageReferenceState.loaded &&
-              replyMsg != null) ...[
-            FluxerAvatar.user(
-              fallbackText: replyMsg.authorName,
-              userId: replyMsg.authorId,
-              imageUrl: FluxerMediaUrl.userAvatar(
-                userId: replyMsg.authorId,
-                hash: replyMsg.authorAvatar,
-              ),
-              avatarColor: replyMsg.authorAvatarColor,
-              size: 16,
-              showStatus: false,
-            ),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                replyMsg.authorName,
-                style: TextStyle(
-                  color: nameColor,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxAuthorWidth = constraints.maxWidth * 0.35;
+          return Row(
+            children: [
+              if (resolution.state == MessageReferenceState.loaded &&
+                  replyMsg != null) ...[
+                FluxerAvatar.user(
+                  fallbackText: replyMsg.authorName,
+                  userId: replyMsg.authorId,
+                  imageUrl: FluxerMediaUrl.userAvatar(
+                    userId: replyMsg.authorId,
+                    hash: replyMsg.authorAvatar,
+                  ),
+                  avatarColor: replyMsg.authorAvatarColor,
+                  size: 16,
+                  showStatus: false,
                 ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 1),
-                child: _ReplyPreviewContent(
-                  message: replyMsg,
-                  emptyLabel: 'Click to see attachment',
+                const SizedBox(width: 4),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxAuthorWidth),
+                  child: Text(
+                    replyMsg.authorName,
+                    style: TextStyle(
+                      color: nameColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
-              ),
-            ),
-          ] else ...[
-            PhosphorIcon(
-              PhosphorIconsFill.arrowBendUpLeft,
-              size: 12,
-              color: context.colors.textPrimaryMuted,
-            ),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                resolution.state == MessageReferenceState.deleted
-                    ? l10n.chatReplyOriginalDeleted
-                    : l10n.chatReplyOriginalFailedToLoad,
-                style: TextStyle(
+                const SizedBox(width: 4),
+                Expanded(
+                  child: _ReplyPreviewContent(
+                    message: replyMsg,
+                    emptyLabel: 'Click to see attachment',
+                  ),
+                ),
+              ] else ...[
+                PhosphorIcon(
+                  PhosphorIconsFill.arrowBendUpLeft,
+                  size: 12,
                   color: context.colors.textPrimaryMuted,
-                  fontSize: 14,
-                  fontStyle: FontStyle.italic,
                 ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-          ],
-        ],
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    resolution.state == MessageReferenceState.deleted
+                        ? l10n.chatReplyOriginalDeleted
+                        : l10n.chatReplyOriginalFailedToLoad,
+                    style: TextStyle(
+                      color: context.colors.textPrimaryMuted,
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -144,19 +150,12 @@ class _ReplyPreviewContent extends StatelessWidget {
   final Message message;
   final String emptyLabel;
 
-  static final RegExp _tokenRe = RegExp(
-    r'https?://fluxer\.app/channels/(?:@me|\d{15,21})/\d{15,21}(?:/\d{15,21})?' // .com (soo)
-    r'|<@!?\d+>'
-    r'|<#\d+>'
-    r'|<@&\d+>'
-    r'|@(everyone|here)\b',
-  );
-
   @override
   Widget build(BuildContext context) {
     final style = TextStyle(
       color: context.colors.textPrimaryMuted,
-      fontSize: 14,
+      fontSize: 12,
+      height: 1.2,
     );
     final content = message.content.replaceAll('\n', ' ').trim();
     if (content.isEmpty) {
@@ -167,105 +166,20 @@ class _ReplyPreviewContent extends StatelessWidget {
         maxLines: 1,
       );
     }
-
-    return SizedBox(
-      height: 20,
-      child: RichText(
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        text: TextSpan(style: style, children: _buildSpans(content, style)),
-        strutStyle: const StrutStyle(
-          fontSize: 14,
-          height: 1.2,
-          forceStrutHeight: true,
+    return IgnorePointer(
+      child: SizedBox(
+        width: double.infinity,
+        child: MessageMarkdown(
+          data: content,
+          channelId: message.channelId,
+          markdownContext: FluxerMarkdownContext.restrictedInlineReply,
+          revealSpoilers: true,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          baseStyle: style,
         ),
       ),
     );
-  }
-
-  List<InlineSpan> _buildSpans(String content, TextStyle baseStyle) {
-    final spans = <InlineSpan>[];
-    var lastEnd = 0;
-
-    for (final match in _tokenRe.allMatches(content)) {
-      if (match.start > lastEnd) {
-        spans.add(TextSpan(text: content.substring(lastEnd, match.start)));
-      }
-
-      final token = match.group(0)!;
-      spans.add(_buildTokenSpan(token, baseStyle));
-      lastEnd = match.end;
-    }
-
-    if (lastEnd < content.length) {
-      spans.add(TextSpan(text: content.substring(lastEnd)));
-    }
-
-    return spans;
-  }
-
-  InlineSpan _buildTokenSpan(String token, TextStyle baseStyle) {
-    if (token.startsWith('<@&')) {
-      final roleId = token.substring(3, token.length - 1);
-      return WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: IgnorePointer(
-          child: RoleMention(roleId: roleId, baseStyle: baseStyle),
-        ),
-      );
-    }
-
-    if (token.startsWith('<#')) {
-      final channelId = token.substring(2, token.length - 1);
-      return WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: IgnorePointer(
-          child: ChannelMention(channelId: channelId, baseStyle: baseStyle),
-        ),
-      );
-    }
-
-    if (token.startsWith('<@')) {
-      final userId = token
-          .replaceFirst('<@!', '')
-          .replaceFirst('<@', '')
-          .replaceFirst('>', '');
-      return WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: IgnorePointer(
-          child: UserMention(
-            userId: userId,
-            channelId: message.channelId,
-            baseStyle: baseStyle,
-          ),
-        ),
-      );
-    }
-
-    if (token == '@everyone' || token == '@here') {
-      return WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: IgnorePointer(
-          child: TextMention(label: token, baseStyle: baseStyle),
-        ),
-      );
-    }
-
-    final jump = parseChannelJumpLink(token);
-    if (jump != null) {
-      return WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: IgnorePointer(
-          child: ChannelJumpLinkMention(
-            link: jump,
-            url: token,
-            baseStyle: baseStyle,
-          ),
-        ),
-      );
-    }
-
-    return TextSpan(text: token);
   }
 }
 

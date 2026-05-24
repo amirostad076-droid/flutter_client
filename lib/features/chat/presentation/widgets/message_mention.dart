@@ -58,10 +58,11 @@ class ChannelMention extends ConsumerWidget {
               size: (style.fontSize ?? 14) * 0.9,
               color: colors.markupMentionText,
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: _mentionInlineGap(style)),
             Text(name, style: style),
           ],
         ),
+        baseStyle: style,
       ),
     );
   }
@@ -80,14 +81,28 @@ class TextMention extends StatelessWidget {
       color: colors.markupMentionText,
       fontWeight: FontWeight.w500,
     );
-    return _MentionPill(child: Text(label, style: style));
+    return _MentionPill(baseStyle: style, child: Text(label, style: style));
   }
 }
 
+/// Mention pill metrics scale with [TextStyle.fontSize] (baseline 14px).
+double _mentionPillHorizontalPadding(TextStyle style) =>
+    (style.fontSize ?? 14) * (3.2 / 14);
+
+double _mentionPillBorderRadius(TextStyle style) =>
+    (style.fontSize ?? 14) * (4 / 14);
+
+double _mentionInlineGap(TextStyle style) => (style.fontSize ?? 14) * (2 / 14);
+
 class _MentionPill extends StatelessWidget {
-  const _MentionPill({required this.child, this.fillColor});
+  const _MentionPill({
+    required this.child,
+    required this.baseStyle,
+    this.fillColor,
+  });
 
   final Widget child;
+  final TextStyle baseStyle;
   final Color? fillColor;
 
   @override
@@ -96,10 +111,14 @@ class _MentionPill extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: fillColor ?? colors.markupMentionFill,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(
+          _mentionPillBorderRadius(baseStyle),
+        ),
         border: Border.all(color: colors.markupMentionBorder),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 3.2),
+      padding: EdgeInsets.symmetric(
+        horizontal: _mentionPillHorizontalPadding(baseStyle),
+      ),
       child: child,
     );
   }
@@ -140,7 +159,10 @@ class UserMention extends ConsumerWidget {
       onTap: () => unawaited(
         FluxerUserProfileSheet.show(context, userId: userId, guildId: guildId),
       ),
-      child: _MentionPill(child: Text('@$name', style: style)),
+      child: _MentionPill(
+        baseStyle: style,
+        child: Text('@$name', style: style),
+      ),
     );
   }
 }
@@ -182,6 +204,7 @@ class RoleMention extends ConsumerWidget {
     );
 
     return _MentionPill(
+      baseStyle: style,
       fillColor: fillColor,
       child: Text('@${role?.name ?? roleId}', style: style),
     );
@@ -309,6 +332,7 @@ class ChannelJumpLinkMention extends ConsumerWidget {
     }
 
     return _JumpLinkPill(
+      baseStyle: style,
       onTap: onTap,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -370,9 +394,14 @@ class ChannelJumpLinkMention extends ConsumerWidget {
 }
 
 class _JumpLinkPill extends StatefulWidget {
-  const _JumpLinkPill({required this.child, this.onTap});
+  const _JumpLinkPill({
+    required this.child,
+    required this.baseStyle,
+    this.onTap,
+  });
 
   final Widget child;
+  final TextStyle baseStyle;
   final VoidCallback? onTap;
 
   @override
@@ -396,10 +425,14 @@ class _JumpLinkPillState extends State<_JumpLinkPill> {
             color: _hovered
                 ? colors.markupJumpLinkHoverFill
                 : colors.markupJumpLinkFill,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(
+              _mentionPillBorderRadius(widget.baseStyle),
+            ),
             border: Border.all(color: colors.markupMentionBorder),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 3.2),
+          padding: EdgeInsets.symmetric(
+            horizontal: _mentionPillHorizontalPadding(widget.baseStyle),
+          ),
           child: widget.child,
         ),
       ),

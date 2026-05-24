@@ -63,6 +63,8 @@ Widget buildFluxerMarkdownAst({
   required FluxerMarkdownFeatures features,
   required bool selectable,
   required bool isDark,
+  int? maxLines,
+  TextOverflow? overflow,
 }) {
   final body = _MarkdownBlockRenderer(
     context: context,
@@ -70,6 +72,8 @@ Widget buildFluxerMarkdownAst({
     config: config,
     features: features,
     isDark: isDark,
+    maxLines: maxLines,
+    overflow: overflow,
   ).build(nodes);
 
   if (!selectable) {
@@ -86,6 +90,8 @@ class _MarkdownBlockRenderer {
     required this.config,
     required this.features,
     required this.isDark,
+    this.maxLines,
+    this.overflow,
   });
 
   final BuildContext context;
@@ -93,6 +99,8 @@ class _MarkdownBlockRenderer {
   final FluxerMarkdownConfig config;
   final FluxerMarkdownFeatures features;
   final bool isDark;
+  final int? maxLines;
+  final TextOverflow? overflow;
 
   Widget build(List<md.Node> nodes) {
     final children = <Widget>[];
@@ -188,6 +196,11 @@ class _MarkdownBlockRenderer {
     return RichText(
       text: TextSpan(style: effectiveStyle, children: spans),
       textScaler: MediaQuery.textScalerOf(context),
+      maxLines: maxLines,
+      overflow: overflow ?? TextOverflow.clip,
+      textWidthBasis: maxLines != null
+          ? TextWidthBasis.parent
+          : TextWidthBasis.longestLine,
     );
   }
 
@@ -892,19 +905,23 @@ class FluxerInlineCodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fontSize = baseStyle.fontSize ?? 16;
     return Container(
       decoration: BoxDecoration(
         color:
             backgroundColor ??
             Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(fontSize * 0.25),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      padding: EdgeInsets.symmetric(
+        horizontal: fontSize * 0.25,
+        vertical: fontSize * 0.0625,
+      ),
       child: Text(
         text,
         style: baseStyle.copyWith(
           color: textColor,
-          fontSize: (baseStyle.fontSize ?? 16) * 0.85,
+          fontSize: fontSize * 0.85,
           fontFamily: 'monospace',
         ),
       ),
@@ -979,7 +996,7 @@ class FluxerEmojiWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = jumbo
         ? kFluxerMarkdownEmojiSizeJumbo
-        : kFluxerMarkdownEmojiSizeNormal;
+        : (baseStyle.fontSize ?? 16) * 1.375;
     if (element.tag == FluxerCustomEmojiSyntax.tag) {
       return _buildCustom(size);
     }
