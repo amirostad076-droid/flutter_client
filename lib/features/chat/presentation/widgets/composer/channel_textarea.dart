@@ -843,11 +843,16 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (!composerHasSendableContent(ref, channelId, wireText)) {
       return;
     }
-    final bool isSlowmodeBlocked =
-        ref.read(isSlowmodeBlockedProvider(channelId)).value ?? false;
-    if (isSlowmodeBlocked) {
-      ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
-      return;
+    final bool isEditing = ref.read(
+      chatViewModelProvider.select((s) => s.editingMessage != null),
+    );
+    if (!isEditing) {
+      final bool isSlowmodeBlocked =
+          ref.read(isSlowmodeBlockedProvider(channelId)).value ?? false;
+      if (isSlowmodeBlocked) {
+        ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
+        return;
+      }
     }
     unawaited(
       ref
@@ -890,8 +895,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final bool isSlowmodeBlocked =
-        ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false;
+    final bool isEditing = ref.watch(
+      chatViewModelProvider.select((s) => s.editingMessage != null),
+    );
+    final bool isSlowmodeBlocked = !isEditing &&
+        (ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false);
     final bool canUseVoice = perms.isVoiceEnabled && !isSlowmodeBlocked;
     final VoidCallback? sendOnPressed = !hasSendable
         ? null
