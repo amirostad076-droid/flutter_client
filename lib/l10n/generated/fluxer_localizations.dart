@@ -5824,6 +5824,28 @@ abstract class FluxerLocalizations {
   /// **'This message couldn\'t be loaded.'**
   String get notificationsMessageUnavailable;
 
+  /// Character counter tooltip showing how many characters remain.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} characters left'**
+  String characterCounterRemaining(int remaining);
+
+  /// Character counter tooltip when the message exceeds the allowed length.
+  ///
+  /// In en, this message translates to:
+  /// **'Message is too long'**
+  String get characterCounterTooLong;
+
+  /// Character counter tooltip with a Plutonium upsell when nearing the limit.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} characters left. Get {productName} to write up to {premiumMaxLength} characters.'**
+  String characterCounterRemainingPlutoniumUpsell(
+    int remaining,
+    String productName,
+    int premiumMaxLength,
+  );
+
   /// Status label shown under a failed outgoing chat message.
   ///
   /// In en, this message translates to:

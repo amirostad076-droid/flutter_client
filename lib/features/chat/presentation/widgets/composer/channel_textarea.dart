@@ -13,6 +13,10 @@ import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel_attachment_area.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
+import 'package:fluxer_app/features/chat/providers/message_length_limits_provider.dart';
+import 'package:fluxer_app/features/chat/utils/composer_message_length_paste_formatter.dart';
+import 'package:fluxer_app/features/chat/utils/paste_text_attachment.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart'
     show kSkinToneSurrogates, skinToneToName;
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
@@ -169,8 +173,129 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     )) {
       return KeyEventResult.ignored;
     }
+    if (_isOverCharacterLimit(ref)) {
+      return KeyEventResult.ignored;
+    }
     _onSendPressed();
     return KeyEventResult.handled;
+  }
+
+  int _composerContentLength() => _controller.toWireText().trim().length;
+
+  bool _isOverCharacterLimit(WidgetRef ref) {
+    final int maxMessageLength = ref.read(maxMessageLengthProvider);
+    return _composerContentLength() > maxMessageLength;
+  }
+
+  void _showPlutoniumSheet(BuildContext context) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    unawaited(
+      FluxerBottomSheet.show<void>(
+        context,
+        title: l10n.plutoniumNotAvailableTitle,
+        builder: (sheetContext, _) => Padding(
+          padding: EdgeInsets.all(sheetContext.layout.s4),
+          child: Text(
+            l10n.plutoniumNotAvailableBody,
+            style: sheetContext.textStyles.bodyMedium.copyWith(
+              color: sheetContext.colors.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handlePasteExceedsLimit(
+    String pastedText,
+    String channelId,
+  ) async {
+    final FileUploadValidationResult result = await addPastedTextAsAttachment(
+      ref: ref,
+      channelId: channelId,
+      text: pastedText,
+    );
+    if (mounted) {
+      _toastUploadValidation(result);
+    }
+  }
+
+  List<TextInputFormatter> _messageLengthInputFormatters({
+    required int maxMessageLength,
+    required ChannelMessagePermissions perms,
+    required String channelId,
+  }) {
+    return <TextInputFormatter>[
+      ComposerMessageLengthPasteFormatter(
+        controller: _controller,
+        maxLength: maxMessageLength,
+        canAttachOnExceed: () =>
+            perms.canShowAttachControls && perms.isAttachEnabled,
+        onPasteExceedsLimit: (String pastedText) => unawaited(
+          _handlePasteExceedsLimit(pastedText, channelId),
+        ),
+      ),
+    ];
+  }
+
+  Widget _buildComposerField({
+    required BuildContext context,
+    required String channelId,
+    required ChannelMessagePermissions perms,
+    required int contentLength,
+    required int maxMessageLength,
+    required int premiumMaxLength,
+    required InputDecoration decoration,
+    required int minLines,
+    required int maxLines,
+    TextAlignVertical? textAlignVertical,
+  }) {
+    final bool showCounter =
+        contentLength > (maxMessageLength * 0.8).floor();
+    final EdgeInsets basePadding = decoration.contentPadding is EdgeInsets
+        ? decoration.contentPadding! as EdgeInsets
+        : const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
+    final InputDecoration effectiveDecoration = decoration.copyWith(
+      contentPadding: showCounter
+          ? basePadding + const EdgeInsets.only(right: 28, bottom: 18)
+          : basePadding,
+    );
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ComposerAutocompleteChatField(
+          key: _composerFieldKey,
+          controller: _controller,
+          focusNode: _focusNode,
+          channelId: channelId,
+          enabled: perms.isComposerEnabled,
+          style: context.textStyles.inputText,
+          minLines: minLines,
+          maxLines: maxLines,
+          menuOpenListenable: _composerMenuOpen,
+          panelHost: widget.autocompletePanelHost,
+          panelScrollController: widget.autocompletePanelScrollController,
+          textAlignVertical: textAlignVertical,
+          inputFormatters: _messageLengthInputFormatters(
+            maxMessageLength: maxMessageLength,
+            perms: perms,
+            channelId: channelId,
+          ),
+          decoration: effectiveDecoration,
+        ),
+        Positioned(
+          right: 8,
+          bottom: 8,
+          child: MessageCharacterCounter(
+            currentLength: contentLength,
+            maxLength: maxMessageLength,
+            canUpgrade: maxMessageLength < premiumMaxLength,
+            premiumMaxLength: premiumMaxLength,
+            onUpgradePressed: () => _showPlutoniumSheet(context),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -344,14 +469,18 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         (CloudComposerAttachments a) => a.items.length,
       ),
     );
+    final int maxMessageLength = ref.watch(maxMessageLengthProvider);
+    final int premiumMaxLength = ref.watch(premiumMaxMessageLengthProvider);
     return ListenableBuilder(
       listenable: _controller,
       builder: (BuildContext context, Widget? child) {
+        final int contentLength = _composerContentLength();
         final bool hasSendable = composerHasSendableContent(
           ref,
           channelId,
           _controller.toWireText(),
         );
+        final bool isOverCharacterLimit = contentLength > maxMessageLength;
         return Row(
           children: [
         if (perms.canShowAttachControls) ...[
@@ -385,18 +514,15 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             opacity: perms.isComposerEnabled
                 ? 1.0
                 : _kMessageInputDisabledOpacity,
-            child: ComposerAutocompleteChatField(
-              key: _composerFieldKey,
-              controller: _controller,
-              focusNode: _focusNode,
+            child: _buildComposerField(
+              context: context,
               channelId: channelId,
-              enabled: perms.isComposerEnabled,
-              style: context.textStyles.inputText,
+              perms: perms,
+              contentLength: contentLength,
+              maxMessageLength: maxMessageLength,
+              premiumMaxLength: premiumMaxLength,
               minLines: 1,
               maxLines: 5,
-              menuOpenListenable: _composerMenuOpen,
-              panelHost: widget.autocompletePanelHost,
-              panelScrollController: widget.autocompletePanelScrollController,
               decoration: InputDecoration(
                 hintText: perms.showsNoSendPermissionHint
                     ? FluxerLocalizations.of(
@@ -563,6 +689,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           chatNotifier,
           perms: perms,
           hasSendable: hasSendable,
+          isOverCharacterLimit: isOverCharacterLimit,
         ),
           ],
         );
@@ -584,14 +711,18 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       ),
     );
 
+    final int maxMessageLength = ref.watch(maxMessageLengthProvider);
+    final int premiumMaxLength = ref.watch(premiumMaxMessageLengthProvider);
     return ListenableBuilder(
       listenable: _controller,
       builder: (BuildContext context, Widget? child) {
+        final int contentLength = _composerContentLength();
         final bool hasSendable = composerHasSendableContent(
           ref,
           channelId,
           _controller.toWireText(),
         );
+        final bool isOverCharacterLimit = contentLength > maxMessageLength;
         return Row(
           children: [
         if (perms.canShowAttachControls) ...[
@@ -611,18 +742,15 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             opacity: perms.isComposerEnabled
                 ? 1.0
                 : _kMessageInputDisabledOpacity,
-            child: ComposerAutocompleteChatField(
-              key: _composerFieldKey,
-              controller: _controller,
-              focusNode: _focusNode,
+            child: _buildComposerField(
+              context: context,
               channelId: channelId,
-              enabled: perms.isComposerEnabled,
-              style: context.textStyles.inputText,
+              perms: perms,
+              contentLength: contentLength,
+              maxMessageLength: maxMessageLength,
+              premiumMaxLength: premiumMaxLength,
               minLines: 1,
               maxLines: 6,
-              menuOpenListenable: _composerMenuOpen,
-              panelHost: widget.autocompletePanelHost,
-              panelScrollController: widget.autocompletePanelScrollController,
               decoration: InputDecoration(
                 hintText: perms.showsNoSendPermissionHint
                     ? FluxerLocalizations.of(
@@ -679,6 +807,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             chatNotifier,
             perms: perms,
             hasSendable: hasSendable,
+            isOverCharacterLimit: isOverCharacterLimit,
             size: FluxerButtonSize.small,
           ),
         ),
@@ -843,6 +972,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (!composerHasSendableContent(ref, channelId, wireText)) {
       return;
     }
+    if (_isOverCharacterLimit(ref)) {
+      return;
+    }
     final bool isEditing = ref.read(
       chatViewModelProvider.select((s) => s.editingMessage != null),
     );
@@ -890,6 +1022,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     ChatViewModel chatNotifier, {
     required ChannelMessagePermissions perms,
     required bool hasSendable,
+    required bool isOverCharacterLimit,
     FluxerButtonSize size = FluxerButtonSize.compact,
   }) {
     final channelId = ref.watch(
@@ -901,7 +1034,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final bool isSlowmodeBlocked = !isEditing &&
         (ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false);
     final bool canUseVoice = perms.isVoiceEnabled && !isSlowmodeBlocked;
-    final VoidCallback? sendOnPressed = !hasSendable
+    final VoidCallback? sendOnPressed = !hasSendable || isOverCharacterLimit
         ? null
         : perms.isComposerEnabled
         ? _onSendPressed

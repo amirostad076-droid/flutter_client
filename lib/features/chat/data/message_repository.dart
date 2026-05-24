@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cross_file/cross_file.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
+import 'package:fluxer_app/core/api/dio_error_message.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
@@ -480,7 +481,7 @@ class MessageRepository {
       await _db.messageDao.upsertMessage(message.toCompanion());
       return message;
     } on DioException catch (e) {
-      throw Exception(e.response?.statusMessage ?? 'Failed to send message');
+      throw Exception(dioExceptionMessage(e, 'Failed to send message'));
     }
   }
 
@@ -502,7 +503,7 @@ class MessageRepository {
       await _db.messageDao.upsertMessage(message.toCompanion());
       return message;
     } on DioException catch (e) {
-      throw Exception(e.response?.statusMessage ?? 'Failed to edit message');
+      throw Exception(dioExceptionMessage(e, 'Failed to edit message'));
     }
   }
 

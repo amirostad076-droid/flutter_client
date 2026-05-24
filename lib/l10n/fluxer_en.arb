@@ -4139,6 +4139,34 @@
   "@notificationsMessageUnavailable": {
     "description": "Shown when an inbox mention row has no backing message row."
   },
+  "characterCounterRemaining": "{remaining} characters left",
+  "@characterCounterRemaining": {
+    "description": "Character counter tooltip showing how many characters remain.",
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "characterCounterTooLong": "Message is too long",
+  "@characterCounterTooLong": {
+    "description": "Character counter tooltip when the message exceeds the allowed length."
+  },
+  "characterCounterRemainingPlutoniumUpsell": "{remaining} characters left. Get {productName} to write up to {premiumMaxLength} characters.",
+  "@characterCounterRemainingPlutoniumUpsell": {
+    "description": "Character counter tooltip with a Plutonium upsell when nearing the limit.",
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "productName": {
+        "type": "String"
+      },
+      "premiumMaxLength": {
+        "type": "int"
+      }
+    }
+  },
   "chatMessageFailedToSend": "Failed to send message",
   "@chatMessageFailedToSend": {
     "description": "Status label shown under a failed outgoing chat message."

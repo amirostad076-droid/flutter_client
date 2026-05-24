@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
@@ -45,6 +46,7 @@ class ComposerAutocompleteChatField extends ConsumerStatefulWidget {
     required this.panelHost,
     required this.panelScrollController,
     this.textAlignVertical,
+    this.inputFormatters,
     super.key,
   });
 
@@ -60,6 +62,7 @@ class ComposerAutocompleteChatField extends ConsumerStatefulWidget {
   final ComposerAutocompletePanelHost panelHost;
   final ScrollController panelScrollController;
   final TextAlignVertical? textAlignVertical;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   ConsumerState<ComposerAutocompleteChatField> createState() =>

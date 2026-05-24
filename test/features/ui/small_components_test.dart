@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/character_counter/fluxer_character_counter.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/features/ui/keybind_hint/fluxer_keybind_hint.dart';
 import 'package:fluxer_app/features/ui/scroller/fluxer_scroller.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
@@ -17,34 +18,37 @@ Widget buildTestApp(Widget child) {
       textTheme: FluxerTextTheme.fromColors(colorTheme),
       layoutTheme: FluxerLayoutTheme.scaled(),
     ),
+    localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+    supportedLocales: FluxerLocalizations.supportedLocales,
     home: Scaffold(body: child),
   );
 }
 
 void main() {
   group('FluxerCharacterCounter', () {
-    testWidgets('shows current/max text', (tester) async {
+    testWidgets('shows remaining characters', (tester) async {
       await tester.pumpWidget(
         buildTestApp(const FluxerCharacterCounter(current: 42, max: 200)),
       );
 
-      expect(find.text('42/200'), findsOneWidget);
+      expect(find.text('158'), findsOneWidget);
     });
 
-    testWidgets('shows warning color at 80% threshold', (tester) async {
+    testWidgets('uses danger color when nearing limit', (tester) async {
       await tester.pumpWidget(
         buildTestApp(const FluxerCharacterCounter(current: 160, max: 200)),
       );
 
-      expect(find.text('160/200'), findsOneWidget);
+      final Text text = tester.widget<Text>(find.text('40'));
+      expect(text.style?.color, buildDarkColorTheme().statusDanger);
     });
 
-    testWidgets('shows danger color over 100%', (tester) async {
+    testWidgets('shows negative remaining when over limit', (tester) async {
       await tester.pumpWidget(
         buildTestApp(const FluxerCharacterCounter(current: 250, max: 200)),
       );
 
-      expect(find.text('250/200'), findsOneWidget);
+      expect(find.text('-50'), findsOneWidget);
     });
   });
 

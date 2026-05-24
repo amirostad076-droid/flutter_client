@@ -638,6 +638,7 @@ class ComposerAutocompleteChatFieldState
             maxLines: widget.maxLines,
             decoration: widget.decoration,
             textAlignVertical: widget.textAlignVertical,
+            inputFormatters: widget.inputFormatters,
           ),
         );
       },

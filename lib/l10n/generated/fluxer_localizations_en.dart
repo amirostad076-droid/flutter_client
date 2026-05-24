@@ -3405,6 +3405,23 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'This message couldn\'t be loaded.';
 
   @override
+  String characterCounterRemaining(int remaining) {
+    return '$remaining characters left';
+  }
+
+  @override
+  String get characterCounterTooLong => 'Message is too long';
+
+  @override
+  String characterCounterRemainingPlutoniumUpsell(
+    int remaining,
+    String productName,
+    int premiumMaxLength,
+  ) {
+    return '$remaining characters left. Get $productName to write up to $premiumMaxLength characters.';
+  }
+
+  @override
   String get chatMessageFailedToSend => 'Failed to send message';
 
   @override

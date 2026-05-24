@@ -23,6 +23,7 @@ import 'package:fluxer_app/features/chat/providers/chat_auto_ack_allowed_provide
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/chat_read_ack_gate.dart';
 import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
+import 'package:fluxer_app/features/chat/providers/message_length_limits_provider.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
 import 'package:fluxer_app/features/chat/providers/message_references_provider.dart';
@@ -1839,6 +1840,10 @@ class ChatViewModel extends _$ChatViewModel {
         ),
       );
       await _restoreComposerDraftFromDb();
+      return;
+    }
+    final int maxMessageLength = ref.read(maxMessageLengthProvider);
+    if (editedContent.length > maxMessageLength) {
       return;
     }
     try {
