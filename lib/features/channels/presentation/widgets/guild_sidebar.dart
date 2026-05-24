@@ -94,7 +94,7 @@ class GuildSidebar extends ConsumerWidget {
               .show(const FluxerToast(message: 'Coming soon'));
           return;
         }
-        
+
         final guildId = ref.read(activeGuildIdProvider);
         if (guildId != null) {
           unawaited(context.push(RoutePaths.guildSettingsPath(guildId)));
@@ -335,7 +335,9 @@ class GuildSidebar extends ConsumerWidget {
         .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
         .value;
     final VoiceSessionState voiceSession = ref.watch(voiceSessionProvider);
-    final Map<String, VoiceState> voiceStates = ref.watch(voiceStatesMapProvider);
+    final Map<String, VoiceState> voiceStates = ref.watch(
+      voiceStatesMapProvider,
+    );
     final Guild? guild = ref.watch(channelListViewModelProvider).guild;
     final bool showE2eeVoiceIcon =
         channel.type == ChannelType.voice &&
@@ -355,8 +357,7 @@ class GuildSidebar extends ConsumerWidget {
         : channelUnreadState.isHighlight
         ? context.colors.textSecondary
         : context.colors.textTertiaryMuted;
-    final double rowOpacity =
-        isChannelDirectlyMuted && !isSelected ? 0.5 : 1.0;
+    final double rowOpacity = isChannelDirectlyMuted && !isSelected ? 0.5 : 1.0;
     final bool showUnreadIndicator =
         !isSelected && channelUnreadState.shouldShowUnreadIndicator;
 
@@ -369,151 +370,152 @@ class GuildSidebar extends ConsumerWidget {
             top: 0,
             bottom: 0,
             child: Center(
-              child: ChannelUnreadIndicator(
-                faded: isChannelDirectlyMuted,
-              ),
+              child: ChannelUnreadIndicator(faded: isChannelDirectlyMuted),
             ),
           ),
         Opacity(
           opacity: rowOpacity,
           child: Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onSecondaryTapUp: _canMarkChannelRead(channel)
-            ? (details) => unawaited(
-                _showChannelActions(
-                  context,
-                  ref,
-                  channel,
-                  hasUnread: hasUnread,
-                  position: details.globalPosition,
-                ),
-              )
-            : null,
-        onLongPress: _canMarkChannelRead(channel) && isMobileLayout(context)
-            ? () => unawaited(
-                _showChannelActions(
-                  context,
-                  ref,
-                  channel,
-                  hasUnread: hasUnread,
-                  position: Offset.zero,
-                ),
-              )
-            : null,
-        onTap: () async {
-          if (channel.type == ChannelType.link) {
-            final channelUrl = channel.url;
-            if (channelUrl != null && channelUrl.isNotEmpty) {
-              unawaited(handleExternalLinkTap(context, channelUrl));
-            }
-            return;
-          }
+            color: Colors.transparent,
+            child: InkWell(
+              onSecondaryTapUp: _canMarkChannelRead(channel)
+                  ? (details) => unawaited(
+                      _showChannelActions(
+                        context,
+                        ref,
+                        channel,
+                        hasUnread: hasUnread,
+                        position: details.globalPosition,
+                      ),
+                    )
+                  : null,
+              onLongPress:
+                  _canMarkChannelRead(channel) && isMobileLayout(context)
+                  ? () => unawaited(
+                      _showChannelActions(
+                        context,
+                        ref,
+                        channel,
+                        hasUnread: hasUnread,
+                        position: Offset.zero,
+                      ),
+                    )
+                  : null,
+              onTap: () async {
+                if (channel.type == ChannelType.link) {
+                  final channelUrl = channel.url;
+                  if (channelUrl != null && channelUrl.isNotEmpty) {
+                    unawaited(handleExternalLinkTap(context, channelUrl));
+                  }
+                  return;
+                }
 
-          final String? guildId = ref.read(activeGuildIdProvider);
-          if (guildId != null) {
-            final VoiceSessionState voiceSession = ref.read(
-              voiceSessionProvider,
-            );
-            final bool isInCurrentVoiceChannel =
-                channel.type == ChannelType.voice &&
-                voiceSession.isInVoice &&
-                voiceSession.guildId == guildId &&
-                voiceSession.channelId == channel.id;
-            if (channel.type == ChannelType.voice && isMobileLayout(context)) {
-              if (isInCurrentVoiceChannel) {
-                navigateToContent(
-                  context,
-                  RoutePaths.guildChannel(guildId, channel.id),
-                );
-                return;
-              }
-              final VoiceChannelJoinOutcome? joinOutcome =
-                  await showVoiceChannelJoinBottomSheet(
-                    context,
-                    channelName: channel.name,
-                    guildId: guildId,
-                    channelId: channel.id,
+                final String? guildId = ref.read(activeGuildIdProvider);
+                if (guildId != null) {
+                  final VoiceSessionState voiceSession = ref.read(
+                    voiceSessionProvider,
                   );
-              if (!context.mounted || joinOutcome == null) {
-                return;
-              }
-              navigateToContent(
-                context,
-                RoutePaths.guildChannel(guildId, channel.id),
-              );
-              unawaited(
-                joinVoiceChannelWithConfirmation(
-                  ref: ref,
-                  context: context,
-                  guildId: guildId,
-                  channelId: channel.id,
-                  initialSelfMute: joinOutcome.initialSelfMute,
-                  initialSelfDeaf: joinOutcome.initialSelfDeaf,
+                  final bool isInCurrentVoiceChannel =
+                      channel.type == ChannelType.voice &&
+                      voiceSession.isInVoice &&
+                      voiceSession.guildId == guildId &&
+                      voiceSession.channelId == channel.id;
+                  if (channel.type == ChannelType.voice &&
+                      isMobileLayout(context)) {
+                    if (isInCurrentVoiceChannel) {
+                      navigateToContent(
+                        context,
+                        RoutePaths.guildChannel(guildId, channel.id),
+                      );
+                      return;
+                    }
+                    final VoiceChannelJoinOutcome? joinOutcome =
+                        await showVoiceChannelJoinBottomSheet(
+                          context,
+                          channelName: channel.name,
+                          guildId: guildId,
+                          channelId: channel.id,
+                        );
+                    if (!context.mounted || joinOutcome == null) {
+                      return;
+                    }
+                    navigateToContent(
+                      context,
+                      RoutePaths.guildChannel(guildId, channel.id),
+                    );
+                    unawaited(
+                      joinVoiceChannelWithConfirmation(
+                        ref: ref,
+                        context: context,
+                        guildId: guildId,
+                        channelId: channel.id,
+                        initialSelfMute: joinOutcome.initialSelfMute,
+                        initialSelfDeaf: joinOutcome.initialSelfDeaf,
+                      ),
+                    );
+                    return;
+                  }
+                  navigateToContent(
+                    context,
+                    RoutePaths.guildChannel(guildId, channel.id),
+                  );
+                  if (channel.type == ChannelType.voice &&
+                      !isInCurrentVoiceChannel) {
+                    unawaited(
+                      joinVoiceChannelWithConfirmation(
+                        ref: ref,
+                        context: context,
+                        guildId: guildId,
+                        channelId: channel.id,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? context.colors.backgroundModifierSelected
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(4),
                 ),
-              );
-              return;
-            }
-            navigateToContent(
-              context,
-              RoutePaths.guildChannel(guildId, channel.id),
-            );
-            if (channel.type == ChannelType.voice && !isInCurrentVoiceChannel) {
-              unawaited(
-                joinVoiceChannelWithConfirmation(
-                  ref: ref,
-                  context: context,
-                  guildId: guildId,
-                  channelId: channel.id,
+                child: Row(
+                  children: [
+                    ChannelIcon(
+                      type: channel.type,
+                      channel: channel,
+                      effectivePermissionBits: effectivePermissionBits,
+                      color: textColor,
+                      e2eeEncrypted: showE2eeVoiceIcon,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        channel.name,
+                        style: context.textStyles.channelName.copyWith(
+                          color: textColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (hasTyping) ...[
+                      const SizedBox(width: 4),
+                      FluxerLoadingSpinner(color: context.colors.textSecondary),
+                    ],
+                    if (!isSelected &&
+                        mentionCount > 0 &&
+                        channelUnreadState.hasMentions) ...[
+                      const SizedBox(width: 4),
+                      FluxerBadge.count(count: mentionCount),
+                    ],
+                  ],
                 ),
-              );
-            }
-          }
-        },
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? context.colors.backgroundModifierSelected
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Row(
-            children: [
-              ChannelIcon(
-                type: channel.type,
-                channel: channel,
-                effectivePermissionBits: effectivePermissionBits,
-                color: textColor,
-                e2eeEncrypted: showE2eeVoiceIcon,
               ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  channel.name,
-                  style: context.textStyles.channelName.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (hasTyping) ...[
-                const SizedBox(width: 4),
-                FluxerLoadingSpinner(color: context.colors.textSecondary),
-              ],
-              if (!isSelected &&
-                  mentionCount > 0 &&
-                  channelUnreadState.hasMentions) ...[
-                const SizedBox(width: 4),
-                FluxerBadge.count(count: mentionCount),
-              ],
-            ],
+            ),
           ),
-        ),
-      ),
-    ),
         ),
       ],
     );

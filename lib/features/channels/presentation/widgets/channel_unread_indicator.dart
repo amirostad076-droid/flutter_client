@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 
 class ChannelUnreadIndicator extends StatelessWidget {
-  const ChannelUnreadIndicator({this.faded = false, super.key});
+  const ChannelUnreadIndicator({
+    this.faded = false,
+    super.key,
+  });
 
   final bool faded;
-
-  static const double size = 8;
-
   @override
   Widget build(BuildContext context) {
     final Widget indicator = Container(
-      width: size,
-      height: size,
+      width: 4,
+      height: 8,
       decoration: BoxDecoration(
         color: context.colors.textPrimary,
         borderRadius: const BorderRadius.only(
