@@ -11,6 +11,9 @@ class FluxerStatusIndicator extends StatelessWidget {
     super.key,
   });
 
+  static const double _idleCutoutCenter = 0.25;
+  static const double _idleCutoutRadius = 0.375;
+
   final String status;
   final double size;
   final Color? borderColor;
@@ -52,16 +55,26 @@ class FluxerStatusIndicator extends StatelessWidget {
     }
 
     if (status == 'idle') {
+      final cutoutSize = size * _idleCutoutRadius * 2;
+      final cutoutInset = size * (_idleCutoutCenter - _idleCutoutRadius);
       return ClipOval(
-        child: Align(
-          alignment: const Alignment(0.4, -0.4),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: cutoutColor,
-              shape: BoxShape.circle,
+        child: Stack(
+          fit: StackFit.expand,
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: cutoutInset,
+              top: cutoutInset,
+              width: cutoutSize,
+              height: cutoutSize,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: cutoutColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
             ),
-            child: SizedBox(width: size * 0.45, height: size * 0.45),
-          ),
+          ],
         ),
       );
     }
