@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/shared/widgets/unicode_emoji_widget.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const List<String> kQuickReactionDefaultEmojis = [
@@ -38,7 +39,7 @@ class QuickReactionRow extends StatelessWidget {
             Expanded(
               child: _QuickReactionButton(
                 onTap: () => onReaction(emoji),
-                child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                child: UnicodeEmojiWidget(emoji: emoji, size: 24),
               ),
             ),
           if (onAddMore != null)

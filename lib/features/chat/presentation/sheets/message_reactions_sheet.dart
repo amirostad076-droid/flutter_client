@@ -11,6 +11,7 @@ import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/widgets/unicode_emoji_widget.dart';
 import 'package:fluxer_dart/export.dart';
 
 const double _kReactionTabEmojiSize = 18;
@@ -262,9 +263,9 @@ class _ReactionTab extends StatelessWidget {
                 height: _kReactionTabEmojiSize,
               )
             else
-              Text(
-                reaction.emoji,
-                style: const TextStyle(fontSize: _kReactionTabEmojiSize),
+              UnicodeEmojiWidget(
+                emoji: reaction.emoji,
+                size: _kReactionTabEmojiSize,
               ),
             const SizedBox(width: 6),
             Text(

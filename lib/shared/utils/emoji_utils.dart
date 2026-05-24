@@ -1,4 +1,19 @@
+import 'package:fluxer_app/shared/utils/emoji_registry.dart';
+
 const _kTwemojiCdn = 'https://fluxerstatic.com/emoji';
+
+/// Resolves a reaction or shortcode [emoji] value to Unicode surrogates.
+String resolveUnicodeEmoji(String emoji) {
+  final entry = EmojiRegistry.entryByName(emoji);
+  if (entry != null) {
+    return entry.surrogates;
+  }
+  final resolved = EmojiRegistry.resolveSync(emoji);
+  if (resolved != null) {
+    return resolved;
+  }
+  return emoji;
+}
 
 String emojiToCodePoints(String emoji) {
   final containsZwj = emoji.contains('\u200D');
