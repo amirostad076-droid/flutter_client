@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
+import 'package:fluxer_app/features/chat/utils/embed_media_viewer_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/features/ui/media_viewer/attachment_media_viewer.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 
 /// An inline image / gifv embed
@@ -54,15 +56,28 @@ class EmbedImage extends StatelessWidget {
         syncKeys: spoilerSyncKeys,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(4),
-          child: CachedNetworkImage(
-            imageUrl: media.proxyUrl ?? media.url,
-            width: displaySize?.width,
-            height: displaySize?.height,
-            fit: BoxFit.cover,
-            errorBuilder: (_, e, s) => Container(
-              width: displaySize?.width ?? dimensions.maxWidth,
-              height: displaySize?.height ?? 200,
-              color: context.colors.backgroundSecondaryAlt,
+          child: GestureDetector(
+            onTap: canOpenEmbedMediaViewer(media)
+                ? () => showAttachmentMediaViewer(
+                    context,
+                    items: [
+                      buildEmbedMediaViewerItem(
+                        media: media,
+                        title: embed.title,
+                      ),
+                    ],
+                  )
+                : null,
+            child: CachedNetworkImage(
+              imageUrl: embedMediaEffectiveUrl(media),
+              width: displaySize?.width,
+              height: displaySize?.height,
+              fit: BoxFit.cover,
+              errorBuilder: (_, e, s) => Container(
+                width: displaySize?.width ?? dimensions.maxWidth,
+                height: displaySize?.height ?? 200,
+                color: context.colors.backgroundSecondaryAlt,
+              ),
             ),
           ),
         ),
