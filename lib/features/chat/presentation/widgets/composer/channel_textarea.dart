@@ -1076,87 +1076,94 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       cloudUploadControllerProvider(channelId).notifier,
     );
     if (isMobileLayout(context)) {
-      await showModalBottomSheet<void>(
-        context: context,
-        builder: (BuildContext sheetContext) {
+      await FluxerBottomSheet.show<void>(
+        context,
+        variant: FluxerBottomSheetVariant.menu,
+        builder: (BuildContext sheetContext, VoidCallback close) {
           final FluxerLocalizations l10n = FluxerLocalizations.of(sheetContext);
-          return SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: FluxerBottomSheetGroupColumn(
               children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_library_outlined),
-                  title: Text(l10n.chatAttachmentSourceGallery),
-                  onTap: () async {
-                    Navigator.of(sheetContext).pop();
-                    final ImagePicker picker = ImagePicker();
-                    final List<XFile> media = await picker.pickMultipleMedia(
-                      limit: kMaxAttachmentsPerMessage,
-                    );
-                    if (media.isEmpty) {
-                      return;
-                    }
-                    if (!mounted) {
-                      return;
-                    }
-                    final FileUploadValidationResult r = await notifier
-                        .addFiles(media);
-                    if (mounted) {
-                      _toastUploadValidation(r);
-                    }
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.photo_camera_outlined),
-                  title: Text(l10n.chatAttachmentSourceCamera),
-                  onTap: () async {
-                    Navigator.of(sheetContext).pop();
-                    final ImagePicker picker = ImagePicker();
-                    final XFile? image = await picker.pickImage(
-                      source: ImageSource.camera,
-                    );
-                    if (image == null) {
-                      return;
-                    }
-                    if (!mounted) {
-                      return;
-                    }
-                    final FileUploadValidationResult r = await notifier
-                        .addFiles(<XFile>[image]);
-                    if (mounted) {
-                      _toastUploadValidation(r);
-                    }
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.folder_open),
-                  title: Text(l10n.chatAttachmentSourceBrowse),
-                  onTap: () async {
-                    Navigator.of(sheetContext).pop();
-                    final FilePickerResult? res = await FilePicker.pickFiles(
-                      allowMultiple: true,
-                    );
-                    if (res == null) {
-                      return;
-                    }
-                    if (!mounted) {
-                      return;
-                    }
-                    final List<XFile> files = <XFile>[];
-                    for (final PlatformFile p in res.files) {
-                      if (p.path != null && p.path!.isNotEmpty) {
-                        files.add(XFile(p.path!, name: p.name));
-                      }
-                    }
-                    if (files.isEmpty) {
-                      return;
-                    }
-                    final FileUploadValidationResult r = await notifier
-                        .addFiles(files);
-                    if (mounted) {
-                      _toastUploadValidation(r);
-                    }
-                  },
+                FluxerMenuGroup(
+                  children: [
+                    FluxerBottomSheetMenuItem(
+                      icon: PhosphorIconsRegular.images,
+                      label: l10n.chatAttachmentSourceGallery,
+                      onTap: () async {
+                        close();
+                        final ImagePicker picker = ImagePicker();
+                        final List<XFile> media =
+                            await picker.pickMultipleMedia(
+                              limit: kMaxAttachmentsPerMessage,
+                            );
+                        if (media.isEmpty) {
+                          return;
+                        }
+                        if (!mounted) {
+                          return;
+                        }
+                        final FileUploadValidationResult r = await notifier
+                            .addFiles(media);
+                        if (mounted) {
+                          _toastUploadValidation(r);
+                        }
+                      },
+                    ),
+                    FluxerBottomSheetMenuItem(
+                      icon: PhosphorIconsRegular.camera,
+                      label: l10n.chatAttachmentSourceCamera,
+                      onTap: () async {
+                        close();
+                        final ImagePicker picker = ImagePicker();
+                        final XFile? image = await picker.pickImage(
+                          source: ImageSource.camera,
+                        );
+                        if (image == null) {
+                          return;
+                        }
+                        if (!mounted) {
+                          return;
+                        }
+                        final FileUploadValidationResult r = await notifier
+                            .addFiles(<XFile>[image]);
+                        if (mounted) {
+                          _toastUploadValidation(r);
+                        }
+                      },
+                    ),
+                    FluxerBottomSheetMenuItem(
+                      icon: PhosphorIconsRegular.folderOpen,
+                      label: l10n.chatAttachmentSourceBrowse,
+                      onTap: () async {
+                        close();
+                        final FilePickerResult? res =
+                            await FilePicker.pickFiles(
+                              allowMultiple: true,
+                            );
+                        if (res == null) {
+                          return;
+                        }
+                        if (!mounted) {
+                          return;
+                        }
+                        final List<XFile> files = <XFile>[];
+                        for (final PlatformFile p in res.files) {
+                          if (p.path != null && p.path!.isNotEmpty) {
+                            files.add(XFile(p.path!, name: p.name));
+                          }
+                        }
+                        if (files.isEmpty) {
+                          return;
+                        }
+                        final FileUploadValidationResult r = await notifier
+                            .addFiles(files);
+                        if (mounted) {
+                          _toastUploadValidation(r);
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
