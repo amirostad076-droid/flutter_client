@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -14,7 +13,9 @@ import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar_stack.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
+import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 
 const double _kAvatarSize = 12;
 const int _kMaxVisibleAvatars = 5;
@@ -92,15 +93,28 @@ class _TypingPill extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final resolvedUsers = <db.User>[];
+    final guildId = ref.watch(activeGuildIdProvider);
+    final resolvedUsers = <({String userId, GuildUserDisplay display})>[];
     for (final id in userIds) {
       final user = ref.watch(userPresenceProvider(id)).value;
-      if (user != null) {
-        resolvedUsers.add(user);
+      if (user == null) {
+        continue;
       }
+      final GuildUserDisplay display = guildId == null
+          ? resolveGuildUserDisplayFromRows(
+              user: user,
+              member: null,
+              guildId: null,
+            )
+          : ref.watch(guildUserDisplayProvider((id, guildId))).value ??
+                resolveGuildUserDisplayFromRows(
+                  user: user,
+                  member: null,
+                  guildId: guildId,
+                );
+      resolvedUsers.add((userId: id, display: display));
     }
     final total = userIds.length;
-    final guildId = ref.watch(activeGuildIdProvider);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -126,8 +140,11 @@ class _TypingPill extends ConsumerWidget {
               maxVisible: _kMaxVisibleAvatars,
               avatars: [
                 for (final user in resolvedUsers)
-                  FluxerAvatar.fromUserRow(
-                    user,
+                  FluxerAvatar.user(
+                    userId: user.userId,
+                    imageUrl: user.display.avatarUrl,
+                    fallbackText: user.display.displayName,
+                    avatarColor: user.display.avatarColor,
                     size: _kAvatarSize,
                     showStatus: false,
                   ),
@@ -147,7 +164,7 @@ class _TypingPill extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     int total,
-    List<db.User> resolved,
+    List<({String userId, GuildUserDisplay display})> resolved,
     String? guildId,
   ) {
     final l10n = FluxerLocalizations.of(context);
@@ -180,10 +197,12 @@ class _TypingPill extends ConsumerWidget {
         final user = names[i];
         final roleColor = guildId == null
             ? null
-            : ref.watch(memberRoleColorProvider((user.id, guildId))).value;
+            : ref
+                  .watch(memberRoleColorProvider((user.userId, guildId)))
+                  .value;
         spans.add(
           TextSpan(
-            text: _displayName(user),
+            text: user.display.displayName,
             style: TextStyle(
               color: roleColor ?? colors.textPrimary,
               fontWeight: FontWeight.w600,
@@ -233,5 +252,4 @@ class _TypingPill extends ConsumerWidget {
     }
   }
 
-  String _displayName(db.User user) => user.globalName ?? user.username;
 }
