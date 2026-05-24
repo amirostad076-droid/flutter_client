@@ -29,6 +29,7 @@ import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kLoadMoreThreshold = 200.0;
+const _kLoadNewerThreshold = 200.0;
 const _kReadBottomThreshold = 24.0;
 const _kUnreadDividerHeight = 16.0;
 const _kUnreadDateDividerHeight = 20.0;
@@ -74,6 +75,13 @@ class _MessageListState extends ConsumerState<MessageList> {
   final _itemKeys = <String, GlobalKey>{};
   late final ChatViewModel _chatViewModel;
   String? _pendingScrollTarget;
+  String? _loadNewerScrollAnchorMessageId;
+  double? _loadNewerScrollPixels;
+  double? _loadNewerScrollExtent;
+  bool _isRestoringLoadNewerScroll = false;
+  double? _loadMoreScrollPixels;
+  double? _loadMoreScrollExtent;
+  bool _isRestoringLoadMoreScroll = false;
 
   @override
   void initState() {
@@ -112,14 +120,112 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onScroll() {
-    if (!_scrollController.hasClients) {
+    if (!_scrollController.hasClients ||
+        _isRestoringLoadMoreScroll ||
+        _isRestoringLoadNewerScroll) {
       return;
     }
     final pos = _scrollController.position;
     if (pos.pixels >= pos.maxScrollExtent - _kLoadMoreThreshold) {
-      unawaited(ref.read(chatViewModelProvider.notifier).loadMore());
+      final chatState = ref.read(chatViewModelProvider);
+      if (!chatState.isLoadingMore && chatState.hasMoreMessages) {
+        _beginLoadMore();
+      }
+    }
+    if (pos.pixels <= _kLoadNewerThreshold) {
+      final chatState = ref.read(chatViewModelProvider);
+      if (chatState.hasMoreNewerMessages && !chatState.isLoadingNewer) {
+        _beginLoadNewer();
+      }
     }
     _syncReadViewport();
+  }
+
+  void _beginLoadMore() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+    final chatState = ref.read(chatViewModelProvider);
+    if (chatState.isLoadingMore || !chatState.hasMoreMessages) {
+      return;
+    }
+    final position = _scrollController.position;
+    _loadMoreScrollPixels = position.pixels;
+    _loadMoreScrollExtent = position.maxScrollExtent;
+    unawaited(ref.read(chatViewModelProvider.notifier).loadMore());
+  }
+
+  void _restoreScrollAfterLoadMore() {
+    final double? pixelsBefore = _loadMoreScrollPixels;
+    final double? extentBefore = _loadMoreScrollExtent;
+    _loadMoreScrollPixels = null;
+    _loadMoreScrollExtent = null;
+    _isRestoringLoadMoreScroll = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) {
+        _isRestoringLoadMoreScroll = false;
+        return;
+      }
+      final ScrollPosition position = _scrollController.position;
+      if (pixelsBefore != null && extentBefore != null) {
+        final double delta = position.maxScrollExtent - extentBefore;
+        final double target = (pixelsBefore + delta).clamp(
+          0.0,
+          position.maxScrollExtent,
+        );
+        _scrollController.jumpTo(target);
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _isRestoringLoadMoreScroll = false;
+      });
+    });
+  }
+
+  void _beginLoadNewer() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+    final chatState = ref.read(chatViewModelProvider);
+    if (chatState.isLoadingNewer || !chatState.hasMoreNewerMessages) {
+      return;
+    }
+    final position = _scrollController.position;
+    _loadNewerScrollPixels = position.pixels;
+    _loadNewerScrollExtent = position.maxScrollExtent;
+    if (chatState.messages.isNotEmpty) {
+      _loadNewerScrollAnchorMessageId = chatState.messages.last.id;
+    }
+    unawaited(ref.read(chatViewModelProvider.notifier).loadNewer());
+  }
+
+  void _restoreScrollAfterLoadNewer() {
+    final double? pixelsBefore = _loadNewerScrollPixels;
+    final double? extentBefore = _loadNewerScrollExtent;
+    final String? anchorMessageId = _loadNewerScrollAnchorMessageId;
+    _loadNewerScrollPixels = null;
+    _loadNewerScrollExtent = null;
+    _loadNewerScrollAnchorMessageId = null;
+    _isRestoringLoadNewerScroll = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) {
+        _isRestoringLoadNewerScroll = false;
+        return;
+      }
+      final ScrollPosition position = _scrollController.position;
+      if (pixelsBefore != null && extentBefore != null) {
+        final double delta = position.maxScrollExtent - extentBefore;
+        final double target = (pixelsBefore + delta).clamp(
+          0.0,
+          position.maxScrollExtent,
+        );
+        _scrollController.jumpTo(target);
+      } else if (anchorMessageId != null) {
+        _scrollToTarget(anchorMessageId, alignment: 1.0);
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _isRestoringLoadNewerScroll = false;
+      });
+    });
   }
 
   void _syncReadViewport() {
@@ -132,6 +238,11 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onScrollToBottom() {
+    final chatState = ref.read(chatViewModelProvider);
+    if (chatState.hasMoreNewerMessages) {
+      unawaited(ref.read(chatViewModelProvider.notifier).jumpToLatestMessages());
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         unawaited(
@@ -151,7 +262,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   /// Scrolls to [messageId]
-  void _scrollToTarget(String messageId) {
+  void _scrollToTarget(String messageId, {double alignment = 0.5}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) {
         return;
@@ -164,7 +275,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             ctx,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
-            alignment: 0.5,
+            alignment: alignment,
           ),
         );
         return;
@@ -194,7 +305,7 @@ class _MessageListState extends ConsumerState<MessageList> {
               c,
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOut,
-              alignment: 0.5,
+              alignment: alignment,
             ),
           );
         });
@@ -267,6 +378,22 @@ class _MessageListState extends ConsumerState<MessageList> {
         (previous, next) {
           if (next != null && next != previous) {
             _onScrollToMessage(next.$1);
+          }
+        },
+      )
+      ..listen<bool>(
+        chatViewModelProvider.select((s) => s.isLoadingMore),
+        (previous, next) {
+          if (previous == true && next == false) {
+            _restoreScrollAfterLoadMore();
+          }
+        },
+      )
+      ..listen<bool>(
+        chatViewModelProvider.select((s) => s.isLoadingNewer),
+        (previous, next) {
+          if (previous == true && next == false) {
+            _restoreScrollAfterLoadNewer();
           }
         },
       );

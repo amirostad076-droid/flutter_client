@@ -15,6 +15,16 @@ import 'package:fluxer_dart/export.dart';
 
 const int kMessageFlagCompactAttachments = 1 << 17;
 
+class MessageListLoadResult {
+  const MessageListLoadResult({
+    required this.messages,
+    this.embeddedReplyParents = const [],
+  });
+
+  final List<Message> messages;
+  final List<Message> embeddedReplyParents;
+}
+
 Map<String, dynamic> buildMessageCreateBody({
   required String content,
   String? replyToId,
@@ -83,6 +93,23 @@ class MessageRepository {
     String? after,
     String? around,
   }) async {
+    final page = await loadMessagePage(
+      channelId: channelId,
+      limit: limit,
+      before: before,
+      after: after,
+      around: around,
+    );
+    return page.messages;
+  }
+
+  Future<MessageListLoadResult> loadMessagePage({
+    required String channelId,
+    int limit = 30,
+    String? before,
+    String? after,
+    String? around,
+  }) async {
     try {
       final data = await _client.channels.listMessages(
         channelId: channelId,
@@ -91,6 +118,19 @@ class MessageRepository {
         after: after,
         around: around,
       );
+
+      final embeddedReplyParents = <Message>[];
+      for (final sdk in data) {
+        final referenced = sdk.referencedMessage;
+        if (referenced != null) {
+          embeddedReplyParents.add(
+            Message.fromReferencedSdk(
+              referenced,
+              currentUserId: _currentUserId,
+            ),
+          );
+        }
+      }
 
       final messages = data
           .map((sdk) => Message.fromSdk(sdk, currentUserId: _currentUserId))
@@ -124,7 +164,10 @@ class MessageRepository {
         );
       }
 
-      return messages;
+      return MessageListLoadResult(
+        messages: messages,
+        embeddedReplyParents: embeddedReplyParents,
+      );
     } on DioException catch (e) {
       // SDK deserialization can fail on a 200 response
       // (e.g. missing fields). Fall back to manual parsing.
@@ -133,16 +176,40 @@ class MessageRepository {
           '[MessageRepo] SDK parse failed, '
           'using fallback: ${e.error}',
         );
-        return _getMessagesFallback(
+        final messages = await _getMessagesFallback(
           channelId: channelId,
           limit: limit,
           before: before,
           after: after,
           around: around,
         );
+        return MessageListLoadResult(messages: messages);
       }
       throw Exception(
         e.error?.toString() ?? e.message ?? 'Failed to fetch messages',
+      );
+    }
+  }
+
+  Future<Message> fetchMessage({
+    required String channelId,
+    required String messageId,
+  }) async {
+    try {
+      final sdk = await _client.channels.getMessage(
+        channelId: channelId,
+        messageId: messageId,
+      );
+      await _db.userDao.upsertUser(userFromPartialSdk(sdk.author));
+      final message = Message.fromSdk(sdk, currentUserId: _currentUserId);
+      await _db.messageDao.upsertMessage(message.toCompanion());
+      return message;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        rethrow;
+      }
+      throw Exception(
+        e.error?.toString() ?? e.message ?? 'Failed to fetch message',
       );
     }
   }

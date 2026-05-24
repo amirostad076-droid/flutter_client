@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
@@ -24,6 +25,7 @@ import 'package:fluxer_app/features/chat/providers/chat_read_ack_gate.dart';
 import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
+import 'package:fluxer_app/features/chat/providers/message_references_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_indicator_shake_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
@@ -62,7 +64,9 @@ class ChatViewState {
   final bool isLoading;
   final bool isSyncingMessages;
   final bool isLoadingMore;
+  final bool isLoadingNewer;
   final bool hasMoreMessages;
+  final bool hasMoreNewerMessages;
   final String? errorMessage;
 
   const ChatViewState({
@@ -76,7 +80,9 @@ class ChatViewState {
     required this.isLoading,
     required this.isSyncingMessages,
     required this.isLoadingMore,
+    required this.isLoadingNewer,
     required this.hasMoreMessages,
+    required this.hasMoreNewerMessages,
     required this.errorMessage,
     this.scrollToMessageSignal,
     this.stickyUnreadMessageId,
@@ -97,7 +103,9 @@ class ChatViewState {
     bool? isLoading,
     bool? isSyncingMessages,
     bool? isLoadingMore,
+    bool? isLoadingNewer,
     bool? hasMoreMessages,
+    bool? hasMoreNewerMessages,
     Object? errorMessage = _unset,
   }) {
     return ChatViewState(
@@ -123,7 +131,9 @@ class ChatViewState {
       isLoading: isLoading ?? this.isLoading,
       isSyncingMessages: isSyncingMessages ?? this.isSyncingMessages,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      isLoadingNewer: isLoadingNewer ?? this.isLoadingNewer,
       hasMoreMessages: hasMoreMessages ?? this.hasMoreMessages,
+      hasMoreNewerMessages: hasMoreNewerMessages ?? this.hasMoreNewerMessages,
       errorMessage: errorMessage == _unset
           ? this.errorMessage
           : errorMessage as String?,
@@ -173,12 +183,15 @@ class ChatViewModel extends _$ChatViewModel {
       isLoading: false,
       isSyncingMessages: false,
       isLoadingMore: false,
+      isLoadingNewer: false,
       hasMoreMessages: true,
+      hasMoreNewerMessages: false,
       errorMessage: null,
     );
   }
 
   Future<void> _onRealtimeEvent(MessageRealtimeEvent ev) async {
+    _forwardRealtimeToMessageReferences(ev);
     final next = await _nextMessagesFor(ev);
     final Set<String> deletedIds = _deletedMessageIdsFor(ev);
     final bool clearEditing = ev is MessageUpdated &&
@@ -213,6 +226,40 @@ class ChatViewModel extends _$ChatViewModel {
         forwardingFrom: clearComposerForDelete ? null : state.forwardingFrom,
       );
     }
+  }
+
+  void _forwardRealtimeToMessageReferences(MessageRealtimeEvent ev) {
+    final notifier = ref.read(messageReferencesProvider.notifier);
+    switch (ev) {
+      case MessageCreated(:final event):
+        notifier.onMessageCreated(event.message);
+      case MessageUpdated(:final event):
+        notifier.onMessageUpdated(event.message);
+      case MessageDeleted(:final event):
+        notifier.onMessageDeleted(
+          channelId: event.channelId,
+          messageId: event.messageId,
+        );
+      case MessagesDeletedBulk(:final event):
+        notifier.onMessagesDeletedBulk(
+          channelId: event.channelId,
+          messageIds: event.ids,
+        );
+      case MessageReactionsChanged():
+        break;
+    }
+  }
+
+  void _notifyMessageReferencesLoaded({
+    required String channelId,
+    required List<Message> messages,
+    List<Message> embeddedReplyParents = const [],
+  }) {
+    ref.read(messageReferencesProvider.notifier).onMessagesLoaded(
+      channelId: channelId,
+      messages: messages,
+      embeddedReplyParents: embeddedReplyParents,
+    );
   }
 
   Set<String> _deletedMessageIdsFor(MessageRealtimeEvent ev) {
@@ -345,6 +392,9 @@ class ChatViewModel extends _$ChatViewModel {
       _readAckRetryTimer?.cancel();
       _clearManualUnread(previousChannelId);
       _clearLoadedUnreadBoundaryKeys(previousChannelId);
+      ref
+          .read(messageReferencesProvider.notifier)
+          .clearChannel(previousChannelId);
     }
     if (!loadMessages) {
       if (state.channelId == channelId) {
@@ -361,7 +411,9 @@ class ChatViewModel extends _$ChatViewModel {
         isLoading: false,
         isSyncingMessages: false,
         isLoadingMore: false,
+        isLoadingNewer: false,
         hasMoreMessages: true,
+        hasMoreNewerMessages: false,
         errorMessage: null,
       );
       return;
@@ -381,7 +433,9 @@ class ChatViewModel extends _$ChatViewModel {
         isLoading: true,
         isSyncingMessages: false,
         isLoadingMore: false,
+        isLoadingNewer: false,
         hasMoreMessages: true,
+        hasMoreNewerMessages: false,
         errorMessage: null,
       );
       await _loadMessages(channelId, targetMessageId: targetMessageId);
@@ -406,8 +460,14 @@ class ChatViewModel extends _$ChatViewModel {
         isLoading: false,
         isSyncingMessages: true,
         isLoadingMore: false,
+        isLoadingNewer: false,
         hasMoreMessages: cached.length >= _kPageSize,
+        hasMoreNewerMessages: false,
         errorMessage: null,
+      );
+      _notifyMessageReferencesLoaded(
+        channelId: channelId,
+        messages: cached,
       );
       unawaited(_refreshMessagesFromNetwork(channelId));
       return;
@@ -423,7 +483,9 @@ class ChatViewModel extends _$ChatViewModel {
       isLoading: true,
       isSyncingMessages: false,
       isLoadingMore: false,
+      isLoadingNewer: false,
       hasMoreMessages: true,
+      hasMoreNewerMessages: false,
       errorMessage: null,
     );
     await _refreshMessagesFromNetwork(channelId, showLoadingSpinner: true);
@@ -454,7 +516,7 @@ class ChatViewModel extends _$ChatViewModel {
     }
     try {
       final repo = ref.read(messageRepositoryProvider);
-      final messages = await repo.getMessages(
+      final page = await repo.loadMessagePage(
         channelId: channelId,
         around: targetMessageId,
       );
@@ -464,16 +526,25 @@ class ChatViewModel extends _$ChatViewModel {
       final String? syncBaselineOldestId = state.messages.isEmpty
           ? null
           : state.messages.first.id;
+      final merged = reconcileMessagesWithNetworkPage(
+        current: state.messages,
+        networkPage: page.messages,
+        syncBaselineOldestId: syncBaselineOldestId,
+      );
+      final bool hasMoreNewer = merged.isNotEmpty &&
+          await _hasNewerMessagesThanChannel(merged.last.id);
       state = state.copyWith(
-        messages: reconcileMessagesWithNetworkPage(
-          current: state.messages,
-          networkPage: messages,
-          syncBaselineOldestId: syncBaselineOldestId,
-        ),
+        messages: merged,
         isLoading: false,
         isSyncingMessages: false,
-        hasMoreMessages: messages.length >= _kPageSize,
+        hasMoreMessages: page.messages.length >= _kPageSize,
+        hasMoreNewerMessages: hasMoreNewer,
         errorMessage: null,
+      );
+      _notifyMessageReferencesLoaded(
+        channelId: channelId,
+        messages: merged,
+        embeddedReplyParents: page.embeddedReplyParents,
       );
       if (targetMessageId == null) {
         await _onMessagesLoaded(channelId);
@@ -586,19 +657,112 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       final repo = ref.read(messageRepositoryProvider);
       final oldestId = state.messages.first.id;
-      final older = await repo.getMessages(
+      final page = await repo.loadMessagePage(
         channelId: state.channelId,
         before: oldestId,
       );
+      final merged = [...page.messages, ...state.messages];
       state = state.copyWith(
-        messages: [...older, ...state.messages],
+        messages: merged,
         isLoadingMore: false,
-        hasMoreMessages: older.length >= _kPageSize,
+        hasMoreMessages: page.messages.length >= _kPageSize,
+      );
+      _notifyMessageReferencesLoaded(
+        channelId: state.channelId,
+        messages: merged,
+        embeddedReplyParents: page.embeddedReplyParents,
       );
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load more: $e');
       state = state.copyWith(isLoadingMore: false);
     }
+  }
+
+  Future<void> loadNewer() async {
+    if (state.isLoadingNewer ||
+        !state.hasMoreNewerMessages ||
+        state.messages.isEmpty) {
+      return;
+    }
+    state = state.copyWith(isLoadingNewer: true);
+    try {
+      final String newestId = state.messages.last.id;
+      final page = await ref.read(messageRepositoryProvider).loadMessagePage(
+        channelId: state.channelId,
+        after: newestId,
+      );
+      if (state.channelId.isEmpty) {
+        return;
+      }
+      final List<Message> merged = _mergeMessages(state.messages, page.messages);
+      final bool hasMoreNewer = page.messages.length >= _kPageSize &&
+          await _hasNewerMessagesThanChannel(merged.last.id);
+      state = state.copyWith(
+        messages: merged,
+        isLoadingNewer: false,
+        hasMoreNewerMessages: hasMoreNewer,
+      );
+      _notifyMessageReferencesLoaded(
+        channelId: state.channelId,
+        messages: merged,
+        embeddedReplyParents: page.embeddedReplyParents,
+      );
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to load newer messages: $e');
+      state = state.copyWith(isLoadingNewer: false);
+    }
+  }
+
+  Future<void> jumpToLatestMessages() async {
+    final String channelId = state.channelId;
+    if (channelId.isEmpty) {
+      return;
+    }
+    if (!state.hasMoreNewerMessages) {
+      scrollToBottom();
+      return;
+    }
+    if (state.isSyncingMessages || state.isLoading) {
+      return;
+    }
+    state = state.copyWith(isSyncingMessages: true);
+    try {
+      final page = await ref.read(messageRepositoryProvider).loadMessagePage(
+        channelId: channelId,
+      );
+      if (state.channelId != channelId) {
+        return;
+      }
+      state = state.copyWith(
+        messages: page.messages,
+        isSyncingMessages: false,
+        hasMoreMessages: page.messages.length >= _kPageSize,
+        hasMoreNewerMessages: false,
+      );
+      _notifyMessageReferencesLoaded(
+        channelId: channelId,
+        messages: page.messages,
+        embeddedReplyParents: page.embeddedReplyParents,
+      );
+      scrollToBottom();
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to jump to latest messages: $e');
+      if (state.channelId == channelId) {
+        state = state.copyWith(isSyncingMessages: false);
+      }
+    }
+  }
+
+  Future<bool> _hasNewerMessagesThanChannel(String messageId) async {
+    final db.Channel? channel = await ref
+        .read(fluxerDatabaseProvider)
+        .channelDao
+        .getChannelById(state.channelId);
+    final String? lastMessageId = channel?.lastMessageId;
+    if (lastMessageId == null || lastMessageId.isEmpty) {
+      return false;
+    }
+    return compareSnowflakeIds(lastMessageId, messageId) > 0;
   }
 
   void setReadViewportActive({required bool isActive}) {
@@ -1424,6 +1588,77 @@ class ChatViewModel extends _$ChatViewModel {
   void scrollToMessage(String messageId) {
     final version = (state.scrollToMessageSignal?.$2 ?? 0) + 1;
     state = state.copyWith(scrollToMessageSignal: (messageId, version));
+  }
+
+  void scrollToBottom() {
+    state = state.copyWith(
+      scrollToBottomSignal: state.scrollToBottomSignal + 1,
+    );
+  }
+
+  Future<void> goToRepliedMessage({
+    required String channelId,
+    required String messageId,
+  }) async {
+    if (channelId != state.channelId) {
+      await _navigateToChannelMessage(
+        channelId: channelId,
+        messageId: messageId,
+      );
+      return;
+    }
+    if (state.messages.any((Message m) => m.id == messageId)) {
+      scrollToMessage(messageId);
+      return;
+    }
+    if (state.isSyncingMessages || state.isLoading) {
+      return;
+    }
+    state = state.copyWith(isSyncingMessages: true);
+    try {
+      final page = await ref.read(messageRepositoryProvider).loadMessagePage(
+        channelId: channelId,
+        around: messageId,
+      );
+      if (state.channelId != channelId) {
+        return;
+      }
+      final bool hasMoreNewer = await _hasNewerMessagesThanChannel(
+        page.messages.last.id,
+      );
+      state = state.copyWith(
+        messages: page.messages,
+        isSyncingMessages: false,
+        hasMoreMessages: page.messages.length >= _kPageSize,
+        hasMoreNewerMessages: hasMoreNewer,
+      );
+      _notifyMessageReferencesLoaded(
+        channelId: channelId,
+        messages: page.messages,
+        embeddedReplyParents: page.embeddedReplyParents,
+      );
+      scrollToMessage(messageId);
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to jump to replied message: $e');
+      if (state.channelId == channelId) {
+        state = state.copyWith(isSyncingMessages: false);
+      }
+    }
+  }
+
+  Future<void> _navigateToChannelMessage({
+    required String channelId,
+    required String messageId,
+  }) async {
+    final db.Channel? channel = await ref
+        .read(fluxerDatabaseProvider)
+        .channelDao
+        .getChannelById(channelId);
+    final String? guildId = channel?.guildId;
+    final String path = guildId == null || guildId.isEmpty
+        ? RoutePaths.dmChannelMessage(channelId, messageId)
+        : RoutePaths.guildChannelMessage(guildId, channelId, messageId);
+    ref.read(fluxerRouterProvider).go(path);
   }
 
   void clearErrorMessage() {

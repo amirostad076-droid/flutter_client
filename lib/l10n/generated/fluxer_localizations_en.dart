@@ -3529,6 +3529,12 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatEditingMessage => 'Editing message';
 
   @override
+  String get chatReplyOriginalDeleted => 'Original message was deleted';
+
+  @override
+  String get chatReplyOriginalFailedToLoad => 'Original message failed to load';
+
+  @override
   String get chatEditMessageHint => 'Edit message';
 
   @override

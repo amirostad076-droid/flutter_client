@@ -558,7 +558,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             height: _kReplyRowHeight,
             child: Align(
               alignment: Alignment.centerLeft,
-              child: InlineReplyPreview(replyToId: msg.replyToId!),
+              child: InlineReplyPreview(message: msg),
             ),
           ),
         ),

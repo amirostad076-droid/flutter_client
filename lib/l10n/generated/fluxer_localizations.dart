@@ -6070,6 +6070,18 @@ abstract class FluxerLocalizations {
   /// **'Editing message'**
   String get chatEditingMessage;
 
+  /// Placeholder in the inline reply preview when the parent message was deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Original message was deleted'**
+  String get chatReplyOriginalDeleted;
+
+  /// Placeholder in the inline reply preview when the parent message could not be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Original message failed to load'**
+  String get chatReplyOriginalFailedToLoad;
+
   /// Composer hint text while editing a message.
   ///
   /// In en, this message translates to:

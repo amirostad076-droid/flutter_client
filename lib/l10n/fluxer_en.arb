@@ -4303,6 +4303,14 @@
   "@chatEditingMessage": {
     "description": "Banner text shown above composer while editing a message."
   },
+  "chatReplyOriginalDeleted": "Original message was deleted",
+  "@chatReplyOriginalDeleted": {
+    "description": "Placeholder in the inline reply preview when the parent message was deleted."
+  },
+  "chatReplyOriginalFailedToLoad": "Original message failed to load",
+  "@chatReplyOriginalFailedToLoad": {
+    "description": "Placeholder in the inline reply preview when the parent message could not be loaded."
+  },
   "chatEditMessageHint": "Edit message",
   "@chatEditMessageHint": {
     "description": "Composer hint text while editing a message."

@@ -640,7 +640,8 @@ class Message {
           sdk.attachments?.map(Attachment.fromSdk).toList() ?? const [],
       stickers: sdk.stickers?.map(MessageSticker.fromSdk).toList() ?? const [],
       reactions: sdk.reactions?.map(Reaction.fromSdk).toList() ?? const [],
-      replyToId: sdk.referencedMessage?.id,
+      replyToId:
+          sdk.messageReference?.messageId ?? sdk.referencedMessage?.id,
       messageReference: sdk.messageReference != null
           ? MessageReference.fromSdk(sdk.messageReference!)
           : null,
@@ -652,6 +653,38 @@ class Message {
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
       clientNonce: sdk.nonce,
+    );
+  }
+
+  factory Message.fromReferencedSdk(
+    MessageBaseResponseSchema sdk, {
+    String? currentUserId,
+  }) {
+    final isMentioned =
+        sdk.mentionEveryone ||
+        (currentUserId != null &&
+            (sdk.mentions.any((u) => u.id == currentUserId)));
+
+    return Message(
+      id: sdk.id,
+      channelId: sdk.channelId,
+      authorId: sdk.author.id,
+      authorName: sdk.author.globalName ?? sdk.author.username,
+      authorAvatar: sdk.author.avatar,
+      authorAvatarColor: sdk.author.avatarColor,
+      authorIsBot: sdk.author.bot ?? false,
+      content: sdk.content,
+      timestamp: sdk.timestamp,
+      editedTimestamp: sdk.editedTimestamp,
+      embeds: sdk.embeds?.map(Embed.fromSdk).toList() ?? const [],
+      attachments:
+          sdk.attachments?.map(Attachment.fromSdk).toList() ?? const [],
+      stickers: sdk.stickers?.map(MessageSticker.fromSdk).toList() ?? const [],
+      reactions: sdk.reactions?.map(Reaction.fromSdk).toList() ?? const [],
+      isPinned: sdk.pinned,
+      isMentioned: isMentioned,
+      type: sdk.type.json ?? 0,
+      flags: sdk.flags,
     );
   }
 
@@ -903,6 +936,17 @@ class Message {
   bool get hasAttachments => attachments.isNotEmpty;
   bool get hasStickers => stickers.isNotEmpty;
   bool get isReply => replyToId != null;
+
+  String? get replyParentMessageId =>
+      replyToId ?? messageReference?.messageId;
+
+  String get replyParentChannelId {
+    final String? refChannelId = messageReference?.channelId;
+    if (refChannelId != null && refChannelId.isNotEmpty) {
+      return refChannelId;
+    }
+    return channelId;
+  }
   bool get hasForwardSnapshots => messageSnapshots.isNotEmpty;
   bool get suppressEmbeds => (flags & messageFlagSuppressEmbeds) != 0;
   bool get hasCompactAttachments =>

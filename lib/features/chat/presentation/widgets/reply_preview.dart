@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -9,6 +11,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/message_item.dart'
     show MessageItem;
 import 'package:fluxer_app/features/chat/presentation/widgets/message_mention.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/providers/message_references_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
@@ -21,14 +24,34 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 /// The curved connector line is handled by
 /// [ReplyConnectorPainter] in [MessageItem].
 class InlineReplyPreview extends ConsumerWidget {
-  final String replyToId;
+  final Message message;
 
-  const InlineReplyPreview({required this.replyToId, super.key});
+  const InlineReplyPreview({required this.message, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final messages = ref.watch(chatViewModelProvider.select((s) => s.messages));
-    final replyMsg = _findMessage(messages, replyToId);
+    final l10n = FluxerLocalizations.of(context);
+    final parentMessageId = message.replyParentMessageId;
+    if (parentMessageId == null) {
+      return const SizedBox.shrink();
+    }
+    final parentChannelId = message.replyParentChannelId;
+    ref.watch(messageReferencesProvider);
+    final List<Message> channelMessages = ref.watch(
+      chatViewModelProvider.select(
+        (state) => state.channelId == parentChannelId
+            ? state.messages
+            : const <Message>[],
+      ),
+    );
+    final resolution = ref
+        .read(messageReferencesProvider.notifier)
+        .resolveSync(
+          channelId: parentChannelId,
+          messageId: parentMessageId,
+          channelMessages: channelMessages,
+        );
+    final replyMsg = resolution.message;
     final guildId = ref.watch(activeGuildIdProvider);
     Color? roleColor;
     if (replyMsg != null && guildId != null) {
@@ -41,11 +64,18 @@ class InlineReplyPreview extends ConsumerWidget {
     );
 
     return GestureDetector(
-      onTap: () =>
-          ref.read(chatViewModelProvider.notifier).scrollToMessage(replyToId),
+      onTap: resolution.state == MessageReferenceState.deleted
+          ? null
+          : () => unawaited(
+              ref.read(chatViewModelProvider.notifier).goToRepliedMessage(
+                channelId: parentChannelId,
+                messageId: parentMessageId,
+              ),
+            ),
       child: Row(
         children: [
-          if (replyMsg != null) ...[
+          if (resolution.state == MessageReferenceState.loaded &&
+              replyMsg != null) ...[
             FluxerAvatar.user(
               fallbackText: replyMsg.authorName,
               userId: replyMsg.authorId,
@@ -89,7 +119,9 @@ class InlineReplyPreview extends ConsumerWidget {
             const SizedBox(width: 4),
             Flexible(
               child: Text(
-                'Original message was deleted',
+                resolution.state == MessageReferenceState.deleted
+                    ? l10n.chatReplyOriginalDeleted
+                    : l10n.chatReplyOriginalFailedToLoad,
                 style: TextStyle(
                   color: context.colors.textPrimaryMuted,
                   fontSize: 14,
@@ -103,15 +135,6 @@ class InlineReplyPreview extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Message? _findMessage(List<Message> messages, String id) {
-    for (final msg in messages) {
-      if (msg.id == id) {
-        return msg;
-      }
-    }
-    return null;
   }
 }
 
