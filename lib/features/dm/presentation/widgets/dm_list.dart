@@ -897,6 +897,7 @@ class _DMListState extends ConsumerState<DMList> {
                     imageUrl: FluxerMediaUrl.userAvatar(
                       userId: c.recipientId,
                       hash: c.recipientAvatar,
+                      animated: isSelected,
                     ),
                     status: c.recipientStatus,
                     size: avatarSize,
