@@ -88,6 +88,20 @@ bool _isMuteActive(String? endTime, DateTime now) {
   return parsed == null || parsed.isAfter(now);
 }
 
+UserNotificationSettings? resolveExplicitUnreadBadgeLevel({
+  required db.Channel channel,
+  required UserGuildSettingsResponse? guildSettings,
+}) {
+  final overrides = guildSettings?.channelOverrides ?? const {};
+  return _resolvedUnreadBadgeLevel(
+    directOverride: overrides[channel.id],
+    parentOverride: channel.parentId == null
+        ? null
+        : overrides[channel.parentId!],
+    guildSettings: guildSettings,
+  );
+}
+
 UserNotificationSettings? _resolvedUnreadBadgeLevel({
   required ChannelOverrides? directOverride,
   required ChannelOverrides? parentOverride,

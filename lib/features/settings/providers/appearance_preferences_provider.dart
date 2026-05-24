@@ -13,7 +13,7 @@ class AppearancePreferencesState {
     this.showSelectedChannelTypingIndicator = false,
     this.showNeko = false,
     this.collapseDMs = false,
-    this.showFadedUnreadOnMutedChannels = true,
+    this.showFadedUnreadOnMutedChannels = false,
     this.showActiveNow = true,
     this.showFavorites = true,
     this.hideKeyboardHints = false,

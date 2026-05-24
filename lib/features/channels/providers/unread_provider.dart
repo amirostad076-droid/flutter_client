@@ -6,19 +6,24 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'unread_provider.g.dart';
 
 class UnreadState {
   final bool hasUnread;
+  final bool hasUnreadMessages;
   final int mentionCount;
   final bool hasUnreadPins;
+  final UserNotificationSettings? unreadBadgesLevel;
 
   const UnreadState({
     this.hasUnread = false,
+    this.hasUnreadMessages = false,
     this.mentionCount = 0,
     this.hasUnreadPins = false,
+    this.unreadBadgesLevel,
   });
 }
 
@@ -63,14 +68,21 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
     final guildSettings = channel == null
         ? null
         : await db.userGuildSettingsDao.getByGuildId(channel.guildId);
+    final decodedGuildSettings = guildSettings == null
+        ? null
+        : decodeUserGuildSettings(guildSettings.data);
     final unreadSettings = channel == null
         ? null
         : resolveUnreadSettings(
             channel: channel,
-            guildSettings: guildSettings == null
-                ? null
-                : decodeUserGuildSettings(guildSettings.data),
+            guildSettings: decodedGuildSettings,
             now: DateTime.now(),
+          );
+    final unreadBadgesLevel = channel == null
+        ? null
+        : resolveExplicitUnreadBadgeLevel(
+            channel: channel,
+            guildSettings: decodedGuildSettings,
           );
     final mentionCount = (unreadSettings?.allowsMentionUnread ?? true)
         ? visibleMentionCount
@@ -110,8 +122,10 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
       controller.add(
         UnreadState(
           hasUnread: hasUnread,
+          hasUnreadMessages: hasUnreadMessage,
           mentionCount: mentionCount,
           hasUnreadPins: hasPinUnread,
+          unreadBadgesLevel: unreadBadgesLevel,
         ),
       );
     }

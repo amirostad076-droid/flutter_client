@@ -13,7 +13,9 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/domain/channel_unread_state.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_participants.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
@@ -293,6 +295,7 @@ class GuildSidebar extends ConsumerWidget {
     final unread = unreadAsync.value;
     final hasUnread = unread?.hasUnread ?? false;
     final mentionCount = unread?.mentionCount ?? 0;
+    final hasUnreadMessages = unread?.hasUnreadMessages ?? false;
     final currentUserId = ref.watch(currentUserIdProvider);
     final guildId = ref.watch(activeGuildIdProvider);
     final effectiveMutedSet =
@@ -301,21 +304,22 @@ class GuildSidebar extends ConsumerWidget {
             ? ref.watch(mutedChannelIdsProvider(guildId)).value ??
                   const <String>{}
             : const <String>{});
-    final effectiveGuildMuted =
-        guildMuted ??
-        (guildId != null &&
-            (ref.watch(guildMuteProvider(guildId)).value?.isMuted ?? false));
-    final isMuted = _isChannelMuted(
+    final isChannelDirectlyMuted = _isChannelDirectlyMuted(
       channel,
       effectiveMutedSet,
-      effectiveGuildMuted,
     );
     final showFadedUnread = ref.watch(
       appearancePreferencesProvider.select(
         (s) => s.showFadedUnreadOnMutedChannels,
       ),
     );
-    final treatAsUnread = hasUnread && (!isMuted || showFadedUnread);
+    final channelUnreadState = getChannelUnreadState(
+      unreadCount: hasUnreadMessages ? 1 : 0,
+      mentionCount: mentionCount,
+      isMuted: isChannelDirectlyMuted,
+      showFadedUnreadOnMutedChannels: showFadedUnread,
+      unreadBadgesLevel: unread?.unreadBadgesLevel,
+    );
     final hasTyping = ref.watch(
       typingIndicatorsProvider.select((entries) {
         final now = DateTime.now();
@@ -346,13 +350,33 @@ class GuildSidebar extends ConsumerWidget {
           guildHasVoiceE2ee: guild.hasVoiceE2ee,
         );
 
-    final textColor = isSelected
+    final Color textColor = isSelected
         ? context.colors.textPrimary
-        : treatAsUnread
-        ? context.colors.textChat
-        : context.colors.textTertiary;
+        : channelUnreadState.isHighlight
+        ? context.colors.textSecondary
+        : context.colors.textTertiaryMuted;
+    final double rowOpacity =
+        isChannelDirectlyMuted && !isSelected ? 0.5 : 1.0;
+    final bool showUnreadIndicator =
+        !isSelected && channelUnreadState.shouldShowUnreadIndicator;
 
-    return Material(
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (showUnreadIndicator)
+          Positioned(
+            left: 1,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: ChannelUnreadIndicator(
+                faded: isChannelDirectlyMuted,
+              ),
+            ),
+          ),
+        Opacity(
+          opacity: rowOpacity,
+          child: Material(
       color: Colors.transparent,
       child: InkWell(
         onSecondaryTapUp: _canMarkChannelRead(channel)
@@ -470,7 +494,7 @@ class GuildSidebar extends ConsumerWidget {
                   channel.name,
                   style: context.textStyles.channelName.copyWith(
                     color: textColor,
-                    fontWeight: treatAsUnread ? FontWeight.w600 : null,
+                    fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -479,19 +503,19 @@ class GuildSidebar extends ConsumerWidget {
                 const SizedBox(width: 4),
                 FluxerLoadingSpinner(color: context.colors.textSecondary),
               ],
-              if (!isSelected && (mentionCount > 0 || treatAsUnread)) ...[
+              if (!isSelected &&
+                  mentionCount > 0 &&
+                  channelUnreadState.hasMentions) ...[
                 const SizedBox(width: 4),
-                if (mentionCount > 0)
-                  FluxerBadge.count(count: mentionCount)
-                else if (isMuted)
-                  const Opacity(opacity: 0.4, child: FluxerBadge.dot())
-                else
-                  const FluxerBadge.dot(),
+                FluxerBadge.count(count: mentionCount),
               ],
             ],
           ),
         ),
       ),
+    ),
+        ),
+      ],
     );
   }
 
@@ -548,6 +572,10 @@ class GuildSidebar extends ConsumerWidget {
         ref.read(fluxerClientProvider),
         ref.read(fluxerDatabaseProvider),
       );
+}
+
+bool _isChannelDirectlyMuted(Channel channel, Set<String> mutedSet) {
+  return mutedSet.contains(channel.id);
 }
 
 bool _isChannelMuted(Channel channel, Set<String> mutedSet, bool guildMuted) {
