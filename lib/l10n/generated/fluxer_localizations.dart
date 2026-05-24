@@ -4930,6 +4930,12 @@ abstract class FluxerLocalizations {
   /// **'Configure how the guild sidebar displays direct messages.'**
   String get lookAndFeelGuildSidebarDescription;
 
+  /// Tooltip on the aggregate outage badge in the guild sidebar when one or more communities are unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 community is temporarily unavailable due to a flux capacitor malfunction.} other{{count} communities are temporarily unavailable due to a flux capacitor malfunction.}}'**
+  String guildUnavailableOutageTooltip(int count);
+
   /// Toggle label — collapse unread DMs into the Fluxer button folder.
   ///
   /// In en, this message translates to:

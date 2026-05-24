@@ -33,6 +33,15 @@ typedef ConnectionsUpdateCallback =
     void Function(List<ConnectionResponse> connections);
 typedef UserSettingsHydrateCallback =
     void Function(UserSettingsResponse settings);
+typedef UnavailableGuildsReadyCallback =
+    void Function(List<Map<String, dynamic>> rawGuilds);
+typedef GuildAvailabilityChangedCallback =
+    void Function(
+      String guildId, {
+      required bool unavailable,
+      bool unavailableHidden,
+    });
+typedef GuildAvailableCallback = void Function(String guildId);
 typedef VoiceServerUpdateCallback = void Function(VoiceServerUpdateEvent event);
 typedef GatewayErrorCallback = void Function(GatewayErrorEvent event);
 
@@ -73,6 +82,9 @@ class GatewayEventHandler {
     this.onAuthSessionIdHashChanged,
     this.onConnectionsUpdate,
     this.onUserSettingsHydrate,
+    this.onUnavailableGuildsReady,
+    this.onGuildAvailabilityChanged,
+    this.onGuildAvailable,
   });
 
   final db.FluxerDatabase database;
@@ -104,6 +116,9 @@ class GatewayEventHandler {
   final void Function(String? idHash)? onAuthSessionIdHashChanged;
   final ConnectionsUpdateCallback? onConnectionsUpdate;
   final UserSettingsHydrateCallback? onUserSettingsHydrate;
+  final UnavailableGuildsReadyCallback? onUnavailableGuildsReady;
+  final GuildAvailabilityChangedCallback? onGuildAvailabilityChanged;
+  final GuildAvailableCallback? onGuildAvailable;
 
   String? _currentUserId;
 
@@ -724,6 +739,7 @@ class GatewayEventHandler {
     if (!hasUnavailableGuilds) {
       unawaited(readStateRepository?.cleanupStaleReadStates());
     }
+    onUnavailableGuildsReady?.call(event.rawGuilds);
     onReady?.call();
   }
 
@@ -1348,6 +1364,7 @@ class GatewayEventHandler {
 
   void _handleGuildCreate(GuildCreateEvent event) {
     final guildId = event.guild.guild.id;
+    onGuildAvailable?.call(guildId);
 
     unawaited(
       database.transaction(() async {
@@ -1418,6 +1435,11 @@ class GatewayEventHandler {
   }
 
   Future<void> _handleGuildDelete(GuildDeleteEvent event) async {
+    onGuildAvailabilityChanged?.call(
+      event.guildId,
+      unavailable: event.unavailable,
+      unavailableHidden: event.unavailableHidden,
+    );
     if (event.unavailable) {
       // Guild went unavailable — keep it in the list but mark it.
       await database.guildDao.markUnavailable(event.guildId);

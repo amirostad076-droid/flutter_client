@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/message_realtime_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_availability_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/settings/providers/connections_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
@@ -41,6 +42,7 @@ void gatewayConnectBinding(Ref ref) {
   ) {
     if (previous != null) {
       ref.read(gatewayReadyProvider.notifier).reset();
+      ref.read(guildAvailabilityProvider.notifier).clear();
     }
     unawaited(next.connect());
   }, fireImmediately: true);
@@ -179,6 +181,20 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
             .read(themePreferenceProvider.notifier)
             .applyServerSettings(settings),
       );
+    },
+    onUnavailableGuildsReady: (rawGuilds) {
+      ref.read(guildAvailabilityProvider.notifier).loadFromReady(rawGuilds);
+    },
+    onGuildAvailabilityChanged:
+        (guildId, {required unavailable, unavailableHidden = false}) {
+      ref.read(guildAvailabilityProvider.notifier).handleGuildAvailability(
+        guildId,
+        unavailable: unavailable,
+        unavailableHidden: unavailableHidden,
+      );
+    },
+    onGuildAvailable: (guildId) {
+      ref.read(guildAvailabilityProvider.notifier).setGuildAvailable(guildId);
     },
   );
 

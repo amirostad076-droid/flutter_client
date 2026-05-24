@@ -40,6 +40,59 @@ class GuildNavbarGuild extends GuildNavbarItem {
   final Guild guild;
 }
 
+List<GuildNavbarItem> computeOrganizedGuildList({
+  required List<Guild> guilds,
+  required List<UserSettingsResponseGuildFolders> folders,
+}) {
+  if (folders.isEmpty) {
+    return guilds.map((Guild g) => GuildNavbarGuild(guild: g)).toList();
+  }
+  final guildMap = <String, Guild>{for (final Guild g in guilds) g.id: g};
+  final placedGuildIds = <String>{};
+  final items = <GuildNavbarItem>[];
+  for (final folder in folders) {
+    final folderGuilds = folder.guildIds
+        .map((String id) => guildMap[id])
+        .whereType<Guild>()
+        .toList();
+    if (folderGuilds.isEmpty) {
+      continue;
+    }
+    for (final guild in folderGuilds) {
+      placedGuildIds.add(guild.id);
+    }
+    // Web app uses UNCATEGORIZED_FOLDER_ID = -1.
+    // Gateway may send null or -1 for uncategorized entries.
+    if (folder.id == null || folder.id == -1) {
+      for (final guild in folderGuilds) {
+        items.add(GuildNavbarGuild(guild: guild));
+      }
+    } else {
+      items.add(
+        GuildNavbarFolder(
+          id: folder.id!,
+          name: folder.name,
+          color: folder.color,
+          flags: folder.flags ?? 0,
+          icon: folder.icon?.json,
+          guilds: folderGuilds,
+        ),
+      );
+    }
+  }
+  final unplacedGuilds = guilds
+      .where((Guild g) => !placedGuildIds.contains(g.id) && !g.isUnavailable)
+      .toList();
+  if (unplacedGuilds.isEmpty) {
+    return items;
+  }
+  final prefix = <GuildNavbarItem>[
+    for (var i = unplacedGuilds.length - 1; i >= 0; i--)
+      GuildNavbarGuild(guild: unplacedGuilds[i]),
+  ];
+  return [...prefix, ...items];
+}
+
 @Riverpod(keepAlive: true)
 Stream<List<UserSettingsResponseGuildFolders>> guildFolders(Ref ref) async* {
   final db = ref.watch(fluxerDatabaseProvider);
@@ -78,46 +131,10 @@ class OrganizedGuildList extends _$OrganizedGuildList {
   List<GuildNavbarItem> build() {
     final folders = ref.watch(guildFoldersProvider).value ?? [];
     final GuildListViewState guildState = ref.watch(guildListViewModelProvider);
-    final List<Guild> guilds = guildState.guilds;
-
-    if (folders.isEmpty) {
-      return guilds.map((Guild g) => GuildNavbarGuild(guild: g)).toList();
-    }
-
-    final guildMap = <String, Guild>{for (final Guild g in guilds) g.id: g};
-
-    final items = <GuildNavbarItem>[];
-    for (final folder in folders) {
-      final folderGuilds = folder.guildIds
-          .map((String id) => guildMap[id])
-          .whereType<Guild>()
-          .toList();
-
-      if (folderGuilds.isEmpty) {
-        continue;
-      }
-
-      // Web app uses UNCATEGORIZED_FOLDER_ID = -1.
-      // Gateway may send null or -1 for uncategorized entries.
-      if (folder.id == null || folder.id == -1) {
-        for (final guild in folderGuilds) {
-          items.add(GuildNavbarGuild(guild: guild));
-        }
-      } else {
-        items.add(
-          GuildNavbarFolder(
-            id: folder.id!,
-            name: folder.name,
-            color: folder.color,
-            flags: folder.flags ?? 0,
-            icon: folder.icon?.json,
-            guilds: folderGuilds,
-          ),
-        );
-      }
-    }
-
-    return items;
+    return computeOrganizedGuildList(
+      guilds: guildState.guilds,
+      folders: folders,
+    );
   }
 
   void reorder({

@@ -2873,6 +2873,19 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Configure how the guild sidebar displays direct messages.';
 
   @override
+  String guildUnavailableOutageTooltip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count communities are temporarily unavailable due to a flux capacitor malfunction.',
+      one:
+          '1 community is temporarily unavailable due to a flux capacitor malfunction.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get lookAndFeelCollapseDMsLabel => 'Collapse DMs Into Folder';
 
   @override

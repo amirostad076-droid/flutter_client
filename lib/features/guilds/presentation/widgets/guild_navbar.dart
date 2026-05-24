@@ -47,6 +47,7 @@ import 'package:fluxer_app/features/guilds/presentation/'
 import 'package:fluxer_app/features/guilds/presentation/modals/add_guild_modal.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_scroll_indicator.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_availability_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
@@ -260,6 +261,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     final pendingFriendCount =
         ref.watch(pendingFriendRequestCountProvider).value ?? 0;
     final unavailableCount = guilds.where((g) => g.isUnavailable).length;
+    final pendingUnavailableCount = ref.watch(guildAvailabilityProvider).length;
 
     final dmFolderState = ref.watch(dmFolderProvider);
     final unreadDmState = ref.watch(unreadDmChannelsProvider);
@@ -393,6 +395,8 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
               : const SizedBox.shrink(),
         ),
         _SidebarDivider(color: context.colors.backgroundModifierHover),
+        if (pendingUnavailableCount > 0)
+          _UnavailableGuildsIndicator(count: pendingUnavailableCount),
         for (final item in organizedItems)
           switch (item) {
             GuildNavbarGuild(:final guild) => GuildDragWrapper(
@@ -4020,6 +4024,62 @@ class _RightTooltipState extends State<_RightTooltip>
       child: widget.child,
     ),
   );
+}
+
+class _UnavailableGuildsIndicator extends StatelessWidget {
+  final int count;
+
+  const _UnavailableGuildsIndicator({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = FluxerLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          const SizedBox(width: 12),
+          _RightTooltip(
+            backgroundColor: context.colors.statusDanger,
+            borderColor: context.colors.statusDanger,
+            content: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                l10n.guildUnavailableOutageTooltip(count),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: context.colors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Center(
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: context.colors.statusDanger,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Center(
+                    child: PhosphorIcon(
+                      PhosphorIconsRegular.exclamationMark,
+                      color: context.colors.textOnBrandPrimary,
+                      size: 32,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SidebarDivider extends StatelessWidget {

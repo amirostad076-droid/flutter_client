@@ -3525,6 +3525,13 @@
   "@lookAndFeelGuildSidebarDescription": {
     "description": "Subsection description for guild sidebar config."
   },
+  "guildUnavailableOutageTooltip": "{count, plural, =1{1 community is temporarily unavailable due to a flux capacitor malfunction.} other{{count} communities are temporarily unavailable due to a flux capacitor malfunction.}}",
+  "@guildUnavailableOutageTooltip": {
+    "description": "Tooltip on the aggregate outage badge in the guild sidebar when one or more communities are unavailable.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "lookAndFeelCollapseDMsLabel": "Collapse DMs Into Folder",
   "@lookAndFeelCollapseDMsLabel": {
     "description": "Toggle label — collapse unread DMs into the Fluxer button folder."
