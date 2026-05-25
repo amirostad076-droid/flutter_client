@@ -39,6 +39,7 @@ import 'package:fluxer_app/features/settings/providers/chat_preferences_provider
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -1925,6 +1926,10 @@ class ChatViewModel extends _$ChatViewModel {
     updatedMessages[msgIndex] = msg.copyWith(reactions: updatedReactions);
     state = state.copyWith(messages: updatedMessages);
 
+    if (!hasReacted) {
+      unawaited(_trackReactionFrecency(emoji, emojiId));
+    }
+
     final reaction = Reaction(
       emoji: emoji,
       emojiId: emojiId,
@@ -1946,12 +1951,24 @@ class ChatViewModel extends _$ChatViewModel {
           messageId: messageId,
           emoji: reaction.apiParam,
         );
-        final db = ref.read(fluxerDatabaseProvider);
-        unawaited(db.emojiUsageDao.trackUsage(reaction.frecencyKey));
       }
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Reaction failed: $e');
     }
+  }
+
+  Future<void> _trackReactionFrecency(String emoji, String? emojiId) async {
+    final database = ref.read(fluxerDatabaseProvider);
+    final String key;
+    if (emojiId != null) {
+      final row = await database.guildEmojiDao.getById(emojiId);
+      final guildId = row?.guildId ?? '';
+      key = 'custom:$guildId:$emojiId';
+    } else {
+      final name = EmojiRegistry.entryBySurrogates(emoji)?.primaryName;
+      key = name != null ? 'unicode:$name' : 'unicode:$emoji';
+    }
+    await database.emojiUsageDao.trackUsage(key);
   }
 
   Message _buildOptimisticMessage({

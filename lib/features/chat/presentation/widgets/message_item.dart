@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_list_renderer.dart';
@@ -30,7 +32,9 @@ import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart
 import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/swipe_to_reply.dart';
 import 'package:fluxer_app/features/chat/providers/channel_details_providers.dart';
+import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
+import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/spoiler_reveal_provider.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
@@ -43,6 +47,7 @@ import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
+import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_app/shared/widgets/unicode_emoji_widget.dart';
 import 'package:fluxer_dart/export.dart';
@@ -242,6 +247,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               maxHeight: 0.88,
               onEmojiSelected: _addReactionFromPicker,
               visibleTabs: const [ExpressionPickerTab.emojis],
+              trackEmojiUsageOnSelect: false,
             ),
           );
         } else {
@@ -293,20 +299,99 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     return widget.message.type == 0 || widget.message.type == 19;
   }
 
-  Future<List<String>?> _loadQuickEmojis() async {
+  Future<List<QuickReactionItem>?> _loadQuickReactionItems() async {
     try {
       final db = ref.read(fluxerDatabaseProvider);
-      return await db.emojiUsageDao.getQuickReactionEmojis(
-        4,
-        kQuickReactionDefaultEmojis,
-      );
-    } on Object {
+      final keys = await db.emojiUsageDao.getQuickReactionMixedKeys(12);
+      final messageGuildId =
+          widget.previewRoleGuildId ?? ref.read(activeGuildIdProvider);
+      // Mirror the emoji picker's eligibility: a custom emoji shows if it's
+      // from this guild, or the user has global access (premium + external
+      // emojis), the only path in DMs, where there's no guild to match.
+      final hasGlobalEmojiAccess =
+          ref.read(currentUserPremiumTypeProvider) > 0 &&
+          channelMessagePermissionsForComposer(
+            ref.read(
+              channelMessagePermissionsProvider(widget.message.channelId),
+            ),
+          ).canUseExternalEmojis;
+
+      final resolved = <QuickReactionItem>[];
+      final seenSurrogates = <String>{};
+      final seenCustomIds = <String>{};
+
+      for (final key in keys) {
+        if (resolved.length >= 4) {
+          break;
+        }
+        if (key.startsWith('unicode:')) {
+          final suffix = key.substring('unicode:'.length);
+          if (suffix.isEmpty) {
+            continue;
+          }
+          final entry =
+              EmojiRegistry.entryByName(suffix) ??
+              EmojiRegistry.entryBySurrogates(suffix);
+          final surrogates = entry?.surrogates ?? suffix;
+          if (!seenSurrogates.add(surrogates)) {
+            continue;
+          }
+          resolved.add(UnicodeQuickReaction(surrogates));
+          continue;
+        }
+        if (key.startsWith('custom:')) {
+          final lastColon = key.lastIndexOf(':');
+          if (lastColon < 'custom:'.length - 1) {
+            continue;
+          }
+          final emojiId = key.substring(lastColon + 1);
+          if (emojiId.isEmpty || !seenCustomIds.add(emojiId)) {
+            continue;
+          }
+          final row = await db.guildEmojiDao.getById(emojiId);
+          if (row == null ||
+              !(hasGlobalEmojiAccess || row.guildId == messageGuildId)) {
+            continue;
+          }
+          resolved.add(CustomQuickReaction(GuildEmojiEntry.fromRow(row)));
+        }
+      }
+
+      for (final fallback in kQuickReactionDefaults) {
+        if (resolved.length >= 4) {
+          break;
+        }
+        if (fallback is UnicodeQuickReaction &&
+            !seenSurrogates.add(fallback.emoji)) {
+          continue;
+        }
+        resolved.add(fallback);
+      }
+
+      return resolved.take(4).toList();
+    } on Object catch (e, st) {
+      talker.error('Failed to load quick reaction items', e, st);
       return null;
     }
   }
 
+  void _dispatchQuickReaction(QuickReactionItem item) {
+    // Frecency is tracked centrally in ChatViewModel.toggleReaction, so the
+    // quick-row tap only needs to fire the reaction.
+    switch (item) {
+      case UnicodeQuickReaction(:final emoji):
+        widget.onReaction?.call(emoji);
+      case CustomQuickReaction(:final emoji):
+        widget.onReaction?.call(
+          emoji.name,
+          emojiId: emoji.id,
+          animated: emoji.animated,
+        );
+    }
+  }
+
   Future<void> _showActions(BuildContext context) async {
-    final frecent = await _loadQuickEmojis();
+    final frecent = await _loadQuickReactionItems();
     if (!context.mounted) {
       return;
     }
@@ -316,8 +401,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       isOwnMessage: widget.message.authorId == widget.currentUserId,
       canDelete: widget.canDelete,
       canReport: _canReportThisMessage,
-      quickEmojis: frecent,
-      onQuickReaction: (emoji) => widget.onReaction?.call(emoji),
+      quickItems: frecent,
+      onQuickReaction: _dispatchQuickReaction,
     );
     if (!context.mounted) {
       return;
@@ -326,7 +411,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   }
 
   Future<void> _showContextMenu(BuildContext context, Offset position) async {
-    final frecent = await _loadQuickEmojis();
+    final frecent = await _loadQuickReactionItems();
     if (!context.mounted) {
       return;
     }
@@ -337,8 +422,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       message: widget.message,
       isOwnMessage: widget.message.authorId == widget.currentUserId,
       canDelete: widget.canDelete,
-      onQuickReaction: (emoji) => widget.onReaction?.call(emoji),
-      quickEmojis: frecent,
+      onQuickReaction: _dispatchQuickReaction,
+      quickItems: frecent,
     );
     if (!context.mounted) {
       return;
@@ -1094,6 +1179,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             key: _reactionPickerKey,
             closeOnEmojiSelect: true,
             visibleTabs: const [ExpressionPickerTab.emojis],
+            trackEmojiUsageOnSelect: false,
             onClose: () => setState(() {
               _isReactionPickerOpen = false;
               _isHovered = false;

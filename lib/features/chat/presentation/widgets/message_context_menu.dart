@@ -15,8 +15,8 @@ Future<MessageAction?> showMessageContextMenu(
   required Message message,
   required bool isOwnMessage,
   required bool canDelete,
-  ValueChanged<String>? onQuickReaction,
-  List<String>? quickEmojis,
+  ValueChanged<QuickReactionItem>? onQuickReaction,
+  List<QuickReactionItem>? quickItems,
 }) async {
   final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
   if (overlay == null) {
@@ -33,7 +33,7 @@ Future<MessageAction?> showMessageContextMenu(
       isOwnMessage: isOwnMessage,
       canDelete: canDelete,
       onQuickReaction: onQuickReaction,
-      quickEmojis: quickEmojis,
+      quickItems: quickItems,
     ),
   );
 }
@@ -44,8 +44,8 @@ class _ContextMenuRoute extends PopupRoute<MessageAction> {
   final Message message;
   final bool isOwnMessage;
   final bool canDelete;
-  final ValueChanged<String>? onQuickReaction;
-  final List<String>? quickEmojis;
+  final ValueChanged<QuickReactionItem>? onQuickReaction;
+  final List<QuickReactionItem>? quickItems;
 
   _ContextMenuRoute({
     required this.position,
@@ -54,7 +54,7 @@ class _ContextMenuRoute extends PopupRoute<MessageAction> {
     required this.isOwnMessage,
     required this.canDelete,
     this.onQuickReaction,
-    this.quickEmojis,
+    this.quickItems,
   });
 
   @override
@@ -82,7 +82,7 @@ class _ContextMenuRoute extends PopupRoute<MessageAction> {
     isOwnMessage: isOwnMessage,
     canDelete: canDelete,
     onQuickReaction: onQuickReaction,
-    quickEmojis: quickEmojis,
+    quickItems: quickItems,
   );
 }
 
@@ -93,8 +93,8 @@ class _ContextMenuPage extends StatelessWidget {
   final Message message;
   final bool isOwnMessage;
   final bool canDelete;
-  final ValueChanged<String>? onQuickReaction;
-  final List<String>? quickEmojis;
+  final ValueChanged<QuickReactionItem>? onQuickReaction;
+  final List<QuickReactionItem>? quickItems;
 
   const _ContextMenuPage({
     required this.position,
@@ -104,7 +104,7 @@ class _ContextMenuPage extends StatelessWidget {
     required this.isOwnMessage,
     required this.canDelete,
     this.onQuickReaction,
-    this.quickEmojis,
+    this.quickItems,
   });
 
   @override
@@ -166,9 +166,9 @@ class _ContextMenuPage extends StatelessWidget {
 
     return [
       QuickReactionRow(
-        emojis: quickEmojis ?? kQuickReactionDefaultEmojis,
-        onReaction: (emoji) {
-          onQuickReaction?.call(emoji);
+        items: quickItems ?? kQuickReactionDefaults,
+        onReaction: (item) {
+          onQuickReaction?.call(item);
           Navigator.of(context).pop();
         },
       ),

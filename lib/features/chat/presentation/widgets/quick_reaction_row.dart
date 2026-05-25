@@ -1,23 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
+import 'package:fluxer_app/shared/utils/emoji_image_cache.dart';
 import 'package:fluxer_app/shared/widgets/unicode_emoji_widget.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-const List<String> kQuickReactionDefaultEmojis = [
-  '\u{1F44D}', // thumbsup
-  '\u{1F44C}', // ok_hand
-  '\u{1F389}', // tada
-  '\u{2764}\u{FE0F}', // heart
+sealed class QuickReactionItem {
+  const QuickReactionItem();
+}
+
+class UnicodeQuickReaction extends QuickReactionItem {
+  const UnicodeQuickReaction(this.emoji);
+  final String emoji;
+}
+
+class CustomQuickReaction extends QuickReactionItem {
+  const CustomQuickReaction(this.emoji);
+  final GuildEmojiEntry emoji;
+}
+
+const List<QuickReactionItem> kQuickReactionDefaults = [
+  UnicodeQuickReaction('\u{1F44D}'),
+  UnicodeQuickReaction('\u{1F44C}'),
+  UnicodeQuickReaction('\u{1F389}'),
+  UnicodeQuickReaction('\u{2764}\u{FE0F}'),
 ];
 
 class QuickReactionRow extends StatelessWidget {
-  final List<String> emojis;
-  final ValueChanged<String> onReaction;
+  final List<QuickReactionItem> items;
+  final ValueChanged<QuickReactionItem> onReaction;
   final VoidCallback? onAddMore;
 
   const QuickReactionRow({
     required this.onReaction,
-    this.emojis = kQuickReactionDefaultEmojis,
+    this.items = kQuickReactionDefaults,
     this.onAddMore,
     super.key,
   });
@@ -35,11 +51,11 @@ class QuickReactionRow extends StatelessWidget {
       child: Row(
         spacing: layout.s1,
         children: [
-          for (final emoji in emojis)
+          for (final item in items)
             Expanded(
               child: _QuickReactionButton(
-                onTap: () => onReaction(emoji),
-                child: UnicodeEmojiWidget(emoji: emoji, size: 24),
+                onTap: () => onReaction(item),
+                child: _QuickReactionGlyph(item: item),
               ),
             ),
           if (onAddMore != null)
@@ -48,7 +64,7 @@ class QuickReactionRow extends StatelessWidget {
                 onTap: onAddMore!,
                 child: PhosphorIcon(
                   PhosphorIconsBold.plus,
-                  size: 22,
+                  size: 24,
                   color: context.colors.textPrimary,
                 ),
               ),
@@ -56,6 +72,28 @@ class QuickReactionRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _QuickReactionGlyph extends StatelessWidget {
+  const _QuickReactionGlyph({required this.item});
+
+  final QuickReactionItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (item) {
+      UnicodeQuickReaction(:final emoji) => UnicodeEmojiWidget(
+        emoji: emoji,
+        size: 24,
+      ),
+      CustomQuickReaction(:final emoji) => CachedEmojiImage(
+        emojiId: emoji.id,
+        animated: false,
+        requestSize: 48,
+        size: 24,
+      ),
+    };
   }
 }
 

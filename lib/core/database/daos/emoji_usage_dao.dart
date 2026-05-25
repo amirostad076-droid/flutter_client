@@ -51,6 +51,13 @@ class EmojiUsageDao extends DatabaseAccessor<FluxerDatabase>
     return matching.take(limit).toList();
   }
 
+  /// Returns the top [limit] frecent emoji keys with their `unicode:` and
+  /// `custom:` prefixes intact, for the caller to parse and resolve.
+  Future<List<String>> getQuickReactionMixedKeys(int limit) async {
+    final top = await getTopByFrecency(limit);
+    return top.map((e) => e.key).toList();
+  }
+
   /// Returns the top [limit] unicode emoji strings,
   /// padded with [defaults] if not enough history.
   Future<List<String>> getQuickReactionEmojis(

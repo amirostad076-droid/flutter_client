@@ -64,6 +64,7 @@ class EmojiPickerContent extends ConsumerStatefulWidget {
     this.skinTone = '',
     this.isMobile = false,
     this.channelId,
+    this.trackUsageOnSelect = true,
     super.key,
   });
 
@@ -73,6 +74,11 @@ class EmojiPickerContent extends ConsumerStatefulWidget {
   final String skinTone;
   final bool isMobile;
   final String? channelId;
+
+  /// Whether selecting an emoji records it in the local frecency store.
+  /// Disabled when the picker drives reactions, since those are tracked
+  /// centrally in `ChatViewModel.toggleReaction` to avoid double-counting.
+  final bool trackUsageOnSelect;
 
   @override
   ConsumerState<EmojiPickerContent> createState() => _EmojiPickerContentState();
@@ -245,24 +251,28 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     final surrogates = hasTone
         ? emoji.surrogates + widget.skinTone
         : emoji.surrogates;
-    unawaited(
-      ref
-          .read(fluxerDatabaseProvider)
-          .emojiUsageDao
-          .trackUsage('unicode:${emoji.primaryName}'),
-    );
-    ref.invalidate(frecentEmojisProvider);
+    if (widget.trackUsageOnSelect) {
+      unawaited(
+        ref
+            .read(fluxerDatabaseProvider)
+            .emojiUsageDao
+            .trackUsage('unicode:${emoji.primaryName}'),
+      );
+      ref.invalidate(frecentEmojisProvider);
+    }
     widget.onSelect?.call(emoji.primaryName, surrogates);
   }
 
   void _onCustomEmojiSelected(GuildEmojiEntry emoji) {
-    unawaited(
-      ref
-          .read(fluxerDatabaseProvider)
-          .emojiUsageDao
-          .trackUsage('custom:${emoji.guildId}:${emoji.id}'),
-    );
-    ref.invalidate(frecentEmojisProvider);
+    if (widget.trackUsageOnSelect) {
+      unawaited(
+        ref
+            .read(fluxerDatabaseProvider)
+            .emojiUsageDao
+            .trackUsage('custom:${emoji.guildId}:${emoji.id}'),
+      );
+      ref.invalidate(frecentEmojisProvider);
+    }
     widget.onSelect?.call(emoji.name, emoji.markdown);
   }
 

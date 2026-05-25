@@ -43,6 +43,7 @@ class EmojiRegistry {
 
   static Map<String, String>? _nameToSurrogate;
   static Map<String, EmojiEntry>? _nameToEntry;
+  static Map<String, EmojiEntry>? _surrogateToEntry;
   static Map<String, List<EmojiEntry>>? _categories;
   static List<EmojiEntry>? _allEmojis;
   static RegExp? _unicodeEmojiRegex;
@@ -61,6 +62,9 @@ class EmojiRegistry {
 
   static EmojiEntry? entryByName(String name) => _nameToEntry?[name];
 
+  static EmojiEntry? entryBySurrogates(String surrogates) =>
+      _surrogateToEntry?[surrogates];
+
   static Future<void> preload() async {
     if (_categories != null && _unicodeEmojiRegex != null) {
       return;
@@ -73,6 +77,7 @@ class EmojiRegistry {
   static void _parseAll(Map<String, dynamic> json) {
     final nameMap = <String, String>{};
     final entryMap = <String, EmojiEntry>{};
+    final surrogateMap = <String, EmojiEntry>{};
     final cats = <String, List<EmojiEntry>>{};
     final all = <EmojiEntry>[];
     final unicodeSurrogates = <String>{};
@@ -110,6 +115,7 @@ class EmojiRegistry {
         spriteIndex++;
         list.add(emoji);
         all.add(emoji);
+        surrogateMap[surrogates] = emoji;
         for (final name in names) {
           nameMap[name] = surrogates;
           entryMap[name] = emoji;
@@ -132,6 +138,7 @@ class EmojiRegistry {
 
     _nameToSurrogate = nameMap;
     _nameToEntry = entryMap;
+    _surrogateToEntry = surrogateMap;
     _categories = cats;
     _allEmojis = all;
     _unicodeEmojiRegex = _buildUnicodeEmojiRegex(unicodeSurrogates);

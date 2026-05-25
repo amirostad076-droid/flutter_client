@@ -35,6 +35,9 @@ class GuildEmojiDao extends DatabaseAccessor<FluxerDatabase>
   Future<List<GuildEmoji>> getByGuild(String guildId) =>
       (select(guildEmojis)..where((e) => e.guildId.equals(guildId))).get();
 
+  Future<GuildEmoji?> getById(String id) =>
+      (select(guildEmojis)..where((e) => e.id.equals(id))).getSingleOrNull();
+
   Future<void> replaceForGuild(
     String guildId,
     List<GuildEmojisCompanion> emojis,

@@ -32,19 +32,22 @@ Future<MessageAction?> showMessageBottomSheet(
   required bool isOwnMessage,
   required bool canDelete,
   required bool canReport,
-  List<String>? quickEmojis,
-  ValueChanged<String>? onQuickReaction,
+  List<QuickReactionItem>? quickItems,
+  ValueChanged<QuickReactionItem>? onQuickReaction,
 }) {
-  return FluxerBottomSheet.show<MessageAction>(
+  return FluxerBottomSheet.showScrollable<MessageAction>(
     context,
-    variant: FluxerBottomSheetVariant.menu,
-    builder: (sheetContext, _) => _MessageBottomSheetBody(
+    initialChildSize: 0.6,
+    minChildSize: 0.3,
+    maxChildSize: 0.9,
+    builder: (sheetContext, scrollController, _) => _MessageBottomSheetBody(
       message: message,
       isOwnMessage: isOwnMessage,
       canDelete: canDelete,
       canReport: canReport,
-      quickEmojis: quickEmojis ?? kQuickReactionDefaultEmojis,
+      quickItems: quickItems ?? kQuickReactionDefaults,
       onQuickReaction: onQuickReaction,
+      scrollController: scrollController,
     ),
   );
 }
@@ -54,16 +57,18 @@ class _MessageBottomSheetBody extends ConsumerWidget {
   final bool isOwnMessage;
   final bool canDelete;
   final bool canReport;
-  final List<String> quickEmojis;
-  final ValueChanged<String>? onQuickReaction;
+  final List<QuickReactionItem> quickItems;
+  final ValueChanged<QuickReactionItem>? onQuickReaction;
+  final ScrollController scrollController;
 
   const _MessageBottomSheetBody({
     required this.message,
     required this.isOwnMessage,
     required this.canDelete,
     required this.canReport,
-    required this.quickEmojis,
+    required this.quickItems,
     required this.onQuickReaction,
+    required this.scrollController,
   });
 
   void _pop(BuildContext context, MessageAction action) =>
@@ -74,7 +79,8 @@ class _MessageBottomSheetBody extends ConsumerWidget {
     final l10n = FluxerLocalizations.of(context);
 
     if (message.hasFailed) {
-      return Padding(
+      return SingleChildScrollView(
+        controller: scrollController,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: FluxerBottomSheetGroupColumn(
           children: [
@@ -208,42 +214,45 @@ class _MessageBottomSheetBody extends ConsumerWidget {
       ],
     );
 
-    return Padding(
+    final showQuickReactions = !message.isSending;
+
+    return SingleChildScrollView(
+      controller: scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showQuickReactions) ...[
             QuickReactionRow(
-              emojis: quickEmojis,
-              onReaction: (emoji) {
-                onQuickReaction?.call(emoji);
+              items: quickItems,
+              onReaction: (item) {
+                onQuickReaction?.call(item);
                 Navigator.of(context).pop();
               },
               onAddMore: () => _pop(context, MessageAction.addReaction),
             ),
             const SizedBox(height: 8),
-            FluxerBottomSheetGroupColumn(
-              children: [
-                reactionsGroup,
-                interactionsGroup,
-                managementGroup,
-                utilityGroup,
-                if (canReport)
-                  FluxerMenuGroup(
-                    children: [
-                      FluxerBottomSheetMenuItem(
-                        icon: PhosphorIconsRegular.flag,
-                        label: l10n.chatMessageReport,
-                        isDanger: true,
-                        onTap: () => _pop(context, MessageAction.report),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
           ],
-        ),
+          FluxerBottomSheetGroupColumn(
+            children: [
+              reactionsGroup,
+              interactionsGroup,
+              managementGroup,
+              utilityGroup,
+              if (canReport)
+                FluxerMenuGroup(
+                  children: [
+                    FluxerBottomSheetMenuItem(
+                      icon: PhosphorIconsRegular.flag,
+                      label: l10n.chatMessageReport,
+                      isDanger: true,
+                      onTap: () => _pop(context, MessageAction.report),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
