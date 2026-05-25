@@ -21,6 +21,7 @@ class FluxerFcmPushService {
 
   bool _initialized = false;
   void Function(Map<String, String> payload)? _onNotificationTap;
+  Map<String, String>? _pendingNotificationTapPayload;
 
   Stream<String> get tokenRefreshStream => _tokenRefresh.stream;
 
@@ -28,6 +29,15 @@ class FluxerFcmPushService {
     void Function(Map<String, String> payload)? callback,
   ) {
     _onNotificationTap = callback;
+    if (callback == null) {
+      return;
+    }
+    final Map<String, String>? pendingPayload = _pendingNotificationTapPayload;
+    if (pendingPayload == null) {
+      return;
+    }
+    _pendingNotificationTapPayload = null;
+    callback(pendingPayload);
   }
 
   Future<void> requestPermissions() async {
@@ -90,6 +100,28 @@ class FluxerFcmPushService {
 
   void _dispatchTap(RemoteMessage message) {
     final FcmPushMessage mapped = mapRemoteMessage(message);
-    _onNotificationTap?.call(mapped.payload);
+    _dispatchTapPayload(mapped.payload);
+  }
+
+  void _dispatchTapPayload(Map<String, String> payload) {
+    final void Function(Map<String, String> payload)? callback =
+        _onNotificationTap;
+    if (callback != null) {
+      callback(payload);
+      return;
+    }
+    _pendingNotificationTapPayload = Map<String, String>.unmodifiable(payload);
+  }
+
+  @visibleForTesting
+  void dispatchTapPayloadForTesting(Map<String, String> payload) {
+    _dispatchTapPayload(payload);
+  }
+
+  @visibleForTesting
+  void resetForTesting() {
+    _initialized = false;
+    _onNotificationTap = null;
+    _pendingNotificationTapPayload = null;
   }
 }

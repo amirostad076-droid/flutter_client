@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_handler.dart';
+import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/push_notification_path_resolver.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -34,6 +36,7 @@ class PushNotificationTapHandler extends _$PushNotificationTapHandler {
   }
 
   void handlePayload(Map<String, String> payload) {
+    unawaited(LocalPushNotifications().cancelForPayload(payload));
     final String? path = resolvePushNotificationPath(payload);
     if (path == null) {
       if (kDebugMode) {

@@ -4,7 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluxer_app/core/badge/push_badge_count_parser.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
-import 'package:fluxer_app/core/push/push_notification_ids.dart';
+import 'package:fluxer_app/core/push/push_notification_ids.dart'
+    show
+        kLocalNotificationMessageIdKey,
+        pushMessageNotificationId,
+        pushNotificationCancelIds;
 import 'package:fluxer_app/core/push/push_notification_permission.dart';
 
 final class LocalPushNotifications {
@@ -129,19 +133,38 @@ final class LocalPushNotifications {
     final NotificationDetails details = _notificationDetailsForPlatform(
       badgeCount: badgeCount,
     );
+    final Map<String, String> payloadWithMessageId = Map<String, String>.from(
+      message.payload,
+    );
+    payloadWithMessageId[kLocalNotificationMessageIdKey] = message.id;
     try {
       await _plugin.show(
         id: id,
         title: title,
         body: body,
         notificationDetails: details,
-        payload: jsonEncode(message.payload),
+        payload: jsonEncode(payloadWithMessageId),
       );
     } on Object catch (e, st) {
       if (kDebugMode) {
         debugPrint('[LocalPushNotifications] show failed: $e\n$st');
       }
       return;
+    }
+  }
+
+  Future<void> cancelForPayload(Map<String, String> payload) async {
+    if (kIsWeb || !_initialized) {
+      return;
+    }
+    for (final int id in pushNotificationCancelIds(payload)) {
+      try {
+        await _plugin.cancel(id: id);
+      } on Object catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('[LocalPushNotifications] cancel failed id=$id: $e\n$st');
+        }
+      }
     }
   }
 
