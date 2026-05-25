@@ -17,7 +17,7 @@ void applePushNotificationTapBinding(Ref ref) {
   if (kIsWeb || !PushProviderGuard.isApple) {
     return;
   }
-  final StreamSubscription<dynamic>? subscription = _applePushTapChannel
+  final StreamSubscription<dynamic> subscription = _applePushTapChannel
       .receiveBroadcastStream()
       .listen(
         (Object? event) {
@@ -36,7 +36,7 @@ void applePushNotificationTapBinding(Ref ref) {
         },
       );
   ref.onDispose(() {
-    unawaited(subscription?.cancel());
+    unawaited(subscription.cancel());
   });
 }
 

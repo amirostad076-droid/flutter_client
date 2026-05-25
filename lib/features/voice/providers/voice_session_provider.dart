@@ -464,7 +464,7 @@ class VoiceSession extends _$VoiceSession {
     BaseKeyProvider? keyProvider;
     if (useE2ee) {
       try {
-        keyProvider = await BaseKeyProvider.create(sharedKey: true);
+        keyProvider = await BaseKeyProvider.create();
         await keyProvider.setSharedKey(e2eeKey);
         talker.info('[Voice][E2EE] Shared key configured on BaseKeyProvider.');
       } on Object catch (e) {

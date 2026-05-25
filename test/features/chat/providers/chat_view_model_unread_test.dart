@@ -68,7 +68,7 @@ void main() {
     () async {
       final db = FluxerDatabase.forTesting(NativeDatabase.memory());
       addTearDown(db.close);
-      final adapter = _ChatAdapter(initialMessages: const []);
+      final adapter = _ChatAdapter();
       final container = _container(db, adapter);
       addTearDown(container.dispose);
 
@@ -99,7 +99,7 @@ void main() {
         lastMessageId: Value(latestId),
       ),
     );
-    final adapter = _ChatAdapter(initialMessages: const [])
+    final adapter = _ChatAdapter()
       ..holdMessageFetch = true;
     final container = _container(db, adapter);
     addTearDown(container.dispose);

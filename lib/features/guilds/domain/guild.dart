@@ -80,7 +80,6 @@ class Guild {
     return FluxerMediaUrl.guildIcon(
       guildId: id,
       hash: icon,
-      animated: false,
     );
   }
 

@@ -31,10 +31,10 @@ class UnifiedPushMobileDeviceRegistration
     if (!PushProviderGuard.isUnifiedPush) {
       return 0;
     }
-    ref..listen<String?>(fluxerAuthTokenProvider, (_, __) {
+    ref..listen<String?>(fluxerAuthTokenProvider, (_, _) {
       unawaited(_onAuthOrUserChanged());
     })
-    ..listen<bool>(authStateProvider, (_, __) {
+    ..listen<bool>(authStateProvider, (_, _) {
       unawaited(_onAuthOrUserChanged());
     })
     ..listen<String?>(currentUserIdProvider, (String? previous, String? next) {

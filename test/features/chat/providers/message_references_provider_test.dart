@@ -18,7 +18,7 @@ Message _domainMessage({
     authorId: 'author-1',
     authorName: 'Author',
     content: content,
-    timestamp: DateTime.utc(2026, 1, 1),
+    timestamp: DateTime.utc(2026),
   );
 }
 

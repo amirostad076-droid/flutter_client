@@ -811,7 +811,7 @@ class GatewayEventHandler {
   }) {
     final merged = <String, dynamic>{
       ..._defaultUserGuildSettingsData(guildId),
-      if (existing != null) ...existing,
+      ...?existing,
       ...updates,
     };
     final mergedOverrides = _mergeChannelOverrides(

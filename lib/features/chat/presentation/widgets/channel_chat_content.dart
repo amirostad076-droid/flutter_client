@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel_header.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_textarea.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/direct_voice_session_strip.dart';
-import 'package:fluxer_app/features/voice/presentation/widgets/dm_call_e2ee_footer.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/dm_embedded_voice_call_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/inline_expression_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_list.dart';
@@ -18,11 +16,12 @@ import 'package:fluxer_app/features/chat/presentation/widgets/typing_indicator_b
 import 'package:fluxer_app/features/chat/presentation/widgets/upload_drop_overlay.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
-import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/features/voice/presentation/widgets/dm_call_e2ee_footer.dart';
 
 /// Composite chat view that assembles the top bar, message list,
 /// and input field. Works for both server channels and DMs.

@@ -1,3 +1,4 @@
+import 'package:fluxer_app/features/shell/presentation/app_layout.dart' show AppLayout;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'unified_push_distributor_setup.g.dart';

@@ -263,7 +263,7 @@ List<Override> _buildOverrides({
 class _VerifiedUserSettingsViewModel extends UserSettingsViewModel {
   @override
   UserSettingsViewState build() {
-    return UserSettingsViewState(
+    return const UserSettingsViewState(
       userId: '1',
       username: 'user',
       displayName: 'user',
@@ -274,7 +274,7 @@ class _VerifiedUserSettingsViewModel extends UserSettingsViewModel {
       status: 'online',
       messageDisplayCompact: false,
       developerMode: false,
-      trustedDomains: const <String>[],
+      trustedDomains: <String>[],
       email: 'user@example.com',
       verified: true,
     );

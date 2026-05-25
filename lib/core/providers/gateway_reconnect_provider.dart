@@ -116,7 +116,7 @@ Raw<StreamSubscription<GatewayState>?> gatewayStateListener(Ref ref) {
 @Riverpod(keepAlive: true)
 void gatewayForegroundListener(Ref ref) {
   ref.listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
-    if (previous != false || !next) {
+    if ((previous ?? true) || !next) {
       return;
     }
     final GatewayConnection connection = ref.read(gatewayConnectionProvider);
@@ -166,7 +166,6 @@ void gatewayReconnectToastListener(Ref ref) {
       ref.read(toastProvider.notifier).show(
         FluxerToast(
           message: _gatewayL10n.gatewayReconnectingToast,
-          variant: FluxerToastVariant.info,
           duration: const Duration(seconds: 5),
         ),
       );

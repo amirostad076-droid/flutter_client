@@ -67,7 +67,6 @@ GuildUserDisplay resolveGuildUserDisplayFromRows({
           userId: user.id,
           type: GuildMemberMediaType.avatar,
           hash: memberAvatar,
-          size: MediaProxySizes.avatarProfile,
         )
       : FluxerMediaUrl.userAvatar(
           userId: user.id,
@@ -102,7 +101,6 @@ GuildUserDisplay resolveGuildUserDisplayFromMessage({
           userId: userId,
           type: GuildMemberMediaType.avatar,
           hash: memberAvatar,
-          size: MediaProxySizes.avatarProfile,
           animated: animatedAvatar,
         )
       : FluxerMediaUrl.userAvatar(
@@ -148,7 +146,6 @@ GuildUserDisplay resolveGuildUserDisplayFromProfile({
           userId: user.id,
           type: GuildMemberMediaType.avatar,
           hash: guildAvatar,
-          size: MediaProxySizes.avatarProfile,
         )
       : FluxerMediaUrl.userAvatar(
           userId: user.id,
@@ -168,7 +165,6 @@ GuildUserDisplay resolveGuildUserDisplayFromProfile({
       : FluxerMediaUrl.userBanner(
           userId: user.id,
           hash: response.userProfile.banner,
-          size: MediaProxySizes.profileBannerModal,
           animated: true,
         );
   final int? bannerColor = isBannerUnset

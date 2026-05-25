@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -676,10 +677,9 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
 
     final totalCount = customResults.length + unicodeResults.length;
     return GridView.builder(
-      controller: _scrollController,
-      cacheExtent: _isFirstFrameSettled
+      scrollCacheExtent: ScrollCacheExtent.pixels(_isFirstFrameSettled
           ? emojiPickerCacheExtent(rowHeight: _kCellSize)
-          : 0,
+          : 0), controller: _scrollController,
       addAutomaticKeepAlives: false,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -715,10 +715,9 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     );
 
     return CustomScrollView(
-      controller: _scrollController,
-      cacheExtent: _isFirstFrameSettled
+      scrollCacheExtent: ScrollCacheExtent.pixels(_isFirstFrameSettled
           ? emojiPickerCacheExtent(rowHeight: _kCellSize)
-          : 0,
+          : 0), controller: _scrollController,
       slivers: [
         const SliverToBoxAdapter(child: SizedBox(height: 4)),
         if (shouldBuildUpsell)

@@ -14,9 +14,6 @@ import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel_attachment_area.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
-import 'package:fluxer_app/features/chat/providers/message_length_limits_provider.dart';
-import 'package:fluxer_app/features/chat/utils/composer_message_length_paste_formatter.dart';
-import 'package:fluxer_app/features/chat/utils/paste_text_attachment.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart'
     show kSkinToneSurrogates, skinToneToName;
 import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
@@ -25,14 +22,17 @@ import 'package:fluxer_app/features/chat/providers/channel_message_permissions_p
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
+import 'package:fluxer_app/features/chat/providers/message_length_limits_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_blocked_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_indicator_shake_provider.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
 import 'package:fluxer_app/features/chat/utils/clipboard_attachment_reader.dart';
+import 'package:fluxer_app/features/chat/utils/composer_message_length_paste_formatter.dart';
 import 'package:fluxer_app/features/chat/utils/composer_sendable_content.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_constants.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
+import 'package:fluxer_app/features/chat/utils/paste_text_attachment.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';

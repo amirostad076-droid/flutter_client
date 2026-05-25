@@ -140,7 +140,7 @@ bool _computeIsMentioned({
   required String currentUserId,
   required UserGuildSettingsResponse gs,
 }) {
-  if (message.mentions?.any((UserPartialResponse u) => u.id == currentUserId) ??
+  if (message.mentions.any((UserPartialResponse u) => u.id == currentUserId) ??
       false) {
     return true;
   }

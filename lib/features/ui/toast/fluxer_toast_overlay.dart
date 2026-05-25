@@ -72,11 +72,7 @@ class FluxerToastOverlay extends ConsumerWidget {
 
 class _ToastItem extends StatefulWidget {
   const _ToastItem({
-    super.key,
-    required this.entry,
-    required this.icon,
-    required this.iconColor,
-    required this.onDismiss,
+    required this.entry, required this.icon, required this.iconColor, required this.onDismiss, super.key,
   });
 
   final ToastEntry entry;

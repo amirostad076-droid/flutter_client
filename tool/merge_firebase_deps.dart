@@ -1,5 +1,5 @@
 // Tool script: intentional stdout and no public API docs.
-// ignore_for_file: avoid_print, document_ignores
+// ignore_for_file: avoid_print
 
 import 'dart:io';
 

@@ -8,8 +8,7 @@ Guild _guild(String id, {bool unavailable = false}) {
 }
 
 UserSettingsResponseGuildFolders _folder({
-  int? id,
-  required List<String> guildIds,
+  required List<String> guildIds, int? id,
 }) {
   return UserSettingsResponseGuildFolders(id: id, guildIds: guildIds);
 }

@@ -49,7 +49,6 @@ class VoiceE2eeIndicator extends ConsumerWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: 12),
         child: Align(
-          alignment: Alignment.center,
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: MediaQuery.sizeOf(context).width < 512

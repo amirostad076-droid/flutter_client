@@ -11,6 +11,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/constants/assets.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' hide Channel;
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
@@ -34,8 +35,8 @@ import 'package:fluxer_app/features/dm/providers/unread_dm_provider.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
-import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/presentation/modals/add_guild_modal.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_bottom_sheet.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
@@ -44,7 +45,6 @@ import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_drag_wrapper.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_menu_data.dart';
-import 'package:fluxer_app/features/guilds/presentation/modals/add_guild_modal.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_scroll_indicator.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_availability_provider.dart';

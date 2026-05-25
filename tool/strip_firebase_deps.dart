@@ -1,5 +1,5 @@
 // Tool script: removes Firebase merge artifacts from OSS / UnifiedPush builds.
-// ignore_for_file: avoid_print, document_ignores
+// ignore_for_file: avoid_print
 
 import 'dart:io';
 

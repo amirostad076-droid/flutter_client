@@ -19,7 +19,6 @@ void main() {
       final String? actual = FluxerMediaUrl.userAvatar(
         userId: '1',
         hash: 'user_avatar',
-        animated: false,
       );
       expect(actual, contains('/avatars/1/user_avatar.webp'));
       expect(actual, contains('size=${MediaProxySizes.avatarDefault}'));
@@ -55,7 +54,6 @@ void main() {
       final String? actual = FluxerMediaUrl.userAvatar(
         userId: '1',
         hash: 'a_user_avatar',
-        animated: false,
       );
       expect(actual, contains('/avatars/1/user_avatar.webp'));
       expect(actual, isNot(contains('animated=true')));
@@ -86,7 +84,6 @@ void main() {
       final String? actual = FluxerMediaUrl.userBanner(
         userId: '1',
         hash: 'user_banner',
-        animated: false,
       );
       expect(actual, contains('/banners/1/user_banner.webp'));
     });
@@ -104,7 +101,6 @@ void main() {
       final String? actual = FluxerMediaUrl.guildIcon(
         guildId: '10',
         hash: 'icon_hash',
-        animated: false,
       );
       expect(actual, contains('/icons/10/icon_hash.png'));
     });
@@ -113,7 +109,6 @@ void main() {
       final String? actual = FluxerMediaUrl.guildIcon(
         guildId: '10',
         hash: 'a_icon',
-        animated: false,
       );
       expect(actual, contains('/icons/10/a_icon.webp?animated=false'));
     });
@@ -133,7 +128,6 @@ void main() {
       final String? actual = FluxerMediaUrl.guildBanner(
         guildId: '10',
         hash: 'banner',
-        animated: false,
       );
       expect(
         actual,
@@ -160,7 +154,6 @@ void main() {
         userId: '1',
         type: GuildMemberMediaType.avatar,
         hash: 'guild_avatar',
-        animated: false,
       );
       expect(
         actual,
@@ -207,7 +200,7 @@ void main() {
   group('FluxerMediaUrl.sticker', () {
     test('clamps size to 320 or 160', () {
       expect(
-        FluxerMediaUrl.sticker(id: '1', size: 320),
+        FluxerMediaUrl.sticker(id: '1'),
         contains('size=320'),
       );
       expect(

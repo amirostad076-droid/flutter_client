@@ -6,9 +6,9 @@ import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
@@ -30,15 +30,15 @@ import 'package:fluxer_app/features/chat/providers/message_references_provider.d
 import 'package:fluxer_app/features/chat/providers/slowmode_indicator_shake_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
-import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/chat/providers/typing_sender.dart';
 import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
-import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
-import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -560,7 +560,7 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     final repo = ref.read(messageRepositoryProvider);
-    final cached = await repo.getCachedMessages(channelId, limit: _kPageSize);
+    final cached = await repo.getCachedMessages(channelId);
     final hasUnread = await _channelHasNewUnreadMessages(channelId);
     if (cached.isNotEmpty && !hasUnread) {
       state = _switchedChannelState(
@@ -1329,8 +1329,7 @@ class ChatViewModel extends _$ChatViewModel {
     final List<Attachment> optimisticAttachments = hasPendingAttachments
         ? buildUploadingPlaceholderAttachments(
             claimed: pendingAttachments,
-            labelForMultiple: (int count) =>
-                l10n.chatUploadingAttachmentsSummary(count),
+            labelForMultiple: l10n.chatUploadingAttachmentsSummary,
           )
         : const <Attachment>[];
     final Message optimisticMessage = _buildOptimisticMessage(

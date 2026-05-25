@@ -50,6 +50,7 @@ class ChannelMention extends ConsumerWidget {
               RoutePaths.guildChannel(channel.guildId, channel.id),
             ),
       child: _MentionPill(
+        baseStyle: style,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -62,7 +63,6 @@ class ChannelMention extends ConsumerWidget {
             Text(name, style: style),
           ],
         ),
-        baseStyle: style,
       ),
     );
   }

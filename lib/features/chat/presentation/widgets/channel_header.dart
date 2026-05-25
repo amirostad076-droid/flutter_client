@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
@@ -14,23 +15,22 @@ import 'package:fluxer_app/features/chat/presentation/sheets/channel_details_she
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
-import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
-import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
-import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/call_actions.dart';
 import 'package:fluxer_app/features/voice/utils/voice_e2ee_display.dart';
-import 'package:fluxer_dart/gateway.dart';
 import 'package:fluxer_app/features/voice/voice_session_errors.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
+import 'package:fluxer_dart/gateway.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// The chat header bar showing channel name, topic, and
@@ -406,18 +406,15 @@ class ChannelHeader extends ConsumerWidget {
       final VoiceSessionState voice = ref.watch(voiceSessionProvider);
       final Map<String, VoiceState> voiceStates = ref.watch(voiceStatesMapProvider);
       final bool isVoiceChannel = channel.type == ChannelType.voice;
-      final Guild? guild = channel.guildId == null
-          ? null
-          : ref
+      final Guild? guild = ref
                 .watch(guildListViewModelProvider)
                 .guilds
                 .where((Guild g) => g.id == channel.guildId)
                 .firstOrNull;
       final bool e2eeEncrypted = isVoiceChannel &&
-          channel.guildId != null &&
           isVoiceChannelE2eeEncryptedForIcon(
             voiceStates: voiceStates,
-            guildId: channel.guildId!,
+            guildId: channel.guildId,
             channelId: channel.id,
             connectedVoiceGuildId: voice.guildId,
             connectedVoiceChannelId: voice.channelId,

@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
-import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:riverpod/riverpod.dart' as rp;
 
 const int kMaxFrecentStickers = 42;

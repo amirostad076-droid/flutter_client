@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
+import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -19,7 +20,6 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/system_message.dart';
-import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/message_delete_permissions.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
@@ -220,7 +220,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         );
         _scrollController.jumpTo(target);
       } else if (anchorMessageId != null) {
-        _scrollToTarget(anchorMessageId, alignment: 1.0);
+        _scrollToTarget(anchorMessageId, alignment: 1);
       }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _isRestoringLoadNewerScroll = false;
@@ -384,7 +384,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       ..listen<bool>(
         chatViewModelProvider.select((s) => s.isLoadingMore),
         (previous, next) {
-          if (previous == true && next == false) {
+          if ((previous ?? false) && !next) {
             _restoreScrollAfterLoadMore();
           }
         },
@@ -392,7 +392,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       ..listen<bool>(
         chatViewModelProvider.select((s) => s.isLoadingNewer),
         (previous, next) {
-          if (previous == true && next == false) {
+          if ((previous ?? false) && !next) {
             _restoreScrollAfterLoadNewer();
           }
         },

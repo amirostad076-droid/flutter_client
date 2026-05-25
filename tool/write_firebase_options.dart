@@ -1,5 +1,5 @@
 // Tool script: writes packages/fluxer_fcm/lib/firebase_options.dart from CI secrets.
-// ignore_for_file: avoid_print, document_ignores
+// ignore_for_file: avoid_print
 
 import 'dart:convert';
 import 'dart:io';
@@ -70,11 +70,11 @@ Future<void> _writeFile(Directory root, String content) async {
 String _generateFromJson(String jsonSource) {
   final Object? decoded = jsonDecode(jsonSource);
   if (decoded is! Map<String, dynamic>) {
-    throw FormatException('FIREBASE_OPTIONS_JSON must be a JSON object');
+    throw const FormatException('FIREBASE_OPTIONS_JSON must be a JSON object');
   }
   final Object? android = decoded['android'];
   if (android is! Map<String, dynamic>) {
-    throw FormatException('FIREBASE_OPTIONS_JSON must contain an "android" object');
+    throw const FormatException('FIREBASE_OPTIONS_JSON must contain an "android" object');
   }
   final String apiKey = _requireString(android, 'apiKey');
   final String appId = _requireString(android, 'appId');
