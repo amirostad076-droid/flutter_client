@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+const Duration fluxerToastAnimationDuration = Duration(milliseconds: 200);
+
 enum FluxerToastVariant { info, success, warning, danger }
 
 class FluxerToastAction {

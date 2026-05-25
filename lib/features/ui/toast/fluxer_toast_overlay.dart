@@ -50,6 +50,7 @@ class FluxerToastOverlay extends ConsumerWidget {
                     Padding(
                       padding: EdgeInsets.only(bottom: layout.s2),
                       child: _ToastItem(
+                        key: ValueKey<int>(entry.id),
                         entry: entry,
                         icon: _variantIcon(entry.toast.variant),
                         iconColor: _variantIconColor(
@@ -71,6 +72,7 @@ class FluxerToastOverlay extends ConsumerWidget {
 
 class _ToastItem extends StatefulWidget {
   const _ToastItem({
+    super.key,
     required this.entry,
     required this.icon,
     required this.iconColor,
@@ -97,7 +99,7 @@ class _ToastItemState extends State<_ToastItem>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: fluxerToastAnimationDuration,
     );
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, -1),
@@ -107,7 +109,22 @@ class _ToastItemState extends State<_ToastItem>
       begin: 0,
       end: 1,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-    _controller.forward();
+    if (widget.entry.isVisible) {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _ToastItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.entry.isVisible == oldWidget.entry.isVisible) {
+      return;
+    }
+    if (widget.entry.isVisible) {
+      _controller.forward();
+      return;
+    }
+    _controller.reverse();
   }
 
   @override
@@ -126,53 +143,56 @@ class _ToastItemState extends State<_ToastItem>
       position: _slideAnimation,
       child: FadeTransition(
         opacity: _fadeAnimation,
-        child: GestureDetector(
-          onTap: widget.onDismiss,
-          child: Material(
-            type: MaterialType.transparency,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
-              padding: EdgeInsets.symmetric(
-                horizontal: layout.s4,
-                vertical: layout.s3,
-              ),
-              decoration: BoxDecoration(
-                color: colors.backgroundPrimary,
-                borderRadius: layout.radiusFull,
-                border: Border.all(color: colors.backgroundModifierAccent),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 15,
-                    offset: const Offset(0, 10),
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 6,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (widget.icon != null) ...[
-                    PhosphorIcon(
-                      widget.icon!,
-                      size: 20,
-                      color: widget.iconColor,
+        child: IgnorePointer(
+          ignoring: !widget.entry.isVisible,
+          child: GestureDetector(
+            onTap: widget.onDismiss,
+            child: Material(
+              type: MaterialType.transparency,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                padding: EdgeInsets.symmetric(
+                  horizontal: layout.s4,
+                  vertical: layout.s3,
+                ),
+                decoration: BoxDecoration(
+                  color: colors.backgroundPrimary,
+                  borderRadius: layout.radiusFull,
+                  border: Border.all(color: colors.backgroundModifierAccent),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 15,
+                      offset: const Offset(0, 10),
                     ),
-                    SizedBox(width: layout.s3),
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 6,
+                      offset: const Offset(0, 4),
+                    ),
                   ],
-                  Flexible(
-                    child: Text(
-                      widget.entry.toast.message,
-                      style: textStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w600,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.icon != null) ...[
+                      PhosphorIcon(
+                        widget.icon!,
+                        size: 20,
+                        color: widget.iconColor,
+                      ),
+                      SizedBox(width: layout.s3),
+                    ],
+                    Flexible(
+                      child: Text(
+                        widget.entry.toast.message,
+                        style: textStyles.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
