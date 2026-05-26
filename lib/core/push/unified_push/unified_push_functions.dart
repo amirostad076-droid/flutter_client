@@ -1,5 +1,4 @@
 import 'package:fluxer_app/core/push/services/unified_push_service.dart';
-import 'package:fluxer_app/core/push/unified_push/unified_push_vapid_cache.dart';
 import 'package:unifiedpush/unifiedpush.dart' as up;
 import 'package:unifiedpush_ui/unifiedpush_ui.dart';
 
@@ -19,10 +18,10 @@ final class FluxerUnifiedPushFunctions extends UnifiedPushFunctions {
 
   @override
   Future<void> registerApp(String instance) async {
-    await UnifiedPushService.instance.loadCachedVapidPublicKey();
-    final String? vapid = await readCachedUnifiedPushVapidPublicKey();
-    await UnifiedPushService.instance.applyVapidAndReregisterIfNeeded(vapid);
-    await UnifiedPushService.instance.syncRegistration(force: true);
+    final UnifiedPushService service = UnifiedPushService.instance;
+    await service.loadCachedVapidPublicKey();
+    await service.applyVapidAndReregisterIfNeeded(service.pendingVapid);
+    await service.syncRegistration(force: true);
   }
 
   @override

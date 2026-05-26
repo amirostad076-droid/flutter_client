@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
 import 'package:fluxer_app/core/push/push_notification_permission.dart';
@@ -36,6 +37,7 @@ class UnifiedPushService implements PushService {
   String? _pendingVapid;
   String? _lastRegisteredVapid;
   bool _registrationRetryScheduled = false;
+  FluxerDatabase? _database;
   static bool _backgroundMode = false;
 
   Stream<up.PushEndpoint> get endpointStream => _endpoints.stream;
@@ -43,6 +45,18 @@ class UnifiedPushService implements PushService {
   up.PushEndpoint? get currentEndpoint => _endpoint;
 
   bool get needsDistributorPicker => _needsDistributorPicker;
+
+  String? get pendingVapid => _pendingVapid;
+
+  /// Reuses the main isolate's Riverpod database so cache reads and writes do
+  /// not open a second connection. Stays null on the background isolate, which
+  /// has no Riverpod and falls back to the standalone cache helpers.
+  void attachDatabase(FluxerDatabase database) {
+    if (_database != null) {
+      return;
+    }
+    _database = database;
+  }
 
   static Future<void> ensureBackgroundInitialized() async {
     if (!PushProviderGuard.isUnifiedPush || !Platform.isAndroid) {
@@ -62,7 +76,10 @@ class UnifiedPushService implements PushService {
   }
 
   Future<void> loadCachedVapidPublicKey() async {
-    final String? cached = await readCachedUnifiedPushVapidPublicKey();
+    final FluxerDatabase? database = _database;
+    final String? cached = database != null
+        ? await database.mobilePushRegistrationDao.getCachedVapidPublicKey()
+        : await readCachedUnifiedPushVapidPublicKey();
     if (cached != null && cached.isNotEmpty) {
       _pendingVapid = cached;
       if (kDebugMode) {
@@ -76,7 +93,14 @@ class UnifiedPushService implements PushService {
       return;
     }
     setPendingVapid(vapidPublicKey);
-    await writeCachedUnifiedPushVapidPublicKey(vapidPublicKey);
+    final FluxerDatabase? database = _database;
+    if (database != null) {
+      await database.mobilePushRegistrationDao.saveGlobalVapidPublicKey(
+        vapidPublicKey,
+      );
+    } else {
+      await writeCachedUnifiedPushVapidPublicKey(vapidPublicKey);
+    }
   }
 
   /// Updates cached VAPID and re-registers with the distributor when needed.

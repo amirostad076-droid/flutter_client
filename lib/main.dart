@@ -7,6 +7,7 @@ import 'package:fluxer_app/app.dart';
 import 'package:fluxer_app/core/build/push_provider_assert.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_entrypoint.dart';
 import 'package:fluxer_app/core/push/services/unified_push_service.dart';
 import 'package:image_picker_android/image_picker_android.dart';
@@ -55,7 +56,13 @@ Future<void> main(List<String> args) async {
     });
   }
 
-  final container = ProviderContainer()..read(appStartupProvider);
+  final container = ProviderContainer();
+  if (PushProviderGuard.isUnifiedPush) {
+    UnifiedPushService.instance.attachDatabase(
+      container.read(fluxerDatabaseProvider),
+    );
+  }
+  container.read(appStartupProvider);
 
   runApp(
     UncontrolledProviderScope(container: container, child: const FluxerApp()),

@@ -18,7 +18,6 @@ import 'package:fluxer_app/core/push/push_service.dart';
 import 'package:fluxer_app/core/push/services/unified_push_service.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_distributor_setup.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
-import 'package:fluxer_app/core/push/unified_push/unified_push_vapid_cache.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -126,7 +125,6 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
       }
     }
     if (vapid != null && vapid.isNotEmpty) {
-      await writeCachedUnifiedPushVapidPublicKey(vapid);
       final String? userId = ref.read(currentUserIdProvider);
       if (userId != null) {
         await ref
