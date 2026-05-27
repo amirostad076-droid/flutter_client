@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as drift_db;
+import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -24,7 +25,6 @@ import 'package:fluxer_app/features/chat/providers/channel_message_permissions_p
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
-import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -414,16 +414,16 @@ class _MessageListState extends ConsumerState<MessageList> {
         ? null
         : findChannelById(ref.watch(channelListViewModelProvider), channelId)
             ?.guildId;
-    final int? guildPermissionBits = guildId == null || guildId.isEmpty
+    // Watch the channel-resolved permission cache so the action menu's
+    // moderator gates respect channel-level role/member overwrites. The
+    // cache is kept warm for the visible channel by the
+    // [channelMessagePermissionsProvider] watch below.
+    ref.watch(channelPermissionCacheProvider);
+    final int? channelPermissionBits = channelId.isEmpty
         ? null
-        : ref.watch(guildPermissionsProvider.select((s) => s[guildId]));
-    if (guildId != null &&
-        guildId.isNotEmpty &&
-        !ref.read(guildPermissionsProvider).containsKey(guildId)) {
-      unawaited(
-        ref.read(guildPermissionsProvider.notifier).getPermissions(guildId),
-      );
-    }
+        : ref
+              .read(channelPermissionCacheProvider.notifier)
+              .getChannelBits(channelId);
     final readState = state.channelId.isEmpty
         ? null
         : ref
@@ -460,15 +460,15 @@ class _MessageListState extends ConsumerState<MessageList> {
     final bool channelCanSendMessages = channelMessagePerms.canSendMessages;
     final bool channelCanAddReactions = canAddReactionsInChannel(
       isDmChannel: isDmChannel,
-      guildPermissionBits: guildPermissionBits,
+      guildPermissionBits: channelPermissionBits,
     );
     final bool channelCanPinMessage = canPinMessageInChannel(
       isDmChannel: isDmChannel,
-      guildPermissionBits: guildPermissionBits,
+      guildPermissionBits: channelPermissionBits,
     );
     final bool channelCanManageMessages = canManageMessagesInChannel(
       isDmChannel: isDmChannel,
-      guildPermissionBits: guildPermissionBits,
+      guildPermissionBits: channelPermissionBits,
     );
 
     if (messages.isEmpty) {
@@ -569,7 +569,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             message: msg,
             currentUserId: currentUserId,
             isDmChannel: isDmChannel,
-            guildPermissionBits: guildPermissionBits,
+            guildPermissionBits: channelPermissionBits,
           );
           final bubble = MessageItem(
             key: itemKey,

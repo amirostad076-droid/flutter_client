@@ -18,6 +18,18 @@ bool isMessageTypeDeletable(int type) {
   return kMessageTypeDeletable[type] ?? false;
 }
 
+/// Whether the current user can delete [message].
+///
+/// Failed sends can always be cleared. Otherwise the message type must
+/// be deletable; authors can always delete their own messages. Deleting
+/// others' messages requires `MANAGE_MESSAGES` and is never permitted
+/// in DMs.
+///
+/// [guildPermissionBits] must be the **channel-resolved** effective
+/// permission bitfield (guild base + role layers + channel overwrites),
+/// or `null` if the channel's permissions have not resolved yet. The
+/// name is historical — the value is read against the active channel,
+/// not just the guild.
 bool canDeleteMessage({
   required Message message,
   required String? currentUserId,
@@ -51,6 +63,9 @@ bool canDeleteMessage({
 /// DMs never grant moderator powers. Guild channels gate on
 /// `MANAGE_MESSAGES`. Mirrors the web app's
 /// `Permission.can(MANAGE_MESSAGES, {channelId})` check.
+///
+/// [guildPermissionBits] must be the **channel-resolved** effective
+/// permission bitfield, or `null` for unresolved channels.
 bool canManageMessagesInChannel({
   required bool isDmChannel,
   int? guildPermissionBits,
@@ -68,6 +83,9 @@ bool canManageMessagesInChannel({
 ///
 /// DMs allow either participant to pin (web parity). Guild channels gate
 /// on `PIN_MESSAGES` or `MANAGE_MESSAGES`.
+///
+/// [guildPermissionBits] must be the **channel-resolved** effective
+/// permission bitfield, or `null` for unresolved channels.
 bool canPinMessageInChannel({
   required bool isDmChannel,
   int? guildPermissionBits,
@@ -85,6 +103,9 @@ bool canPinMessageInChannel({
 /// Whether the current user can add a new reaction in this channel.
 ///
 /// DMs always allow reactions. Guild channels gate on `ADD_REACTIONS`.
+///
+/// [guildPermissionBits] must be the **channel-resolved** effective
+/// permission bitfield, or `null` for unresolved channels.
 bool canAddReactionsInChannel({
   required bool isDmChannel,
   int? guildPermissionBits,
