@@ -35,7 +35,7 @@ void main() {
       expect(
         canManageMessagesInChannel(
           isDmChannel: true,
-          guildPermissionBits: _bits([Permission.manageMessages]),
+          channelPermissionBits: _bits([Permission.manageMessages]),
         ),
         isFalse,
       );
@@ -52,7 +52,7 @@ void main() {
       expect(
         canManageMessagesInChannel(
           isDmChannel: false,
-          guildPermissionBits: _bits([Permission.sendMessages]),
+          channelPermissionBits: _bits([Permission.sendMessages]),
         ),
         isFalse,
       );
@@ -62,7 +62,7 @@ void main() {
       expect(
         canManageMessagesInChannel(
           isDmChannel: false,
-          guildPermissionBits: _bits([Permission.manageMessages]),
+          channelPermissionBits: _bits([Permission.manageMessages]),
         ),
         isTrue,
       );
@@ -81,7 +81,7 @@ void main() {
       expect(
         canPinMessageInChannel(
           isDmChannel: false,
-          guildPermissionBits: _bits([Permission.pinMessages]),
+          channelPermissionBits: _bits([Permission.pinMessages]),
         ),
         isTrue,
       );
@@ -91,7 +91,7 @@ void main() {
       expect(
         canPinMessageInChannel(
           isDmChannel: false,
-          guildPermissionBits: _bits([Permission.manageMessages]),
+          channelPermissionBits: _bits([Permission.manageMessages]),
         ),
         isTrue,
       );
@@ -101,7 +101,7 @@ void main() {
       expect(
         canPinMessageInChannel(
           isDmChannel: false,
-          guildPermissionBits: _bits([Permission.sendMessages]),
+          channelPermissionBits: _bits([Permission.sendMessages]),
         ),
         isFalse,
       );
@@ -127,7 +127,7 @@ void main() {
       expect(
         canAddReactionsInChannel(
           isDmChannel: false,
-          guildPermissionBits: _bits([Permission.addReactions]),
+          channelPermissionBits: _bits([Permission.addReactions]),
         ),
         isTrue,
       );
@@ -137,7 +137,7 @@ void main() {
       expect(
         canAddReactionsInChannel(
           isDmChannel: false,
-          guildPermissionBits: _bits([Permission.sendMessages]),
+          channelPermissionBits: _bits([Permission.sendMessages]),
         ),
         isFalse,
       );

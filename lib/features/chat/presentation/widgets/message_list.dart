@@ -414,10 +414,6 @@ class _MessageListState extends ConsumerState<MessageList> {
         ? null
         : findChannelById(ref.watch(channelListViewModelProvider), channelId)
             ?.guildId;
-    // Watch the channel-resolved permission cache so the action menu's
-    // moderator gates respect channel-level role/member overwrites. The
-    // cache is kept warm for the visible channel by the
-    // [channelMessagePermissionsProvider] watch below.
     ref.watch(channelPermissionCacheProvider);
     final int? channelPermissionBits = channelId.isEmpty
         ? null
@@ -460,15 +456,15 @@ class _MessageListState extends ConsumerState<MessageList> {
     final bool channelCanSendMessages = channelMessagePerms.canSendMessages;
     final bool channelCanAddReactions = canAddReactionsInChannel(
       isDmChannel: isDmChannel,
-      guildPermissionBits: channelPermissionBits,
+      channelPermissionBits: channelPermissionBits,
     );
     final bool channelCanPinMessage = canPinMessageInChannel(
       isDmChannel: isDmChannel,
-      guildPermissionBits: channelPermissionBits,
+      channelPermissionBits: channelPermissionBits,
     );
     final bool channelCanManageMessages = canManageMessagesInChannel(
       isDmChannel: isDmChannel,
-      guildPermissionBits: channelPermissionBits,
+      channelPermissionBits: channelPermissionBits,
     );
 
     if (messages.isEmpty) {
@@ -569,7 +565,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             message: msg,
             currentUserId: currentUserId,
             isDmChannel: isDmChannel,
-            guildPermissionBits: channelPermissionBits,
+            channelPermissionBits: channelPermissionBits,
           );
           final bubble = MessageItem(
             key: itemKey,
