@@ -18,8 +18,6 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/remove_all_reactions_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
-    'sheets/report_message_sheet.dart';
-import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/system_message.dart';
@@ -27,6 +25,8 @@ import 'package:fluxer_app/features/chat/providers/channel_message_permissions_p
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
+import 'package:fluxer_app/features/moderation/iar/iar_report_sheet.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -243,7 +243,9 @@ class _MessageListState extends ConsumerState<MessageList> {
   void _onScrollToBottom() {
     final chatState = ref.read(chatViewModelProvider);
     if (chatState.hasMoreNewerMessages) {
-      unawaited(ref.read(chatViewModelProvider.notifier).jumpToLatestMessages());
+      unawaited(
+        ref.read(chatViewModelProvider.notifier).jumpToLatestMessages(),
+      );
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -384,28 +386,29 @@ class _MessageListState extends ConsumerState<MessageList> {
           }
         },
       )
-      ..listen<bool>(
-        chatViewModelProvider.select((s) => s.isLoadingMore),
-        (previous, next) {
-          if ((previous ?? false) && !next) {
-            _restoreScrollAfterLoadMore();
-          }
-        },
-      )
-      ..listen<bool>(
-        chatViewModelProvider.select((s) => s.isLoadingNewer),
-        (previous, next) {
-          if ((previous ?? false) && !next) {
-            _restoreScrollAfterLoadNewer();
-          }
-        },
-      );
+      ..listen<bool>(chatViewModelProvider.select((s) => s.isLoadingMore), (
+        previous,
+        next,
+      ) {
+        if ((previous ?? false) && !next) {
+          _restoreScrollAfterLoadMore();
+        }
+      })
+      ..listen<bool>(chatViewModelProvider.select((s) => s.isLoadingNewer), (
+        previous,
+        next,
+      ) {
+        if ((previous ?? false) && !next) {
+          _restoreScrollAfterLoadNewer();
+        }
+      });
 
     final currentUserId = ref.watch(currentUserIdProvider);
     final state = ref.watch(chatViewModelProvider);
     final messages = state.messages;
     final String channelId = state.channelId;
-    final bool isDmChannel = channelId.isNotEmpty &&
+    final bool isDmChannel =
+        channelId.isNotEmpty &&
         ref.watch(
           dmViewModelProvider.select(
             (DmViewState dmState) =>
@@ -414,8 +417,10 @@ class _MessageListState extends ConsumerState<MessageList> {
         );
     final String? guildId = isDmChannel || channelId.isEmpty
         ? null
-        : findChannelById(ref.watch(channelListViewModelProvider), channelId)
-            ?.guildId;
+        : findChannelById(
+            ref.watch(channelListViewModelProvider),
+            channelId,
+          )?.guildId;
     ref.watch(channelPermissionCacheProvider);
     final int? channelPermissionBits = channelId.isEmpty
         ? null
@@ -613,10 +618,9 @@ class _MessageListState extends ConsumerState<MessageList> {
             onViewReactions: () =>
                 unawaited(showMessageReactionsSheet(context, message: msg)),
             onReport: () => unawaited(
-              showReportMessageSheet(
+              showIarReportSheet(
                 context,
-                channelId: msg.channelId,
-                messageId: msg.id,
+                iarContext: IarMessageContext(message: msg, guildId: guildId),
               ),
             ),
             onReaction: (emoji, {String? emojiId, bool animated = false}) => ref

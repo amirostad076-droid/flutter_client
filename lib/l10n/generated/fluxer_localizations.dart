@@ -5990,101 +5990,533 @@ abstract class FluxerLocalizations {
   /// **'Report Message'**
   String get chatMessageReport;
 
-  /// Title of the message report sheet asking the user to pick a reason.
+  /// Title shown at the top of the In-App Reporting (IAR) sheet when the user is reporting a specific message.
   ///
   /// In en, this message translates to:
   /// **'Report message'**
-  String get chatReportSheetTitle;
+  String get iarReportMessageTitle;
 
-  /// Subtitle of the message report sheet prompting the user to pick a reporting category.
+  /// Lowercase phrase used mid-sentence in IAR copy when referring to the reported user without a name (e.g. inside the close-DM confirmation).
   ///
   /// In en, this message translates to:
-  /// **'Why are you reporting this message?'**
-  String get chatReportSheetSubtitle;
+  /// **'this user'**
+  String get iarThisUserFallback;
 
-  /// Report category label for harassment.
+  /// Screen-reader description for the IAR sheet announcing what the flow is for.
   ///
   /// In en, this message translates to:
-  /// **'Harassment'**
-  String get chatReportCategoryHarassment;
+  /// **'Report a rule violation, or find tools to manage contact and preferences.'**
+  String get iarModalDescription;
 
-  /// Report category label for hate speech.
+  /// Accessible label for the primary-path radio group on the first step of the IAR sheet. Not shown visually — the radios are labelled inline.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you need?'**
+  String get iarPathStepAriaLabel;
+
+  /// Title shown on the category step of the IAR sheet (platform-report path).
+  ///
+  /// In en, this message translates to:
+  /// **'What kind of rule was broken?'**
+  String get iarCategoryStepTitle;
+
+  /// Title shown on the reason step of the IAR sheet after the user has picked a rule category.
+  ///
+  /// In en, this message translates to:
+  /// **'Which rule was broken?'**
+  String get iarReasonStepTitle;
+
+  /// Toast shown when the user taps Continue on a step without selecting any radio option.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an option to continue.'**
+  String get iarPickAnOptionToast;
+
+  /// Toast shown when the user taps Send report without selecting a rule reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the rule that was broken.'**
+  String get iarPickARuleToast;
+
+  /// Primary-path radio label: file a real DSA / platform-level report.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a platform rule violation'**
+  String get iarPathPlatform;
+
+  /// Primary-path radio label: surface this to community moderators rather than platform safety.
+  ///
+  /// In en, this message translates to:
+  /// **'Report to the moderators of this community'**
+  String get iarPathCommunity;
+
+  /// Primary-path radio label: the user doesn't want platform action, they want self-service tools (block, leave, settings).
+  ///
+  /// In en, this message translates to:
+  /// **'I don\'t like this content'**
+  String get iarPathPreferenceMessage;
+
+  /// Rule-category label grouping harassment, hate, violence, terrorism, raids, and self-harm content.
+  ///
+  /// In en, this message translates to:
+  /// **'Threats, harassment, or harm'**
+  String get iarCategoryTargetedHarmLabel;
+
+  /// One-line description for the targeted-harm rule category.
+  ///
+  /// In en, this message translates to:
+  /// **'Bullying, threats, hate, violence, raids, or content that pushes self-harm.'**
+  String get iarCategoryTargetedHarmDescription;
+
+  /// Rule-category label grouping child-safety and mature-content reports.
+  ///
+  /// In en, this message translates to:
+  /// **'Child safety or mature content'**
+  String get iarCategorySafetyMinorsLabel;
+
+  /// One-line description for the child-safety / mature-content rule category.
+  ///
+  /// In en, this message translates to:
+  /// **'Minors at risk, mature content in the wrong place, or unwanted conduct.'**
+  String get iarCategorySafetyMinorsDescription;
+
+  /// Rule-category label grouping privacy violations and impersonation.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy or impersonation'**
+  String get iarCategoryPrivacyIdentityLabel;
+
+  /// One-line description for the privacy / impersonation rule category.
+  ///
+  /// In en, this message translates to:
+  /// **'Doxxing, stalking, pretending to be someone, or an inappropriate profile.'**
+  String get iarCategoryPrivacyIdentityDescription;
+
+  /// Rule-category label grouping spam/scams, malware, and harmful misinformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Scams, malware, or misinformation'**
+  String get iarCategoryDeceptionLabel;
+
+  /// One-line description for the scams / malware / misinformation rule category.
+  ///
+  /// In en, this message translates to:
+  /// **'Phishing, fraud, malicious links, or false claims likely to cause real-world harm.'**
+  String get iarCategoryDeceptionDescription;
+
+  /// Rule-category label grouping illegal activity and the catch-all Other reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Illegal activity or something else'**
+  String get iarCategoryIllegalOtherLabel;
+
+  /// One-line description for the illegal / other rule category.
+  ///
+  /// In en, this message translates to:
+  /// **'Illegal sales, criminal facilitation, or a clear rule violation that doesn\'t fit above.'**
+  String get iarCategoryIllegalOtherDescription;
+
+  /// Rule-reason label for harassment in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment or threats'**
+  String get iarReasonHarassmentLabel;
+
+  /// Rule-reason description for harassment in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Bullying, repeated unwanted contact, stalking, or targeted abuse.'**
+  String get iarReasonHarassmentMessageDescription;
+
+  /// Rule-reason label for hate speech in the IAR message flow.
   ///
   /// In en, this message translates to:
   /// **'Hate speech'**
-  String get chatReportCategoryHateSpeech;
+  String get iarReasonHateLabel;
 
-  /// Report category label for violent content.
+  /// Rule-reason description for hate speech in the IAR message flow.
   ///
   /// In en, this message translates to:
-  /// **'Violent content'**
-  String get chatReportCategoryViolentContent;
+  /// **'Slurs, dehumanizing language, or attacks on protected groups.'**
+  String get iarReasonHateMessageDescription;
 
-  /// Report category label for spam.
+  /// Rule-reason label for violence in the IAR message flow.
   ///
   /// In en, this message translates to:
-  /// **'Spam'**
-  String get chatReportCategorySpam;
+  /// **'Violence or violent threats'**
+  String get iarReasonViolenceLabel;
 
-  /// Report category label for NSFW content in a non-NSFW channel.
+  /// Rule-reason description for violence in the IAR message flow.
   ///
   /// In en, this message translates to:
-  /// **'NSFW violation'**
-  String get chatReportCategoryNsfwViolation;
+  /// **'Credible threats, graphic violence, or glorification of violence.'**
+  String get iarReasonViolenceDescription;
 
-  /// Report category label for illegal activity.
+  /// Rule-reason label for mature content / unwanted conduct in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Mature content or harassment'**
+  String get iarReasonMatureContentLabel;
+
+  /// Rule-reason description for mature content in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Unwanted conduct or mature content in the wrong place.'**
+  String get iarReasonMatureContentMessageDescription;
+
+  /// Rule-reason label for child-safety reports in the IAR message flow. Also used as the {childSafetyReason} placeholder in iarUseChildSafetyInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Child safety or exploitation of minors'**
+  String get iarReasonChildSafetyLabel;
+
+  /// Rule-reason description for child-safety reports in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Grooming or child-exploitation content.'**
+  String get iarReasonChildSafetyMessageDescription;
+
+  /// Rule-reason label for harmful misinformation in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Harmful misinformation'**
+  String get iarReasonHarmfulMisinfoLabel;
+
+  /// Rule-reason description for harmful misinformation.
+  ///
+  /// In en, this message translates to:
+  /// **'False claims likely to cause real-world harm.'**
+  String get iarReasonHarmfulMisinfoDescription;
+
+  /// Rule-reason label for spam/scams/phishing in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam, scams, or phishing'**
+  String get iarReasonSpamLabel;
+
+  /// Rule-reason description for spam/scams in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Mass spam, fraud, fake giveaways, or account abuse.'**
+  String get iarReasonSpamMessageDescription;
+
+  /// Rule-reason label for malware / dangerous links in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Malware or dangerous links'**
+  String get iarReasonMalwareLabel;
+
+  /// Rule-reason description for malware.
+  ///
+  /// In en, this message translates to:
+  /// **'Malware, credential theft, or harmful files.'**
+  String get iarReasonMalwareDescription;
+
+  /// Rule-reason label for privacy violations in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy violation'**
+  String get iarReasonPrivacyLabel;
+
+  /// Rule-reason description for privacy violations.
+  ///
+  /// In en, this message translates to:
+  /// **'Doxxing, exposed private info, or stalking.'**
+  String get iarReasonPrivacyDescription;
+
+  /// Rule-reason label for impersonation in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Impersonation or deceptive media'**
+  String get iarReasonImpersonationLabel;
+
+  /// Rule-reason description for impersonation in the IAR message flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pretending to be someone else, including deceptive AI-generated content.'**
+  String get iarReasonImpersonationMessageDescription;
+
+  /// Rule-reason label for illegal activity in the IAR message flow.
   ///
   /// In en, this message translates to:
   /// **'Illegal activity'**
-  String get chatReportCategoryIllegalActivity;
+  String get iarReasonIllegalLabel;
 
-  /// Report category label for doxxing (sharing personal information without consent).
+  /// Rule-reason description for illegal activity.
   ///
   /// In en, this message translates to:
-  /// **'Doxxing'**
-  String get chatReportCategoryDoxxing;
+  /// **'Illegal sales, criminal facilitation, or unlawful activity.'**
+  String get iarReasonIllegalDescription;
 
-  /// Report category label for content promoting or depicting self-harm.
+  /// Rule-reason label for self-harm content in the IAR message flow.
   ///
   /// In en, this message translates to:
-  /// **'Self harm'**
-  String get chatReportCategorySelfHarm;
+  /// **'Self-harm or suicide'**
+  String get iarReasonSelfHarmLabel;
 
-  /// Report category label for content that endangers minors.
+  /// Rule-reason description for self-harm content in the IAR message flow.
   ///
   /// In en, this message translates to:
-  /// **'Child safety'**
-  String get chatReportCategoryChildSafety;
+  /// **'Promotion or instructions encouraging self-harm or eating disorders.'**
+  String get iarReasonSelfHarmMessageDescription;
 
-  /// Report category label for malicious links / phishing / malware.
+  /// Rule-reason label for the catch-all option in the IAR message flow.
   ///
   /// In en, this message translates to:
-  /// **'Malicious links'**
-  String get chatReportCategoryMaliciousLinks;
+  /// **'Another clear rule violation'**
+  String get iarReasonOtherLabel;
 
-  /// Report category label for impersonating another person.
+  /// Rule-reason description for the catch-all option.
   ///
   /// In en, this message translates to:
-  /// **'Impersonation'**
-  String get chatReportCategoryImpersonation;
+  /// **'Use only if it clearly breaks Fluxer\'s rules and doesn\'t fit above.'**
+  String get iarReasonOtherDescription;
 
-  /// Report category label for reports that don't fit any other category.
+  /// Inline routing nudge shown under reasons (e.g. mature content) that overlap with child safety.
   ///
   /// In en, this message translates to:
-  /// **'Other'**
-  String get chatReportCategoryOther;
+  /// **'If a minor is involved, use \"{childSafetyReason}\" instead.'**
+  String iarUseChildSafetyInstead(String childSafetyReason);
 
-  /// Success toast shown after a message report is submitted.
+  /// Inline safety note shown for child-safety reports on the reason step.
   ///
   /// In en, this message translates to:
-  /// **'Report submitted'**
-  String get chatReportSubmittedToast;
+  /// **'If this involves CSAM or exploitation of a minor, send it now and don\'t reshare the material.'**
+  String get iarSafetyNoteChildSafety;
 
-  /// Error toast shown when a message report fails to submit.
+  /// Inline safety note shown for self-harm reports on the reason step.
   ///
   /// In en, this message translates to:
-  /// **'Failed to submit report'**
-  String get chatReportFailedToast;
+  /// **'If someone may be in immediate danger, contact local emergency services if you can do so safely.'**
+  String get iarSafetyNoteSelfHarm;
+
+  /// Inline safety note shown for violence reports on the reason step.
+  ///
+  /// In en, this message translates to:
+  /// **'If this is a credible imminent threat, contact local emergency services too.'**
+  String get iarSafetyNoteViolence;
+
+  /// Inline safety note shown for terrorism reports on the reason step.
+  ///
+  /// In en, this message translates to:
+  /// **'If this is an imminent terrorist threat, contact local emergency services too.'**
+  String get iarSafetyNoteTerrorism;
+
+  /// Action card title for blocking the reported user.
+  ///
+  /// In en, this message translates to:
+  /// **'Block this user'**
+  String get iarActionBlockUserTitle;
+
+  /// Action card description for blocking the reported user.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop messages and friend requests.'**
+  String get iarActionBlockUserDescription;
+
+  /// Trailing button label on the block-user action card.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get iarActionBlockUserButton;
+
+  /// Action card title for copying a link to the reported message so the user can share it with community moderators.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy message link'**
+  String get iarActionCopyMessageLinkTitle;
+
+  /// Action card description for copying a message link.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with community mods.'**
+  String get iarActionCopyMessageLinkDescription;
+
+  /// Trailing button label on the copy-message-link action card.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get iarActionCopyMessageLinkButton;
+
+  /// Action card title for closing the DM with the reported user.
+  ///
+  /// In en, this message translates to:
+  /// **'Close this DM'**
+  String get iarActionCloseDmTitle;
+
+  /// Action card description for closing the DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Doesn\'t block. You can reopen later.'**
+  String get iarActionCloseDmDescription;
+
+  /// Trailing button label on the close-DM action card.
+  ///
+  /// In en, this message translates to:
+  /// **'Close DM'**
+  String get iarActionCloseDmButton;
+
+  /// Action card title for leaving the guild the reported message was sent in.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the community'**
+  String get iarActionLeaveCommunityTitle;
+
+  /// Action card description for leaving the community.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop seeing its content and members.'**
+  String get iarActionLeaveCommunityDescription;
+
+  /// Trailing button label on the leave-community action card.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get iarActionLeaveCommunityButton;
+
+  /// Action card title for opening the DM / friend-request privacy settings.
+  ///
+  /// In en, this message translates to:
+  /// **'DM & friend request settings'**
+  String get iarActionDmSettingsTitle;
+
+  /// Action card description for DM / friend-request privacy settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Change who can reach you.'**
+  String get iarActionDmSettingsDescription;
+
+  /// Action card title for opening the call / group-chat privacy settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Call & group chat settings'**
+  String get iarActionCallSettingsTitle;
+
+  /// Action card description for call / group-chat privacy settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Change who can call or add you.'**
+  String get iarActionCallSettingsDescription;
+
+  /// Trailing button label for action cards that navigate the user into a settings section.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get iarActionOpenButton;
+
+  /// Action card title (moderator-only) for deleting the reported message.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this message'**
+  String get iarActionDeleteMessageTitle;
+
+  /// Action card description (moderator-only) for deleting the reported message.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove it from the channel for everyone.'**
+  String get iarActionDeleteMessageDescription;
+
+  /// Trailing button label on the delete-message action card.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get iarActionDeleteMessageButton;
+
+  /// Disabled-state trailing button label on the delete-message action card after the message is already gone.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get iarActionDeleteMessageDeletedButton;
+
+  /// Tooltip on the disabled delete-message action card.
+  ///
+  /// In en, this message translates to:
+  /// **'This message has already been deleted.'**
+  String get iarActionDeleteMessageDeletedTooltip;
+
+  /// Action card title (moderator-only) for opening the ban dialog against the reported user.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban this user'**
+  String get iarActionBanUserTitle;
+
+  /// Action card description (moderator-only) for banning the reported user.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the ban dialog for this community.'**
+  String get iarActionBanUserDescription;
+
+  /// Trailing button label on the ban-user action card.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban'**
+  String get iarActionBanUserButton;
+
+  /// Disabled-state trailing button label on the ban-user action card after the target is already banned.
+  ///
+  /// In en, this message translates to:
+  /// **'Banned'**
+  String get iarActionBanUserBannedButton;
+
+  /// Tooltip on the disabled ban-user action card.
+  ///
+  /// In en, this message translates to:
+  /// **'This user is already banned from the community.'**
+  String get iarActionBanUserBannedTooltip;
+
+  /// Title of the confirm-close-DM bottom sheet shown after the user taps Close DM on the action card.
+  ///
+  /// In en, this message translates to:
+  /// **'Close DM'**
+  String get iarCloseDmConfirmTitle;
+
+  /// Body of the confirm-close-DM bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Close your current DM with {name}. This doesn\'t block them — you can reopen later.'**
+  String iarCloseDmConfirmDescription(String name);
+
+  /// Title shown on the success step after a platform report is submitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent'**
+  String get iarSuccessTitle;
+
+  /// Body shown on the success step after a platform report is submitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Our safety team is reviewing it. We\'ll send you a DM and email once we\'ve reached a verdict.'**
+  String get iarSuccessBody;
+
+  /// Footer button label that returns the user to the previous IAR step.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get iarBackButton;
+
+  /// Footer button label that advances the user to the next IAR step.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get iarContinueButton;
+
+  /// Footer button label that submits the IAR report.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get iarSendReportButton;
+
+  /// Footer button label that closes the IAR sheet from the success or guidance step.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get iarDoneButton;
+
+  /// Toast shown when the IAR report submission fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the report. Please try again.'**
+  String get iarCouldntSendToast;
 
   /// Action label that hides link previews / embeds on the message.
   ///

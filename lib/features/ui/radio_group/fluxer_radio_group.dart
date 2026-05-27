@@ -25,7 +25,7 @@ class FluxerRadioGroup<T> extends StatelessWidget {
     super.key,
   });
 
-  final T value;
+  final T? value;
   final List<FluxerRadioItem<T>> items;
   final ValueChanged<T> onChanged;
   final String? label;

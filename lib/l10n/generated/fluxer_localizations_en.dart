@@ -3505,52 +3505,308 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatMessageReport => 'Report Message';
 
   @override
-  String get chatReportSheetTitle => 'Report message';
+  String get iarReportMessageTitle => 'Report message';
 
   @override
-  String get chatReportSheetSubtitle => 'Why are you reporting this message?';
+  String get iarThisUserFallback => 'this user';
 
   @override
-  String get chatReportCategoryHarassment => 'Harassment';
+  String get iarModalDescription =>
+      'Report a rule violation, or find tools to manage contact and preferences.';
 
   @override
-  String get chatReportCategoryHateSpeech => 'Hate speech';
+  String get iarPathStepAriaLabel => 'What do you need?';
 
   @override
-  String get chatReportCategoryViolentContent => 'Violent content';
+  String get iarCategoryStepTitle => 'What kind of rule was broken?';
 
   @override
-  String get chatReportCategorySpam => 'Spam';
+  String get iarReasonStepTitle => 'Which rule was broken?';
 
   @override
-  String get chatReportCategoryNsfwViolation => 'NSFW violation';
+  String get iarPickAnOptionToast => 'Pick an option to continue.';
 
   @override
-  String get chatReportCategoryIllegalActivity => 'Illegal activity';
+  String get iarPickARuleToast => 'Pick the rule that was broken.';
 
   @override
-  String get chatReportCategoryDoxxing => 'Doxxing';
+  String get iarPathPlatform => 'Report a platform rule violation';
 
   @override
-  String get chatReportCategorySelfHarm => 'Self harm';
+  String get iarPathCommunity => 'Report to the moderators of this community';
 
   @override
-  String get chatReportCategoryChildSafety => 'Child safety';
+  String get iarPathPreferenceMessage => 'I don\'t like this content';
 
   @override
-  String get chatReportCategoryMaliciousLinks => 'Malicious links';
+  String get iarCategoryTargetedHarmLabel => 'Threats, harassment, or harm';
 
   @override
-  String get chatReportCategoryImpersonation => 'Impersonation';
+  String get iarCategoryTargetedHarmDescription =>
+      'Bullying, threats, hate, violence, raids, or content that pushes self-harm.';
 
   @override
-  String get chatReportCategoryOther => 'Other';
+  String get iarCategorySafetyMinorsLabel => 'Child safety or mature content';
 
   @override
-  String get chatReportSubmittedToast => 'Report submitted';
+  String get iarCategorySafetyMinorsDescription =>
+      'Minors at risk, mature content in the wrong place, or unwanted conduct.';
 
   @override
-  String get chatReportFailedToast => 'Failed to submit report';
+  String get iarCategoryPrivacyIdentityLabel => 'Privacy or impersonation';
+
+  @override
+  String get iarCategoryPrivacyIdentityDescription =>
+      'Doxxing, stalking, pretending to be someone, or an inappropriate profile.';
+
+  @override
+  String get iarCategoryDeceptionLabel => 'Scams, malware, or misinformation';
+
+  @override
+  String get iarCategoryDeceptionDescription =>
+      'Phishing, fraud, malicious links, or false claims likely to cause real-world harm.';
+
+  @override
+  String get iarCategoryIllegalOtherLabel =>
+      'Illegal activity or something else';
+
+  @override
+  String get iarCategoryIllegalOtherDescription =>
+      'Illegal sales, criminal facilitation, or a clear rule violation that doesn\'t fit above.';
+
+  @override
+  String get iarReasonHarassmentLabel => 'Harassment or threats';
+
+  @override
+  String get iarReasonHarassmentMessageDescription =>
+      'Bullying, repeated unwanted contact, stalking, or targeted abuse.';
+
+  @override
+  String get iarReasonHateLabel => 'Hate speech';
+
+  @override
+  String get iarReasonHateMessageDescription =>
+      'Slurs, dehumanizing language, or attacks on protected groups.';
+
+  @override
+  String get iarReasonViolenceLabel => 'Violence or violent threats';
+
+  @override
+  String get iarReasonViolenceDescription =>
+      'Credible threats, graphic violence, or glorification of violence.';
+
+  @override
+  String get iarReasonMatureContentLabel => 'Mature content or harassment';
+
+  @override
+  String get iarReasonMatureContentMessageDescription =>
+      'Unwanted conduct or mature content in the wrong place.';
+
+  @override
+  String get iarReasonChildSafetyLabel =>
+      'Child safety or exploitation of minors';
+
+  @override
+  String get iarReasonChildSafetyMessageDescription =>
+      'Grooming or child-exploitation content.';
+
+  @override
+  String get iarReasonHarmfulMisinfoLabel => 'Harmful misinformation';
+
+  @override
+  String get iarReasonHarmfulMisinfoDescription =>
+      'False claims likely to cause real-world harm.';
+
+  @override
+  String get iarReasonSpamLabel => 'Spam, scams, or phishing';
+
+  @override
+  String get iarReasonSpamMessageDescription =>
+      'Mass spam, fraud, fake giveaways, or account abuse.';
+
+  @override
+  String get iarReasonMalwareLabel => 'Malware or dangerous links';
+
+  @override
+  String get iarReasonMalwareDescription =>
+      'Malware, credential theft, or harmful files.';
+
+  @override
+  String get iarReasonPrivacyLabel => 'Privacy violation';
+
+  @override
+  String get iarReasonPrivacyDescription =>
+      'Doxxing, exposed private info, or stalking.';
+
+  @override
+  String get iarReasonImpersonationLabel => 'Impersonation or deceptive media';
+
+  @override
+  String get iarReasonImpersonationMessageDescription =>
+      'Pretending to be someone else, including deceptive AI-generated content.';
+
+  @override
+  String get iarReasonIllegalLabel => 'Illegal activity';
+
+  @override
+  String get iarReasonIllegalDescription =>
+      'Illegal sales, criminal facilitation, or unlawful activity.';
+
+  @override
+  String get iarReasonSelfHarmLabel => 'Self-harm or suicide';
+
+  @override
+  String get iarReasonSelfHarmMessageDescription =>
+      'Promotion or instructions encouraging self-harm or eating disorders.';
+
+  @override
+  String get iarReasonOtherLabel => 'Another clear rule violation';
+
+  @override
+  String get iarReasonOtherDescription =>
+      'Use only if it clearly breaks Fluxer\'s rules and doesn\'t fit above.';
+
+  @override
+  String iarUseChildSafetyInstead(String childSafetyReason) {
+    return 'If a minor is involved, use \"$childSafetyReason\" instead.';
+  }
+
+  @override
+  String get iarSafetyNoteChildSafety =>
+      'If this involves CSAM or exploitation of a minor, send it now and don\'t reshare the material.';
+
+  @override
+  String get iarSafetyNoteSelfHarm =>
+      'If someone may be in immediate danger, contact local emergency services if you can do so safely.';
+
+  @override
+  String get iarSafetyNoteViolence =>
+      'If this is a credible imminent threat, contact local emergency services too.';
+
+  @override
+  String get iarSafetyNoteTerrorism =>
+      'If this is an imminent terrorist threat, contact local emergency services too.';
+
+  @override
+  String get iarActionBlockUserTitle => 'Block this user';
+
+  @override
+  String get iarActionBlockUserDescription =>
+      'Stop messages and friend requests.';
+
+  @override
+  String get iarActionBlockUserButton => 'Block';
+
+  @override
+  String get iarActionCopyMessageLinkTitle => 'Copy message link';
+
+  @override
+  String get iarActionCopyMessageLinkDescription =>
+      'Share with community mods.';
+
+  @override
+  String get iarActionCopyMessageLinkButton => 'Copy';
+
+  @override
+  String get iarActionCloseDmTitle => 'Close this DM';
+
+  @override
+  String get iarActionCloseDmDescription =>
+      'Doesn\'t block. You can reopen later.';
+
+  @override
+  String get iarActionCloseDmButton => 'Close DM';
+
+  @override
+  String get iarActionLeaveCommunityTitle => 'Leave the community';
+
+  @override
+  String get iarActionLeaveCommunityDescription =>
+      'Stop seeing its content and members.';
+
+  @override
+  String get iarActionLeaveCommunityButton => 'Leave';
+
+  @override
+  String get iarActionDmSettingsTitle => 'DM & friend request settings';
+
+  @override
+  String get iarActionDmSettingsDescription => 'Change who can reach you.';
+
+  @override
+  String get iarActionCallSettingsTitle => 'Call & group chat settings';
+
+  @override
+  String get iarActionCallSettingsDescription =>
+      'Change who can call or add you.';
+
+  @override
+  String get iarActionOpenButton => 'Open';
+
+  @override
+  String get iarActionDeleteMessageTitle => 'Delete this message';
+
+  @override
+  String get iarActionDeleteMessageDescription =>
+      'Remove it from the channel for everyone.';
+
+  @override
+  String get iarActionDeleteMessageButton => 'Delete';
+
+  @override
+  String get iarActionDeleteMessageDeletedButton => 'Deleted';
+
+  @override
+  String get iarActionDeleteMessageDeletedTooltip =>
+      'This message has already been deleted.';
+
+  @override
+  String get iarActionBanUserTitle => 'Ban this user';
+
+  @override
+  String get iarActionBanUserDescription =>
+      'Open the ban dialog for this community.';
+
+  @override
+  String get iarActionBanUserButton => 'Ban';
+
+  @override
+  String get iarActionBanUserBannedButton => 'Banned';
+
+  @override
+  String get iarActionBanUserBannedTooltip =>
+      'This user is already banned from the community.';
+
+  @override
+  String get iarCloseDmConfirmTitle => 'Close DM';
+
+  @override
+  String iarCloseDmConfirmDescription(String name) {
+    return 'Close your current DM with $name. This doesn\'t block them — you can reopen later.';
+  }
+
+  @override
+  String get iarSuccessTitle => 'Report sent';
+
+  @override
+  String get iarSuccessBody =>
+      'Our safety team is reviewing it. We\'ll send you a DM and email once we\'ve reached a verdict.';
+
+  @override
+  String get iarBackButton => 'Back';
+
+  @override
+  String get iarContinueButton => 'Continue';
+
+  @override
+  String get iarSendReportButton => 'Send report';
+
+  @override
+  String get iarDoneButton => 'Done';
+
+  @override
+  String get iarCouldntSendToast =>
+      'Couldn\'t send the report. Please try again.';
 
   @override
   String get chatMessageSuppressEmbeds => 'Suppress Embeds';

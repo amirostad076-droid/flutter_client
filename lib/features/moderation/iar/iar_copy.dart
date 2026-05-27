@@ -1,0 +1,220 @@
+// Localized copy for the IAR flow.
+//
+// Mirrors `IARModalCopy.ts`. Each helper maps an enum value (path, category,
+// reason) onto its `FluxerLocalizations` string. Helpers that produce option
+// lists pre-build `FluxerRadioItem` entries so the sheet only deals with
+// concrete UI shapes.
+
+import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
+import 'package:fluxer_app/features/moderation/iar/iar_resolved_context.dart';
+import 'package:fluxer_app/features/ui/radio_group/fluxer_radio_group.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+
+/// Header title for the path step is the sheet header itself — there is no
+/// visible step title on `path`. Step 2/3 expose explicit titles.
+String iarStepTitle(FluxerLocalizations l10n, IarStep step) {
+  return switch (step) {
+    IarStep.path => '',
+    IarStep.category => l10n.iarCategoryStepTitle,
+    IarStep.reason => l10n.iarReasonStepTitle,
+    IarStep.guidance => '',
+    IarStep.success => l10n.iarSuccessTitle,
+  };
+}
+
+/// Display name for an [IarRuleCategory].
+String iarCategoryLabel(FluxerLocalizations l10n, IarRuleCategory category) {
+  return switch (category) {
+    IarRuleCategory.targetedHarm => l10n.iarCategoryTargetedHarmLabel,
+    IarRuleCategory.safetyMinors => l10n.iarCategorySafetyMinorsLabel,
+    IarRuleCategory.privacyIdentity => l10n.iarCategoryPrivacyIdentityLabel,
+    IarRuleCategory.deception => l10n.iarCategoryDeceptionLabel,
+    IarRuleCategory.illegalOther => l10n.iarCategoryIllegalOtherLabel,
+  };
+}
+
+String iarCategoryDescription(
+  FluxerLocalizations l10n,
+  IarRuleCategory category,
+) {
+  return switch (category) {
+    IarRuleCategory.targetedHarm => l10n.iarCategoryTargetedHarmDescription,
+    IarRuleCategory.safetyMinors => l10n.iarCategorySafetyMinorsDescription,
+    IarRuleCategory.privacyIdentity =>
+      l10n.iarCategoryPrivacyIdentityDescription,
+    IarRuleCategory.deception => l10n.iarCategoryDeceptionDescription,
+    IarRuleCategory.illegalOther => l10n.iarCategoryIllegalOtherDescription,
+  };
+}
+
+/// Display name for a rule reason within the message-report flow.
+///
+/// Returns null when the reason does not surface in the message taxonomy
+/// (e.g. `inappropriateProfile`, `raidCoordination`, `terrorismExtremism` —
+/// those exist for user/guild flows the web supports but the mobile sheet
+/// does not yet expose).
+String? iarMessageReasonLabel(FluxerLocalizations l10n, IarRuleReason reason) {
+  return switch (reason) {
+    IarRuleReason.harassment => l10n.iarReasonHarassmentLabel,
+    IarRuleReason.hate => l10n.iarReasonHateLabel,
+    IarRuleReason.violence => l10n.iarReasonViolenceLabel,
+    IarRuleReason.matureContent => l10n.iarReasonMatureContentLabel,
+    IarRuleReason.childSafety => l10n.iarReasonChildSafetyLabel,
+    IarRuleReason.harmfulMisinformation => l10n.iarReasonHarmfulMisinfoLabel,
+    IarRuleReason.spamScams => l10n.iarReasonSpamLabel,
+    IarRuleReason.malware => l10n.iarReasonMalwareLabel,
+    IarRuleReason.privacy => l10n.iarReasonPrivacyLabel,
+    IarRuleReason.impersonation => l10n.iarReasonImpersonationLabel,
+    IarRuleReason.illegalActivity => l10n.iarReasonIllegalLabel,
+    IarRuleReason.selfHarm => l10n.iarReasonSelfHarmLabel,
+    IarRuleReason.other => l10n.iarReasonOtherLabel,
+    IarRuleReason.terrorismExtremism => null,
+    IarRuleReason.raidCoordination => null,
+    IarRuleReason.inappropriateProfile => null,
+  };
+}
+
+String? iarMessageReasonDescription(
+  FluxerLocalizations l10n,
+  IarRuleReason reason,
+) {
+  return switch (reason) {
+    IarRuleReason.harassment => l10n.iarReasonHarassmentMessageDescription,
+    IarRuleReason.hate => l10n.iarReasonHateMessageDescription,
+    IarRuleReason.violence => l10n.iarReasonViolenceDescription,
+    IarRuleReason.matureContent =>
+      l10n.iarReasonMatureContentMessageDescription,
+    IarRuleReason.childSafety => l10n.iarReasonChildSafetyMessageDescription,
+    IarRuleReason.harmfulMisinformation =>
+      l10n.iarReasonHarmfulMisinfoDescription,
+    IarRuleReason.spamScams => l10n.iarReasonSpamMessageDescription,
+    IarRuleReason.malware => l10n.iarReasonMalwareDescription,
+    IarRuleReason.privacy => l10n.iarReasonPrivacyDescription,
+    IarRuleReason.impersonation =>
+      l10n.iarReasonImpersonationMessageDescription,
+    IarRuleReason.illegalActivity => l10n.iarReasonIllegalDescription,
+    IarRuleReason.selfHarm => l10n.iarReasonSelfHarmMessageDescription,
+    IarRuleReason.other => l10n.iarReasonOtherDescription,
+    IarRuleReason.terrorismExtremism => null,
+    IarRuleReason.raidCoordination => null,
+    IarRuleReason.inappropriateProfile => null,
+  };
+}
+
+/// Inline note that nudges the user toward the `child_safety` reason when
+/// they pick an adjacent reason that frequently covers minors. Returns null
+/// for reasons that do not need a nudge.
+String? iarChildSafetyRoutingNote(
+  FluxerLocalizations l10n,
+  IarRuleReason? selectedReason,
+) {
+  if (selectedReason == null) {
+    return null;
+  }
+  return switch (selectedReason) {
+    IarRuleReason.illegalActivity ||
+    IarRuleReason.matureContent ||
+    IarRuleReason.other => l10n.iarUseChildSafetyInstead(
+      l10n.iarReasonChildSafetyLabel,
+    ),
+    _ => null,
+  };
+}
+
+/// Inline safety note shown for reasons that benefit from emergency-services
+/// context. Returns null for reasons that don't need one.
+String? iarSpecialSafetyNote(
+  FluxerLocalizations l10n,
+  IarRuleReason? selectedReason,
+) {
+  if (selectedReason == null) {
+    return null;
+  }
+  return switch (selectedReason) {
+    IarRuleReason.childSafety => l10n.iarSafetyNoteChildSafety,
+    IarRuleReason.selfHarm => l10n.iarSafetyNoteSelfHarm,
+    IarRuleReason.violence => l10n.iarSafetyNoteViolence,
+    IarRuleReason.terrorismExtremism => l10n.iarSafetyNoteTerrorism,
+    _ => null,
+  };
+}
+
+/// Primary-path radio options on step 1.
+///
+/// The `community` option is only offered when the report has a community
+/// context the user is currently part of. The `preference` option uses
+/// context-specific copy ("I don't like this content/user/community").
+List<FluxerRadioItem<IarPrimaryPath>> iarPrimaryPathOptions(
+  FluxerLocalizations l10n,
+  IarContext context,
+  IarResolvedContext resolved,
+) {
+  final options = <FluxerRadioItem<IarPrimaryPath>>[
+    FluxerRadioItem(
+      value: IarPrimaryPath.platform,
+      label: l10n.iarPathPlatform,
+    ),
+  ];
+  if (resolved.hasCommunityContext) {
+    options.add(
+      FluxerRadioItem(
+        value: IarPrimaryPath.community,
+        label: l10n.iarPathCommunity,
+      ),
+    );
+  }
+  options.add(
+    FluxerRadioItem(
+      value: IarPrimaryPath.preference,
+      label: _iarPreferencePathLabel(l10n, context),
+    ),
+  );
+  return options;
+}
+
+String _iarPreferencePathLabel(FluxerLocalizations l10n, IarContext context) {
+  return switch (context) {
+    IarMessageContext() => l10n.iarPathPreferenceMessage,
+  };
+}
+
+/// Category radio options on step 2. Always returns the full set — there is
+/// no filtering by context.
+List<FluxerRadioItem<IarRuleCategory>> iarCategoryOptions(
+  FluxerLocalizations l10n,
+) {
+  return [
+    for (final category in IarRuleCategory.values)
+      FluxerRadioItem(
+        value: category,
+        label: iarCategoryLabel(l10n, category),
+        description: iarCategoryDescription(l10n, category),
+      ),
+  ];
+}
+
+/// Reason radio options on step 3, filtered to the selected category and the
+/// message-report taxonomy.
+List<FluxerRadioItem<IarRuleReason>> iarMessageReasonOptions(
+  FluxerLocalizations l10n,
+  IarRuleCategory? category,
+) {
+  final pool = category == null
+      ? IarRuleReason.values
+      : ruleReasonsByCategory[category] ?? const <IarRuleReason>[];
+  final items = <FluxerRadioItem<IarRuleReason>>[];
+  for (final reason in pool) {
+    final label = iarMessageReasonLabel(l10n, reason);
+    if (label == null) {
+      continue;
+    }
+    items.add(
+      FluxerRadioItem(
+        value: reason,
+        label: label,
+        description: iarMessageReasonDescription(l10n, reason),
+      ),
+    );
+  }
+  return items;
+}
