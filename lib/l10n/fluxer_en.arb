@@ -4497,5 +4497,21 @@
   "addGuildPackInstalled": "Pack installed successfully.",
   "@addGuildPackInstalled": {
     "description": "Toast shown after accepting an emoji or sticker pack invite."
+  },
+  "chatMessageRemoveAllReactionsConfirmTitle": "Remove All Reactions",
+  "@chatMessageRemoveAllReactionsConfirmTitle": {
+    "description": "Title for the remove-all-reactions confirmation sheet."
+  },
+  "chatMessageRemoveAllReactionsConfirmDescription": "Are you sure you want to remove all reactions from this message?",
+  "@chatMessageRemoveAllReactionsConfirmDescription": {
+    "description": "Body text for the remove-all-reactions confirmation sheet."
+  },
+  "chatMessageUnpinConfirmTitle": "Unpin Message",
+  "@chatMessageUnpinConfirmTitle": {
+    "description": "Title for the unpin message confirmation sheet."
+  },
+  "chatMessageUnpinConfirmDescription": "Are you sure you want to unpin this message?",
+  "@chatMessageUnpinConfirmDescription": {
+    "description": "Body text for the unpin message confirmation sheet."
   }
 }

@@ -13,11 +13,11 @@ import 'package:fluxer_app/core/utils/channel_jump_link.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
+import 'package:fluxer_app/features/chat/presentation/'
+    'sheets/channel_access_denied_sheet.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/role_providers.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
-import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
-import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod/src/providers/future_provider.dart';
@@ -274,25 +274,7 @@ class ChannelJumpLinkMention extends ConsumerWidget {
     void onTap() {
       // Channel not found
       if (!link.isDm && channel == null) {
-        final l10n = FluxerLocalizations.of(context);
-        unawaited(
-          FluxerModal.show<void>(
-            context,
-            title: l10n.channelAccessDeniedTitle,
-            builder: (ctx, close) => Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  l10n.channelAccessDeniedDescription,
-                  style: ctx.textStyles.bodySmall.copyWith(height: 1.4),
-                ),
-                const SizedBox(height: 16),
-                FluxerButton.primary(onPressed: close, label: l10n.okay),
-              ],
-            ),
-          ),
-        );
+        unawaited(showChannelAccessDeniedSheet(context));
         return;
       }
       final messageId = isMessage ? (link as MessageJumpLink).messageId : null;

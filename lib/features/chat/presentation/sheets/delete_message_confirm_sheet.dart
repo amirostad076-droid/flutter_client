@@ -7,52 +7,32 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_item.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
-import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
-import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_confirm_sheet.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
-Future<bool?> showDeleteMessageConfirmModal(
+/// Shows a confirmation bottom sheet for deleting a chat message.
+///
+/// Resolves to `true` when the user taps Delete; `null` when dismissed
+/// without confirming.
+Future<bool?> showDeleteMessageConfirmSheet(
   BuildContext context,
   WidgetRef ref, {
   required Message message,
   String? guildId,
 }) {
-  final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-  return FluxerModal.show<bool>(
+  final l10n = FluxerLocalizations.of(context);
+  return FluxerConfirmSheet.show(
     context,
     title: l10n.chatMessageDeleteConfirmTitle,
-    centered: true,
-    builder: (dialogContext, close) {
-      final textStyles = dialogContext.textStyles;
-      final layout = dialogContext.layout;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.chatMessageDeleteConfirmDescription,
-            style: textStyles.bodySmall.copyWith(height: 1.4),
-          ),
-          SizedBox(height: layout.s4),
-          _DeleteMessagePreview(message: message, guildId: guildId),
-        ],
+    description: l10n.chatMessageDeleteConfirmDescription,
+    body: _DeleteMessagePreview(message: message, guildId: guildId),
+    confirmLabel: l10n.chatMessageDelete,
+    isDanger: true,
+    onConfirm: () {
+      unawaited(
+        ref.read(chatViewModelProvider.notifier).deleteMessage(message.id),
       );
     },
-    actionsBuilder: (pop) => [
-      FluxerButton.dangerPrimary(
-        onPressed: () {
-          unawaited(
-            ref.read(chatViewModelProvider.notifier).deleteMessage(message.id),
-          );
-          pop(true);
-        },
-        label: l10n.chatMessageDelete,
-      ),
-      const SizedBox(height: 8),
-      FluxerButton.secondary(
-        onPressed: () => pop(false),
-        label: 'Cancel',
-      ),
-    ],
   );
 }
 

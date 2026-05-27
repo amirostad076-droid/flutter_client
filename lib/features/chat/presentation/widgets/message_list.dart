@@ -12,11 +12,13 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
+    'sheets/delete_message_confirm_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/'
     'sheets/message_reactions_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
-    'sheets/report_message_sheet.dart';
+    'sheets/remove_all_reactions_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
-    'widgets/delete_message_confirm_modal.dart';
+    'sheets/report_message_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -584,14 +586,20 @@ class _MessageListState extends ConsumerState<MessageList> {
                 ref.read(chatViewModelProvider.notifier).startForward(msg),
             onEdit: () =>
                 ref.read(chatViewModelProvider.notifier).startEdit(msg),
-            onRemoveAllReactions: () => ref
-                .read(chatViewModelProvider.notifier)
-                .removeAllReactionsOnMessage(msg.id),
-            onDelete: () => showDeleteMessageConfirmModal(
-              context,
-              ref,
-              message: msg,
-              guildId: guildId,
+            onRemoveAllReactions: () => unawaited(
+              showRemoveAllReactionsConfirmSheet(
+                context,
+                ref,
+                messageId: msg.id,
+              ),
+            ),
+            onDelete: () => unawaited(
+              showDeleteMessageConfirmSheet(
+                context,
+                ref,
+                message: msg,
+                guildId: guildId,
+              ),
             ),
             onRetry: () => ref
                 .read(chatViewModelProvider.notifier)

@@ -6325,6 +6325,30 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Pack installed successfully.'**
   String get addGuildPackInstalled;
+
+  /// Title for the remove-all-reactions confirmation sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove All Reactions'**
+  String get chatMessageRemoveAllReactionsConfirmTitle;
+
+  /// Body text for the remove-all-reactions confirmation sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove all reactions from this message?'**
+  String get chatMessageRemoveAllReactionsConfirmDescription;
+
+  /// Title for the unpin message confirmation sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin Message'**
+  String get chatMessageUnpinConfirmTitle;
+
+  /// Body text for the unpin message confirmation sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to unpin this message?'**
+  String get chatMessageUnpinConfirmDescription;
 }
 
 class _FluxerLocalizationsDelegate

@@ -13,6 +13,8 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/message_debug_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/'
+    'sheets/unpin_message_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_list_renderer.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_invite.dart';
@@ -244,15 +246,24 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           }
         }());
       case MessageAction.pin:
-        final repo = ref.read(channelPinsRepositoryProvider);
         final channelId = widget.message.channelId;
         final messageId = widget.message.id;
-        final isPinned = widget.message.isPinned;
-        unawaited(
-          isPinned
-              ? repo.unpinMessage(channelId: channelId, messageId: messageId)
-              : repo.pinMessage(channelId: channelId, messageId: messageId),
-        );
+        if (widget.message.isPinned) {
+          unawaited(
+            showUnpinMessageConfirmSheet(
+              context,
+              ref,
+              channelId: channelId,
+              messageId: messageId,
+            ),
+          );
+        } else {
+          unawaited(
+            ref
+                .read(channelPinsRepositoryProvider)
+                .pinMessage(channelId: channelId, messageId: messageId),
+          );
+        }
       case MessageAction.addReaction:
         if (isMobile) {
           unawaited(

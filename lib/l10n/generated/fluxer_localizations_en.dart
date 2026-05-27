@@ -3679,4 +3679,19 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get addGuildPackInstalled => 'Pack installed successfully.';
+
+  @override
+  String get chatMessageRemoveAllReactionsConfirmTitle =>
+      'Remove All Reactions';
+
+  @override
+  String get chatMessageRemoveAllReactionsConfirmDescription =>
+      'Are you sure you want to remove all reactions from this message?';
+
+  @override
+  String get chatMessageUnpinConfirmTitle => 'Unpin Message';
+
+  @override
+  String get chatMessageUnpinConfirmDescription =>
+      'Are you sure you want to unpin this message?';
 }
