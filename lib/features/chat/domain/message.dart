@@ -8,11 +8,24 @@ import 'package:fluxer_dart/export.dart';
 enum EmbedType { rich, image, gifv, link, video }
 
 enum MessageDeliveryState { sending, sent, failed }
-
 const int messageFlagSuppressEmbeds = 1 << 2;
 const int messageFlagSuppressNotifications = 1 << 12;
 const int messageFlagCompactAttachments = 1 << 17;
 const int attachmentFlagIsSpoiler = 1 << 3;
+
+/// Message wire-type constants (mirrors the server's
+/// `MessageTypes` enum). Use these everywhere instead of
+/// hardcoding the int value.
+const int messageTypeDefault = 0;
+const int messageTypeRecipientAdd = 1;
+const int messageTypeRecipientRemove = 2;
+const int messageTypeCall = 3;
+const int messageTypeChannelNameChange = 4;
+const int messageTypeChannelIconChange = 5;
+const int messageTypeChannelPinnedMessage = 6;
+const int messageTypeUserJoin = 7;
+const int messageTypeReply = 19;
+const int messageTypeClientSystem = 99;
 
 class EmbedAuthor {
   final String name;
@@ -1006,11 +1019,62 @@ class Message {
       (messageReference?.isForward ?? false) && messageSnapshots.isNotEmpty ||
       forwardedFrom != null;
   bool get isEdited => editedTimestamp != null;
-  bool get isSystemMessage => type != 0 && type != 1 && type != 19;
-  bool get isMemberJoin => type == 7;
-  bool get isPin => type == 6;
+  bool get isSystemMessage => !isUserMessage;
+
+  /// Whether this message is a generic user-authored message
+  /// (default text, reply, or client-system marker). Mirrors the
+  /// web app's `isUserMessage()` predicate.
+  bool get isUserMessage =>
+      type == messageTypeDefault ||
+      type == messageTypeReply ||
+      type == messageTypeClientSystem;
+
+  /// `type == 99` is the client-side-only system marker used for
+  /// inline call/system status entries — interactive message
+  /// actions (reply, forward, etc.) are not applicable.
+  bool get isClientSystemMessage => type == messageTypeClientSystem;
+
+  /// Whether interactive message actions (reply, forward, add reaction,
+  /// bookmark, suppress embeds) should be offered for this message.
+  bool get supportsInteractiveActions => !isClientSystemMessage;
+
+  bool get isMemberJoin => type == messageTypeUserJoin;
+  bool get isPin => type == messageTypeChannelPinnedMessage;
   bool get isSending => deliveryState == MessageDeliveryState.sending;
   bool get hasFailed => deliveryState == MessageDeliveryState.failed;
+
+  /// Wire-shaped snapshot of this message suitable for the developer
+  /// debug viewer. Mirrors the field set the web client surfaces via
+  /// `message.toJSON()`; not stable across versions.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'channel_id': channelId,
+    'author': {
+      'id': authorId,
+      'name': authorName,
+      'avatar': authorAvatar,
+      'avatar_color': authorAvatarColor,
+      'bot': authorIsBot,
+    },
+    'content': content,
+    'timestamp': timestamp.toIso8601String(),
+    'edited_timestamp': editedTimestamp?.toIso8601String(),
+    'type': type,
+    'flags': flags,
+    'pinned': isPinned,
+    'mentioned': isMentioned,
+    'reply_to_id': replyToId,
+    'forwarded_from': forwardedFrom,
+    'message_reference': messageReference?.toJson(),
+    'message_snapshots': messageSnapshots.map((s) => s.toJson()).toList(),
+    'embeds': embeds.map((e) => e.toJson()).toList(),
+    'attachments': attachments.map((a) => a.toJson()).toList(),
+    'stickers': stickers.map((s) => s.toJson()).toList(),
+    'reactions': reactions.map((r) => r.toJson()).toList(),
+    'delivery_state': deliveryState.name,
+    'client_nonce': clientNonce,
+    'send_error': sendError,
+  };
 
   static List<T> _decodeList<T>(
     String json,

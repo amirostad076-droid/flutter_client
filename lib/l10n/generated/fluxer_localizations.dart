@@ -5942,6 +5942,36 @@ abstract class FluxerLocalizations {
   /// **'View reactions'**
   String get chatMessageViewReactions;
 
+  /// Danger action label for clearing every reaction from a message; requires MANAGE_MESSAGES.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all reactions'**
+  String get chatMessageRemoveAllReactions;
+
+  /// Developer-mode action label that opens a JSON viewer for the underlying message data.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Message'**
+  String get chatMessageDebug;
+
+  /// Title for the developer-mode message debug sheet that shows raw message JSON.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug message'**
+  String get chatMessageDebugSheetTitle;
+
+  /// Action label that copies the raw message JSON to the clipboard from the debug sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy JSON'**
+  String get chatMessageDebugCopyJson;
+
+  /// Toast confirming the raw message JSON was copied to clipboard from the debug sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Message JSON copied to clipboard'**
+  String get chatMessageDebugJsonCopiedToast;
+
   /// Title shown at the top of the message reactions sheet that lists who reacted with each emoji.
   ///
   /// In en, this message translates to:

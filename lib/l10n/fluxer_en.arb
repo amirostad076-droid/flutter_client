@@ -4234,6 +4234,26 @@
   "@chatMessageViewReactions": {
     "description": "Action label that opens the message reactions list sheet showing who reacted with each emoji."
   },
+  "chatMessageRemoveAllReactions": "Remove all reactions",
+  "@chatMessageRemoveAllReactions": {
+    "description": "Danger action label for clearing every reaction from a message; requires MANAGE_MESSAGES."
+  },
+  "chatMessageDebug": "Debug Message",
+  "@chatMessageDebug": {
+    "description": "Developer-mode action label that opens a JSON viewer for the underlying message data."
+  },
+  "chatMessageDebugSheetTitle": "Debug message",
+  "@chatMessageDebugSheetTitle": {
+    "description": "Title for the developer-mode message debug sheet that shows raw message JSON."
+  },
+  "chatMessageDebugCopyJson": "Copy JSON",
+  "@chatMessageDebugCopyJson": {
+    "description": "Action label that copies the raw message JSON to the clipboard from the debug sheet."
+  },
+  "chatMessageDebugJsonCopiedToast": "Message JSON copied to clipboard",
+  "@chatMessageDebugJsonCopiedToast": {
+    "description": "Toast confirming the raw message JSON was copied to clipboard from the debug sheet."
+  },
   "chatReactionsSheetTitle": "Reactions",
   "@chatReactionsSheetTitle": {
     "description": "Title shown at the top of the message reactions sheet that lists who reacted with each emoji."

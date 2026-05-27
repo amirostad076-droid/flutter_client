@@ -1957,6 +1957,44 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
+  /// Moderator/author action: drop every reaction from this message.
+  /// Optimistically clears local state; gateway will reconcile on success
+  /// and rehydrate on failure.
+  Future<void> removeAllReactionsOnMessage(String messageId) async {
+    final msgIndex = state.messages.indexWhere((m) => m.id == messageId);
+    if (msgIndex == -1) {
+      return;
+    }
+    final msg = state.messages[msgIndex];
+    if (msg.reactions.isEmpty) {
+      return;
+    }
+    final previousReactions = msg.reactions;
+    final updatedMessages = List<Message>.from(state.messages);
+    updatedMessages[msgIndex] = msg.copyWith(reactions: const <Reaction>[]);
+    state = state.copyWith(messages: updatedMessages);
+    try {
+      await ref
+          .read(messageRepositoryProvider)
+          .removeAllReactions(
+            channelId: state.channelId,
+            messageId: messageId,
+          );
+    } on Exception catch (e, st) {
+      talker.error('[ChatViewModel] removeAllReactions failed', e, st);
+      final rollbackIndex = state.messages.indexWhere(
+        (m) => m.id == messageId,
+      );
+      if (rollbackIndex != -1) {
+        final rollback = List<Message>.from(state.messages);
+        rollback[rollbackIndex] = rollback[rollbackIndex].copyWith(
+          reactions: previousReactions,
+        );
+        state = state.copyWith(messages: rollback);
+      }
+    }
+  }
+
   Future<void> _trackReactionFrecency(String emoji, String? emojiId) async {
     final database = ref.read(fluxerDatabaseProvider);
     final String key;

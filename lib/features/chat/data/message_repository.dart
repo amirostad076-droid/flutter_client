@@ -401,6 +401,16 @@ class MessageRepository {
     );
   }
 
+  Future<void> removeAllReactions({
+    required String channelId,
+    required String messageId,
+  }) async {
+    await _client.channels.removeAllReactions(
+      channelId: channelId,
+      messageId: messageId,
+    );
+  }
+
   Future<Message> sendMessage({
     required String channelId,
     required String content,

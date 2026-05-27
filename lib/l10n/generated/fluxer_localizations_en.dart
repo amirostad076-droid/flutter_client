@@ -3480,6 +3480,22 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatMessageViewReactions => 'View reactions';
 
   @override
+  String get chatMessageRemoveAllReactions => 'Remove all reactions';
+
+  @override
+  String get chatMessageDebug => 'Debug Message';
+
+  @override
+  String get chatMessageDebugSheetTitle => 'Debug message';
+
+  @override
+  String get chatMessageDebugCopyJson => 'Copy JSON';
+
+  @override
+  String get chatMessageDebugJsonCopiedToast =>
+      'Message JSON copied to clipboard';
+
+  @override
   String get chatReactionsSheetTitle => 'Reactions';
 
   @override

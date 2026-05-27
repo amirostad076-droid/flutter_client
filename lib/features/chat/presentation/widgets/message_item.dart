@@ -11,6 +11,8 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/'
+    'sheets/message_debug_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_list_renderer.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_invite.dart';
@@ -98,7 +100,13 @@ class MessageItem extends ConsumerStatefulWidget {
   final VoidCallback? onForward;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onRemoveAllReactions;
   final bool canDelete;
+  final bool canAddReactions;
+  final bool canPinMessage;
+  final bool canManageMessages;
+  final bool canSendMessages;
+  final bool isDmChannel;
   final VoidCallback? onRetry;
   final VoidCallback? onDeleteFailed;
   final VoidCallback? onMarkAsUnread;
@@ -121,7 +129,13 @@ class MessageItem extends ConsumerStatefulWidget {
     this.onForward,
     this.onEdit,
     this.onDelete,
+    this.onRemoveAllReactions,
     this.canDelete = false,
+    this.canAddReactions = true,
+    this.canPinMessage = false,
+    this.canManageMessages = false,
+    this.canSendMessages = true,
+    this.isDmChannel = false,
     this.onRetry,
     this.onDeleteFailed,
     this.onMarkAsUnread,
@@ -282,8 +296,14 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         );
       case MessageAction.viewReactions:
         widget.onViewReactions?.call();
+      case MessageAction.removeAllReactions:
+        widget.onRemoveAllReactions?.call();
       case MessageAction.report:
         widget.onReport?.call();
+      case MessageAction.debugMessage:
+        unawaited(
+          showMessageDebugSheet(context, message: widget.message),
+        );
       case null:
         break;
     }
@@ -296,7 +316,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     if (widget.message.authorId == widget.currentUserId) {
       return false;
     }
-    return widget.message.type == 0 || widget.message.type == 19;
+    return widget.message.type == messageTypeDefault ||
+        widget.message.type == messageTypeReply;
   }
 
   Future<List<QuickReactionItem>?> _loadQuickReactionItems() async {
@@ -399,8 +420,16 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       context,
       message: widget.message,
       isOwnMessage: widget.message.authorId == widget.currentUserId,
+      isDmChannel: widget.isDmChannel,
       canDelete: widget.canDelete,
       canReport: _canReportThisMessage,
+      canAddReactions: widget.canAddReactions,
+      canPinMessage: widget.canPinMessage,
+      canManageMessages: widget.canManageMessages,
+      canSendMessages: widget.canSendMessages,
+      developerMode: ref.read(
+        userSettingsViewModelProvider.select((s) => s.developerMode),
+      ),
       quickItems: frecent,
       onQuickReaction: _dispatchQuickReaction,
     );

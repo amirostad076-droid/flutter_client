@@ -20,8 +20,9 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/system_message.dart';
+import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
-import 'package:fluxer_app/features/chat/utils/message_delete_permissions.dart';
+import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
@@ -451,6 +452,24 @@ class _MessageListState extends ConsumerState<MessageList> {
     final chatFontSize = ref.watch(
       themePreferenceProvider.select((s) => s.chatFontSize),
     );
+    final ChannelMessagePermissions channelMessagePerms = channelId.isEmpty
+        ? ChannelMessagePermissions.unresolved
+        : channelMessagePermissionsForComposer(
+            ref.watch(channelMessagePermissionsProvider(channelId)),
+          );
+    final bool channelCanSendMessages = channelMessagePerms.canSendMessages;
+    final bool channelCanAddReactions = canAddReactionsInChannel(
+      isDmChannel: isDmChannel,
+      guildPermissionBits: guildPermissionBits,
+    );
+    final bool channelCanPinMessage = canPinMessageInChannel(
+      isDmChannel: isDmChannel,
+      guildPermissionBits: guildPermissionBits,
+    );
+    final bool channelCanManageMessages = canManageMessagesInChannel(
+      isDmChannel: isDmChannel,
+      guildPermissionBits: guildPermissionBits,
+    );
 
     if (messages.isEmpty) {
       _itemKeys.clear();
@@ -558,12 +577,20 @@ class _MessageListState extends ConsumerState<MessageList> {
             isGrouped: isGrouped,
             currentUserId: currentUserId,
             canDelete: canDelete,
+            canAddReactions: channelCanAddReactions,
+            canPinMessage: channelCanPinMessage,
+            canManageMessages: channelCanManageMessages,
+            canSendMessages: channelCanSendMessages,
+            isDmChannel: isDmChannel,
             onReply: () =>
                 ref.read(chatViewModelProvider.notifier).startReply(msg),
             onForward: () =>
                 ref.read(chatViewModelProvider.notifier).startForward(msg),
             onEdit: () =>
                 ref.read(chatViewModelProvider.notifier).startEdit(msg),
+            onRemoveAllReactions: () => ref
+                .read(chatViewModelProvider.notifier)
+                .removeAllReactionsOnMessage(msg.id),
             onDelete: () => showDeleteMessageConfirmModal(
               context,
               ref,
