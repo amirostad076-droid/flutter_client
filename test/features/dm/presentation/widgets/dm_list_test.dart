@@ -54,9 +54,7 @@ void main() {
       _setMobileSurface(tester);
 
       await tester.pumpWidget(
-        _buildTestApp(
-          overrides: _buildOverrides(conversations: const []),
-        ),
+        _buildTestApp(overrides: _buildOverrides(conversations: const [])),
       );
       await tester.pump();
 
@@ -253,10 +251,10 @@ List<Override> _buildOverrides({
       (ref) => Stream.value(const <String>{}),
     ),
     pendingFriendRequestCountProvider.overrideWith((ref) => Stream.value(0)),
-    friendsListProvider.overrideWith(
-      (ref) => Stream.value(friendsList),
+    friendsListProvider.overrideWith((ref) => Stream.value(friendsList)),
+    userSettingsViewModelProvider.overrideWith(
+      _VerifiedUserSettingsViewModel.new,
     ),
-    userSettingsViewModelProvider.overrideWith(_VerifiedUserSettingsViewModel.new),
   ];
 }
 

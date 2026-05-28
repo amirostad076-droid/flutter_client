@@ -56,7 +56,9 @@ void main() {
 
     test('uses single file name for one attachment', () {
       final List<Attachment> result = buildUploadingPlaceholderAttachments(
-        claimed: <PendingAttachment>[buildPending(name: 'report.pdf', size: 42)],
+        claimed: <PendingAttachment>[
+          buildPending(name: 'report.pdf', size: 42),
+        ],
         labelForMultiple: (_) => 'Uploading files',
       );
       expect(result, hasLength(1));

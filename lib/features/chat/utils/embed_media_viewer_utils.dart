@@ -22,10 +22,7 @@ AttachmentMediaViewerItem buildEmbedMediaViewerItem({
   );
 }
 
-String resolveEmbedMediaViewerFilename({
-  required String url,
-  String? title,
-}) {
+String resolveEmbedMediaViewerFilename({required String url, String? title}) {
   if (title != null && title.isNotEmpty) {
     return title;
   }

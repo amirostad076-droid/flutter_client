@@ -118,10 +118,7 @@ class ChannelPins extends _$ChannelPins {
     }
   }
 
-  void _removePinnedMessages(
-    ChannelPinsState current,
-    Set<String> messageIds,
-  ) {
+  void _removePinnedMessages(ChannelPinsState current, Set<String> messageIds) {
     if (messageIds.isEmpty) {
       return;
     }

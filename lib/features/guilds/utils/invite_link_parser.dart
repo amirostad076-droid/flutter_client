@@ -1,5 +1,5 @@
 /// Official Fluxer invite URL bases
-/// 
+///
 /// Should switch in the future to use well-known config
 const List<String> kOfficialInviteUrlBases = <String>[
   'https://fluxer.app/invite',
@@ -37,7 +37,9 @@ String? parseInviteCode(
       return code;
     }
   }
-  final RegExpMatch? genericMatch = _genericInvitePathPattern.firstMatch(trimmed);
+  final RegExpMatch? genericMatch = _genericInvitePathPattern.firstMatch(
+    trimmed,
+  );
   if (genericMatch != null) {
     return genericMatch.group(1);
   }
@@ -69,7 +71,9 @@ String? _extractCodeFromBase(String input, String urlBase) {
     final String prefixHostOnly = '$hostVariant/';
     final int indexWithPath = lowerInput.indexOf(prefixWithPath);
     if (indexWithPath != -1) {
-      return _codeFromSuffix(input.substring(indexWithPath + prefixWithPath.length));
+      return _codeFromSuffix(
+        input.substring(indexWithPath + prefixWithPath.length),
+      );
     }
     if (path.isEmpty) {
       final int indexHostOnly = lowerInput.indexOf(prefixHostOnly);
@@ -85,7 +89,8 @@ String? _extractCodeFromBase(String input, String urlBase) {
 
 String? _codeFromSuffix(String suffix) {
   final int end = suffix.indexOf(RegExp(r'[/?#\s]'));
-  final String candidate = (end == -1 ? suffix : suffix.substring(0, end)).trim();
+  final String candidate = (end == -1 ? suffix : suffix.substring(0, end))
+      .trim();
   if (_bareInviteCodePattern.hasMatch(candidate)) {
     return candidate;
   }
@@ -101,7 +106,9 @@ String? _normalizeUrlBase(String urlBase) {
     final Uri uri = trimmed.contains('://')
         ? Uri.parse(trimmed)
         : Uri.parse('https://$trimmed');
-    final String path = uri.path == '/' ? '' : uri.path.replaceAll(RegExp(r'/+$'), '');
+    final String path = uri.path == '/'
+        ? ''
+        : uri.path.replaceAll(RegExp(r'/+$'), '');
     return '${uri.host}$path'.toLowerCase();
   } on FormatException {
     return trimmed

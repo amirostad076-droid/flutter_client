@@ -11,10 +11,8 @@ Future<void> pushTalkerLogScreen(
 }) {
   return Navigator.of(context, rootNavigator: true).push<void>(
     MaterialPageRoute<void>(
-      builder: (BuildContext routeContext) => talker_ui.TalkerScreen(
-        talker: talker,
-        appBarTitle: title,
-      ),
+      builder: (BuildContext routeContext) =>
+          talker_ui.TalkerScreen(talker: talker, appBarTitle: title),
     ),
   );
 }

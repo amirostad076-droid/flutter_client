@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 
 class ChannelUnreadIndicator extends StatelessWidget {
-  const ChannelUnreadIndicator({
-    this.faded = false,
-    super.key,
-  });
+  const ChannelUnreadIndicator({this.faded = false, super.key});
 
   final bool faded;
   @override

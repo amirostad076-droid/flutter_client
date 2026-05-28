@@ -23,8 +23,10 @@ class ComposerMessageLengthPasteFormatter extends TextInputFormatter {
     if (newValue.text == oldValue.text) {
       return newValue;
     }
-    final int replacedLength = oldValue.selection.end - oldValue.selection.start;
-    final int insertedLength = newValue.text.length - oldValue.text.length + replacedLength;
+    final int replacedLength =
+        oldValue.selection.end - oldValue.selection.start;
+    final int insertedLength =
+        newValue.text.length - oldValue.text.length + replacedLength;
     if (insertedLength <= 1) {
       return newValue;
     }
@@ -51,7 +53,8 @@ class ComposerMessageLengthPasteFormatter extends TextInputFormatter {
   ) {
     final int start = oldValue.selection.start;
     final int end = oldValue.selection.end;
-    final int tailStart = start + (newValue.text.length - oldValue.text.length + (end - start));
+    final int tailStart =
+        start + (newValue.text.length - oldValue.text.length + (end - start));
     if (start >= 0 && tailStart <= newValue.text.length && tailStart >= start) {
       return newValue.text.substring(start, tailStart);
     }

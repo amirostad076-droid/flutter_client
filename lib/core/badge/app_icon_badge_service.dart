@@ -8,8 +8,7 @@ final class AppIconBadgeService {
   const AppIconBadgeService._();
 
   static bool get _isMobile =>
-      !kIsWeb &&
-      (Platform.isIOS || Platform.isAndroid);
+      !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 
   static Future<void> update(int count) async {
     if (!_isMobile) {

@@ -8,7 +8,8 @@ Guild _guild(String id, {bool unavailable = false}) {
 }
 
 UserSettingsResponseGuildFolders _folder({
-  required List<String> guildIds, int? id,
+  required List<String> guildIds,
+  int? id,
 }) {
   return UserSettingsResponseGuildFolders(id: id, guildIds: guildIds);
 }
@@ -26,7 +27,9 @@ void main() {
 
     test('prepends unplaced guilds before folder items', () {
       final guilds = [_guild('a'), _guild('b')];
-      final folders = [_folder(id: 1, guildIds: ['a'])];
+      final folders = [
+        _folder(id: 1, guildIds: ['a']),
+      ];
       final items = computeOrganizedGuildList(guilds: guilds, folders: folders);
       expect(items.length, 2);
       expect((items[0] as GuildNavbarGuild).guild.id, 'b');
@@ -37,7 +40,9 @@ void main() {
 
     test('does not duplicate guilds listed in folders', () {
       final guilds = [_guild('a'), _guild('b')];
-      final folders = [_folder(id: -1, guildIds: ['a', 'b'])];
+      final folders = [
+        _folder(id: -1, guildIds: ['a', 'b']),
+      ];
       final items = computeOrganizedGuildList(guilds: guilds, folders: folders);
       expect(items.length, 2);
       expect(items.every((item) => item is GuildNavbarGuild), isTrue);
@@ -45,7 +50,9 @@ void main() {
 
     test('excludes unavailable guilds from unplaced prepend', () {
       final guilds = [_guild('a'), _guild('b', unavailable: true)];
-      final folders = [_folder(id: 1, guildIds: ['a'])];
+      final folders = [
+        _folder(id: 1, guildIds: ['a']),
+      ];
       final items = computeOrganizedGuildList(guilds: guilds, folders: folders);
       expect(items.length, 1);
       expect(items[0], isA<GuildNavbarFolder>());
@@ -53,7 +60,9 @@ void main() {
 
     test('renders uncategorized folder entries as top-level guilds', () {
       final guilds = [_guild('a'), _guild('b')];
-      final folders = [_folder(id: -1, guildIds: ['b'])];
+      final folders = [
+        _folder(id: -1, guildIds: ['b']),
+      ];
       final items = computeOrganizedGuildList(guilds: guilds, folders: folders);
       expect(items.length, 2);
       expect((items[0] as GuildNavbarGuild).guild.id, 'a');

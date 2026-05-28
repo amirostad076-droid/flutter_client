@@ -10,8 +10,7 @@ bool isVoiceChannelE2eeEncryptedForIcon({
   required bool guildHasVoiceE2ee,
 }) {
   final bool isConnectedToThisChannel =
-      connectedVoiceGuildId == guildId &&
-      connectedVoiceChannelId == channelId;
+      connectedVoiceGuildId == guildId && connectedVoiceChannelId == channelId;
   if (!isConnectedToThisChannel) {
     return false;
   }

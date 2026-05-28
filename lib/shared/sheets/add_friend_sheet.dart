@@ -57,9 +57,7 @@ class _AddFriendSheetBody extends ConsumerWidget {
               title: l10n.addFriendIncomingRequests(incoming.length),
             ),
             SizedBox(height: context.layout.s3),
-            _RequestsList(
-              friends: incoming,
-            ),
+            _RequestsList(friends: incoming),
           ],
           if (outgoing.isNotEmpty) ...[
             SizedBox(height: context.layout.s6),
@@ -67,9 +65,7 @@ class _AddFriendSheetBody extends ConsumerWidget {
               title: l10n.addFriendOutgoingRequests(outgoing.length),
             ),
             SizedBox(height: context.layout.s3),
-            _RequestsList(
-              friends: outgoing,
-            ),
+            _RequestsList(friends: outgoing),
           ],
         ],
       ],

@@ -4,13 +4,10 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 
 class FluxerBadge extends StatelessWidget {
-  const FluxerBadge.count({
-    required this.count,
-    this.cutoutColor,
-    super.key,
-  }) : text = null,
-       size = 20,
-       isDot = false;
+  const FluxerBadge.count({required this.count, this.cutoutColor, super.key})
+    : text = null,
+      size = 20,
+      isDot = false;
 
   const FluxerBadge.dot({this.size = 8, super.key})
     : count = null,
@@ -18,13 +15,10 @@ class FluxerBadge extends StatelessWidget {
       cutoutColor = null,
       isDot = true;
 
-  const FluxerBadge.label({
-    required this.text,
-    this.cutoutColor,
-    super.key,
-  }) : count = null,
-       size = 20,
-       isDot = false;
+  const FluxerBadge.label({required this.text, this.cutoutColor, super.key})
+    : count = null,
+      size = 20,
+      isDot = false;
 
   final int? count;
   final String? text;

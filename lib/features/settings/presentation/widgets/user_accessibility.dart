@@ -31,8 +31,8 @@ class UserAccessibility extends ConsumerWidget {
             children: [
               FluxerSettingsSwitchItem(
                 label: l10n.accessibilityShowFadedUnreadOnMutedChannelsLabel,
-                description: l10n
-                    .accessibilityShowFadedUnreadOnMutedChannelsDescription,
+                description:
+                    l10n.accessibilityShowFadedUnreadOnMutedChannelsDescription,
                 value: state.showFadedUnreadOnMutedChannels,
                 onChanged: (value) =>
                     notifier.setShowFadedUnreadOnMutedChannels(value: value),

@@ -36,8 +36,8 @@ class VoiceE2eeIndicator extends ConsumerWidget {
     final bool isEncrypted = status == ChannelE2eeStatus.encrypted;
     final String message = isEncrypted
         ? variant == VoiceE2eeIndicatorVariant.call
-            ? l10n.voiceCallE2eeEncrypted
-            : l10n.voiceChannelE2eeEncrypted
+              ? l10n.voiceCallE2eeEncrypted
+              : l10n.voiceChannelE2eeEncrypted
         : variant == VoiceE2eeIndicatorVariant.call
         ? l10n.voiceCallE2eeBroken
         : l10n.voiceChannelE2eeBroken;

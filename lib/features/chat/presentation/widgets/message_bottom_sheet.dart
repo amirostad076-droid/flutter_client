@@ -210,9 +210,7 @@ class _MessageBottomSheetBody extends ConsumerWidget {
       if (canShowPin)
         FluxerBottomSheetMenuItem(
           icon: PhosphorIconsRegular.pushPin,
-          label: message.isPinned
-              ? l10n.chatMessageUnpin
-              : l10n.chatMessagePin,
+          label: message.isPinned ? l10n.chatMessageUnpin : l10n.chatMessagePin,
           onTap: () => _pop(context, MessageAction.pin),
         ),
       if (canShowBookmark)

@@ -75,10 +75,7 @@ class FluxerCharacterCounter extends StatelessWidget {
     if (!showTooltip) {
       return semanticsChild;
     }
-    return FluxerTooltip(
-      message: tooltipText,
-      child: semanticsChild,
-    );
+    return FluxerTooltip(message: tooltipText, child: semanticsChild);
   }
 }
 

@@ -73,9 +73,7 @@ void main() {
         'chat.example.com',
       });
       expect(
-        pattern.hasMatch(
-          'https://web.fluxer.app/channels/$guildId/$channelId',
-        ),
+        pattern.hasMatch('https://web.fluxer.app/channels/$guildId/$channelId'),
         isTrue,
       );
       expect(
@@ -155,7 +153,9 @@ void main() {
 
     test('returns null for invalid path', () {
       expect(
-        parseChannelJumpLink('https://fluxer.app/not-channels/$guildId/$channelId'),
+        parseChannelJumpLink(
+          'https://fluxer.app/not-channels/$guildId/$channelId',
+        ),
         isNull,
       );
       expect(
@@ -166,11 +166,15 @@ void main() {
 
     test('returns null for non-snowflake ids', () {
       expect(
-        parseChannelJumpLink('https://fluxer.app/channels/not-a-snowflake/$channelId'),
+        parseChannelJumpLink(
+          'https://fluxer.app/channels/not-a-snowflake/$channelId',
+        ),
         isNull,
       );
       expect(
-        parseChannelJumpLink('https://fluxer.app/channels/$guildId/not-a-snowflake'),
+        parseChannelJumpLink(
+          'https://fluxer.app/channels/$guildId/not-a-snowflake',
+        ),
         isNull,
       );
     });

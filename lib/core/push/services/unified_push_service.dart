@@ -357,9 +357,7 @@ class UnifiedPushService implements PushService {
     final bool ready = await localPush.ensureInitialized();
     if (!ready) {
       if (kDebugMode) {
-        debugPrint(
-          '[UnifiedPushService] local notifications not initialized',
-        );
+        debugPrint('[UnifiedPushService] local notifications not initialized');
       }
       return;
     }

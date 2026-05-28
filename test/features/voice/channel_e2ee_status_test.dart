@@ -32,7 +32,9 @@ void main() {
 
     test('empty channel defaults to none', () {
       expect(
-        computeChannelE2eeStatusFromStates(connectedStates: const <VoiceState>[]),
+        computeChannelE2eeStatusFromStates(
+          connectedStates: const <VoiceState>[],
+        ),
         ChannelE2eeStatus.none,
       );
     });

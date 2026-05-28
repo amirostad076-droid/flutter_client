@@ -82,8 +82,8 @@ List<Message> reconcileMessagesWithNetworkPage({
     return current;
   }
   final String newestId = networkPage.last.id;
-  final String? baselineId = syncBaselineOldestId ??
-      (current.isEmpty ? null : current.first.id);
+  final String? baselineId =
+      syncBaselineOldestId ?? (current.isEmpty ? null : current.first.id);
   final List<Message> preserved = current
       .where(
         (Message message) => shouldPreserveLocalMessage(

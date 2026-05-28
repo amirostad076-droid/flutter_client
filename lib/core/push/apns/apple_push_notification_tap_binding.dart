@@ -25,9 +25,9 @@ void applePushNotificationTapBinding(Ref ref) {
           if (payload == null) {
             return;
           }
-          ref.read(pushNotificationTapHandlerProvider.notifier).handlePayload(
-                payload,
-              );
+          ref
+              .read(pushNotificationTapHandlerProvider.notifier)
+              .handlePayload(payload);
         },
         onError: (Object err, StackTrace st) {
           if (kDebugMode) {

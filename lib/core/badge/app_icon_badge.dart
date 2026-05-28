@@ -8,7 +8,7 @@ class AppIconBadgeValue {
 
 const bool kDefaultUnreadMessageBadgeEnabled = true;
 
-/// Plain-unread dot applies to guild channels only. 
+/// Plain-unread dot applies to guild channels only.
 /// DM plain unread does not contribute to the dot.
 AppIconBadgeValue computeAppIconBadge({
   required int guildMentionCount,

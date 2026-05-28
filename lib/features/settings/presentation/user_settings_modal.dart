@@ -327,7 +327,6 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
       ),
     ),
   );
-
 }
 
 // ---------------------------------------------------------------------------
@@ -697,7 +696,9 @@ class _SettingsBuildInfoFooter extends ConsumerWidget {
   ) {
     final clipboardText = formatAppDiagnosticClipboardText(info);
     unawaited(Clipboard.setData(ClipboardData(text: clipboardText)));
-    ref.read(toastProvider.notifier).show(
+    ref
+        .read(toastProvider.notifier)
+        .show(
           FluxerToast(
             message: FluxerLocalizations.of(context).copiedToClipboard,
             variant: FluxerToastVariant.success,

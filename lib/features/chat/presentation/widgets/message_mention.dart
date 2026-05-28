@@ -81,7 +81,10 @@ class TextMention extends StatelessWidget {
       color: colors.markupMentionText,
       fontWeight: FontWeight.w500,
     );
-    return _MentionPill(baseStyle: style, child: Text(label, style: style));
+    return _MentionPill(
+      baseStyle: style,
+      child: Text(label, style: style),
+    );
   }
 }
 

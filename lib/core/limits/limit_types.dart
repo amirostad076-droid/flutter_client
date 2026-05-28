@@ -6,11 +6,7 @@ class LimitFilter {
 }
 
 class LimitRule {
-  const LimitRule({
-    required this.id,
-    required this.limits,
-    this.filters,
-  });
+  const LimitRule({required this.id, required this.limits, this.filters});
 
   final String id;
   final Map<String, int> limits;
@@ -30,10 +26,7 @@ class LimitConfigSnapshot {
 }
 
 class LimitMatchContext {
-  const LimitMatchContext({
-    required this.traits,
-    required this.guildFeatures,
-  });
+  const LimitMatchContext({required this.traits, required this.guildFeatures});
 
   final Set<String> traits;
   final Set<String> guildFeatures;

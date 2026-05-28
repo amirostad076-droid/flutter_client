@@ -13,10 +13,7 @@ part 'message_references_provider.g.dart';
 enum MessageReferenceState { loaded, notLoaded, deleted }
 
 class MessageReferenceResolution {
-  const MessageReferenceResolution({
-    required this.state,
-    this.message,
-  });
+  const MessageReferenceResolution({required this.state, this.message});
 
   final MessageReferenceState state;
   final Message? message;
@@ -128,10 +125,7 @@ class MessageReferencesNotifier extends _$MessageReferencesNotifier {
     final referenced = schema.referencedMessage;
     if (referenced != null) {
       _setCachedMessage(
-        Message.fromReferencedSdk(
-          referenced,
-          currentUserId: currentUserId,
-        ),
+        Message.fromReferencedSdk(referenced, currentUserId: currentUserId),
       );
     }
     final reference = schema.messageReference;
@@ -213,10 +207,8 @@ class MessageReferencesNotifier extends _$MessageReferencesNotifier {
         );
       }
     }
-    final cached = state.cachedMessages[MessageReferencesState.key(
-      channelId,
-      messageId,
-    )];
+    final cached =
+        state.cachedMessages[MessageReferencesState.key(channelId, messageId)];
     if (cached != null) {
       return MessageReferenceResolution(
         state: MessageReferenceState.loaded,
@@ -324,12 +316,7 @@ class MessageReferencesNotifier extends _$MessageReferencesNotifier {
 
   void _setCachedMessage(Message message) {
     final nextCached = Map<String, Message>.from(state.cachedMessages);
-    if (_cacheMessage(
-      nextCached,
-      message.channelId,
-      message.id,
-      message,
-    )) {
+    if (_cacheMessage(nextCached, message.channelId, message.id, message)) {
       state = state.copyWith(
         cachedMessages: nextCached,
         version: state.version + 1,

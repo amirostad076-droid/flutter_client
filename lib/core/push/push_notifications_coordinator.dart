@@ -116,8 +116,10 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
   Future<void> _initializeUnifiedPush(UnifiedPushService pushService) async {
     String? vapid;
     try {
-      final wellKnown =
-          await ref.read(fluxerClientProvider).instance.getWellKnownFluxer();
+      final wellKnown = await ref
+          .read(fluxerClientProvider)
+          .instance
+          .getWellKnownFluxer();
       vapid = wellKnown.push.publicVapidKey;
     } on Object catch (e) {
       if (kDebugMode) {

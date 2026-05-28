@@ -22,10 +22,12 @@ const Duration kResumeReconnectDelay = Duration(milliseconds: 500);
 final FluxerLocalizationsEn _gatewayL10n = FluxerLocalizationsEn();
 
 /// Waits for the network stack after resume, then nudges the gateway socket.
-Future<void> nudgeGatewayReconnectAfterResume(GatewayConnection connection) async {
+Future<void> nudgeGatewayReconnectAfterResume(
+  GatewayConnection connection,
+) async {
   await Future<void>.delayed(kResumeReconnectDelay);
-  final List<ConnectivityResult> results =
-      await Connectivity().checkConnectivity();
+  final List<ConnectivityResult> results = await Connectivity()
+      .checkConnectivity();
   final bool hasConnection = results.any(
     (ConnectivityResult r) => r != ConnectivityResult.none,
   );
@@ -158,29 +160,32 @@ void gatewayReconnectToastListener(Ref ref) {
     }
     final bool wasConnected = prior == GatewayState.connected;
     final bool isReconnecting =
-        state == GatewayState.connecting ||
-        state == GatewayState.reconnecting;
+        state == GatewayState.connecting || state == GatewayState.reconnecting;
     final bool isConnected = state == GatewayState.connected;
     if (wasConnected && isReconnecting && !reconnectToastShown) {
       reconnectToastShown = true;
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: _gatewayL10n.gatewayReconnectingToast,
-          duration: const Duration(seconds: 5),
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: _gatewayL10n.gatewayReconnectingToast,
+              duration: const Duration(seconds: 5),
+            ),
+          );
     }
     if (reconnectToastShown &&
         isConnected &&
         (prior == GatewayState.connecting ||
             prior == GatewayState.reconnecting)) {
       reconnectToastShown = false;
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: _gatewayL10n.gatewayConnectedToast,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: _gatewayL10n.gatewayConnectedToast,
+              variant: FluxerToastVariant.success,
+            ),
+          );
     }
     if (isConnected) {
       reconnectToastShown = false;
@@ -196,17 +201,17 @@ Raw<StreamSubscription<List<ConnectivityResult>>?> connectivityListener(
 ) {
   final connection = ref.watch(gatewayConnectionProvider);
 
-  final subscription = Connectivity().onConnectivityChanged.listen(
-    (List<ConnectivityResult> results) {
-      final bool hasConnection = results.any(
-        (ConnectivityResult r) => r != ConnectivityResult.none,
-      );
-      if (hasConnection && connection.state != GatewayState.connected) {
-        talker.info('[Gateway] Network restored, reconnecting immediately');
-        unawaited(connection.reconnectNow());
-      }
-    },
-  );
+  final subscription = Connectivity().onConnectivityChanged.listen((
+    List<ConnectivityResult> results,
+  ) {
+    final bool hasConnection = results.any(
+      (ConnectivityResult r) => r != ConnectivityResult.none,
+    );
+    if (hasConnection && connection.state != GatewayState.connected) {
+      talker.info('[Gateway] Network restored, reconnecting immediately');
+      unawaited(connection.reconnectNow());
+    }
+  });
 
   ref.onDispose(subscription.cancel);
   return subscription;

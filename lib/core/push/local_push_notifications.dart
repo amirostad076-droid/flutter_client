@@ -99,8 +99,8 @@ final class LocalPushNotifications {
   }
 
   Future<void> _handleLaunchNotification() async {
-    final NotificationAppLaunchDetails? details =
-        await _plugin.getNotificationAppLaunchDetails();
+    final NotificationAppLaunchDetails? details = await _plugin
+        .getNotificationAppLaunchDetails();
     if (details == null ||
         !details.didNotificationLaunchApp ||
         details.notificationResponse == null) {
@@ -117,9 +117,7 @@ final class LocalPushNotifications {
       final bool ready = await ensureInitialized();
       if (!ready) {
         if (kDebugMode) {
-          debugPrint(
-            '[LocalPushNotifications] show skipped: not initialized',
-          );
+          debugPrint('[LocalPushNotifications] show skipped: not initialized');
         }
         return;
       }

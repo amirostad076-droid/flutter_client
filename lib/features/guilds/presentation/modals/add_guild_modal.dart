@@ -218,10 +218,7 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
     };
     Widget buildModalContent() {
       return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 400,
-          maxHeight: maxModalHeight,
-        ),
+        constraints: BoxConstraints(maxWidth: 400, maxHeight: maxModalHeight),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -258,10 +255,7 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
     }
 
     final Widget dialog = Dialog(
-      insetPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 24,
-      ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       shape: RoundedRectangleBorder(
         borderRadius: layout.radiusXxl,
         side: themeShape?.side ?? BorderSide.none,
@@ -290,10 +284,7 @@ class _AddGuildModalDialogState extends ConsumerState<_AddGuildModalDialog> {
             context: context,
             removeBottom: true,
             child: keyboardInset > 0
-                ? Align(
-                    alignment: Alignment.bottomCenter,
-                    child: dialog,
-                  )
+                ? Align(alignment: Alignment.bottomCenter, child: dialog)
                 : Center(child: dialog),
           ),
         ),

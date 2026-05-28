@@ -8,14 +8,8 @@ void main() {
     test('maps notification and data fields', () {
       final RemoteMessage input = RemoteMessage(
         messageId: 'msg-1',
-        data: <String, String>{
-          'channel_id': '2',
-          'url': '/channels/3/2/1',
-        },
-        notification: const RemoteNotification(
-          title: 'alice',
-          body: 'hello',
-        ),
+        data: <String, String>{'channel_id': '2', 'url': '/channels/3/2/1'},
+        notification: const RemoteNotification(title: 'alice', body: 'hello'),
       );
       final FcmPushMessage message = mapRemoteMessage(input);
       expect(message.id, 'msg-1');

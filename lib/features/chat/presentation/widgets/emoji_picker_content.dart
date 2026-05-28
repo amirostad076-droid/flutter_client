@@ -687,9 +687,12 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
 
     final totalCount = customResults.length + unicodeResults.length;
     return GridView.builder(
-      scrollCacheExtent: ScrollCacheExtent.pixels(_isFirstFrameSettled
-          ? emojiPickerCacheExtent(rowHeight: _kCellSize)
-          : 0), controller: _scrollController,
+      scrollCacheExtent: ScrollCacheExtent.pixels(
+        _isFirstFrameSettled
+            ? emojiPickerCacheExtent(rowHeight: _kCellSize)
+            : 0,
+      ),
+      controller: _scrollController,
       addAutomaticKeepAlives: false,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -725,9 +728,12 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     );
 
     return CustomScrollView(
-      scrollCacheExtent: ScrollCacheExtent.pixels(_isFirstFrameSettled
-          ? emojiPickerCacheExtent(rowHeight: _kCellSize)
-          : 0), controller: _scrollController,
+      scrollCacheExtent: ScrollCacheExtent.pixels(
+        _isFirstFrameSettled
+            ? emojiPickerCacheExtent(rowHeight: _kCellSize)
+            : 0,
+      ),
+      controller: _scrollController,
       slivers: [
         const SliverToBoxAdapter(child: SizedBox(height: 4)),
         if (shouldBuildUpsell)

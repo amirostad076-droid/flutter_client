@@ -30,7 +30,8 @@ Future<void> main(List<String> args) async {
   assertPushProviderBuildConfig();
   bootstrapFcmIfNeeded();
   _configureImagePicker();
-  final bool isUnifiedPushBackground = args.contains('--unifiedpush-bg') &&
+  final bool isUnifiedPushBackground =
+      args.contains('--unifiedpush-bg') &&
       Platform.isAndroid &&
       PushProviderGuard.isUnifiedPush;
   if (isUnifiedPushBackground) {

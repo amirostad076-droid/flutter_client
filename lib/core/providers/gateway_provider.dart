@@ -64,9 +64,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     currentUserId: currentUserId,
     onReady: () {
       talker.info('[Gateway] Setting gatewayReady = true');
-      unawaited(
-        ref.read(channelPermissionCacheProvider.notifier).rebuildAll(),
-      );
+      unawaited(ref.read(channelPermissionCacheProvider.notifier).rebuildAll());
       ref.read(gatewayReadyProvider.notifier).setReady();
     },
     onTypingStart: (channelId, userId) {
@@ -187,12 +185,14 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     },
     onGuildAvailabilityChanged:
         (guildId, {required unavailable, unavailableHidden = false}) {
-      ref.read(guildAvailabilityProvider.notifier).handleGuildAvailability(
-        guildId,
-        unavailable: unavailable,
-        unavailableHidden: unavailableHidden,
-      );
-    },
+          ref
+              .read(guildAvailabilityProvider.notifier)
+              .handleGuildAvailability(
+                guildId,
+                unavailable: unavailable,
+                unavailableHidden: unavailableHidden,
+              );
+        },
     onGuildAvailable: (guildId) {
       ref.read(guildAvailabilityProvider.notifier).setGuildAvailable(guildId);
     },

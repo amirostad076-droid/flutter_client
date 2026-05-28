@@ -26,10 +26,7 @@ abstract final class FluxerMediaUrl {
     if (animated && isAnimatedMediaHash(hash)) {
       return _url(
         path: 'avatars/$userId/$hash.gif',
-        query: <String, String>{
-          'animated': 'true',
-          'size': '$size',
-        },
+        query: <String, String>{'animated': 'true', 'size': '$size'},
       );
     }
     final String normalizedHash = normalizeMediaHash(hash);
@@ -51,10 +48,7 @@ abstract final class FluxerMediaUrl {
     if (animated && isAnimatedMediaHash(hash)) {
       return _url(
         path: 'banners/$userId/$hash.gif',
-        query: <String, String>{
-          'animated': 'true',
-          'size': '$size',
-        },
+        query: <String, String>{'animated': 'true', 'size': '$size'},
       );
     }
     final String normalizedHash = normalizeMediaHash(hash);
@@ -99,10 +93,7 @@ abstract final class FluxerMediaUrl {
     if (animated && isAnimatedMediaHash(hash)) {
       return _url(
         path: 'banners/$guildId/$hash.gif',
-        query: <String, String>{
-          'animated': 'true',
-          'size': '$size',
-        },
+        query: <String, String>{'animated': 'true', 'size': '$size'},
       );
     }
     return _url(
@@ -121,18 +112,13 @@ abstract final class FluxerMediaUrl {
   }) {
     if (animated && isAnimatedMediaHash(hash)) {
       return _url(
-        path:
-            'guilds/$guildId/users/$userId/${type.path}/$hash.gif',
-        query: <String, String>{
-          'animated': 'true',
-          'size': '$size',
-        },
+        path: 'guilds/$guildId/users/$userId/${type.path}/$hash.gif',
+        query: <String, String>{'animated': 'true', 'size': '$size'},
       );
     }
     final String normalizedHash = normalizeMediaHash(hash);
     return _url(
-      path:
-          'guilds/$guildId/users/$userId/${type.path}/$normalizedHash.webp',
+      path: 'guilds/$guildId/users/$userId/${type.path}/$normalizedHash.webp',
       query: <String, String>{'size': '$size'},
     );
   }
@@ -187,10 +173,7 @@ abstract final class FluxerMediaUrl {
       return '$fluxerMediaCdn/$path';
     }
     final String queryString = query.entries
-        .map(
-          (MapEntry<String, String> entry) =>
-              '${entry.key}=${entry.value}',
-        )
+        .map((MapEntry<String, String> entry) => '${entry.key}=${entry.value}')
         .join('&');
     return '$fluxerMediaCdn/$path?$queryString';
   }

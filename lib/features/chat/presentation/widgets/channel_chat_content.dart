@@ -117,9 +117,11 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
         if (next == null || next == previous) {
           return;
         }
-        ref.read(toastProvider.notifier).show(
-          FluxerToast(message: next, variant: FluxerToastVariant.danger),
-        );
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(message: next, variant: FluxerToastVariant.danger),
+            );
         ref.read(chatViewModelProvider.notifier).clearErrorMessage();
       },
     );

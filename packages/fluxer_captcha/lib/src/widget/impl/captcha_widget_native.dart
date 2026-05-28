@@ -25,7 +25,8 @@ const String _tokenExpiredJSHandler =
 const String _widgetCreatedJSHandler =
     'window.flutter_inappwebview.callHandler(`CaptchaWidgetId`, widgetId);';
 
-const String _turnstileSource = """
+const String _turnstileSource =
+    """
 <!DOCTYPE html>
 <html lang="en">
 
@@ -84,7 +85,8 @@ const String _turnstileSource = """
 
 """;
 
-const String _hcaptchaSource = """
+const String _hcaptchaSource =
+    """
 <!DOCTYPE html>
 <html lang="en">
 <head>

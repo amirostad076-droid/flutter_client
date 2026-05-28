@@ -483,11 +483,13 @@ class LoginViewModel extends _$LoginViewModel {
 
     try {
       final inviteCode = ref.read(pendingInviteCodeProvider.notifier).consume();
-      final result = await ref.read(authRepositoryProvider).login(
-        email: state.email,
-        password: state.password,
-        inviteCode: inviteCode,
-      );
+      final result = await ref
+          .read(authRepositoryProvider)
+          .login(
+            email: state.email,
+            password: state.password,
+            inviteCode: inviteCode,
+          );
 
       switch (result) {
         case LoginSuccess(:final session):

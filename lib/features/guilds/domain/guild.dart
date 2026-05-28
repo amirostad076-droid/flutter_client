@@ -5,7 +5,8 @@ import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 
-export 'package:fluxer_app/core/media/fluxer_media_cdn.dart' show fluxerMediaCdn;
+export 'package:fluxer_app/core/media/fluxer_media_cdn.dart'
+    show fluxerMediaCdn;
 
 class Guild {
   final String id;
@@ -77,21 +78,14 @@ class Guild {
   bool get hasAnimatedBanner => banner?.startsWith('a_') ?? false;
 
   String? get iconUrl {
-    return FluxerMediaUrl.guildIcon(
-      guildId: id,
-      hash: icon,
-    );
+    return FluxerMediaUrl.guildIcon(guildId: id, hash: icon);
   }
 
   String? get animatedIconUrl {
     if (!hasAnimatedIcon) {
       return null;
     }
-    return FluxerMediaUrl.guildIcon(
-      guildId: id,
-      hash: icon,
-      animated: true,
-    );
+    return FluxerMediaUrl.guildIcon(guildId: id, hash: icon, animated: true);
   }
 
   String? get bannerUrl {

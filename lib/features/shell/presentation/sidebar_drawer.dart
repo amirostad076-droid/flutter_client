@@ -189,7 +189,8 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
       primaryVelocity: details.primaryVelocity ?? 0,
       completionThreshold: completionThreshold,
     );
-    final resolvedSide = _isSidebarDrawerLocked() && targetSide == RevealSide.main
+    final resolvedSide =
+        _isSidebarDrawerLocked() && targetSide == RevealSide.main
         ? RevealSide.left
         : targetSide;
     await _moveToState(resolvedSide);
@@ -208,8 +209,7 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
         _animationController.stop();
       }
     });
-    final Map<Type, GestureRecognizerFactory> drawerGestures =
-        hasPopupOverlay
+    final Map<Type, GestureRecognizerFactory> drawerGestures = hasPopupOverlay
         ? <Type, GestureRecognizerFactory>{}
         : <Type, GestureRecognizerFactory>{
             HorizontalDragGestureRecognizer:

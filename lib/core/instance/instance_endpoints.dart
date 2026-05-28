@@ -16,7 +16,10 @@ abstract final class InstanceEndpoints {
 
   static void apply(WellKnownFluxerResponse response) {
     final WellKnownFluxerResponseEndpoints endpoints = response.endpoints;
-    staticCdn = _normalizeBaseUrl(endpoints.staticCdn, fallback: defaultStaticCdn);
+    staticCdn = _normalizeBaseUrl(
+      endpoints.staticCdn,
+      fallback: defaultStaticCdn,
+    );
     media = _normalizeBaseUrl(endpoints.media, fallback: defaultMedia);
     invite = _normalizeBaseUrl(endpoints.invite, fallback: defaultInvite);
     webApp = _normalizeBaseUrl(endpoints.webapp, fallback: defaultWebApp);

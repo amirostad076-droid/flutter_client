@@ -30,29 +30,31 @@ void main() {
       expect(actualPayloads, <Map<String, String>>[inputPayload]);
     });
 
-    test('delivers a tap immediately when a callback is already registered', () {
-      final List<Map<String, String>> actualPayloads = <Map<String, String>>[];
-      final Map<String, String> inputPayload = <String, String>{
-        'message_id': '42',
-      };
+    test(
+      'delivers a tap immediately when a callback is already registered',
+      () {
+        final List<Map<String, String>> actualPayloads =
+            <Map<String, String>>[];
+        final Map<String, String> inputPayload = <String, String>{
+          'message_id': '42',
+        };
 
-      service.setNotificationTapCallback((Map<String, String> payload) {
-        actualPayloads.add(payload);
-      });
+        service.setNotificationTapCallback((Map<String, String> payload) {
+          actualPayloads.add(payload);
+        });
 
-      service.dispatchTapPayloadForTesting(inputPayload);
+        service.dispatchTapPayloadForTesting(inputPayload);
 
-      expect(actualPayloads, <Map<String, String>>[inputPayload]);
-    });
+        expect(actualPayloads, <Map<String, String>>[inputPayload]);
+      },
+    );
 
     test('flushes a buffered tap only once', () {
       final List<Map<String, String>> firstCallbackPayloads =
           <Map<String, String>>[];
       final List<Map<String, String>> secondCallbackPayloads =
           <Map<String, String>>[];
-      final Map<String, String> inputPayload = <String, String>{
-        'id': 'abc',
-      };
+      final Map<String, String> inputPayload = <String, String>{'id': 'abc'};
 
       service.dispatchTapPayloadForTesting(inputPayload);
 
@@ -69,9 +71,7 @@ void main() {
 
     test('keeps only the latest pending tap before registration', () {
       final List<Map<String, String>> actualPayloads = <Map<String, String>>[];
-      final Map<String, String> firstPayload = <String, String>{
-        'id': 'first',
-      };
+      final Map<String, String> firstPayload = <String, String>{'id': 'first'};
       final Map<String, String> secondPayload = <String, String>{
         'id': 'second',
       };

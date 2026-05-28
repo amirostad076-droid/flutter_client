@@ -17,21 +17,23 @@ class _PendingWellKnown extends WellKnown {
 
 void main() {
   group('message length limits providers', () {
-    test('maxMessageLength uses non-premium fallback when well-known loading',
-        () {
-      final ProviderContainer container = ProviderContainer(
-        overrides: [
-          wellKnownProvider.overrideWith(_PendingWellKnown.new),
-          currentUserPremiumTypeProvider.overrideWithValue(0),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'maxMessageLength uses non-premium fallback when well-known loading',
+      () {
+        final ProviderContainer container = ProviderContainer(
+          overrides: [
+            wellKnownProvider.overrideWith(_PendingWellKnown.new),
+            currentUserPremiumTypeProvider.overrideWithValue(0),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      expect(
-        container.read(maxMessageLengthProvider),
-        kMaxMessageLengthNonPremium,
-      );
-    });
+        expect(
+          container.read(maxMessageLengthProvider),
+          kMaxMessageLengthNonPremium,
+        );
+      },
+    );
 
     test('maxMessageLength uses premium fallback for premium users', () {
       final ProviderContainer container = ProviderContainer(
@@ -50,9 +52,7 @@ void main() {
 
     test('premiumMaxMessageLength uses premium fallback when loading', () {
       final ProviderContainer container = ProviderContainer(
-        overrides: [
-          wellKnownProvider.overrideWith(_PendingWellKnown.new),
-        ],
+        overrides: [wellKnownProvider.overrideWith(_PendingWellKnown.new)],
       );
       addTearDown(container.dispose);
 

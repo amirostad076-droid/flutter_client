@@ -37,30 +37,31 @@ class _SlowmodeIndicatorState extends ConsumerState<SlowmodeIndicator>
       vsync: this,
       duration: _kShakeDuration,
     );
-    _shakeOffset = TweenSequence<double>(<TweenSequenceItem<double>>[
-      TweenSequenceItem<double>(
-        tween: Tween<double>(begin: 0, end: -5),
-        weight: 1,
-      ),
-      TweenSequenceItem<double>(
-        tween: Tween<double>(begin: -5, end: 5),
-        weight: 2,
-      ),
-      TweenSequenceItem<double>(
-        tween: Tween<double>(begin: 5, end: -4),
-        weight: 2,
-      ),
-      TweenSequenceItem<double>(
-        tween: Tween<double>(begin: -4, end: 4),
-        weight: 2,
-      ),
-      TweenSequenceItem<double>(
-        tween: Tween<double>(begin: 4, end: 0),
-        weight: 1,
-      ),
-    ]).animate(
-      CurvedAnimation(parent: _shakeController, curve: Curves.easeInOut),
-    );
+    _shakeOffset =
+        TweenSequence<double>(<TweenSequenceItem<double>>[
+          TweenSequenceItem<double>(
+            tween: Tween<double>(begin: 0, end: -5),
+            weight: 1,
+          ),
+          TweenSequenceItem<double>(
+            tween: Tween<double>(begin: -5, end: 5),
+            weight: 2,
+          ),
+          TweenSequenceItem<double>(
+            tween: Tween<double>(begin: 5, end: -4),
+            weight: 2,
+          ),
+          TweenSequenceItem<double>(
+            tween: Tween<double>(begin: -4, end: 4),
+            weight: 2,
+          ),
+          TweenSequenceItem<double>(
+            tween: Tween<double>(begin: 4, end: 0),
+            weight: 1,
+          ),
+        ]).animate(
+          CurvedAnimation(parent: _shakeController, curve: Curves.easeInOut),
+        );
   }
 
   @override

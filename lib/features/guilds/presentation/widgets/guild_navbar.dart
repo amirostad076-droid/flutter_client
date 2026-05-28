@@ -438,7 +438,8 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         _DashedGuildIcon(
           label: 'Help',
           icon: PhosphorIconsRegular.question,
-          onTap: () => handleExternalLinkTap(context, 'https://help.fluxer.app'),
+          onTap: () =>
+              handleExternalLinkTap(context, 'https://help.fluxer.app'),
         ),
       ],
     );
@@ -764,7 +765,9 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                 if (invitable == null) {
                   return null;
                 }
-                final String inviteBase = ref.read(instanceInviteBaseUrlProvider);
+                final String inviteBase = ref.read(
+                  instanceInviteBaseUrlProvider,
+                );
                 final invite = await client.invites.createChannelInvite(
                   channelId: invitable.id,
                   body: ChannelInviteCreateRequest(
@@ -774,10 +777,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                   ),
                 );
                 final code = invite.toGuildInviteMetadataResponse().code;
-                return (
-                  url: '$inviteBase/$code',
-                  channelName: invitable.name,
-                );
+                return (url: '$inviteBase/$code', channelName: invitable.name);
               },
           onGetRecipients: () async {
             final friendRepo = ref.read(friendRepositoryProvider);

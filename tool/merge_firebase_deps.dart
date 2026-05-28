@@ -11,7 +11,8 @@ const String _servicePath =
 const String _serviceFcmTemplate =
     'lib/core/push/services/firebase_messaging_push_service.fcm.dart';
 const String _entrypointPath = 'lib/core/push/fcm/fcm_entrypoint.dart';
-const String _entrypointFcmTemplate = 'lib/core/push/fcm/fcm_entrypoint.fcm.dart';
+const String _entrypointFcmTemplate =
+    'lib/core/push/fcm/fcm_entrypoint.fcm.dart';
 
 Future<void> main(List<String> args) async {
   final Directory root = _findProjectRoot(Directory.current);
@@ -55,8 +56,7 @@ Future<void> _mergePubspec(Directory root) async {
 
 String _buildDependencyBlock(String firebaseYaml) {
   final List<String> lines = firebaseYaml.split('\n');
-  final StringBuffer buffer = StringBuffer()
-    ..writeln(_markerStart);
+  final StringBuffer buffer = StringBuffer()..writeln(_markerStart);
   var index = 0;
   while (index < lines.length) {
     final String line = lines[index];

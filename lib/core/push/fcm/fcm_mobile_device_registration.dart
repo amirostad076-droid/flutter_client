@@ -38,14 +38,14 @@ class FcmMobileDeviceRegistration extends _$FcmMobileDeviceRegistration {
       ..listen<bool>(authStateProvider, (_, _) {
         unawaited(sync());
       })
-      ..listen<String?>(
-        currentUserIdProvider,
-        (String? previous, String? next) {
-          if (previous != next) {
-            unawaited(sync());
-          }
-        },
-      )
+      ..listen<String?>(currentUserIdProvider, (
+        String? previous,
+        String? next,
+      ) {
+        if (previous != next) {
+          unawaited(sync());
+        }
+      })
       ..listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
         if (next && previous == false) {
           unawaited(sync());
@@ -136,10 +136,12 @@ class FcmMobileDeviceRegistration extends _$FcmMobileDeviceRegistration {
       return;
     }
     try {
-      await ref.read(fluxerClientProvider).users.registerMobilePushDevice(
+      await ref
+          .read(fluxerClientProvider)
+          .users
+          .registerMobilePushDevice(
             body: RegisterMobileDeviceRequest(
-              platform:
-                  RegisterMobileDeviceRequestPlatformPlatform.androidFcm,
+              platform: RegisterMobileDeviceRequestPlatformPlatform.androidFcm,
               token: token,
               userAgent: ref.read(fluxerClientPropertiesProvider).userAgent,
               appId: AppBuildConfig.mobilePushAppId,
@@ -176,7 +178,10 @@ class FcmMobileDeviceRegistration extends _$FcmMobileDeviceRegistration {
       return;
     }
     try {
-      await ref.read(fluxerClientProvider).users.unregisterMobilePushDevice(
+      await ref
+          .read(fluxerClientProvider)
+          .users
+          .unregisterMobilePushDevice(
             body: UnregisterMobileDeviceRequest(
               platform:
                   UnregisterMobileDeviceRequestPlatformPlatform.androidFcm,

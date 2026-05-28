@@ -88,7 +88,6 @@ class AddGuildActionButton extends StatelessWidget {
   }
 }
 
-
 enum AddGuildActionButtonLayout { column, row }
 
 class _ActionIcon extends StatelessWidget {
@@ -107,11 +106,7 @@ class _ActionIcon extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Center(
-        child: PhosphorIcon(
-          icon,
-          size: 24,
-          color: colors.brandPrimaryFill,
-        ),
+        child: PhosphorIcon(icon, size: 24, color: colors.brandPrimaryFill),
       ),
     );
   }

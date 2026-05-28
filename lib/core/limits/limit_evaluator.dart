@@ -20,11 +20,7 @@ class LimitEvaluator {
       if (!_ruleMatches(rule.filters, context)) {
         continue;
       }
-      _applyRuleToResolvedLimits(
-        resolvedLimits,
-        rule,
-        evaluationContext,
-      );
+      _applyRuleToResolvedLimits(resolvedLimits, rule, evaluationContext);
     }
     return resolvedLimits;
   }
@@ -36,10 +32,11 @@ class LimitEvaluator {
     Map<String, int>? baseLimits,
   }) {
     return resolveAll(
-      context,
-      evaluationContext: evaluationContext,
-      baseLimits: baseLimits,
-    )[key] ?? 0;
+          context,
+          evaluationContext: evaluationContext,
+          baseLimits: baseLimits,
+        )[key] ??
+        0;
   }
 }
 
@@ -62,7 +59,9 @@ List<LimitRule> _sortRulesBySpecificity(List<LimitRule> rules) {
     }
     return a.originalIndex.compareTo(b.originalIndex);
   });
-  return ranked.map((({LimitRule rule, int specificity, int originalIndex}) e) => e.rule).toList();
+  return ranked
+      .map((({LimitRule rule, int specificity, int originalIndex}) e) => e.rule)
+      .toList();
 }
 
 bool _ruleMatches(LimitFilter? filters, LimitMatchContext context) {
@@ -72,16 +71,16 @@ bool _ruleMatches(LimitFilter? filters, LimitMatchContext context) {
   if (!_areRequiredEntriesPresent(filters.traits, context.traits)) {
     return false;
   }
-  if (!_areRequiredEntriesPresent(filters.guildFeatures, context.guildFeatures)) {
+  if (!_areRequiredEntriesPresent(
+    filters.guildFeatures,
+    context.guildFeatures,
+  )) {
     return false;
   }
   return true;
 }
 
-bool _areRequiredEntriesPresent(
-  List<String>? required,
-  Set<String> available,
-) {
+bool _areRequiredEntriesPresent(List<String>? required, Set<String> available) {
   if (required == null || required.isEmpty) {
     return true;
   }

@@ -76,10 +76,7 @@ class _GuildInviteCard extends StatelessWidget {
     if (icon == null) {
       return null;
     }
-    return FluxerMediaUrl.guildIcon(
-      guildId: invite.guild.id,
-      hash: icon,
-    );
+    return FluxerMediaUrl.guildIcon(guildId: invite.guild.id, hash: icon);
   }
 
   String? get _splashUrl {

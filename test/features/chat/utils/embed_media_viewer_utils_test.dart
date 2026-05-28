@@ -14,10 +14,7 @@ void main() {
 
   group('embedMediaEffectiveUrl', () {
     test('prefers proxy URL when present', () {
-      const EmbedMedia media = EmbedMedia(
-        url: originalUrl,
-        proxyUrl: proxyUrl,
-      );
+      const EmbedMedia media = EmbedMedia(url: originalUrl, proxyUrl: proxyUrl);
       expect(embedMediaEffectiveUrl(media), proxyUrl);
     });
 
@@ -60,10 +57,7 @@ void main() {
   group('resolveEmbedMediaViewerFilename', () {
     test('uses title when provided', () {
       expect(
-        resolveEmbedMediaViewerFilename(
-          url: directUrl,
-          title: 'Custom title',
-        ),
+        resolveEmbedMediaViewerFilename(url: directUrl, title: 'Custom title'),
         'Custom title',
       );
     });

@@ -1076,8 +1076,7 @@ class GatewayEventHandler {
       return !(settings?.suppressEveryone ?? false);
     }
     final roleIds = message.mentionRoles;
-    if (roleIds.isEmpty ||
-        (settings?.suppressRoles ?? false)) {
+    if (roleIds.isEmpty || (settings?.suppressRoles ?? false)) {
       return false;
     }
     final member = await database.memberDao.getMemberByUserId(

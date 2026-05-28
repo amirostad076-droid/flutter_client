@@ -31,28 +31,32 @@ class UnifiedPushMobileDeviceRegistration
     if (!PushProviderGuard.isUnifiedPush) {
       return 0;
     }
-    ref..listen<String?>(fluxerAuthTokenProvider, (_, _) {
-      unawaited(_onAuthOrUserChanged());
-    })
-    ..listen<bool>(authStateProvider, (_, _) {
-      unawaited(_onAuthOrUserChanged());
-    })
-    ..listen<String?>(currentUserIdProvider, (String? previous, String? next) {
-      if (previous != next) {
+    ref
+      ..listen<String?>(fluxerAuthTokenProvider, (_, _) {
         unawaited(_onAuthOrUserChanged());
-      }
-    })
-    ..listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
-      if (next && previous == false) {
-        unawaited(_onAppResumed());
-      }
-    });
+      })
+      ..listen<bool>(authStateProvider, (_, _) {
+        unawaited(_onAuthOrUserChanged());
+      })
+      ..listen<String?>(currentUserIdProvider, (
+        String? previous,
+        String? next,
+      ) {
+        if (previous != next) {
+          unawaited(_onAuthOrUserChanged());
+        }
+      })
+      ..listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
+        if (next && previous == false) {
+          unawaited(_onAppResumed());
+        }
+      });
     _endpointSubscription?.cancel();
-    _endpointSubscription = UnifiedPushService.instance.endpointStream.listen(
-      (up.PushEndpoint endpoint) {
-        unawaited(_registerEndpoint(endpoint));
-      },
-    );
+    _endpointSubscription = UnifiedPushService.instance.endpointStream.listen((
+      up.PushEndpoint endpoint,
+    ) {
+      unawaited(_registerEndpoint(endpoint));
+    });
     ref.onDispose(() {
       unawaited(_endpointSubscription?.cancel());
       _endpointSubscription = null;
@@ -92,8 +96,9 @@ class UnifiedPushMobileDeviceRegistration
       return;
     }
     _trackedUserId = userId;
-    final MobilePushRegistration? persisted =
-        await _loadPersistedForUser(userId);
+    final MobilePushRegistration? persisted = await _loadPersistedForUser(
+      userId,
+    );
     final bool hasPersistedSubscription =
         persisted?.pushSubscriptionId.isNotEmpty ?? false;
     await UnifiedPushService.instance.loadCachedVapidPublicKey();
@@ -121,8 +126,9 @@ class UnifiedPushMobileDeviceRegistration
     if (userId == null || userId.isEmpty) {
       return false;
     }
-    final MobilePushRegistration? persisted =
-        await _loadPersistedForUser(userId);
+    final MobilePushRegistration? persisted = await _loadPersistedForUser(
+      userId,
+    );
     final String? id = persisted?.pushSubscriptionId;
     return id != null && id.isNotEmpty;
   }
@@ -140,9 +146,10 @@ class UnifiedPushMobileDeviceRegistration
   }
 
   Future<MobilePushRegistration?> _loadPersistedForUser(String userId) {
-    return ref.read(fluxerDatabaseProvider).mobilePushRegistrationDao.getForUser(
-          userId,
-        );
+    return ref
+        .read(fluxerDatabaseProvider)
+        .mobilePushRegistrationDao
+        .getForUser(userId);
   }
 
   Future<void> _registerEndpoint(up.PushEndpoint endpoint) async {
@@ -171,8 +178,9 @@ class UnifiedPushMobileDeviceRegistration
       }
       return;
     }
-    final MobilePushRegistration? persisted =
-        await _loadPersistedForUser(userId);
+    final MobilePushRegistration? persisted = await _loadPersistedForUser(
+      userId,
+    );
     if (shouldSkipMobilePushRegistration(
       currentUserId: userId,
       persistedUserId: persisted?.userId,
@@ -228,13 +236,17 @@ class UnifiedPushMobileDeviceRegistration
           );
       String? vapid;
       try {
-        vapid = (await ref.read(fluxerClientProvider).instance.getWellKnownFluxer())
-            .push
-            .publicVapidKey;
+        vapid =
+            (await ref.read(fluxerClientProvider).instance.getWellKnownFluxer())
+                .push
+                .publicVapidKey;
       } on Object {
         vapid = null;
       }
-      await ref.read(fluxerDatabaseProvider).mobilePushRegistrationDao.upsert(
+      await ref
+          .read(fluxerDatabaseProvider)
+          .mobilePushRegistrationDao
+          .upsert(
             userId: userId,
             pushSubscriptionId: response.deviceId,
             endpointUrl: url,
@@ -248,7 +260,9 @@ class UnifiedPushMobileDeviceRegistration
             .read(fluxerDatabaseProvider)
             .mobilePushRegistrationDao
             .saveGlobalVapidPublicKey(vapid);
-        await UnifiedPushService.instance.applyVapidAndReregisterIfNeeded(vapid);
+        await UnifiedPushService.instance.applyVapidAndReregisterIfNeeded(
+          vapid,
+        );
       }
       if (kDebugMode) {
         debugPrint(
@@ -274,9 +288,10 @@ class UnifiedPushMobileDeviceRegistration
       return;
     }
     try {
-      await ref.read(fluxerClientProvider).users.deleteMobilePushDevice(
-            deviceId: pushSubscriptionId,
-          );
+      await ref
+          .read(fluxerClientProvider)
+          .users
+          .deleteMobilePushDevice(deviceId: pushSubscriptionId);
       if (kDebugMode) {
         debugPrint(
           '[UnifiedPushMobileDeviceRegistration] deleted device '
@@ -291,7 +306,10 @@ class UnifiedPushMobileDeviceRegistration
         );
       }
       try {
-        await ref.read(fluxerClientProvider).users.unregisterMobilePushDevice(
+        await ref
+            .read(fluxerClientProvider)
+            .users
+            .unregisterMobilePushDevice(
               body: UnregisterMobileDeviceRequest(
                 platform: UnregisterMobileDeviceRequestPlatformPlatform
                     .androidUnifiedPush,
@@ -323,8 +341,9 @@ class UnifiedPushMobileDeviceRegistration
     if (bearer == null || bearer.isEmpty) {
       return;
     }
-    final MobilePushRegistration? persisted =
-        await _loadPersistedForUser(userId);
+    final MobilePushRegistration? persisted = await _loadPersistedForUser(
+      userId,
+    );
     if (persisted != null) {
       await _deleteServerRegistration(
         pushSubscriptionId: persisted.pushSubscriptionId,
@@ -341,11 +360,13 @@ class UnifiedPushMobileDeviceRegistration
       return;
     }
     try {
-      await ref.read(fluxerClientProvider).users.unregisterMobilePushDevice(
+      await ref
+          .read(fluxerClientProvider)
+          .users
+          .unregisterMobilePushDevice(
             body: UnregisterMobileDeviceRequest(
-              platform:
-                  UnregisterMobileDeviceRequestPlatformPlatform
-                      .androidUnifiedPush,
+              platform: UnregisterMobileDeviceRequestPlatformPlatform
+                  .androidUnifiedPush,
               token: url,
               appId: AppBuildConfig.mobilePushAppId,
               providerEnvironment: _providerEnvironment,

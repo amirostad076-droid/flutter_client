@@ -37,14 +37,14 @@ class ApnsMobileDeviceRegistration extends _$ApnsMobileDeviceRegistration {
       ..listen<bool>(authStateProvider, (_, _) {
         unawaited(sync());
       })
-      ..listen<String?>(
-        currentUserIdProvider,
-        (String? previous, String? next) {
-          if (previous != next) {
-            unawaited(sync());
-          }
-        },
-      )
+      ..listen<String?>(currentUserIdProvider, (
+        String? previous,
+        String? next,
+      ) {
+        if (previous != next) {
+          unawaited(sync());
+        }
+      })
       ..listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
         if (next && previous == false) {
           unawaited(sync());

@@ -14,36 +14,40 @@ import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 void main() {
-  testWidgets('shows filename and indeterminate progress without session progress', (
-    WidgetTester tester,
-  ) async {
-    const String nonce = 'nonce-1';
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          messageUploadSessionsProvider.overrideWithValue(
-            const <String, MessageUploadSession>{},
-          ),
-        ],
-        child: _buildTestApp(
-          child: const MessageUploadProgress(
-            attachment: Attachment(
-              id: kUploadingAttachmentPlaceholderId,
-              filename: 'notes.txt',
-              url: '',
-              size: 2048,
+  testWidgets(
+    'shows filename and indeterminate progress without session progress',
+    (WidgetTester tester) async {
+      const String nonce = 'nonce-1';
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            messageUploadSessionsProvider.overrideWithValue(
+              const <String, MessageUploadSession>{},
             ),
-            messageId: nonce,
-            messageNonce: nonce,
-            channelId: 'channel-1',
+          ],
+          child: _buildTestApp(
+            child: const MessageUploadProgress(
+              attachment: Attachment(
+                id: kUploadingAttachmentPlaceholderId,
+                filename: 'notes.txt',
+                url: '',
+                size: 2048,
+              ),
+              messageId: nonce,
+              messageNonce: nonce,
+              channelId: 'channel-1',
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pump();
-    expect(find.text('notes.txt'), findsOneWidget);
-    expect(find.byKey(MessageUploadProgress.indeterminateProgressKey), findsOneWidget);
-  });
+      );
+      await tester.pump();
+      expect(find.text('notes.txt'), findsOneWidget);
+      expect(
+        find.byKey(MessageUploadProgress.indeterminateProgressKey),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('shows determinate progress when session has percent', (
     WidgetTester tester,
@@ -52,16 +56,15 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          messageUploadSessionsProvider.overrideWithValue(
-            <String, MessageUploadSession>{
-              nonce: const MessageUploadSession(
-                nonce: nonce,
-                channelId: 'channel-1',
-                attachments: <PendingAttachment>[],
-                sendingProgress: 50,
-              ),
-            },
-          ),
+          messageUploadSessionsProvider
+              .overrideWithValue(<String, MessageUploadSession>{
+                nonce: const MessageUploadSession(
+                  nonce: nonce,
+                  channelId: 'channel-1',
+                  attachments: <PendingAttachment>[],
+                  sendingProgress: 50,
+                ),
+              }),
         ],
         child: _buildTestApp(
           child: const MessageUploadProgress(
@@ -79,8 +82,14 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.byKey(MessageUploadProgress.determinateProgressKey), findsOneWidget);
-    expect(find.byKey(MessageUploadProgress.indeterminateProgressKey), findsNothing);
+    expect(
+      find.byKey(MessageUploadProgress.determinateProgressKey),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(MessageUploadProgress.indeterminateProgressKey),
+      findsNothing,
+    );
   });
 
   testWidgets('shows cancel control', (WidgetTester tester) async {

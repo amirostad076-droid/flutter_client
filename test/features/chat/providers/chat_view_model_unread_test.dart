@@ -99,8 +99,7 @@ void main() {
         lastMessageId: Value(latestId),
       ),
     );
-    final adapter = _ChatAdapter()
-      ..holdMessageFetch = true;
+    final adapter = _ChatAdapter()..holdMessageFetch = true;
     final container = _container(db, adapter);
     addTearDown(container.dispose);
 
@@ -141,7 +140,11 @@ void main() {
       final networkId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
       final adapter = _ChatAdapter(
         initialMessages: [
-          _messageJson(id: networkId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(
+            id: networkId,
+            channelId: 'channel-1',
+            authorId: 'other',
+          ),
         ],
       )..holdMessageFetch = true;
       final container = _container(db, adapter);
@@ -160,54 +163,54 @@ void main() {
       adapter.releaseMessageFetch();
       await _flushAsync();
       expect(container.read(chatViewModelProvider).isSyncingMessages, isFalse);
-      expect(
-        container.read(chatViewModelProvider).messages.last.id,
-        networkId,
-      );
+      expect(container.read(chatViewModelProvider).messages.last.id, networkId);
     },
   );
 
-  test('auto ack does not run while cache-first messages are syncing', () async {
-    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-    addTearDown(db.close);
-    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
-    await db.messageDao.upsertMessage(
-      _cachedMessage(id: latestId, channelId: 'channel-1', authorId: 'other'),
-    );
-    await db.channelDao.upsertChannel(
-      ChannelsCompanion.insert(
-        id: 'channel-1',
-        guildId: 'guild-1',
-        name: 'general',
-        lastMessageId: Value(latestId),
-      ),
-    );
-    await db.readStateDao.upsertReadState(
-      ReadStatesCompanion(
-        channelId: const Value('channel-1'),
-        lastMessageId: Value(latestId),
-        mentionCount: const Value(0),
-      ),
-    );
-    final adapter = _ChatAdapter(
-      initialMessages: [
-        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
-      ],
-    )..holdMessageFetch = true;
-    final container = _container(db, adapter);
-    addTearDown(container.dispose);
+  test(
+    'auto ack does not run while cache-first messages are syncing',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.messageDao.upsertMessage(
+        _cachedMessage(id: latestId, channelId: 'channel-1', authorId: 'other'),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(latestId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      )..holdMessageFetch = true;
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
 
-    final notifier = container.read(chatViewModelProvider.notifier);
-    await notifier.switchChannel('channel-1');
-    notifier.setReadViewportActive(isActive: true);
-    await _flushAsync();
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      notifier.setReadViewportActive(isActive: true);
+      await _flushAsync();
 
-    expect(adapter.ackedMessageIds, isEmpty);
-    expect(container.read(chatViewModelProvider).isSyncingMessages, isTrue);
-    adapter.releaseMessageFetch();
-    await _flushAsync();
-    expect(container.read(chatViewModelProvider).isSyncingMessages, isFalse);
-  });
+      expect(adapter.ackedMessageIds, isEmpty);
+      expect(container.read(chatViewModelProvider).isSyncingMessages, isTrue);
+      adapter.releaseMessageFetch();
+      await _flushAsync();
+      expect(container.read(chatViewModelProvider).isSyncingMessages, isFalse);
+    },
+  );
 
   test('unread channel skips cache-first and shows loading spinner', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());

@@ -18,10 +18,13 @@ class DmCallE2eeFooter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final VoiceSessionState voice = ref.watch(voiceSessionProvider);
-    final bool isInVoiceOnChannel = voice.isInVoice &&
+    final bool isInVoiceOnChannel =
+        voice.isInVoice &&
         voice.channelId == channelId &&
         (voice.guildId == null || voice.guildId!.isEmpty);
-    final Map<String, VoiceState> voiceStates = ref.watch(voiceStatesMapProvider);
+    final Map<String, VoiceState> voiceStates = ref.watch(
+      voiceStatesMapProvider,
+    );
     if (!hasDmOngoingCallNotJoined(
       voiceStates: voiceStates,
       channelId: channelId,

@@ -10,8 +10,9 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class MessageUploadProgress extends ConsumerWidget {
-  static const Key indeterminateProgressKey =
-      Key('message-upload-indeterminate');
+  static const Key indeterminateProgressKey = Key(
+    'message-upload-indeterminate',
+  );
   static const Key determinateProgressKey = Key('message-upload-determinate');
   static const Key cancelButtonKey = Key('message-upload-cancel');
 

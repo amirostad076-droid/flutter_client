@@ -51,8 +51,8 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
     }
     _retryInFlight = true;
     try {
-      final List<ConnectivityResult> results =
-          await Connectivity().checkConnectivity();
+      final List<ConnectivityResult> results = await Connectivity()
+          .checkConnectivity();
       final bool hasConnection = results.any(
         (ConnectivityResult r) => r != ConnectivityResult.none,
       );

@@ -31,11 +31,7 @@ void main() {
   final String idD = _snowflakeForUtc(DateTime.utc(2026, 5, 10, 13));
 
   test('removes deleted message in network page window', () {
-    final List<Message> current = [
-      _message(idA),
-      _message(idB),
-      _message(idC),
-    ];
+    final List<Message> current = [_message(idA), _message(idB), _message(idC)];
     final List<Message> networkPage = [
       _message(idA),
       _message(idC, content: 'updated'),
@@ -83,11 +79,7 @@ void main() {
   });
 
   test('drops cached messages below baseline when channel shrinks', () {
-    final List<Message> current = [
-      _message(idA),
-      _message(idB),
-      _message(idC),
-    ];
+    final List<Message> current = [_message(idA), _message(idB), _message(idC)];
     final List<Message> networkPage = [_message(idC, content: 'only')];
     final List<Message> actual = reconcileMessagesWithNetworkPage(
       current: current,

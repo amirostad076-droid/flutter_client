@@ -157,7 +157,8 @@ class ChatViewModel extends _$ChatViewModel {
   bool _readViewportNearBottom = true;
   int _nonceTimestampMs = 0;
   int _nonceSequence = 0;
-  final Map<String, Future<void>> _pendingDeleteFutures = <String, Future<void>>{};
+  final Map<String, Future<void>> _pendingDeleteFutures =
+      <String, Future<void>>{};
 
   @override
   ChatViewState build() {
@@ -199,10 +200,12 @@ class ChatViewModel extends _$ChatViewModel {
     _forwardRealtimeToMessageReferences(ev);
     final next = await _nextMessagesFor(ev);
     final Set<String> deletedIds = _deletedMessageIdsFor(ev);
-    final bool clearEditing = ev is MessageUpdated &&
-        state.editingMessage?.id == ev.event.message.id;
-    final bool clearComposerForDelete = deletedIds.isNotEmpty &&
-        ((state.replyingTo != null && deletedIds.contains(state.replyingTo!.id)) ||
+    final bool clearEditing =
+        ev is MessageUpdated && state.editingMessage?.id == ev.event.message.id;
+    final bool clearComposerForDelete =
+        deletedIds.isNotEmpty &&
+        ((state.replyingTo != null &&
+                deletedIds.contains(state.replyingTo!.id)) ||
             (state.editingMessage != null &&
                 deletedIds.contains(state.editingMessage!.id)) ||
             (state.forwardingFrom != null &&
@@ -213,7 +216,9 @@ class ChatViewModel extends _$ChatViewModel {
         editingMessage: clearEditing || clearComposerForDelete
             ? null
             : state.editingMessage,
-        messageText: clearEditing || clearComposerForDelete ? '' : state.messageText,
+        messageText: clearEditing || clearComposerForDelete
+            ? ''
+            : state.messageText,
         replyingTo: clearComposerForDelete ? null : state.replyingTo,
         forwardingFrom: clearComposerForDelete ? null : state.forwardingFrom,
       );
@@ -266,11 +271,13 @@ class ChatViewModel extends _$ChatViewModel {
     required List<Message> messages,
     List<Message> embeddedReplyParents = const [],
   }) {
-    ref.read(messageReferencesProvider.notifier).onMessagesLoaded(
-      channelId: channelId,
-      messages: messages,
-      embeddedReplyParents: embeddedReplyParents,
-    );
+    ref
+        .read(messageReferencesProvider.notifier)
+        .onMessagesLoaded(
+          channelId: channelId,
+          messages: messages,
+          embeddedReplyParents: embeddedReplyParents,
+        );
   }
 
   Set<String> _deletedMessageIdsFor(MessageRealtimeEvent ev) {
@@ -576,10 +583,7 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreMessages: cached.length >= _kPageSize,
         hasMoreNewerMessages: false,
       );
-      _notifyMessageReferencesLoaded(
-        channelId: channelId,
-        messages: cached,
-      );
+      _notifyMessageReferencesLoaded(channelId: channelId, messages: cached);
       unawaited(_refreshMessagesFromNetwork(channelId));
       return;
     }
@@ -638,7 +642,8 @@ class ChatViewModel extends _$ChatViewModel {
         networkPage: page.messages,
         syncBaselineOldestId: syncBaselineOldestId,
       );
-      final bool hasMoreNewer = merged.isNotEmpty &&
+      final bool hasMoreNewer =
+          merged.isNotEmpty &&
           await _hasNewerMessagesThanChannel(merged.last.id);
       state = state.copyWith(
         messages: merged,
@@ -681,14 +686,17 @@ class ChatViewModel extends _$ChatViewModel {
     if (stickyUnreadId != null && stickyUnreadId.isNotEmpty) {
       return true;
     }
-    final lastCachedMessage = await database.messageDao.getLastMessage(channelId);
+    final lastCachedMessage = await database.messageDao.getLastMessage(
+      channelId,
+    );
     final latestMessageId = channel?.lastMessageId ?? lastCachedMessage?.id;
     final rawMentionCount = readState?.mentionCount ?? 0;
-    final visibleMentionCount = canShowMentionCount(
-      channelLastMessageId: latestMessageId,
-      isGuildChannel: channel != null,
-      now: DateTime.now(),
-    )
+    final visibleMentionCount =
+        canShowMentionCount(
+          channelLastMessageId: latestMessageId,
+          isGuildChannel: channel != null,
+          now: DateTime.now(),
+        )
         ? rawMentionCount
         : 0;
     if (visibleMentionCount > 0) {
@@ -794,15 +802,18 @@ class ChatViewModel extends _$ChatViewModel {
     state = state.copyWith(isLoadingNewer: true);
     try {
       final String newestId = state.messages.last.id;
-      final page = await ref.read(messageRepositoryProvider).loadMessagePage(
-        channelId: state.channelId,
-        after: newestId,
-      );
+      final page = await ref
+          .read(messageRepositoryProvider)
+          .loadMessagePage(channelId: state.channelId, after: newestId);
       if (state.channelId.isEmpty) {
         return;
       }
-      final List<Message> merged = _mergeMessages(state.messages, page.messages);
-      final bool hasMoreNewer = page.messages.length >= _kPageSize &&
+      final List<Message> merged = _mergeMessages(
+        state.messages,
+        page.messages,
+      );
+      final bool hasMoreNewer =
+          page.messages.length >= _kPageSize &&
           await _hasNewerMessagesThanChannel(merged.last.id);
       state = state.copyWith(
         messages: merged,
@@ -834,9 +845,9 @@ class ChatViewModel extends _$ChatViewModel {
     }
     state = state.copyWith(isSyncingMessages: true);
     try {
-      final page = await ref.read(messageRepositoryProvider).loadMessagePage(
-        channelId: channelId,
-      );
+      final page = await ref
+          .read(messageRepositoryProvider)
+          .loadMessagePage(channelId: channelId);
       if (state.channelId != channelId) {
         return;
       }
@@ -1241,9 +1252,7 @@ class ChatViewModel extends _$ChatViewModel {
         stickerIds.isEmpty &&
         favoriteMemeId == null &&
         pendingAttachments.isEmpty) {
-      talker.debug(
-        '[ChatViewModel] send blocked: empty channelId=$channelId',
-      );
+      talker.debug('[ChatViewModel] send blocked: empty channelId=$channelId');
       _notifySendBlocked(_SendBlockReason.empty);
       return;
     }
@@ -1356,7 +1365,10 @@ class ChatViewModel extends _$ChatViewModel {
     );
     if (clearMessageText) {
       unawaited(
-        ref.read(fluxerDatabaseProvider).composerDraftDao.deleteDraft(channelId),
+        ref
+            .read(fluxerDatabaseProvider)
+            .composerDraftDao
+            .deleteDraft(channelId),
       );
     }
     clearStickyUnread();
@@ -1402,14 +1414,16 @@ class ChatViewModel extends _$ChatViewModel {
     required String optimisticMessageId,
   }) async {
     try {
-      final Message sent = await ref.read(messageRepositoryProvider).sendMessage(
-        channelId: channelId,
-        content: outgoingText,
-        replyToId: replyToId,
-        clientNonce: clientNonce,
-        stickerIds: stickerIds,
-        favoriteMemeId: favoriteMemeId,
-      );
+      final Message sent = await ref
+          .read(messageRepositoryProvider)
+          .sendMessage(
+            channelId: channelId,
+            content: outgoingText,
+            replyToId: replyToId,
+            clientNonce: clientNonce,
+            stickerIds: stickerIds,
+            favoriteMemeId: favoriteMemeId,
+          );
       if (state.channelId != channelId) {
         return;
       }
@@ -1453,16 +1467,18 @@ class ChatViewModel extends _$ChatViewModel {
         nonce: clientNonce,
         favoriteMemePayload: favoriteMemeId != null,
       );
-      final Message sent = await ref.read(messageRepositoryProvider).sendMessage(
-        channelId: channelId,
-        content: outgoingText,
-        replyToId: replyToId,
-        clientNonce: clientNonce,
-        stickerIds: stickerIds,
-        favoriteMemeId: favoriteMemeId,
-        attachmentMetadata: prepared.attachmentMetadata,
-        attachmentFiles: prepared.attachmentFiles,
-      );
+      final Message sent = await ref
+          .read(messageRepositoryProvider)
+          .sendMessage(
+            channelId: channelId,
+            content: outgoingText,
+            replyToId: replyToId,
+            clientNonce: clientNonce,
+            stickerIds: stickerIds,
+            favoriteMemeId: favoriteMemeId,
+            attachmentMetadata: prepared.attachmentMetadata,
+            attachmentFiles: prepared.attachmentFiles,
+          );
       uploadNotifier.removeMessageUpload(clientNonce);
       if (state.channelId != channelId) {
         return;
@@ -1502,24 +1518,28 @@ class ChatViewModel extends _$ChatViewModel {
         final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
           PlatformDispatcher.instance.locale,
         );
-        ref.read(toastProvider.notifier).show(
-          FluxerToast(
-            message: l10n.channelNoSendPermissionHint,
-            variant: FluxerToastVariant.warning,
-          ),
-        );
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: l10n.channelNoSendPermissionHint,
+                variant: FluxerToastVariant.warning,
+              ),
+            );
       case _SendBlockReason.slowmode:
         ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
       case _SendBlockReason.channelNotReady:
         final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
           PlatformDispatcher.instance.locale,
         );
-        ref.read(toastProvider.notifier).show(
-          FluxerToast(
-            message: l10n.chatChannelNotReady,
-            variant: FluxerToastVariant.warning,
-          ),
-        );
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: l10n.chatChannelNotReady,
+                variant: FluxerToastVariant.warning,
+              ),
+            );
     }
   }
 
@@ -1527,12 +1547,14 @@ class ChatViewModel extends _$ChatViewModel {
     final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
       PlatformDispatcher.instance.locale,
     );
-    ref.read(toastProvider.notifier).show(
-      FluxerToast(
-        message: l10n.chatMessageFailedToSend,
-        variant: FluxerToastVariant.danger,
-      ),
-    );
+    ref
+        .read(toastProvider.notifier)
+        .show(
+          FluxerToast(
+            message: l10n.chatMessageFailedToSend,
+            variant: FluxerToastVariant.danger,
+          ),
+        );
   }
 
   void _markOptimisticSendFailed(String optimisticMessageId) {
@@ -1552,10 +1574,7 @@ class ChatViewModel extends _$ChatViewModel {
       deliveryState: MessageDeliveryState.failed,
       sendError: failedMessage,
     );
-    state = state.copyWith(
-      messages: nextMessages,
-      errorMessage: failedMessage,
-    );
+    state = state.copyWith(messages: nextMessages, errorMessage: failedMessage);
   }
 
   void cancelSendingMessage(String messageId) {
@@ -1665,10 +1684,9 @@ class ChatViewModel extends _$ChatViewModel {
     }
     final Future<void> deleteFuture = () async {
       try {
-        await ref.read(messageRepositoryProvider).deleteMessage(
-          channelId: state.channelId,
-          messageId: messageId,
-        );
+        await ref
+            .read(messageRepositoryProvider)
+            .deleteMessage(channelId: state.channelId, messageId: messageId);
       } on Exception catch (e) {
         debugPrint('[ChatViewModel] Failed to delete message: $e');
         state = state.copyWith(errorMessage: 'Failed to delete message');
@@ -1731,10 +1749,9 @@ class ChatViewModel extends _$ChatViewModel {
     }
     state = state.copyWith(isSyncingMessages: true);
     try {
-      final page = await ref.read(messageRepositoryProvider).loadMessagePage(
-        channelId: channelId,
-        around: messageId,
-      );
+      final page = await ref
+          .read(messageRepositoryProvider)
+          .loadMessagePage(channelId: channelId, around: messageId);
       if (state.channelId != channelId) {
         return;
       }
@@ -1833,12 +1850,14 @@ class ChatViewModel extends _$ChatViewModel {
       final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
         PlatformDispatcher.instance.locale,
       );
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: l10n.chatEditNoChanges,
-          variant: FluxerToastVariant.warning,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.chatEditNoChanges,
+              variant: FluxerToastVariant.warning,
+            ),
+          );
       await _restoreComposerDraftFromDb();
       return;
     }
@@ -1976,15 +1995,10 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       await ref
           .read(messageRepositoryProvider)
-          .removeAllReactions(
-            channelId: state.channelId,
-            messageId: messageId,
-          );
+          .removeAllReactions(channelId: state.channelId, messageId: messageId);
     } on Exception catch (e, st) {
       talker.error('[ChatViewModel] removeAllReactions failed', e, st);
-      final rollbackIndex = state.messages.indexWhere(
-        (m) => m.id == messageId,
-      );
+      final rollbackIndex = state.messages.indexWhere((m) => m.id == messageId);
       if (rollbackIndex != -1) {
         final rollback = List<Message>.from(state.messages);
         rollback[rollbackIndex] = rollback[rollbackIndex].copyWith(

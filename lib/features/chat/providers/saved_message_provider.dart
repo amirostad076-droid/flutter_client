@@ -5,7 +5,8 @@ part 'saved_message_provider.g.dart';
 
 @riverpod
 Stream<bool> isMessageSaved(Ref ref, String messageId) {
-  return ref.watch(fluxerDatabaseProvider).savedMessageDao.watchIsSaved(
-    messageId,
-  );
+  return ref
+      .watch(fluxerDatabaseProvider)
+      .savedMessageDao
+      .watchIsSaved(messageId);
 }

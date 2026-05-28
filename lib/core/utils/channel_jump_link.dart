@@ -61,8 +61,9 @@ bool isChannelJumpHost(String host, {String? instanceWebAppBase}) {
   if (host.isEmpty) {
     return false;
   }
-  return channelJumpLinkHosts(instanceWebAppBase: instanceWebAppBase)
-      .contains(host.toLowerCase());
+  return channelJumpLinkHosts(
+    instanceWebAppBase: instanceWebAppBase,
+  ).contains(host.toLowerCase());
 }
 
 RegExp buildChannelJumpLinkPattern(Set<String> hosts) {

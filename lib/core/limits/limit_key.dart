@@ -3,14 +3,17 @@ abstract final class LimitKeys {
   static const String emojiMaxSize = 'emoji_max_size';
   static const String featureAnimatedAvatar = 'feature_animated_avatar';
   static const String featureAnimatedBanner = 'feature_animated_banner';
-  static const String featureCustomDiscriminator = 'feature_custom_discriminator';
+  static const String featureCustomDiscriminator =
+      'feature_custom_discriminator';
   static const String featureCustomNotificationSounds =
       'feature_custom_notification_sounds';
   static const String featureEarlyAccess = 'feature_early_access';
   static const String featureGlobalExpressions = 'feature_global_expressions';
-  static const String featureHigherVideoQuality = 'feature_higher_video_quality';
+  static const String featureHigherVideoQuality =
+      'feature_higher_video_quality';
   static const String featurePerGuildProfiles = 'feature_per_guild_profiles';
-  static const String featureVoiceEntranceSounds = 'feature_voice_entrance_sounds';
+  static const String featureVoiceEntranceSounds =
+      'feature_voice_entrance_sounds';
   static const String maxAttachmentsPerMessage = 'max_attachments_per_message';
   static const String maxAttachmentFileSize = 'max_attachment_file_size';
   static const String maxBioLength = 'max_bio_length';
@@ -24,7 +27,8 @@ abstract final class LimitKeys {
   static const String maxGroupDmRecipients = 'max_group_dm_recipients';
   static const String maxGroupDmsPerUser = 'max_group_dms_per_user';
   static const String maxGuildChannels = 'max_guild_channels';
-  static const String maxGuildEmojisAnimatedMore = 'max_guild_emojis_animated_more';
+  static const String maxGuildEmojisAnimatedMore =
+      'max_guild_emojis_animated_more';
   static const String maxGuildEmojisAnimated = 'max_guild_emojis_animated';
   static const String maxGuildEmojisStaticMore = 'max_guild_emojis_static_more';
   static const String maxGuildEmojisStatic = 'max_guild_emojis_static';
@@ -37,10 +41,12 @@ abstract final class LimitKeys {
   static const String maxInstalledPacks = 'max_installed_packs';
   static const String maxMessageLength = 'max_message_length';
   static const String maxPackExpressions = 'max_pack_expressions';
-  static const String maxPrivateChannelsPerUser = 'max_private_channels_per_user';
+  static const String maxPrivateChannelsPerUser =
+      'max_private_channels_per_user';
   static const String maxReactionsPerMessage = 'max_reactions_per_message';
   static const String maxRelationships = 'max_relationships';
-  static const String maxUsersPerMessageReaction = 'max_users_per_message_reaction';
+  static const String maxUsersPerMessageReaction =
+      'max_users_per_message_reaction';
   static const String maxVoiceMessageDuration = 'max_voice_message_duration';
   static const String maxWebhooksPerChannel = 'max_webhooks_per_channel';
   static const String maxWebhooksPerGuild = 'max_webhooks_per_guild';

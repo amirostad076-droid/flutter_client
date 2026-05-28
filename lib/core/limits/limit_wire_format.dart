@@ -2,7 +2,9 @@ import 'package:fluxer_app/core/limits/limit_defaults.dart';
 import 'package:fluxer_app/core/limits/limit_types.dart';
 import 'package:fluxer_dart/export.dart';
 
-LimitConfigSnapshot expandLimitWireFormat(WellKnownFluxerResponseLimits wireFormat) {
+LimitConfigSnapshot expandLimitWireFormat(
+  WellKnownFluxerResponseLimits wireFormat,
+) {
   final Map<String, int> defaults = Map<String, int>.from(kDefaultFreeLimits);
   final List<LimitRule> rules = <LimitRule>[
     for (final LimitRuleResponse rule in wireFormat.rules)

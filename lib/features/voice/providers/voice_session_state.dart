@@ -51,9 +51,7 @@ class VoiceSessionState {
       voiceServerEndpoint: voiceServerEndpoint ?? this.voiceServerEndpoint,
       activeConnectionId: activeConnectionId ?? this.activeConnectionId,
       liveKitRoom: clearRoom ? null : (liveKitRoom ?? this.liveKitRoom),
-      e2eeKey: (clearRoom || clearE2eeKey)
-          ? null
-          : (e2eeKey ?? this.e2eeKey),
+      e2eeKey: (clearRoom || clearE2eeKey) ? null : (e2eeKey ?? this.e2eeKey),
     );
   }
 }

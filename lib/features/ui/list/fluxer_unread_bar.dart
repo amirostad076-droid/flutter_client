@@ -79,18 +79,12 @@ class FluxerUnreadBar extends StatelessWidget {
         topRight: r,
         bottomRight: r,
       ),
-      FluxerUnreadBarEdge.right => BorderRadius.only(
-        topLeft: r,
-        bottomLeft: r,
-      ),
+      FluxerUnreadBarEdge.right => BorderRadius.only(topLeft: r, bottomLeft: r),
       FluxerUnreadBarEdge.top => BorderRadius.only(
         bottomLeft: r,
         bottomRight: r,
       ),
-      FluxerUnreadBarEdge.bottom => BorderRadius.only(
-        topLeft: r,
-        topRight: r,
-      ),
+      FluxerUnreadBarEdge.bottom => BorderRadius.only(topLeft: r, topRight: r),
     };
   }
 

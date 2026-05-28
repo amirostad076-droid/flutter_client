@@ -138,8 +138,9 @@ class CloudUploadController extends _$CloudUploadController {
   }
 
   void restoreToComposer(String nonce) {
-    final MessageUploadSession? session = ref
-        .read(messageUploadSessionsProvider)[nonce];
+    final MessageUploadSession? session = ref.read(
+      messageUploadSessionsProvider,
+    )[nonce];
     if (session == null) {
       return;
     }
@@ -165,8 +166,9 @@ class CloudUploadController extends _$CloudUploadController {
   }
 
   void cancelMessageUpload(String nonce) {
-    final MessageUploadSession? session = ref
-        .read(messageUploadSessionsProvider)[nonce];
+    final MessageUploadSession? session = ref.read(
+      messageUploadSessionsProvider,
+    )[nonce];
     if (session == null) {
       return;
     }
@@ -177,8 +179,9 @@ class CloudUploadController extends _$CloudUploadController {
   }
 
   void removeMessageUpload(String nonce) {
-    final MessageUploadSession? session = ref
-        .read(messageUploadSessionsProvider)[nonce];
+    final MessageUploadSession? session = ref.read(
+      messageUploadSessionsProvider,
+    )[nonce];
     if (session == null) {
       return;
     }
@@ -192,8 +195,9 @@ class CloudUploadController extends _$CloudUploadController {
     required String nonce,
     required bool favoriteMemePayload,
   }) async {
-    final MessageUploadSession? session = ref
-        .read(messageUploadSessionsProvider)[nonce];
+    final MessageUploadSession? session = ref.read(
+      messageUploadSessionsProvider,
+    )[nonce];
     if (session == null || session.attachments.isEmpty) {
       return PreparedAttachments.empty;
     }
@@ -206,44 +210,39 @@ class CloudUploadController extends _$CloudUploadController {
       );
     }
     try {
-      ref.read(messageUploadSessionsProvider.notifier).updateSendingProgress(
-        nonce,
-        0,
-      );
+      ref
+          .read(messageUploadSessionsProvider.notifier)
+          .updateSendingProgress(nonce, 0);
       await Future.wait<void>(
         session.attachments.map(
-          (PendingAttachment a) => _ensureSessionAttachmentUploaded(nonce, a.id),
+          (PendingAttachment a) =>
+              _ensureSessionAttachmentUploaded(nonce, a.id),
         ),
       );
-      final List<PendingAttachment> latest = ref
-              .read(messageUploadSessionsProvider)[nonce]
-              ?.attachments ??
+      final List<PendingAttachment> latest =
+          ref.read(messageUploadSessionsProvider)[nonce]?.attachments ??
           session.attachments;
       final bool anyFailed = latest.any(
         (PendingAttachment e) => e.status == PendingAttachmentStatus.failed,
       );
       if (anyFailed) {
         _fallbackResetSessionUploadsForMultipartSend(nonce);
-        final List<PendingAttachment> reset = ref
-                .read(messageUploadSessionsProvider)[nonce]
-                ?.attachments ??
+        final List<PendingAttachment> reset =
+            ref.read(messageUploadSessionsProvider)[nonce]?.attachments ??
             latest;
         return PreparedAttachments(
           attachmentMetadata: _mapApi(reset),
           attachmentFiles: reset.map((PendingAttachment e) => e.file).toList(),
         );
       }
-      final List<PendingAttachment> ready = ref
-              .read(messageUploadSessionsProvider)[nonce]
-              ?.attachments ??
-          latest;
+      final List<PendingAttachment> ready =
+          ref.read(messageUploadSessionsProvider)[nonce]?.attachments ?? latest;
       return PreparedAttachments(attachmentMetadata: _mapApi(ready));
     } on Object catch (e, st) {
       talker.warning('[CloudUpload] prepareSessionForSend error: $e\n$st');
       _fallbackResetSessionUploadsForMultipartSend(nonce);
-      final List<PendingAttachment> reset = ref
-              .read(messageUploadSessionsProvider)[nonce]
-              ?.attachments ??
+      final List<PendingAttachment> reset =
+          ref.read(messageUploadSessionsProvider)[nonce]?.attachments ??
           session.attachments;
       return PreparedAttachments(
         attachmentMetadata: _mapApi(reset),
@@ -256,8 +255,9 @@ class CloudUploadController extends _$CloudUploadController {
     String nonce,
     int attachmentId,
   ) async {
-    final MessageUploadSession? session = ref
-        .read(messageUploadSessionsProvider)[nonce];
+    final MessageUploadSession? session = ref.read(
+      messageUploadSessionsProvider,
+    )[nonce];
     if (session == null) {
       return;
     }
@@ -323,8 +323,9 @@ class CloudUploadController extends _$CloudUploadController {
                 );
               },
           onProgress: (int uploadedBytes, int totalBytes) {
-            final int effectiveTotal =
-                totalBytes > 0 ? totalBytes : attachment.size;
+            final int effectiveTotal = totalBytes > 0
+                ? totalBytes
+                : attachment.size;
             final double p = effectiveTotal > 0
                 ? (uploadedBytes / effectiveTotal).clamp(0.0, 1.0)
                 : 0;
@@ -368,47 +369,44 @@ class CloudUploadController extends _$CloudUploadController {
     int attachmentId,
     PendingAttachment Function(PendingAttachment) updater,
   ) {
-    final MessageUploadSession? session = ref
-        .read(messageUploadSessionsProvider)[nonce];
+    final MessageUploadSession? session = ref.read(
+      messageUploadSessionsProvider,
+    )[nonce];
     if (session == null) {
       return;
     }
     final List<PendingAttachment> next = session.attachments
-        .map(
-          (PendingAttachment e) =>
-              e.id == attachmentId ? updater(e) : e,
-        )
+        .map((PendingAttachment e) => e.id == attachmentId ? updater(e) : e)
         .toList();
+    ref
+        .read(messageUploadSessionsProvider.notifier)
+        .updateSessionAttachments(nonce, next, recomputeSendingProgress: true);
+  }
+
+  void _fallbackResetSessionUploadsForMultipartSend(String nonce) {
+    final MessageUploadSession? session = ref.read(
+      messageUploadSessionsProvider,
+    )[nonce];
+    if (session == null) {
+      return;
+    }
     ref
         .read(messageUploadSessionsProvider.notifier)
         .updateSessionAttachments(
           nonce,
-          next,
-          recomputeSendingProgress: true,
+          session.attachments
+              .map(
+                (PendingAttachment a) => a.copyWith(
+                  status: PendingAttachmentStatus.pending,
+                  uploadProgress: 0,
+                  uploadFilename: null,
+                  multipartUploadId: null,
+                  fileSizePlan: null,
+                  contentTypePlan: null,
+                ),
+              )
+              .toList(),
         );
-  }
-
-  void _fallbackResetSessionUploadsForMultipartSend(String nonce) {
-    final MessageUploadSession? session = ref
-        .read(messageUploadSessionsProvider)[nonce];
-    if (session == null) {
-      return;
-    }
-    ref.read(messageUploadSessionsProvider.notifier).updateSessionAttachments(
-      nonce,
-      session.attachments
-          .map(
-            (PendingAttachment a) => a.copyWith(
-              status: PendingAttachmentStatus.pending,
-              uploadProgress: 0,
-              uploadFilename: null,
-              multipartUploadId: null,
-              fileSizePlan: null,
-              contentTypePlan: null,
-            ),
-          )
-          .toList(),
-    );
   }
 
   void _patchAttachment(

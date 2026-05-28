@@ -166,11 +166,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (!perms.isComposerEnabled) {
       return KeyEventResult.ignored;
     }
-    if (!composerHasSendableContent(
-      ref,
-      channelId,
-      _controller.toWireText(),
-    )) {
+    if (!composerHasSendableContent(ref, channelId, _controller.toWireText())) {
       return KeyEventResult.ignored;
     }
     if (_isOverCharacterLimit(ref)) {
@@ -231,9 +227,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         maxLength: maxMessageLength,
         canAttachOnExceed: () =>
             perms.canShowAttachControls && perms.isAttachEnabled,
-        onPasteExceedsLimit: (String pastedText) => unawaited(
-          _handlePasteExceedsLimit(pastedText, channelId),
-        ),
+        onPasteExceedsLimit: (String pastedText) =>
+            unawaited(_handlePasteExceedsLimit(pastedText, channelId)),
       ),
     ];
   }
@@ -250,8 +245,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     required int maxLines,
     TextAlignVertical? textAlignVertical,
   }) {
-    final bool showCounter =
-        contentLength > (maxMessageLength * 0.8).floor();
+    final bool showCounter = contentLength > (maxMessageLength * 0.8).floor();
     final EdgeInsets basePadding = decoration.contentPadding is EdgeInsets
         ? decoration.contentPadding! as EdgeInsets
         : const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
@@ -465,9 +459,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       chatViewModelProvider.select((s) => s.channelId),
     );
     ref.watch(
-      cloudUploadControllerProvider(channelId).select(
-        (CloudComposerAttachments a) => a.items.length,
-      ),
+      cloudUploadControllerProvider(
+        channelId,
+      ).select((CloudComposerAttachments a) => a.items.length),
     );
     final int maxMessageLength = ref.watch(maxMessageLengthProvider);
     final int premiumMaxLength = ref.watch(premiumMaxMessageLengthProvider);
@@ -483,214 +477,232 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         final bool isOverCharacterLimit = contentLength > maxMessageLength;
         return Row(
           children: [
-        if (perms.canShowAttachControls) ...[
-          FluxerButton.secondary(
-            icon: PhosphorIconsFill.plusCircle,
-            isSquare: true,
-            size: FluxerButtonSize.compact,
-            onPressed: perms.isAttachEnabled
-                ? () => unawaited(_pickAttachments(context))
-                : null,
-          ),
-          if (_isDesktop) ...[
+            if (perms.canShowAttachControls) ...[
+              FluxerButton.secondary(
+                icon: PhosphorIconsFill.plusCircle,
+                isSquare: true,
+                size: FluxerButtonSize.compact,
+                onPressed: perms.isAttachEnabled
+                    ? () => unawaited(_pickAttachments(context))
+                    : null,
+              ),
+              if (_isDesktop) ...[
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: const PhosphorIcon(
+                    PhosphorIconsFill.clipboard,
+                    size: 22,
+                  ),
+                  color: context.colors.interactiveNormal,
+                  tooltip: FluxerLocalizations.of(
+                    context,
+                  ).chatAttachmentPasteTooltip,
+                  onPressed: perms.isAttachEnabled
+                      ? () => unawaited(_pasteClipboardAttachments())
+                      : null,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
+                ),
+              ],
+              const SizedBox(width: 8),
+            ],
+            Expanded(
+              child: Opacity(
+                opacity: perms.isComposerEnabled
+                    ? 1.0
+                    : _kMessageInputDisabledOpacity,
+                child: _buildComposerField(
+                  context: context,
+                  channelId: channelId,
+                  perms: perms,
+                  contentLength: contentLength,
+                  maxMessageLength: maxMessageLength,
+                  premiumMaxLength: premiumMaxLength,
+                  minLines: 1,
+                  maxLines: 5,
+                  decoration: InputDecoration(
+                    hintText: perms.showsNoSendPermissionHint
+                        ? FluxerLocalizations.of(
+                            context,
+                          ).channelNoSendPermissionHint
+                        : _resolveHintText(),
+                    hintMaxLines: 1,
+                    hintStyle: TextStyle(
+                      color: context.colors.textTertiaryMuted,
+                      fontSize: 16,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    filled: true,
+                    fillColor: context.colors.backgroundTertiary,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(width: 4),
-            IconButton(
-              icon: const PhosphorIcon(PhosphorIconsFill.clipboard, size: 22),
-              color: context.colors.interactiveNormal,
-              tooltip: FluxerLocalizations.of(
-                context,
-              ).chatAttachmentPasteTooltip,
-              onPressed: perms.isAttachEnabled
-                  ? () => unawaited(_pasteClipboardAttachments())
-                  : null,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            if (!hasSendable) ...[
+              IconButton(
+                icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
+                color: context.colors.interactiveNormal,
+                onPressed: perms.isComposerEnabled ? () {} : null,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+              if (perms.canShowEmbedControls)
+                FluxerEmojiPickerPopout(
+                  key: _gifPickerKey,
+                  initialTab: ExpressionPickerTab.gifs,
+                  channelId: channelId,
+                  onEmojiSelected: (emoji) =>
+                      _insertEmoji(emoji.name, emoji.surrogates),
+                  onGifSelected: _handleGifSelection,
+                  onStickerSelected: (sticker) {
+                    _handleStickerSelection(sticker);
+                    _gifPickerKey.currentState?.close();
+                  },
+                  onFavoriteMemeSelected: (selection) {
+                    _handleFavoriteMemeSelection(selection);
+                    if (selection.autoSend) {
+                      _gifPickerKey.currentState?.close();
+                    }
+                  },
+                  child: IconButton(
+                    icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
+                    color: context.colors.interactiveNormal,
+                    onPressed: perms.isComposerEnabled
+                        ? () => _gifPickerKey.currentState?.toggle()
+                        : null,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                  ),
+                ),
+              if (perms.canShowAttachControls)
+                FluxerEmojiPickerPopout(
+                  key: _mediaPickerKey,
+                  initialTab: ExpressionPickerTab.memes,
+                  channelId: channelId,
+                  onEmojiSelected: (emoji) =>
+                      _insertEmoji(emoji.name, emoji.surrogates),
+                  onGifSelected: _handleGifSelection,
+                  onStickerSelected: (sticker) {
+                    _handleStickerSelection(sticker);
+                    _mediaPickerKey.currentState?.close();
+                  },
+                  onFavoriteMemeSelected: (selection) {
+                    _handleFavoriteMemeSelection(selection);
+                    if (selection.autoSend) {
+                      _mediaPickerKey.currentState?.close();
+                    }
+                  },
+                  child: IconButton(
+                    icon: const PhosphorIcon(PhosphorIconsFill.image, size: 24),
+                    color: context.colors.interactiveNormal,
+                    onPressed: perms.isComposerEnabled
+                        ? () => _mediaPickerKey.currentState?.toggle()
+                        : null,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                  ),
+                ),
+              FluxerEmojiPickerPopout(
+                key: _stickerPickerKey,
+                initialTab: ExpressionPickerTab.stickers,
+                channelId: channelId,
+                onEmojiSelected: (emoji) =>
+                    _insertEmoji(emoji.name, emoji.surrogates),
+                onGifSelected: _handleGifSelection,
+                onStickerSelected: (sticker) {
+                  _handleStickerSelection(sticker);
+                  _stickerPickerKey.currentState?.close();
+                },
+                onFavoriteMemeSelected: (selection) {
+                  _handleFavoriteMemeSelection(selection);
+                  if (selection.autoSend) {
+                    _stickerPickerKey.currentState?.close();
+                  }
+                },
+                child: IconButton(
+                  icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
+                  color: context.colors.interactiveNormal,
+                  onPressed: perms.isComposerEnabled
+                      ? () => _stickerPickerKey.currentState?.toggle()
+                      : null,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
+                ),
+              ),
+              FluxerEmojiPickerPopout(
+                key: _expressionPickerKey,
+                channelId: channelId,
+                onEmojiSelected: (emoji) =>
+                    _insertEmoji(emoji.name, emoji.surrogates),
+                onGifSelected: _handleGifSelection,
+                onStickerSelected: (sticker) {
+                  _handleStickerSelection(sticker);
+                  _expressionPickerKey.currentState?.close();
+                },
+                onFavoriteMemeSelected: (selection) {
+                  _handleFavoriteMemeSelection(selection);
+                  if (selection.autoSend) {
+                    _expressionPickerKey.currentState?.close();
+                  }
+                },
+                child: IconButton(
+                  icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
+                  color: context.colors.interactiveNormal,
+                  onPressed: perms.isComposerEnabled
+                      ? () => _expressionPickerKey.currentState?.toggle()
+                      : null,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
+                ),
+              ),
+            ],
+            SizedBox(
+              height: 24,
+              child: VerticalDivider(
+                color: context.colors.borderColor,
+                width: 16,
+                thickness: 1,
+              ),
             ),
-          ],
-          const SizedBox(width: 8),
-        ],
-        Expanded(
-          child: Opacity(
-            opacity: perms.isComposerEnabled
-                ? 1.0
-                : _kMessageInputDisabledOpacity,
-            child: _buildComposerField(
-              context: context,
-              channelId: channelId,
+            _sendAndVoiceButton(
+              context,
+              chatNotifier,
               perms: perms,
-              contentLength: contentLength,
-              maxMessageLength: maxMessageLength,
-              premiumMaxLength: premiumMaxLength,
-              minLines: 1,
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintText: perms.showsNoSendPermissionHint
-                    ? FluxerLocalizations.of(
-                        context,
-                      ).channelNoSendPermissionHint
-                    : _resolveHintText(),
-                hintMaxLines: 1,
-                hintStyle: TextStyle(
-                  color: context.colors.textTertiaryMuted,
-                  fontSize: 16,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                filled: true,
-                fillColor: context.colors.backgroundTertiary,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+              hasSendable: hasSendable,
+              isOverCharacterLimit: isOverCharacterLimit,
             ),
-          ),
-        ),
-        const SizedBox(width: 4),
-        if (!hasSendable) ...[
-          IconButton(
-            icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
-            color: context.colors.interactiveNormal,
-            onPressed: perms.isComposerEnabled ? () {} : null,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          ),
-          if (perms.canShowEmbedControls)
-            FluxerEmojiPickerPopout(
-              key: _gifPickerKey,
-              initialTab: ExpressionPickerTab.gifs,
-              channelId: channelId,
-              onEmojiSelected: (emoji) =>
-                  _insertEmoji(emoji.name, emoji.surrogates),
-              onGifSelected: _handleGifSelection,
-              onStickerSelected: (sticker) {
-                _handleStickerSelection(sticker);
-                _gifPickerKey.currentState?.close();
-              },
-              onFavoriteMemeSelected: (selection) {
-                _handleFavoriteMemeSelection(selection);
-                if (selection.autoSend) {
-                  _gifPickerKey.currentState?.close();
-                }
-              },
-              child: IconButton(
-                icon: const PhosphorIcon(PhosphorIconsFill.gif, size: 24),
-                color: context.colors.interactiveNormal,
-                onPressed: perms.isComposerEnabled
-                    ? () => _gifPickerKey.currentState?.toggle()
-                    : null,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-            ),
-          if (perms.canShowAttachControls)
-            FluxerEmojiPickerPopout(
-              key: _mediaPickerKey,
-              initialTab: ExpressionPickerTab.memes,
-              channelId: channelId,
-              onEmojiSelected: (emoji) =>
-                  _insertEmoji(emoji.name, emoji.surrogates),
-              onGifSelected: _handleGifSelection,
-              onStickerSelected: (sticker) {
-                _handleStickerSelection(sticker);
-                _mediaPickerKey.currentState?.close();
-              },
-              onFavoriteMemeSelected: (selection) {
-                _handleFavoriteMemeSelection(selection);
-                if (selection.autoSend) {
-                  _mediaPickerKey.currentState?.close();
-                }
-              },
-              child: IconButton(
-                icon: const PhosphorIcon(PhosphorIconsFill.image, size: 24),
-                color: context.colors.interactiveNormal,
-                onPressed: perms.isComposerEnabled
-                    ? () => _mediaPickerKey.currentState?.toggle()
-                    : null,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-            ),
-          FluxerEmojiPickerPopout(
-            key: _stickerPickerKey,
-            initialTab: ExpressionPickerTab.stickers,
-            channelId: channelId,
-            onEmojiSelected: (emoji) =>
-                _insertEmoji(emoji.name, emoji.surrogates),
-            onGifSelected: _handleGifSelection,
-            onStickerSelected: (sticker) {
-              _handleStickerSelection(sticker);
-              _stickerPickerKey.currentState?.close();
-            },
-            onFavoriteMemeSelected: (selection) {
-              _handleFavoriteMemeSelection(selection);
-              if (selection.autoSend) {
-                _stickerPickerKey.currentState?.close();
-              }
-            },
-            child: IconButton(
-              icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
-              color: context.colors.interactiveNormal,
-              onPressed: perms.isComposerEnabled
-                  ? () => _stickerPickerKey.currentState?.toggle()
-                  : null,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            ),
-          ),
-          FluxerEmojiPickerPopout(
-            key: _expressionPickerKey,
-            channelId: channelId,
-            onEmojiSelected: (emoji) =>
-                _insertEmoji(emoji.name, emoji.surrogates),
-            onGifSelected: _handleGifSelection,
-            onStickerSelected: (sticker) {
-              _handleStickerSelection(sticker);
-              _expressionPickerKey.currentState?.close();
-            },
-            onFavoriteMemeSelected: (selection) {
-              _handleFavoriteMemeSelection(selection);
-              if (selection.autoSend) {
-                _expressionPickerKey.currentState?.close();
-              }
-            },
-            child: IconButton(
-              icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
-              color: context.colors.interactiveNormal,
-              onPressed: perms.isComposerEnabled
-                  ? () => _expressionPickerKey.currentState?.toggle()
-                  : null,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            ),
-          ),
-        ],
-        SizedBox(
-          height: 24,
-          child: VerticalDivider(
-            color: context.colors.borderColor,
-            width: 16,
-            thickness: 1,
-          ),
-        ),
-        _sendAndVoiceButton(
-          context,
-          chatNotifier,
-          perms: perms,
-          hasSendable: hasSendable,
-          isOverCharacterLimit: isOverCharacterLimit,
-        ),
           ],
         );
       },
@@ -706,9 +718,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       chatViewModelProvider.select((s) => s.channelId),
     );
     ref.watch(
-      cloudUploadControllerProvider(channelId).select(
-        (CloudComposerAttachments a) => a.items.length,
-      ),
+      cloudUploadControllerProvider(
+        channelId,
+      ).select((CloudComposerAttachments a) => a.items.length),
     );
 
     final int maxMessageLength = ref.watch(maxMessageLengthProvider);
@@ -725,92 +737,92 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         final bool isOverCharacterLimit = contentLength > maxMessageLength;
         return Row(
           children: [
-        if (perms.canShowAttachControls) ...[
-          FluxerButton.circle(
-            icon: PhosphorIconsBold.plus,
-            variant: FluxerButtonVariant.secondary,
-            size: FluxerButtonSize.small,
-            iconSize: 20,
-            onPressed: perms.isAttachEnabled
-                ? () => unawaited(_pickAttachments(context))
-                : null,
-          ),
-          const SizedBox(width: 8),
-        ],
-        Expanded(
-          child: Opacity(
-            opacity: perms.isComposerEnabled
-                ? 1.0
-                : _kMessageInputDisabledOpacity,
-            child: _buildComposerField(
-              context: context,
-              channelId: channelId,
-              perms: perms,
-              contentLength: contentLength,
-              maxMessageLength: maxMessageLength,
-              premiumMaxLength: premiumMaxLength,
-              minLines: 1,
-              maxLines: 6,
-              decoration: InputDecoration(
-                hintText: perms.showsNoSendPermissionHint
-                    ? FluxerLocalizations.of(
-                        context,
-                      ).channelNoSendPermissionHint
-                    : _resolveHintText(),
-                hintMaxLines: 1,
-                hintStyle: TextStyle(
-                  color: context.colors.textTertiaryMuted,
-                  fontSize: 16,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                filled: true,
-                fillColor: context.colors.backgroundTertiary,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                isDense: true,
-                suffixIcon: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: _kMobileComposerSuffixVerticalPadding,
-                    horizontal: _kMobileComposerSuffixHorizontalPadding,
+            if (perms.canShowAttachControls) ...[
+              FluxerButton.circle(
+                icon: PhosphorIconsBold.plus,
+                variant: FluxerButtonVariant.secondary,
+                size: FluxerButtonSize.small,
+                iconSize: 20,
+                onPressed: perms.isAttachEnabled
+                    ? () => unawaited(_pickAttachments(context))
+                    : null,
+              ),
+              const SizedBox(width: 8),
+            ],
+            Expanded(
+              child: Opacity(
+                opacity: perms.isComposerEnabled
+                    ? 1.0
+                    : _kMessageInputDisabledOpacity,
+                child: _buildComposerField(
+                  context: context,
+                  channelId: channelId,
+                  perms: perms,
+                  contentLength: contentLength,
+                  maxMessageLength: maxMessageLength,
+                  premiumMaxLength: premiumMaxLength,
+                  minLines: 1,
+                  maxLines: 6,
+                  decoration: InputDecoration(
+                    hintText: perms.showsNoSendPermissionHint
+                        ? FluxerLocalizations.of(
+                            context,
+                          ).channelNoSendPermissionHint
+                        : _resolveHintText(),
+                    hintMaxLines: 1,
+                    hintStyle: TextStyle(
+                      color: context.colors.textTertiaryMuted,
+                      fontSize: 16,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    filled: true,
+                    fillColor: context.colors.backgroundTertiary,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    isDense: true,
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: _kMobileComposerSuffixVerticalPadding,
+                        horizontal: _kMobileComposerSuffixHorizontalPadding,
+                      ),
+                      child: _buildMobilePickerButton(context, perms),
+                    ),
+                    suffixIconConstraints: const BoxConstraints(
+                      minWidth: _kMobileComposerSuffixWidth,
+                      maxWidth: _kMobileComposerSuffixWidth,
+                      minHeight: _kMobileComposerSuffixHeight,
+                      maxHeight: _kMobileComposerSuffixHeight,
+                    ),
                   ),
-                  child: _buildMobilePickerButton(context, perms),
-                ),
-                suffixIconConstraints: const BoxConstraints(
-                  minWidth: _kMobileComposerSuffixWidth,
-                  maxWidth: _kMobileComposerSuffixWidth,
-                  minHeight: _kMobileComposerSuffixHeight,
-                  maxHeight: _kMobileComposerSuffixHeight,
                 ),
               ),
             ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Padding(
-          padding: const EdgeInsetsGeometry.only(bottom: 1),
-          child: _sendAndVoiceButton(
-            context,
-            chatNotifier,
-            perms: perms,
-            hasSendable: hasSendable,
-            isOverCharacterLimit: isOverCharacterLimit,
-            size: FluxerButtonSize.small,
-          ),
-        ),
+            const SizedBox(width: 8),
+            Padding(
+              padding: const EdgeInsetsGeometry.only(bottom: 1),
+              child: _sendAndVoiceButton(
+                context,
+                chatNotifier,
+                perms: perms,
+                hasSendable: hasSendable,
+                isOverCharacterLimit: isOverCharacterLimit,
+                size: FluxerButtonSize.small,
+              ),
+            ),
           ],
         );
       },
@@ -956,12 +968,14 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   void _showNoSendPermissionToast() {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    ref.read(toastProvider.notifier).show(
-      FluxerToast(
-        message: l10n.channelNoSendPermissionHint,
-        variant: FluxerToastVariant.warning,
-      ),
-    );
+    ref
+        .read(toastProvider.notifier)
+        .show(
+          FluxerToast(
+            message: l10n.channelNoSendPermissionHint,
+            variant: FluxerToastVariant.warning,
+          ),
+        );
   }
 
   void _onSendPressed() {
@@ -1031,7 +1045,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final bool isEditing = ref.watch(
       chatViewModelProvider.select((s) => s.editingMessage != null),
     );
-    final bool isSlowmodeBlocked = !isEditing &&
+    final bool isSlowmodeBlocked =
+        !isEditing &&
         (ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false);
     final bool canUseVoice = perms.isVoiceEnabled && !isSlowmodeBlocked;
     final VoidCallback? sendOnPressed = !hasSendable || isOverCharacterLimit
@@ -1093,8 +1108,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                       onTap: () async {
                         close();
                         final ImagePicker picker = ImagePicker();
-                        final List<XFile> media =
-                            await picker.pickMultipleMedia(
+                        final List<XFile> media = await picker
+                            .pickMultipleMedia(
                               limit: kMaxAttachmentsPerMessage,
                             );
                         if (media.isEmpty) {
@@ -1138,9 +1153,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                       onTap: () async {
                         close();
                         final FilePickerResult? res =
-                            await FilePicker.pickFiles(
-                              allowMultiple: true,
-                            );
+                            await FilePicker.pickFiles(allowMultiple: true);
                         if (res == null) {
                           return;
                         }

@@ -404,14 +404,17 @@ class ChannelHeader extends ConsumerWidget {
           .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
           .value;
       final VoiceSessionState voice = ref.watch(voiceSessionProvider);
-      final Map<String, VoiceState> voiceStates = ref.watch(voiceStatesMapProvider);
+      final Map<String, VoiceState> voiceStates = ref.watch(
+        voiceStatesMapProvider,
+      );
       final bool isVoiceChannel = channel.type == ChannelType.voice;
       final Guild? guild = ref
-                .watch(guildListViewModelProvider)
-                .guilds
-                .where((Guild g) => g.id == channel.guildId)
-                .firstOrNull;
-      final bool e2eeEncrypted = isVoiceChannel &&
+          .watch(guildListViewModelProvider)
+          .guilds
+          .where((Guild g) => g.id == channel.guildId)
+          .firstOrNull;
+      final bool e2eeEncrypted =
+          isVoiceChannel &&
           isVoiceChannelE2eeEncryptedForIcon(
             voiceStates: voiceStates,
             guildId: channel.guildId,
@@ -429,7 +432,9 @@ class ChannelHeader extends ConsumerWidget {
     }
     if (dm != null) {
       final VoiceSessionState voice = ref.watch(voiceSessionProvider);
-      final Map<String, VoiceState> voiceStates = ref.watch(voiceStatesMapProvider);
+      final Map<String, VoiceState> voiceStates = ref.watch(
+        voiceStatesMapProvider,
+      );
       final bool showE2eeBadge = isDmCallE2eeEncryptedForHeader(
         voiceStates: voiceStates,
         channelId: dm.id,

@@ -3,22 +3,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 
 void main() {
-  test('upsertDraft stores and reads text with reply and forward ids', () async {
-    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-    addTearDown(db.close);
+  test(
+    'upsertDraft stores and reads text with reply and forward ids',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
 
-    await db.composerDraftDao.upsertDraft(
-      channelId: 'channel-1',
-      content: 'Hello draft',
-      replyToMessageId: 'msg-reply',
-      forwardFromMessageId: 'msg-forward',
-    );
+      await db.composerDraftDao.upsertDraft(
+        channelId: 'channel-1',
+        content: 'Hello draft',
+        replyToMessageId: 'msg-reply',
+        forwardFromMessageId: 'msg-forward',
+      );
 
-    final draft = await db.composerDraftDao.getDraft('channel-1');
-    expect(draft?.content, 'Hello draft');
-    expect(draft?.replyToMessageId, 'msg-reply');
-    expect(draft?.forwardFromMessageId, 'msg-forward');
-  });
+      final draft = await db.composerDraftDao.getDraft('channel-1');
+      expect(draft?.content, 'Hello draft');
+      expect(draft?.replyToMessageId, 'msg-reply');
+      expect(draft?.forwardFromMessageId, 'msg-forward');
+    },
+  );
 
   test('upsertDraft updates existing draft for channel', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());

@@ -18,10 +18,7 @@ import 'package:fluxer_dart/export.dart';
 enum JoinCommunityFailureKind { invalidInvite, apiError, unsupported }
 
 class JoinCommunityException implements Exception {
-  const JoinCommunityException({
-    required this.kind,
-    required this.message,
-  });
+  const JoinCommunityException({required this.kind, required this.message});
 
   final JoinCommunityFailureKind kind;
   final String message;
@@ -69,11 +66,7 @@ Future<void> joinCommunityViaInvite({
         );
       case 2:
       case 3:
-        await _joinPackInvite(
-          ref: ref,
-          code: parsedCode,
-          l10n: l10n,
-        );
+        await _joinPackInvite(ref: ref, code: parsedCode, l10n: l10n);
       default:
         throw JoinCommunityException(
           kind: JoinCommunityFailureKind.unsupported,
@@ -100,8 +93,9 @@ Future<void> _joinGuildInvite({
 }) async {
   final String guildId = invite.guild.id;
   final String channelId = invite.channel.id;
-  final Guild? existingGuild =
-      await ref.read(guildByIdProvider(guildId).future);
+  final Guild? existingGuild = await ref.read(
+    guildByIdProvider(guildId).future,
+  );
   if (existingGuild == null) {
     final client = ref.read(fluxerClientProvider);
     await client.invites.acceptInvite(inviteCode: code);
@@ -126,7 +120,9 @@ Future<void> _joinPackInvite({
 }) async {
   final client = ref.read(fluxerClientProvider);
   await client.invites.acceptInvite(inviteCode: code);
-  ref.read(toastProvider.notifier).show(
+  ref
+      .read(toastProvider.notifier)
+      .show(
         FluxerToast(
           message: l10n.addGuildPackInstalled,
           variant: FluxerToastVariant.success,
@@ -141,4 +137,3 @@ void _navigateToContent(WidgetRef ref, String path) {
   }
   ref.read(fluxerRouterProvider).go(path);
 }
-

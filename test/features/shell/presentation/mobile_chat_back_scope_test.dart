@@ -75,13 +75,13 @@ void main() {
     tester,
   ) async {
     late final ProviderContainer container;
-    final ShellPopupRouteObserver popupObserver = ShellPopupRouteObserver(
-      ({required bool hasOverlay}) {
-        container
-            .read(shellHasPopupOverlayProvider.notifier)
-            .setHasOverlay(value: hasOverlay);
-      },
-    );
+    final ShellPopupRouteObserver popupObserver = ShellPopupRouteObserver(({
+      required bool hasOverlay,
+    }) {
+      container
+          .read(shellHasPopupOverlayProvider.notifier)
+          .setHasOverlay(value: hasOverlay);
+    });
     final router = _routerFor(
       '/channels/guild/channel',
       navigatorObservers: [popupObserver],

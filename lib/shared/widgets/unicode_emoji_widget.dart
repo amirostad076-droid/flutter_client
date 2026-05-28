@@ -48,11 +48,7 @@ class UnicodeEmojiWidget extends StatelessWidget {
           if (!snapshot.hasData) {
             return const SizedBox.shrink();
           }
-          return SvgPicture.memory(
-            snapshot.data!,
-            width: size,
-            height: size,
-          );
+          return SvgPicture.memory(snapshot.data!, width: size, height: size);
         },
       ),
     );

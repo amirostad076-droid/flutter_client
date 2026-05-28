@@ -150,8 +150,7 @@ class _MessageReactionsSheetBodyState
                   horizontal: context.layout.s4,
                   vertical: context.layout.s2,
                 ),
-                itemCount:
-                    data.users.length + (data.isLoadingMore ? 1 : 0),
+                itemCount: data.users.length + (data.isLoadingMore ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index >= data.users.length) {
                     return const Padding(

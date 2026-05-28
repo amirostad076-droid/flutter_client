@@ -303,8 +303,7 @@ class VoiceSession extends _$VoiceSession {
       talker.debug('[Voice] Ignoring duplicate VOICE_SERVER_UPDATE in-flight.');
       return;
     }
-    final bool hasE2eeKey =
-        event.e2eeKey != null && event.e2eeKey!.isNotEmpty;
+    final bool hasE2eeKey = event.e2eeKey != null && event.e2eeKey!.isNotEmpty;
     talker.info(
       '[Voice] VOICE_SERVER_UPDATE accepted; starting LiveKit '
       '(channelId=$resolvedChannelId, connectionId=${event.connectionId}, '
@@ -325,9 +324,10 @@ class VoiceSession extends _$VoiceSession {
     if (guildId == null) {
       return true;
     }
-    return ref.read(guildListViewModelProvider).guilds.any(
-      (g) => g.id == guildId && g.hasVoiceE2ee,
-    );
+    return ref
+        .read(guildListViewModelProvider)
+        .guilds
+        .any((g) => g.id == guildId && g.hasVoiceE2ee);
   }
 
   void _logVoiceE2eeSnapshot(
@@ -396,21 +396,33 @@ class VoiceSession extends _$VoiceSession {
     }
     if (status == ChannelE2eeStatus.encrypted && state.e2eeKey != null) {
       unawaited(
-        room.setE2EEEnabled(true).then((_) {
-          talker.info('[Voice][E2EE] LiveKit encryption enabled (runtime sync).');
-        }).catchError((Object error) {
-          talker.warning('[Voice][E2EE] Failed to enable LiveKit E2EE: $error');
-        }),
+        room
+            .setE2EEEnabled(true)
+            .then((_) {
+              talker.info(
+                '[Voice][E2EE] LiveKit encryption enabled (runtime sync).',
+              );
+            })
+            .catchError((Object error) {
+              talker.warning(
+                '[Voice][E2EE] Failed to enable LiveKit E2EE: $error',
+              );
+            }),
       );
     } else if (status == ChannelE2eeStatus.broken) {
       unawaited(
-        room.setE2EEEnabled(false).then((_) {
-          talker.info(
-            '[Voice][E2EE] LiveKit encryption disabled (runtime sync).',
-          );
-        }).catchError((Object error) {
-          talker.warning('[Voice][E2EE] Failed to disable LiveKit E2EE: $error');
-        }),
+        room
+            .setE2EEEnabled(false)
+            .then((_) {
+              talker.info(
+                '[Voice][E2EE] LiveKit encryption disabled (runtime sync).',
+              );
+            })
+            .catchError((Object error) {
+              talker.warning(
+                '[Voice][E2EE] Failed to disable LiveKit E2EE: $error',
+              );
+            }),
       );
     }
   }
@@ -1149,50 +1161,47 @@ class VoiceSession extends _$VoiceSession {
     final EventsListener<RoomEvent> listener = room.createListener();
     _roomSfxListener = listener;
     final String? selfIdentity = room.localParticipant?.identity;
-    listener..on<ParticipantConnectedEvent>((
-      ParticipantConnectedEvent evt,
-    ) {
-      if (_intentionalLiveKitTeardown) {
-        return;
-      }
-      if (selfIdentity != null && evt.participant.identity == selfIdentity) {
-        return;
-      }
-      final bool isUserParticipant = evt.participant.identity.startsWith(
-        'user_',
-      );
-      unawaited(
-        ref
-            .read(fluxerSfxProvider)
-            .playOneShot(
-              isUserParticipant
-                  ? FluxerSfxClip.userJoin
-                  : FluxerSfxClip.viewerJoin,
-            ),
-      );
-    })
-    ..on<ParticipantDisconnectedEvent>((
-      ParticipantDisconnectedEvent evt,
-    ) {
-      if (_intentionalLiveKitTeardown) {
-        return;
-      }
-      if (selfIdentity != null && evt.participant.identity == selfIdentity) {
-        return;
-      }
-      final bool isUserParticipant = evt.participant.identity.startsWith(
-        'user_',
-      );
-      unawaited(
-        ref
-            .read(fluxerSfxProvider)
-            .playOneShot(
-              isUserParticipant
-                  ? FluxerSfxClip.userLeave
-                  : FluxerSfxClip.viewerLeave,
-            ),
-      );
-    });
+    listener
+      ..on<ParticipantConnectedEvent>((ParticipantConnectedEvent evt) {
+        if (_intentionalLiveKitTeardown) {
+          return;
+        }
+        if (selfIdentity != null && evt.participant.identity == selfIdentity) {
+          return;
+        }
+        final bool isUserParticipant = evt.participant.identity.startsWith(
+          'user_',
+        );
+        unawaited(
+          ref
+              .read(fluxerSfxProvider)
+              .playOneShot(
+                isUserParticipant
+                    ? FluxerSfxClip.userJoin
+                    : FluxerSfxClip.viewerJoin,
+              ),
+        );
+      })
+      ..on<ParticipantDisconnectedEvent>((ParticipantDisconnectedEvent evt) {
+        if (_intentionalLiveKitTeardown) {
+          return;
+        }
+        if (selfIdentity != null && evt.participant.identity == selfIdentity) {
+          return;
+        }
+        final bool isUserParticipant = evt.participant.identity.startsWith(
+          'user_',
+        );
+        unawaited(
+          ref
+              .read(fluxerSfxProvider)
+              .playOneShot(
+                isUserParticipant
+                    ? FluxerSfxClip.userLeave
+                    : FluxerSfxClip.viewerLeave,
+              ),
+        );
+      });
   }
 
   void _detachRoomSfxListener() {

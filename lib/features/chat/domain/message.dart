@@ -8,6 +8,7 @@ import 'package:fluxer_dart/export.dart';
 enum EmbedType { rich, image, gifv, link, video }
 
 enum MessageDeliveryState { sending, sent, failed }
+
 const int messageFlagSuppressEmbeds = 1 << 2;
 const int messageFlagSuppressNotifications = 1 << 12;
 const int messageFlagCompactAttachments = 1 << 17;
@@ -653,8 +654,7 @@ class Message {
           sdk.attachments?.map(Attachment.fromSdk).toList() ?? const [],
       stickers: sdk.stickers?.map(MessageSticker.fromSdk).toList() ?? const [],
       reactions: sdk.reactions?.map(Reaction.fromSdk).toList() ?? const [],
-      replyToId:
-          sdk.messageReference?.messageId ?? sdk.referencedMessage?.id,
+      replyToId: sdk.messageReference?.messageId ?? sdk.referencedMessage?.id,
       messageReference: sdk.messageReference != null
           ? MessageReference.fromSdk(sdk.messageReference!)
           : null,
@@ -950,8 +950,7 @@ class Message {
   bool get hasStickers => stickers.isNotEmpty;
   bool get isReply => replyToId != null;
 
-  String? get replyParentMessageId =>
-      replyToId ?? messageReference?.messageId;
+  String? get replyParentMessageId => replyToId ?? messageReference?.messageId;
 
   String get replyParentChannelId {
     final String? refChannelId = messageReference?.channelId;
@@ -960,6 +959,7 @@ class Message {
     }
     return channelId;
   }
+
   bool get hasForwardSnapshots => messageSnapshots.isNotEmpty;
   bool get suppressEmbeds => (flags & messageFlagSuppressEmbeds) != 0;
   bool get hasCompactAttachments =>

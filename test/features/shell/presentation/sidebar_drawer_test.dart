@@ -70,7 +70,9 @@ void main() {
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
-    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
+    await tester.pumpWidget(
+      _buildDrawerApp(container: container, router: router),
+    );
 
     // Mid-screen — not a leading edge strip — must still capture the drag.
     final gesture = await tester.startGesture(const Offset(200, 400));
@@ -93,7 +95,9 @@ void main() {
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
-    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
+    await tester.pumpWidget(
+      _buildDrawerApp(container: container, router: router),
+    );
     await tester.pumpAndSettle();
 
     expect(_sliderDx(tester), 400);
@@ -111,7 +115,9 @@ void main() {
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
-    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
+    await tester.pumpWidget(
+      _buildDrawerApp(container: container, router: router),
+    );
     await tester.pump();
 
     await tester.dragFrom(const Offset(10, 400), const Offset(260, 0));
@@ -131,7 +137,9 @@ void main() {
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
-    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
+    await tester.pumpWidget(
+      _buildDrawerApp(container: container, router: router),
+    );
     await tester.pump();
     await tester.dragFrom(const Offset(10, 400), const Offset(260, 0));
     await tester.pumpAndSettle();
@@ -163,7 +171,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
+    await tester.pumpWidget(
+      _buildDrawerApp(container: container, router: router),
+    );
     await tester.pump();
 
     await tester.dragFrom(const Offset(20, 400), const Offset(200, 0));
@@ -177,7 +187,9 @@ void main() {
     addTearDown(router.dispose);
     final container = _containerFor(router);
 
-    await tester.pumpWidget(_buildDrawerApp(container: container, router: router));
+    await tester.pumpWidget(
+      _buildDrawerApp(container: container, router: router),
+    );
 
     expect(find.byType(RepaintBoundary), findsAtLeastNWidgets(2));
   });

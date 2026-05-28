@@ -49,14 +49,18 @@ double? computeMessageUploadSendingProgress(MessageUploadSession session) {
   if (session.sendingProgress != null) {
     return session.sendingProgress!.clamp(0, 100);
   }
-  return computeMessageUploadSendingProgressFromAttachments(session.attachments);
+  return computeMessageUploadSendingProgressFromAttachments(
+    session.attachments,
+  );
 }
 
 double? computeMessageUploadSendingProgressFromAttachments(
   List<PendingAttachment> attachments,
 ) {
   final List<PendingAttachment> active = attachments
-      .where((PendingAttachment a) => a.status != PendingAttachmentStatus.failed)
+      .where(
+        (PendingAttachment a) => a.status != PendingAttachmentStatus.failed,
+      )
       .toList();
   if (active.isEmpty) {
     return null;

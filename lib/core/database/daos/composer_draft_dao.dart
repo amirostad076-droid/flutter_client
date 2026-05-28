@@ -10,9 +10,9 @@ class ComposerDraftDao extends DatabaseAccessor<FluxerDatabase>
   ComposerDraftDao(super.attachedDatabase);
 
   Future<ComposerDraft?> getDraft(String channelId) {
-    return (select(composerDrafts)
-          ..where((t) => t.channelId.equals(channelId)))
-        .getSingleOrNull();
+    return (select(
+      composerDrafts,
+    )..where((t) => t.channelId.equals(channelId))).getSingleOrNull();
   }
 
   Future<void> upsertDraft({
@@ -32,9 +32,9 @@ class ComposerDraftDao extends DatabaseAccessor<FluxerDatabase>
   }
 
   Future<void> deleteDraft(String channelId) {
-    return (delete(composerDrafts)
-          ..where((t) => t.channelId.equals(channelId)))
-        .go();
+    return (delete(
+      composerDrafts,
+    )..where((t) => t.channelId.equals(channelId))).go();
   }
 
   Future<void> clearAll() {

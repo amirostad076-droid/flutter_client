@@ -131,7 +131,10 @@ GoRouter fluxerRouter(Ref ref) {
   ref
     ..listen(authStateProvider, (_, _) => refreshNotifier.notify())
     ..listen(serverReachableProvider, (_, _) => refreshNotifier.notify())
-    ..listen(gatewayConnectionFailedProvider, (_, _) => refreshNotifier.notify())
+    ..listen(
+      gatewayConnectionFailedProvider,
+      (_, _) => refreshNotifier.notify(),
+    )
     ..listen(gatewayReadyProvider, (_, _) => refreshNotifier.notify())
     ..listen(appStartupProvider, (_, _) => refreshNotifier.notify());
 
@@ -147,18 +150,14 @@ GoRouter fluxerRouter(Ref ref) {
 
   final rootShellPopupRouteObserver = createShellPopupRouteObserver();
   final homeShellPopupRouteObserver = createShellPopupRouteObserver();
-  final notificationsShellPopupRouteObserver =
-      createShellPopupRouteObserver();
+  final notificationsShellPopupRouteObserver = createShellPopupRouteObserver();
   final youShellPopupRouteObserver = createShellPopupRouteObserver();
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/login',
     refreshListenable: refreshNotifier,
-    observers: [
-      ChannelPersistenceObserver(db),
-      rootShellPopupRouteObserver,
-    ],
+    observers: [ChannelPersistenceObserver(db), rootShellPopupRouteObserver],
     redirect: (context, state) {
       final location = state.matchedLocation;
       final isOnLoading = location == '/loading';
@@ -195,9 +194,7 @@ GoRouter fluxerRouter(Ref ref) {
       if (!isAuthenticated && !isLoggingIn) {
         return '/login';
       }
-      if (isAuthenticated &&
-          !isConnectionFailed &&
-          isLoggingIn) {
+      if (isAuthenticated && !isConnectionFailed && isLoggingIn) {
         return RoutePaths.me;
       }
       if (isAuthenticated &&

@@ -104,9 +104,7 @@ void main() {
       await db.readStateDao.upsertReadState(
         ReadStatesCompanion(
           channelId: const Value('channel-1'),
-          lastMessageId: Value(
-            snowflakeAtPreviousMillisecond(lastMessageId),
-          ),
+          lastMessageId: Value(snowflakeAtPreviousMillisecond(lastMessageId)),
         ),
       );
 

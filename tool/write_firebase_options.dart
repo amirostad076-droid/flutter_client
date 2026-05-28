@@ -74,7 +74,9 @@ String _generateFromJson(String jsonSource) {
   }
   final Object? android = decoded['android'];
   if (android is! Map<String, dynamic>) {
-    throw const FormatException('FIREBASE_OPTIONS_JSON must contain an "android" object');
+    throw const FormatException(
+      'FIREBASE_OPTIONS_JSON must contain an "android" object',
+    );
   }
   final String apiKey = _requireString(android, 'apiKey');
   final String appId = _requireString(android, 'appId');

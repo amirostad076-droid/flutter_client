@@ -76,9 +76,7 @@ void main() {
     setUp(() {
       final database = FluxerDatabase.forTesting(NativeDatabase.memory());
       container = ProviderContainer(
-        overrides: [
-          fluxerDatabaseProvider.overrideWithValue(database),
-        ],
+        overrides: [fluxerDatabaseProvider.overrideWithValue(database)],
       );
     });
 
@@ -87,9 +85,7 @@ void main() {
     });
 
     test('resolveSync returns loaded when parent is in channel messages', () {
-      final notifier = container.read(
-        messageReferencesProvider.notifier,
-      );
+      final notifier = container.read(messageReferencesProvider.notifier);
       final parent = _domainMessage(id: '100', channelId: 'channel-1');
       final resolution = notifier.resolveSync(
         channelId: 'channel-1',
@@ -101,9 +97,7 @@ void main() {
     });
 
     test('marks deleted after gateway delete event', () {
-      final notifier = container.read(
-        messageReferencesProvider.notifier,
-      );
+      final notifier = container.read(messageReferencesProvider.notifier);
       notifier.onMessageDeleted(channelId: 'channel-1', messageId: '100');
       final resolution = notifier.resolveSync(
         channelId: 'channel-1',
@@ -114,9 +108,7 @@ void main() {
     });
 
     test('caches parent from embedded referenced_message payload', () {
-      final notifier = container.read(
-        messageReferencesProvider.notifier,
-      );
+      final notifier = container.read(messageReferencesProvider.notifier);
       final reply = _domainMessage(id: '200', channelId: 'channel-1').copyWith(
         messageReference: _replyReference(
           channelId: 'channel-1',
@@ -144,9 +136,7 @@ void main() {
     });
 
     test('returns notLoaded when parent is unresolved', () {
-      final notifier = container.read(
-        messageReferencesProvider.notifier,
-      );
+      final notifier = container.read(messageReferencesProvider.notifier);
       final reply = _domainMessage(id: '200', channelId: 'channel-1').copyWith(
         messageReference: _replyReference(
           channelId: 'channel-1',
@@ -154,10 +144,7 @@ void main() {
         ),
         replyToId: '100',
       );
-      notifier.onMessagesLoaded(
-        channelId: 'channel-1',
-        messages: [reply],
-      );
+      notifier.onMessagesLoaded(channelId: 'channel-1', messages: [reply]);
       final resolution = notifier.resolveSync(
         channelId: 'channel-1',
         messageId: '100',

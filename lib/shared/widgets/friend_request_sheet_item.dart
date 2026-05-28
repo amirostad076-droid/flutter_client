@@ -206,10 +206,7 @@ class FriendRequestSheetItem extends ConsumerWidget {
       ref
           .read(toastProvider.notifier)
           .show(
-            FluxerToast(
-              message: message,
-              variant: FluxerToastVariant.danger,
-            ),
+            FluxerToast(message: message, variant: FluxerToastVariant.danger),
           );
     }
   }

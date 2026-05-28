@@ -13,9 +13,8 @@ class MobilePushRegistrationDao extends DatabaseAccessor<FluxerDatabase>
   MobilePushRegistrationDao(super.attachedDatabase);
 
   Future<MobilePushRegistration?> getForUser(String userId) => (select(
-        mobilePushRegistrations,
-      )..where((t) => t.userId.equals(userId)))
-          .getSingleOrNull();
+    mobilePushRegistrations,
+  )..where((t) => t.userId.equals(userId))).getSingleOrNull();
 
   Future<void> upsert({
     required String userId,
@@ -38,9 +37,8 @@ class MobilePushRegistrationDao extends DatabaseAccessor<FluxerDatabase>
   }
 
   Future<void> clearForUser(String userId) => (delete(
-        mobilePushRegistrations,
-      )..where((t) => t.userId.equals(userId)))
-          .go();
+    mobilePushRegistrations,
+  )..where((t) => t.userId.equals(userId))).go();
 
   /// Last known VAPID key from any logged-in user (for the UP background isolate).
   Future<void> saveVapidForUser({
@@ -49,12 +47,10 @@ class MobilePushRegistrationDao extends DatabaseAccessor<FluxerDatabase>
   }) async {
     final MobilePushRegistration? existing = await getForUser(userId);
     if (existing != null) {
-      await (update(mobilePushRegistrations)
-            ..where((t) => t.userId.equals(userId)))
-          .write(
-        MobilePushRegistrationsCompanion(
-          vapidPublicKey: Value(vapidPublicKey),
-        ),
+      await (update(
+        mobilePushRegistrations,
+      )..where((t) => t.userId.equals(userId))).write(
+        MobilePushRegistrationsCompanion(vapidPublicKey: Value(vapidPublicKey)),
       );
       return;
     }
@@ -78,17 +74,18 @@ class MobilePushRegistrationDao extends DatabaseAccessor<FluxerDatabase>
   }
 
   Future<String?> getCachedVapidPublicKey() async {
-    final MobilePushRegistration? globalRow =
-        await getForUser(kUnifiedPushGlobalVapidUserId);
+    final MobilePushRegistration? globalRow = await getForUser(
+      kUnifiedPushGlobalVapidUserId,
+    );
     final String? globalKey = globalRow?.vapidPublicKey;
     if (globalKey != null && globalKey.isNotEmpty) {
       return globalKey;
     }
-    final MobilePushRegistration? row = await (select(
-          mobilePushRegistrations,
-        )..where((t) => t.vapidPublicKey.isNotNull())
-          ..limit(1))
-        .getSingleOrNull();
+    final MobilePushRegistration? row =
+        await (select(mobilePushRegistrations)
+              ..where((t) => t.vapidPublicKey.isNotNull())
+              ..limit(1))
+            .getSingleOrNull();
     final String? key = row?.vapidPublicKey;
     if (key == null || key.isEmpty) {
       return null;

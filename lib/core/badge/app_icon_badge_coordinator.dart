@@ -27,7 +27,10 @@ class AppIconBadgeCoordinator extends _$AppIconBadgeCoordinator {
       }
       unawaited(AppIconBadgeService.update(next.count));
     });
-    ref.listen<String?>(currentUserIdProvider, (String? previous, String? next) {
+    ref.listen<String?>(currentUserIdProvider, (
+      String? previous,
+      String? next,
+    ) {
       if (next == null && previous != null) {
         unawaited(AppIconBadgeService.clear());
       }
@@ -41,9 +44,10 @@ class AppIconBadgeCoordinator extends _$AppIconBadgeCoordinator {
     }
     if (!kIsWeb && Platform.isAndroid) {
       unawaited(_pushSub?.cancel());
-      _pushSub = ref.read(pushServiceProvider).watchMessages().listen(
-        _onPushMessage,
-      );
+      _pushSub = ref
+          .read(pushServiceProvider)
+          .watchMessages()
+          .listen(_onPushMessage);
     }
     ref.onDispose(() {
       unawaited(_pushSub?.cancel());

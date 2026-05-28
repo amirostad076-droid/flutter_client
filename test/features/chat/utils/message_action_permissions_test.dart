@@ -42,10 +42,7 @@ void main() {
     });
 
     test('returns false when guild bits are null', () {
-      expect(
-        canManageMessagesInChannel(isDmChannel: false),
-        isFalse,
-      );
+      expect(canManageMessagesInChannel(isDmChannel: false), isFalse);
     });
 
     test('returns false when manageMessages bit is missing', () {
@@ -71,10 +68,7 @@ void main() {
 
   group('canPinMessageInChannel', () {
     test('returns true in DMs', () {
-      expect(
-        canPinMessageInChannel(isDmChannel: true),
-        isTrue,
-      );
+      expect(canPinMessageInChannel(isDmChannel: true), isTrue);
     });
 
     test('returns true with explicit pinMessages bit', () {
@@ -108,19 +102,13 @@ void main() {
     });
 
     test('returns false when guild bits are null', () {
-      expect(
-        canPinMessageInChannel(isDmChannel: false),
-        isFalse,
-      );
+      expect(canPinMessageInChannel(isDmChannel: false), isFalse);
     });
   });
 
   group('canAddReactionsInChannel', () {
     test('returns true in DMs', () {
-      expect(
-        canAddReactionsInChannel(isDmChannel: true),
-        isTrue,
-      );
+      expect(canAddReactionsInChannel(isDmChannel: true), isTrue);
     });
 
     test('returns true with addReactions bit', () {
@@ -144,10 +132,7 @@ void main() {
     });
 
     test('returns false when guild bits are null', () {
-      expect(
-        canAddReactionsInChannel(isDmChannel: false),
-        isFalse,
-      );
+      expect(canAddReactionsInChannel(isDmChannel: false), isFalse);
     });
   });
 
@@ -292,18 +277,12 @@ void main() {
         _domainMessage(type: messageTypeRecipientAdd).isUserMessage,
         isFalse,
       );
-      expect(
-        _domainMessage(type: messageTypeCall).isUserMessage,
-        isFalse,
-      );
+      expect(_domainMessage(type: messageTypeCall).isUserMessage, isFalse);
       expect(
         _domainMessage(type: messageTypeChannelPinnedMessage).isUserMessage,
         isFalse,
       );
-      expect(
-        _domainMessage(type: messageTypeUserJoin).isUserMessage,
-        isFalse,
-      );
+      expect(_domainMessage(type: messageTypeUserJoin).isUserMessage, isFalse);
     });
   });
 }

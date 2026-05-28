@@ -10,18 +10,16 @@ part 'fcm_notification_tap_binding.g.dart';
 
 @Riverpod(keepAlive: true)
 void fcmNotificationTapBinding(Ref ref) {
-  if (kIsWeb ||
-      !Platform.isAndroid ||
-      !PushProviderGuard.isFirebaseMessaging) {
+  if (kIsWeb || !Platform.isAndroid || !PushProviderGuard.isFirebaseMessaging) {
     return;
   }
-  FirebaseMessagingPushService.tapHost.setNotificationTapCallback(
-    (Map<String, String> payload) {
-      ref.read(pushNotificationTapHandlerProvider.notifier).handlePayload(
-            payload,
-          );
-    },
-  );
+  FirebaseMessagingPushService.tapHost.setNotificationTapCallback((
+    Map<String, String> payload,
+  ) {
+    ref
+        .read(pushNotificationTapHandlerProvider.notifier)
+        .handlePayload(payload);
+  });
   ref.onDispose(() {
     FirebaseMessagingPushService.tapHost.setNotificationTapCallback(null);
   });

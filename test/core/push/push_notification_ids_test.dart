@@ -21,9 +21,7 @@ void main() {
 
     test('falls back to message_id then id', () {
       expect(
-        resolvePushNotificationMessageId(<String, String>{
-          'message_id': '42',
-        }),
+        resolvePushNotificationMessageId(<String, String>{'message_id': '42'}),
         '42',
       );
       expect(

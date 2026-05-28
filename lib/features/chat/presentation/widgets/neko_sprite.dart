@@ -117,7 +117,8 @@ class _NekoSpriteState extends ConsumerState<NekoSprite>
     final int spanMs =
         _kNekoScratchMaxInterval.inMilliseconds -
         _kNekoScratchMinInterval.inMilliseconds;
-    final Duration delay = _kNekoScratchMinInterval +
+    final Duration delay =
+        _kNekoScratchMinInterval +
         Duration(milliseconds: _random.nextInt(spanMs + 1));
     _scratchScheduleTimer = Timer(delay, () {
       if (!mounted) {

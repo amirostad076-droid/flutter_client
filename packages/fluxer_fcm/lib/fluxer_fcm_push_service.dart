@@ -41,10 +41,12 @@ class FluxerFcmPushService {
   }
 
   Future<void> requestPermissions() async {
-    final NotificationSettings settings =
-        await FirebaseMessaging.instance.requestPermission();
+    final NotificationSettings settings = await FirebaseMessaging.instance
+        .requestPermission();
     if (kDebugMode) {
-      debugPrint('[FluxerFcmPushService] permission: ${settings.authorizationStatus}');
+      debugPrint(
+        '[FluxerFcmPushService] permission: ${settings.authorizationStatus}',
+      );
     }
   }
 
@@ -57,11 +59,12 @@ class FluxerFcmPushService {
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenedApp);
     FirebaseMessaging.instance.onTokenRefresh.listen((String token) {
@@ -69,8 +72,8 @@ class FluxerFcmPushService {
         _tokenRefresh.add(token);
       }
     });
-    final RemoteMessage? initialMessage =
-        await FirebaseMessaging.instance.getInitialMessage();
+    final RemoteMessage? initialMessage = await FirebaseMessaging.instance
+        .getInitialMessage();
     if (initialMessage != null) {
       _dispatchTap(initialMessage);
     }

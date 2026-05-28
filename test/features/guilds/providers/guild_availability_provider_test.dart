@@ -34,7 +34,9 @@ void main() {
       container.read(guildAvailabilityProvider.notifier).loadFromReady([
         {'id': 'g1', 'unavailable': true},
       ]);
-      container.read(guildAvailabilityProvider.notifier).setGuildAvailable('g1');
+      container
+          .read(guildAvailabilityProvider.notifier)
+          .setGuildAvailable('g1');
       expect(container.read(guildAvailabilityProvider), isEmpty);
     });
 

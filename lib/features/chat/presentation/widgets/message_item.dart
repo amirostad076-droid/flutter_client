@@ -312,9 +312,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       case MessageAction.report:
         widget.onReport?.call();
       case MessageAction.debugMessage:
-        unawaited(
-          showMessageDebugSheet(context, message: widget.message),
-        );
+        unawaited(showMessageDebugSheet(context, message: widget.message));
       case null:
         break;
     }
@@ -747,10 +745,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       ),
       ...msg.themes.map(
         (_) => wrapPart(
-          const Padding(
-            padding: EdgeInsets.only(top: 4),
-            child: EmbedTheme(),
-          ),
+          const Padding(padding: EdgeInsets.only(top: 4), child: EmbedTheme()),
         ),
       ),
       if (renderEmbeds && !msg.suppressEmbeds)
@@ -952,8 +947,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             context,
             msg,
             isMobile,
-            dimMessagePartsExceptAttachments:
-                dimMessagePartsExceptAttachments,
+            dimMessagePartsExceptAttachments: dimMessagePartsExceptAttachments,
             renderEmbeds: renderEmbeds,
             renderReactions: renderReactions,
             inlineAttachmentMedia: inlineAttachmentMedia,
