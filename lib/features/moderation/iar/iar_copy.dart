@@ -10,8 +10,8 @@ import 'package:fluxer_app/features/moderation/iar/iar_resolved_context.dart';
 import 'package:fluxer_app/features/ui/radio_group/fluxer_radio_group.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
-/// Header title for the path step is the sheet header itself — there is no
-/// visible step title on `path`. Step 2/3 expose explicit titles.
+/// Step title for header rendering. Returns the empty string for steps that
+/// reuse the sheet's own header (path) or render no title (guidance).
 String iarStepTitle(FluxerLocalizations l10n, IarStep step) {
   return switch (step) {
     IarStep.path => '',
@@ -22,7 +22,6 @@ String iarStepTitle(FluxerLocalizations l10n, IarStep step) {
   };
 }
 
-/// Display name for an [IarRuleCategory].
 String iarCategoryLabel(FluxerLocalizations l10n, IarRuleCategory category) {
   return switch (category) {
     IarRuleCategory.targetedHarm => l10n.iarCategoryTargetedHarmLabel,
@@ -50,9 +49,9 @@ String iarCategoryDescription(
 /// Display name for a rule reason within the message-report flow.
 ///
 /// Returns null when the reason does not surface in the message taxonomy
-/// (e.g. `inappropriateProfile`, `raidCoordination`, `terrorismExtremism` —
-/// those exist for user/guild flows the web supports but the mobile sheet
-/// does not yet expose).
+/// (`inappropriateProfile`, `raidCoordination`, `terrorismExtremism` are
+/// exclusive to the web's user/guild flows and have no mobile entry point
+/// yet).
 String? iarMessageReasonLabel(FluxerLocalizations l10n, IarRuleReason reason) {
   return switch (reason) {
     IarRuleReason.harassment => l10n.iarReasonHarassmentLabel,
@@ -178,8 +177,8 @@ String _iarPreferencePathLabel(FluxerLocalizations l10n, IarContext context) {
   };
 }
 
-/// Category radio options on step 2. Always returns the full set — there is
-/// no filtering by context.
+/// Category radio options on step 2. Always returns the full set; the
+/// category step does not filter by context.
 List<FluxerRadioItem<IarRuleCategory>> iarCategoryOptions(
   FluxerLocalizations l10n,
 ) {

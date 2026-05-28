@@ -28,7 +28,6 @@ class IarActionCardConfig {
     this.disabledTooltip,
   });
 
-  /// Stable identifier; doubles as the React-style key on the list.
   final String id;
   final String title;
   final String description;

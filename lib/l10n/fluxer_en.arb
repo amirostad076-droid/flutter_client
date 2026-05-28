@@ -4280,7 +4280,7 @@
   },
   "iarPathStepAriaLabel": "What do you need?",
   "@iarPathStepAriaLabel": {
-    "description": "Accessible label for the primary-path radio group on the first step of the IAR sheet. Not shown visually — the radios are labelled inline."
+    "description": "Accessible label for the primary-path radio group on the first step of the IAR sheet. Not shown visually; the radios are labelled inline."
   },
   "iarCategoryStepTitle": "What kind of rule was broken?",
   "@iarCategoryStepTitle": {
@@ -4592,7 +4592,7 @@
   "@iarCloseDmConfirmTitle": {
     "description": "Title of the confirm-close-DM bottom sheet shown after the user taps Close DM on the action card."
   },
-  "iarCloseDmConfirmDescription": "Close your current DM with {name}. This doesn't block them — you can reopen later.",
+  "iarCloseDmConfirmDescription": "Close your current DM with {name}. This doesn't block them; you can reopen later.",
   "@iarCloseDmConfirmDescription": {
     "description": "Body of the confirm-close-DM bottom sheet.",
     "placeholders": {

@@ -50,41 +50,38 @@ void main() {
       }
     });
 
-    test(
-      'rule reasons that share a wire category match the web mapping',
-      () {
-        // harassment and raidCoordination both route to harassment wire-side
-        // — `REPORT_CATEGORY_BY_REASON.{harassment,raid_coordination}.message`
-        // on the web.
-        expect(
-          iarReasonToMessageCategory(IarRuleReason.harassment),
-          equals(MessageReportCategoryEnum.harassment),
-        );
-        expect(
-          iarReasonToMessageCategory(IarRuleReason.raidCoordination),
-          equals(MessageReportCategoryEnum.harassment),
-        );
-        // terrorismExtremism shares violentContent with violence.
-        expect(
-          iarReasonToMessageCategory(IarRuleReason.terrorismExtremism),
-          equals(MessageReportCategoryEnum.violentContent),
-        );
-        expect(
-          iarReasonToMessageCategory(IarRuleReason.violence),
-          equals(MessageReportCategoryEnum.violentContent),
-        );
-        // Reasons that exist only for non-message contexts on the web
-        // (`inappropriateProfile`, `harmfulMisinformation`) fall through to
-        // the catch-all `other` wire value for messages.
-        expect(
-          iarReasonToMessageCategory(IarRuleReason.inappropriateProfile),
-          equals(MessageReportCategoryEnum.other),
-        );
-        expect(
-          iarReasonToMessageCategory(IarRuleReason.harmfulMisinformation),
-          equals(MessageReportCategoryEnum.other),
-        );
-      },
-    );
+    test('rule reasons that share a wire category match the web mapping', () {
+      // harassment and raidCoordination both route to harassment wire-side
+      // (`REPORT_CATEGORY_BY_REASON.{harassment,raid_coordination}.message`
+      // on the web).
+      expect(
+        iarReasonToMessageCategory(IarRuleReason.harassment),
+        equals(MessageReportCategoryEnum.harassment),
+      );
+      expect(
+        iarReasonToMessageCategory(IarRuleReason.raidCoordination),
+        equals(MessageReportCategoryEnum.harassment),
+      );
+      // terrorismExtremism shares violentContent with violence.
+      expect(
+        iarReasonToMessageCategory(IarRuleReason.terrorismExtremism),
+        equals(MessageReportCategoryEnum.violentContent),
+      );
+      expect(
+        iarReasonToMessageCategory(IarRuleReason.violence),
+        equals(MessageReportCategoryEnum.violentContent),
+      );
+      // Reasons that exist only for non-message contexts on the web
+      // (`inappropriateProfile`, `harmfulMisinformation`) fall through to
+      // the catch-all `other` wire value for messages.
+      expect(
+        iarReasonToMessageCategory(IarRuleReason.inappropriateProfile),
+        equals(MessageReportCategoryEnum.other),
+      );
+      expect(
+        iarReasonToMessageCategory(IarRuleReason.harmfulMisinformation),
+        equals(MessageReportCategoryEnum.other),
+      );
+    });
   });
 }

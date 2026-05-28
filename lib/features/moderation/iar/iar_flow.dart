@@ -1,4 +1,4 @@
-// In-App Reporting (IAR) — flow taxonomy.
+// In-App Reporting (IAR) flow taxonomy.
 //
 // Mirrors the web `IARFlowUtils.ts`. The user-facing taxonomy is richer than
 // the wire-format enum: the user picks a `IarPrimaryPath` (platform/community/
@@ -6,17 +6,17 @@
 // then a specific `IarRuleReason`. At submit time the reason is mapped onto
 // the backend `MessageReportCategoryEnum` via [iarReasonToMessageCategory].
 //
-// Mobile currently exposes only the `message` IAR context — `user` and
+// Mobile currently exposes only the `message` IAR context. The `user` and
 // `guild` contexts on the web are intentionally deferred until those entry
 // points exist on mobile.
 
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_dart/export.dart';
 
-/// Stepper position in the IAR flow.
+// Stepper position in the IAR flow.
 enum IarStep { path, category, reason, guidance, success }
 
-/// What the user is trying to do at the top of the flow.
+// What the user is trying to do at the top of the flow.
 enum IarPrimaryPath { platform, community, preference }
 
 /// Specific platform-rule reasons.
@@ -43,7 +43,7 @@ enum IarRuleReason {
   other,
 }
 
-/// High-level category groupings the user picks before drilling into a reason.
+// High-level category groupings the user picks before drilling into a reason.
 enum IarRuleCategory {
   targetedHarm,
   safetyMinors,
@@ -128,10 +128,8 @@ sealed class IarContext {
 
 class IarMessageContext extends IarContext {
   const IarMessageContext({required this.message, required this.guildId});
-
-  /// The message under report.
   final Message message;
 
-  /// Guild owning the channel, or `null` for DMs / group DMs.
+  /// Guild owning the channel, or null for DMs and group DMs.
   final String? guildId;
 }

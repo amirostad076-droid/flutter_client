@@ -3782,7 +3782,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String iarCloseDmConfirmDescription(String name) {
-    return 'Close your current DM with $name. This doesn\'t block them — you can reopen later.';
+    return 'Close your current DM with $name. This doesn\'t block them; you can reopen later.';
   }
 
   @override

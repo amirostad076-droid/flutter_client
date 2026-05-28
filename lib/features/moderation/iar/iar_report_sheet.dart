@@ -1,4 +1,4 @@
-// IAR report bottom sheet — full 5-step parity with the web `IARModal`.
+// IAR report bottom sheet: full 5-step parity with the web `IARModal`.
 //
 // Steps in order: path -> category -> reason -> success (the platform path)
 // or path -> guidance (the community/preference paths). The sheet header
@@ -409,9 +409,9 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
       }
     }
 
-    // Mobile only surfaces a single settings entry today — both the DM
-    // settings and call settings cards land on the same Privacy Dashboard
-    // page. We render only the DM-settings card to avoid two identical CTAs.
+    // Mobile only surfaces a single settings entry today. Both DM settings
+    // and call settings would land on the same Privacy Dashboard page, so we
+    // render only the DM-settings card to avoid two identical CTAs.
     if (ctx is IarMessageContext) {
       cards.add(
         IarActionCardConfig(

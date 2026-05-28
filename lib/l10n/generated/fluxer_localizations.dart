@@ -6008,7 +6008,7 @@ abstract class FluxerLocalizations {
   /// **'Report a rule violation, or find tools to manage contact and preferences.'**
   String get iarModalDescription;
 
-  /// Accessible label for the primary-path radio group on the first step of the IAR sheet. Not shown visually — the radios are labelled inline.
+  /// Accessible label for the primary-path radio group on the first step of the IAR sheet. Not shown visually; the radios are labelled inline.
   ///
   /// In en, this message translates to:
   /// **'What do you need?'**
@@ -6473,7 +6473,7 @@ abstract class FluxerLocalizations {
   /// Body of the confirm-close-DM bottom sheet.
   ///
   /// In en, this message translates to:
-  /// **'Close your current DM with {name}. This doesn\'t block them — you can reopen later.'**
+  /// **'Close your current DM with {name}. This doesn\'t block them; you can reopen later.'**
   String iarCloseDmConfirmDescription(String name);
 
   /// Title shown on the success step after a platform report is submitted.

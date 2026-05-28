@@ -1,8 +1,9 @@
 // Snapshot of derived state the IAR sheet needs.
 //
 // Mirrors the web `IARResolvedContext`. Mobile differs from the web in a few
-// places (no full `User` model — author lives on `Message`; no `isClaimed/
-// verified` account-gate concept yet) — those gaps are tracked inline.
+// places: no full `User` model (author lives on `Message`), and no
+// `isClaimed`/`verified` account-gate concept yet. Those gaps are tracked
+// inline.
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
@@ -87,7 +88,7 @@ class IarResolvedContext {
   /// True when the user is currently viewing the DM with the reported user.
   final bool isFocusedOnDmWithUser;
 
-  /// True when the current user owns [leaveableGuildId] — owners cannot leave
+  /// True when the current user owns [leaveableGuildId]. Owners cannot leave
   /// without transferring ownership, so the leave card is suppressed.
   final bool isLeaveableGuildOwner;
 
@@ -195,9 +196,9 @@ IarResolvedContext _resolveMessageContext(
       currentUserId != null &&
       leaveableGuild.ownerId == currentUserId;
 
-  // Permissions on the reported channel — read from the synchronous cache;
-  // we already `ref.watch(channelPermissionCacheProvider)` so we rebuild when
-  // the cache rebuilds.
+  // Permissions on the reported channel come from the synchronous cache. The
+  // outer call already watches `channelPermissionCacheProvider` so any cache
+  // update rebuilds the consumer.
   final int? channelPermissionBits = channelId.isEmpty || isDmChannel
       ? null
       : ref
