@@ -14,6 +14,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/domain/channel_unread_state.dart';
+import 'package:fluxer_app/features/channels/domain/hide_muted_channels_filter.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_participants.dart';
@@ -176,7 +177,6 @@ class GuildSidebar extends ConsumerWidget {
         ? ref.watch(guildMuteProvider(guildId)).value
         : null;
     final hideMutedChannels = muteState?.hideMutedChannels ?? false;
-    final guildMuted = muteState?.isMuted ?? false;
     final mutedSet = guildId != null
         ? ref.watch(mutedChannelIdsProvider(guildId)).value ?? const <String>{}
         : const <String>{};
@@ -188,9 +188,11 @@ class GuildSidebar extends ConsumerWidget {
                   name: category.name,
                   channels: category.channels
                       .where(
-                        (channel) =>
-                            channel.id == selectedId ||
-                            !_isChannelMuted(channel, mutedSet, guildMuted),
+                        (channel) => shouldShowChannelWhenHidingMuted(
+                          channelId: channel.id,
+                          mutedChannelIds: mutedSet,
+                          selectedChannelId: selectedId,
+                        ),
                       )
                       .toList(),
                 ),
@@ -217,7 +219,6 @@ class GuildSidebar extends ConsumerWidget {
                   channel,
                   channel.id == selectedId,
                   mutedSet: mutedSet,
-                  guildMuted: guildMuted,
                 ),
                 if (guildId != null && channel.type == ChannelType.voice)
                   VoiceChannelParticipantsList(
@@ -289,7 +290,6 @@ class GuildSidebar extends ConsumerWidget {
     Channel channel,
     bool isSelected, {
     Set<String>? mutedSet,
-    bool? guildMuted,
   }) {
     final unreadAsync = ref.watch(channelUnreadProvider(channel.id));
     final unread = unreadAsync.value;
@@ -578,12 +578,6 @@ class GuildSidebar extends ConsumerWidget {
 
 bool _isChannelDirectlyMuted(Channel channel, Set<String> mutedSet) {
   return mutedSet.contains(channel.id);
-}
-
-bool _isChannelMuted(Channel channel, Set<String> mutedSet, bool guildMuted) {
-  return guildMuted ||
-      mutedSet.contains(channel.id) ||
-      (channel.parentId != null && mutedSet.contains(channel.parentId));
 }
 
 bool _canMarkChannelRead(Channel channel) =>
