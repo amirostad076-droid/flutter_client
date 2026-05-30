@@ -77,10 +77,21 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     },
     onVoiceStateUpdate: (state) {
       ref.read(voiceStatesMapProvider.notifier).update(state);
+      ref.read(voiceSessionProvider.notifier).handleSelfVoiceStateUpdate(state);
       ref.read(voiceSessionProvider.notifier).syncE2eeFromVoiceStates();
     },
     onVoiceStatesBulk: (states) {
       ref.read(voiceStatesMapProvider.notifier).updateBulk(states);
+      final String? userId = currentUserId;
+      if (userId != null) {
+        for (final VoiceState vs in states) {
+          if (vs.userId == userId) {
+            ref
+                .read(voiceSessionProvider.notifier)
+                .handleSelfVoiceStateUpdate(vs);
+          }
+        }
+      }
       ref.read(voiceSessionProvider.notifier).syncE2eeFromVoiceStates();
     },
     onGatewayError: (event) {

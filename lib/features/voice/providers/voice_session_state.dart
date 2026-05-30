@@ -4,6 +4,7 @@ class VoiceSessionState {
   const VoiceSessionState({
     this.isConnecting = false,
     this.isConnected = false,
+    this.isReconnecting = false,
     this.errorMessage,
     this.guildId,
     this.channelId,
@@ -15,6 +16,7 @@ class VoiceSessionState {
 
   final bool isConnecting;
   final bool isConnected;
+  final bool isReconnecting;
   final String? errorMessage;
   final String? guildId;
   final String? channelId;
@@ -31,6 +33,7 @@ class VoiceSessionState {
   VoiceSessionState copyWith({
     bool? isConnecting,
     bool? isConnected,
+    bool? isReconnecting,
     String? errorMessage,
     String? guildId,
     String? channelId,
@@ -45,6 +48,7 @@ class VoiceSessionState {
     return VoiceSessionState(
       isConnecting: isConnecting ?? this.isConnecting,
       isConnected: isConnected ?? this.isConnected,
+      isReconnecting: isReconnecting ?? this.isReconnecting,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       guildId: guildId ?? this.guildId,
       channelId: channelId ?? this.channelId,

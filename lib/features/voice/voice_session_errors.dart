@@ -11,13 +11,16 @@ const String kVoiceSessionErrorScreenShareToggle =
 const String kVoiceSessionErrorScreenSharePermissionDenied =
     'VOICE_ERR_SCREEN_SHARE_PERM';
 
-/// Screen-share toggle being invoked on a platform or device
+/// Screen share toggle being invoked on a platform or device
 /// that doesn't support it.
 const String kVoiceSessionErrorScreenShareUnsupported =
     'VOICE_ERR_SCREEN_SHARE_UNSUPPORTED';
 
-/// Join rejected because the channel requires an E2EE-capable client.
+/// Join rejected because the channel requires an E2EE capable client.
 const String kVoiceSessionErrorE2eeRequired = 'VOICE_ERR_E2EE_REQUIRED';
+
+/// Mic track publish failed, user may still be connected listen only.
+const String kVoiceSessionErrorMicPublish = 'VOICE_ERR_MIC_PUBLISH';
 
 /// Maps a stored `VoiceSessionState.errorMessage` to a localized
 /// human-readable string.
@@ -36,6 +39,8 @@ String resolveVoiceSessionErrorMessage(
       return l10n.voiceErrorScreenShareUnsupported;
     case kVoiceSessionErrorE2eeRequired:
       return l10n.voiceE2eeUpdateRequired;
+    case kVoiceSessionErrorMicPublish:
+      return l10n.voiceMicPublishFailedStayConnected;
     default:
       return message;
   }

@@ -5458,6 +5458,12 @@ abstract class FluxerLocalizations {
   /// **'This client must be updated before joining this encrypted call.'**
   String get voiceE2eeUpdateRequired;
 
+  /// Non-fatal voice error when LiveKit mic publish fails but the room connection remains active.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start your microphone. You\'re still in the call.'**
+  String get voiceMicPublishFailedStayConnected;
+
   /// Status in the in-page voice view while LiveKit is connecting.
   ///
   /// In en, this message translates to:

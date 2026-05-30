@@ -3888,6 +3888,10 @@
   "@voiceE2eeUpdateRequired": {
     "description": "Shown when the gateway rejects a voice join with VOICE_E2EE_REQUIRED."
   },
+  "voiceMicPublishFailedStayConnected": "Couldn't start your microphone. You're still in the call.",
+  "@voiceMicPublishFailedStayConnected": {
+    "description": "Non-fatal voice error when LiveKit mic publish fails but the room connection remains active."
+  },
   "voiceChannelStatusConnecting": "Connecting…",
   "@voiceChannelStatusConnecting": {
     "description": "Status in the in-page voice view while LiveKit is connecting."

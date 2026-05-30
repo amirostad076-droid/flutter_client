@@ -3212,6 +3212,10 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'This client must be updated before joining this encrypted call.';
 
   @override
+  String get voiceMicPublishFailedStayConnected =>
+      'Couldn\'t start your microphone. You\'re still in the call.';
+
+  @override
   String get voiceChannelStatusConnecting => 'Connecting…';
 
   @override
