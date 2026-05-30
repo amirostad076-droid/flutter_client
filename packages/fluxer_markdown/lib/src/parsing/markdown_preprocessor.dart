@@ -25,6 +25,7 @@ String preprocessFluxerMarkdown(String text, FluxerMarkdownFeatures features) {
 
   for (final line in lines) {
     var next = _normalizeSpacedInlineMarkdown(line);
+    next = _preserveAsciiArtBackslashUnderscores(next);
 
     if (!features.allowSubtext && next.startsWith('-# ')) {
       next = '\\$next';
@@ -50,6 +51,13 @@ String preprocessFluxerMarkdown(String text, FluxerMarkdownFeatures features) {
   }
 
   return output.join('\n');
+}
+
+String _preserveAsciiArtBackslashUnderscores(String text) {
+  return text.replaceAllMapped(
+    RegExp(r'(?<=[^\w*])\\(?!\\)_(?=[^\w*])'),
+    (_) => r'\\\_',
+  );
 }
 
 String _normalizeSpacedInlineMarkdown(String text) {
