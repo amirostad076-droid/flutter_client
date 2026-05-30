@@ -26,7 +26,7 @@ import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
-import 'package:fluxer_app/features/moderation/iar/iar_report_sheet.dart';
+import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -618,7 +618,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             onViewReactions: () =>
                 unawaited(showMessageReactionsSheet(context, message: msg)),
             onReport: () => unawaited(
-              showIarReportSheet(
+              showSimpleIarReportSheet(
                 context,
                 iarContext: IarMessageContext(message: msg, guildId: guildId),
               ),

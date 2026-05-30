@@ -6038,6 +6038,12 @@ abstract class FluxerLocalizations {
   /// **'Which rule was broken?'**
   String get iarReasonStepTitle;
 
+  /// Placeholder shown in the message-report reason dropdown before the user picks a rule.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a reason'**
+  String get iarReasonSelectHint;
+
   /// Toast shown when the user taps Continue on a step without selecting any radio option.
   ///
   /// In en, this message translates to:
@@ -6500,6 +6506,18 @@ abstract class FluxerLocalizations {
   /// **'Our safety team is reviewing it. We\'ll send you a DM and email once we\'ve reached a verdict.'**
   String get iarSuccessBody;
 
+  /// Title shown on the IAR success step when the message had already been reported by this user (HTTP 409); the existing report is under review.
+  ///
+  /// In en, this message translates to:
+  /// **'Already reported'**
+  String get iarAlreadyReportedTitle;
+
+  /// Body shown on the IAR success step when the message had already been reported by this user (HTTP 409).
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve already reported this message. Our safety team is reviewing it.'**
+  String get iarAlreadyReportedBody;
+
   /// Footer button label that returns the user to the previous IAR step.
   ///
   /// In en, this message translates to:
@@ -6529,6 +6547,48 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t send the report. Please try again.'**
   String get iarCouldntSendToast;
+
+  /// Toast shown when an IAR report submission is rejected for rate limiting (HTTP 429).
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re reporting too quickly. Please wait a moment and try again.'**
+  String get iarRateLimitedToast;
+
+  /// Toast shown after a message report is submitted successfully from the simple mobile report sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent. Our safety team will review it.'**
+  String get iarReportSentToast;
+
+  /// Body of the confirm-block-user bottom sheet shown after the user taps Block on the IAR action card.
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}? They won\'t be able to message you or send you friend requests. You can unblock them later.'**
+  String iarBlockUserConfirmDescription(String name);
+
+  /// Toast shown when blocking the reported user from the IAR action card fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t block this user. Please try again.'**
+  String get iarBlockUserFailedToast;
+
+  /// Toast shown after the DM with the reported user is closed from the IAR action card.
+  ///
+  /// In en, this message translates to:
+  /// **'DM closed.'**
+  String get iarCloseDmSuccessToast;
+
+  /// Toast shown when closing the DM from the IAR action card fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t close this DM. Please try again.'**
+  String get iarCloseDmFailedToast;
+
+  /// Toast shown when leaving the community from the IAR action card fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t leave this community. Please try again.'**
+  String get iarLeaveCommunityFailedToast;
 
   /// Action label that hides link previews / embeds on the message.
   ///

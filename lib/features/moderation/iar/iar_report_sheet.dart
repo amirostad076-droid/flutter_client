@@ -37,8 +37,11 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:go_router/go_router.dart';
 
-/// Opens the IAR sheet for the given [context]. Returns when the sheet is
-/// dismissed.
+/// Opens the multi-step IAR sheet (path → category → reason → success) for
+/// [iarContext]. Returns when the sheet is dismissed.
+///
+/// Retained for the planned desktop IAR UI. Mobile message reports now use the
+/// simpler single-screen `showSimpleIarReportSheet`, so this has no caller yet.
 Future<void> showIarReportSheet(
   BuildContext context, {
   required IarContext iarContext,
@@ -68,6 +71,7 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
   IarRuleCategory? _selectedCategory;
   IarRuleReason? _selectedReason;
   bool _submitting = false;
+  bool _alreadyReported = false;
 
   void _showToast(
     String message, {
@@ -160,12 +164,27 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
         setState(() => _step = IarStep.success);
       }
     } on Object catch (error, stack) {
-      talker.error('[IAR] Failed to submit report', error, stack);
-      if (mounted) {
-        _showToast(
-          l10n.iarCouldntSendToast,
-          variant: FluxerToastVariant.danger,
-        );
+      if (!mounted) {
+        return;
+      }
+      switch (classifyIarReportFailure(error)) {
+        case IarReportFailure.alreadyReported:
+          talker.debug('[IAR] Message already reported by this reporter');
+          setState(() {
+            _alreadyReported = true;
+            _step = IarStep.success;
+          });
+        case IarReportFailure.rateLimited:
+          _showToast(
+            l10n.iarRateLimitedToast,
+            variant: FluxerToastVariant.warning,
+          );
+        case IarReportFailure.generic:
+          talker.error('[IAR] Failed to submit report', error, stack);
+          _showToast(
+            l10n.iarCouldntSendToast,
+            variant: FluxerToastVariant.danger,
+          );
       }
     } finally {
       if (mounted) {
@@ -178,11 +197,32 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
   // Action card handlers
   // ---------------------------------------------------------------------
 
-  Future<void> _handleBlockUser(IarReportedUser user) async {
+  Future<void> _handleBlockUser(
+    BuildContext sheetContext,
+    FluxerLocalizations l10n,
+    IarReportedUser user,
+  ) async {
+    final confirmed = await FluxerConfirmSheet.show(
+      sheetContext,
+      title: l10n.iarActionBlockUserTitle,
+      description: l10n.iarBlockUserConfirmDescription(user.displayName),
+      confirmLabel: l10n.iarActionBlockUserButton,
+      isDanger: true,
+      onConfirm: () {},
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
     try {
       await ref.read(friendRepositoryProvider).blockUser(user.id);
     } on Object catch (error, stack) {
       talker.error('[IAR] Failed to block user', error, stack);
+      if (mounted) {
+        _showToast(
+          l10n.iarBlockUserFailedToast,
+          variant: FluxerToastVariant.danger,
+        );
+      }
     }
   }
 
@@ -199,10 +239,7 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
       webAppBase: InstanceEndpoints.webApp,
     );
     await Clipboard.setData(ClipboardData(text: link));
-    _showToast(
-      l10n.iarActionCopyMessageLinkTitle,
-      variant: FluxerToastVariant.success,
-    );
+    _showToast(l10n.copiedToClipboard, variant: FluxerToastVariant.success);
   }
 
   Future<void> _handleCloseDm(
@@ -229,7 +266,19 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
       return;
     }
     if (!ok) {
-      _showToast(l10n.iarCouldntSendToast, variant: FluxerToastVariant.danger);
+      _showToast(
+        l10n.iarCloseDmFailedToast,
+        variant: FluxerToastVariant.danger,
+      );
+      return;
+    }
+    _showToast(
+      l10n.iarCloseDmSuccessToast,
+      variant: FluxerToastVariant.success,
+    );
+    widget.close();
+    if (sheetContext.mounted) {
+      sheetContext.go(RoutePaths.me);
     }
   }
 
@@ -255,7 +304,7 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
       talker.error('[IAR] Failed to leave guild', error, stack);
       if (mounted) {
         _showToast(
-          l10n.iarCouldntSendToast,
+          l10n.iarLeaveCommunityFailedToast,
           variant: FluxerToastVariant.danger,
         );
       }
@@ -318,7 +367,8 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
           description: l10n.iarActionBlockUserDescription,
           label: l10n.iarActionBlockUserButton,
           style: IarActionCardButtonStyle.dangerSecondary,
-          onPressed: () => unawaited(_handleBlockUser(reportedUser)),
+          onPressed: () =>
+              unawaited(_handleBlockUser(sheetContext, l10n, reportedUser)),
         ),
       );
     }
@@ -547,17 +597,23 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
     final layout = sheetContext.layout;
     final textStyles = sheetContext.textStyles;
     final colors = sheetContext.colors;
+    final successTitle = _alreadyReported
+        ? l10n.iarAlreadyReportedTitle
+        : l10n.iarSuccessTitle;
+    final successBody = _alreadyReported
+        ? l10n.iarAlreadyReportedBody
+        : l10n.iarSuccessBody;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          l10n.iarSuccessTitle,
+          successTitle,
           style: textStyles.heading.copyWith(color: colors.textPrimary),
         ),
         SizedBox(height: layout.s2),
         Text(
-          l10n.iarSuccessBody,
+          successBody,
           style: textStyles.bodySmall.copyWith(color: colors.textSecondary),
         ),
         if (cards.isNotEmpty) ...[

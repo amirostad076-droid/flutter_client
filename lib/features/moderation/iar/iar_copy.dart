@@ -1,13 +1,9 @@
-// Localized copy for the IAR flow.
-//
-// Mirrors `IARModalCopy.ts`. Each helper maps an enum value (path, category,
-// reason) onto its `FluxerLocalizations` string. Helpers that produce option
-// lists pre-build `FluxerRadioItem` entries so the sheet only deals with
-// concrete UI shapes.
+// Localized copy for the IAR flow, mirroring web `IARModalCopy.ts`.
 
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_resolved_context.dart';
 import 'package:fluxer_app/features/ui/radio_group/fluxer_radio_group.dart';
+import 'package:fluxer_app/features/ui/select/fluxer_select.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 /// Step title for header rendering. Returns the empty string for steps that
@@ -209,6 +205,28 @@ List<FluxerRadioItem<IarRuleReason>> iarMessageReasonOptions(
     }
     items.add(
       FluxerRadioItem(
+        value: reason,
+        label: label,
+        description: iarMessageReasonDescription(l10n, reason),
+      ),
+    );
+  }
+  return items;
+}
+
+/// Reason dropdown options for the simple mobile message-report flow: the flat
+/// [messageReportReasons] list in web `getMessageRuleReasonOptions` order.
+List<FluxerSelectItem<IarRuleReason>> iarFlatMessageReasonSelectOptions(
+  FluxerLocalizations l10n,
+) {
+  final items = <FluxerSelectItem<IarRuleReason>>[];
+  for (final reason in messageReportReasons) {
+    final label = iarMessageReasonLabel(l10n, reason);
+    if (label == null) {
+      continue;
+    }
+    items.add(
+      FluxerSelectItem(
         value: reason,
         label: label,
         description: iarMessageReasonDescription(l10n, reason),

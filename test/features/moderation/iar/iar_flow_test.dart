@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_dart/export.dart';
@@ -81,6 +82,114 @@ void main() {
       expect(
         iarReasonToMessageCategory(IarRuleReason.harmfulMisinformation),
         equals(MessageReportCategoryEnum.other),
+      );
+    });
+  });
+
+  group('messageReportReasons', () {
+    // Order and membership mirror web `getMessageRuleReasonOptions`.
+    const expectedOrder = [
+      IarRuleReason.harassment,
+      IarRuleReason.hate,
+      IarRuleReason.violence,
+      IarRuleReason.matureContent,
+      IarRuleReason.childSafety,
+      IarRuleReason.harmfulMisinformation,
+      IarRuleReason.spamScams,
+      IarRuleReason.malware,
+      IarRuleReason.privacy,
+      IarRuleReason.impersonation,
+      IarRuleReason.illegalActivity,
+      IarRuleReason.selfHarm,
+      IarRuleReason.other,
+    ];
+    const excluded = {
+      IarRuleReason.terrorismExtremism,
+      IarRuleReason.inappropriateProfile,
+      IarRuleReason.raidCoordination,
+    };
+
+    test('has 13 unique reasons', () {
+      expect(messageReportReasons, hasLength(13));
+      expect(messageReportReasons.toSet(), hasLength(13));
+    });
+
+    test('matches the web message reason list in order', () {
+      expect(messageReportReasons, orderedEquals(expectedOrder));
+    });
+
+    test('together with the excluded reasons covers the whole enum', () {
+      expect({
+        ...messageReportReasons,
+        ...excluded,
+      }, equals(IarRuleReason.values.toSet()));
+      expect(
+        messageReportReasons.toSet().intersection(excluded),
+        isEmpty,
+        reason: 'a reason cannot be both listed and excluded',
+      );
+    });
+
+    test('every listed reason maps to a defined backend enum value', () {
+      for (final reason in messageReportReasons) {
+        expect(
+          iarReasonToMessageCategory(reason),
+          isNot(equals(MessageReportCategoryEnum.$unknown)),
+          reason: '$reason maps to \$unknown',
+        );
+      }
+    });
+  });
+
+  group('classifyIarReportFailure', () {
+    DioException dioWithStatus(int status) {
+      final options = RequestOptions(path: '/reports/message');
+      return DioException(
+        requestOptions: options,
+        response: Response(requestOptions: options, statusCode: status),
+      );
+    }
+
+    test('409 maps to alreadyReported', () {
+      expect(
+        classifyIarReportFailure(dioWithStatus(409)),
+        equals(IarReportFailure.alreadyReported),
+      );
+    });
+
+    test('429 maps to rateLimited', () {
+      expect(
+        classifyIarReportFailure(dioWithStatus(429)),
+        equals(IarReportFailure.rateLimited),
+      );
+    });
+
+    test('other status codes fall through to generic', () {
+      for (final status in [400, 403, 404, 500]) {
+        expect(
+          classifyIarReportFailure(dioWithStatus(status)),
+          equals(IarReportFailure.generic),
+          reason: 'status $status should be generic',
+        );
+      }
+    });
+
+    test('transport errors with no response map to generic', () {
+      final error = DioException(
+        requestOptions: RequestOptions(path: '/reports/message'),
+        type: DioExceptionType.connectionError,
+      );
+      expect(classifyIarReportFailure(error), equals(IarReportFailure.generic));
+    });
+
+    test('non-Dio errors map to generic', () {
+      expect(
+        classifyIarReportFailure(Exception('boom')),
+        equals(IarReportFailure.generic),
+      );
+      expect(
+        classifyIarReportFailure(StateError('nope')),
+        equals(IarReportFailure.generic),
       );
     });
   });

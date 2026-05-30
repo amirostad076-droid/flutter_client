@@ -4303,6 +4303,10 @@
   "@iarReasonStepTitle": {
     "description": "Title shown on the reason step of the IAR sheet after the user has picked a rule category."
   },
+  "iarReasonSelectHint": "Select a reason",
+  "@iarReasonSelectHint": {
+    "description": "Placeholder shown in the message-report reason dropdown before the user picks a rule."
+  },
   "iarPickAnOptionToast": "Pick an option to continue.",
   "@iarPickAnOptionToast": {
     "description": "Toast shown when the user taps Continue on a step without selecting any radio option."
@@ -4623,6 +4627,14 @@
   "@iarSuccessBody": {
     "description": "Body shown on the success step after a platform report is submitted."
   },
+  "iarAlreadyReportedTitle": "Already reported",
+  "@iarAlreadyReportedTitle": {
+    "description": "Title shown on the IAR success step when the message had already been reported by this user (HTTP 409); the existing report is under review."
+  },
+  "iarAlreadyReportedBody": "You've already reported this message. Our safety team is reviewing it.",
+  "@iarAlreadyReportedBody": {
+    "description": "Body shown on the IAR success step when the message had already been reported by this user (HTTP 409)."
+  },
   "iarBackButton": "Back",
   "@iarBackButton": {
     "description": "Footer button label that returns the user to the previous IAR step."
@@ -4642,6 +4654,40 @@
   "iarCouldntSendToast": "Couldn't send the report. Please try again.",
   "@iarCouldntSendToast": {
     "description": "Toast shown when the IAR report submission fails."
+  },
+  "iarRateLimitedToast": "You're reporting too quickly. Please wait a moment and try again.",
+  "@iarRateLimitedToast": {
+    "description": "Toast shown when an IAR report submission is rejected for rate limiting (HTTP 429)."
+  },
+  "iarReportSentToast": "Report sent. Our safety team will review it.",
+  "@iarReportSentToast": {
+    "description": "Toast shown after a message report is submitted successfully from the simple mobile report sheet."
+  },
+  "iarBlockUserConfirmDescription": "Block {name}? They won't be able to message you or send you friend requests. You can unblock them later.",
+  "@iarBlockUserConfirmDescription": {
+    "description": "Body of the confirm-block-user bottom sheet shown after the user taps Block on the IAR action card.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "ada"
+      }
+    }
+  },
+  "iarBlockUserFailedToast": "Couldn't block this user. Please try again.",
+  "@iarBlockUserFailedToast": {
+    "description": "Toast shown when blocking the reported user from the IAR action card fails."
+  },
+  "iarCloseDmSuccessToast": "DM closed.",
+  "@iarCloseDmSuccessToast": {
+    "description": "Toast shown after the DM with the reported user is closed from the IAR action card."
+  },
+  "iarCloseDmFailedToast": "Couldn't close this DM. Please try again.",
+  "@iarCloseDmFailedToast": {
+    "description": "Toast shown when closing the DM from the IAR action card fails."
+  },
+  "iarLeaveCommunityFailedToast": "Couldn't leave this community. Please try again.",
+  "@iarLeaveCommunityFailedToast": {
+    "description": "Toast shown when leaving the community from the IAR action card fails."
   },
   "chatMessageSuppressEmbeds": "Suppress Embeds",
   "@chatMessageSuppressEmbeds": {

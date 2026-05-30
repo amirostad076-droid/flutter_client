@@ -3533,6 +3533,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get iarReasonStepTitle => 'Which rule was broken?';
 
   @override
+  String get iarReasonSelectHint => 'Select a reason';
+
+  @override
   String get iarPickAnOptionToast => 'Pick an option to continue.';
 
   @override
@@ -3802,6 +3805,13 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Our safety team is reviewing it. We\'ll send you a DM and email once we\'ve reached a verdict.';
 
   @override
+  String get iarAlreadyReportedTitle => 'Already reported';
+
+  @override
+  String get iarAlreadyReportedBody =>
+      'You\'ve already reported this message. Our safety team is reviewing it.';
+
+  @override
   String get iarBackButton => 'Back';
 
   @override
@@ -3816,6 +3826,34 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   @override
   String get iarCouldntSendToast =>
       'Couldn\'t send the report. Please try again.';
+
+  @override
+  String get iarRateLimitedToast =>
+      'You\'re reporting too quickly. Please wait a moment and try again.';
+
+  @override
+  String get iarReportSentToast =>
+      'Report sent. Our safety team will review it.';
+
+  @override
+  String iarBlockUserConfirmDescription(String name) {
+    return 'Block $name? They won\'t be able to message you or send you friend requests. You can unblock them later.';
+  }
+
+  @override
+  String get iarBlockUserFailedToast =>
+      'Couldn\'t block this user. Please try again.';
+
+  @override
+  String get iarCloseDmSuccessToast => 'DM closed.';
+
+  @override
+  String get iarCloseDmFailedToast =>
+      'Couldn\'t close this DM. Please try again.';
+
+  @override
+  String get iarLeaveCommunityFailedToast =>
+      'Couldn\'t leave this community. Please try again.';
 
   @override
   String get chatMessageSuppressEmbeds => 'Suppress Embeds';
