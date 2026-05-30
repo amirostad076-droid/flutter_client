@@ -12,6 +12,7 @@ class UserProfileHeader extends StatelessWidget {
     required this.hasPlutonium,
     required this.customStatus,
     this.pronouns,
+    this.premiumLifetimeSequence,
     super.key,
   });
 
@@ -22,6 +23,7 @@ class UserProfileHeader extends StatelessWidget {
   final bool hasPlutonium;
   final String? customStatus;
   final String? pronouns;
+  final int? premiumLifetimeSequence;
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +75,11 @@ class UserProfileHeader extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-            UserProfileBadges(flags: flags, hasPlutonium: hasPlutonium),
+            UserProfileBadges(
+              flags: flags,
+              hasPlutonium: hasPlutonium,
+              premiumLifetimeSequence: premiumLifetimeSequence,
+            ),
           ],
         ),
         SizedBox(height: layout.s1),

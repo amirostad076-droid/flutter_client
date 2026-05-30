@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
+import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_badges.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
@@ -172,6 +173,7 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
                   textStyles,
                   layout,
                   l10n,
+                  Theme.of(context).brightness,
                 ),
               ),
             ),
@@ -188,9 +190,10 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
     FluxerTextTheme textStyles,
     FluxerLayoutTheme layout,
     FluxerLocalizations l10n,
+    Brightness brightness,
   ) {
     final effectiveBio = _effectiveBio();
-    final badges = _collectBadges(s, colors);
+    final badges = _collectBadges(s, colors, brightness);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -360,6 +363,7 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
   List<Widget> _collectBadges(
     UserSettingsViewState s,
     FluxerColorTheme colors,
+    Brightness brightness,
   ) {
     final badges = <Widget>[];
     final flags = s.publicFlags;
@@ -411,12 +415,7 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
       badges.add(
         Text(
           '#${s.premiumLifetimeSequence}',
-          style: TextStyle(
-            color: colors.brandPrimary,
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
+          style: visionaryIdBadgeTextStyle(colors, brightness),
         ),
       );
     }

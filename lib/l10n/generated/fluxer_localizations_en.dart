@@ -2122,6 +2122,11 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get userProfilePlutoniumBadgeTooltip => 'Fluxer Plutonium';
 
   @override
+  String userProfileVisionaryIdTooltip(int sequence) {
+    return 'Visionary ID #$sequence';
+  }
+
+  @override
   String userProfileMutualFriends(int count) {
     return 'Mutual Friends ($count)';
   }

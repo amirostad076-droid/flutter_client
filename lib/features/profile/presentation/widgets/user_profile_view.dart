@@ -294,6 +294,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
     required List<MemberRole> memberRoles,
     required int flags,
     required bool hasPlutonium,
+    required int? premiumLifetimeSequence,
     required List<UserPartialResponse> mutualFriends,
     required List<MutualGuildResponse> mutualCommunities,
     required UserProfileFullResponseUser? actionUser,
@@ -481,6 +482,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                   displayName: displayName,
                   flags: flags,
                   hasPlutonium: hasPlutonium,
+                  premiumLifetimeSequence: premiumLifetimeSequence,
                   customStatus: customStatus,
                   pronouns: pronouns,
                 ),
@@ -613,6 +615,12 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
             hasPlutonium:
                 settingsState.isPremium &&
                 !settingsState.effectivePremiumBadgeHidden,
+            premiumLifetimeSequence:
+                settingsState.hasLifetimePremium &&
+                    !settingsState.effectivePremiumBadgeMasked &&
+                    !settingsState.effectivePremiumBadgeSequenceHidden
+                ? settingsState.premiumLifetimeSequence
+                : null,
             mutualFriends: const <UserPartialResponse>[],
             mutualCommunities: const <MutualGuildResponse>[],
             actionUser: null,
@@ -717,6 +725,10 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
           hasPlutonium:
               response.premiumType != null &&
               response.premiumType != UserPremiumTypes.none,
+          premiumLifetimeSequence:
+              response.premiumType == UserPremiumTypes.lifetime
+              ? response.premiumLifetimeSequence
+              : null,
           mutualFriends: isCurrentProfile
               ? const <UserPartialResponse>[]
               : response.mutualFriends ?? const <UserPartialResponse>[],

@@ -2662,6 +2662,15 @@
   "@userProfilePlutoniumBadgeTooltip": {
     "description": "Tooltip and semantic label for the Plutonium badge on a user profile."
   },
+  "userProfileVisionaryIdTooltip": "Visionary ID #{sequence}",
+  "@userProfileVisionaryIdTooltip": {
+    "description": "Tooltip for the Visionary ID number shown next to the premium badge on a user profile.",
+    "placeholders": {
+      "sequence": {
+        "type": "int"
+      }
+    }
+  },
   "userProfileMutualFriends": "Mutual Friends ({count})",
   "@userProfileMutualFriends": {
     "description": "Profile mutual friends entry label with count.",

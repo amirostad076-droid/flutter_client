@@ -3754,6 +3754,12 @@ abstract class FluxerLocalizations {
   /// **'Fluxer Plutonium'**
   String get userProfilePlutoniumBadgeTooltip;
 
+  /// Tooltip for the Visionary ID number shown next to the premium badge on a user profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Visionary ID #{sequence}'**
+  String userProfileVisionaryIdTooltip(int sequence);
+
   /// Profile mutual friends entry label with count.
   ///
   /// In en, this message translates to:
