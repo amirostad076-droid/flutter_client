@@ -1,13 +1,11 @@
-// Compact preview of the reported subject (message author + snippet).
-//
-// Shown at the top of the path/category/reason steps so the user knows what
-// they're reporting at every step. Web equivalent: `IARModalPreview.tsx`.
-
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/message_item.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
-import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 
+/// Faithful preview of the reported message (reuses [MessageItem] in preview
+/// mode), matching web `IARModalPreview.tsx`.
 class IarPreview extends StatelessWidget {
   const IarPreview({required this.context, super.key});
 
@@ -16,81 +14,50 @@ class IarPreview extends StatelessWidget {
   @override
   Widget build(BuildContext ctx) {
     return switch (context) {
-      IarMessageContext(:final message) => _MessagePreviewCard(
-        authorName: message.authorName,
-        authorId: message.authorId,
-        authorAvatarColor: message.authorAvatarColor,
-        content: message.content,
+      IarMessageContext(:final message, :final guildId) => _MessagePreviewCard(
+        message: message,
+        guildId: guildId,
       ),
     };
   }
 }
 
 class _MessagePreviewCard extends StatelessWidget {
-  const _MessagePreviewCard({
-    required this.authorName,
-    required this.authorId,
-    required this.authorAvatarColor,
-    required this.content,
-  });
+  const _MessagePreviewCard({required this.message, this.guildId});
 
-  final String authorName;
-  final String authorId;
-  final int? authorAvatarColor;
-  final String content;
+  final Message message;
+  final String? guildId;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final textStyles = context.textStyles;
     final layout = context.layout;
-
-    return Container(
-      padding: EdgeInsets.all(layout.s3),
-      decoration: BoxDecoration(
-        color: colors.backgroundSecondaryAlt,
-        borderRadius: layout.radiusLg,
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(
+          MediaQuery.textScalerOf(context).scale(1) * 0.875,
+        ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FluxerAvatar.user(
-            fallbackText: authorName,
-            avatarColor: authorAvatarColor,
-            userId: authorId,
-            size: 32,
-            showStatus: false,
-          ),
-          SizedBox(width: layout.s2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  authorName,
-                  style: textStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colors.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (content.isNotEmpty) ...[
-                  SizedBox(height: layout.s1),
-                  Text(
-                    content,
-                    style: textStyles.bodySmall.copyWith(
-                      color: colors.textSecondary,
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.backgroundSecondary,
+          borderRadius: layout.radiusMd,
+          border: Border.all(color: colors.backgroundHeaderSecondary),
+        ),
+        child: ClipRRect(
+          borderRadius: layout.radiusMd,
+          child: IgnorePointer(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: MessageItem(
+                message: message,
+                inboxPreviewMode: true,
+                hideMentionHighlight: true,
+                previewRoleGuildId: guildId,
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
