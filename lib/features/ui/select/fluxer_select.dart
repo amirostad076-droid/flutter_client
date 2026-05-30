@@ -42,6 +42,8 @@ class FluxerSelect<T> extends StatelessWidget {
     this.emptyLabel,
     this.enableSearch = true,
     this.enabled = true,
+    this.stretch = false,
+    this.scrollableSheet = false,
     super.key,
   }) : _onChanged = ((value) => onChanged(value as T));
 
@@ -56,6 +58,12 @@ class FluxerSelect<T> extends StatelessWidget {
   final String? emptyLabel;
   final bool enableSearch;
   final bool enabled;
+  final bool stretch;
+
+  /// Opens the options in the scrollable (draggable) bottom-sheet variant even
+  /// when [enableSearch] is false. Use for longer option lists that should
+  /// behave like a full scrollable sheet rather than a content-sized menu.
+  final bool scrollableSheet;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +109,7 @@ class FluxerSelect<T> extends StatelessWidget {
               ),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: stretch ? MainAxisSize.max : MainAxisSize.min,
               children: [
                 if (selectedItem?.leading case final leading?) ...[
                   SizedBox(
@@ -112,6 +120,7 @@ class FluxerSelect<T> extends StatelessWidget {
                   SizedBox(width: layout.s2),
                 ],
                 Flexible(
+                  fit: stretch ? FlexFit.tight : FlexFit.loose,
                   child: Text(
                     selectedItem?.label ?? hint ?? '',
                     style: selectedItem != null
@@ -180,7 +189,7 @@ class FluxerSelect<T> extends StatelessWidget {
 
   Future<void> _showOptions(BuildContext context) async {
     late final Future<T?> sheetFuture;
-    if (enableSearch) {
+    if (enableSearch || scrollableSheet) {
       sheetFuture = FluxerBottomSheet.showScrollable<T>(
         context,
         title: label,

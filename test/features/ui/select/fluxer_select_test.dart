@@ -19,6 +19,18 @@ Widget buildTestApp(Widget child) {
   );
 }
 
+double _caretRight(WidgetTester tester, Key key) => tester
+    .getTopRight(
+      find.descendant(
+        of: find.byKey(key),
+        matching: find.byIcon(PhosphorIconsBold.caretDown),
+      ),
+    )
+    .dx;
+
+double _fieldRight(WidgetTester tester, Key key) =>
+    tester.getTopRight(find.byKey(key)).dx;
+
 void main() {
   final items = [
     const FluxerSelectItem(value: 'a', label: 'Alpha'),
@@ -193,5 +205,97 @@ void main() {
 
       expect(find.text('No matches found'), findsOneWidget);
     });
+
+    testWidgets(
+      'stretch fills the field width and pins the caret to the right edge, '
+      'while the default sizes to content',
+      (tester) async {
+        await tester.pumpWidget(
+          buildTestApp(
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 320,
+                  child: FluxerSelect<String>(
+                    key: const Key('stretched'),
+                    stretch: true,
+                    hint: 'Pick',
+                    items: items,
+                    onChanged: (_) {},
+                  ),
+                ),
+                SizedBox(
+                  width: 320,
+                  child: FluxerSelect<String>(
+                    key: const Key('content'),
+                    hint: 'Pick',
+                    items: items,
+                    onChanged: (_) {},
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+        // Stretched: caret sits at the field's right edge.
+        expect(
+          _fieldRight(tester, const Key('stretched')) -
+              _caretRight(tester, const Key('stretched')),
+          lessThan(24),
+        );
+
+        // Content-sized: caret sits well left of the right edge.
+        expect(
+          _fieldRight(tester, const Key('content')) -
+              _caretRight(tester, const Key('content')),
+          greaterThan(100),
+        );
+      },
+    );
+
+    testWidgets(
+      'opens the scrollable bottom-sheet variant when scrollableSheet is true',
+      (tester) async {
+        await tester.pumpWidget(
+          buildTestApp(
+            FluxerSelect<String>(
+              scrollableSheet: true,
+              enableSearch: false,
+              hint: 'Pick',
+              items: items,
+              onChanged: (_) {},
+            ),
+          ),
+        );
+
+        await tester.tap(find.byIcon(PhosphorIconsBold.caretDown));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(DraggableScrollableSheet), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'opens the content-sized sheet when search and scrollableSheet are off',
+      (tester) async {
+        await tester.pumpWidget(
+          buildTestApp(
+            FluxerSelect<String>(
+              enableSearch: false,
+              hint: 'Pick',
+              items: items,
+              onChanged: (_) {},
+            ),
+          ),
+        );
+
+        await tester.tap(find.byIcon(PhosphorIconsBold.caretDown));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(DraggableScrollableSheet), findsNothing);
+      },
+    );
   });
 }
