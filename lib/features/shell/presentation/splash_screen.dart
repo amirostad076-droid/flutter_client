@@ -192,173 +192,177 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     return Scaffold(
       backgroundColor: context.colors.backgroundSecondary,
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 512),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    height: _logoHeight * 2,
-                    width: _logoHeight * 2,
-                    child: Stack(
-                      alignment: Alignment.center,
+      body: SafeArea(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 512),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: _logoHeight * 2,
+                      width: _logoHeight * 2,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          if (MediaQuery.disableAnimationsOf(context))
+                            Transform.scale(
+                              scale: 1.25,
+                              child: Container(
+                                width: _logoHeight,
+                                height: _logoHeight,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: context.colors.brandPrimary.withValues(
+                                    alpha: 0.35,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            AnimatedBuilder(
+                              animation: _pulseController,
+                              builder: (BuildContext context, Widget? child) {
+                                const double startScale = 0.4;
+                                const double endScale = 1.4;
+                                final double scale =
+                                    startScale +
+                                    (endScale - startScale) *
+                                        Curves.easeOut.transform(
+                                          _pulseController.value,
+                                        );
+                                final double opacity =
+                                    (1 -
+                                        Curves.easeIn.transform(
+                                          _pulseController.value,
+                                        )) *
+                                    0.5;
+                                return Transform.scale(
+                                  scale: scale,
+                                  child: Container(
+                                    width: _logoHeight,
+                                    height: _logoHeight,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: context.colors.brandPrimary
+                                          .withValues(alpha: opacity),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          SvgPicture.asset(
+                            Assets.fluxerLogoColor,
+                            height: _logoHeight,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: startupError == null
+                          ? _buildNormalMessageArea(
+                              context,
+                              strings,
+                              visibleIncident,
+                              displayText,
+                              incidentCtaStyle,
+                            )
+                          : Text(
+                              statusText,
+                              style: context.textStyles.smallText.copyWith(
+                                color: context.colors.textDanger,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                    ),
+                    if (startupError != null) ...[
+                      const SizedBox(height: 16),
+                      FilledButton(
+                        onPressed: () =>
+                            ref.read(appStartupProvider.notifier).retry(),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: context.colors.brandPrimary,
+                        ),
+                        child: Text(strings.retry),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            if (showConnectionFooter)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 24,
+                child: AnimatedOpacity(
+                  opacity: 1,
+                  duration: _footerFadeDuration,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (MediaQuery.disableAnimationsOf(context))
-                          Transform.scale(
-                            scale: 1.25,
-                            child: Container(
-                              width: _logoHeight,
-                              height: _logoHeight,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: context.colors.brandPrimary.withValues(
-                                  alpha: 0.35,
+                        Text(
+                          strings.splashConnectionIssuesPrompt,
+                          style: footerPromptStyle,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          children: [
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () => handleExternalLinkTap(
+                                  context,
+                                  ExternalUrls.serviceStatus,
+                                ),
+                                child: Text(
+                                  strings.splashStatusPageLink,
+                                  style: footerLinkStyle,
                                 ),
                               ),
                             ),
-                          )
-                        else
-                          AnimatedBuilder(
-                            animation: _pulseController,
-                            builder: (BuildContext context, Widget? child) {
-                              const double startScale = 0.4;
-                              const double endScale = 1.4;
-                              final double scale =
-                                  startScale +
-                                  (endScale - startScale) *
-                                      Curves.easeOut.transform(
-                                        _pulseController.value,
-                                      );
-                              final double opacity =
-                                  (1 -
-                                      Curves.easeIn.transform(
-                                        _pulseController.value,
-                                      )) *
-                                  0.5;
-                              return Transform.scale(
-                                scale: scale,
-                                child: Container(
-                                  width: _logoHeight,
-                                  height: _logoHeight,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: context.colors.brandPrimary
-                                        .withValues(alpha: opacity),
-                                  ),
+                            Text(
+                              '·',
+                              style: footerPromptStyle.copyWith(
+                                color: context.colors.textChatMuted,
+                              ),
+                            ),
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () => handleExternalLinkTap(
+                                  context,
+                                  secondLinkUrl,
                                 ),
-                              );
-                            },
-                          ),
-                        SvgPicture.asset(
-                          Assets.fluxerLogoColor,
-                          height: _logoHeight,
+                                child: Text(
+                                  footerIncident != null
+                                      ? strings.splashReadIncident
+                                      : strings.splashIncidentHistory,
+                                  style: footerLinkStyle,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: startupError == null
-                        ? _buildNormalMessageArea(
-                            context,
-                            strings,
-                            visibleIncident,
-                            displayText,
-                            incidentCtaStyle,
-                          )
-                        : Text(
-                            statusText,
-                            style: context.textStyles.smallText.copyWith(
-                              color: context.colors.textDanger,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                  ),
-                  if (startupError != null) ...[
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () =>
-                          ref.read(appStartupProvider.notifier).retry(),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: context.colors.brandPrimary,
-                      ),
-                      child: Text(strings.retry),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          if (showConnectionFooter)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 24,
-              child: AnimatedOpacity(
-                opacity: 1,
-                duration: _footerFadeDuration,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        strings.splashConnectionIssuesPrompt,
-                        style: footerPromptStyle,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 8,
-                        children: [
-                          MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: GestureDetector(
-                              onTap: () => handleExternalLinkTap(
-                                context,
-                                ExternalUrls.serviceStatus,
-                              ),
-                              child: Text(
-                                strings.splashStatusPageLink,
-                                style: footerLinkStyle,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            '·',
-                            style: footerPromptStyle.copyWith(
-                              color: context.colors.textChatMuted,
-                            ),
-                          ),
-                          MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: GestureDetector(
-                              onTap: () =>
-                                  handleExternalLinkTap(context, secondLinkUrl),
-                              child: Text(
-                                footerIncident != null
-                                    ? strings.splashReadIncident
-                                    : strings.splashIncidentHistory,
-                                style: footerLinkStyle,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
