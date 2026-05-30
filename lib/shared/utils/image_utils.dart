@@ -1,14 +1,37 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path_lib;
 
 typedef AnimationCheckResult = ({bool isAnimated, String? format});
 
 const int _kMaxImageSizeBytes = 10 * 1024 * 1024;
 
 abstract final class ImageUtils {
-  static Future<({Uint8List bytes, String name})?> pickImage() async {
+  static Future<({Uint8List bytes, String name})?> pickImage() {
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      return _pickImageFromGallery();
+    }
+    return _pickImageFromFilePicker();
+  }
+
+  static Future<({Uint8List bytes, String name})?>
+  _pickImageFromGallery() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image == null) {
+      return null;
+    }
+    final Uint8List bytes = await image.readAsBytes();
+    return (bytes: bytes, name: _filenameFromXFile(image));
+  }
+
+  static Future<({Uint8List bytes, String name})?>
+  _pickImageFromFilePicker() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'],
@@ -23,6 +46,18 @@ abstract final class ImageUtils {
       return null;
     }
     return (bytes: bytes, name: file.name);
+  }
+
+  static String _filenameFromXFile(XFile file) {
+    final String fromName = file.name.trim();
+    if (fromName.isNotEmpty) {
+      return fromName;
+    }
+    final String path = file.path.trim();
+    if (path.isNotEmpty) {
+      return path_lib.basename(path);
+    }
+    return 'image.jpg';
   }
 
   static bool isOverSizeLimit(Uint8List bytes) {
