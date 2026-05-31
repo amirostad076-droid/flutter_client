@@ -15,6 +15,7 @@ import 'package:fluxer_app/core/push/fcm/fcm_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
+import 'package:fluxer_app/features/friends/providers/friend_relationships_sync_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
@@ -112,7 +113,8 @@ class AppStartup extends _$AppStartup {
       ..read(gatewayReconnectToastListenerProvider)
       ..read(connectivityListenerProvider)
       ..read(fluxerSfxIncomingRingBindingProvider)
-      ..read(fluxerMessageSfxBindingProvider);
+      ..read(fluxerMessageSfxBindingProvider)
+      ..read(friendRelationshipsSyncProvider);
 
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
 
