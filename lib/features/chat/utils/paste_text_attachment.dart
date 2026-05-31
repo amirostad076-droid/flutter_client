@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' show WidgetRef;
-import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
+import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 
 Future<FileUploadValidationResult> addPastedTextAsAttachment({

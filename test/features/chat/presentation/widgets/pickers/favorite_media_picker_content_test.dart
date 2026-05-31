@@ -7,7 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/favorite_media_picker_content.dart';
-import 'package:fluxer_app/features/chat/providers/favorite_media_provider.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/favorite_media_provider.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
 import 'package:riverpod/src/framework.dart' show Override;

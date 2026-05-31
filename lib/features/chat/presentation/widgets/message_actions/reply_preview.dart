@@ -9,8 +9,8 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart'
     show MessageItem;
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
-import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
-import 'package:fluxer_app/features/chat/providers/message_references_provider.dart';
+import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/providers/messages/message_references_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';

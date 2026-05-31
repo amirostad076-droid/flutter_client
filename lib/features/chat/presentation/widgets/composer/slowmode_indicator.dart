@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
-import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
-import 'package:fluxer_app/features/chat/providers/slowmode_immunity_provider.dart';
-import 'package:fluxer_app/features/chat/providers/slowmode_indicator_shake_provider.dart';
-import 'package:fluxer_app/features/chat/providers/slowmode_tracker.dart';
+import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_immunity_provider.dart';
+import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_indicator_shake_provider.dart';
+import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_tracker.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 

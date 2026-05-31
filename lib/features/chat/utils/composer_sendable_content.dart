@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
+import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
 
 /// Whether the composer has text or pending uploads worth sending.
 bool composerHasSendableContent(

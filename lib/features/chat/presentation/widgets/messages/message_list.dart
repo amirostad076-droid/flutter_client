@@ -24,8 +24,8 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_list_pagination.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/system_message.dart';
-import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
-import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
+import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';

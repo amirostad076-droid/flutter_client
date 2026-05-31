@@ -11,8 +11,8 @@ import 'package:fluxer_app/features/chat/presentation/widgets/pickers/emoji_sear
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/favorite_media_picker_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/gif_picker_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/sticker_picker_content.dart';
-import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
-import 'package:fluxer_app/features/chat/providers/sticker_picker_provider.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 

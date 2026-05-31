@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
-import 'package:fluxer_app/features/chat/providers/favorite_media_provider.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/favorite_media_provider.dart';
 
 void main() {
   test('filterFavoriteMemes filters by media type', () {

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fluxer_app/features/chat/providers/message_realtime_events.dart';
+import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'message_realtime_provider.g.dart';

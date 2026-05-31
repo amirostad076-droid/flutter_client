@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluxer_app/features/chat/providers/chat_read_ack_gate.dart';
+import 'package:fluxer_app/features/chat/providers/core/chat_read_ack_gate.dart';
 
 void main() {
   test('allows ack only when viewport is active and at bottom', () {

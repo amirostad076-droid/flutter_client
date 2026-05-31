@@ -35,11 +35,11 @@ import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/qu
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/reply_preview.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/swipe_to_reply.dart';
-import 'package:fluxer_app/features/chat/providers/channel_details_providers.dart';
-import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
-import 'package:fluxer_app/features/chat/providers/chat_providers.dart';
-import 'package:fluxer_app/features/chat/providers/emoji_picker_provider.dart';
-import 'package:fluxer_app/features/chat/providers/spoiler_reveal_provider.dart';
+import 'package:fluxer_app/features/chat/providers/channel/channel_details_providers.dart';
+import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
+import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/chat/providers/messages/spoiler_reveal_provider.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
