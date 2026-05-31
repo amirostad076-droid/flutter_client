@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/router/route_kind.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
+import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 
@@ -196,18 +197,49 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
     await _moveToState(resolvedSide);
   }
 
+  Future<void> _syncTranslateToRevealSide({required bool writeBack}) async {
+    if (!mounted) {
+      return;
+    }
+    final RevealSide side = ref.read(currentRevealSideProvider);
+    final double width = MediaQuery.sizeOf(context).width;
+    if (width <= 0) {
+      return;
+    }
+    _syncWidth(width);
+    _currentSide = side;
+    if (writeBack) {
+      ref.read(currentRevealSideProvider.notifier).set(side);
+    }
+    await _animateToPosition(
+      _goalForSide(side, width),
+      widget.snapBackDuration,
+      widget.snapBackCurve,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool hasPopupOverlay = ref.watch(shellHasPopupOverlayProvider);
-    ref.listen<RevealSide>(currentRevealSideProvider, (prev, next) {
+    ref.listen<RevealSide>(currentRevealSideProvider, (RevealSide? prev, RevealSide next) {
       if (next != _currentSide) {
         unawaited(_moveToState(next, writeBack: false));
       }
     });
-    ref.listen<bool>(shellHasPopupOverlayProvider, (prev, next) {
+    ref.listen<bool>(shellHasPopupOverlayProvider, (bool? prev, bool next) {
       if (next) {
         _animationController.stop();
+        return;
       }
+      if (prev == true) {
+        unawaited(_syncTranslateToRevealSide(writeBack: false));
+      }
+    });
+    ref.listen<int>(drawerRevealSyncTriggerProvider, (int? prev, int next) {
+      if (ref.read(shellHasPopupOverlayProvider)) {
+        return;
+      }
+      unawaited(_syncTranslateToRevealSide(writeBack: false));
     });
     final Map<Type, GestureRecognizerFactory> drawerGestures = hasPopupOverlay
         ? <Type, GestureRecognizerFactory>{}

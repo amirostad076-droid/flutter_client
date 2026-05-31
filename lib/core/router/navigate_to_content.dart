@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 
 /// Navigates to [path] using `go()` and pre-sets the mobile drawer for
@@ -15,6 +16,7 @@ void navigateToContent(BuildContext context, String path) {
   final eager = eagerRevealSideFor(path);
   if (eager != null) {
     container.read(currentRevealSideProvider.notifier).set(eager);
+    container.read(drawerRevealSyncTriggerProvider.notifier).nudge();
   }
   container.read(fluxerRouterProvider).go(path);
 }
@@ -26,6 +28,7 @@ void navigateToContentVia(Ref ref, String path) {
   final eager = eagerRevealSideFor(path);
   if (eager != null) {
     ref.read(currentRevealSideProvider.notifier).set(eager);
+    ref.read(drawerRevealSyncTriggerProvider.notifier).nudge();
   }
   ref.read(fluxerRouterProvider).go(path);
 }

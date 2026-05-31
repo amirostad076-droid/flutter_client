@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/voice/presentation/widgets/voice_chat_unread_badge.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/voice_e2ee_indicator.dart';
+import 'package:fluxer_app/features/voice/providers/voice_channel_text_chat_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_join_eligibility_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -17,8 +21,12 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 const double _kLobbyActionSize = 56;
 const double _kLobbyActionGap = 20;
 
-class VoiceChannelJoinOutcome {
-  const VoiceChannelJoinOutcome({
+sealed class VoiceChannelJoinSheetResult {
+  const VoiceChannelJoinSheetResult();
+}
+
+class VoiceChannelJoinConnectResult extends VoiceChannelJoinSheetResult {
+  const VoiceChannelJoinConnectResult({
     required this.initialSelfMute,
     required this.initialSelfDeaf,
   });
@@ -27,13 +35,17 @@ class VoiceChannelJoinOutcome {
   final bool initialSelfDeaf;
 }
 
-Future<VoiceChannelJoinOutcome?> showVoiceChannelJoinBottomSheet(
+class VoiceChannelJoinOpenChat extends VoiceChannelJoinSheetResult {
+  const VoiceChannelJoinOpenChat();
+}
+
+Future<VoiceChannelJoinSheetResult?> showVoiceChannelJoinBottomSheet(
   BuildContext context, {
   required String channelName,
   required String guildId,
   required String channelId,
 }) {
-  return FluxerBottomSheet.show<VoiceChannelJoinOutcome?>(
+  return FluxerBottomSheet.show<VoiceChannelJoinSheetResult?>(
     context,
     title: channelName,
     builder: (BuildContext sheetContext, VoidCallback _) {
@@ -77,6 +89,23 @@ class _VoiceChannelJoinSheetContentState
         : voiceMap[connectionId];
     final bool isMuted = inVoice ? (selfVs?.selfMute ?? false) : _lobbyMute;
     final bool isDeafened = inVoice ? (selfVs?.selfDeaf ?? false) : _lobbyDeaf;
+    final AsyncValue<bool> textChatSupportedAsync = ref.watch(
+      voiceChannelTextChatSupportedProvider(widget.channelId),
+    );
+    final bool showChatButton = textChatSupportedAsync.value ?? false;
+    final bool canJoinVoice =
+        ref
+            .watch(voiceJoinEligibilityProvider(widget.channelId))
+            .value
+            ?.canJoin ??
+        true;
+    final UnreadState? unread = ref
+        .watch(channelUnreadProvider(widget.channelId))
+        .value;
+    final String chatSemanticsLabel = voiceChatAccessibilityLabel(
+      l10n: l10n,
+      unread: unread,
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -86,10 +115,18 @@ class _VoiceChannelJoinSheetContentState
         SizedBox(height: context.layout.s3),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-          child: FluxerButton.primary(
-            label: l10n.voiceChannelJoinConnect,
-            onPressed: () => _onConnect(inVoice: inVoice, selfVs: selfVs),
-          ),
+          child: canJoinVoice
+              ? FluxerButton.primary(
+                  label: l10n.voiceChannelJoinConnect,
+                  onPressed: () => _onConnect(inVoice: inVoice, selfVs: selfVs),
+                )
+              : Tooltip(
+                  message: l10n.voiceChannelNoConnectPermission,
+                  child: FluxerButton.primary(
+                    label: l10n.voiceChannelJoinConnect,
+                    onPressed: null,
+                  ),
+                ),
         ),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -165,6 +202,30 @@ class _VoiceChannelJoinSheetContentState
                         });
                       },
               ),
+              if (showChatButton) ...<Widget>[
+                const SizedBox(width: _kLobbyActionGap),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: <Widget>[
+                    _LobbyActionTile(
+                      isActive: false,
+                      activeIsDanger: false,
+                      primaryWhenNotActive: true,
+                      label: l10n.voiceControlChat,
+                      icon: PhosphorIconsFill.chatTeardrop,
+                      semanticsLabel: chatSemanticsLabel,
+                      onPressed: () {
+                        if (context.mounted) {
+                          Navigator.of(context).pop(
+                            const VoiceChannelJoinOpenChat(),
+                          );
+                        }
+                      },
+                    ),
+                    VoiceChatUnreadBadge(channelId: widget.channelId),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -173,16 +234,16 @@ class _VoiceChannelJoinSheetContentState
   }
 
   void _onConnect({required bool inVoice, required VoiceState? selfVs}) {
-    final VoiceChannelJoinOutcome outcome;
+    final VoiceChannelJoinConnectResult outcome;
     if (inVoice) {
-      outcome = VoiceChannelJoinOutcome(
+      outcome = VoiceChannelJoinConnectResult(
         initialSelfMute: selfVs?.selfMute ?? false,
         initialSelfDeaf: selfVs?.selfDeaf ?? false,
       );
     } else {
       final bool selfDeaf = _lobbyDeaf;
       final bool selfMute = selfDeaf || _lobbyMute;
-      outcome = VoiceChannelJoinOutcome(
+      outcome = VoiceChannelJoinConnectResult(
         initialSelfMute: selfMute,
         initialSelfDeaf: selfDeaf,
       );
@@ -201,6 +262,7 @@ class _LobbyActionTile extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onPressed,
+    this.semanticsLabel,
   });
 
   final bool isActive;
@@ -208,7 +270,8 @@ class _LobbyActionTile extends StatelessWidget {
   final bool primaryWhenNotActive;
   final String label;
   final PhosphorIconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
+  final String? semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +283,8 @@ class _LobbyActionTile extends StatelessWidget {
         : colors.backgroundTertiary;
     return Semantics(
       button: true,
-      label: label,
+      enabled: onPressed != null,
+      label: semanticsLabel ?? label,
       child: GestureDetector(
         onTap: onPressed,
         child: Material(
@@ -240,7 +304,9 @@ class _LobbyActionTile extends StatelessWidget {
                     child: PhosphorIcon(
                       icon,
                       size: 24,
-                      color: colors.textPrimary,
+                      color: colors.textPrimary.withValues(
+                        alpha: onPressed == null ? 0.45 : 1,
+                      ),
                     ),
                   ),
                 ),

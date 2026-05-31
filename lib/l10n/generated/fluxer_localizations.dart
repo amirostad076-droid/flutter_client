@@ -4201,7 +4201,7 @@ abstract class FluxerLocalizations {
   /// Placeholder text in the channel message input when the user lacks Send Messages permission.
   ///
   /// In en, this message translates to:
-  /// **'You do not have permission to send messages'**
+  /// **'You can\'t send messages in this channel.'**
   String get channelNoSendPermissionHint;
 
   /// Shown when adding files would exceed the per-message attachment limit.
@@ -5434,6 +5434,12 @@ abstract class FluxerLocalizations {
   /// **'Connect to Voice'**
   String get voiceChannelJoinConnect;
 
+  /// Tooltip on the disabled join voice channel button when the user lacks Connect permission.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have permission to join this voice channel'**
+  String get voiceChannelNoConnectPermission;
+
   /// Pre-join banner on a guild voice channel where every connected participant supports E2EE.
   ///
   /// In en, this message translates to:
@@ -5589,6 +5595,24 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Disconnect'**
   String get voiceControlDisconnect;
+
+  /// Label for the chat button in voice lobby and call control surfaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get voiceControlChat;
+
+  /// Accessibility label for opening voice channel text chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Show chat'**
+  String get voiceTextChatShow;
+
+  /// Accessibility label when voice channel text chat has unread messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Show chat with {count, plural, one {# unread message} other {# unread messages}}'**
+  String voiceTextChatShowUnread(int count);
 
   /// Error when the user enables video but camera access is denied.
   ///

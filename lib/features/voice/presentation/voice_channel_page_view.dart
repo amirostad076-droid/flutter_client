@@ -7,10 +7,14 @@ import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_control_bar.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_join_button.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_participant_grid.dart';
+import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_chat_sheet.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/voice_e2ee_indicator.dart';
+import 'package:fluxer_app/features/voice/providers/voice_channel_text_chat_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_join_eligibility_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_connection_actions.dart';
@@ -122,6 +126,16 @@ class _VoiceChannelPageViewState extends ConsumerState<VoiceChannelPageView> {
 
   Widget _buildEmpty(BuildContext context, {required String channelName}) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final bool showChatButton =
+        ref
+            .watch(voiceChannelTextChatSupportedProvider(widget.channelId))
+            .value ??
+        false;
+    final AsyncValue<VoiceJoinEligibility> joinEligibilityAsync = ref.watch(
+      voiceJoinEligibilityProvider(widget.channelId),
+    );
+    final bool canJoinVoice =
+        joinEligibilityAsync.value?.canJoin ?? true;
     return ColoredBox(
       color: context.colors.backgroundSecondaryLighter,
       child: SafeArea(
@@ -155,17 +169,39 @@ class _VoiceChannelPageViewState extends ConsumerState<VoiceChannelPageView> {
                 ),
                 const SizedBox(height: 16),
                 VoiceChannelJoinButton(
-                  onPressed: () {
-                    unawaited(
-                      joinVoiceChannelWithConfirmation(
-                        ref: ref,
-                        context: context,
-                        guildId: widget.guildId,
-                        channelId: widget.channelId,
-                      ),
-                    );
-                  },
+                  disabledTooltip: canJoinVoice
+                      ? null
+                      : l10n.voiceChannelNoConnectPermission,
+                  onPressed: canJoinVoice
+                      ? () {
+                          unawaited(
+                            joinVoiceChannelWithConfirmation(
+                              ref: ref,
+                              context: context,
+                              guildId: widget.guildId,
+                              channelId: widget.channelId,
+                            ),
+                          );
+                        }
+                      : null,
                 ),
+                if (showChatButton) ...<Widget>[
+                  const SizedBox(height: 8),
+                  FluxerButton.secondary(
+                    label: l10n.voiceControlChat,
+                    onPressed: () {
+                      unawaited(
+                        showVoiceChannelChatSheet(
+                          context,
+                          channelId: widget.channelId,
+                          channelName: channelName.isNotEmpty
+                              ? channelName
+                              : null,
+                        ),
+                      );
+                    },
+                  ),
+                ],
                 VoiceE2eeIndicator(
                   guildId: widget.guildId,
                   channelId: widget.channelId,
@@ -197,7 +233,7 @@ class _VoiceChannelPageViewState extends ConsumerState<VoiceChannelPageView> {
                 channelId: widget.channelId,
               ),
             ),
-            const VoiceChannelControlBar(),
+            VoiceChannelControlBar(channelId: widget.channelId),
           ],
         ),
       ),

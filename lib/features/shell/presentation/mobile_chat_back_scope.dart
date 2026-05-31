@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/chat/providers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 import 'package:fluxer_app/features/shell/utils/shell_popup_navigation.dart';
@@ -39,6 +40,7 @@ class MobileChatBackScope extends ConsumerWidget {
         }
         FocusManager.instance.primaryFocus?.unfocus();
         ref.read(currentRevealSideProvider.notifier).set(RevealSide.left);
+        ref.read(drawerRevealSyncTriggerProvider.notifier).nudge();
       },
       child: child,
     );

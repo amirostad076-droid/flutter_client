@@ -2452,7 +2452,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get channelNoSendPermissionHint =>
-      'You do not have permission to send messages';
+      'You can\'t send messages in this channel.';
 
   @override
   String chatAttachmentTooMany(int max) {
@@ -3198,6 +3198,10 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get voiceChannelJoinConnect => 'Connect to Voice';
 
   @override
+  String get voiceChannelNoConnectPermission =>
+      'You don\'t have permission to join this voice channel';
+
+  @override
   String get voiceChannelE2eeEncrypted =>
       'This voice channel is end-to-end encrypted.';
 
@@ -3289,6 +3293,23 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get voiceControlDisconnect => 'Disconnect';
+
+  @override
+  String get voiceControlChat => 'Chat';
+
+  @override
+  String get voiceTextChatShow => 'Show chat';
+
+  @override
+  String voiceTextChatShowUnread(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# unread messages',
+      one: '# unread message',
+    );
+    return 'Show chat with $_temp0';
+  }
 
   @override
   String get voiceCameraPermissionRequired =>

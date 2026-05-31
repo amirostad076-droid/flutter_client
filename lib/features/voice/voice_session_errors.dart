@@ -22,6 +22,10 @@ const String kVoiceSessionErrorE2eeRequired = 'VOICE_ERR_E2EE_REQUIRED';
 /// Mic track publish failed, user may still be connected listen only.
 const String kVoiceSessionErrorMicPublish = 'VOICE_ERR_MIC_PUBLISH';
 
+/// Join rejected because the user lacks Connect permission in the channel.
+const String kVoiceSessionErrorNoConnectPermission =
+    'VOICE_ERR_NO_CONNECT_PERM';
+
 /// Maps a stored `VoiceSessionState.errorMessage` to a localized
 /// human-readable string.
 String resolveVoiceSessionErrorMessage(
@@ -41,6 +45,8 @@ String resolveVoiceSessionErrorMessage(
       return l10n.voiceE2eeUpdateRequired;
     case kVoiceSessionErrorMicPublish:
       return l10n.voiceMicPublishFailedStayConnected;
+    case kVoiceSessionErrorNoConnectPermission:
+      return l10n.voiceChannelNoConnectPermission;
     default:
       return message;
   }

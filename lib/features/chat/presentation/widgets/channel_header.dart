@@ -21,6 +21,7 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
@@ -128,6 +129,7 @@ class ChannelHeader extends ConsumerWidget {
             onPressed: () {
               FocusManager.instance.primaryFocus?.unfocus();
               ref.read(currentRevealSideProvider.notifier).set(RevealSide.left);
+              ref.read(drawerRevealSyncTriggerProvider.notifier).nudge();
             },
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

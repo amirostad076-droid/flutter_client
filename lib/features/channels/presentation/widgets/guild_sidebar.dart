@@ -27,8 +27,9 @@ import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
-import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_join_bottom_sheet.dart'
-    show VoiceChannelJoinOutcome, showVoiceChannelJoinBottomSheet;
+import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_chat_sheet.dart';
+import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_join_bottom_sheet.dart';
+import 'package:fluxer_app/features/voice/providers/voice_join_eligibility_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_connection_actions.dart';
@@ -429,30 +430,48 @@ class GuildSidebar extends ConsumerWidget {
                       );
                       return;
                     }
-                    final VoiceChannelJoinOutcome? joinOutcome =
+                    final VoiceChannelJoinSheetResult? joinResult =
                         await showVoiceChannelJoinBottomSheet(
                           context,
                           channelName: channel.name,
                           guildId: guildId,
                           channelId: channel.id,
                         );
-                    if (!context.mounted || joinOutcome == null) {
+                    if (!context.mounted || joinResult == null) {
                       return;
                     }
-                    navigateToContent(
-                      context,
-                      RoutePaths.guildChannel(guildId, channel.id),
-                    );
-                    unawaited(
-                      joinVoiceChannelWithConfirmation(
-                        ref: ref,
-                        context: context,
-                        guildId: guildId,
-                        channelId: channel.id,
-                        initialSelfMute: joinOutcome.initialSelfMute,
-                        initialSelfDeaf: joinOutcome.initialSelfDeaf,
-                      ),
-                    );
+                    switch (joinResult) {
+                      case VoiceChannelJoinOpenChat():
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (context.mounted) {
+                            unawaited(
+                              showVoiceChannelChatSheet(
+                                context,
+                                channelId: channel.id,
+                                channelName: channel.name,
+                              ),
+                            );
+                          }
+                        });
+                      case VoiceChannelJoinConnectResult(
+                        :final initialSelfMute,
+                        :final initialSelfDeaf,
+                      ):
+                        navigateToContent(
+                          context,
+                          RoutePaths.guildChannel(guildId, channel.id),
+                        );
+                        unawaited(
+                          joinVoiceChannelWithConfirmation(
+                            ref: ref,
+                            context: context,
+                            guildId: guildId,
+                            channelId: channel.id,
+                            initialSelfMute: initialSelfMute,
+                            initialSelfDeaf: initialSelfDeaf,
+                          ),
+                        );
+                    }
                     return;
                   }
                   navigateToContent(
@@ -461,14 +480,21 @@ class GuildSidebar extends ConsumerWidget {
                   );
                   if (channel.type == ChannelType.voice &&
                       !isInCurrentVoiceChannel) {
-                    unawaited(
-                      joinVoiceChannelWithConfirmation(
-                        ref: ref,
-                        context: context,
-                        guildId: guildId,
-                        channelId: channel.id,
-                      ),
+                    final bool canJoinVoice = canJoinGuildVoiceChannelFromBits(
+                      guildId: guildId,
+                      channelType: channel.type,
+                      permissionBits: effectivePermissionBits,
                     );
+                    if (canJoinVoice) {
+                      unawaited(
+                        joinVoiceChannelWithConfirmation(
+                          ref: ref,
+                          context: context,
+                          guildId: guildId,
+                          channelId: channel.id,
+                        ),
+                      );
+                    }
                   }
                 }
               },

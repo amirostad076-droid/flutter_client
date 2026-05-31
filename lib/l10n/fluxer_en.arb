@@ -3013,7 +3013,7 @@
   "@slowmodeTooltipImmune": {
     "description": "Tooltip shown on the slowmode indicator when slowmode is on but the current user bypasses it."
   },
-  "channelNoSendPermissionHint": "You do not have permission to send messages",
+  "channelNoSendPermissionHint": "You can't send messages in this channel.",
   "@channelNoSendPermissionHint": {
     "description": "Placeholder text in the channel message input when the user lacks Send Messages permission."
   },
@@ -3877,6 +3877,10 @@
   "@voiceChannelJoinConnect": {
     "description": "Primary action in the mobile bottom sheet before joining a voice channel from the channel list."
   },
+  "voiceChannelNoConnectPermission": "You don't have permission to join this voice channel",
+  "@voiceChannelNoConnectPermission": {
+    "description": "Tooltip on the disabled join voice channel button when the user lacks Connect permission."
+  },
   "voiceChannelE2eeEncrypted": "This voice channel is end-to-end encrypted.",
   "@voiceChannelE2eeEncrypted": {
     "description": "Pre-join banner on a guild voice channel where every connected participant supports E2EE."
@@ -3990,6 +3994,23 @@
   "voiceControlDisconnect": "Disconnect",
   "@voiceControlDisconnect": {
     "description": "Tooltip: leave the voice call in the voice call control bar."
+  },
+  "voiceControlChat": "Chat",
+  "@voiceControlChat": {
+    "description": "Label for the chat button in voice lobby and call control surfaces."
+  },
+  "voiceTextChatShow": "Show chat",
+  "@voiceTextChatShow": {
+    "description": "Accessibility label for opening voice channel text chat."
+  },
+  "voiceTextChatShowUnread": "Show chat with {count, plural, one {# unread message} other {# unread messages}}",
+  "@voiceTextChatShowUnread": {
+    "description": "Accessibility label when voice channel text chat has unread messages.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "voiceCameraPermissionRequired": "Camera permission is required for video.",
   "@voiceCameraPermissionRequired": {

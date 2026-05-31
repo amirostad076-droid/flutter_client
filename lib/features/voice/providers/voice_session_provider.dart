@@ -168,6 +168,26 @@ class VoiceSession extends _$VoiceSession {
       );
       return;
     }
+    if (guildId != null) {
+      int? permissionBits = ref
+          .read(channelPermissionCacheProvider.notifier)
+          .getChannelBits(channelId);
+      if (permissionBits == null) {
+        await ref
+            .read(channelPermissionCacheProvider.notifier)
+            .rebuildChannel(channelId);
+        permissionBits = ref
+            .read(channelPermissionCacheProvider.notifier)
+            .getChannelBits(channelId);
+      }
+      if (permissionBits != null &&
+          !hasPermission(permissionBits, Permission.connect)) {
+        state = state.copyWith(
+          errorMessage: kVoiceSessionErrorNoConnectPermission,
+        );
+        return;
+      }
+    }
     final DateTime now = DateTime.now();
     if (_lastConnectRequestAt != null &&
         now.difference(_lastConnectRequestAt!) < const Duration(seconds: 1)) {

@@ -417,18 +417,34 @@ class ChatViewModel extends _$ChatViewModel {
     if (state.editingMessage != null || state.channelId.isEmpty) {
       return;
     }
-    final String content = state.messageText;
-    final String? replyId = state.replyingTo?.id;
-    final String? forwardId = state.forwardingFrom?.id;
+    await _persistComposerDraftForChannel(
+      channelId: state.channelId,
+      content: state.messageText,
+      reply: state.replyingTo,
+      forward: state.forwardingFrom,
+    );
+  }
+
+  Future<void> _persistComposerDraftForChannel({
+    required String channelId,
+    required String content,
+    Message? reply,
+    Message? forward,
+  }) async {
+    if (channelId.isEmpty) {
+      return;
+    }
+    final String? replyId = reply?.id;
+    final String? forwardId = forward?.id;
     final bool hasDraft =
         content.isNotEmpty || replyId != null || forwardId != null;
     final dao = ref.read(fluxerDatabaseProvider).composerDraftDao;
     if (!hasDraft) {
-      await dao.deleteDraft(state.channelId);
+      await dao.deleteDraft(channelId);
       return;
     }
     await dao.upsertDraft(
-      channelId: state.channelId,
+      channelId: channelId,
       content: content,
       replyToMessageId: replyId,
       forwardFromMessageId: forwardId,
@@ -515,32 +531,55 @@ class ChatViewModel extends _$ChatViewModel {
     if (state.channelId != channelId) {
       _readViewportNearBottom = false;
     }
-    if (state.channelId.isNotEmpty && state.channelId != channelId) {
-      await _flushComposerDraftSave();
-      final previousChannelId = state.channelId;
+    final String previousChannelId = state.channelId;
+    final bool isChannelChange =
+        previousChannelId.isNotEmpty && previousChannelId != channelId;
+    if (isChannelChange) {
+      final String previousText = state.messageText;
+      final Message? previousReply = state.replyingTo;
+      final Message? previousForward = state.forwardingFrom;
+      _draftSaveTimer?.cancel();
+      _draftSaveTimer = null;
       _readAckRetryTimer?.cancel();
       _clearManualUnread(previousChannelId);
       _clearLoadedUnreadBoundaryKeys(previousChannelId);
       ref
           .read(messageReferencesProvider.notifier)
           .clearChannel(previousChannelId);
-    }
-    final draft = await _loadComposerDraft(channelId);
-    if (!loadMessages) {
-      if (state.channelId == channelId) {
-        return;
-      }
       state = _switchedChannelState(
         channelId: channelId,
         messages: const [],
+        draft: (text: '', reply: null, forward: null),
+        scrollToBottomSignal: state.scrollToBottomSignal,
+        isLoading: loadMessages,
+        isSyncingMessages: false,
+        isLoadingMore: false,
+        isLoadingNewer: false,
+        hasMoreMessages: true,
+        hasMoreNewerMessages: false,
+      );
+      unawaited(
+        _persistComposerDraftForChannel(
+          channelId: previousChannelId,
+          content: previousText,
+          reply: previousReply,
+          forward: previousForward,
+        ),
+      );
+    }
+    final draft = await _loadComposerDraft(channelId);
+    if (!loadMessages) {
+      state = _switchedChannelState(
+        channelId: channelId,
+        messages: state.messages,
         draft: draft,
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: false,
         isSyncingMessages: false,
         isLoadingMore: false,
         isLoadingNewer: false,
-        hasMoreMessages: true,
-        hasMoreNewerMessages: false,
+        hasMoreMessages: state.hasMoreMessages,
+        hasMoreNewerMessages: state.hasMoreNewerMessages,
       );
       return;
     }
@@ -564,7 +603,8 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     if (state.channelId == channelId &&
-        (state.isLoading || state.isSyncingMessages)) {
+        (state.isLoading || state.isSyncingMessages) &&
+        !isChannelChange) {
       return;
     }
     final repo = ref.read(messageRepositoryProvider);
