@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/message_item.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 
 /// Faithful preview of the reported message (reuses [MessageItem] in preview

@@ -8,7 +8,7 @@ import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/message_upload_session.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/message_upload_progress.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_upload_progress.dart';
 import 'package:fluxer_app/features/chat/providers/message_upload_sessions_provider.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';

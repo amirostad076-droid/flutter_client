@@ -8,7 +8,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/data/favorite_media_repository.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/picker_search_input.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/pickers/picker_search_input.dart';
 import 'package:fluxer_app/features/chat/providers/favorite_media_provider.dart';
 import 'package:fluxer_app/features/chat/providers/gif_provider.dart';
 import 'package:fluxer_app/features/chat/utils/gif_category_grid_layout.dart';

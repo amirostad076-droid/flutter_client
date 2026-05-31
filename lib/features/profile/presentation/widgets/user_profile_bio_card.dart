@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/core/constants/assets.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_connections_section.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_guild_icon_avatar.dart';

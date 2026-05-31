@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
-    'widgets/message_bottom_sheet.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/quick_reaction_row.dart';
+    'widgets/message_actions/message_bottom_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/quick_reaction_row.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 

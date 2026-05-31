@@ -5,7 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/swipe_to_reply.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/swipe_to_reply.dart';
 import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
 
 Widget _buildApp(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/picker_search_input.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/pickers/picker_search_input.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 const List<String> kSkinToneSurrogates = [

@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/attachment_edit_modal.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/attachment_edit_modal.dart';
 import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';

@@ -14,8 +14,8 @@ import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_image
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_link.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_rich.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_video.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/spoiler_overlay.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';

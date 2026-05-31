@@ -1,4 +1,4 @@
-import 'package:fluxer_app/features/chat/presentation/widgets/slowmode_indicator.dart'
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/slowmode_indicator.dart'
     show SlowmodeIndicator;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

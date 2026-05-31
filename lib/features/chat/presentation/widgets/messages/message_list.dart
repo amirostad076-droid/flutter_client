@@ -19,11 +19,11 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/remove_all_reactions_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
-    'widgets/message_item.dart';
+    'widgets/messages/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/'
-    'widgets/message_list_pagination.dart';
+    'widgets/messages/message_list_pagination.dart';
 import 'package:fluxer_app/features/chat/presentation/'
-    'widgets/system_message.dart';
+    'widgets/messages/system_message.dart';
 import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';

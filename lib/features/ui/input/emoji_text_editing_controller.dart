@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart'
+import 'package:fluxer_app/features/chat/presentation/widgets/pickers/emoji_search_bar.dart'
     show kSkinToneSurrogates, skinToneToName;
 
 class EmojiSegment {

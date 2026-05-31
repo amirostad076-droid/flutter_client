@@ -8,7 +8,7 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/picker_search_input.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/pickers/picker_search_input.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/plutonium_upsell_banner.dart';
 import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/expression_picker_preferences_provider.dart';

@@ -11,13 +11,13 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/chat/domain/cloud_composer_attachments.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/channel_attachment_area.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_attachment_area.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/emoji_search_bar.dart'
+import 'package:fluxer_app/features/chat/presentation/widgets/pickers/emoji_search_bar.dart'
     show kSkinToneSurrogates, skinToneToName;
-import 'package:fluxer_app/features/chat/presentation/widgets/expression_picker.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/reply_preview.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/reply_preview.dart';
 import 'package:fluxer_app/features/chat/providers/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/cloud_upload_controller.dart';

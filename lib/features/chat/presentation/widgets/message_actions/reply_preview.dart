@@ -6,9 +6,9 @@ import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/message_item.dart'
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart'
     show MessageItem;
-import 'package:fluxer_app/features/chat/presentation/widgets/message_markdown.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
 import 'package:fluxer_app/features/chat/providers/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/message_references_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
