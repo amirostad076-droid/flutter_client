@@ -6,6 +6,7 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:flutter_highlight/themes/vs2015.dart';
@@ -865,17 +866,25 @@ class FluxerCodeBlockWidget extends StatelessWidget {
         : (githubTheme['root']?.backgroundColor ??
               Theme.of(context).colorScheme.surfaceContainerHighest);
 
+    final Widget codeBody;
     if (knownLang == null) {
-      return _FluxerPlainCodeBlock(
-        code: code,
-        bgColor: bgColor,
-        baseStyle: baseStyle,
+      codeBody = Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: _kRadius,
+        ),
+        padding: _kPadding,
+        child: Text(
+          code,
+          style: baseStyle.copyWith(
+            fontFamily: 'monospace',
+            fontSize: (baseStyle.fontSize ?? 16) * 0.85,
+          ),
+        ),
       );
-    }
-
-    return ClipRRect(
-      borderRadius: _kRadius,
-      child: HighlightView(
+    } else {
+      codeBody = HighlightView(
         code,
         language: knownLang,
         theme: isDark ? vs2015Theme : githubTheme,
@@ -884,6 +893,49 @@ class FluxerCodeBlockWidget extends StatelessWidget {
           fontFamily: 'monospace',
           fontSize: (baseStyle.fontSize ?? 16) * 0.85,
         ),
+      );
+    }
+
+    return _FluxerCodeBlockWithCopy(code: code, child: codeBody);
+  }
+}
+
+class _FluxerCodeBlockWithCopy extends StatelessWidget {
+  const _FluxerCodeBlockWithCopy({required this.code, required this.child});
+
+  final String code;
+  final Widget child;
+
+  static const _kRadius = BorderRadius.all(Radius.circular(4));
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final copyLabel = MaterialLocalizations.of(context).copyButtonLabel;
+    return ClipRRect(
+      borderRadius: _kRadius,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          SizedBox(width: double.infinity, child: child),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Tooltip(
+              message: copyLabel,
+              child: GestureDetector(
+                onTap: () {
+                  unawaited(Clipboard.setData(ClipboardData(text: code)));
+                },
+                child: PhosphorIcon(
+                  PhosphorIconsFill.clipboard,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -923,37 +975,6 @@ class FluxerInlineCodeWidget extends StatelessWidget {
           color: textColor,
           fontSize: fontSize * 0.85,
           fontFamily: 'monospace',
-        ),
-      ),
-    );
-  }
-}
-
-class _FluxerPlainCodeBlock extends StatelessWidget {
-  const _FluxerPlainCodeBlock({
-    required this.code,
-    required this.bgColor,
-    required this.baseStyle,
-  });
-
-  final String code;
-  final Color bgColor;
-  final TextStyle baseStyle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: const BorderRadius.all(Radius.circular(4)),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Text(
-        code,
-        style: baseStyle.copyWith(
-          fontFamily: 'monospace',
-          fontSize: (baseStyle.fontSize ?? 16) * 0.85,
         ),
       ),
     );
