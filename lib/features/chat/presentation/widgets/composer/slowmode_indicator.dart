@@ -8,6 +8,7 @@ import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_immunity_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_indicator_shake_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_tracker.dart';
+import 'package:fluxer_app/features/chat/utils/slowmode_format.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -195,19 +196,8 @@ class _SlowmodePill extends StatelessWidget {
     );
   }
 
-  String _formatRemaining(Duration remaining) {
-    final totalSeconds = (remaining.inMilliseconds / 1000).ceil();
-    final hours = totalSeconds ~/ _kSecondsPerHour;
-    final minutes = (totalSeconds % _kSecondsPerHour) ~/ _kSecondsPerMinute;
-    final seconds = totalSeconds % _kSecondsPerMinute;
-    final mm = minutes.toString().padLeft(2, '0');
-    final ss = seconds.toString().padLeft(2, '0');
-    if (hours > 0) {
-      final hh = hours.toString().padLeft(2, '0');
-      return '$hh:$mm:$ss';
-    }
-    return '$mm:$ss';
-  }
+  String _formatRemaining(Duration remaining) =>
+      formatSlowmodeCountdown(remaining);
 
   String _formatRateLimit(int totalSeconds) {
     if (totalSeconds >= _kSecondsPerHour) {
