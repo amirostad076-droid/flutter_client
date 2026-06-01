@@ -182,23 +182,37 @@ Future<List<ForwardDestination>> forwardDestinations(
     }
   }
 
-  final List<int> permissionBits = await Future.wait(
-    guildChannels.map(
-      (Channel c) =>
-          computeEffectiveGuildChannelPermissionBits(ref: ref, channelId: c.id),
-    ),
-  );
+  final List<ChannelPermissionBitsOutcome> permissionOutcomes =
+      await Future.wait(
+        guildChannels.map(
+          (Channel c) => computeEffectiveGuildChannelPermissionBitsOutcome(
+            ref: ref,
+            channelId: c.id,
+          ),
+        ),
+      );
 
   for (int i = 0; i < guildChannels.length; i++) {
     final Channel channel = guildChannels[i];
-    final int bits = permissionBits[i];
-    final ForwardDestinationDisable disable =
-        guildLevelDisable[channel.guildId] ??
-        _resolveDisable(
-          bits: bits,
-          hasEmbeds: sourceHasEmbeds,
-          hasAttachments: sourceHasAttachments,
-        );
+    final ChannelPermissionBitsOutcome outcome = permissionOutcomes[i];
+    final int bits = outcome.value;
+    final ForwardDestinationDisable? guildGate =
+        guildLevelDisable[channel.guildId];
+    final ForwardDestinationDisable disable;
+    if (guildGate != null) {
+      disable = guildGate;
+    } else if (!outcome.shouldCache) {
+      // Permission data for this guild is not loaded yet, so do not
+      // over-restrict; the server enforces on send (matches the composer).
+      disable = ForwardDestinationDisable.none;
+    } else {
+      disable = _resolveDisable(
+        bits: bits,
+        isVoice: channel.type == ChannelType.voice,
+        hasEmbeds: sourceHasEmbeds,
+        hasAttachments: sourceHasAttachments,
+      );
+    }
     final bool slowmodeEnabled =
         channel.rateLimitPerUser > 0 &&
         !hasPermission(bits, Permission.bypassSlowmode);
@@ -223,10 +237,14 @@ Future<List<ForwardDestination>> forwardDestinations(
 
 ForwardDestinationDisable _resolveDisable({
   required int bits,
+  required bool isVoice,
   required bool hasEmbeds,
   required bool hasAttachments,
 }) {
-  if (!hasPermission(bits, Permission.sendMessages)) {
+  final bool canSend =
+      hasPermission(bits, Permission.sendMessages) ||
+      (isVoice && hasPermission(bits, Permission.useTextInVoice));
+  if (!canSend) {
     return ForwardDestinationDisable.noSendPermission;
   }
   if (hasEmbeds && !hasPermission(bits, Permission.embedLinks)) {

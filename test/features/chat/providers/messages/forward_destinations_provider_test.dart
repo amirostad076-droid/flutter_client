@@ -112,6 +112,20 @@ Future<FluxerDatabase> _seedDb() async {
     MembersCompanion.insert(userId: _userId, guildId: _memberGuild),
   );
 
+  // Other guild: the user is a member, but @everyone grants no permissions,
+  // so its channels are a genuine missing-send-permission case (loaded data).
+  await db.roleDao.upsertRoles(<RolesCompanion>[
+    RolesCompanion.insert(
+      id: _otherGuild,
+      guildId: _otherGuild,
+      name: '@everyone',
+      permissions: const Value('0'),
+    ),
+  ]);
+  await db.memberDao.upsertMember(
+    MembersCompanion.insert(userId: _userId, guildId: _otherGuild),
+  );
+
   return db;
 }
 
@@ -417,4 +431,67 @@ void main() {
     // @everyone grants SEND, so the timeout is the only blocker and wins.
     expect(dest.disable, ForwardDestinationDisable.memberTimedOut);
   });
+
+  test(
+    'does not block a destination when permission data is not loaded',
+    () async {
+      final FluxerDatabase db = FluxerDatabase.forTesting(
+        NativeDatabase.memory(),
+      );
+      addTearDown(db.close);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'c_src',
+          guildId: 'g_unloaded',
+          name: 'src',
+          type: const Value(0),
+        ),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'c_unloaded',
+          guildId: 'g_unloaded',
+          name: 'general',
+          type: const Value(0),
+        ),
+      );
+      // The guild is known, but the current user's member row and roles are
+      // not seeded and they are not the owner, mirroring a guild not opened
+      // yet. Permission resolution returns 0 with shouldCache false, so the
+      // destination must not be disabled (the server enforces on send).
+      final ProviderContainer container = ProviderContainer(
+        overrides: [
+          fluxerDatabaseProvider.overrideWithValue(db),
+          guildListViewModelProvider.overrideWith(
+            () => _FakeGuilds(const <Guild>[
+              Guild(
+                id: 'g_unloaded',
+                name: 'Unloaded',
+                ownerId: 'someone_else',
+              ),
+            ]),
+          ),
+          userSettingsViewModelProvider.overrideWith(_FakeUser.new),
+          dmViewModelProvider.overrideWith(
+            () => _FakeDms(const <DmConversation>[]),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final provider = forwardDestinationsProvider(
+        sourceChannelId: 'c_src',
+        sourceHasEmbeds: false,
+        sourceHasAttachments: false,
+      );
+      container.listen(provider, (_, _) {});
+      final List<ForwardDestination> result = await container.read(
+        provider.future,
+      );
+      final ForwardDestination dest = result.firstWhere(
+        (ForwardDestination d) => d.channelId == 'c_unloaded',
+      );
+      expect(dest.disable, ForwardDestinationDisable.none);
+    },
+  );
 }
