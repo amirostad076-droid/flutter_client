@@ -4310,6 +4310,75 @@
   "@chatMessageForward": {
     "description": "Action label for forwarding a message."
   },
+  "forwardMessageTitle": "Forward message",
+  "@forwardMessageTitle": {
+    "description": "Title of the forward-message bottom sheet."
+  },
+  "forwardSearchHint": "Search channels or DMs",
+  "@forwardSearchHint": {
+    "description": "Placeholder for the destination search field in the forward sheet."
+  },
+  "forwardDirectMessagesSection": "Direct Messages",
+  "@forwardDirectMessagesSection": {
+    "description": "Section header for direct-message destinations in the forward sheet."
+  },
+  "forwardCommentHint": "Add a comment (optional)",
+  "@forwardCommentHint": {
+    "description": "Placeholder for the optional comment field in the forward sheet."
+  },
+  "forwardSendButton": "Send ({count}/{limit})",
+  "@forwardSendButton": {
+    "description": "Forward sheet send button label with the selected destination count and the selection limit.",
+    "placeholders": {
+      "count": { "type": "int" },
+      "limit": { "type": "int" }
+    }
+  },
+  "forwardEmptyState": "No channels found",
+  "@forwardEmptyState": {
+    "description": "Shown in the forward sheet when no destinations match the search."
+  },
+  "forwardSuccessToast": "Message forwarded",
+  "@forwardSuccessToast": {
+    "description": "Toast shown after a message is successfully forwarded."
+  },
+  "forwardFailed": "Failed to forward message",
+  "@forwardFailed": {
+    "description": "Toast shown when forwarding a message fails."
+  },
+  "forwardCommentSlowmodeDisabled": "Comments are unavailable because a selected channel has slowmode enabled.",
+  "@forwardCommentSlowmodeDisabled": {
+    "description": "Notice shown in the forward sheet when the optional comment is disabled due to slowmode on a selected destination."
+  },
+  "forwardDestinationNoSendPermission": "You can't send messages here",
+  "@forwardDestinationNoSendPermission": {
+    "description": "Reason shown on a disabled forward destination when the user lacks the send-messages permission."
+  },
+  "forwardDestinationNoEmbedPermission": "You can't embed links here",
+  "@forwardDestinationNoEmbedPermission": {
+    "description": "Reason shown on a disabled forward destination when the user lacks embed-links permission and the message has embeds."
+  },
+  "forwardDestinationNoAttachPermission": "You can't attach files here",
+  "@forwardDestinationNoAttachPermission": {
+    "description": "Reason shown on a disabled forward destination when the user lacks attach-files permission and the message has attachments."
+  },
+  "forwardDestinationGuildSendDisabled": "Sending messages is disabled in this community",
+  "@forwardDestinationGuildSendDisabled": {
+    "description": "Reason shown on a disabled forward destination when the destination guild has sending disabled server-wide."
+  },
+  "forwardDestinationTimedOut": "You're on timeout in this community",
+  "@forwardDestinationTimedOut": {
+    "description": "Reason shown on a disabled forward destination when the current user is timed out (communication disabled) in the destination guild."
+  },
+  "forwardDestinationSlowmodeCoolingDown": "Slowmode - wait {remaining}",
+  "@forwardDestinationSlowmodeCoolingDown": {
+    "description": "Reason shown on a disabled forward destination currently within its slowmode cool-down window. Preserve {remaining}; it is the formatted MM:SS countdown inserted by code.",
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "chatMessageCopyText": "Copy Message",
   "@chatMessageCopyText": {
     "description": "Action label for copying message text."
@@ -4851,6 +4920,10 @@
   "mediaViewerOpenInBrowser": "Open in browser",
   "@mediaViewerOpenInBrowser": {
     "description": "Tooltip and accessibility label to open the current media item in an external browser."
+  },
+  "mediaViewerForward": "Forward",
+  "@mediaViewerForward": {
+    "description": "Tooltip and accessibility label for the media viewer Forward action, which forwards the current attachment or embed."
   },
   "mediaViewerZoomIn": "Zoom in",
   "@mediaViewerZoomIn": {

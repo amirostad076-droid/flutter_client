@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/embed_media_viewer_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
@@ -18,6 +19,9 @@ class EmbedImage extends StatelessWidget {
   final bool revealSpoiler;
   final FluxerSpoilerSyncController? spoilerSyncController;
   final List<String> spoilerSyncKeys;
+  final String? channelId;
+  final String? messageId;
+  final int? embedIndex;
 
   const EmbedImage({
     required this.embed,
@@ -26,6 +30,9 @@ class EmbedImage extends StatelessWidget {
     this.revealSpoiler = false,
     this.spoilerSyncController,
     this.spoilerSyncKeys = const [],
+    this.channelId,
+    this.messageId,
+    this.embedIndex,
     super.key,
   });
 
@@ -66,6 +73,17 @@ class EmbedImage extends StatelessWidget {
                         title: embed.title,
                       ),
                     ],
+                    onForward:
+                        (channelId != null &&
+                            messageId != null &&
+                            embedIndex != null)
+                        ? (int _) => showForwardMediaSheet(
+                            context,
+                            sourceChannelId: channelId!,
+                            sourceMessageId: messageId!,
+                            embedIndices: <int>[embedIndex!],
+                          )
+                        : null,
                   )
                 : null,
             child: CachedNetworkImage(

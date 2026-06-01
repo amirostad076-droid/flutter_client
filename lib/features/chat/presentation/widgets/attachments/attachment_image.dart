@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_thumbhash/flutter_thumbhash.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
@@ -18,6 +19,8 @@ class AttachmentImage extends StatelessWidget {
   final bool wrapWithSpoiler;
   final List<Attachment>? imageGallery;
   final int imageGalleryIndex;
+  final String? channelId;
+  final String? messageId;
 
   const AttachmentImage({
     required this.attachment,
@@ -26,6 +29,8 @@ class AttachmentImage extends StatelessWidget {
     this.wrapWithSpoiler = true,
     this.imageGallery,
     this.imageGalleryIndex = 0,
+    this.channelId,
+    this.messageId,
     super.key,
   });
 
@@ -61,6 +66,14 @@ class AttachmentImage extends StatelessWidget {
                   context,
                   items: gallery.map(_buildMediaViewerItem).toList(),
                   initialIndex: imageGalleryIndex.clamp(0, gallery.length - 1),
+                  onForward: (channelId != null && messageId != null)
+                      ? (int index) => showForwardMediaSheet(
+                          context,
+                          sourceChannelId: channelId!,
+                          sourceMessageId: messageId!,
+                          attachmentIds: <String>[gallery[index].id],
+                        )
+                      : null,
                 ),
           child: AspectRatio(
             aspectRatio: _resolveAspectRatio(),

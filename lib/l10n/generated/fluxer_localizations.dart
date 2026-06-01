@@ -6032,6 +6032,96 @@ abstract class FluxerLocalizations {
   /// **'Forward'**
   String get chatMessageForward;
 
+  /// Title of the forward-message bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward message'**
+  String get forwardMessageTitle;
+
+  /// Placeholder for the destination search field in the forward sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Search channels or DMs'**
+  String get forwardSearchHint;
+
+  /// Section header for direct-message destinations in the forward sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct Messages'**
+  String get forwardDirectMessagesSection;
+
+  /// Placeholder for the optional comment field in the forward sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a comment (optional)'**
+  String get forwardCommentHint;
+
+  /// Forward sheet send button label with the selected destination count and the selection limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send ({count}/{limit})'**
+  String forwardSendButton(int count, int limit);
+
+  /// Shown in the forward sheet when no destinations match the search.
+  ///
+  /// In en, this message translates to:
+  /// **'No channels found'**
+  String get forwardEmptyState;
+
+  /// Toast shown after a message is successfully forwarded.
+  ///
+  /// In en, this message translates to:
+  /// **'Message forwarded'**
+  String get forwardSuccessToast;
+
+  /// Toast shown when forwarding a message fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to forward message'**
+  String get forwardFailed;
+
+  /// Notice shown in the forward sheet when the optional comment is disabled due to slowmode on a selected destination.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments are unavailable because a selected channel has slowmode enabled.'**
+  String get forwardCommentSlowmodeDisabled;
+
+  /// Reason shown on a disabled forward destination when the user lacks the send-messages permission.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t send messages here'**
+  String get forwardDestinationNoSendPermission;
+
+  /// Reason shown on a disabled forward destination when the user lacks embed-links permission and the message has embeds.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t embed links here'**
+  String get forwardDestinationNoEmbedPermission;
+
+  /// Reason shown on a disabled forward destination when the user lacks attach-files permission and the message has attachments.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t attach files here'**
+  String get forwardDestinationNoAttachPermission;
+
+  /// Reason shown on a disabled forward destination when the destination guild has sending disabled server-wide.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending messages is disabled in this community'**
+  String get forwardDestinationGuildSendDisabled;
+
+  /// Reason shown on a disabled forward destination when the current user is timed out (communication disabled) in the destination guild.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on timeout in this community'**
+  String get forwardDestinationTimedOut;
+
+  /// Reason shown on a disabled forward destination currently within its slowmode cool-down window. Preserve {remaining}; it is the formatted MM:SS countdown inserted by code.
+  ///
+  /// In en, this message translates to:
+  /// **'Slowmode - wait {remaining}'**
+  String forwardDestinationSlowmodeCoolingDown(String remaining);
+
   /// Action label for copying message text.
   ///
   /// In en, this message translates to:
@@ -6817,6 +6907,12 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Open in browser'**
   String get mediaViewerOpenInBrowser;
+
+  /// Tooltip and accessibility label for the media viewer Forward action, which forwards the current attachment or embed.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward'**
+  String get mediaViewerForward;
 
   /// Tooltip and accessibility label for the media viewer zoom-in action.
   ///

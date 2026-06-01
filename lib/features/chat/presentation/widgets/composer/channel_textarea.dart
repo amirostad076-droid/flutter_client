@@ -16,8 +16,6 @@ import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_composer_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_recorder.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/pickers/emoji_search_bar.dart'
-    show kSkinToneSurrogates, skinToneToName;
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/reply_preview.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
@@ -30,6 +28,7 @@ import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_indicator_s
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
 import 'package:fluxer_app/features/chat/utils/clipboard_attachment_reader.dart';
+import 'package:fluxer_app/features/chat/utils/composer_emoji_insert.dart';
 import 'package:fluxer_app/features/chat/utils/composer_message_length_paste_formatter.dart';
 import 'package:fluxer_app/features/chat/utils/composer_sendable_content.dart';
 import 'package:fluxer_app/features/chat/utils/composer_voice_button_visibility.dart';
@@ -345,7 +344,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final vm = ref.watch(chatViewModelProvider);
     final chatNotifier = ref.read(chatViewModelProvider.notifier);
     final replyTo = vm.replyingTo;
-    final forwardFrom = vm.forwardingFrom;
     final editingMessage = vm.editingMessage;
     final channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
@@ -360,42 +358,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       children: [
         if (replyTo != null)
           ReplyInputBar(replyTo: replyTo, onCancel: chatNotifier.cancelReply),
-        if (forwardFrom != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: context.colors.chatInputBackground,
-            child: Row(
-              children: [
-                PhosphorIcon(
-                  PhosphorIconsFill.shareFat,
-                  size: 16,
-                  color: context.colors.textPrimaryMuted,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Forwarding message from '
-                    '${forwardFrom.authorName}',
-                    style: TextStyle(
-                      color: context.colors.textPrimaryMuted,
-                      fontSize: 14,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  icon: const PhosphorIcon(PhosphorIconsFill.x, size: 16),
-                  color: context.colors.textPrimaryMuted,
-                  onPressed: chatNotifier.cancelForward,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 24,
-                    minHeight: 24,
-                  ),
-                ),
-              ],
-            ),
-          ),
         if (editingMessage != null)
           EditingInputBar(onCancel: chatNotifier.cancelEdit),
         ChannelAttachmentArea(channelId: channelId),
@@ -942,33 +904,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   }
 
   void _insertEmoji(String name, String surrogates) {
-    final String token;
-    if (surrogates.startsWith('<')) {
-      token = surrogates;
-    } else {
-      token = _buildUnicodeShortcode(name, surrogates);
-    }
-    final text = _controller.text;
-    final sel = _controller.selection;
-    final pos = sel.isValid ? sel.baseOffset : text.length;
-    final newText = text.substring(0, pos) + token + text.substring(pos);
-    _controller.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: pos + token.length),
-    );
-  }
-
-  String _buildUnicodeShortcode(String name, String surrogates) {
-    for (final tone in kSkinToneSurrogates) {
-      if (surrogates.contains(tone)) {
-        final toneName = skinToneToName(tone);
-        if (toneName != null) {
-          return ':$name::$toneName:';
-        }
-        break;
-      }
-    }
-    return ':$name:';
+    insertEmojiToken(_controller, name, surrogates);
   }
 
   void _showNoSendPermissionToast() {

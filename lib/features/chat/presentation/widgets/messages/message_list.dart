@@ -15,6 +15,8 @@ import 'package:fluxer_app/features/chat/domain/message_list_pivot.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/delete_message_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
+    'sheets/forward_message_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/'
     'sheets/message_reactions_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/remove_all_reactions_confirm_sheet.dart';
@@ -382,7 +384,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         onReply: () =>
             ref.read(chatViewModelProvider.notifier).startReply(message),
         onForward: () =>
-            ref.read(chatViewModelProvider.notifier).startForward(message),
+            unawaited(showForwardMessageSheet(context, message: message)),
         onEdit: () =>
             ref.read(chatViewModelProvider.notifier).startEdit(message),
         onRemoveAllReactions: () => unawaited(

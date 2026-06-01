@@ -91,6 +91,8 @@ class AttachmentRenderer extends StatelessWidget {
         wrapWithSpoiler: false,
         imageGallery: imageGallery,
         imageGalleryIndex: imageGalleryIndex,
+        channelId: channelId,
+        messageId: messageId,
       ),
       AttachmentRenderType.video => AttachmentVideo(
         attachment: attachment,

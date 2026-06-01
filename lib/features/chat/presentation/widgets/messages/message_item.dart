@@ -742,7 +742,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         ),
       ),
       if (renderEmbeds && !msg.suppressEmbeds)
-        ...msg.embeds.map((embed) {
+        ...msg.embeds.indexed.map((entry) {
+          final int embedIndex = entry.$1;
+          final embed = entry.$2;
           final spoilerSyncKeys = spoilerSyncKeysForEmbed(embed, spoileredUrls);
           return wrapPart(
             _buildEmbed(
@@ -751,6 +753,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               spoilerSyncKeys: spoilerSyncKeys,
               revealSpoilers: revealSpoilers,
               dimensionSize: chatPreferences.embedMediaDimensionSize,
+              channelId: msg.channelId,
+              messageId: msg.id,
+              embedIndex: embedIndex,
             ),
           );
         }),
@@ -1057,6 +1062,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     required List<String> spoilerSyncKeys,
     required bool revealSpoilers,
     required MediaDimensionSize dimensionSize,
+    String? channelId,
+    String? messageId,
+    int? embedIndex,
   }) {
     final child = switch (embed.type) {
       EmbedType.rich => EmbedRich(
@@ -1072,6 +1080,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         revealSpoiler: revealSpoilers,
         spoilerSyncController: _spoilerSyncController,
         spoilerSyncKeys: spoilerSyncKeys,
+        channelId: channelId,
+        messageId: messageId,
+        embedIndex: embedIndex,
       ),
       EmbedType.link => EmbedLink(
         embed: embed,

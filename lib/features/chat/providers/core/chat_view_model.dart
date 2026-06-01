@@ -33,6 +33,7 @@ import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_indicator_s
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/typing_sender.dart';
+import 'package:fluxer_app/features/chat/utils/client_nonce.dart';
 import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
@@ -44,7 +45,6 @@ import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
-import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -62,7 +62,6 @@ class ChatViewState {
   final String channelId;
   final List<Message> messages;
   final Message? replyingTo;
-  final Message? forwardingFrom;
   final Message? editingMessage;
   final String messageText;
   final int scrollToBottomSignal;
@@ -80,7 +79,6 @@ class ChatViewState {
     required this.channelId,
     required this.messages,
     required this.replyingTo,
-    required this.forwardingFrom,
     required this.editingMessage,
     required this.messageText,
     required this.scrollToBottomSignal,
@@ -101,7 +99,6 @@ class ChatViewState {
     String? channelId,
     List<Message>? messages,
     Object? replyingTo = _unset,
-    Object? forwardingFrom = _unset,
     Object? editingMessage = _unset,
     String? messageText,
     int? scrollToBottomSignal,
@@ -121,9 +118,6 @@ class ChatViewState {
       replyingTo: replyingTo == _unset
           ? this.replyingTo
           : replyingTo as Message?,
-      forwardingFrom: forwardingFrom == _unset
-          ? this.forwardingFrom
-          : forwardingFrom as Message?,
       editingMessage: editingMessage == _unset
           ? this.editingMessage
           : editingMessage as Message?,
@@ -159,8 +153,6 @@ class ChatViewModel extends _$ChatViewModel {
   final Set<String> _loadedUnreadBoundaryKeys = <String>{};
   bool _readViewportActive = false;
   bool _readViewportNearBottom = true;
-  int _nonceTimestampMs = 0;
-  int _nonceSequence = 0;
   final Map<String, Future<void>> _pendingDeleteFutures =
       <String, Future<void>>{};
 
@@ -186,7 +178,6 @@ class ChatViewModel extends _$ChatViewModel {
       channelId: '',
       messages: [],
       replyingTo: null,
-      forwardingFrom: null,
       editingMessage: null,
       messageText: '',
       scrollToBottomSignal: 0,
@@ -211,9 +202,7 @@ class ChatViewModel extends _$ChatViewModel {
         ((state.replyingTo != null &&
                 deletedIds.contains(state.replyingTo!.id)) ||
             (state.editingMessage != null &&
-                deletedIds.contains(state.editingMessage!.id)) ||
-            (state.forwardingFrom != null &&
-                deletedIds.contains(state.forwardingFrom!.id)));
+                deletedIds.contains(state.editingMessage!.id)));
     if (next != null) {
       state = state.copyWith(
         messages: next,
@@ -224,7 +213,6 @@ class ChatViewModel extends _$ChatViewModel {
             ? ''
             : state.messageText,
         replyingTo: clearComposerForDelete ? null : state.replyingTo,
-        forwardingFrom: clearComposerForDelete ? null : state.forwardingFrom,
       );
       if (clearComposerForDelete) {
         unawaited(_flushComposerDraftSave());
@@ -240,7 +228,6 @@ class ChatViewModel extends _$ChatViewModel {
         editingMessage: null,
         messageText: '',
         replyingTo: clearComposerForDelete ? null : state.replyingTo,
-        forwardingFrom: clearComposerForDelete ? null : state.forwardingFrom,
       );
       if (clearComposerForDelete) {
         unawaited(_flushComposerDraftSave());
@@ -425,7 +412,6 @@ class ChatViewModel extends _$ChatViewModel {
       channelId: state.channelId,
       content: state.messageText,
       reply: state.replyingTo,
-      forward: state.forwardingFrom,
     );
   }
 
@@ -433,15 +419,12 @@ class ChatViewModel extends _$ChatViewModel {
     required String channelId,
     required String content,
     Message? reply,
-    Message? forward,
   }) async {
     if (channelId.isEmpty) {
       return;
     }
     final String? replyId = reply?.id;
-    final String? forwardId = forward?.id;
-    final bool hasDraft =
-        content.isNotEmpty || replyId != null || forwardId != null;
+    final bool hasDraft = content.isNotEmpty || replyId != null;
     final dao = ref.read(fluxerDatabaseProvider).composerDraftDao;
     if (!hasDraft) {
       await dao.deleteDraft(channelId);
@@ -451,11 +434,10 @@ class ChatViewModel extends _$ChatViewModel {
       channelId: channelId,
       content: content,
       replyToMessageId: replyId,
-      forwardFromMessageId: forwardId,
     );
   }
 
-  Future<({String text, Message? reply, Message? forward})> _loadComposerDraft(
+  Future<({String text, Message? reply})> _loadComposerDraft(
     String channelId,
   ) async {
     final row = await ref
@@ -463,7 +445,7 @@ class ChatViewModel extends _$ChatViewModel {
         .composerDraftDao
         .getDraft(channelId);
     if (row == null) {
-      return (text: '', reply: null, forward: null);
+      return (text: '', reply: null);
     }
     final messageDao = ref.read(fluxerDatabaseProvider).messageDao;
     Message? reply;
@@ -473,14 +455,7 @@ class ChatViewModel extends _$ChatViewModel {
       );
       reply = dbMsg == null ? null : Message.fromRow(dbMsg);
     }
-    Message? forward;
-    if (row.forwardFromMessageId != null) {
-      final db.Message? dbMsg = await messageDao.getMessage(
-        row.forwardFromMessageId!,
-      );
-      forward = dbMsg == null ? null : Message.fromRow(dbMsg);
-    }
-    return (text: row.content, reply: reply, forward: forward);
+    return (text: row.content, reply: reply);
   }
 
   Future<void> _restoreComposerDraftFromDb() async {
@@ -489,17 +464,13 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     final draft = await _loadComposerDraft(channelId);
-    state = state.copyWith(
-      messageText: draft.text,
-      replyingTo: draft.reply,
-      forwardingFrom: draft.forward,
-    );
+    state = state.copyWith(messageText: draft.text, replyingTo: draft.reply);
   }
 
   ChatViewState _switchedChannelState({
     required String channelId,
     required List<Message> messages,
-    required ({String text, Message? reply, Message? forward}) draft,
+    required ({String text, Message? reply}) draft,
     required int scrollToBottomSignal,
     required bool isLoading,
     required bool isSyncingMessages,
@@ -513,7 +484,6 @@ class ChatViewModel extends _$ChatViewModel {
       channelId: channelId,
       messages: messages,
       replyingTo: draft.reply,
-      forwardingFrom: draft.forward,
       editingMessage: null,
       messageText: draft.text,
       scrollToBottomSignal: scrollToBottomSignal,
@@ -541,7 +511,6 @@ class ChatViewModel extends _$ChatViewModel {
     if (isChannelChange) {
       final String previousText = state.messageText;
       final Message? previousReply = state.replyingTo;
-      final Message? previousForward = state.forwardingFrom;
       _draftSaveTimer?.cancel();
       _draftSaveTimer = null;
       _readAckRetryTimer?.cancel();
@@ -553,7 +522,7 @@ class ChatViewModel extends _$ChatViewModel {
       state = _switchedChannelState(
         channelId: channelId,
         messages: const [],
-        draft: (text: '', reply: null, forward: null),
+        draft: (text: '', reply: null),
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: loadMessages,
         isSyncingMessages: false,
@@ -567,7 +536,6 @@ class ChatViewModel extends _$ChatViewModel {
           channelId: previousChannelId,
           content: previousText,
           reply: previousReply,
-          forward: previousForward,
         ),
       );
     }
@@ -1329,7 +1297,7 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     final String? replyToId = state.replyingTo?.id;
-    final String clientNonce = _createClientNonce(channelId);
+    final String clientNonce = clientNonceGenerator.next();
     final List<PendingAttachment> claimed = uploadNotifier.claimForMessage(
       clientNonce,
     );
@@ -1359,7 +1327,6 @@ class ChatViewModel extends _$ChatViewModel {
     );
     state = state.copyWith(
       replyingTo: null,
-      forwardingFrom: null,
       messages: [...state.messages, optimisticMessage],
       errorMessage: null,
     );
@@ -1478,7 +1445,7 @@ class ChatViewModel extends _$ChatViewModel {
     final String authorName = hasGlobalName
         ? currentUser!.globalName!
         : currentUser?.username ?? 'You';
-    final String clientNonce = _createClientNonce(channelId);
+    final String clientNonce = clientNonceGenerator.next();
     final CloudUploadController uploadNotifier = ref.read(
       cloudUploadControllerProvider(channelId).notifier,
     );
@@ -1511,7 +1478,6 @@ class ChatViewModel extends _$ChatViewModel {
     talker.debug('[ChatViewModel] send optimistic channelId=$channelId');
     state = state.copyWith(
       replyingTo: null,
-      forwardingFrom: null,
       messageText: clearMessageText ? '' : state.messageText,
       messages: [...state.messages, optimisticMessage],
       errorMessage: null,
@@ -1780,8 +1746,7 @@ class ChatViewModel extends _$ChatViewModel {
             channelId: message.channelId,
             content: message.content,
             replyToId: message.replyToId,
-            clientNonce:
-                message.clientNonce ?? _createClientNonce(message.channelId),
+            clientNonce: message.clientNonce ?? clientNonceGenerator.next(),
             stickerIds: message.stickers
                 .map((MessageSticker s) => s.id)
                 .toList(),
@@ -1860,16 +1825,6 @@ class ChatViewModel extends _$ChatViewModel {
 
   void cancelReply() {
     state = state.copyWith(replyingTo: null);
-    unawaited(_flushComposerDraftSave());
-  }
-
-  void startForward(Message message) {
-    state = state.copyWith(forwardingFrom: message, editingMessage: null);
-    unawaited(_flushComposerDraftSave());
-  }
-
-  void cancelForward() {
-    state = state.copyWith(forwardingFrom: null);
     unawaited(_flushComposerDraftSave());
   }
 
@@ -1979,7 +1934,6 @@ class ChatViewModel extends _$ChatViewModel {
     state = state.copyWith(
       editingMessage: message,
       replyingTo: null,
-      forwardingFrom: null,
       messageText: message.content,
     );
   }
@@ -2213,20 +2167,6 @@ class ChatViewModel extends _$ChatViewModel {
       clientNonce: clientNonce,
       flags: flags,
     );
-  }
-
-  String _createClientNonce(String channelId) {
-    final int timestampMs = DateTime.now().millisecondsSinceEpoch;
-    if (timestampMs == _nonceTimestampMs) {
-      _nonceSequence = (_nonceSequence + 1) & 0xFFF;
-    } else {
-      _nonceTimestampMs = timestampMs;
-      _nonceSequence = 0;
-    }
-    final int timestampPart = timestampMs - kSnowflakeEpochMs;
-    const int workerId = 1;
-    final int nonce = (timestampPart << 22) | (workerId << 12) | _nonceSequence;
-    return nonce.toString();
   }
 
   List<Message> _replaceOptimisticWithDelivered({

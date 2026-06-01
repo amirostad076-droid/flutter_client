@@ -56,6 +56,8 @@ class AttachmentListRenderer extends StatelessWidget {
                 attachments: imageAttachments,
                 revealSpoilers: revealSpoilers,
                 dimensionSize: dimensionSize,
+                channelId: channelId,
+                messageId: messageId,
               ),
             ),
           );

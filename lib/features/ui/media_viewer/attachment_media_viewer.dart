@@ -30,6 +30,7 @@ Future<void> showAttachmentMediaViewer(
   BuildContext context, {
   required List<AttachmentMediaViewerItem> items,
   int initialIndex = 0,
+  void Function(int index)? onForward,
 }) async {
   if (items.isEmpty) {
     return;
@@ -43,6 +44,7 @@ Future<void> showAttachmentMediaViewer(
       return AttachmentMediaViewerShell(
         items: items,
         initialIndex: clampedInitialIndex,
+        onForward: onForward,
       );
     },
     transitionBuilder: (_, animation, _, child) {
@@ -55,11 +57,16 @@ class AttachmentMediaViewerShell extends StatefulWidget {
   const AttachmentMediaViewerShell({
     required this.items,
     required this.initialIndex,
+    this.onForward,
     super.key,
   });
 
   final List<AttachmentMediaViewerItem> items;
   final int initialIndex;
+
+  /// When non-null, the action bar shows a Forward button; invoked with the
+  /// index of the item on screen when tapped (after the viewer closes).
+  final void Function(int index)? onForward;
 
   @override
   State<AttachmentMediaViewerShell> createState() =>
@@ -109,6 +116,16 @@ class _AttachmentMediaViewerShellState
       return;
     }
     unawaited(handleExternalLinkTap(context, item.url));
+  }
+
+  void _executeForward() {
+    final void Function(int index)? onForward = widget.onForward;
+    if (onForward == null) {
+      return;
+    }
+    final int index = _currentIndex;
+    Navigator.of(context).pop();
+    onForward(index);
   }
 
   void _executeSelectIndex(int index) {
@@ -257,6 +274,17 @@ class _AttachmentMediaViewerShellState
                           const SizedBox(width: 8),
                         ],
                         const Spacer(),
+                        if (widget.onForward != null) ...[
+                          Tooltip(
+                            message: l10n.mediaViewerForward,
+                            child: FluxerButton.mediaOverlay(
+                              onPressed: _executeForward,
+                              icon: PhosphorIconsBold.arrowBendUpRight,
+                              isSquare: true,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                         Tooltip(
                           message: l10n.mediaViewerOpenInBrowser,
                           child: FluxerButton.mediaOverlay(

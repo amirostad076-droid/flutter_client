@@ -1,6 +1,7 @@
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_expiry_footnote.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
@@ -14,12 +15,16 @@ class AttachmentImageGrid extends StatelessWidget {
     required this.attachments,
     required this.revealSpoilers,
     required this.dimensionSize,
+    this.channelId,
+    this.messageId,
     super.key,
   });
 
   final List<Attachment> attachments;
   final bool revealSpoilers;
   final MediaDimensionSize dimensionSize;
+  final String? channelId;
+  final String? messageId;
 
   @override
   Widget build(BuildContext context) {
@@ -200,6 +205,14 @@ class AttachmentImageGrid extends StatelessWidget {
                       )
                       .toList(),
                   initialIndex: index,
+                  onForward: (channelId != null && messageId != null)
+                      ? (int i) => showForwardMediaSheet(
+                          context,
+                          sourceChannelId: channelId!,
+                          sourceMessageId: messageId!,
+                          attachmentIds: <String>[attachments[i].id],
+                        )
+                      : null,
                 )
               : null,
           child: DecoratedBox(

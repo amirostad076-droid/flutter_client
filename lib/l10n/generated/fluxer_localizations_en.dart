@@ -3551,6 +3551,61 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatMessageForward => 'Forward';
 
   @override
+  String get forwardMessageTitle => 'Forward message';
+
+  @override
+  String get forwardSearchHint => 'Search channels or DMs';
+
+  @override
+  String get forwardDirectMessagesSection => 'Direct Messages';
+
+  @override
+  String get forwardCommentHint => 'Add a comment (optional)';
+
+  @override
+  String forwardSendButton(int count, int limit) {
+    return 'Send ($count/$limit)';
+  }
+
+  @override
+  String get forwardEmptyState => 'No channels found';
+
+  @override
+  String get forwardSuccessToast => 'Message forwarded';
+
+  @override
+  String get forwardFailed => 'Failed to forward message';
+
+  @override
+  String get forwardCommentSlowmodeDisabled =>
+      'Comments are unavailable because a selected channel has slowmode enabled.';
+
+  @override
+  String get forwardDestinationNoSendPermission =>
+      'You can\'t send messages here';
+
+  @override
+  String get forwardDestinationNoEmbedPermission =>
+      'You can\'t embed links here';
+
+  @override
+  String get forwardDestinationNoAttachPermission =>
+      'You can\'t attach files here';
+
+  @override
+  String get forwardDestinationGuildSendDisabled =>
+      'Sending messages is disabled in this community';
+
+  @override
+  String get forwardDestinationTimedOut =>
+      'You\'re on timeout in this community';
+
+  @override
+  String forwardDestinationSlowmodeCoolingDown(String remaining) {
+    return 'Slowmode - wait $remaining';
+  }
+
+  @override
   String get chatMessageCopyText => 'Copy Message';
 
   @override
@@ -3993,6 +4048,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get mediaViewerOpenInBrowser => 'Open in browser';
+
+  @override
+  String get mediaViewerForward => 'Forward';
 
   @override
   String get mediaViewerZoomIn => 'Zoom in';

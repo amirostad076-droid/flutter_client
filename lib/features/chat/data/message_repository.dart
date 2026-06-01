@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/chat/domain/api_attachment_metadata.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/utils/client_nonce.dart';
 import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -57,6 +58,42 @@ Map<String, dynamic> buildMessageCreateBody({
         .map((ApiAttachmentMetadata e) => e.toJson())
         .toList();
   }
+  if (clientNonce != null && clientNonce.isNotEmpty) {
+    body['nonce'] = clientNonce;
+  }
+  return body;
+}
+
+/// Builds the request body for a message forward.
+///
+/// Forwards reference a source message and MUST NOT carry
+/// content/embeds/attachments/stickers — the server builds the snapshot itself
+/// (it rejects forward refs that include content). [attachmentIds]/
+/// [embedIndices] narrow which media the server snapshots; omit them to
+/// forward the whole message.
+Map<String, dynamic> buildForwardMessageBody({
+  required String sourceChannelId,
+  required String sourceMessageId,
+  String? sourceGuildId,
+  List<String>? attachmentIds,
+  List<int>? embedIndices,
+  String? clientNonce,
+}) {
+  final reference = <String, dynamic>{
+    'type': 1, // MessageReferenceType.forward
+    'channel_id': sourceChannelId,
+    'message_id': sourceMessageId,
+  };
+  if (sourceGuildId != null && sourceGuildId.isNotEmpty) {
+    reference['guild_id'] = sourceGuildId;
+  }
+  if (attachmentIds != null && attachmentIds.isNotEmpty) {
+    reference['attachment_ids'] = attachmentIds;
+  }
+  if (embedIndices != null && embedIndices.isNotEmpty) {
+    reference['embed_indices'] = embedIndices;
+  }
+  final body = <String, dynamic>{'message_reference': reference};
   if (clientNonce != null && clientNonce.isNotEmpty) {
     body['nonce'] = clientNonce;
   }
@@ -473,30 +510,80 @@ class MessageRepository {
         return message;
       }
 
-      final Response<Map<String, dynamic>> response = await _dio
-          .post<Map<String, dynamic>>(
-            '/channels/$channelId/messages',
-            data: body,
-            options: Options(
-              sendTimeout: const Duration(minutes: 5),
-              receiveTimeout: const Duration(minutes: 2),
-            ),
-          );
-      final Map<String, dynamic>? data = response.data;
-      if (data == null) {
-        throw Exception('Empty response from sendMessage');
-      }
-
-      final MessageResponseSchema schema = MessageResponseSchema.fromJson(data);
-
-      final Message message = Message.fromSdk(
-        schema,
-        currentUserId: _currentUserId,
-      );
-      await _db.messageDao.upsertMessage(message.toCompanion());
-      return message;
+      final Message sent = await _postMessage(channelId, body);
+      return sent;
     } on DioException catch (e) {
       throw Exception(dioExceptionMessage(e, 'Failed to send message'));
+    }
+  }
+
+  Future<Message> _postMessage(
+    String channelId,
+    Map<String, dynamic> body,
+  ) async {
+    final Response<Map<String, dynamic>> response = await _dio
+        .post<Map<String, dynamic>>(
+          '/channels/$channelId/messages',
+          data: body,
+          options: Options(
+            sendTimeout: const Duration(minutes: 5),
+            receiveTimeout: const Duration(minutes: 2),
+          ),
+        );
+    final Map<String, dynamic>? data = response.data;
+    if (data == null) {
+      throw Exception('Empty response from sendMessage');
+    }
+    final MessageResponseSchema schema = MessageResponseSchema.fromJson(data);
+    final Message message = Message.fromSdk(
+      schema,
+      currentUserId: _currentUserId,
+    );
+    await _db.messageDao.upsertMessage(message.toCompanion());
+    return message;
+  }
+
+  /// Forwards [sourceMessageId] from [sourceChannelId] to each channel in
+  /// [destinationChannelIds]. When [comment] is non-empty a separate message is
+  /// sent after each forward so it renders below the forwarded snapshot. Sends
+  /// are sequential per destination (matching the web client) and throw on the
+  /// first failed request.
+  Future<void> forwardMessage({
+    required String sourceChannelId,
+    required String sourceMessageId,
+    required List<String> destinationChannelIds,
+    String? sourceGuildId,
+    List<String>? attachmentIds,
+    List<int>? embedIndices,
+    String? comment,
+  }) async {
+    final String? trimmedComment = comment?.trim();
+    final bool hasComment = trimmedComment != null && trimmedComment.isNotEmpty;
+    try {
+      for (final String destinationId in destinationChannelIds) {
+        await _postMessage(
+          destinationId,
+          buildForwardMessageBody(
+            sourceChannelId: sourceChannelId,
+            sourceMessageId: sourceMessageId,
+            sourceGuildId: sourceGuildId,
+            attachmentIds: attachmentIds,
+            embedIndices: embedIndices,
+            clientNonce: clientNonceGenerator.next(),
+          ),
+        );
+        if (hasComment) {
+          await _postMessage(
+            destinationId,
+            buildMessageCreateBody(
+              content: comment!,
+              clientNonce: clientNonceGenerator.next(),
+            ),
+          );
+        }
+      }
+    } on DioException catch (e) {
+      throw Exception(dioExceptionMessage(e, 'Failed to forward message'));
     }
   }
 
