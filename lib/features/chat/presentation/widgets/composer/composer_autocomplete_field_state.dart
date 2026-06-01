@@ -233,7 +233,7 @@ class ComposerAutocompleteChatFieldState
           (Member m) => _ComposerRow(
             title: memberDisplayLabel(m),
             subtitle: _composerMentionAutocompleteRightLabel(m, discs),
-            onApply: () => _applyUserMention(trigger, m.id),
+            onApply: () => _applyUserMention(trigger, m),
             mentionMember: m,
           ),
         )
@@ -526,7 +526,8 @@ class ComposerAutocompleteChatFieldState
     );
   }
 
-  void _applyUserMention(ComposerAutocompleteTrigger trigger, String userId) {
+  void _applyUserMention(ComposerAutocompleteTrigger trigger, Member member) {
+    final String userId = member.id;
     if (widget.controller is ComposerMentionController &&
         trigger.kind == ComposerAutocompleteTriggerKind.mention) {
       (widget.controller as ComposerMentionController)
@@ -534,6 +535,7 @@ class ComposerAutocompleteChatFieldState
             matchStart: trigger.matchStart,
             matchEnd: trigger.matchEnd,
             userId: userId,
+            displayName: memberDisplayLabel(member),
           );
       _closeMenu();
       return;
@@ -577,6 +579,7 @@ class ComposerAutocompleteChatFieldState
             matchStart: trigger.matchStart,
             matchEnd: trigger.matchEnd,
             channelId: c.id,
+            displayName: c.name,
           );
       _closeMenu();
       return;

@@ -87,6 +87,8 @@ class ComposerMentionController extends TextEditingController {
   final List<String> mentionRoleIds = <String>[];
   final List<String> mentionRoleLabels = <String>[];
   final List<int?> mentionRoleColorsArgb = <int?>[];
+  final List<String?> mentionUserLabels = <String?>[];
+  final List<String?> mentionChannelLabels = <String?>[];
 
   static final RegExp _wireMentions = RegExp(
     '<@&([^>]+)>|<@!?([^>]+)>|<#([^>]+)>',
@@ -128,9 +130,15 @@ class ComposerMentionController extends TextEditingController {
     final String rPh = _rolePlaceholderChar();
     while (mentionUserIds.length > _countUserPlaceholders(newText)) {
       mentionUserIds.removeLast();
+      if (mentionUserLabels.isNotEmpty) {
+        mentionUserLabels.removeLast();
+      }
     }
     while (mentionChannelIds.length > _countChannelPlaceholders(newText)) {
       mentionChannelIds.removeLast();
+      if (mentionChannelLabels.isNotEmpty) {
+        mentionChannelLabels.removeLast();
+      }
     }
     while (mentionRoleIds.length > _countRolePlaceholders(newText)) {
       mentionRoleIds.removeLast();
@@ -252,6 +260,12 @@ class ComposerMentionController extends TextEditingController {
     mentionRoleColorsArgb
       ..clear()
       ..addAll(roleColorsArgb);
+    mentionUserLabels
+      ..clear()
+      ..addAll(List<String?>.filled(users.length, null));
+    mentionChannelLabels
+      ..clear()
+      ..addAll(List<String?>.filled(channels.length, null));
     final String next = display.toString();
     value = TextEditingValue(
       text: next,
@@ -263,6 +277,7 @@ class ComposerMentionController extends TextEditingController {
     required int matchStart,
     required int matchEnd,
     required String userId,
+    String? displayName,
   }) {
     final String full = text;
     final String before = full.substring(0, matchStart);
@@ -270,6 +285,7 @@ class ComposerMentionController extends TextEditingController {
     final String insert = '${_userPlaceholderChar()} ';
     final int indexBefore = _countUserPlaceholders(before);
     mentionUserIds.insert(indexBefore, userId);
+    mentionUserLabels.insert(indexBefore, displayName);
     final String next = '$before$insert$after';
     value = TextEditingValue(
       text: next,
@@ -281,6 +297,7 @@ class ComposerMentionController extends TextEditingController {
     required int matchStart,
     required int matchEnd,
     required String channelId,
+    String? displayName,
   }) {
     final String full = text;
     final String before = full.substring(0, matchStart);
@@ -288,6 +305,7 @@ class ComposerMentionController extends TextEditingController {
     final String insert = '${_channelPlaceholderChar()} ';
     final int indexBefore = _countChannelPlaceholders(before);
     mentionChannelIds.insert(indexBefore, channelId);
+    mentionChannelLabels.insert(indexBefore, displayName);
     final String next = '$before$insert$after';
     value = TextEditingValue(
       text: next,
@@ -363,13 +381,17 @@ class ComposerMentionController extends TextEditingController {
     while (i < t.length) {
       final int cu = t.codeUnitAt(i);
       if (cu == _kUserMentionPlaceholderCodeUnit) {
+        final int labelIndex = userIdx;
         final String userId = userIdx < mentionUserIds.length
             ? mentionUserIds[userIdx]
             : '';
         userIdx++;
+        final String? storedLabel = labelIndex < mentionUserLabels.length
+            ? mentionUserLabels[labelIndex]
+            : null;
         final String label = userId.isEmpty
             ? '?'
-            : _composerMentionUserLabel(_ref, userId);
+            : (storedLabel ?? _composerMentionUserLabel(_ref, userId));
         children.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
@@ -381,13 +403,17 @@ class ComposerMentionController extends TextEditingController {
         );
         i += 1;
       } else if (cu == _kChannelMentionPlaceholderCodeUnit) {
+        final int labelIndex = channelIdx;
         final String channelId = channelIdx < mentionChannelIds.length
             ? mentionChannelIds[channelIdx]
             : '';
         channelIdx++;
+        final String? storedLabel = labelIndex < mentionChannelLabels.length
+            ? mentionChannelLabels[labelIndex]
+            : null;
         final String name = channelId.isEmpty
             ? '?'
-            : _composerMentionChannelLabel(_ref, channelId);
+            : (storedLabel ?? _composerMentionChannelLabel(_ref, channelId));
         children.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
