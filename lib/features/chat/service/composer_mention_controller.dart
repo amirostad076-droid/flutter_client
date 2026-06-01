@@ -381,17 +381,13 @@ class ComposerMentionController extends TextEditingController {
     while (i < t.length) {
       final int cu = t.codeUnitAt(i);
       if (cu == _kUserMentionPlaceholderCodeUnit) {
-        final int labelIndex = userIdx;
-        final String userId = userIdx < mentionUserIds.length
-            ? mentionUserIds[userIdx]
-            : '';
+        final String label = _resolveMentionLabel(
+          userIdx,
+          mentionUserIds,
+          mentionUserLabels,
+          _composerMentionUserLabel,
+        );
         userIdx++;
-        final String? storedLabel = labelIndex < mentionUserLabels.length
-            ? mentionUserLabels[labelIndex]
-            : null;
-        final String label = userId.isEmpty
-            ? '?'
-            : (storedLabel ?? _composerMentionUserLabel(_ref, userId));
         children.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
@@ -403,17 +399,13 @@ class ComposerMentionController extends TextEditingController {
         );
         i += 1;
       } else if (cu == _kChannelMentionPlaceholderCodeUnit) {
-        final int labelIndex = channelIdx;
-        final String channelId = channelIdx < mentionChannelIds.length
-            ? mentionChannelIds[channelIdx]
-            : '';
+        final String name = _resolveMentionLabel(
+          channelIdx,
+          mentionChannelIds,
+          mentionChannelLabels,
+          _composerMentionChannelLabel,
+        );
         channelIdx++;
-        final String? storedLabel = labelIndex < mentionChannelLabels.length
-            ? mentionChannelLabels[labelIndex]
-            : null;
-        final String name = channelId.isEmpty
-            ? '?'
-            : (storedLabel ?? _composerMentionChannelLabel(_ref, channelId));
         children.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
@@ -458,5 +450,19 @@ class ComposerMentionController extends TextEditingController {
       }
     }
     return TextSpan(style: style, children: children);
+  }
+
+  String _resolveMentionLabel(
+    int index,
+    List<String> ids,
+    List<String?> labels,
+    String Function(WidgetRef ref, String id) resolve,
+  ) {
+    final String id = index < ids.length ? ids[index] : '';
+    if (id.isEmpty) {
+      return '?';
+    }
+    final String? stored = index < labels.length ? labels[index] : null;
+    return stored ?? resolve(_ref, id);
   }
 }
