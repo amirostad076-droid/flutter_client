@@ -91,9 +91,13 @@ class ForwardedMessageContent extends ConsumerWidget {
                         dimensionSize: attachmentSize,
                         revealSpoilers: revealSpoilers,
                         topPadding: 4,
+                        channelId: message.channelId,
+                        messageId: message.id,
                       ),
                     if (renderEmbeds)
-                      ...snapshot.embeds.map((embed) {
+                      ...snapshot.embeds.indexed.map((entry) {
+                        final int embedIndex = entry.$1;
+                        final embed = entry.$2;
                         final spoilerSyncKeys = spoilerSyncKeysForEmbed(
                           embed,
                           spoileredUrls,
@@ -108,6 +112,9 @@ class ForwardedMessageContent extends ConsumerWidget {
                             isSpoiler: spoilerSyncKeys.isNotEmpty,
                             spoilerSyncKeys: spoilerSyncKeys,
                             spoilerSyncController: spoilerSyncController,
+                            channelId: message.channelId,
+                            messageId: message.id,
+                            embedIndex: embedIndex,
                           ),
                         );
                       }),
@@ -164,6 +171,9 @@ class _ForwardedEmbed extends StatelessWidget {
     required this.isSpoiler,
     required this.spoilerSyncKeys,
     required this.spoilerSyncController,
+    this.channelId,
+    this.messageId,
+    this.embedIndex,
   });
 
   final Embed embed;
@@ -172,6 +182,9 @@ class _ForwardedEmbed extends StatelessWidget {
   final bool isSpoiler;
   final List<String> spoilerSyncKeys;
   final FluxerSpoilerSyncController spoilerSyncController;
+  final String? channelId;
+  final String? messageId;
+  final int? embedIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -189,6 +202,9 @@ class _ForwardedEmbed extends StatelessWidget {
         revealSpoiler: revealSpoilers,
         spoilerSyncController: spoilerSyncController,
         spoilerSyncKeys: spoilerSyncKeys,
+        channelId: channelId,
+        messageId: messageId,
+        embedIndex: embedIndex,
       ),
       EmbedType.link => EmbedLink(
         embed: embed,
