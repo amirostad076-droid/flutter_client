@@ -137,7 +137,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 47;
+  int get schemaVersion => 49;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -504,6 +504,16 @@ class FluxerDatabase extends _$FluxerDatabase {
           'UPDATE messages SET reactions_json = ? WHERE reactions_json IS NULL',
           ['[]'],
         );
+      }
+      if (from < 48) {
+        // Drop the dead forward-from-message draft column (clean cutover).
+        // Composer drafts are disposable local cache, so recreate the table.
+        await m.deleteTable('composer_drafts');
+        await m.createTable(composerDrafts);
+      }
+      if (from < 49) {
+        await m.addColumn(servers, servers.disabledOperations);
+        await m.addColumn(members, members.communicationDisabledUntil);
       }
     },
   );

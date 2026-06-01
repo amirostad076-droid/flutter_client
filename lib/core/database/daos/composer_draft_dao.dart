@@ -19,14 +19,12 @@ class ComposerDraftDao extends DatabaseAccessor<FluxerDatabase>
     required String channelId,
     required String content,
     String? replyToMessageId,
-    String? forwardFromMessageId,
   }) {
     return into(composerDrafts).insertOnConflictUpdate(
       ComposerDraftsCompanion.insert(
         channelId: channelId,
         content: Value(content),
         replyToMessageId: Value(replyToMessageId),
-        forwardFromMessageId: Value(forwardFromMessageId),
       ),
     );
   }

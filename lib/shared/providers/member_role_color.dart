@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
-import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:riverpod/src/providers/future_provider.dart';
 
 int? _opaqueRoleColorValue(int? color) {
@@ -53,14 +52,7 @@ final FutureProviderFamily<Color?, (String, String)> memberRoleColorProvider =
             userId: userId,
           );
           await database.memberDao.upsertMember(
-            db.MembersCompanion.insert(
-              userId: sdk.user.id,
-              guildId: guildId,
-              nick: Value(sdk.nick),
-              serverAvatar: Value(sdk.avatar),
-              roleIdsJson: Value(jsonEncode(sdk.roles)),
-              joinedAt: Value(sdk.joinedAt),
-            ),
+            memberCompanionFromSdk(sdk, guildId: guildId),
           );
           member = await database.memberDao.getMemberByUserId(userId, guildId);
         } on Object {

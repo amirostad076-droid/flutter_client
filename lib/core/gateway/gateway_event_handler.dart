@@ -1231,14 +1231,7 @@ class GatewayEventHandler {
 
     unawaited(
       database.memberDao.upsertMember(
-        db.MembersCompanion.insert(
-          userId: member.user.id,
-          guildId: guildId,
-          nick: Value(member.nick),
-          serverAvatar: Value(member.avatar),
-          roleIdsJson: Value(jsonEncode(member.roles)),
-          joinedAt: Value(member.joinedAt),
-        ),
+        memberCompanionFromSdk(member, guildId: guildId),
       ),
     );
   }

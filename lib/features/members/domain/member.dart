@@ -58,6 +58,7 @@ class Member {
   final bool isOwner;
   final bool isBot;
   final String? customStatus;
+  final DateTime? communicationDisabledUntil;
 
   const Member({
     required this.id,
@@ -71,6 +72,7 @@ class Member {
     this.isOwner = false,
     this.isBot = false,
     this.customStatus,
+    this.communicationDisabledUntil,
   });
 
   factory Member.fromRow(db.Member row, db.User? user, List<db.Role> allRoles) {
@@ -92,10 +94,16 @@ class Member {
       status: user?.status ?? 'offline',
       isBot: user?.bot ?? false,
       customStatus: user?.customStatus,
+      communicationDisabledUntil: row.communicationDisabledUntil,
     );
   }
 
   String get displayName => nickname ?? globalName ?? username;
+
+  /// Whether the member is currently timed out (communication disabled).
+  bool get isTimedOut =>
+      communicationDisabledUntil != null &&
+      communicationDisabledUntil!.isAfter(DateTime.now());
 
   /// Color of the highest-positioned role, or null.
   int? get roleColor {

@@ -53,6 +53,7 @@ class MemberRepository {
               'avatar': sdk.avatar,
               'roles': sdk.roles,
               'joined_at': sdk.joinedAt,
+              'communication_disabled_until': sdk.communicationDisabledUntil,
             },
           )
           .toList();
@@ -97,6 +98,9 @@ class MemberRepository {
           serverAvatar: Value(map['avatar'] as String?),
           roleIdsJson: Value(jsonEncode(roles)),
           joinedAt: Value(map['joined_at'] as DateTime?),
+          communicationDisabledUntil: Value(
+            map['communication_disabled_until'] as DateTime?,
+          ),
         ),
       );
     }

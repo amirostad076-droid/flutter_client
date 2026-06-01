@@ -20,6 +20,7 @@ class Guild {
   final int position;
   final List<String> features;
   final bool unavailable;
+  final int disabledOperations;
 
   const Guild({
     required this.id,
@@ -33,6 +34,7 @@ class Guild {
     this.position = 0,
     this.features = const [],
     this.unavailable = false,
+    this.disabledOperations = 0,
   });
 
   factory Guild.fromRow(db.Server row) {
@@ -48,6 +50,7 @@ class Guild {
       position: row.position,
       features: (jsonDecode(row.featuresJson) as List<dynamic>).cast<String>(),
       unavailable: row.unavailable,
+      disabledOperations: row.disabledOperations,
     );
   }
 
@@ -64,6 +67,7 @@ class Guild {
       position: Value(position),
       featuresJson: Value(jsonEncode(features)),
       unavailable: Value(unavailable),
+      disabledOperations: Value(disabledOperations),
     );
   }
 
@@ -73,6 +77,11 @@ class Guild {
   bool get hasVoiceE2ee => features.contains('VOICE_E2EE');
   bool get isUnavailable =>
       unavailable || features.contains('UNAVAILABLE_FOR_EVERYONE_BUT_STAFF');
+
+  /// Whether sending messages is disabled guild-wide.
+  ///
+  /// `SEND_MESSAGE` is bit `1 << 4` of the `disabled_operations` bitmask.
+  bool get isSendDisabled => (disabledOperations & (1 << 4)) != 0;
 
   bool get hasAnimatedIcon => icon?.startsWith('a_') ?? false;
   bool get hasAnimatedBanner => banner?.startsWith('a_') ?? false;

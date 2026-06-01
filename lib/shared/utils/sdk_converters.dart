@@ -35,6 +35,23 @@ db.ServersCompanion guildFromSdk(
     featuresJson: Value(jsonEncode(sdk.features)),
     position: Value(position),
     unavailable: Value(unavailable),
+    disabledOperations: Value(sdk.disabledOperations),
+  );
+}
+
+/// Converts SDK [GuildMemberResponse] to a Drift companion for upserting.
+db.MembersCompanion memberCompanionFromSdk(
+  GuildMemberResponse sdk, {
+  required String guildId,
+}) {
+  return db.MembersCompanion.insert(
+    userId: sdk.user.id,
+    guildId: guildId,
+    nick: Value(sdk.nick),
+    serverAvatar: Value(sdk.avatar),
+    roleIdsJson: Value(jsonEncode(sdk.roles)),
+    joinedAt: Value(sdk.joinedAt),
+    communicationDisabledUntil: Value(sdk.communicationDisabledUntil),
   );
 }
 
