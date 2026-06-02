@@ -2474,6 +2474,74 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatAttachmentDropToSend => 'Drop files to send now';
 
   @override
+  String get chatAttachmentSendVoiceMessage => 'Send voice message';
+
+  @override
+  String get voiceMessageTitle => 'Voice message';
+
+  @override
+  String get voiceMessageHoldHint =>
+      'Hold to record. Drag up to lock, or release to send.';
+
+  @override
+  String get voiceMessageDiscard => 'Discard voice message';
+
+  @override
+  String get voiceMessageSend => 'Send voice message';
+
+  @override
+  String get voiceMessageMicPermissionDenied =>
+      'Unable to start recording. Allow microphone access.';
+
+  @override
+  String get voiceMessageRecordingNotSupported =>
+      'Voice recording is not supported on this device.';
+
+  @override
+  String get voiceMessageMicInUse =>
+      'Leave the voice call to record a voice message.';
+
+  @override
+  String get voiceMessageRecordingFailed => 'Recording failed. Try again.';
+
+  @override
+  String get voiceMessageSendFailed =>
+      'Unable to send voice message. Try again.';
+
+  @override
+  String get voiceMessageRecordingHint =>
+      'Speak now. Press Stop when you are done — you can trim afterwards.';
+
+  @override
+  String get voiceMessageReviewHint =>
+      'Drag the handles to trim, then press Send.';
+
+  @override
+  String get voiceMessageStop => 'Stop';
+
+  @override
+  String get voiceMessageStartRecording => 'Start recording';
+
+  @override
+  String get voiceMessageRerecord => 'Re-record';
+
+  @override
+  String get voiceMessagePlay => 'Play';
+
+  @override
+  String get voiceMessagePause => 'Pause';
+
+  @override
+  String voiceMessageSelectionTooShort(num seconds) {
+    final intl.NumberFormat secondsNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String secondsString = secondsNumberFormat.format(seconds);
+
+    return 'Selection must be at least ${secondsString}s.';
+  }
+
+  @override
   String get chatAttachmentEditTitle => 'Edit attachment';
 
   @override

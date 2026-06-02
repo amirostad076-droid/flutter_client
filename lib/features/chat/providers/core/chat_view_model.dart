@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:ui';
 
+import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
@@ -32,7 +34,9 @@ import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_tracker.dar
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/typing_sender.dart';
 import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
+import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
+import 'package:fluxer_app/features/chat/utils/voice_message_constants.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
@@ -1239,6 +1243,23 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> sendStandaloneMessage(String content) =>
       _sendContent(content.trim(), clearMessageText: false);
 
+  Future<void> sendVoiceMessage({
+    required String filePath,
+    required int duration,
+    required String waveform,
+  }) async {
+    try {
+      await _sendVoiceMessageInner(
+        filePath: filePath,
+        duration: duration,
+        waveform: waveform,
+      );
+    } on Object catch (error, st) {
+      talker.error('[ChatViewModel] voice send failed unexpectedly', error, st);
+      _showUnexpectedSendError();
+    }
+  }
+
   String _maybeSanitizeOutgoing(String text) {
     if (text.isEmpty) {
       return text;
@@ -1266,6 +1287,98 @@ class ChatViewModel extends _$ChatViewModel {
       talker.error('[ChatViewModel] send failed unexpectedly', error, st);
       _showUnexpectedSendError();
     }
+  }
+
+  Future<void> _sendVoiceMessageInner({
+    required String filePath,
+    required int duration,
+    required String waveform,
+  }) async {
+    final String channelId = state.channelId;
+    if (channelId.isEmpty) {
+      _notifySendBlocked(_SendBlockReason.channelNotReady);
+      return;
+    }
+    if (state.editingMessage != null) {
+      return;
+    }
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    final db.User? currentUser = currentUserId == null
+        ? null
+        : await ref
+              .read(fluxerDatabaseProvider)
+              .userDao
+              .getUserById(currentUserId);
+    final bool hasGlobalName =
+        currentUser?.globalName?.trim().isNotEmpty ?? false;
+    final String authorName = hasGlobalName
+        ? currentUser!.globalName!
+        : currentUser?.username ?? 'You';
+    final CloudUploadController uploadNotifier = ref.read(
+      cloudUploadControllerProvider(channelId).notifier,
+    );
+    final FileUploadValidationResult validation = await uploadNotifier
+        .addVoiceMessage(
+          file: XFile(filePath, name: kVoiceMessageFilename),
+          duration: duration,
+          waveform: waveform,
+        );
+    if (!validation.isValid) {
+      uploadNotifier.clearComposerAttachments();
+      _showUnexpectedSendError();
+      return;
+    }
+    final String? replyToId = state.replyingTo?.id;
+    final String clientNonce = _createClientNonce(channelId);
+    final List<PendingAttachment> claimed = uploadNotifier.claimForMessage(
+      clientNonce,
+    );
+    if (claimed.isEmpty) {
+      return;
+    }
+    final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
+      PlatformDispatcher.instance.locale,
+    );
+    final List<Attachment> optimisticAttachments =
+        buildUploadingPlaceholderAttachments(
+          claimed: claimed,
+          labelForMultiple: l10n.chatUploadingAttachmentsSummary,
+        );
+    final Message optimisticMessage = _buildOptimisticMessage(
+      channelId: channelId,
+      content: '',
+      replyToId: replyToId,
+      stickerIds: const <String>[],
+      currentUserId: currentUserId,
+      authorName: authorName,
+      authorAvatar: currentUser?.avatar,
+      authorAvatarColor: currentUser?.avatarColor,
+      clientNonce: clientNonce,
+      attachments: optimisticAttachments,
+      flags: kMessageFlagVoiceMessage,
+    );
+    state = state.copyWith(
+      replyingTo: null,
+      forwardingFrom: null,
+      messages: [...state.messages, optimisticMessage],
+      errorMessage: null,
+    );
+    clearStickyUnread();
+    unawaited(ref.read(readStateRepositoryProvider).clearSticky(channelId));
+    ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);
+    unawaited(
+      _completeSendWithAttachments(
+        channelId: channelId,
+        outgoingText: '',
+        replyToId: replyToId,
+        clientNonce: clientNonce,
+        stickerIds: const <String>[],
+        favoriteMemeId: null,
+        optimisticMessageId: optimisticMessage.id,
+        uploadNotifier: uploadNotifier,
+        messageFlags: kMessageFlagVoiceMessage,
+      ),
+    );
   }
 
   Future<void> _sendContentInner(
@@ -1501,6 +1614,7 @@ class ChatViewModel extends _$ChatViewModel {
     required String? favoriteMemeId,
     required String optimisticMessageId,
     required CloudUploadController uploadNotifier,
+    int? messageFlags,
   }) async {
     try {
       final prepared = await uploadNotifier.prepareSessionForSend(
@@ -1518,6 +1632,7 @@ class ChatViewModel extends _$ChatViewModel {
             favoriteMemeId: favoriteMemeId,
             attachmentMetadata: prepared.attachmentMetadata,
             attachmentFiles: prepared.attachmentFiles,
+            messageFlags: messageFlags,
           );
       uploadNotifier.removeMessageUpload(clientNonce);
       if (state.channelId != channelId) {
@@ -2074,6 +2189,7 @@ class ChatViewModel extends _$ChatViewModel {
     required int? authorAvatarColor,
     required String clientNonce,
     List<Attachment> attachments = const <Attachment>[],
+    int flags = 0,
   }) {
     final DateTime now = DateTime.now();
     return Message(
@@ -2095,6 +2211,7 @@ class ChatViewModel extends _$ChatViewModel {
           .toList(),
       deliveryState: MessageDeliveryState.sending,
       clientNonce: clientNonce,
+      flags: flags,
     );
   }
 

@@ -14,6 +14,8 @@ import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_attachment_area.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_composer_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_recorder.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/emoji_search_bar.dart'
     show kSkinToneSurrogates, skinToneToName;
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
@@ -30,6 +32,7 @@ import 'package:fluxer_app/features/chat/service/composer_mention_controller.dar
 import 'package:fluxer_app/features/chat/utils/clipboard_attachment_reader.dart';
 import 'package:fluxer_app/features/chat/utils/composer_message_length_paste_formatter.dart';
 import 'package:fluxer_app/features/chat/utils/composer_sendable_content.dart';
+import 'package:fluxer_app/features/chat/utils/composer_voice_button_visibility.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_constants.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/chat/utils/paste_text_attachment.dart';
@@ -702,6 +705,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               perms: perms,
               hasSendable: hasSendable,
               isOverCharacterLimit: isOverCharacterLimit,
+              useHoldToRecord: false,
             ),
           ],
         );
@@ -821,6 +825,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 hasSendable: hasSendable,
                 isOverCharacterLimit: isOverCharacterLimit,
                 size: FluxerButtonSize.small,
+                useHoldToRecord: true,
               ),
             ),
           ],
@@ -1037,6 +1042,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     required ChannelMessagePermissions perms,
     required bool hasSendable,
     required bool isOverCharacterLimit,
+    required bool useHoldToRecord,
     FluxerButtonSize size = FluxerButtonSize.compact,
   }) {
     final channelId = ref.watch(
@@ -1049,6 +1055,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         !isEditing &&
         (ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false);
     final bool canUseVoice = perms.isVoiceEnabled && !isSlowmodeBlocked;
+    final bool showVoiceButton = shouldShowComposerVoiceButton(
+      permissions: perms,
+      hasSendable: hasSendable,
+      isEditing: isEditing,
+    );
+    final bool voiceDisabled =
+        !canUseVoice || !perms.isComposerEnabled || isOverCharacterLimit;
     final VoidCallback? sendOnPressed = !hasSendable || isOverCharacterLimit
         ? null
         : perms.isComposerEnabled
@@ -1069,17 +1082,32 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 onPressed: sendOnPressed,
               ),
             )
-          : Opacity(
+          : showVoiceButton
+          ? Opacity(
               key: const ValueKey('voice'),
               opacity: canUseVoice ? 1.0 : _kVoiceMicDeniedOpacity,
-              child: FluxerButton.circle(
-                icon: PhosphorIconsFill.microphone,
-                variant: FluxerButtonVariant.secondary,
-                iconSize: 20,
-                size: size,
-                onPressed: canUseVoice ? () {} : null,
-              ),
-            ),
+              child: useHoldToRecord
+                  ? VoiceMessageRecorder(
+                      channelId: channelId,
+                      disabled: voiceDisabled,
+                      buttonSize: size,
+                    )
+                  : FluxerButton.circle(
+                      icon: PhosphorIconsFill.microphone,
+                      variant: FluxerButtonVariant.secondary,
+                      iconSize: 20,
+                      size: size,
+                      onPressed: voiceDisabled
+                          ? null
+                          : () => unawaited(
+                              VoiceMessageComposerSheet.show(
+                                context,
+                                channelId: channelId,
+                              ),
+                            ),
+                    ),
+            )
+          : const SizedBox.shrink(key: ValueKey('voice-hidden')),
     );
   }
 
@@ -1102,6 +1130,22 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               children: [
                 FluxerMenuGroup(
                   children: [
+                    FluxerBottomSheetMenuItem(
+                      icon: PhosphorIconsFill.microphone,
+                      label: l10n.chatAttachmentSendVoiceMessage,
+                      onTap: () {
+                        close();
+                        if (!mounted) {
+                          return;
+                        }
+                        unawaited(
+                          VoiceMessageComposerSheet.show(
+                            context,
+                            channelId: channelId,
+                          ),
+                        );
+                      },
+                    ),
                     FluxerBottomSheetMenuItem(
                       icon: PhosphorIconsRegular.images,
                       label: l10n.chatAttachmentSourceGallery,

@@ -4,6 +4,7 @@ import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_prov
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
+import 'package:fluxer_app/features/shell/providers/shell_manual_gesture_block_provider.dart';
 import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 import 'package:fluxer_app/features/shell/utils/shell_popup_navigation.dart';
 
@@ -26,6 +27,10 @@ class MobileChatBackScope extends ConsumerWidget {
         }
         if (ref.read(shellHasPopupOverlayProvider)) {
           popTopShellPopupRoute(context);
+          return;
+        }
+        // Recording overlay is not a popup route; still consume back here.
+        if (ref.read(shellManualGestureBlockProvider)) {
           return;
         }
         if (ref.read(expressionPanelProvider)) {

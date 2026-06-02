@@ -3042,6 +3042,84 @@
   "@chatAttachmentDropToSend": {
     "description": "Overlay hint when dragging files over chat with Shift held."
   },
+  "chatAttachmentSendVoiceMessage": "Send voice message",
+  "@chatAttachmentSendVoiceMessage": {
+    "description": "Menu item to open the voice message recorder."
+  },
+  "voiceMessageTitle": "Voice message",
+  "@voiceMessageTitle": {
+    "description": "Title for voice message recording UI."
+  },
+  "voiceMessageHoldHint": "Hold to record. Drag up to lock, or release to send.",
+  "@voiceMessageHoldHint": {
+    "description": "Hint shown next to the hold-to-record microphone button."
+  },
+  "voiceMessageDiscard": "Discard voice message",
+  "@voiceMessageDiscard": {
+    "description": "Accessibility label for discarding a voice recording."
+  },
+  "voiceMessageSend": "Send voice message",
+  "@voiceMessageSend": {
+    "description": "Accessibility label for sending a voice recording."
+  },
+  "voiceMessageMicPermissionDenied": "Unable to start recording. Allow microphone access.",
+  "@voiceMessageMicPermissionDenied": {
+    "description": "Shown when microphone permission is denied for voice messages."
+  },
+  "voiceMessageRecordingNotSupported": "Voice recording is not supported on this device.",
+  "@voiceMessageRecordingNotSupported": {
+    "description": "Shown when the device cannot record voice messages."
+  },
+  "voiceMessageMicInUse": "Leave the voice call to record a voice message.",
+  "@voiceMessageMicInUse": {
+    "description": "Shown when the microphone is already used by an active voice call."
+  },
+  "voiceMessageRecordingFailed": "Recording failed. Try again.",
+  "@voiceMessageRecordingFailed": {
+    "description": "Shown when voice recording fails."
+  },
+  "voiceMessageSendFailed": "Unable to send voice message. Try again.",
+  "@voiceMessageSendFailed": {
+    "description": "Shown when sending a voice message fails."
+  },
+  "voiceMessageRecordingHint": "Speak now. Press Stop when you are done — you can trim afterwards.",
+  "@voiceMessageRecordingHint": {
+    "description": "Help text while recording a voice message on desktop."
+  },
+  "voiceMessageReviewHint": "Drag the handles to trim, then press Send.",
+  "@voiceMessageReviewHint": {
+    "description": "Help text while reviewing a voice message before send."
+  },
+  "voiceMessageStop": "Stop",
+  "@voiceMessageStop": {
+    "description": "Stop recording button in voice message composer."
+  },
+  "voiceMessageStartRecording": "Start recording",
+  "@voiceMessageStartRecording": {
+    "description": "Button to retry voice recording after permission error."
+  },
+  "voiceMessageRerecord": "Re-record",
+  "@voiceMessageRerecord": {
+    "description": "Button to discard review and record again."
+  },
+  "voiceMessagePlay": "Play",
+  "@voiceMessagePlay": {
+    "description": "Play voice message preview."
+  },
+  "voiceMessagePause": "Pause",
+  "@voiceMessagePause": {
+    "description": "Pause voice message preview."
+  },
+  "voiceMessageSelectionTooShort": "Selection must be at least {seconds}s.",
+  "@voiceMessageSelectionTooShort": {
+    "description": "Error when trimmed voice message is too short.",
+    "placeholders": {
+      "seconds": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "chatAttachmentEditTitle": "Edit attachment",
   "@chatAttachmentEditTitle": {
     "description": "Title for the attachment edit sheet."

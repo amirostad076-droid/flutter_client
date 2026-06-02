@@ -4234,6 +4234,114 @@ abstract class FluxerLocalizations {
   /// **'Drop files to send now'**
   String get chatAttachmentDropToSend;
 
+  /// Menu item to open the voice message recorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Send voice message'**
+  String get chatAttachmentSendVoiceMessage;
+
+  /// Title for voice message recording UI.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice message'**
+  String get voiceMessageTitle;
+
+  /// Hint shown next to the hold-to-record microphone button.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to record. Drag up to lock, or release to send.'**
+  String get voiceMessageHoldHint;
+
+  /// Accessibility label for discarding a voice recording.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard voice message'**
+  String get voiceMessageDiscard;
+
+  /// Accessibility label for sending a voice recording.
+  ///
+  /// In en, this message translates to:
+  /// **'Send voice message'**
+  String get voiceMessageSend;
+
+  /// Shown when microphone permission is denied for voice messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to start recording. Allow microphone access.'**
+  String get voiceMessageMicPermissionDenied;
+
+  /// Shown when the device cannot record voice messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice recording is not supported on this device.'**
+  String get voiceMessageRecordingNotSupported;
+
+  /// Shown when the microphone is already used by an active voice call.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the voice call to record a voice message.'**
+  String get voiceMessageMicInUse;
+
+  /// Shown when voice recording fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording failed. Try again.'**
+  String get voiceMessageRecordingFailed;
+
+  /// Shown when sending a voice message fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to send voice message. Try again.'**
+  String get voiceMessageSendFailed;
+
+  /// Help text while recording a voice message on desktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak now. Press Stop when you are done — you can trim afterwards.'**
+  String get voiceMessageRecordingHint;
+
+  /// Help text while reviewing a voice message before send.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the handles to trim, then press Send.'**
+  String get voiceMessageReviewHint;
+
+  /// Stop recording button in voice message composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get voiceMessageStop;
+
+  /// Button to retry voice recording after permission error.
+  ///
+  /// In en, this message translates to:
+  /// **'Start recording'**
+  String get voiceMessageStartRecording;
+
+  /// Button to discard review and record again.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-record'**
+  String get voiceMessageRerecord;
+
+  /// Play voice message preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get voiceMessagePlay;
+
+  /// Pause voice message preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get voiceMessagePause;
+
+  /// Error when trimmed voice message is too short.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection must be at least {seconds}s.'**
+  String voiceMessageSelectionTooShort(num seconds);
+
   /// Title for the attachment edit sheet.
   ///
   /// In en, this message translates to:

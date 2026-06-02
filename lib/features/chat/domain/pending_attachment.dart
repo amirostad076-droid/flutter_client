@@ -23,6 +23,8 @@ class PendingAttachment {
     this.multipartUploadId,
     this.fileSizePlan,
     this.contentTypePlan,
+    this.duration,
+    this.waveform,
   });
 
   final int id;
@@ -42,6 +44,8 @@ class PendingAttachment {
   final String? multipartUploadId;
   final int? fileSizePlan;
   final String? contentTypePlan;
+  final int? duration;
+  final String? waveform;
 
   PendingAttachment copyWith({
     int? id,
@@ -61,6 +65,8 @@ class PendingAttachment {
     Object? multipartUploadId = _unset,
     Object? fileSizePlan = _unset,
     Object? contentTypePlan = _unset,
+    Object? duration = _unset,
+    Object? waveform = _unset,
   }) {
     return PendingAttachment(
       id: id ?? this.id,
@@ -92,6 +98,8 @@ class PendingAttachment {
       contentTypePlan: contentTypePlan == _unset
           ? this.contentTypePlan
           : contentTypePlan as String?,
+      duration: duration == _unset ? this.duration : duration as int?,
+      waveform: waveform == _unset ? this.waveform : waveform as String?,
     );
   }
 }

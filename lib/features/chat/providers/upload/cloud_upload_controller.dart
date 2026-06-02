@@ -474,6 +474,49 @@ class CloudUploadController extends _$CloudUploadController {
     state = CloudComposerAttachments(next);
   }
 
+  Future<FileUploadValidationResult> addVoiceMessage({
+    required XFile file,
+    required int duration,
+    required String waveform,
+  }) async {
+    if (state.items.isNotEmpty) {
+      return const FileUploadValidationResult.failure(
+        FileUploadValidationError.tooManyAttachments,
+      );
+    }
+    final int maxFileBytes = ref.read(maxAttachmentFileBytesProvider);
+    final FileUploadValidator validator = FileUploadValidator(
+      maxAttachments: 1,
+      maxFileBytes: maxFileBytes,
+      maxMultipartRequestBytes: maxFileBytes,
+    );
+    final XFile resolved = await _ensureResolvableFile(file);
+    final int length = await resolved.length();
+    final FileUploadValidationResult validation = await validator
+        .validateAddFiles(
+          currentCount: 0,
+          newFiles: <XFile>[resolved],
+          multipartPayloadPreview: const <String, dynamic>{'content': ''},
+        );
+    if (!validation.isValid) {
+      return validation;
+    }
+    final PendingAttachment created = PendingAttachment(
+      id: _nextAttachmentId++,
+      channelId: _channelId,
+      file: resolved,
+      filename: resolved.name,
+      size: length,
+      contentType: 'audio/wav',
+      status: PendingAttachmentStatus.pending,
+      uploadProgress: 0,
+      duration: duration,
+      waveform: waveform,
+    );
+    state = CloudComposerAttachments(<PendingAttachment>[created]);
+    return const FileUploadValidationResult.success();
+  }
+
   List<ApiAttachmentMetadata> _mapApi(List<PendingAttachment> list) {
     return List<ApiAttachmentMetadata>.generate(list.length, (int i) {
       final PendingAttachment a = list[i];
@@ -487,6 +530,8 @@ class CloudUploadController extends _$CloudUploadController {
         contentType: a.contentTypePlan ?? a.contentType,
         description: a.description,
         flags: flagsOut != 0 ? flagsOut : null,
+        duration: a.duration,
+        waveform: a.waveform,
       );
     });
   }

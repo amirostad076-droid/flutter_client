@@ -11,7 +11,7 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
 import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
-import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
+import 'package:fluxer_app/features/shell/providers/shell_blocks_horizontal_gestures_provider.dart';
 
 /// Mobile shell drawer that draws a foreground [slider] over a static [base].
 ///
@@ -220,13 +220,17 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
 
   @override
   Widget build(BuildContext context) {
-    final bool hasPopupOverlay = ref.watch(shellHasPopupOverlayProvider);
+    final bool blocksHorizontalGestures =
+        ref.watch(shellBlocksHorizontalGesturesProvider);
     ref.listen<RevealSide>(currentRevealSideProvider, (RevealSide? prev, RevealSide next) {
       if (next != _currentSide) {
         unawaited(_moveToState(next, writeBack: false));
       }
     });
-    ref.listen<bool>(shellHasPopupOverlayProvider, (bool? prev, bool next) {
+    ref.listen<bool>(shellBlocksHorizontalGesturesProvider, (
+      bool? prev,
+      bool next,
+    ) {
       if (next) {
         _animationController.stop();
         return;
@@ -236,12 +240,13 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
       }
     });
     ref.listen<int>(drawerRevealSyncTriggerProvider, (int? prev, int next) {
-      if (ref.read(shellHasPopupOverlayProvider)) {
+      if (ref.read(shellBlocksHorizontalGesturesProvider)) {
         return;
       }
       unawaited(_syncTranslateToRevealSide(writeBack: false));
     });
-    final Map<Type, GestureRecognizerFactory> drawerGestures = hasPopupOverlay
+    final Map<Type, GestureRecognizerFactory> drawerGestures =
+        blocksHorizontalGestures
         ? <Type, GestureRecognizerFactory>{}
         : <Type, GestureRecognizerFactory>{
             HorizontalDragGestureRecognizer:
