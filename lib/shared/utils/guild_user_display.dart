@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_dart/export.dart';
 
 const int guildProfileDefaultAccentColor = 0x4641D9;
@@ -114,6 +115,33 @@ GuildUserDisplay resolveGuildUserDisplayFromMessage({
     avatarUrl: avatarUrl,
     avatarColor: fallbackAvatarColor,
   );
+}
+
+GuildUserDisplay resolveMessageAuthorDisplay({
+  required Message message,
+  required String? guildId,
+  GuildUserDisplay? guildDisplay,
+}) {
+  final GuildUserDisplay messageDisplay = resolveGuildUserDisplayFromMessage(
+    userId: message.authorId,
+    fallbackDisplayName: message.authorName,
+    fallbackAvatarHash: message.authorAvatar,
+    fallbackAvatarColor: message.authorAvatarColor,
+    member: null,
+    guildId: null,
+    animatedAvatar: false,
+  );
+  if (guildId == null || guildDisplay == null) {
+    return messageDisplay;
+  }
+  if (!message.authorIsBot) {
+    return guildDisplay;
+  }
+  if (message.authorName != guildDisplay.displayName ||
+      messageDisplay.avatarUrl != guildDisplay.avatarUrl) {
+    return messageDisplay;
+  }
+  return guildDisplay;
 }
 
 GuildUserDisplay resolveGuildUserDisplayFromProfile({

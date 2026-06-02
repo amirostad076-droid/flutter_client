@@ -504,20 +504,13 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           .watch(memberRoleColorProvider((msg.authorId, guildId)))
           .value;
     }
-    final GuildUserDisplay fallbackAuthorDisplay =
-        resolveGuildUserDisplayFromMessage(
-          userId: msg.authorId,
-          fallbackDisplayName: msg.authorName,
-          fallbackAvatarHash: msg.authorAvatar,
-          fallbackAvatarColor: msg.authorAvatarColor,
-          member: null,
-          guildId: null,
-          animatedAvatar: false,
-        );
-    final GuildUserDisplay authorDisplay = guildId == null
-        ? fallbackAuthorDisplay
-        : ref.watch(guildUserDisplayProvider((msg.authorId, guildId))).value ??
-              fallbackAuthorDisplay;
+    final GuildUserDisplay authorDisplay = resolveMessageAuthorDisplay(
+      message: msg,
+      guildId: guildId,
+      guildDisplay: guildId == null
+          ? null
+          : ref.watch(guildUserDisplayProvider((msg.authorId, guildId))).value,
+    );
     final bool shouldHighlightMention =
         msg.isMentioned && !widget.hideMentionHighlight;
     final bool isFailed = msg.hasFailed;

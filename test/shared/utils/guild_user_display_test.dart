@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_dart/export.dart';
 
@@ -172,6 +175,126 @@ void main() {
       expect(actual.avatarUrl, isNot(contains('animated=true')));
     });
   });
+
+  group('resolveMessageAuthorDisplay', () {
+    const String botUserId = '99';
+    const String guildId = '10';
+    final GuildUserDisplay guildDisplay = GuildUserDisplay(
+      displayName: 'Fluxcord',
+      avatarUrl: FluxerMediaUrl.userAvatar(
+        userId: botUserId,
+        hash: 'bot_avatar',
+        size: MediaProxySizes.avatarProfile,
+      ),
+      avatarColor: 0x112233,
+    );
+
+    test('uses message display when guild id is null', () {
+      final Message message = _message(
+        authorName: 'Proxy One',
+        authorAvatar: 'proxy_one',
+        authorIsBot: true,
+      );
+      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+        message: message,
+        guildId: null,
+        guildDisplay: guildDisplay,
+      );
+      expect(actual.displayName, 'Proxy One');
+      expect(actual.avatarUrl, contains('/avatars/99/proxy_one.webp'));
+    });
+
+    test('uses message display when guild display is null', () {
+      final Message message = _message(
+        authorName: 'Proxy One',
+        authorAvatar: 'proxy_one',
+        authorIsBot: true,
+      );
+      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+        message: message,
+        guildId: guildId,
+        guildDisplay: null,
+      );
+      expect(actual.displayName, 'Proxy One');
+    });
+
+    test('prefers guild display for non-bot authors', () {
+      final Message message = _message(
+        authorName: 'Historical Name',
+        authorAvatar: 'old_avatar',
+        authorIsBot: false,
+      );
+      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+        message: message,
+        guildId: guildId,
+        guildDisplay: guildDisplay,
+      );
+      expect(actual.displayName, guildDisplay.displayName);
+      expect(actual.avatarUrl, guildDisplay.avatarUrl);
+    });
+
+    test('uses guild display for bot when name and avatar match', () {
+      final Message message = _message(
+        authorName: 'Fluxcord',
+        authorAvatar: 'bot_avatar',
+        authorIsBot: true,
+      );
+      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+        message: message,
+        guildId: guildId,
+        guildDisplay: guildDisplay,
+      );
+      expect(actual.displayName, guildDisplay.displayName);
+      expect(actual.avatarUrl, guildDisplay.avatarUrl);
+    });
+
+    test('uses message display for bot when author name differs', () {
+      final Message message = _message(
+        authorName: 'Discord User',
+        authorAvatar: 'bot_avatar',
+        authorIsBot: true,
+      );
+      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+        message: message,
+        guildId: guildId,
+        guildDisplay: guildDisplay,
+      );
+      expect(actual.displayName, 'Discord User');
+      expect(actual.avatarUrl, contains('/avatars/99/bot_avatar.webp'));
+    });
+
+    test('uses message display for bot when avatar differs', () {
+      final Message message = _message(
+        authorName: 'Fluxcord',
+        authorAvatar: 'webhook_avatar',
+        authorIsBot: true,
+      );
+      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+        message: message,
+        guildId: guildId,
+        guildDisplay: guildDisplay,
+      );
+      expect(actual.displayName, 'Fluxcord');
+      expect(actual.avatarUrl, contains('/avatars/99/webhook_avatar.webp'));
+    });
+  });
+}
+
+Message _message({
+  required String authorName,
+  required String authorAvatar,
+  required bool authorIsBot,
+}) {
+  return Message(
+    id: '1',
+    channelId: '2',
+    authorId: '99',
+    authorName: authorName,
+    authorAvatar: authorAvatar,
+    authorIsBot: authorIsBot,
+    content: 'hello',
+    timestamp: DateTime.utc(2026),
+  );
 }
 
 UserProfileFullResponse _profile({
