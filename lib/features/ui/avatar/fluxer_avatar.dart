@@ -24,6 +24,7 @@ class FluxerAvatar extends StatelessWidget {
     this.imageUrl,
     this.fallbackText,
     this.size = 32,
+    this.cacheKey,
     super.key,
   }) : _shape = _AvatarShape.circle,
        status = null,
@@ -43,6 +44,7 @@ class FluxerAvatar extends StatelessWidget {
     this.showStatus = true,
     this.avatarColor,
     this.roleColor,
+    this.cacheKey,
     String? userId,
     super.key,
   }) : _shape = _AvatarShape.circle,
@@ -55,6 +57,7 @@ class FluxerAvatar extends StatelessWidget {
     this.imageUrl,
     this.fallbackText,
     this.size = 44,
+    this.cacheKey,
     super.key,
   }) : _shape = _AvatarShape.rounded,
        status = null,
@@ -75,6 +78,7 @@ class FluxerAvatar extends StatelessWidget {
     super.key,
   }) : _shape = _AvatarShape.circle,
        imageUrl = null,
+       cacheKey = null,
        fallbackText = null,
        status = null,
        showStatus = false,
@@ -103,6 +107,7 @@ class FluxerAvatar extends StatelessWidget {
   }
 
   final String? imageUrl;
+  final String? cacheKey;
   final String? fallbackText;
   final double size;
   final String? status;
@@ -219,6 +224,7 @@ class FluxerAvatar extends StatelessWidget {
           child: resolvedUrl != null
               ? CachedNetworkImage(
                   imageUrl: resolvedUrl,
+                  cacheKey: cacheKey,
                   width: size,
                   height: size,
                   fit: BoxFit.cover,

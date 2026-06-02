@@ -179,8 +179,22 @@ void main() {
   group('resolveMessageAuthorDisplay', () {
     const String botUserId = '99';
     const String guildId = '10';
-    final GuildUserDisplay guildDisplay = GuildUserDisplay(
+    final GuildUserDisplay botGuildDisplay = GuildUserDisplay(
       displayName: 'Fluxcord',
+      accountDisplayName: 'Fluxcord',
+      isBot: true,
+      avatarUrl: FluxerMediaUrl.userAvatar(
+        userId: botUserId,
+        hash: 'bot_avatar',
+        size: MediaProxySizes.avatarProfile,
+      ),
+      avatarHash: 'bot_avatar',
+      avatarColor: 0x112233,
+    );
+    final GuildUserDisplay humanGuildDisplay = GuildUserDisplay(
+      displayName: 'Guild Nick',
+      accountDisplayName: 'Global Name',
+      isBot: false,
       avatarUrl: FluxerMediaUrl.userAvatar(
         userId: botUserId,
         hash: 'bot_avatar',
@@ -199,7 +213,7 @@ void main() {
       final GuildUserDisplay actual = resolveMessageAuthorDisplay(
         message: message,
         guildId: null,
-        guildDisplay: guildDisplay,
+        guildDisplay: botGuildDisplay,
       );
       expect(actual.displayName, 'Proxy One');
       expect(actual.avatarUrl, contains('/avatars/99/proxy_one.webp'));
@@ -228,10 +242,10 @@ void main() {
       final GuildUserDisplay actual = resolveMessageAuthorDisplay(
         message: message,
         guildId: guildId,
-        guildDisplay: guildDisplay,
+        guildDisplay: humanGuildDisplay,
       );
-      expect(actual.displayName, guildDisplay.displayName);
-      expect(actual.avatarUrl, guildDisplay.avatarUrl);
+      expect(actual.displayName, humanGuildDisplay.displayName);
+      expect(actual.avatarUrl, humanGuildDisplay.avatarUrl);
     });
 
     test('uses guild display for bot when name and avatar match', () {
@@ -243,10 +257,10 @@ void main() {
       final GuildUserDisplay actual = resolveMessageAuthorDisplay(
         message: message,
         guildId: guildId,
-        guildDisplay: guildDisplay,
+        guildDisplay: botGuildDisplay,
       );
-      expect(actual.displayName, guildDisplay.displayName);
-      expect(actual.avatarUrl, guildDisplay.avatarUrl);
+      expect(actual.displayName, botGuildDisplay.displayName);
+      expect(actual.avatarUrl, botGuildDisplay.avatarUrl);
     });
 
     test('uses message display for bot when author name differs', () {
@@ -258,7 +272,7 @@ void main() {
       final GuildUserDisplay actual = resolveMessageAuthorDisplay(
         message: message,
         guildId: guildId,
-        guildDisplay: guildDisplay,
+        guildDisplay: botGuildDisplay,
       );
       expect(actual.displayName, 'Discord User');
       expect(actual.avatarUrl, contains('/avatars/99/bot_avatar.webp'));
@@ -273,13 +287,28 @@ void main() {
       final GuildUserDisplay actual = resolveMessageAuthorDisplay(
         message: message,
         guildId: guildId,
-        guildDisplay: guildDisplay,
+        guildDisplay: botGuildDisplay,
       );
       expect(actual.displayName, 'Fluxcord');
       expect(actual.avatarUrl, contains('/avatars/99/webhook_avatar.webp'));
     });
 
-    test('uses guild display when cached authorIsBot is false', () {
+    test('uses guild display when cached authorIsBot is false for human', () {
+      final Message message = _message(
+        authorName: 'Historical Name',
+        authorAvatar: 'old_avatar',
+        authorIsBot: false,
+      );
+      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+        message: message,
+        guildId: guildId,
+        guildDisplay: humanGuildDisplay,
+      );
+      expect(actual.displayName, humanGuildDisplay.displayName);
+      expect(actual.avatarUrl, humanGuildDisplay.avatarUrl);
+    });
+
+    test('uses message display when authorIsBot is false but user is bot', () {
       final Message message = _message(
         authorName: 'Proxy One',
         authorAvatar: 'proxy_one',
@@ -288,10 +317,10 @@ void main() {
       final GuildUserDisplay actual = resolveMessageAuthorDisplay(
         message: message,
         guildId: guildId,
-        guildDisplay: guildDisplay,
+        guildDisplay: botGuildDisplay,
       );
-      expect(actual.displayName, guildDisplay.displayName);
-      expect(actual.avatarUrl, guildDisplay.avatarUrl);
+      expect(actual.displayName, 'Proxy One');
+      expect(actual.avatarUrl, contains('/avatars/99/proxy_one.webp'));
     });
 
     test('uses message display for bot proxy when authorIsBot is persisted', () {
@@ -303,7 +332,7 @@ void main() {
       final GuildUserDisplay actual = resolveMessageAuthorDisplay(
         message: message,
         guildId: guildId,
-        guildDisplay: guildDisplay,
+        guildDisplay: botGuildDisplay,
       );
       expect(actual.displayName, 'Proxy One');
       expect(actual.avatarUrl, contains('/avatars/99/proxy_one.webp'));
@@ -319,10 +348,29 @@ void main() {
       final GuildUserDisplay actual = resolveMessageAuthorDisplay(
         message: message,
         guildId: guildId,
-        guildDisplay: guildDisplay,
+        guildDisplay: botGuildDisplay,
       );
       expect(actual.displayName, 'Webhook User');
       expect(actual.avatarUrl, contains('/avatars/99/hook_avatar.webp'));
+    });
+  });
+
+  group('resolveMessageAuthorName', () {
+    test('uses username when global name is empty', () {
+      expect(
+        resolveMessageAuthorName(
+          const UserPartialResponse(
+            id: '1',
+            username: 'proxy_user',
+            discriminator: '0000',
+            globalName: '',
+            avatar: null,
+            avatarColor: null,
+            flags: 0,
+          ),
+        ),
+        'proxy_user',
+      );
     });
   });
 

@@ -29,6 +29,7 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
+import 'package:fluxer_app/features/chat/utils/message_grouping_utils.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart';
@@ -863,25 +864,8 @@ class _MessageListState extends ConsumerState<MessageList> {
     return null;
   }
 
-  bool _shouldGroup(Message current, Message? previous) {
-    if (previous == null) {
-      return false;
-    }
-    if (current.isSystemMessage || previous.isSystemMessage) {
-      return false;
-    }
-    if (current.authorId != previous.authorId) {
-      return false;
-    }
-    if (current.isReply || current.isForwarded) {
-      return false;
-    }
-    if (previous.isReply || previous.isForwarded) {
-      return false;
-    }
-    final Duration diff = current.timestamp.difference(previous.timestamp);
-    return diff.inMinutes < 7;
-  }
+  bool _shouldGroup(Message current, Message? previous) =>
+      shouldGroupMessages(current, previous);
 
   bool _isSameDay(DateTime a, DateTime b) {
     final DateTime localA = a.toLocal();

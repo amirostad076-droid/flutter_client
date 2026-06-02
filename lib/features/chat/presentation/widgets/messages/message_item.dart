@@ -990,10 +990,14 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           child: Padding(
             padding: const EdgeInsets.only(top: 2),
             child: FluxerAvatar.user(
+              key: ValueKey<String>(
+                'msg-avatar-${msg.id}-${authorDisplay.avatarUrl}',
+              ),
               fallbackText: authorDisplay.displayName,
               userId: msg.authorId,
               imageUrl: authorDisplay.avatarUrl,
               avatarColor: authorDisplay.avatarColor,
+              cacheKey: 'msg-avatar-${msg.id}-${authorDisplay.avatarUrl}',
             ),
           ),
         ),

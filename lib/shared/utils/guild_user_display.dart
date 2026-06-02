@@ -15,6 +15,8 @@ class GuildUserDisplay {
     required this.displayName,
     required this.avatarUrl,
     required this.avatarColor,
+    required this.accountDisplayName,
+    this.isBot = false,
     this.bannerUrl,
     this.bannerColor,
     this.bio,
@@ -25,6 +27,8 @@ class GuildUserDisplay {
   });
 
   final String displayName;
+  final String accountDisplayName;
+  final bool isBot;
   final String? avatarUrl;
   final String? avatarHash;
   final int? avatarColor;
@@ -49,6 +53,31 @@ Color resolveGuildProfileBannerColor({
     }
   }
   return Color(0xFF000000 | defaultAccentColor);
+}
+
+String resolveAccountDisplayName({
+  required String username,
+  String? globalName,
+}) {
+  final String? trimmedGlobalName = globalName?.trim();
+  if (trimmedGlobalName != null && trimmedGlobalName.isNotEmpty) {
+    return trimmedGlobalName;
+  }
+  return username;
+}
+
+String resolveMessageAuthorName(UserPartialResponse author) {
+  return resolveAccountDisplayName(
+    username: author.username,
+    globalName: author.globalName,
+  );
+}
+
+String resolveMessageAuthorNameFromJson(Map<String, dynamic> author) {
+  return resolveAccountDisplayName(
+    username: (author['username'] as String?) ?? '',
+    globalName: author['global_name'] as String?,
+  );
 }
 
 GuildUserDisplay resolveGuildUserDisplayFromRows({
@@ -80,6 +109,11 @@ GuildUserDisplay resolveGuildUserDisplayFromRows({
         );
   return GuildUserDisplay(
     displayName: displayName,
+    accountDisplayName: resolveAccountDisplayName(
+      username: user.username,
+      globalName: user.globalName,
+    ),
+    isBot: user.bot,
     avatarUrl: avatarUrl,
     avatarHash: resolvedAvatarHash,
     avatarColor: fallbackAvatarColor ?? user.avatarColor,
@@ -118,6 +152,7 @@ GuildUserDisplay resolveGuildUserDisplayFromMessage({
         );
   return GuildUserDisplay(
     displayName: displayName,
+    accountDisplayName: fallbackDisplayName,
     avatarUrl: avatarUrl,
     avatarHash: resolvedAvatarHash,
     avatarColor: fallbackAvatarColor,
@@ -167,10 +202,11 @@ GuildUserDisplay resolveMessageAuthorDisplay({
   if (guildId == null || guildDisplay == null) {
     return messageDisplay;
   }
-  if (!message.authorIsBot) {
+  final bool treatsAsBot = message.authorIsBot || guildDisplay.isBot;
+  if (!treatsAsBot) {
     return guildDisplay;
   }
-  if (message.authorName != guildDisplay.displayName ||
+  if (message.authorName != guildDisplay.accountDisplayName ||
       messageAuthorAvatarDiffers(
         messageAvatarHash: message.authorAvatar,
         guildAvatarHash: guildDisplay.avatarHash,
@@ -245,6 +281,11 @@ GuildUserDisplay resolveGuildUserDisplayFromProfile({
       relationshipNickname: relationshipNickname,
       useGuildProfile: canUseGuildProfile,
     ),
+    accountDisplayName: resolveAccountDisplayName(
+      username: user.username,
+      globalName: user.globalName,
+    ),
+    isBot: user.bot ?? false,
     avatarUrl: avatarUrl,
     avatarColor: user.avatarColor,
     bannerUrl: bannerUrl,

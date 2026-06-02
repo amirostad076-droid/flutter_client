@@ -11,6 +11,7 @@ import 'package:fluxer_app/features/chat/domain/api_attachment_metadata.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/utils/client_nonce.dart';
 import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
+import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -293,10 +294,7 @@ class MessageRepository {
             id: map['id'] as String,
             channelId: map['channel_id'] as String,
             authorId: author['id'] as String,
-            authorName:
-                (author['global_name'] as String?) ??
-                (author['username'] as String?) ??
-                '',
+            authorName: resolveMessageAuthorNameFromJson(author),
             authorAvatar: author['avatar'] as String?,
             authorAvatarColor: author['avatar_color'] as int?,
             authorIsBot: (author['bot'] as bool?) ?? false,

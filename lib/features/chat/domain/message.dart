@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_dart/export.dart';
 
 enum EmbedType { rich, image, gifv, link, video }
@@ -644,7 +645,7 @@ class Message {
       id: sdk.id,
       channelId: sdk.channelId,
       authorId: sdk.author.id,
-      authorName: sdk.author.globalName ?? sdk.author.username,
+      authorName: resolveMessageAuthorName(sdk.author),
       authorAvatar: sdk.author.avatar,
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
@@ -685,7 +686,7 @@ class Message {
       id: sdk.id,
       channelId: sdk.channelId,
       authorId: sdk.author.id,
-      authorName: sdk.author.globalName ?? sdk.author.username,
+      authorName: resolveMessageAuthorName(sdk.author),
       authorAvatar: sdk.author.avatar,
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
@@ -718,7 +719,7 @@ class Message {
       id: sdk.id,
       channelId: sdk.channelId,
       authorId: sdk.author.id,
-      authorName: sdk.author.globalName ?? sdk.author.username,
+      authorName: resolveMessageAuthorName(sdk.author),
       authorAvatar: sdk.author.avatar,
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
@@ -758,7 +759,7 @@ class Message {
       id: sdk.id,
       channelId: sdk.channelId,
       authorId: sdk.author.id,
-      authorName: sdk.author.globalName ?? sdk.author.username,
+      authorName: resolveMessageAuthorName(sdk.author),
       authorAvatar: sdk.author.avatar,
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
