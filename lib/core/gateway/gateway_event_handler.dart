@@ -969,7 +969,11 @@ class GatewayEventHandler {
 
     onTypingClear?.call(msg.channelId, msg.authorId);
 
-    await database.userDao.upsertUser(userFromPartialSdk(event.message.author));
+    if (event.message.webhookId == null) {
+      await database.userDao.upsertUser(
+        userFromPartialSdk(event.message.author),
+      );
+    }
 
     await database.messageDao.upsertMessage(msg.toCompanion());
 
@@ -1094,7 +1098,11 @@ class GatewayEventHandler {
 
   Future<void> _handleMessageUpdate(MessageUpdateEvent event) async {
     final msg = Message.fromSdk(event.message, currentUserId: currentUserId);
-    await database.userDao.upsertUser(userFromPartialSdk(event.message.author));
+    if (event.message.webhookId == null) {
+      await database.userDao.upsertUser(
+        userFromPartialSdk(event.message.author),
+      );
+    }
     await database.messageDao.upsertMessage(msg.toCompanion());
     final dm = await database.dmChannelDao.getDmChannelById(msg.channelId);
     if (dm != null && dm.lastMessageId == msg.id) {

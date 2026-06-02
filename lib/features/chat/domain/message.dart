@@ -585,6 +585,7 @@ class Message {
   final String? authorAvatar;
   final int? authorAvatarColor;
   final bool authorIsBot;
+  final String? webhookId;
   final String content;
   final DateTime timestamp;
   final DateTime? editedTimestamp;
@@ -614,6 +615,7 @@ class Message {
     this.authorAvatar,
     this.authorAvatarColor,
     this.authorIsBot = false,
+    this.webhookId,
     this.editedTimestamp,
     this.embeds = const [],
     this.attachments = const [],
@@ -646,6 +648,7 @@ class Message {
       authorAvatar: sdk.author.avatar,
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
+      webhookId: sdk.webhookId,
       content: sdk.content,
       timestamp: sdk.timestamp,
       editedTimestamp: sdk.editedTimestamp,
@@ -686,6 +689,7 @@ class Message {
       authorAvatar: sdk.author.avatar,
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
+      webhookId: sdk.webhookId,
       content: sdk.content,
       timestamp: sdk.timestamp,
       editedTimestamp: sdk.editedTimestamp,
@@ -718,6 +722,7 @@ class Message {
       authorAvatar: sdk.author.avatar,
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
+      webhookId: sdk.webhookId,
       content: sdk.content,
       timestamp: sdk.timestamp,
       editedTimestamp: sdk.editedTimestamp,
@@ -757,6 +762,7 @@ class Message {
       authorAvatar: sdk.author.avatar,
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
+      webhookId: sdk.webhookId,
       content: sdk.content,
       timestamp: sdk.timestamp,
       editedTimestamp: sdk.editedTimestamp,
@@ -788,6 +794,8 @@ class Message {
       authorName: row.authorName.isNotEmpty ? row.authorName : row.authorId,
       authorAvatar: row.authorAvatar,
       authorAvatarColor: row.authorAvatarColor,
+      authorIsBot: row.authorIsBot,
+      webhookId: row.webhookId,
       content: row.content,
       timestamp: row.timestamp,
       editedTimestamp: row.editedTimestamp,
@@ -824,6 +832,8 @@ class Message {
       authorName: Value(authorName),
       authorAvatar: Value(authorAvatar),
       authorAvatarColor: Value(authorAvatarColor),
+      authorIsBot: Value(authorIsBot),
+      webhookId: Value(webhookId),
       content: content,
       timestamp: timestamp,
       editedTimestamp: Value(editedTimestamp),
@@ -863,6 +873,7 @@ class Message {
     String? authorAvatar,
     int? authorAvatarColor,
     bool? authorIsBot,
+    Object? webhookId = _unset,
     String? content,
     DateTime? timestamp,
     DateTime? editedTimestamp,
@@ -890,6 +901,7 @@ class Message {
       authorAvatar: authorAvatar ?? this.authorAvatar,
       authorAvatarColor: authorAvatarColor ?? this.authorAvatarColor,
       authorIsBot: authorIsBot ?? this.authorIsBot,
+      webhookId: webhookId == _unset ? this.webhookId : webhookId as String?,
       content: content ?? this.content,
       timestamp: timestamp ?? this.timestamp,
       editedTimestamp: editedTimestamp ?? this.editedTimestamp,
@@ -925,6 +937,7 @@ class Message {
       authorAvatar: incoming.authorAvatar,
       authorAvatarColor: incoming.authorAvatarColor,
       authorIsBot: incoming.authorIsBot,
+      webhookId: incoming.webhookId,
       content: incoming.content,
       editedTimestamp: incoming.editedTimestamp ?? editedTimestamp,
       embeds: incoming.embeds.isNotEmpty ? incoming.embeds : embeds,
@@ -1043,6 +1056,9 @@ class Message {
   bool get isSending => deliveryState == MessageDeliveryState.sending;
   bool get hasFailed => deliveryState == MessageDeliveryState.failed;
 
+  bool get shouldCacheAuthorUser =>
+      webhookId == null || webhookId!.isEmpty;
+
   /// Wire-shaped snapshot of this message suitable for the developer
   /// debug viewer. Mirrors the field set the web client surfaces via
   /// `message.toJSON()`; not stable across versions.
@@ -1056,6 +1072,7 @@ class Message {
       'avatar_color': authorAvatarColor,
       'bot': authorIsBot,
     },
+    'webhook_id': webhookId,
     'content': content,
     'timestamp': timestamp.toIso8601String(),
     'edited_timestamp': editedTimestamp?.toIso8601String(),

@@ -9,6 +9,8 @@ class Messages extends Table {
   TextColumn get authorName => text().withDefault(const Constant(''))();
   TextColumn get authorAvatar => text().nullable()();
   IntColumn get authorAvatarColor => integer().nullable()();
+  BoolColumn get authorIsBot => boolean().withDefault(const Constant(false))();
+  TextColumn get webhookId => text().nullable()();
   TextColumn get content => text()();
   DateTimeColumn get timestamp => dateTime()();
   DateTimeColumn get editedTimestamp => dateTime().nullable()();

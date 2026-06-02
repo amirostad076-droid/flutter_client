@@ -137,7 +137,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 49;
+  int get schemaVersion => 50;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -514,6 +514,23 @@ class FluxerDatabase extends _$FluxerDatabase {
       if (from < 49) {
         await m.addColumn(servers, servers.disabledOperations);
         await m.addColumn(members, members.communicationDisabledUntil);
+      }
+      if (from < 50) {
+        await m.addColumn(messages, messages.authorIsBot);
+        await m.addColumn(messages, messages.webhookId);
+        await customStatement(
+          '''
+          UPDATE messages
+          SET author_is_bot = (
+            SELECT COALESCE(users.bot, 0)
+            FROM users
+            WHERE users.id = messages.author_id
+          )
+          WHERE EXISTS (
+            SELECT 1 FROM users WHERE users.id = messages.author_id
+          )
+          ''',
+        );
       }
     },
   );

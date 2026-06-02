@@ -180,7 +180,9 @@ class MessageRepository {
           .toList();
 
       for (final sdk in data) {
-        await _db.userDao.upsertUser(userFromPartialSdk(sdk.author));
+        if (sdk.webhookId == null) {
+          await _db.userDao.upsertUser(userFromPartialSdk(sdk.author));
+        }
       }
       await _db.messageDao.upsertMessages(
         messages.map((m) => m.toCompanion()).toList(),
@@ -241,7 +243,9 @@ class MessageRepository {
         channelId: channelId,
         messageId: messageId,
       );
-      await _db.userDao.upsertUser(userFromPartialSdk(sdk.author));
+      if (sdk.webhookId == null) {
+        await _db.userDao.upsertUser(userFromPartialSdk(sdk.author));
+      }
       final message = Message.fromSdk(sdk, currentUserId: _currentUserId);
       await _db.messageDao.upsertMessage(message.toCompanion());
       return message;
@@ -296,6 +300,7 @@ class MessageRepository {
             authorAvatar: author['avatar'] as String?,
             authorAvatarColor: author['avatar_color'] as int?,
             authorIsBot: (author['bot'] as bool?) ?? false,
+            webhookId: map['webhook_id'] as String?,
             content: (map['content'] as String?) ?? '',
             timestamp: DateTime.parse(map['timestamp'] as String),
             editedTimestamp: map['edited_timestamp'] != null
@@ -342,14 +347,17 @@ class MessageRepository {
           ),
         );
 
-        final authorId = author['id'] as String;
-        await _db.userDao.upsertUser(
-          db.UsersCompanion.insert(
-            id: authorId,
-            username: (author['username'] as String?) ?? '',
-            memberSince: Value(dateTimeFromUserSnowflakeOrNull(authorId)),
-          ),
-        );
+        final String? webhookId = map['webhook_id'] as String?;
+        if (webhookId == null) {
+          final authorId = author['id'] as String;
+          await _db.userDao.upsertUser(
+            db.UsersCompanion.insert(
+              id: authorId,
+              username: (author['username'] as String?) ?? '',
+              memberSince: Value(dateTimeFromUserSnowflakeOrNull(authorId)),
+            ),
+          );
+        }
       } on Object catch (e) {
         talker.warning('[MessageRepo] Skipping message: $e');
       }

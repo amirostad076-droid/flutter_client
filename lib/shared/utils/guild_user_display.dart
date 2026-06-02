@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/media/fluxer_media_hash.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_dart/export.dart';
@@ -20,10 +21,12 @@ class GuildUserDisplay {
     this.pronouns,
     this.hasGuildProfile = false,
     this.isShowingGlobalProfile = false,
+    this.avatarHash,
   });
 
   final String displayName;
   final String? avatarUrl;
+  final String? avatarHash;
   final int? avatarColor;
   final String? bannerUrl;
   final Color? bannerColor;
@@ -61,6 +64,7 @@ GuildUserDisplay resolveGuildUserDisplayFromRows({
       ? nick
       : fallbackDisplayName ?? user.globalName ?? user.username;
   final String? memberAvatar = member?.serverAvatar;
+  final String? resolvedAvatarHash = memberAvatar ?? fallbackAvatarHash ?? user.avatar;
   final String? avatarUrl =
       guildId != null && memberAvatar != null && memberAvatar.isNotEmpty
       ? FluxerMediaUrl.guildMemberMedia(
@@ -71,12 +75,13 @@ GuildUserDisplay resolveGuildUserDisplayFromRows({
         )
       : FluxerMediaUrl.userAvatar(
           userId: user.id,
-          hash: fallbackAvatarHash ?? user.avatar,
+          hash: resolvedAvatarHash,
           size: MediaProxySizes.avatarProfile,
         );
   return GuildUserDisplay(
     displayName: displayName,
     avatarUrl: avatarUrl,
+    avatarHash: resolvedAvatarHash,
     avatarColor: fallbackAvatarColor ?? user.avatarColor,
   );
 }
@@ -95,6 +100,7 @@ GuildUserDisplay resolveGuildUserDisplayFromMessage({
       ? nick
       : fallbackDisplayName;
   final String? memberAvatar = member?.serverAvatar;
+  final String? resolvedAvatarHash = memberAvatar ?? fallbackAvatarHash;
   final String? avatarUrl =
       guildId != null && memberAvatar != null && memberAvatar.isNotEmpty
       ? FluxerMediaUrl.guildMemberMedia(
@@ -106,15 +112,38 @@ GuildUserDisplay resolveGuildUserDisplayFromMessage({
         )
       : FluxerMediaUrl.userAvatar(
           userId: userId,
-          hash: fallbackAvatarHash,
+          hash: resolvedAvatarHash,
           size: MediaProxySizes.avatarProfile,
           animated: animatedAvatar,
         );
   return GuildUserDisplay(
     displayName: displayName,
     avatarUrl: avatarUrl,
+    avatarHash: resolvedAvatarHash,
     avatarColor: fallbackAvatarColor,
   );
+}
+
+bool messageAuthorAvatarDiffers({
+  required String? messageAvatarHash,
+  required String? guildAvatarHash,
+}) {
+  final String? messageHash = _comparableAvatarHash(messageAvatarHash);
+  final String? guildHash = _comparableAvatarHash(guildAvatarHash);
+  if (messageHash == null && guildHash == null) {
+    return false;
+  }
+  if (messageHash == null || guildHash == null) {
+    return true;
+  }
+  return messageHash != guildHash;
+}
+
+String? _comparableAvatarHash(String? hash) {
+  if (hash == null || hash.isEmpty) {
+    return null;
+  }
+  return normalizeMediaHash(hash);
 }
 
 GuildUserDisplay resolveMessageAuthorDisplay({
@@ -131,6 +160,10 @@ GuildUserDisplay resolveMessageAuthorDisplay({
     guildId: null,
     animatedAvatar: false,
   );
+  final String? webhookId = message.webhookId;
+  if (webhookId != null && webhookId.isNotEmpty) {
+    return messageDisplay;
+  }
   if (guildId == null || guildDisplay == null) {
     return messageDisplay;
   }
@@ -138,7 +171,10 @@ GuildUserDisplay resolveMessageAuthorDisplay({
     return guildDisplay;
   }
   if (message.authorName != guildDisplay.displayName ||
-      messageDisplay.avatarUrl != guildDisplay.avatarUrl) {
+      messageAuthorAvatarDiffers(
+        messageAvatarHash: message.authorAvatar,
+        guildAvatarHash: guildDisplay.avatarHash,
+      )) {
     return messageDisplay;
   }
   return guildDisplay;

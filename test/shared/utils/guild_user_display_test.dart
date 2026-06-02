@@ -186,6 +186,7 @@ void main() {
         hash: 'bot_avatar',
         size: MediaProxySizes.avatarProfile,
       ),
+      avatarHash: 'bot_avatar',
       avatarColor: 0x112233,
     );
 
@@ -277,6 +278,74 @@ void main() {
       expect(actual.displayName, 'Fluxcord');
       expect(actual.avatarUrl, contains('/avatars/99/webhook_avatar.webp'));
     });
+
+    test('uses guild display when cached authorIsBot is false', () {
+      final Message message = _message(
+        authorName: 'Proxy One',
+        authorAvatar: 'proxy_one',
+        authorIsBot: false,
+      );
+      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+        message: message,
+        guildId: guildId,
+        guildDisplay: guildDisplay,
+      );
+      expect(actual.displayName, guildDisplay.displayName);
+      expect(actual.avatarUrl, guildDisplay.avatarUrl);
+    });
+
+    test('uses message display for bot proxy when authorIsBot is persisted', () {
+      final Message message = _message(
+        authorName: 'Proxy One',
+        authorAvatar: 'proxy_one',
+        authorIsBot: true,
+      );
+      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+        message: message,
+        guildId: guildId,
+        guildDisplay: guildDisplay,
+      );
+      expect(actual.displayName, 'Proxy One');
+      expect(actual.avatarUrl, contains('/avatars/99/proxy_one.webp'));
+    });
+
+    test('uses message display for webhook messages', () {
+      final Message message = _message(
+        authorName: 'Webhook User',
+        authorAvatar: 'hook_avatar',
+        authorIsBot: true,
+        webhookId: '123456789',
+      );
+      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+        message: message,
+        guildId: guildId,
+        guildDisplay: guildDisplay,
+      );
+      expect(actual.displayName, 'Webhook User');
+      expect(actual.avatarUrl, contains('/avatars/99/hook_avatar.webp'));
+    });
+  });
+
+  group('messageAuthorAvatarDiffers', () {
+    test('treats animated prefix hashes as the same avatar', () {
+      expect(
+        messageAuthorAvatarDiffers(
+          messageAvatarHash: 'a_bot_avatar',
+          guildAvatarHash: 'bot_avatar',
+        ),
+        isFalse,
+      );
+    });
+
+    test('detects different avatar hashes', () {
+      expect(
+        messageAuthorAvatarDiffers(
+          messageAvatarHash: 'proxy_avatar',
+          guildAvatarHash: 'bot_avatar',
+        ),
+        isTrue,
+      );
+    });
   });
 }
 
@@ -284,6 +353,7 @@ Message _message({
   required String authorName,
   required String authorAvatar,
   required bool authorIsBot,
+  String? webhookId,
 }) {
   return Message(
     id: '1',
@@ -292,6 +362,7 @@ Message _message({
     authorName: authorName,
     authorAvatar: authorAvatar,
     authorIsBot: authorIsBot,
+    webhookId: webhookId,
     content: 'hello',
     timestamp: DateTime.utc(2026),
   );
