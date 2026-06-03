@@ -68,6 +68,7 @@ void main() {
         channelId: 'channel-1',
         authorId: 'user-1',
         authorName: 'monty',
+        authorIsBot: false,
         content: '',
         timestamp: DateTime.utc(2026),
         embedsJson: '[]',
