@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
@@ -35,11 +36,16 @@ class VoiceCallBar extends ConsumerWidget {
     return guild?.name ?? '';
   }
 
-  String _guildChannelSubtitle(ChannelListState state, String? channelId) {
+  String _guildChannelSubtitle(
+    ChannelListState state,
+    String? channelId, {
+    Channel? persistedChannel,
+  }) {
     if (channelId == null || channelId.isEmpty) {
       return '';
     }
-    final Channel? channel = findChannelById(state, channelId);
+    final Channel? channel =
+        findChannelById(state, channelId) ?? persistedChannel;
     return channel?.name ?? channelId;
   }
 
@@ -135,6 +141,12 @@ class VoiceCallBar extends ConsumerWidget {
     late final String primaryLine;
     late final String subtitle;
     if (isGuildVoice) {
+      final Channel? persistedChannel = voice.channelId == null
+          ? null
+          : switch (ref.watch(channelByIdProvider(voice.channelId!))) {
+              AsyncData(:final value) => value,
+              _ => null,
+            };
       primaryLine = _guildPrimaryLine(
         l10n: l10n,
         voice: voice,
@@ -143,7 +155,11 @@ class VoiceCallBar extends ConsumerWidget {
           voice.guildId,
         ),
       );
-      subtitle = _guildChannelSubtitle(channelState, voice.channelId);
+      subtitle = _guildChannelSubtitle(
+        channelState,
+        voice.channelId,
+        persistedChannel: persistedChannel,
+      );
     } else {
       primaryLine = _privatePrimaryLine(
         l10n: l10n,
