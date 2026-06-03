@@ -176,6 +176,48 @@ void main() {
     });
   });
 
+  group('messagePrefersPersistedAuthorDisplay', () {
+    test('returns true when webhook id is set', () {
+      expect(
+        messagePrefersPersistedAuthorDisplay(
+          _message(
+            authorName: 'Hook',
+            authorAvatar: 'av',
+            authorIsBot: false,
+            webhookId: 'wh-1',
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('returns true when author is a bot', () {
+      expect(
+        messagePrefersPersistedAuthorDisplay(
+          _message(
+            authorName: 'Bot',
+            authorAvatar: 'av',
+            authorIsBot: true,
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('returns false for a normal member message', () {
+      expect(
+        messagePrefersPersistedAuthorDisplay(
+          _message(
+            authorName: 'Human',
+            authorAvatar: 'av',
+            authorIsBot: false,
+          ),
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('resolveMessageAuthorDisplay', () {
     const String botUserId = '99';
     const String guildId = '10';

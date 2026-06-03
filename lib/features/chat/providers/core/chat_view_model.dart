@@ -45,6 +45,7 @@ import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
+import 'package:fluxer_app/shared/utils/guild_member_prefetch.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -269,6 +270,29 @@ class ChatViewModel extends _$ChatViewModel {
           messages: messages,
           embeddedReplyParents: embeddedReplyParents,
         );
+    unawaited(_prefetchMessageAuthors(channelId, messages));
+  }
+
+  Future<void> _prefetchMessageAuthors(
+    String channelId,
+    List<Message> messages,
+  ) async {
+    if (messages.isEmpty) {
+      return;
+    }
+    final db.Channel? channel = await ref
+        .read(fluxerDatabaseProvider)
+        .channelDao
+        .getChannelById(channelId);
+    final String? guildId = channel?.guildId;
+    if (guildId == null || guildId.isEmpty) {
+      return;
+    }
+    await prefetchGuildMembersForMessages(
+      ref: ref,
+      guildId: guildId,
+      messages: messages,
+    );
   }
 
   Set<String> _deletedMessageIdsFor(MessageRealtimeEvent ev) {
@@ -1321,6 +1345,7 @@ class ChatViewModel extends _$ChatViewModel {
       authorName: authorName,
       authorAvatar: currentUser?.avatar,
       authorAvatarColor: currentUser?.avatarColor,
+      authorIsBot: currentUser?.bot ?? false,
       clientNonce: clientNonce,
       attachments: optimisticAttachments,
       flags: kMessageFlagVoiceMessage,
@@ -1471,6 +1496,7 @@ class ChatViewModel extends _$ChatViewModel {
       authorName: authorName,
       authorAvatar: currentUser?.avatar,
       authorAvatarColor: currentUser?.avatarColor,
+      authorIsBot: currentUser?.bot ?? false,
       clientNonce: clientNonce,
       attachments: optimisticAttachments,
     );
@@ -2142,6 +2168,7 @@ class ChatViewModel extends _$ChatViewModel {
     required String? authorAvatar,
     required int? authorAvatarColor,
     required String clientNonce,
+    bool authorIsBot = false,
     List<Attachment> attachments = const <Attachment>[],
     int flags = 0,
   }) {
@@ -2153,6 +2180,7 @@ class ChatViewModel extends _$ChatViewModel {
       authorName: authorName,
       authorAvatar: authorAvatar,
       authorAvatarColor: authorAvatarColor,
+      authorIsBot: authorIsBot,
       content: content,
       timestamp: now,
       replyToId: replyToId,

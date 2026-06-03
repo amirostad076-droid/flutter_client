@@ -498,18 +498,32 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       RenderSpoilers.onClick || RenderSpoilers.$unknown => false,
     };
     final chatPreferences = ref.watch(chatPreferencesProvider);
+    final bool prefersPersistedAuthor =
+        messagePrefersPersistedAuthorDisplay(msg);
+    final bool isCurrentUserAuthor =
+        widget.currentUserId != null && msg.authorId == widget.currentUserId;
     Color? authorRoleColor;
-    if (guildId != null) {
+    if (guildId != null && !prefersPersistedAuthor) {
       authorRoleColor = ref
           .watch(memberRoleColorProvider((msg.authorId, guildId)))
           .value;
     }
+    GuildUserDisplay? guildDisplay;
+    if (guildId != null && !prefersPersistedAuthor) {
+      if (isCurrentUserAuthor) {
+        guildDisplay = ref
+            .watch(guildUserDisplayFromDbProvider((msg.authorId, guildId)))
+            .value;
+      } else {
+        guildDisplay = ref
+            .watch(guildUserDisplayProvider((msg.authorId, guildId)))
+            .value;
+      }
+    }
     final GuildUserDisplay authorDisplay = resolveMessageAuthorDisplay(
       message: msg,
       guildId: guildId,
-      guildDisplay: guildId == null
-          ? null
-          : ref.watch(guildUserDisplayProvider((msg.authorId, guildId))).value,
+      guildDisplay: guildDisplay,
     );
     final bool shouldHighlightMention =
         msg.isMentioned && !widget.hideMentionHighlight;
@@ -991,13 +1005,13 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             padding: const EdgeInsets.only(top: 2),
             child: FluxerAvatar.user(
               key: ValueKey<String>(
-                'msg-avatar-${msg.id}-${authorDisplay.avatarUrl}',
+                'msg-avatar-${msg.id}-${msg.authorAvatar ?? ''}',
               ),
               fallbackText: authorDisplay.displayName,
               userId: msg.authorId,
               imageUrl: authorDisplay.avatarUrl,
               avatarColor: authorDisplay.avatarColor,
-              cacheKey: 'msg-avatar-${msg.id}-${authorDisplay.avatarUrl}',
+              cacheKey: 'msg-avatar-${msg.id}-${msg.authorAvatar ?? ''}',
             ),
           ),
         ),

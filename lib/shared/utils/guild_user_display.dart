@@ -181,6 +181,14 @@ String? _comparableAvatarHash(String? hash) {
   return normalizeMediaHash(hash);
 }
 
+bool messagePrefersPersistedAuthorDisplay(Message message) {
+  final String? webhookId = message.webhookId;
+  if (webhookId != null && webhookId.isNotEmpty) {
+    return true;
+  }
+  return message.authorIsBot;
+}
+
 GuildUserDisplay resolveMessageAuthorDisplay({
   required Message message,
   required String? guildId,
