@@ -21,7 +21,10 @@ import 'package:markdown/markdown.dart' as md;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const double _kBlockSpacing = 4;
+double _blockSpacingForStyle(TextStyle style) {
+  final double fontSize = style.fontSize ?? 16;
+  return fontSize * 0.5;
+}
 
 final RegExp _spoilerSyncUrlPattern = RegExp(
   r'''https?:\/\/[^\s<>"']+''',
@@ -84,6 +87,59 @@ Widget buildFluxerMarkdownAst({
   return SelectionArea(child: body);
 }
 
+Widget buildFluxerMarkdownTextFlow({
+  required BuildContext context,
+  required String text,
+  required TextStyle baseStyle,
+  required FluxerMarkdownConfig config,
+  required FluxerMarkdownFeatures features,
+  required md.Document inlineDocument,
+  required bool selectable,
+  required bool isDark,
+  int? maxLines,
+  TextOverflow? overflow,
+}) {
+  if (text.isEmpty) {
+    return const SizedBox.shrink();
+  }
+  final lines = text.split('\n');
+  final spans = <InlineSpan>[];
+  for (var i = 0; i < lines.length; i++) {
+    if (i > 0) {
+      spans.add(TextSpan(text: '\n', style: baseStyle));
+    }
+    final lineNodes = inlineDocument.parseInline(lines[i]);
+    if (lineNodes.isEmpty) {
+      continue;
+    }
+    final lineSpans = _MarkdownInlineRenderer(
+      context: context,
+      baseStyle: baseStyle,
+      config: config,
+      features: features,
+      isDark: isDark,
+      jumbo: features.allowJumboEmoji && _allNodesAreEmoji(lineNodes),
+    ).build(lineNodes);
+    spans.addAll(lineSpans);
+  }
+  if (spans.isEmpty) {
+    return const SizedBox.shrink();
+  }
+  final body = RichText(
+    text: TextSpan(style: baseStyle, children: spans),
+    textScaler: MediaQuery.textScalerOf(context),
+    maxLines: maxLines,
+    overflow: overflow ?? TextOverflow.clip,
+    textWidthBasis: maxLines != null
+        ? TextWidthBasis.parent
+        : TextWidthBasis.longestLine,
+  );
+  if (!selectable) {
+    return body;
+  }
+  return SelectionArea(child: body);
+}
+
 class _MarkdownBlockRenderer {
   const _MarkdownBlockRenderer({
     required this.context,
@@ -121,7 +177,7 @@ class _MarkdownBlockRenderer {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: _kBlockSpacing,
+      spacing: _blockSpacingForStyle(baseStyle),
       children: children,
     );
   }
@@ -191,7 +247,15 @@ class _MarkdownBlockRenderer {
     ).build(nodes);
 
     if (spans.isEmpty) {
-      return const SizedBox.shrink();
+      return RichText(
+        text: TextSpan(text: '\n', style: effectiveStyle),
+        textScaler: MediaQuery.textScalerOf(context),
+        maxLines: maxLines,
+        overflow: overflow ?? TextOverflow.clip,
+        textWidthBasis: maxLines != null
+            ? TextWidthBasis.parent
+            : TextWidthBasis.longestLine,
+      );
     }
 
     return RichText(

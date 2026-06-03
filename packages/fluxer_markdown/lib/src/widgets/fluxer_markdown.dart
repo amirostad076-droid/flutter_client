@@ -3,6 +3,7 @@ import 'package:fluxer_markdown/src/config/fluxer_markdown_config.dart';
 import 'package:fluxer_markdown/src/contexts/fluxer_markdown_context.dart';
 import 'package:fluxer_markdown/src/contexts/fluxer_markdown_features.dart';
 import 'package:fluxer_markdown/src/parsing/markdown_preprocessor.dart';
+import 'package:fluxer_markdown/src/parsing/message_line_parser.dart';
 import 'package:fluxer_markdown/src/renderers/fluxer_markdown_renderers.dart';
 import 'package:fluxer_markdown/src/syntaxes/fluxer_markdown_syntaxes.dart';
 import 'package:fluxer_markdown/src/utils/highlight_languages.dart';
@@ -96,33 +97,90 @@ class FluxerMarkdown extends StatelessWidget {
     required bool isDark,
     required FluxerMarkdownFeatures features,
   }) {
-    final document = md.Document(
-      encodeHtml: false,
-      blockSyntaxes: [
-        if (features.allowCodeBlocks) const md.FencedCodeBlockSyntax(),
-        if (features.allowTables) const md.TableSyntax(),
-      ],
-      inlineSyntaxes: [
-        if (config.linkWidgetBuilder != null &&
-            config.internalLinkPattern != null)
-          FluxerJumpLinkSyntax(config.internalLinkPattern!),
-        FluxerUnderlineSyntax(),
-        md.StrikethroughSyntax(),
-        if (features.allowUserMentions) FluxerUserMentionSyntax(),
-        if (features.allowChannelMentions) FluxerChannelMentionSyntax(),
-        if (features.allowRoleMentions) FluxerRoleMentionSyntax(),
-        if (features.allowEveryoneMentions) FluxerEveryoneMentionSyntax(),
-        FluxerTimestampSyntax(),
-        FluxerSpoilerSyntax(),
-        FluxerUnicodeEmojiToneSyntax(config.resolveEmojiShortcode),
-        FluxerUnicodeEmojiSyntax(config.resolveEmojiShortcode),
-        FluxerCustomEmojiSyntax(),
-        if (config.unicodeEmojiPattern != null)
-          FluxerRawUnicodeEmojiSyntax(config.unicodeEmojiPattern!),
-        if (features.allowAutolinks) md.AutolinkExtensionSyntax(),
-      ],
+    if (usesMessageLineParsing(this.context)) {
+      return _buildMessageLineMarkdown(
+        context: context,
+        text: text,
+        style: style,
+        isDark: isDark,
+        features: features,
+      );
+    }
+    return _buildBlockMarkdown(
+      context: context,
+      text: text,
+      style: style,
+      isDark: isDark,
+      features: features,
     );
+  }
 
+  Widget _buildMessageLineMarkdown({
+    required BuildContext context,
+    required String text,
+    required TextStyle style,
+    required bool isDark,
+    required FluxerMarkdownFeatures features,
+  }) {
+    final contentSegments = parseMessageContentStructure(text, features);
+    if (contentSegments.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    if (contentSegments.length == 1 &&
+        contentSegments.first is MessageTextFlowSegment) {
+      return buildFluxerMarkdownTextFlow(
+        context: context,
+        text: (contentSegments.first as MessageTextFlowSegment).text,
+        baseStyle: style,
+        config: config,
+        features: features,
+        inlineDocument: _createInlineDocument(features),
+        selectable: selectable,
+        isDark: isDark,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
+    }
+    final children = contentSegments.map((segment) {
+      return switch (segment) {
+        MessageTextFlowSegment(:final text) => buildFluxerMarkdownTextFlow(
+          context: context,
+          text: text,
+          baseStyle: style,
+          config: config,
+          features: features,
+          inlineDocument: _createInlineDocument(features),
+          selectable: selectable,
+          isDark: isDark,
+          maxLines: maxLines,
+          overflow: overflow,
+        ),
+        MessageBlockMarkdownSegment(:final text) => _buildBlockMarkdown(
+          context: context,
+          text: text,
+          style: style,
+          isDark: isDark,
+          features: features,
+        ),
+      };
+    }).toList();
+    if (children.length == 1) {
+      return children.first;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
+    );
+  }
+
+  Widget _buildBlockMarkdown({
+    required BuildContext context,
+    required String text,
+    required TextStyle style,
+    required bool isDark,
+    required FluxerMarkdownFeatures features,
+  }) {
+    final document = _createBlockDocument(features);
     final nodes = document.parse(text);
     return buildFluxerMarkdownAst(
       context: context,
@@ -135,5 +193,47 @@ class FluxerMarkdown extends StatelessWidget {
       maxLines: maxLines,
       overflow: overflow,
     );
+  }
+
+  md.Document _createInlineDocument(FluxerMarkdownFeatures features) {
+    return md.Document(
+      encodeHtml: false,
+      withDefaultBlockSyntaxes: false,
+      blockSyntaxes: const [],
+      inlineSyntaxes: _inlineSyntaxes(features),
+    );
+  }
+
+  md.Document _createBlockDocument(FluxerMarkdownFeatures features) {
+    return md.Document(
+      encodeHtml: false,
+      blockSyntaxes: [
+        if (features.allowCodeBlocks) const md.FencedCodeBlockSyntax(),
+        if (features.allowTables) const md.TableSyntax(),
+      ],
+      inlineSyntaxes: _inlineSyntaxes(features),
+    );
+  }
+
+  List<md.InlineSyntax> _inlineSyntaxes(FluxerMarkdownFeatures features) {
+    return [
+      if (config.linkWidgetBuilder != null &&
+          config.internalLinkPattern != null)
+        FluxerJumpLinkSyntax(config.internalLinkPattern!),
+      FluxerUnderlineSyntax(),
+      md.StrikethroughSyntax(),
+      if (features.allowUserMentions) FluxerUserMentionSyntax(),
+      if (features.allowChannelMentions) FluxerChannelMentionSyntax(),
+      if (features.allowRoleMentions) FluxerRoleMentionSyntax(),
+      if (features.allowEveryoneMentions) FluxerEveryoneMentionSyntax(),
+      FluxerTimestampSyntax(),
+      FluxerSpoilerSyntax(),
+      FluxerUnicodeEmojiToneSyntax(config.resolveEmojiShortcode),
+      FluxerUnicodeEmojiSyntax(config.resolveEmojiShortcode),
+      FluxerCustomEmojiSyntax(),
+      if (config.unicodeEmojiPattern != null)
+        FluxerRawUnicodeEmojiSyntax(config.unicodeEmojiPattern!),
+      if (features.allowAutolinks) md.AutolinkExtensionSyntax(),
+    ];
   }
 }
