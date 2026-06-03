@@ -65,6 +65,9 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <meta-data
+            android:name="firebase_messaging_notification_delegation_enabled"
+            android:value="false" />
+        <meta-data
             android:name="com.fluxer.BUILD_ENVIRONMENT"
             android:value="${buildEnvironment}" />
         <meta-data

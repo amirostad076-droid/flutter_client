@@ -32,5 +32,23 @@ void main() {
       expect(message.title, 'from-data');
       expect(message.body, 'body-data');
     });
+
+    test('unwraps nested data json string for navigation fields', () {
+      final RemoteMessage input = RemoteMessage(
+        messageId: 'msg-nested',
+        data: <String, String>{
+          'title': 'alice',
+          'body': 'hello',
+          'data':
+              '{"message_id":"1","channel_id":"2","guild_id":"@me",'
+              '"url":"/channels/@me/2/1"}',
+        },
+      );
+      final FcmPushMessage message = mapRemoteMessage(input);
+      expect(message.payload['channel_id'], '2');
+      expect(message.payload['message_id'], '1');
+      expect(message.payload['url'], '/channels/@me/2/1');
+      expect(message.payload.containsKey('data'), isFalse);
+    });
   });
 }
