@@ -13,18 +13,10 @@ PODS:
     - Flutter
   - media_kit_video (0.0.1):
     - Flutter
-  - passkeys_darwin (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - permission_handler_apple (9.3.0):
     - Flutter
   - super_native_extensions (0.0.1):
     - Flutter
-  - ua_client_hints (1.4.1):
-    - Flutter
-  - webcrypto (0.1.1):
-    - Flutter
-    - FlutterMacOS
   - WebRTC-SDK (144.7559.01)
 
 DEPENDENCIES:
@@ -34,11 +26,8 @@ DEPENDENCIES:
   - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
-  - passkeys_darwin (from `.symlinks/plugins/passkeys_darwin/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - super_native_extensions (from `.symlinks/plugins/super_native_extensions/ios`)
-  - ua_client_hints (from `.symlinks/plugins/ua_client_hints/ios`)
-  - webcrypto (from `.symlinks/plugins/webcrypto/darwin`)
 
 SPEC REPOS:
   trunk:
@@ -57,16 +46,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/media_kit_libs_ios_video/ios"
   media_kit_video:
     :path: ".symlinks/plugins/media_kit_video/ios"
-  passkeys_darwin:
-    :path: ".symlinks/plugins/passkeys_darwin/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   super_native_extensions:
     :path: ".symlinks/plugins/super_native_extensions/ios"
-  ua_client_hints:
-    :path: ".symlinks/plugins/ua_client_hints/ios"
-  webcrypto:
-    :path: ".symlinks/plugins/webcrypto/darwin"
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
@@ -75,13 +58,10 @@ SPEC CHECKSUMS:
   livekit_client: 9b9a08c5c78f694ac6a9e70c1c269704ba574b73
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
-  passkeys_darwin: 0a09d3b26cea8de1ec3bb8f8c7c159981f63bbc7
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   super_native_extensions: b763c02dc3a8fd078389f410bf15149179020cb4
-  ua_client_hints: 92fe0d139619b73ec9fcb46cc7e079a26178f586
-  webcrypto: a5f5eb3e375cf0a99993e207e97cdcab5c94ce2e
   WebRTC-SDK: ab9b5319e458c2bfebdc92b3600740da35d5630d
 
-PODFILE CHECKSUM: 58b7a90829249c378a2ec8bda1bd5f8f88b06ad3
+PODFILE CHECKSUM: ec4ec6b595f0df3ca1e0bf1e3486b415b773b559
 
 COCOAPODS: 1.16.2
