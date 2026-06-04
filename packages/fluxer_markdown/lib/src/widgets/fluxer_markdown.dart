@@ -181,7 +181,8 @@ class FluxerMarkdown extends StatelessWidget {
     required FluxerMarkdownFeatures features,
   }) {
     final document = _createBlockDocument(features);
-    final nodes = document.parse(text);
+    final normalizedText = normalizeBlockquoteBarMarkdown(text);
+    final nodes = document.parse(normalizedText);
     return buildFluxerMarkdownAst(
       context: context,
       nodes: nodes,

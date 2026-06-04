@@ -18,6 +18,27 @@ bool usesMessageLineParsing(FluxerMarkdownContext context) {
       context == FluxerMarkdownContext.standardWithoutJumbo;
 }
 
+String normalizeBlockquoteBarMarkdown(String text) {
+  if (text.isEmpty) {
+    return text;
+  }
+  final lines = text.split('\n');
+  final firstLine = lines[0];
+  final leadingSpaces = firstLine.length - firstLine.trimLeft().length;
+  final trimmed = firstLine.trimLeft();
+  if (!trimmed.startsWith('>>>')) {
+    return text;
+  }
+  const barPrefix = '>>>';
+  var contentStart = barPrefix.length;
+  if (contentStart < trimmed.length && trimmed[contentStart] == ' ') {
+    contentStart++;
+  }
+  final content = trimmed.substring(contentStart);
+  lines[0] = '${' ' * leadingSpaces}> $content';
+  return lines.join('\n');
+}
+
 List<MessageContentSegment> parseMessageContentStructure(
   String text,
   FluxerMarkdownFeatures features,
