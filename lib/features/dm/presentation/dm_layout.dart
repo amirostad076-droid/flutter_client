@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_content.dart';
 import 'package:fluxer_app/features/friends/presentation/widgets/friends_list.dart';
 import 'package:fluxer_app/features/shell/presentation/mobile_chat_back_scope.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 
 class DMLayout extends ConsumerWidget {
   final String? channelId;
@@ -17,7 +18,9 @@ class DMLayout extends ConsumerWidget {
     if (channelId == null) {
       return ColoredBox(
         color: context.colors.chatBackground,
-        child: const FriendsList(),
+        child: isMobileLayout(context)
+            ? const SizedBox.shrink()
+            : const FriendsList(),
       );
     }
 

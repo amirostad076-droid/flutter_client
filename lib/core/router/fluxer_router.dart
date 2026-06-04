@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
 import 'package:fluxer_app/core/router/channel_persistence_observer.dart';
+import 'package:fluxer_app/core/router/pre_reconnecting_location_provider.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/shell_navigator_keys.dart';
 import 'package:fluxer_app/core/router/shell_popup_route_observer.dart';
@@ -176,6 +177,12 @@ GoRouter fluxerRouter(Ref ref) {
       final isOnReconnecting = location == '/reconnecting';
 
       if (isAuthenticated && isConnectionFailed && !isOnReconnecting) {
+        ref
+            .read(preReconnectingLocationProvider.notifier)
+            .remember(
+              path: state.uri.path,
+              query: state.uri.query,
+            );
         return '/reconnecting';
       }
 
@@ -191,6 +198,9 @@ GoRouter fluxerRouter(Ref ref) {
         return RoutePaths.me;
       }
 
+      if (!isAuthenticated) {
+        ref.read(preReconnectingLocationProvider.notifier).clear();
+      }
       if (!isAuthenticated && !isLoggingIn) {
         return '/login';
       }
@@ -201,7 +211,9 @@ GoRouter fluxerRouter(Ref ref) {
           !isConnectionFailed &&
           isOnReconnecting &&
           isGatewayReady) {
-        return RoutePaths.me;
+        return ref
+            .read(preReconnectingLocationProvider.notifier)
+            .takeOrDefault();
       }
 
       return null;

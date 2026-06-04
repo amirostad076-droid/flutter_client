@@ -1,5 +1,7 @@
+import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_kind.dart';
+import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'reveal_side_provider.g.dart';
@@ -9,6 +11,7 @@ enum RevealSide { left, main }
 @Riverpod(keepAlive: true)
 class CurrentRevealSide extends _$CurrentRevealSide {
   String? _lastAppliedFor;
+  bool _resyncAfterReconnect = false;
 
   @override
   RevealSide build() {
@@ -18,6 +21,12 @@ class CurrentRevealSide extends _$CurrentRevealSide {
     ref.listen<bool>(authStateProvider, (_, next) {
       if (!next) {
         _lastAppliedFor = null;
+        _resyncAfterReconnect = false;
+      }
+    });
+    ref.listen<bool>(gatewayConnectionFailedProvider, (bool? previous, bool next) {
+      if (next) {
+        _resyncAfterReconnect = true;
       }
     });
 
@@ -41,6 +50,11 @@ class CurrentRevealSide extends _$CurrentRevealSide {
   /// drawer closed) across bottom-nav tab round-trips that bring the same
   /// channels location back to the foreground.
   void syncForRoute(String location) {
+    if (_resyncAfterReconnect) {
+      _resyncAfterReconnect = false;
+      forceSyncForRoute(location);
+      return;
+    }
     if (location == _lastAppliedFor) {
       return;
     }
@@ -50,6 +64,20 @@ class CurrentRevealSide extends _$CurrentRevealSide {
     }
     _lastAppliedFor = location;
     state = desired;
+  }
+
+  /// Applies the drawer side for [location], bypassing the same-route guard.
+  ///
+  /// Used after the reconnecting screen when [syncForRoute] would no-op because
+  /// the restored path matches the pre-failure location string.
+  void forceSyncForRoute(String location) {
+    final RevealSide? desired = syncedRevealSideFor(location);
+    if (desired == null) {
+      return;
+    }
+    _lastAppliedFor = location;
+    state = desired;
+    ref.read(drawerRevealSyncTriggerProvider.notifier).nudge();
   }
 
   // Riverpod notifiers in this app use method-style mutations at call sites.
