@@ -17,11 +17,14 @@
 
 This is the repo for the offical Fluxer mobile app powered by Flutter (desktop is in the works also but mobile is the main focus currently).
 
-You can follow more about the V1 development in [this issue.](https://github.com/fluxerapp/flutter_client/issues/1)
+You can follow more about the V1 development in and what features are planned/implemented in this [Google Sheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQsix2JGxkfq14mej1OEv-8SKmAJgeZjteIv6v70YY0TlzNmDkKaY4643lxZrnt8A/pubhtml?gid=664213458&single=true).
 
 # Community
 
-For updates, support, and discussion, [join the Fluxer Mobile server on Fluxer](https://fluxer.gg/fluxer-mobile).
+> [!NOTE]
+> Currently the community is locked to Fluxer Plutonium members only. This limit will be lifted after the beta period.
+
+For updates, support, and discussion, [join the Fluxer Mobile community on Fluxer](https://fluxer.gg/fluxer-mobile).
 
 ## Download
 
@@ -29,12 +32,17 @@ For updates, support, and discussion, [join the Fluxer Mobile server on Fluxer](
 
 **Google Play Store**: Coming soon!
 
-**Android APK**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](https://obtainium.imranr.dev) for auto updates. Requires Google Play Services (Firebase Messaging for Notifications).
+**Android APK (FCM)**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/fluxerapp/flutter_client) for auto updates. Requires Google Play Services (Firebase Messaging for Notifications).
 
-**Android APK OSS**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](https://obtainium.imranr.dev) for auto updates. Will use [UnifiedPush](https://unifiedpush.org) for push notifications in the future (currently no notifications).
+**Android APK OSS**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/fluxerapp/flutter_client) for auto updates. Requires a [UnifiedPush](https://unifiedpush.org) provider for push notifications.
 
 Stable, beta, and canary Android release builds on Github are signed with this SHA-256 certificate fingerprint:
 `91:E4:98:E1:B8:A6:C8:BA:99:41:5E:DB:29:78:29:6B:6C:58:BA:A5:E2:D2:A6:49:CE:C6:2D:A7:A8:29:C7:BC`
+
+## Bug reporting
+
+> [!WARNING]
+> During the beta period the only place to report bugs will be in the Fluxer Mobile community (they are mirrored to Github still). Once the beta period finishes you will be able to report issues on Github and the community.
 
 ## Contributing
 
