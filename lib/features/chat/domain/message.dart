@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/features/chat/utils/voice_message_constants.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_dart/export.dart';
 
@@ -268,6 +269,8 @@ class Attachment {
   final bool? nsfw;
   final bool? expired;
   final DateTime? expiresAt;
+  final int? duration;
+  final String? waveform;
 
   const Attachment({
     required this.id,
@@ -284,6 +287,8 @@ class Attachment {
     this.width,
     this.height,
     this.flags = 0,
+    this.duration,
+    this.waveform,
   });
 
   factory Attachment.fromSdk(MessageAttachmentResponse sdk) {
@@ -302,6 +307,8 @@ class Attachment {
       nsfw: sdk.nsfw,
       expired: sdk.expired,
       expiresAt: DateTime.tryParse(sdk.expiresAt ?? ''),
+      duration: sdk.duration,
+      waveform: sdk.waveform,
     );
   }
 
@@ -321,6 +328,8 @@ class Attachment {
       nsfw: json['nsfw'] as bool?,
       expired: json['expired'] as bool?,
       expiresAt: DateTime.tryParse((json['expires_at'] as String?) ?? ''),
+      duration: json['duration'] as int?,
+      waveform: json['waveform'] as String?,
     );
   }
 
@@ -339,7 +348,23 @@ class Attachment {
     'nsfw': nsfw,
     'expired': expired,
     'expires_at': expiresAt?.toIso8601String(),
+    if (duration != null) 'duration': duration,
+    if (waveform != null) 'waveform': waveform,
   };
+
+  bool get isAudio {
+    final String normalizedType = contentType?.toLowerCase() ?? '';
+    if (normalizedType.startsWith('audio/')) {
+      return true;
+    }
+    final String lowerFilename = filename.toLowerCase();
+    return lowerFilename.endsWith('.mp3') ||
+        lowerFilename.endsWith('.wav') ||
+        lowerFilename.endsWith('.ogg') ||
+        lowerFilename.endsWith('.m4a') ||
+        lowerFilename.endsWith('.flac') ||
+        lowerFilename.endsWith('.aac');
+  }
 
   bool get isImage {
     final ext = filename.split('.').last.toLowerCase();
@@ -978,6 +1003,7 @@ class Message {
   bool get suppressEmbeds => (flags & messageFlagSuppressEmbeds) != 0;
   bool get hasCompactAttachments =>
       (flags & messageFlagCompactAttachments) != 0;
+  bool get isVoiceMessage => (flags & kMessageFlagVoiceMessage) != 0;
 
   bool shouldHideContent({required bool renderEmbeds}) {
     if (!renderEmbeds || suppressEmbeds || embeds.isEmpty) {

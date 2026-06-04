@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +11,9 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_audio.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachments/voice_message_player.dart'; 
+import 'package:fluxer_app/features/chat/utils/voice_message_constants.dart';
+import 'package:fluxer_app/features/chat/utils/voice_message_waveform.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_file.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_image_grid.dart';
@@ -80,6 +86,34 @@ void main() {
       ),
     );
     expect(find.byType(AttachmentVideo), findsOneWidget);
+  });
+
+  testWidgets('renders voice message player for flagged voice attachments', (
+    tester,
+  ) async {
+    final Float32List samples = Float32List(4410);
+    final Uint8List waveformBytes = buildWaveformBytes(samples, 0.1);
+    final Attachment attachment = _buildAttachment(
+      filename: 'voice-message.wav',
+      contentType: 'audio/wav',
+      url: 'https://cdn.example/voice.wav',
+      duration: 12,
+      waveform: base64Encode(waveformBytes),
+    );
+    await tester.pumpWidget(
+      _buildTestApp(
+        child: AttachmentRenderer(
+          attachment: attachment,
+          inlineAttachmentMedia: true,
+          dimensionSize: MediaDimensionSize.small,
+          revealSpoilers: false,
+          messageFlags: kMessageFlagVoiceMessage,
+        ),
+      ),
+    );
+    expect(find.byType(VoiceMessagePlayer), findsOneWidget);
+    expect(find.byType(AttachmentAudio), findsNothing);
+    expect(find.textContaining('0:00 /'), findsOneWidget);
   });
 
   testWidgets('renders audio attachment inline when enabled', (tester) async {
@@ -320,6 +354,8 @@ Attachment _buildAttachment({
   int? width,
   int? height,
   DateTime? expiresAt,
+  int? duration,
+  String? waveform,
 }) {
   return Attachment(
     id: 'attachment-$filename',
@@ -331,5 +367,7 @@ Attachment _buildAttachment({
     height: height,
     size: 1024,
     expiresAt: expiresAt,
+    duration: duration,
+    waveform: waveform,
   );
 }

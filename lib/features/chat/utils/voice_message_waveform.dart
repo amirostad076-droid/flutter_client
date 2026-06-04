@@ -104,3 +104,66 @@ List<double> computePeaksFromPcm(
   }
   return peaks.map((double v) => v / maxPeak).toList();
 }
+
+List<int> decodeVoiceMessageWaveform(String base64Waveform) {
+  try {
+    final Uint8List bytes = base64Decode(base64Waveform);
+    return List<int>.generate(bytes.length, (int index) => bytes[index]);
+  } on Object {
+    return const <int>[];
+  }
+}
+
+List<int> normaliseVoiceMessageWaveform(List<int> values) {
+  if (values.isEmpty) {
+    return values;
+  }
+  int maxValue = 0;
+  for (final int value in values) {
+    if (value > maxValue) {
+      maxValue = value;
+    }
+  }
+  if (maxValue <= 0) {
+    return values;
+  }
+  return values
+      .map((int value) => math.min(255, ((value / maxValue) * 255).round()))
+      .toList();
+}
+
+List<int> downsampleVoiceMessageWaveformToBars(
+  List<int> values, {
+  int barCount = kVoiceMessagePlayerWaveformBarCount,
+}) {
+  if (values.isEmpty) {
+    return List<int>.filled(barCount, kVoiceMessagePlayerFallbackBarValue);
+  }
+  final List<int> result = List<int>.filled(barCount, 0);
+  final double step = values.length / barCount;
+  for (int i = 0; i < barCount; i++) {
+    final int start = (i * step).floor();
+    final int end = math.min(values.length, ((i + 1) * step).ceil());
+    int sum = 0;
+    final int count = math.max(1, end - start);
+    for (int j = start; j < end; j++) {
+      sum += values[j];
+    }
+    result[i] = (sum / count).round();
+  }
+  return result;
+}
+
+List<int> voiceMessagePlayerWaveformBars(String? base64Waveform) {
+  final List<int> decoded = base64Waveform == null || base64Waveform.isEmpty
+      ? const <int>[]
+      : decodeVoiceMessageWaveform(base64Waveform);
+  final List<int> normalised = normaliseVoiceMessageWaveform(decoded);
+  final List<int> values = normalised.isNotEmpty
+      ? normalised
+      : List<int>.filled(
+          kVoiceMessagePlayerFallbackBarCount,
+          kVoiceMessagePlayerFallbackBarValue,
+        );
+  return downsampleVoiceMessageWaveformToBars(values);
+}

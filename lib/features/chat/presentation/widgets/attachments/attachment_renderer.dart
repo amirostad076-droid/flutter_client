@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_audio.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/attachments/voice_message_player.dart';
+import 'package:fluxer_app/features/chat/utils/voice_message_attachment.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_expiry_footnote.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_file.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_image.dart';
@@ -24,6 +26,7 @@ class AttachmentRenderer extends StatelessWidget {
     this.messageId,
     this.messageNonce,
     this.channelId,
+    this.messageFlags = 0,
     super.key,
   });
 
@@ -36,6 +39,7 @@ class AttachmentRenderer extends StatelessWidget {
   final String? messageId;
   final String? messageNonce;
   final String? channelId;
+  final int messageFlags;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +102,13 @@ class AttachmentRenderer extends StatelessWidget {
         attachment: attachment,
         dimensionSize: dimensionSize,
       ),
-      AttachmentRenderType.audio => AttachmentAudio(attachment: attachment),
+      AttachmentRenderType.audio =>
+        isVoiceMessageAttachment(
+          messageFlags: messageFlags,
+          attachment: attachment,
+        )
+            ? VoiceMessagePlayer(attachment: attachment)
+            : AttachmentAudio(attachment: attachment),
       AttachmentRenderType.file => AttachmentFile(attachment: attachment),
     };
   }

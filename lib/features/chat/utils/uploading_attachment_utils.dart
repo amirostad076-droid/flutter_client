@@ -1,6 +1,7 @@
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/message_upload_session.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
+import 'package:fluxer_app/features/chat/utils/voice_message_constants.dart';
 
 const String kUploadingAttachmentPlaceholderId = 'uploading';
 
@@ -18,14 +19,18 @@ List<Attachment> buildUploadingPlaceholderAttachments({
   }
   if (claimed.length == 1) {
     final PendingAttachment first = claimed.first;
+    final bool isVoiceUpload =
+        first.duration != null || (first.waveform?.isNotEmpty ?? false);
     return <Attachment>[
       Attachment(
         id: kUploadingAttachmentPlaceholderId,
-        filename: first.filename,
+        filename: isVoiceUpload ? kVoiceMessageFilename : first.filename,
         title: first.filename,
         url: '',
         size: first.size,
-        contentType: first.contentType,
+        contentType: isVoiceUpload ? 'audio/wav' : first.contentType,
+        duration: first.duration,
+        waveform: first.waveform,
       ),
     ];
   }

@@ -786,6 +786,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           messageId: msg.id,
           messageNonce: msg.clientNonce,
           channelId: msg.channelId,
+          messageFlags: msg.flags,
         ),
       if (msg.hasStickers)
         wrapPart(

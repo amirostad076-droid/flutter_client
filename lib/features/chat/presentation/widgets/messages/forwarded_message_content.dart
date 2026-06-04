@@ -93,6 +93,7 @@ class ForwardedMessageContent extends ConsumerWidget {
                         topPadding: 4,
                         channelId: message.channelId,
                         messageId: message.id,
+                        messageFlags: snapshot.flags,
                       ),
                     if (renderEmbeds)
                       ...snapshot.embeds.indexed.map((entry) {

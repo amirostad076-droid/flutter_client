@@ -14,6 +14,7 @@ class AttachmentListRenderer extends StatelessWidget {
     this.messageId,
     this.messageNonce,
     this.channelId,
+    this.messageFlags = 0,
     super.key,
   });
 
@@ -25,6 +26,7 @@ class AttachmentListRenderer extends StatelessWidget {
   final String? messageId;
   final String? messageNonce;
   final String? channelId;
+  final int messageFlags;
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +80,7 @@ class AttachmentListRenderer extends StatelessWidget {
           messageId: messageId,
           messageNonce: messageNonce,
           channelId: channelId,
+          messageFlags: messageFlags,
         ),
       );
     }

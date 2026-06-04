@@ -20,6 +20,12 @@ const int kVoiceMessageLiveAnalyserIntervalMs = 60;
 const int kVoiceMessageWaveformMaxPoints = 256;
 const double kVoiceMessageWaveformSampleIntervalSeconds = 0.1;
 
+const int kVoiceMessagePlayerWaveformBarCount = 32;
+const int kVoiceMessagePlayerFallbackBarCount = 48;
+const int kVoiceMessagePlayerFallbackBarValue = 128;
+const double kVoiceMessagePlayerWaveformHeightPx = 20;
+const double kVoiceMessagePlayerMinBarHeightRatio = 0.08;
+
 const int kMessageFlagVoiceMessage = 1 << 13;
 
 const String kVoiceMessageFilename = 'voice-message.wav';
