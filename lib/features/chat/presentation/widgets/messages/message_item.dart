@@ -1115,12 +1115,22 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         revealSpoilers: revealSpoilers,
         spoilerSyncController: _spoilerSyncController,
       ),
-      EmbedType.video => EmbedVideo(embed: embed, dimensionSize: dimensionSize),
+      EmbedType.video => EmbedVideo(
+        embed: embed,
+        dimensionSize: dimensionSize,
+        isSpoiler: isSpoiler,
+        revealSpoiler: revealSpoilers,
+        spoilerSyncController: _spoilerSyncController,
+        spoilerSyncKeys: spoilerSyncKeys,
+      ),
     };
 
     return Padding(
       padding: const EdgeInsets.only(top: 2),
-      child: embed.type == EmbedType.image || embed.type == EmbedType.gifv
+      child:
+          embed.type == EmbedType.image ||
+              embed.type == EmbedType.gifv ||
+              embed.type == EmbedType.video
           ? child
           : SpoilerOverlay(
               isSpoiler: isSpoiler,

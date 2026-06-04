@@ -59,6 +59,7 @@ class EmbedImage extends StatelessWidget {
       child: SpoilerOverlay(
         isSpoiler: isSpoiler,
         initiallyRevealed: revealSpoiler,
+        borderRadius: BorderRadius.circular(4),
         spoilerSyncController: spoilerSyncController,
         syncKeys: spoilerSyncKeys,
         child: ClipRRect(

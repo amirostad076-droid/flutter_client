@@ -213,10 +213,19 @@ class _ForwardedEmbed extends StatelessWidget {
         revealSpoilers: revealSpoilers,
         spoilerSyncController: spoilerSyncController,
       ),
-      EmbedType.video => EmbedVideo(embed: embed, dimensionSize: dimensionSize),
+      EmbedType.video => EmbedVideo(
+        embed: embed,
+        dimensionSize: dimensionSize,
+        isSpoiler: isSpoiler,
+        revealSpoiler: revealSpoilers,
+        spoilerSyncController: spoilerSyncController,
+        spoilerSyncKeys: spoilerSyncKeys,
+      ),
     };
 
-    if (embed.type == EmbedType.image || embed.type == EmbedType.gifv) {
+    if (embed.type == EmbedType.image ||
+        embed.type == EmbedType.gifv ||
+        embed.type == EmbedType.video) {
       return child;
     }
 

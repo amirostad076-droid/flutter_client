@@ -5,22 +5,32 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_shared.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
+import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 /// A video embed
 class EmbedVideo extends StatelessWidget {
   final Embed embed;
   final MediaDimensionSize dimensionSize;
+  final bool isSpoiler;
+  final bool revealSpoiler;
+  final FluxerSpoilerSyncController? spoilerSyncController;
+  final List<String> spoilerSyncKeys;
 
   const EmbedVideo({
     required this.embed,
     this.dimensionSize = MediaDimensionSize.small,
+    this.isSpoiler = false,
+    this.revealSpoiler = false,
+    this.spoilerSyncController,
+    this.spoilerSyncKeys = const [],
     super.key,
   });
 
@@ -74,9 +84,16 @@ class EmbedVideo extends StatelessWidget {
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-            child: ClipRRect(
+            child: SpoilerOverlay(
+              isSpoiler: isSpoiler,
+              initiallyRevealed: revealSpoiler,
               borderRadius: BorderRadius.circular(4),
-              child: _VideoPlayer(embed: embed),
+              spoilerSyncController: spoilerSyncController,
+              syncKeys: spoilerSyncKeys,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: _VideoPlayer(embed: embed),
+              ),
             ),
           ),
         ],

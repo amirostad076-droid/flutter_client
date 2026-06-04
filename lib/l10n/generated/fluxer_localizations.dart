@@ -4420,6 +4420,18 @@ abstract class FluxerLocalizations {
   /// **'Spoiler'**
   String get chatAttachmentSpoiler;
 
+  /// Label shown on the overlay that conceals spoiler attachment and embed image media.
+  ///
+  /// In en, this message translates to:
+  /// **'SPOILER'**
+  String get chatMediaSpoilerOverlayLabel;
+
+  /// Accessibility label for the button that reveals concealed spoiler attachment and embed image media.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal spoiler'**
+  String get chatMediaSpoilerRevealLabel;
+
   /// Filename-like progress label for a temporary message attachment while multiple selected files are uploading.
   ///
   /// In en, this message translates to:

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 
 class SpoilerOverlay extends StatefulWidget {
@@ -10,6 +11,7 @@ class SpoilerOverlay extends StatefulWidget {
     required this.child,
     required this.isSpoiler,
     required this.initiallyRevealed,
+    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
     this.spoilerSyncController,
     this.syncKeys = const [],
     super.key,
@@ -18,6 +20,7 @@ class SpoilerOverlay extends StatefulWidget {
   final Widget child;
   final bool isSpoiler;
   final bool initiallyRevealed;
+  final BorderRadius borderRadius;
   final FluxerSpoilerSyncController? spoilerSyncController;
   final List<String> syncKeys;
 
@@ -104,33 +107,66 @@ class _SpoilerOverlayState extends State<SpoilerOverlay>
       return widget.child;
     }
 
-    return GestureDetector(
-      onTap: _reveal,
-      child: Stack(
-        fit: StackFit.passthrough,
-        children: [
-          widget.child,
-          Positioned.fill(
-            child: IgnorePointer(
-              ignoring: _revealed,
-              child: FadeTransition(
-                opacity: ReverseAnimation(_controller),
-                child: ColoredBox(
-                  color: context.colors.spoilerBackground,
-                  child: Center(
-                    child: Text(
-                      'Spoiler',
-                      style: context.textStyles.bodySmall.copyWith(
-                        color: context.colors.textPrimary,
-                        fontWeight: FontWeight.w600,
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    return ClipRRect(
+      borderRadius: widget.borderRadius,
+      child: Semantics(
+        button: true,
+        label: l10n.chatMediaSpoilerRevealLabel,
+        onTap: _reveal,
+        child: GestureDetector(
+          onTap: _reveal,
+          child: Stack(
+            fit: StackFit.passthrough,
+            children: [
+              FadeTransition(
+                opacity: _controller,
+                child: IgnorePointer(
+                  ignoring: !_revealed,
+                  child: widget.child,
+                ),
+              ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: _revealed,
+                  child: FadeTransition(
+                    opacity: ReverseAnimation(_controller),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: context.colors.spoilerBackground,
+                        borderRadius: widget.borderRadius,
+                      ),
+                      child: Center(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: context.colors.backgroundSecondary.withValues(
+                              alpha: 0.3,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            child: Text(
+                              l10n.chatMediaSpoilerOverlayLabel,
+                              style: context.textStyles.bodySmall.copyWith(
+                                color: context.colors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.42,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

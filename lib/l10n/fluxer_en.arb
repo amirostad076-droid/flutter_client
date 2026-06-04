@@ -3172,6 +3172,14 @@
   "@chatAttachmentSpoiler": {
     "description": "Badge text for spoiler attachments."
   },
+  "chatMediaSpoilerOverlayLabel": "SPOILER",
+  "@chatMediaSpoilerOverlayLabel": {
+    "description": "Label shown on the overlay that conceals spoiler attachment and embed image media."
+  },
+  "chatMediaSpoilerRevealLabel": "Reveal spoiler",
+  "@chatMediaSpoilerRevealLabel": {
+    "description": "Accessibility label for the button that reveals concealed spoiler attachment and embed image media."
+  },
   "chatUploadingAttachmentsSummary": "Uploading {count, plural, one {# file} other {# files}}",
   "@chatUploadingAttachmentsSummary": {
     "description": "Filename-like progress label for a temporary message attachment while multiple selected files are uploading.",

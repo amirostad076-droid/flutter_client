@@ -2581,6 +2581,12 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatAttachmentSpoiler => 'Spoiler';
 
   @override
+  String get chatMediaSpoilerOverlayLabel => 'SPOILER';
+
+  @override
+  String get chatMediaSpoilerRevealLabel => 'Reveal spoiler';
+
+  @override
   String chatUploadingAttachmentsSummary(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
