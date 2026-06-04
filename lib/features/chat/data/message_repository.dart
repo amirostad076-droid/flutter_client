@@ -639,6 +639,20 @@ class MessageRepository {
     }
   }
 
+  Future<int> purgePersonalNotesMessages(String channelId) async {
+    try {
+      final response = await _client.channels.purgePersonalNotesMessages(
+        channelId: channelId,
+      );
+      await _db.messageDao.deleteMessagesForChannel(channelId);
+      return response.deletedCount;
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.statusMessage ?? 'Failed to purge personal notes',
+      );
+    }
+  }
+
   Future<void> deleteMessage({
     required String channelId,
     required String messageId,

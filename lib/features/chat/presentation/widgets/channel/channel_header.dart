@@ -13,6 +13,7 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/channel_details_sheet.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
@@ -54,12 +55,18 @@ class ChannelHeader extends ConsumerWidget {
     );
     final channelState = ref.watch(channelListViewModelProvider);
     final channel = findChannelById(channelState, channelId);
+    final String? currentUserId = ref.watch(currentUserIdProvider);
     final dm = channel == null
         ? findDmById(
             ref.watch(dmViewModelProvider.select((s) => s.conversations)),
             channelId,
           )
         : null;
+    final bool isPersonalNotes = _isPersonalNotesHeader(
+      dm: dm,
+      channelId: channelId,
+      currentUserId: currentUserId,
+    );
     final isMemberListVisible = ref.watch(
       channelListViewModelProvider.select((s) => s.isMemberListVisible),
     );
@@ -82,6 +89,7 @@ class ChannelHeader extends ConsumerWidget {
             l10n: l10n,
             channel: channel,
             dm: dm,
+            isPersonalNotes: isPersonalNotes,
             showMessageActions: showMessageActions,
           ),
           _ => _buildDesktopBar(
@@ -90,6 +98,7 @@ class ChannelHeader extends ConsumerWidget {
             l10n: l10n,
             channel: channel,
             dm: dm,
+            isPersonalNotes: isPersonalNotes,
             isMemberListVisible: isMemberListVisible,
             showMessageActions: showMessageActions,
             hasUnreadPins: hasUnreadPins,
@@ -105,6 +114,7 @@ class ChannelHeader extends ConsumerWidget {
     required FluxerLocalizations l10n,
     required Channel? channel,
     required DmConversation? dm,
+    required bool isPersonalNotes,
     required bool showMessageActions,
   }) {
     final showFavorites = ref.watch(
@@ -149,11 +159,22 @@ class ChannelHeader extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      _buildLeadingIcon(context, ref, channel: channel, dm: dm),
+                      _buildLeadingIcon(
+                        context,
+                        ref,
+                        channel: channel,
+                        dm: dm,
+                        isPersonalNotes: isPersonalNotes,
+                      ),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
-                          _resolveTitle(channel: channel, dm: dm),
+                          _resolveTitle(
+                            l10n: l10n,
+                            channel: channel,
+                            dm: dm,
+                            isPersonalNotes: isPersonalNotes,
+                          ),
                           style: context.textStyles.channelName,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -186,6 +207,7 @@ class ChannelHeader extends ConsumerWidget {
           ),
           if (showMessageActions &&
               showFavorites &&
+              !isPersonalNotes &&
               targetChannelId != null) ...[
             GestureDetector(
               onLongPress: () => _showFavoriteActions(context, ref),
@@ -209,7 +231,7 @@ class ChannelHeader extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
           ],
-          if (dm != null) ...[
+          if (dm != null && !isPersonalNotes) ...[
             FluxerButton.circle(
               icon: PhosphorIconsFill.phone,
               variant: FluxerButtonVariant.secondary,
@@ -251,6 +273,7 @@ class ChannelHeader extends ConsumerWidget {
     required FluxerLocalizations l10n,
     required Channel? channel,
     required DmConversation? dm,
+    required bool isPersonalNotes,
     required bool isMemberListVisible,
     required bool showMessageActions,
     required bool hasUnreadPins,
@@ -269,11 +292,22 @@ class ChannelHeader extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildLeadingIcon(context, ref, channel: channel, dm: dm),
+                    _buildLeadingIcon(
+                      context,
+                      ref,
+                      channel: channel,
+                      dm: dm,
+                      isPersonalNotes: isPersonalNotes,
+                    ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        _resolveTitle(channel: channel, dm: dm),
+                        _resolveTitle(
+                          l10n: l10n,
+                          channel: channel,
+                          dm: dm,
+                          isPersonalNotes: isPersonalNotes,
+                        ),
                         style: context.textStyles.channelName,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -298,7 +332,7 @@ class ChannelHeader extends ConsumerWidget {
             ),
           ],
           const SizedBox(width: 8),
-          if (dm != null) ...[
+          if (dm != null && !isPersonalNotes) ...[
             FluxerButton.circle(
               icon: PhosphorIconsFill.phone,
               variant: FluxerButtonVariant.secondary,
@@ -395,12 +429,40 @@ class ChannelHeader extends ConsumerWidget {
     ),
   );
 
+  static bool _isPersonalNotesHeader({
+    required DmConversation? dm,
+    required String channelId,
+    required String? currentUserId,
+  }) {
+    if (dm?.isPersonalNotes ?? false) {
+      return true;
+    }
+    return isPersonalNotesChannelRoute(
+      channelId: channelId,
+      currentUserId: currentUserId,
+    );
+  }
+
   Widget _buildLeadingIcon(
     BuildContext context,
     WidgetRef ref, {
     required Channel? channel,
     required DmConversation? dm,
+    required bool isPersonalNotes,
   }) {
+    if (isPersonalNotes) {
+      return SizedBox(
+        width: 32,
+        height: 32,
+        child: Center(
+          child: PhosphorIcon(
+            PhosphorIconsFill.notePencil,
+            size: 20,
+            color: context.colors.interactiveNormal,
+          ),
+        ),
+      );
+    }
     if (channel != null) {
       final int? effectivePermissionBits = ref
           .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
@@ -558,14 +620,19 @@ class ChannelHeader extends ConsumerWidget {
   }
 
   String _resolveTitle({
+    required FluxerLocalizations l10n,
     required Channel? channel,
     required DmConversation? dm,
+    required bool isPersonalNotes,
   }) {
     if (channel != null) {
       return channel.name;
     }
+    if (isPersonalNotes) {
+      return l10n.personalNotesTitle;
+    }
     if (dm != null) {
-      return dm.recipientName;
+      return dm.displayName;
     }
     return '';
   }

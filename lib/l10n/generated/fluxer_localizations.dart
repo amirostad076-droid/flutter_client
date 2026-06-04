@@ -7081,6 +7081,66 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to unpin this message?'**
   String get chatMessageUnpinConfirmDescription;
+
+  /// Title for the self-DM personal notes channel in the sidebar and chat header.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal notes'**
+  String get personalNotesTitle;
+
+  /// Subtitle on the personal notes welcome empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'Your private space for thoughts and reminders'**
+  String get personalNotesSubtitle;
+
+  /// Placeholder in the message composer when viewing personal notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Message yourself'**
+  String get personalNotesComposerHint;
+
+  /// Short subtitle in channel details for personal notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Your private space'**
+  String get personalNotesPrivateSpace;
+
+  /// Menu action to delete all messages in personal notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Purge personal notes'**
+  String get purgePersonalNotes;
+
+  /// Body of the destructive purge personal notes confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete every message and attachment in your personal notes. This cannot be undone.'**
+  String get purgePersonalNotesConfirmDescription;
+
+  /// Confirm button on the purge personal notes dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Purge'**
+  String get purgePersonalNotesConfirmButton;
+
+  /// Toast after purging personal notes with one or more messages deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Purged {count} messages from personal notes'**
+  String purgePersonalNotesSuccess(int count);
+
+  /// Toast when purge runs on an already empty personal notes channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal notes were already empty'**
+  String get purgePersonalNotesAlreadyEmpty;
+
+  /// Toast or error title when the purge personal notes API call fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not clear personal notes'**
+  String get purgePersonalNotesFailed;
 }
 
 class _FluxerLocalizationsDelegate

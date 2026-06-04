@@ -8,6 +8,7 @@ import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -566,41 +567,28 @@ class GatewayEventHandler {
         final dmCompanions = <db.DmChannelsCompanion>[];
         final recipientUsers = <db.UsersCompanion>[];
         for (final ch in event.privateChannels) {
-          final recipients = ch.recipients;
-          if (recipients == null || recipients.isEmpty) {
+          final companion = dmChannelCompanionFromChannelResponse(
+            ch,
+            unreadCount: readStatesByChannelId[ch.id]?.mentionCount ?? 0,
+          );
+          if (companion == null) {
             continue;
           }
-          for (final r in recipients) {
+          for (final r in dmRecipientUsersFromChannelResponse(ch)) {
             recipientUsers.add(userFromPartialSdk(r));
           }
-          dmCompanions.add(
-            db.DmChannelsCompanion.insert(
-              id: ch.id,
-              recipientId: recipients.first.id,
-              type: Value(ch.type),
-              name: Value(ch.name),
-              icon: Value(ch.icon),
-              recipientCount: Value(recipients.length + 1),
-              recipientIds: Value(
-                jsonEncode(recipients.map((r) => r.id).toList()),
-              ),
-              lastMessageId: Value(ch.lastMessageId),
-              lastMessageTime: Value(
-                ch.lastMessageId != null
-                    ? dateTimeFromSnowflakeAsLocalOrNow(ch.lastMessageId!)
-                    : dateTimeFromSnowflakeAsLocalOrNow(ch.id),
-              ),
-              unreadCount: Value(
-                readStatesByChannelId[ch.id]?.mentionCount ?? 0,
-              ),
-            ),
-          );
+          dmCompanions.add(companion);
         }
         if (recipientUsers.isNotEmpty) {
           await database.userDao.upsertUsers(recipientUsers);
         }
-        await database.dmChannelDao.upsertDmChannels(dmCompanions);
+        if (dmCompanions.isNotEmpty) {
+          await database.dmChannelDao.upsertDmChannels(dmCompanions);
+        }
       }
+      await database.dmChannelDao.upsertDmChannels([
+        buildPersonalNotesDmCompanion(userId: event.user.id),
+      ]);
 
       if (event.relationships.isNotEmpty) {
         final relUsers = <db.UsersCompanion>[];
@@ -1258,28 +1246,14 @@ class GatewayEventHandler {
       return;
     }
 
-    final recipients = channel.recipients;
-    if (recipients != null && recipients.isNotEmpty) {
-      for (final r in recipients) {
-        unawaited(database.userDao.upsertUser(userFromPartialSdk(r)));
-      }
-      unawaited(
-        database.dmChannelDao.upsertDmChannels([
-          db.DmChannelsCompanion.insert(
-            id: channel.id,
-            recipientId: recipients.first.id,
-            type: Value(channel.type),
-            name: Value(channel.name),
-            icon: Value(channel.icon),
-            recipientCount: Value(recipients.length + 1),
-            recipientIds: Value(
-              jsonEncode(recipients.map((r) => r.id).toList()),
-            ),
-            lastMessageId: Value(channel.lastMessageId),
-          ),
-        ]),
-      );
+    final companion = dmChannelCompanionFromChannelResponse(channel);
+    if (companion == null) {
+      return;
     }
+    for (final r in dmRecipientUsersFromChannelResponse(channel)) {
+      unawaited(database.userDao.upsertUser(userFromPartialSdk(r)));
+    }
+    unawaited(database.dmChannelDao.upsertDmChannels([companion]));
   }
 
   void _handleChannelDelete(ChannelDeleteEvent event) {

@@ -6,8 +6,10 @@ import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
+import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -40,6 +42,16 @@ class _FixedUserSettingsViewModel extends UserSettingsViewModel {
 
   @override
   UserSettingsViewState build() => _testUserSettings(userId: _userId);
+}
+
+class _EmptyDmViewModel extends DmViewModel {
+  @override
+  DmViewState build() => const DmViewState(
+    conversations: [],
+    friendsList: [],
+    activeTab: FriendsTab.online,
+    searchQuery: '',
+  );
 }
 
 void main() {
@@ -107,6 +119,32 @@ void main() {
                 .copyWithPrevious(const AsyncValue.data(allowed)),
           );
       expect(perms, allowed);
+    });
+  });
+
+  group('channelMessagePermissions provider', () {
+    test('grants all permissions for personal notes route without dm row', () async {
+      const String userId = '1000000000000000001';
+      final FluxerDatabase db = FluxerDatabase.forTesting(
+        NativeDatabase.memory(),
+      );
+      addTearDown(db.close);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: [
+          fluxerDatabaseProvider.overrideWithValue(db),
+          dmViewModelProvider.overrideWith(_EmptyDmViewModel.new),
+          currentUserIdProvider.overrideWithValue(userId),
+          guildListViewModelProvider.overrideWith(_EmptyGuildListViewModel.new),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final ChannelMessagePermissions perms = await container.read(
+        channelMessagePermissionsProvider(userId).future,
+      );
+
+      expect(perms, ChannelMessagePermissions.all);
     });
   });
 

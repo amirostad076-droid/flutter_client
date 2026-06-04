@@ -2,13 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
-import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 
 class DmRepository {
@@ -162,34 +161,24 @@ class DmRepository {
   Future<db.DmChannelsCompanion?> _buildDmChannelCompanion(
     ChannelResponse channel,
   ) async {
-    if (channel.type != 1 && channel.type != 3) {
+    final companion = dmChannelCompanionFromChannelResponse(channel);
+    if (companion == null) {
       return null;
     }
-
-    final recipients = channel.recipients;
-    if (recipients == null || recipients.isEmpty) {
-      return null;
-    }
-
-    for (final recipient in recipients) {
+    for (final recipient in dmRecipientUsersFromChannelResponse(channel)) {
       await _db.userDao.upsertUser(userFromPartialSdk(recipient));
     }
+    return companion;
+  }
 
-    return db.DmChannelsCompanion.insert(
-      id: channel.id,
-      recipientId: recipients.first.id,
-      type: Value(channel.type),
-      name: Value(channel.name),
-      icon: Value(channel.icon),
-      recipientCount: Value(recipients.length + 1),
-      recipientIds: Value(jsonEncode(recipients.map((r) => r.id).toList())),
-      lastMessageId: Value(channel.lastMessageId),
-      lastMessageTime: Value(
-        channel.lastMessageId != null
-            ? dateTimeFromSnowflakeAsLocalOrNow(channel.lastMessageId!)
-            : dateTimeFromSnowflakeAsLocalOrNow(channel.id),
-      ),
-    );
+  Future<void> ensurePersonalNotesChannel(String userId) async {
+    final existing = await _db.dmChannelDao.getDmChannelById(userId);
+    if (existing != null && isDmPersonalNotesType(existing.type)) {
+      return;
+    }
+    await _db.dmChannelDao.upsertDmChannels([
+      buildPersonalNotesDmCompanion(userId: userId),
+    ]);
   }
 
   Future<List<DmConversation>> getDmChannels() async {

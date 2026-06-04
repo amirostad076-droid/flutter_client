@@ -398,10 +398,10 @@ class FluxerBottomSheetContent extends StatelessWidget {
     );
 
     if (!scrollable) {
-      return content;
+      return SafeArea(child: content);
     }
 
-    return SingleChildScrollView(child: content);
+    return SafeArea(child: SingleChildScrollView(child: content));
   }
 }
 

@@ -4144,4 +4144,39 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   @override
   String get chatMessageUnpinConfirmDescription =>
       'Are you sure you want to unpin this message?';
+
+  @override
+  String get personalNotesTitle => 'Personal notes';
+
+  @override
+  String get personalNotesSubtitle =>
+      'Your private space for thoughts and reminders';
+
+  @override
+  String get personalNotesComposerHint => 'Message yourself';
+
+  @override
+  String get personalNotesPrivateSpace => 'Your private space';
+
+  @override
+  String get purgePersonalNotes => 'Purge personal notes';
+
+  @override
+  String get purgePersonalNotesConfirmDescription =>
+      'This will permanently delete every message and attachment in your personal notes. This cannot be undone.';
+
+  @override
+  String get purgePersonalNotesConfirmButton => 'Purge';
+
+  @override
+  String purgePersonalNotesSuccess(int count) {
+    return 'Purged $count messages from personal notes';
+  }
+
+  @override
+  String get purgePersonalNotesAlreadyEmpty =>
+      'Personal notes were already empty';
+
+  @override
+  String get purgePersonalNotesFailed => 'Could not clear personal notes';
 }

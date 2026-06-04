@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/domain/cloud_composer_attachments.dart';
@@ -410,7 +411,14 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     final dm = findDmById(conversations, channelId);
     if (dm != null) {
+      if (dm.isPersonalNotes) {
+        return FluxerLocalizations.of(context).personalNotesComposerHint;
+      }
       return 'Message @${dm.recipientName}';
+    }
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    if (currentUserId != null && channelId == currentUserId) {
+      return FluxerLocalizations.of(context).personalNotesComposerHint;
     }
     return 'Message';
   }

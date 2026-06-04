@@ -30,6 +30,8 @@ import 'package:fluxer_app/features/chat/providers/channel/channel_message_permi
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/chat/utils/message_grouping_utils.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
+import 'package:fluxer_app/features/dm/presentation/widgets/personal_notes_welcome_section.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart';
@@ -665,6 +667,19 @@ class _MessageListState extends ConsumerState<MessageList> {
                 findDmById(dmState.conversations, channelId) != null,
           ),
         );
+    final bool isPersonalNotesChannel =
+        isPersonalNotesChannelRoute(
+          channelId: channelId,
+          currentUserId: currentUserId,
+        ) ||
+        ref.watch(
+          dmViewModelProvider.select(
+            (DmViewState dmState) {
+              final dm = findDmById(dmState.conversations, channelId);
+              return dm?.isPersonalNotes ?? false;
+            },
+          ),
+        );
     final String? guildId = isDmChannel || channelId.isEmpty
         ? null
         : findChannelById(
@@ -749,34 +764,36 @@ class _MessageListState extends ConsumerState<MessageList> {
         child: FluxerLoadingSpinner(color: context.colors.brandPrimary),
       );
     } else if (messages.isEmpty) {
-      body = Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            PhosphorIcon(
-              PhosphorIconsFill.chatCircleDots,
-              size: 48,
-              color: context.colors.textPrimaryMuted,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No messages yet',
-              style: TextStyle(
-                color: context.colors.textPrimaryMuted,
-                fontSize: 16,
+      body = isPersonalNotesChannel
+          ? const PersonalNotesWelcomeSection()
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  PhosphorIcon(
+                    PhosphorIconsFill.chatCircleDots,
+                    size: 48,
+                    color: context.colors.textPrimaryMuted,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No messages yet',
+                    style: TextStyle(
+                      color: context.colors.textPrimaryMuted,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Be the first to send a message!',
+                    style: TextStyle(
+                      color: context.colors.textTertiaryMuted,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Be the first to send a message!',
-              style: TextStyle(
-                color: context.colors.textTertiaryMuted,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      );
+            );
     } else {
       body = _buildCenterScrollView(
         context: context,

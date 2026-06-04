@@ -1,4 +1,5 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 
 class GroupMemberInfo {
   final String id;
@@ -58,7 +59,7 @@ class DmConversation {
 
   bool get isGroup => type == 3;
 
-  bool get isPersonalNotes => type == 999;
+  bool get isPersonalNotes => isDmPersonalNotesType(type);
 
   String get displayName {
     if (isPersonalNotes) {

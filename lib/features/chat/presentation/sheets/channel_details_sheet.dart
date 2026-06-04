@@ -529,7 +529,11 @@ class _DetailsIdentityHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final Channel? channelEntity = channel;
     final title = channelEntity?.name ?? dm?.displayName ?? 'Details';
-    final subtitle = _detailsSubtitle(channel: channelEntity, dm: dm);
+    final subtitle = _detailsSubtitle(
+      l10n: FluxerLocalizations.of(context),
+      channel: channelEntity,
+      dm: dm,
+    );
     final topic = channelEntity?.topic?.trim();
     final isBot = dm != null && !dm!.isGroup && dm!.isBot;
     final hasTopic = topic != null && topic.isNotEmpty;
@@ -3285,12 +3289,13 @@ Map<String, dynamic> _defaultUserGuildSettingsData(String guildId) {
 }
 
 String? _detailsSubtitle({
+  required FluxerLocalizations l10n,
   required Channel? channel,
   required DmConversation? dm,
 }) {
   if (dm != null) {
     if (dm.isPersonalNotes) {
-      return 'Your private space';
+      return l10n.personalNotesPrivateSpace;
     }
     if (dm.isGroup) {
       return 'Group DM · ${dm.memberCount} members';

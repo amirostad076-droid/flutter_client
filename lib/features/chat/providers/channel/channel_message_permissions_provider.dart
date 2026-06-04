@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/members/providers/member_providers.dart';
@@ -108,6 +110,20 @@ Future<ChannelMessagePermissions> channelMessagePermissions(
     ),
   );
   if (isDmChannel) {
+    return ChannelMessagePermissions.all;
+  }
+  final String? currentUserId = ref.watch(currentUserIdProvider);
+  if (isPersonalNotesChannelRoute(
+    channelId: channelId,
+    currentUserId: currentUserId,
+  )) {
+    return ChannelMessagePermissions.all;
+  }
+  final dmRow = await ref
+      .read(fluxerDatabaseProvider)
+      .dmChannelDao
+      .getDmChannelById(channelId);
+  if (dmRow != null && isDmPersonalNotesType(dmRow.type)) {
     return ChannelMessagePermissions.all;
   }
   await ref.watch(channelPermissionIdentityProvider(channelId).future);

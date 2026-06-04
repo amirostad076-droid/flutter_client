@@ -5044,5 +5044,50 @@
   "chatMessageUnpinConfirmDescription": "Are you sure you want to unpin this message?",
   "@chatMessageUnpinConfirmDescription": {
     "description": "Body text for the unpin message confirmation sheet."
+  },
+  "personalNotesTitle": "Personal notes",
+  "@personalNotesTitle": {
+    "description": "Title for the self-DM personal notes channel in the sidebar and chat header."
+  },
+  "personalNotesSubtitle": "Your private space for thoughts and reminders",
+  "@personalNotesSubtitle": {
+    "description": "Subtitle on the personal notes welcome empty state."
+  },
+  "personalNotesComposerHint": "Message yourself",
+  "@personalNotesComposerHint": {
+    "description": "Placeholder in the message composer when viewing personal notes."
+  },
+  "personalNotesPrivateSpace": "Your private space",
+  "@personalNotesPrivateSpace": {
+    "description": "Short subtitle in channel details for personal notes."
+  },
+  "purgePersonalNotes": "Purge personal notes",
+  "@purgePersonalNotes": {
+    "description": "Menu action to delete all messages in personal notes."
+  },
+  "purgePersonalNotesConfirmDescription": "This will permanently delete every message and attachment in your personal notes. This cannot be undone.",
+  "@purgePersonalNotesConfirmDescription": {
+    "description": "Body of the destructive purge personal notes confirmation dialog."
+  },
+  "purgePersonalNotesConfirmButton": "Purge",
+  "@purgePersonalNotesConfirmButton": {
+    "description": "Confirm button on the purge personal notes dialog."
+  },
+  "purgePersonalNotesSuccess": "Purged {count} messages from personal notes",
+  "@purgePersonalNotesSuccess": {
+    "description": "Toast after purging personal notes with one or more messages deleted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "purgePersonalNotesAlreadyEmpty": "Personal notes were already empty",
+  "@purgePersonalNotesAlreadyEmpty": {
+    "description": "Toast when purge runs on an already empty personal notes channel."
+  },
+  "purgePersonalNotesFailed": "Could not clear personal notes",
+  "@purgePersonalNotesFailed": {
+    "description": "Toast or error title when the purge personal notes API call fails."
   }
 }

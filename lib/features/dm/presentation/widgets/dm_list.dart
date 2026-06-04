@@ -13,6 +13,9 @@ import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
+import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
+import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
@@ -67,6 +70,88 @@ class _DMListState extends ConsumerState<DMList> {
     }
   }
 
+  Future<void> _showPersonalNotesContextMenu(
+    BuildContext context, {
+    required String channelId,
+  }) async {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final Object? result = await FluxerBottomSheet.show<Object>(
+      context,
+      variant: FluxerBottomSheetVariant.menu,
+      builder: (BuildContext sheetContext, VoidCallback close) {
+        return FluxerBottomSheetContent(
+          scrollable: false,
+          child: FluxerBottomSheetGroupColumn(
+            children: <Widget>[
+              FluxerMenuGroup(
+                children: <Widget>[
+                  FluxerBottomSheetMenuItem(
+                    icon: PhosphorIconsFill.trash,
+                    label: l10n.purgePersonalNotes,
+                    isDanger: true,
+                    onTap: () => Navigator.of(sheetContext).pop('purge'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (result == 'purge' && mounted && context.mounted) {
+      await _requestPurgePersonalNotes(context, channelId: channelId);
+    }
+  }
+
+  Future<void> _requestPurgePersonalNotes(
+    BuildContext context, {
+    required String channelId,
+  }) async {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final bool? confirmed = await FluxerConfirmModal.show(
+      context,
+      title: l10n.purgePersonalNotes,
+      description: l10n.purgePersonalNotesConfirmDescription,
+      confirmLabel: l10n.purgePersonalNotesConfirmButton,
+      isDanger: true,
+      onConfirm: () {},
+    );
+    if (confirmed != true || !mounted || !context.mounted) {
+      return;
+    }
+    try {
+      final int deletedCount = await ref
+          .read(messageRepositoryProvider)
+          .purgePersonalNotesMessages(channelId);
+      if (!mounted || !context.mounted) {
+        return;
+      }
+      if (ref.read(chatViewModelProvider).channelId == channelId) {
+        await ref
+            .read(chatViewModelProvider.notifier)
+            .switchChannel(channelId);
+      }
+      ref.read(toastProvider.notifier).show(
+        FluxerToast(
+          message: deletedCount > 0
+              ? l10n.purgePersonalNotesSuccess(deletedCount)
+              : l10n.purgePersonalNotesAlreadyEmpty,
+          variant: FluxerToastVariant.success,
+        ),
+      );
+    } on Exception {
+      if (!mounted || !context.mounted) {
+        return;
+      }
+      ref.read(toastProvider.notifier).show(
+        FluxerToast(
+          message: l10n.purgePersonalNotesFailed,
+          variant: FluxerToastVariant.danger,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = ref.watch(dmViewModelProvider);
@@ -84,9 +169,19 @@ class _DMListState extends ConsumerState<DMList> {
 
     // Sort pinned DMs first (by pin position), then unpinned by recency.
     final sortedConvos = _sortDmChannels(convos, pinnedIds, pinnedOrder);
+    final userId = ref.watch(currentUserIdProvider);
+    final visibleConvos = sortedConvos
+        .where(
+          (DmConversation c) => !shouldExcludeFromDmConversationList(
+            type: c.type,
+            channelId: c.id,
+            currentUserId: userId,
+          ),
+        )
+        .toList();
     final searchResults = vm.mobileSearchResults(
       _searchQuery,
-      conversations: sortedConvos,
+      conversations: visibleConvos,
     );
 
     return Container(
@@ -128,7 +223,9 @@ class _DMListState extends ConsumerState<DMList> {
                           _buildNavButton(
                             context,
                             icon: PhosphorIconsFill.notePencil,
-                            label: 'Personal Notes',
+                            label: FluxerLocalizations.of(
+                              context,
+                            ).personalNotesTitle,
                             isSelected: isNotes,
                             onTap: () {
                               if (userId != null) {
@@ -138,6 +235,12 @@ class _DMListState extends ConsumerState<DMList> {
                                 );
                               }
                             },
+                            onLongPress: userId != null
+                                ? () => _showPersonalNotesContextMenu(
+                                    context,
+                                    channelId: userId,
+                                  )
+                                : null,
                           ),
                           _buildNavButton(
                             context,
@@ -157,16 +260,16 @@ class _DMListState extends ConsumerState<DMList> {
                 child: isMobile && _isSearching
                     ? _buildMobileSearchResults(
                         context,
-                        sortedConvos,
+                        visibleConvos,
                         searchResults,
                         selectedId,
                         pinnedIds: pinnedIds,
                         mutedIds: mutedIds,
                       )
-                    : _buildConvoList(
-                        context,
-                        sortedConvos,
-                        selectedId,
+              : _buildConvoList(
+                  context,
+                  visibleConvos,
+                  selectedId,
                         isMobile: isMobile,
                         pinnedIds: pinnedIds,
                         mutedIds: mutedIds,
@@ -286,6 +389,7 @@ class _DMListState extends ConsumerState<DMList> {
     required String label,
     required VoidCallback onTap,
     bool isSelected = false,
+    VoidCallback? onLongPress,
   }) => Padding(
     padding: EdgeInsets.symmetric(horizontal: context.layout.s2, vertical: 1),
     child: Material(
@@ -294,6 +398,7 @@ class _DMListState extends ConsumerState<DMList> {
         borderRadius: context.layout.radiusMd,
         hoverColor: context.colors.surfaceInteractiveHoverBg,
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Container(
           height: 42,
           padding: EdgeInsets.symmetric(horizontal: context.layout.s2),
@@ -708,6 +813,9 @@ class _DMListState extends ConsumerState<DMList> {
           navigateToContent(context, RoutePaths.dmChannel(userId));
         }
       },
+      onLongPress: userId != null
+          ? () => _showPersonalNotesContextMenu(context, channelId: userId)
+          : null,
       child: Container(
         margin: EdgeInsets.symmetric(
           horizontal: context.layout.s2,
@@ -746,7 +854,7 @@ class _DMListState extends ConsumerState<DMList> {
             ),
             const SizedBox(width: 12),
             Text(
-              'Personal Notes',
+              FluxerLocalizations.of(context).personalNotesTitle,
               style: TextStyle(
                 color: isSelected
                     ? context.colors.surfaceInteractiveSelectedColor
@@ -993,6 +1101,10 @@ class _DMListState extends ConsumerState<DMList> {
     BuildContext context,
     DmConversation convo,
   ) async {
+    if (convo.isPersonalNotes) {
+      await _showPersonalNotesContextMenu(context, channelId: convo.id);
+      return;
+    }
     final pinnedIds = ref.read(pinnedDmChannelIdsProvider).value ?? {};
     final mutedIds = ref.read(mutedDmChannelIdsProvider).value ?? {};
     final isPinned = pinnedIds.contains(convo.id);
