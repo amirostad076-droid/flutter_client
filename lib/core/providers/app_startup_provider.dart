@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,9 @@ import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_mobile_device_registration.dart';
+import 'package:fluxer_app/core/push/fcm/fcm_notification_tap_binding.dart';
+import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
+import 'package:fluxer_app/core/push/services/firebase_messaging_push_service.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
@@ -117,7 +121,14 @@ class AppStartup extends _$AppStartup {
       ..read(friendRelationshipsSyncProvider);
 
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
+    ref.read(pendingPushNotificationPathProvider.notifier).flushIfReady();
 
+    if (PushProviderGuard.isFirebaseMessaging && Platform.isAndroid) {
+      ref
+        ..read(pendingPushNotificationPathProvider)
+        ..read(fcmNotificationTapBindingProvider);
+      unawaited(FirebaseMessagingPushService.bootstrapAfterAuth());
+    }
     if (PushProviderGuard.isApple) {
       ref.read(apnsMobileDeviceRegistrationProvider);
     }

@@ -13,6 +13,8 @@ class FirebaseMessagingPushService implements PushService {
 
   static FluxerFcmPushService get delegate => _delegate;
 
+  static Future<void> bootstrapAfterAuth() => _delegate.initialize();
+
   @override
   Future<void> requestPermissions() => _delegate.requestPermissions();
 

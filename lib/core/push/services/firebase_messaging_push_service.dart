@@ -10,6 +10,8 @@ class FirebaseMessagingPushService implements PushService {
 
   static final FcmTapBindingHost tapHost = FcmTapBindingHostStub();
 
+  static Future<void> bootstrapAfterAuth() async {}
+
   @override
   Future<void> requestPermissions() async {}
 

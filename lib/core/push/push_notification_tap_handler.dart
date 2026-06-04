@@ -2,9 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_handler.dart';
+import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
+import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
 import 'package:fluxer_app/core/push/push_notification_path_resolver.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'push_notification_tap_handler.g.dart';
@@ -36,12 +41,20 @@ class PushNotificationTapHandler extends _$PushNotificationTapHandler {
   }
 
   void handlePayload(Map<String, String> payload) {
-    unawaited(LocalPushNotifications().cancelForPayload(payload));
+    if (!PushProviderGuard.isFirebaseMessaging) {
+      unawaited(LocalPushNotifications().cancelForPayload(payload));
+    }
     final String? path = resolvePushNotificationPath(payload);
     if (path == null) {
-      if (kDebugMode) {
-        debugPrint('[PushNotificationTap] no navigable path in $payload');
-      }
+      talker.warning('[PushNotificationTap] no navigable path in $payload');
+      return;
+    }
+    _navigateToPath(path);
+  }
+
+  void _navigateToPath(String path) {
+    if (!ref.read(authStateProvider) || !ref.read(gatewayReadyProvider)) {
+      ref.read(pendingPushNotificationPathProvider.notifier).store(path);
       return;
     }
     ref.read(deepLinkHandlerProvider.notifier).handlePath(path);
