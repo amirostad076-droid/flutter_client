@@ -7,6 +7,23 @@ import 'package:fluxer_markdown/src/widgets/fluxer_markdown.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:markdown/markdown.dart' as md;
 
+const FluxerMarkdownConfig _testMarkdownConfig = FluxerMarkdownConfig(
+  resolveEmojiShortcode: _noopEmojiShortcode,
+  unicodeEmojiUrlBuilder: _noopUnicodeEmojiUrl,
+  customEmojiUrlBuilder: _noopCustomEmojiUrl,
+);
+
+String? _noopEmojiShortcode(String name) => null;
+
+String? _noopUnicodeEmojiUrl(String unicode) => null;
+
+String _noopCustomEmojiUrl({
+  required String id,
+  required bool animated,
+  required int size,
+}) =>
+    '';
+
 void main() {
   final FluxerMarkdownFeatures features = FluxerMarkdownFeatures.forContext(
     FluxerMarkdownContext.standardWithJumbo,
@@ -33,7 +50,7 @@ void main() {
                         context: context,
                         text: 'test line one',
                         baseStyle: baseStyle,
-                        config: const FluxerMarkdownConfig(),
+                        config: _testMarkdownConfig,
                         features: features,
                         inlineDocument: md.Document(
                           encodeHtml: false,
@@ -64,7 +81,7 @@ void main() {
                     context: tester.element(find.byType(SizedBox)),
                     text: '\n',
                     baseStyle: baseStyle,
-                    config: const FluxerMarkdownConfig(),
+                    config: _testMarkdownConfig,
                     features: features,
                     inlineDocument: md.Document(
                       encodeHtml: false,
@@ -95,7 +112,7 @@ void main() {
                         context: context,
                         text: input,
                         baseStyle: baseStyle,
-                        config: const FluxerMarkdownConfig(),
+                        config: _testMarkdownConfig,
                         features: features,
                         inlineDocument: md.Document(
                           encodeHtml: false,
@@ -137,7 +154,7 @@ void main() {
                   width: 320,
                   child: FluxerMarkdown(
                     data: input,
-                    config: const FluxerMarkdownConfig(),
+                    config: _testMarkdownConfig,
                     baseStyle: baseStyle,
                     context: FluxerMarkdownContext.standardWithJumbo,
                   ),

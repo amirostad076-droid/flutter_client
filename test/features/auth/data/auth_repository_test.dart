@@ -69,7 +69,7 @@ void main() {
           'message': 'Invalid form body.',
           'errors': <Map<String, Object?>>[
             <String, Object?>{
-              'path': 'code',
+              'field': 'code',
               'message':
                   'Session timed out. Refresh the page and log in again.',
               'code': 'SESSION_TIMEOUT',

@@ -705,7 +705,10 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
               ref
                   .read(fluxerClientProvider)
                   .guilds
-                  .leaveGuild(guildId: guild.id),
+                  .leaveGuild(
+                    guildId: guild.id,
+                    body: const SudoVerificationSchema(),
+                  ),
             );
           },
           onGuildSettingsAction: (action) {
@@ -733,6 +736,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                       parentId: null,
                       bitrate: null,
                       userLimit: null,
+                      voiceConnectionLimit: null,
                       permissionOverwrites: [],
                       nsfw: false,
                       nsfwOverride: null,
@@ -1228,7 +1232,10 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                 ref
                     .read(fluxerClientProvider)
                     .guilds
-                    .leaveGuild(guildId: guild.id),
+                    .leaveGuild(
+                    guildId: guild.id,
+                    body: const SudoVerificationSchema(),
+                  ),
               );
             },
             onGuildSettingsAction: (action) {
@@ -1257,6 +1264,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                         parentId: null,
                         bitrate: null,
                         userLimit: null,
+                        voiceConnectionLimit: null,
                         permissionOverwrites: [],
                         nsfw: false,
                         nsfwOverride: null,
@@ -2504,6 +2512,7 @@ class _GuildListItemState extends State<_GuildListItem>
                         parentId: null,
                         bitrate: 64000,
                         userLimit: 0,
+                        voiceConnectionLimit: null,
                         permissionOverwrites: [],
                         nsfw: false,
                         nsfwOverride: null,
@@ -2518,6 +2527,7 @@ class _GuildListItemState extends State<_GuildListItem>
                         parentId: null,
                         bitrate: null,
                         userLimit: null,
+                        voiceConnectionLimit: null,
                         permissionOverwrites: [],
                         nsfw: false,
                         nsfwOverride: null,
@@ -2532,6 +2542,7 @@ class _GuildListItemState extends State<_GuildListItem>
                         parentId: null,
                         bitrate: null,
                         userLimit: null,
+                        voiceConnectionLimit: null,
                         permissionOverwrites: [],
                         nsfw: false,
                         nsfwOverride: null,

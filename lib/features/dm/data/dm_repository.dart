@@ -240,7 +240,10 @@ class DmRepository {
       _readStateRepo.ackLatest(channelId);
 
   Future<void> closeDmChannel(String channelId) async {
-    await _client.channels.deleteChannel(channelId: channelId);
+    await _client.channels.deleteChannel(
+      channelId: channelId,
+      body: const SudoVerificationSchema(),
+    );
     await _db.dmChannelDao.deleteDmChannel(channelId);
   }
 

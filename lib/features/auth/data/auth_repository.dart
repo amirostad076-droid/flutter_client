@@ -440,15 +440,10 @@ class AuthRepository {
         final apiError = Error.fromJson(responseData);
         final validationErrors = apiError.errors;
 
-        // Map field-specific validation errors by path.
         if (validationErrors != null && validationErrors.isNotEmpty) {
           final fieldErrors = <String, String>{};
           for (final e in validationErrors) {
-            final key = e.path ?? e.field;
-            if (key == null) {
-              continue;
-            }
-            fieldErrors.putIfAbsent(key, () => e.message);
+            fieldErrors.putIfAbsent(e.field, () => e.message);
           }
           return AuthFailure(apiError.message, fieldErrors: fieldErrors);
         }

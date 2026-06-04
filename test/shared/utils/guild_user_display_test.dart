@@ -194,11 +194,7 @@ void main() {
     test('returns true when author is a bot', () {
       expect(
         messagePrefersPersistedAuthorDisplay(
-          _message(
-            authorName: 'Bot',
-            authorAvatar: 'av',
-            authorIsBot: true,
-          ),
+          _message(authorName: 'Bot', authorAvatar: 'av', authorIsBot: true),
         ),
         isTrue,
       );
@@ -207,11 +203,7 @@ void main() {
     test('returns false for a normal member message', () {
       expect(
         messagePrefersPersistedAuthorDisplay(
-          _message(
-            authorName: 'Human',
-            authorAvatar: 'av',
-            authorIsBot: false,
-          ),
+          _message(authorName: 'Human', authorAvatar: 'av', authorIsBot: false),
         ),
         isFalse,
       );
@@ -365,20 +357,23 @@ void main() {
       expect(actual.avatarUrl, contains('/avatars/99/proxy_one.webp'));
     });
 
-    test('uses message display for bot proxy when authorIsBot is persisted', () {
-      final Message message = _message(
-        authorName: 'Proxy One',
-        authorAvatar: 'proxy_one',
-        authorIsBot: true,
-      );
-      final GuildUserDisplay actual = resolveMessageAuthorDisplay(
-        message: message,
-        guildId: guildId,
-        guildDisplay: botGuildDisplay,
-      );
-      expect(actual.displayName, 'Proxy One');
-      expect(actual.avatarUrl, contains('/avatars/99/proxy_one.webp'));
-    });
+    test(
+      'uses message display for bot proxy when authorIsBot is persisted',
+      () {
+        final Message message = _message(
+          authorName: 'Proxy One',
+          authorAvatar: 'proxy_one',
+          authorIsBot: true,
+        );
+        final GuildUserDisplay actual = resolveMessageAuthorDisplay(
+          message: message,
+          guildId: guildId,
+          guildDisplay: botGuildDisplay,
+        );
+        expect(actual.displayName, 'Proxy One');
+        expect(actual.avatarUrl, contains('/avatars/99/proxy_one.webp'));
+      },
+    );
 
     test('uses message display for webhook messages', () {
       final Message message = _message(
@@ -484,6 +479,7 @@ UserProfileFullResponse _profile({
     ),
     guildMember: guildMember,
     guildMemberProfile: guildProfile,
+    timezoneOffset: null,
   );
 }
 
