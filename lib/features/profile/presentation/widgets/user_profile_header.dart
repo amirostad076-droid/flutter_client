@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_badges.dart';
 import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_custom_status.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 
 class UserProfileHeader extends StatelessWidget {
   const UserProfileHeader({
@@ -13,6 +14,8 @@ class UserProfileHeader extends StatelessWidget {
     required this.customStatus,
     this.pronouns,
     this.premiumLifetimeSequence,
+    this.showUsername = true,
+    this.showBotTag = false,
     super.key,
   });
 
@@ -24,6 +27,8 @@ class UserProfileHeader extends StatelessWidget {
   final String? customStatus;
   final String? pronouns;
   final int? premiumLifetimeSequence;
+  final bool showUsername;
+  final bool showBotTag;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +46,8 @@ class UserProfileHeader extends StatelessWidget {
       children: [
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          runSpacing: 4,
           children: [
             Text(
               displayName,
@@ -50,7 +57,8 @@ class UserProfileHeader extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            if (isUsernameAsDisplay)
+            if (showBotTag) const FluxerBotBadge(),
+            if (showUsername && isUsernameAsDisplay)
               Text(
                 '#$discriminator',
                 style: textStyles.heading.copyWith(
@@ -61,27 +69,29 @@ class UserProfileHeader extends StatelessWidget {
               ),
           ],
         ),
-        SizedBox(height: layout.s1),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 6,
-          runSpacing: 4,
-          children: [
-            if (!isUsernameAsDisplay)
-              Text(
-                '$username#$discriminator',
-                style: textStyles.bodySmall.copyWith(
-                  color: colors.textTertiary,
-                  fontWeight: FontWeight.w500,
+        if (showUsername) ...[
+          SizedBox(height: layout.s1),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              if (!isUsernameAsDisplay)
+                Text(
+                  '$username#$discriminator',
+                  style: textStyles.bodySmall.copyWith(
+                    color: colors.textTertiary,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
+              UserProfileBadges(
+                flags: flags,
+                hasPlutonium: hasPlutonium,
+                premiumLifetimeSequence: premiumLifetimeSequence,
               ),
-            UserProfileBadges(
-              flags: flags,
-              hasPlutonium: hasPlutonium,
-              premiumLifetimeSequence: premiumLifetimeSequence,
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
         SizedBox(height: layout.s1),
         if (showPronouns) ...[
           Text(
@@ -90,7 +100,7 @@ class UserProfileHeader extends StatelessWidget {
           ),
           SizedBox(height: layout.s1),
         ],
-        UserProfileCustomStatus(text: customStatus),
+        if (customStatus != null) UserProfileCustomStatus(text: customStatus),
       ],
     );
   }

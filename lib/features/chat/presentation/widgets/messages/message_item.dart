@@ -197,6 +197,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         context,
         userId: msg.authorId,
         guildId: guildId,
+        isWebhook: msg.isWebhookMessage,
+        message: msg.isWebhookMessage ? msg : null,
       ),
     );
   }

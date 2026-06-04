@@ -1086,6 +1086,9 @@ class Message {
   bool get shouldCacheAuthorUser =>
       webhookId == null || webhookId!.isEmpty;
 
+  bool get isWebhookMessage =>
+      webhookId != null && webhookId!.isNotEmpty;
+
   /// Wire-shaped snapshot of this message suitable for the developer
   /// debug viewer. Mirrors the field set the web client surfaces via
   /// `message.toJSON()`; not stable across versions.

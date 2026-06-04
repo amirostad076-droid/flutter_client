@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart' show RoutePaths;
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
@@ -53,6 +54,8 @@ class UserProfileView extends ConsumerStatefulWidget {
     this.onCloseRequested,
     this.useCurrentUserCache = false,
     this.showTopHandle = false,
+    this.isWebhook = false,
+    this.message,
     super.key,
   });
 
@@ -63,6 +66,8 @@ class UserProfileView extends ConsumerStatefulWidget {
   final VoidCallback? onCloseRequested;
   final bool useCurrentUserCache;
   final bool showTopHandle;
+  final bool isWebhook;
+  final Message? message;
 
   @override
   ConsumerState<UserProfileView> createState() => _UserProfileViewState();
@@ -307,6 +312,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
     required bool isCurrentUser,
     required bool hasGuildProfile,
     required bool isShowingGlobalProfile,
+    bool isWebhook = false,
   }) {
     final layout = context.layout;
     final colors = context.colors;
@@ -370,17 +376,18 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                         userId: userId,
                         imageUrl: avatarUrl,
                         avatarColor: avatarColor,
-                        status: presenceAsync.value?.status,
+                        status: isWebhook ? null : presenceAsync.value?.status,
                         size: _kAvatarSize,
                       ),
                     ),
                   ),
-                  Positioned(
-                    right: layout.s4,
-                    top: _kBannerHeight + layout.s2,
-                    child: Row(
-                      children: <Widget>[
-                        UserProfileRelationshipButton(
+                  if (!isWebhook)
+                    Positioned(
+                      right: layout.s4,
+                      top: _kBannerHeight + layout.s2,
+                      child: Row(
+                        children: <Widget>[
+                          UserProfileRelationshipButton(
                           relationshipStatus: relationship?.friendStatus,
                           isCurrentUser: isCurrentUser,
                           onUnblock: () => _handleRelationshipAction(
@@ -460,9 +467,9 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                               );
                             },
                           ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -485,60 +492,68 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                   premiumLifetimeSequence: premiumLifetimeSequence,
                   customStatus: customStatus,
                   pronouns: pronouns,
+                  showUsername: !isWebhook,
+                  showBotTag: isWebhook,
                 ),
-                SizedBox(height: layout.s4),
-                UserProfileActionCardRow(
-                  isCurrentUser: isCurrentUser,
-                  isFriend: relationship?.friendStatus == FriendStatus.accepted,
-                  isBlocked: isBlocked,
-                  onMessage: () => _handleMessage(userId, isBlocked, username),
-                  onVoiceCall: () => _handleOutboundDmCall(
-                    peerUserId: userId,
+                if (!isWebhook) ...[
+                  SizedBox(height: layout.s4),
+                  UserProfileActionCardRow(
+                    isCurrentUser: isCurrentUser,
+                    isFriend:
+                        relationship?.friendStatus == FriendStatus.accepted,
                     isBlocked: isBlocked,
-                    username: username,
-                    startWithVideo: false,
+                    onMessage: () =>
+                        _handleMessage(userId, isBlocked, username),
+                    onVoiceCall: () => _handleOutboundDmCall(
+                      peerUserId: userId,
+                      isBlocked: isBlocked,
+                      username: username,
+                      startWithVideo: false,
+                    ),
+                    onVideoCall: () => _handleOutboundDmCall(
+                      peerUserId: userId,
+                      isBlocked: isBlocked,
+                      username: username,
+                      startWithVideo: true,
+                    ),
+                    onEditProfile: () => UserSettingsModal.show(
+                      context,
+                      openProfileSection: true,
+                    ),
                   ),
-                  onVideoCall: () => _handleOutboundDmCall(
-                    peerUserId: userId,
-                    isBlocked: isBlocked,
-                    username: username,
-                    startWithVideo: true,
+                  SizedBox(height: layout.s4),
+                  UserProfileBioCard(
+                    bio: bio,
+                    userId: userId,
+                    accountMemberSince: accountMemberSince,
+                    guildMemberSince: guildMemberSince,
+                    guildName: guildName,
+                    guildIconUrl: guildIconUrl,
+                    memberRoles: memberRoles,
+                    connections: connections,
                   ),
-                  onEditProfile: () =>
-                      UserSettingsModal.show(context, openProfileSection: true),
-                ),
-                SizedBox(height: layout.s4),
-                UserProfileBioCard(
-                  bio: bio,
-                  userId: userId,
-                  accountMemberSince: accountMemberSince,
-                  guildMemberSince: guildMemberSince,
-                  guildName: guildName,
-                  guildIconUrl: guildIconUrl,
-                  memberRoles: memberRoles,
-                  connections: connections,
-                ),
-                SizedBox(height: layout.s4),
-                if (!isCurrentUser) ...[
-                  UserProfileMutualsSection(
-                    friends: mutualFriends,
-                    communities: mutualCommunities,
-                    onFriendTap: (UserPartialResponse friend) =>
-                        _showMutualFriendProfile(friend.id),
-                    onCommunityTap: (MutualGuildResponse community) =>
-                        _openMutualCommunity(community.id),
+                  SizedBox(height: layout.s4),
+                  if (!isCurrentUser) ...[
+                    UserProfileMutualsSection(
+                      friends: mutualFriends,
+                      communities: mutualCommunities,
+                      onFriendTap: (UserPartialResponse friend) =>
+                          _showMutualFriendProfile(friend.id),
+                      onCommunityTap: (MutualGuildResponse community) =>
+                          _openMutualCommunity(community.id),
+                    ),
+                    SizedBox(height: layout.s4),
+                  ],
+                  UserProfileNoteCard(
+                    note: note,
+                    onTap: () => UserProfileNoteEditSheet.show(
+                      context,
+                      userId: userId,
+                      initialNote: note,
+                    ),
                   ),
                   SizedBox(height: layout.s4),
                 ],
-                UserProfileNoteCard(
-                  note: note,
-                  onTap: () => UserProfileNoteEditSheet.show(
-                    context,
-                    userId: userId,
-                    initialNote: note,
-                  ),
-                ),
-                SizedBox(height: layout.s4),
               ]),
             ),
           ),
@@ -547,8 +562,61 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
     );
   }
 
+  Widget _buildWebhookProfile(BuildContext context) {
+    final Message? message = widget.message;
+    if (message == null) {
+      return const SizedBox.shrink();
+    }
+    final GuildUserDisplay display = resolveMessageAuthorDisplay(
+      message: message,
+      guildId: widget.guildId,
+    );
+    const AsyncValue<db.User?> emptyPresence = AsyncValue<db.User?>.data(null);
+    return _buildLoadedView(
+      isWebhook: true,
+      userId: message.authorId,
+      username: message.authorName,
+      discriminator: '',
+      displayName: display.displayName,
+      avatarUrl: display.avatarUrl,
+      avatarColor: display.avatarColor,
+      bannerColor:
+          display.bannerColor ??
+          resolveGuildProfileBannerColor(
+            bannerColor: null,
+            accentColor: null,
+            avatarColor: display.avatarColor,
+          ),
+      bannerUrl: display.bannerUrl,
+      bio: display.bio,
+      accountMemberSince: dateTimeFromUserSnowflakeOrNull(message.authorId),
+      guildMemberSince: null,
+      guildName: null,
+      guildIconUrl: null,
+      memberRoles: const <MemberRole>[],
+      flags: 0,
+      hasPlutonium: false,
+      premiumLifetimeSequence: null,
+      mutualFriends: const <UserPartialResponse>[],
+      mutualCommunities: const <MutualGuildResponse>[],
+      actionUser: null,
+      connections: const <ConnectionResponse>[],
+      relationship: null,
+      pronouns: display.pronouns,
+      customStatus: null,
+      presenceAsync: emptyPresence,
+      note: null,
+      isCurrentUser: false,
+      hasGuildProfile: false,
+      isShowingGlobalProfile: false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.isWebhook) {
+      return _buildWebhookProfile(context);
+    }
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final AsyncValue<Friend?> relationshipAsync = ref.watch(
       userRelationshipProvider(userId: widget.userId),
@@ -576,12 +644,14 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
         error: (_, _) => _ErrorState(
           onRetry: () => ref.invalidate(currentUserCachedProfileProvider),
           message: l10n.userProfileLoadError,
+          onClose: widget.onCloseRequested,
         ),
         data: (CurrentUserCachedProfile? profile) {
           if (profile == null) {
             return _ErrorState(
               onRetry: () => ref.invalidate(currentUserCachedProfileProvider),
               message: l10n.userProfileLoadError,
+              onClose: widget.onCloseRequested,
             );
           }
           return _buildLoadedView(
@@ -647,6 +717,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
           userProfileProvider(userId: widget.userId, guildId: widget.guildId),
         ),
         message: l10n.userProfileLoadError,
+        onClose: widget.onCloseRequested,
       ),
       data: (UserProfileFullResponse? response) {
         if (response == null) {
@@ -658,6 +729,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
               ),
             ),
             message: l10n.userProfileLoadError,
+            onClose: widget.onCloseRequested,
           );
         }
         final String? guildId = widget.guildId;
@@ -784,40 +856,58 @@ class _MoreButtonState extends State<_MoreButton> {
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry, required this.message});
+  const _ErrorState({
+    required this.onRetry,
+    required this.message,
+    this.onClose,
+  });
   final VoidCallback onRetry;
   final String message;
+  final VoidCallback? onClose;
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final layout = context.layout;
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    return Padding(
-      padding: EdgeInsets.all(layout.s4),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          PhosphorIcon(
-            PhosphorIconsFill.prohibit,
-            size: 48,
-            color: colors.textPrimaryMuted,
+    return Stack(
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.all(layout.s4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              PhosphorIcon(
+                PhosphorIconsFill.prohibit,
+                size: 48,
+                color: colors.textPrimaryMuted,
+              ),
+              SizedBox(height: layout.s3),
+              Text(
+                message,
+                style: context.textStyles.bodySmall.copyWith(
+                  color: colors.textPrimaryMuted,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: layout.s4),
+              FluxerButton.primary(
+                label: l10n.userProfileRetry,
+                onPressed: onRetry,
+              ),
+            ],
           ),
-          SizedBox(height: layout.s3),
-          Text(
-            message,
-            style: context.textStyles.bodySmall.copyWith(
-              color: colors.textPrimaryMuted,
+        ),
+        if (onClose != null)
+          Positioned(
+            top: layout.s2,
+            right: layout.s2,
+            child: FluxerButton.circleAlt(
+              onPressed: onClose,
+              icon: PhosphorIconsRegular.x,
             ),
-            textAlign: TextAlign.center,
           ),
-          SizedBox(height: layout.s4),
-          FluxerButton.primary(
-            label: l10n.userProfileRetry,
-            onPressed: onRetry,
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
