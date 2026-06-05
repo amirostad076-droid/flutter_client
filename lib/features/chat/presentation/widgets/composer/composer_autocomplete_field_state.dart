@@ -27,6 +27,8 @@ class _ComposerRow {
     this.mentionMember,
     this.titleColor,
     this.channelRowType,
+    this.emojiSurrogates,
+    this.emojiImageUrl,
   });
 
   final String title;
@@ -35,6 +37,8 @@ class _ComposerRow {
   final Member? mentionMember;
   final Color? titleColor;
   final ChannelType? channelRowType;
+  final String? emojiSurrogates;
+  final String? emojiImageUrl;
 }
 
 class ComposerAutocompleteChatFieldState
@@ -140,6 +144,25 @@ class ComposerAutocompleteChatFieldState
   Channel? _guildChannel() {
     final ChannelListState list = ref.read(channelListViewModelProvider);
     return findChannelById(list, widget.channelId);
+  }
+
+  void _warmCustomEmoji() {
+    final String? guildId = ref.watch(
+      channelListViewModelProvider.select(
+        (ChannelListState s) => findChannelById(s, widget.channelId)?.guildId,
+      ),
+    );
+    if (guildId == null || guildId.isEmpty) {
+      return;
+    }
+    ref.listen<AsyncValue<List<GuildEmojiEntry>>>(
+      guildEmojisForPickerProvider(guildId),
+      (_, AsyncValue<List<GuildEmojiEntry>> next) {
+        if (mounted && next.hasValue) {
+          _scheduleSync();
+        }
+      },
+    );
   }
 
   Future<void> _syncChannels(
@@ -436,13 +459,19 @@ class ComposerAutocompleteChatFieldState
       ...customFiltered.map(
         (GuildEmojiEntry e) => _ComposerRow(
           title: ':${e.name}:',
-          onApply: () => _applyEmoji(trigger, insert: e.markdown),
+          onApply: () => _applyEmoji(trigger, name: e.name, wire: e.markdown),
+          emojiImageUrl: e.url,
         ),
       ),
       ...unicode.map(
         (EmojiEntry e) => _ComposerRow(
           title: ':${e.primaryName}:',
-          onApply: () => _applyEmoji(trigger, insert: ':${e.primaryName}:'),
+          onApply: () => _applyEmoji(
+            trigger,
+            name: e.primaryName,
+            wire: ':${e.primaryName}:',
+          ),
+          emojiSurrogates: e.surrogates,
         ),
       ),
     ];
@@ -489,6 +518,8 @@ class ComposerAutocompleteChatFieldState
           userAvatarColor: m?.avatarColor,
           userAvatarRoleColor: m?.roleColor,
           userAvatarStatus: m?.status,
+          emojiSurrogates: r.emojiSurrogates,
+          emojiImageUrl: r.emojiImageUrl,
         );
       }).toList(),
       selectedIndex: safeIndex,
@@ -590,9 +621,20 @@ class ComposerAutocompleteChatFieldState
 
   void _applyEmoji(
     ComposerAutocompleteTrigger trigger, {
-    required String insert,
+    required String name,
+    required String wire,
   }) {
-    _replaceTrigger(trigger, insert);
+    final TextEditingController controller = widget.controller;
+    if (controller is InlineTokenTextEditingController) {
+      controller.replaceRangeWithToken(
+        trigger.matchStart,
+        trigger.matchEnd,
+        EmojiInlineToken(displayName: name, wireText: wire),
+        ensureTrailingSpace: true,
+      );
+    } else {
+      _replaceTrigger(trigger, wire);
+    }
     _closeMenu();
   }
 
@@ -626,6 +668,7 @@ class ComposerAutocompleteChatFieldState
 
   @override
   Widget build(BuildContext context) {
+    _warmCustomEmoji();
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final double maxW = constraints.maxWidth;

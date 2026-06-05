@@ -12,6 +12,7 @@ const double _kAutocompleteDescMarginLeft = 16;
 const double _kAutocompleteScrollRowStride = 48;
 const double _kAutocompleteAvatarSize = 28;
 const double _kAutocompleteAvatarGap = 8;
+const double _kAutocompleteEmojiPreviewSize = 24;
 const Duration _kAutocompletePanelExpandDuration = Duration(milliseconds: 220);
 
 /// [FluxerAvatar.user] uses [BigInt.parse] on [userId] for default avatars;
@@ -44,6 +45,8 @@ class ComposerAutocompletePanelRow {
     this.userAvatarColor,
     this.userAvatarRoleColor,
     this.userAvatarStatus,
+    this.emojiSurrogates,
+    this.emojiImageUrl,
   });
 
   final String title;
@@ -57,6 +60,8 @@ class ComposerAutocompletePanelRow {
   final int? userAvatarColor;
   final int? userAvatarRoleColor;
   final String? userAvatarStatus;
+  final String? emojiSurrogates;
+  final String? emojiImageUrl;
 }
 
 class ComposerAutocompletePanelSnapshot {
@@ -83,6 +88,8 @@ class ComposerAutocompletePanelListTile extends StatelessWidget {
     this.userAvatarColor,
     this.userAvatarRoleColor,
     this.userAvatarStatus,
+    this.emojiSurrogates,
+    this.emojiImageUrl,
     super.key,
   });
 
@@ -98,6 +105,8 @@ class ComposerAutocompletePanelListTile extends StatelessWidget {
   final int? userAvatarColor;
   final int? userAvatarRoleColor;
   final String? userAvatarStatus;
+  final String? emojiSurrogates;
+  final String? emojiImageUrl;
 
   bool get _showsUserAvatar {
     return userAvatarFallbackText != null &&
@@ -106,6 +115,10 @@ class ComposerAutocompletePanelListTile extends StatelessWidget {
 
   bool get _showsChannelGlyph {
     return channelRowType != null;
+  }
+
+  bool get _showsEmojiPreview {
+    return emojiSurrogates != null || emojiImageUrl != null;
   }
 
   @override
@@ -154,6 +167,25 @@ class ComposerAutocompletePanelListTile extends StatelessWidget {
                           type: channelRowType!,
                           size: 16,
                           color: context.colors.textTertiary,
+                        ),
+                        const SizedBox(width: _kAutocompleteAvatarGap),
+                      ],
+                      if (_showsEmojiPreview) ...<Widget>[
+                        SizedBox(
+                          width: _kAutocompleteEmojiPreviewSize,
+                          height: _kAutocompleteEmojiPreviewSize,
+                          child: emojiSurrogates != null
+                              ? Center(
+                                  child: Text(
+                                    emojiSurrogates!,
+                                    style: const TextStyle(fontSize: 20),
+                                  ),
+                                )
+                              : CachedNetworkImage(
+                                  imageUrl: emojiImageUrl!,
+                                  width: _kAutocompleteEmojiPreviewSize,
+                                  height: _kAutocompleteEmojiPreviewSize,
+                                ),
                         ),
                         const SizedBox(width: _kAutocompleteAvatarGap),
                       ],
@@ -299,6 +331,8 @@ class _ComposerAutocompletePanelOpenBody extends StatelessWidget {
                   userAvatarColor: row.userAvatarColor,
                   userAvatarRoleColor: row.userAvatarRoleColor,
                   userAvatarStatus: row.userAvatarStatus,
+                  emojiSurrogates: row.emojiSurrogates,
+                  emojiImageUrl: row.emojiImageUrl,
                 );
               },
             ),
