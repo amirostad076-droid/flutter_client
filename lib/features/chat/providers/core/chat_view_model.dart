@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:cross_file/cross_file.dart';
@@ -2053,6 +2054,7 @@ class ChatViewModel extends _$ChatViewModel {
           emojiId: emojiId,
           animated: animated,
           count: old.count - 1,
+          hasReacted: false,
         );
       }
     } else if (existingIdx != -1) {
@@ -2079,6 +2081,12 @@ class ChatViewModel extends _$ChatViewModel {
     final updatedMessages = List<Message>.from(state.messages);
     updatedMessages[msgIndex] = msg.copyWith(reactions: updatedReactions);
     state = state.copyWith(messages: updatedMessages);
+    unawaited(
+      ref.read(fluxerDatabaseProvider).messageDao.updateReactions(
+        messageId,
+        jsonEncode(updatedReactions.map((r) => r.toJson()).toList()),
+      ),
+    );
 
     if (!hasReacted) {
       unawaited(_trackReactionFrecency(emoji, emojiId));

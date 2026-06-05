@@ -172,10 +172,10 @@ class GatewayEventHandler {
         _handleChannelDelete(event);
       case MessageReactionAddEvent():
         talker.debug('[Gateway] MESSAGE_REACTION_ADD: ${event.messageId}');
-        _handleReactionAdd(event);
+        await _handleReactionAdd(event);
       case MessageReactionRemoveEvent():
         talker.debug('[Gateway] MESSAGE_REACTION_REMOVE: ${event.messageId}');
-        _handleReactionRemove(event);
+        await _handleReactionRemove(event);
       case MessageReactionRemoveAllEvent():
         talker.debug(
           '[Gateway] MESSAGE_REACTION_REMOVE_ALL: ${event.messageId}',
@@ -1450,20 +1450,24 @@ class GatewayEventHandler {
     unawaited(database.relationshipDao.deleteRelationship(event.userId));
   }
 
-  void _handleReactionAdd(MessageReactionAddEvent event) {
-    unawaited(
-      _modifyReaction(event.messageId, event.emoji, isAdd: true).then((_) {
-        onMessageReactionChange?.call(event.channelId, event.messageId);
-      }),
+  Future<void> _handleReactionAdd(MessageReactionAddEvent event) async {
+    await _modifyReaction(
+      event.messageId,
+      event.emoji,
+      isAdd: true,
+      userId: event.userId,
     );
+    onMessageReactionChange?.call(event.channelId, event.messageId);
   }
 
-  void _handleReactionRemove(MessageReactionRemoveEvent event) {
-    unawaited(
-      _modifyReaction(event.messageId, event.emoji, isAdd: false).then((_) {
-        onMessageReactionChange?.call(event.channelId, event.messageId);
-      }),
+  Future<void> _handleReactionRemove(MessageReactionRemoveEvent event) async {
+    await _modifyReaction(
+      event.messageId,
+      event.emoji,
+      isAdd: false,
+      userId: event.userId,
     );
+    onMessageReactionChange?.call(event.channelId, event.messageId);
   }
 
   void _handleReactionRemoveAll(MessageReactionRemoveAllEvent event) {
@@ -1490,6 +1494,7 @@ class GatewayEventHandler {
     String messageId,
     ReactionEmoji emoji, {
     required bool isAdd,
+    String? userId,
   }) async {
     final msg = await database.messageDao.getMessage(messageId);
     if (msg == null) {
@@ -1502,17 +1507,28 @@ class GatewayEventHandler {
           (r['emoji'] as String?) == emoji.name &&
           (r['emojiId'] as String?) == emoji.id,
     );
+    final isCurrentUser =
+        userId != null &&
+        currentUserId != null &&
+        userId == currentUserId;
 
     if (isAdd) {
       if (idx != -1) {
-        reactions[idx]['count'] = ((reactions[idx]['count'] as int?) ?? 0) + 1;
+        final existing = reactions[idx];
+        if (isCurrentUser && (existing['hasReacted'] as bool? ?? false)) {
+          return;
+        }
+        reactions[idx]['count'] = ((existing['count'] as int?) ?? 0) + 1;
+        if (isCurrentUser) {
+          reactions[idx]['hasReacted'] = true;
+        }
       } else {
         reactions.add(<String, dynamic>{
           'emoji': emoji.name,
           'emojiId': emoji.id,
           'animated': emoji.animated,
           'count': 1,
-          'hasReacted': false,
+          'hasReacted': isCurrentUser,
         });
       }
     } else if (idx != -1) {
@@ -1521,6 +1537,9 @@ class GatewayEventHandler {
         reactions.removeAt(idx);
       } else {
         reactions[idx]['count'] = count;
+        if (isCurrentUser) {
+          reactions[idx]['hasReacted'] = false;
+        }
       }
     }
 
