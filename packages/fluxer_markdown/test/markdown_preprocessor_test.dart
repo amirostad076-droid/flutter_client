@@ -35,6 +35,25 @@ void main() {
     });
   });
 
+  group('preprocessFluxerMarkdown pipe escaping without tables', () {
+    final FluxerMarkdownFeatures bioFeatures =
+        FluxerMarkdownFeatures.forContext(
+          FluxerMarkdownContext.restrictedUserBio,
+        );
+
+    test('preserves spoiler delimiters in user bio', () {
+      const String input = '||spoilered text||';
+      final String output = preprocessFluxerMarkdown(input, bioFeatures);
+      expect(output, input);
+    });
+
+    test('escapes table pipes but keeps spoiler delimiters', () {
+      const String input = '| not a table | and ||spoiler||';
+      final String output = preprocessFluxerMarkdown(input, bioFeatures);
+      expect(output, r'\| not a table \| and ||spoiler||');
+    });
+  });
+
   group('preprocessFluxerMarkdown markdown parse integration', () {
     test('shrug renders with visible left arm after parse', () {
       const String input = r'¯\_(ツ)_/¯';

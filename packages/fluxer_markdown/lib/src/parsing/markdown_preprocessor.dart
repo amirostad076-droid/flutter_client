@@ -41,7 +41,10 @@ String preprocessFluxerMarkdown(String text, FluxerMarkdownFeatures features) {
       next = '\\$next';
     }
     if (!features.allowTables && next.contains('|')) {
-      next = next.replaceAll('|', r'\|');
+      next = next.replaceAllMapped(
+        RegExp(r'(?<!\|)\|(?!\|)'),
+        (_) => r'\|',
+      );
     }
     if (!features.allowCodeBlocks && RegExp(r'^\s{0,3}```').hasMatch(next)) {
       next = '\\$next';
