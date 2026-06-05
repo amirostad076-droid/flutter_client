@@ -17,7 +17,6 @@ import 'package:fluxer_app/features/chat/providers/messages/forward_destinations
 import 'package:fluxer_app/features/chat/providers/messages/message_length_limits_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
-import 'package:fluxer_app/features/chat/utils/composer_emoji_insert.dart';
 import 'package:fluxer_app/features/chat/utils/slowmode_format.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -146,8 +145,6 @@ class _ForwardMessageSheetBodyState
   final ComposerAutocompletePanelHost _commentPanelHost =
       ComposerAutocompletePanelHost(null);
   final ScrollController _commentPanelScroll = ScrollController();
-  final GlobalKey<FluxerEmojiPickerPopoutState> _emojiKey =
-      GlobalKey<FluxerEmojiPickerPopoutState>();
   Timer? _slowmodeTicker;
 
   @override
@@ -531,59 +528,66 @@ class _ForwardMessageSheetBodyState
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colors.backgroundHeaderSecondary),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: ComposerAutocompleteChatField(
-              controller: _commentController,
-              focusNode: _commentFocus,
-              channelId: widget.sourceChannelId,
-              enabled: !commentDisabled,
-              style: context.textStyles.inputText,
-              minLines: 1,
-              maxLines: 4,
-              menuOpenListenable: _commentMenuOpen,
-              panelHost: _commentPanelHost,
-              panelScrollController: _commentPanelScroll,
-              inputFormatters: <TextInputFormatter>[
-                LengthLimitingTextInputFormatter(maxMessageLength),
-              ],
-              decoration: InputDecoration(
-                isDense: true,
-                border: InputBorder.none,
-                hintText: l10n.forwardCommentHint,
-                hintStyle: context.textStyles.inputHint,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
+      child: ComposerAutocompleteChatField(
+        controller: _commentController,
+        focusNode: _commentFocus,
+        channelId: widget.sourceChannelId,
+        enabled: !commentDisabled,
+        style: context.textStyles.inputText,
+        minLines: 1,
+        maxLines: 4,
+        menuOpenListenable: _commentMenuOpen,
+        panelHost: _commentPanelHost,
+        panelScrollController: _commentPanelScroll,
+        inputFormatters: <TextInputFormatter>[
+          LengthLimitingTextInputFormatter(maxMessageLength),
+        ],
+        decoration: InputDecoration(
+          isDense: true,
+          border: InputBorder.none,
+          hintText: l10n.forwardCommentHint,
+          hintStyle: context.textStyles.inputHint,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 12,
+          ),
+          suffixIcon: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: commentDisabled ? null : _openCommentEmojiPicker,
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: Center(
+                child: PhosphorIcon(
+                  PhosphorIconsFill.smiley,
+                  size: 22,
+                  color: commentDisabled
+                      ? colors.textTertiaryMuted
+                      : colors.textTertiary,
                 ),
               ),
             ),
           ),
-          FluxerEmojiPickerPopout(
-            key: _emojiKey,
-            channelId: widget.sourceChannelId,
-            visibleTabs: const <ExpressionPickerTab>[
-              ExpressionPickerTab.emojis,
-            ],
-            onEmojiSelected: (FluxerSelectedEmoji emoji) => insertEmojiToken(
-              _commentController,
-              emoji.name,
-              emoji.surrogates,
-            ),
-            child: IconButton(
-              onPressed: commentDisabled
-                  ? null
-                  : () => _emojiKey.currentState?.toggle(),
-              icon: PhosphorIcon(
-                PhosphorIconsFill.smiley,
-                size: 22,
-                color: colors.textTertiary,
-              ),
-            ),
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 40,
+            minHeight: 40,
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  void _openCommentEmojiPicker() {
+    FocusScope.of(context).unfocus();
+    unawaited(
+      FluxerEmojiPickerSheet.show(
+        context,
+        title: FluxerLocalizations.of(context).emojiPickerTitle,
+        maxHeight: 0.88,
+        channelId: widget.sourceChannelId,
+        visibleTabs: const <ExpressionPickerTab>[ExpressionPickerTab.emojis],
+        onEmojiSelected: (FluxerSelectedEmoji emoji) =>
+            _commentController.insertEmoji(emoji.name, emoji.surrogates),
       ),
     );
   }

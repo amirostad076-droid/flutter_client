@@ -113,4 +113,76 @@ void main() {
     expect(find.text('@Alice'), findsOneWidget);
     expect(controller.toWireText().trim(), '<@111>');
   });
+
+  testWidgets('inserts a custom emoji as a chip carrying its markdown wire', (
+    WidgetTester tester,
+  ) async {
+    final ComposerMentionController controller = await _pumpController(tester);
+
+    controller.insertEmoji('cool', '<:cool:123>');
+    await tester.pump();
+
+    expect(find.text(':cool:'), findsOneWidget);
+    expect(controller.toWireText().trim(), '<:cool:123>');
+  });
+
+  testWidgets('inserts a unicode emoji as a chip carrying its shortcode', (
+    WidgetTester tester,
+  ) async {
+    final ComposerMentionController controller = await _pumpController(tester);
+
+    controller.insertEmoji('wave', '\u{1F44B}');
+    await tester.pump();
+
+    expect(find.text(':wave:'), findsOneWidget);
+    expect(controller.toWireText(), ':wave:');
+  });
+
+  testWidgets('applyWireText re-chips a custom emoji and round-trips', (
+    WidgetTester tester,
+  ) async {
+    final ComposerMentionController controller = await _pumpController(tester);
+
+    await controller.applyWireText('hi <:cool:123> there');
+    await tester.pump();
+
+    expect(find.text(':cool:'), findsOneWidget);
+    expect(controller.toWireText(), 'hi <:cool:123> there');
+  });
+
+  testWidgets('preserves order and wire forms for a mixed mention and emoji', (
+    WidgetTester tester,
+  ) async {
+    final ComposerMentionController controller = await _pumpController(tester);
+
+    controller
+      ..insertUserMentionPlaceholder(
+        matchStart: 0,
+        matchEnd: 0,
+        userId: '123',
+        displayName: 'Alice',
+      )
+      ..insertEmoji('cool', '<:cool:9>');
+    await tester.pump();
+
+    expect(find.text('@Alice'), findsOneWidget);
+    expect(find.text(':cool:'), findsOneWidget);
+    expect(controller.toWireText().trim(), '<@123> <:cool:9>');
+  });
+
+  testWidgets('applyWireText leaves ambiguous typed colons unchipped', (
+    WidgetTester tester,
+  ) async {
+    final ComposerMentionController controller = await _pumpController(tester);
+
+    await controller.applyWireText('12:30:45 <:smile:9>');
+    await tester.pump();
+
+    // Only the explicitly written custom emoji becomes a chip.
+    expect(find.text(':smile:'), findsOneWidget);
+    expect(find.text(':30:'), findsNothing);
+    // The typed time stays literal text and the custom emoji round-trips.
+    expect(controller.text.startsWith('12:30:45 '), isTrue);
+    expect(controller.toWireText(), '12:30:45 <:smile:9>');
+  });
 }

@@ -11,30 +11,9 @@ import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
+import 'package:fluxer_app/features/ui/input/emoji_inline_token.dart';
+import 'package:fluxer_app/features/ui/input/inline_token_text_editing_controller.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
-
-/// One code unit per user mention. Maps entries in [mentionUserIds] to the
-/// outgoing user mention wire form (see [ComposerMentionController.toWireText]).
-const int _kUserMentionPlaceholderCodeUnit = 0xfffc;
-
-/// One code unit per channel mention. Maps entries in [mentionChannelIds] to
-/// the outgoing channel mention wire form (see
-/// [ComposerMentionController.toWireText]).
-const int _kChannelMentionPlaceholderCodeUnit = 0xfffa;
-
-/// One code unit per role mention. Maps entries in [mentionRoleIds] and
-/// [mentionRoleLabels] to the outgoing role mention wire form (see
-/// [ComposerMentionController.toWireText]).
-const int _kRoleMentionPlaceholderCodeUnit = 0xfffb;
-
-String _userPlaceholderChar() =>
-    String.fromCharCode(_kUserMentionPlaceholderCodeUnit);
-
-String _channelPlaceholderChar() =>
-    String.fromCharCode(_kChannelMentionPlaceholderCodeUnit);
-
-String _rolePlaceholderChar() =>
-    String.fromCharCode(_kRoleMentionPlaceholderCodeUnit);
 
 String _shortMentionWireIdFallback(String userId) {
   if (userId.length <= 10) {
@@ -75,198 +54,119 @@ String _composerMentionChannelLabel(WidgetRef ref, String targetChannelId) {
   return ch?.name ?? _shortMentionWireIdFallback(targetChannelId);
 }
 
-/// Renders user, channel, and role mentions as inline text while [toWireText]
-/// preserves wire forms for sending.
-class ComposerMentionController extends TextEditingController {
+/// A user, role, or channel mention rendered inline as a chip while [wireText]
+/// preserves the outgoing mention form for sending.
+class MentionInlineToken extends InlineToken {
+  MentionInlineToken({
+    required this.wireText,
+    required this.resolveVisibleText,
+    this.colorArgb,
+  });
+
+  @override
+  final String wireText;
+
+  /// Resolves the visible chip label lazily, so live roster or channel renames
+  /// are reflected when no explicit label was captured at insertion time.
+  final String Function() resolveVisibleText;
+
+  /// Packed ARGB colour for role mentions; `null` falls back to the link
+  /// colour.
+  final int? colorArgb;
+
+  @override
+  Widget buildInline(BuildContext context, TextStyle? baseStyle) =>
+      ComposerInlineMention(
+        visibleText: resolveVisibleText(),
+        baseStyle: baseStyle,
+        foregroundArgb: colorArgb,
+      );
+}
+
+/// Renders user, channel, and role mentions - and inserted emoji - as inline
+/// chips while [toWireText] preserves their wire forms for sending.
+class ComposerMentionController extends InlineTokenTextEditingController {
   ComposerMentionController({required WidgetRef ref, super.text}) : _ref = ref;
 
   final WidgetRef _ref;
-
-  final List<String> mentionUserIds = <String>[];
-  final List<String> mentionChannelIds = <String>[];
-  final List<String> mentionRoleIds = <String>[];
-  final List<String> mentionRoleLabels = <String>[];
-  final List<int?> mentionRoleColorsArgb = <int?>[];
-  final List<String?> mentionUserLabels = <String?>[];
-  final List<String?> mentionChannelLabels = <String?>[];
 
   static final RegExp _wireMentions = RegExp(
     '<@&([^>]+)>|<@!?([^>]+)>|<#([^>]+)>',
   );
 
-  int _countUserPlaceholders(String t) {
-    int n = 0;
-    for (int i = 0; i < t.length; i++) {
-      if (t.codeUnitAt(i) == _kUserMentionPlaceholderCodeUnit) {
-        n++;
-      }
-    }
-    return n;
-  }
-
-  int _countChannelPlaceholders(String t) {
-    int n = 0;
-    for (int i = 0; i < t.length; i++) {
-      if (t.codeUnitAt(i) == _kChannelMentionPlaceholderCodeUnit) {
-        n++;
-      }
-    }
-    return n;
-  }
-
-  int _countRolePlaceholders(String t) {
-    int n = 0;
-    for (int i = 0; i < t.length; i++) {
-      if (t.codeUnitAt(i) == _kRoleMentionPlaceholderCodeUnit) {
-        n++;
-      }
-    }
-    return n;
-  }
-
-  void _syncMentionIdsToText(String newText) {
-    final String uPh = _userPlaceholderChar();
-    final String cPh = _channelPlaceholderChar();
-    final String rPh = _rolePlaceholderChar();
-    while (mentionUserIds.length > _countUserPlaceholders(newText)) {
-      mentionUserIds.removeLast();
-      if (mentionUserLabels.isNotEmpty) {
-        mentionUserLabels.removeLast();
-      }
-    }
-    while (mentionChannelIds.length > _countChannelPlaceholders(newText)) {
-      mentionChannelIds.removeLast();
-      if (mentionChannelLabels.isNotEmpty) {
-        mentionChannelLabels.removeLast();
-      }
-    }
-    while (mentionRoleIds.length > _countRolePlaceholders(newText)) {
-      mentionRoleIds.removeLast();
-      if (mentionRoleLabels.isNotEmpty) {
-        mentionRoleLabels.removeLast();
-      }
-      if (mentionRoleColorsArgb.isNotEmpty) {
-        mentionRoleColorsArgb.removeLast();
-      }
-    }
-    String fixed = newText;
-    while (_countUserPlaceholders(fixed) > mentionUserIds.length) {
-      final int i = fixed.lastIndexOf(uPh);
-      if (i < 0) {
-        break;
-      }
-      fixed = fixed.replaceRange(i, i + uPh.length, '');
-    }
-    while (_countChannelPlaceholders(fixed) > mentionChannelIds.length) {
-      final int i = fixed.lastIndexOf(cPh);
-      if (i < 0) {
-        break;
-      }
-      fixed = fixed.replaceRange(i, i + cPh.length, '');
-    }
-    while (_countRolePlaceholders(fixed) > mentionRoleIds.length) {
-      final int i = fixed.lastIndexOf(rPh);
-      if (i < 0) {
-        break;
-      }
-      fixed = fixed.replaceRange(i, i + rPh.length, '');
-    }
-    if (fixed != newText) {
-      final int sel = value.selection.isValid
-          ? value.selection.extentOffset.clamp(0, fixed.length)
-          : fixed.length;
-      super.value = TextEditingValue(
-        text: fixed,
-        selection: TextSelection.collapsed(offset: sel),
-      );
-    }
-  }
-
-  String toWireText() {
-    final StringBuffer buf = StringBuffer();
-    final String t = value.text;
-    int ui = 0;
-    int ci = 0;
-    int ri = 0;
-    for (int i = 0; i < t.length; i++) {
-      final int cu = t.codeUnitAt(i);
-      if (cu == _kUserMentionPlaceholderCodeUnit) {
-        if (ui < mentionUserIds.length) {
-          buf.write('<@${mentionUserIds[ui]}>');
-          ui++;
-        }
-      } else if (cu == _kChannelMentionPlaceholderCodeUnit) {
-        if (ci < mentionChannelIds.length) {
-          buf.write('<#${mentionChannelIds[ci]}>');
-          ci++;
-        }
-      } else if (cu == _kRoleMentionPlaceholderCodeUnit) {
-        if (ri < mentionRoleIds.length) {
-          buf.write('<@&${mentionRoleIds[ri]}>');
-          ri++;
-        }
-      } else {
-        buf.writeCharCode(cu);
-      }
-    }
-    return buf.toString();
-  }
-
+  /// Rebuilds the field from a wire string, re-chipping mentions and custom
+  /// emoji. Plain `:name:` shortcodes are left as text (only explicitly
+  /// inserted emoji chip) to avoid mis-chipping typed colons like `12:30:45`.
   Future<void> applyWireText(String wire) async {
     if (toWireText() == wire) {
       return;
     }
-    final List<String> users = <String>[];
-    final List<String> channels = <String>[];
-    final List<String> roles = <String>[];
-    final List<String> roleLabels = <String>[];
-    final List<int?> roleColorsArgb = <int?>[];
+    final List<RegExpMatch> matches = _wireMentions.allMatches(wire).toList();
+    // Resolve referenced roles up front so the rebuild below runs as a single
+    // synchronous mutation - no awaits between clearing and committing the new
+    // value, which would otherwise flash an empty or half-built field. Only
+    // touch the database when a role mention is actually present.
+    final Map<String, db.Role?> rolesById = <String, db.Role?>{};
+    if (matches.any((RegExpMatch m) => m.group(1) != null)) {
+      final db.FluxerDatabase database = _ref.read(fluxerDatabaseProvider);
+      for (final RegExpMatch m in matches) {
+        final String? roleId = m.group(1);
+        if (roleId != null && !rolesById.containsKey(roleId)) {
+          rolesById[roleId] = await database.roleDao.getRoleById(roleId);
+        }
+      }
+    }
+
+    clearTokens();
     final StringBuffer display = StringBuffer();
     int start = 0;
-    final db.FluxerDatabase database = _ref.read(fluxerDatabaseProvider);
-    for (final RegExpMatch m in _wireMentions.allMatches(wire)) {
+    for (final RegExpMatch m in matches) {
       display.write(wire.substring(start, m.start));
       final String? roleId = m.group(1);
       final String? userId = m.group(2);
       final String? channelId = m.group(3);
       if (roleId != null) {
-        display.write(_rolePlaceholderChar());
-        roles.add(roleId);
-        final db.Role? row = await database.roleDao.getRoleById(roleId);
-        roleLabels.add(row?.name ?? _shortMentionWireIdFallback(roleId));
-        roleColorsArgb.add(row?.color);
+        final db.Role? row = rolesById[roleId];
+        final String label = row?.name ?? _shortMentionWireIdFallback(roleId);
+        final int? colorArgb = row?.color;
+        display.write(
+          allocateToken(
+            MentionInlineToken(
+              wireText: '<@&$roleId>',
+              resolveVisibleText: () => '@$label',
+              colorArgb: colorArgb,
+            ),
+          ),
+        );
       } else if (userId != null) {
-        display.write(_userPlaceholderChar());
-        users.add(userId);
+        display.write(
+          allocateToken(
+            MentionInlineToken(
+              wireText: '<@$userId>',
+              resolveVisibleText: () =>
+                  '@${_composerMentionUserLabel(_ref, userId)}',
+            ),
+          ),
+        );
       } else if (channelId != null) {
-        display.write(_channelPlaceholderChar());
-        channels.add(channelId);
+        display.write(
+          allocateToken(
+            MentionInlineToken(
+              wireText: '<#$channelId>',
+              resolveVisibleText: () =>
+                  '#${_composerMentionChannelLabel(_ref, channelId)}',
+            ),
+          ),
+        );
       }
       start = m.end;
     }
     display.write(wire.substring(start));
-    mentionUserIds
-      ..clear()
-      ..addAll(users);
-    mentionChannelIds
-      ..clear()
-      ..addAll(channels);
-    mentionRoleIds
-      ..clear()
-      ..addAll(roles);
-    mentionRoleLabels
-      ..clear()
-      ..addAll(roleLabels);
-    mentionRoleColorsArgb
-      ..clear()
-      ..addAll(roleColorsArgb);
-    mentionUserLabels
-      ..clear()
-      ..addAll(List<String?>.filled(users.length, null));
-    mentionChannelLabels
-      ..clear()
-      ..addAll(List<String?>.filled(channels.length, null));
-    final String next = display.toString();
+    final String next = substituteEmojiTokens(
+      display.toString(),
+      allocateToken,
+      includePlainShortcodes: false,
+    );
     value = TextEditingValue(
       text: next,
       selection: TextSelection.collapsed(offset: next.length),
@@ -279,17 +179,15 @@ class ComposerMentionController extends TextEditingController {
     required String userId,
     String? displayName,
   }) {
-    final String full = text;
-    final String before = full.substring(0, matchStart);
-    final String after = full.substring(matchEnd);
-    final String insert = '${_userPlaceholderChar()} ';
-    final int indexBefore = _countUserPlaceholders(before);
-    mentionUserIds.insert(indexBefore, userId);
-    mentionUserLabels.insert(indexBefore, displayName);
-    final String next = '$before$insert$after';
-    value = TextEditingValue(
-      text: next,
-      selection: TextSelection.collapsed(offset: matchStart + insert.length),
+    replaceRangeWithToken(
+      matchStart,
+      matchEnd,
+      MentionInlineToken(
+        wireText: '<@$userId>',
+        resolveVisibleText: () =>
+            '@${displayName ?? _composerMentionUserLabel(_ref, userId)}',
+      ),
+      ensureTrailingSpace: true,
     );
   }
 
@@ -299,17 +197,15 @@ class ComposerMentionController extends TextEditingController {
     required String channelId,
     String? displayName,
   }) {
-    final String full = text;
-    final String before = full.substring(0, matchStart);
-    final String after = full.substring(matchEnd);
-    final String insert = '${_channelPlaceholderChar()} ';
-    final int indexBefore = _countChannelPlaceholders(before);
-    mentionChannelIds.insert(indexBefore, channelId);
-    mentionChannelLabels.insert(indexBefore, displayName);
-    final String next = '$before$insert$after';
-    value = TextEditingValue(
-      text: next,
-      selection: TextSelection.collapsed(offset: matchStart + insert.length),
+    replaceRangeWithToken(
+      matchStart,
+      matchEnd,
+      MentionInlineToken(
+        wireText: '<#$channelId>',
+        resolveVisibleText: () =>
+            '#${displayName ?? _composerMentionChannelLabel(_ref, channelId)}',
+      ),
+      ensureTrailingSpace: true,
     );
   }
 
@@ -320,25 +216,16 @@ class ComposerMentionController extends TextEditingController {
     required String displayName,
     int? colorArgb,
   }) {
-    final String full = text;
-    final String before = full.substring(0, matchStart);
-    final String after = full.substring(matchEnd);
-    final String insert = '${_rolePlaceholderChar()} ';
-    final int indexBefore = _countRolePlaceholders(before);
-    mentionRoleIds.insert(indexBefore, roleId);
-    mentionRoleLabels.insert(indexBefore, displayName);
-    mentionRoleColorsArgb.insert(indexBefore, colorArgb);
-    final String next = '$before$insert$after';
-    value = TextEditingValue(
-      text: next,
-      selection: TextSelection.collapsed(offset: matchStart + insert.length),
+    replaceRangeWithToken(
+      matchStart,
+      matchEnd,
+      MentionInlineToken(
+        wireText: '<@&$roleId>',
+        resolveVisibleText: () => '@$displayName',
+        colorArgb: colorArgb,
+      ),
+      ensureTrailingSpace: true,
     );
-  }
-
-  @override
-  set value(TextEditingValue newValue) {
-    super.value = newValue;
-    _syncMentionIdsToText(newValue.text);
   }
 
   @override
@@ -369,100 +256,10 @@ class ComposerMentionController extends TextEditingController {
         ],
       );
     }
-    final String t = value.text;
-    if (t.isEmpty) {
-      return TextSpan(style: style, text: '');
-    }
-    final List<InlineSpan> children = <InlineSpan>[];
-    int i = 0;
-    int userIdx = 0;
-    int channelIdx = 0;
-    int roleIdx = 0;
-    while (i < t.length) {
-      final int cu = t.codeUnitAt(i);
-      if (cu == _kUserMentionPlaceholderCodeUnit) {
-        final String label = _resolveMentionLabel(
-          userIdx,
-          mentionUserIds,
-          mentionUserLabels,
-          _composerMentionUserLabel,
-        );
-        userIdx++;
-        children.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: ComposerInlineMention(
-              visibleText: '@$label',
-              baseStyle: style,
-            ),
-          ),
-        );
-        i += 1;
-      } else if (cu == _kChannelMentionPlaceholderCodeUnit) {
-        final String name = _resolveMentionLabel(
-          channelIdx,
-          mentionChannelIds,
-          mentionChannelLabels,
-          _composerMentionChannelLabel,
-        );
-        channelIdx++;
-        children.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: ComposerInlineMention(
-              visibleText: '#$name',
-              baseStyle: style,
-            ),
-          ),
-        );
-        i += 1;
-      } else if (cu == _kRoleMentionPlaceholderCodeUnit) {
-        final String label = roleIdx < mentionRoleLabels.length
-            ? mentionRoleLabels[roleIdx]
-            : '?';
-        final int? colorArgb = roleIdx < mentionRoleColorsArgb.length
-            ? mentionRoleColorsArgb[roleIdx]
-            : null;
-        roleIdx++;
-        children.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: ComposerInlineMention(
-              visibleText: '@$label',
-              baseStyle: style,
-              foregroundArgb: colorArgb,
-            ),
-          ),
-        );
-        i += 1;
-      } else {
-        final int start = i;
-        while (i < t.length) {
-          final int c = t.codeUnitAt(i);
-          if (c == _kUserMentionPlaceholderCodeUnit ||
-              c == _kChannelMentionPlaceholderCodeUnit ||
-              c == _kRoleMentionPlaceholderCodeUnit) {
-            break;
-          }
-          i++;
-        }
-        children.add(TextSpan(text: t.substring(start, i), style: style));
-      }
-    }
-    return TextSpan(style: style, children: children);
-  }
-
-  String _resolveMentionLabel(
-    int index,
-    List<String> ids,
-    List<String?> labels,
-    String Function(WidgetRef ref, String id) resolve,
-  ) {
-    final String id = index < ids.length ? ids[index] : '';
-    if (id.isEmpty) {
-      return '?';
-    }
-    final String? stored = index < labels.length ? labels[index] : null;
-    return stored ?? resolve(_ref, id);
+    return super.buildTextSpan(
+      context: context,
+      withComposing: withComposing,
+      style: style,
+    );
   }
 }

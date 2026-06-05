@@ -14,6 +14,7 @@ import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_length_limits_provider.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
@@ -21,7 +22,9 @@ import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/features/ui/emoji_picker/fluxer_emoji_picker_popout.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod/src/framework.dart' show Override;
 
 // ---------------------------------------------------------------------------
@@ -347,6 +350,33 @@ void main() {
 
       // 1900/2000 leaves 100 remaining, now surfaced by the counter.
       expect(find.text('100'), findsOneWidget);
+    });
+  });
+
+  group('comment emoji picker', () {
+    testWidgets('renders an inline emoji button, not a desktop popout', (
+      WidgetTester tester,
+    ) async {
+      final FluxerDatabase db = await _seedDb();
+      addTearDown(db.close);
+      await _openSheet(tester, db);
+
+      // Issue 2: the comment affordance is not the anchored desktop popout.
+      expect(find.byType(FluxerEmojiPickerPopout), findsNothing);
+
+      // Issue 1: the emoji button lives inside the comment input field.
+      final Finder smiley = find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is PhosphorIcon && widget.icon == PhosphorIconsFill.smiley,
+      );
+      expect(smiley, findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ComposerAutocompleteChatField),
+          matching: smiley,
+        ),
+        findsOneWidget,
+      );
     });
   });
 }

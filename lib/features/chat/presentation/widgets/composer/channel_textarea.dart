@@ -29,7 +29,6 @@ import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_indicator_s
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
 import 'package:fluxer_app/features/chat/utils/clipboard_attachment_reader.dart';
-import 'package:fluxer_app/features/chat/utils/composer_emoji_insert.dart';
 import 'package:fluxer_app/features/chat/utils/composer_message_length_paste_formatter.dart';
 import 'package:fluxer_app/features/chat/utils/composer_sendable_content.dart';
 import 'package:fluxer_app/features/chat/utils/composer_voice_button_visibility.dart';
@@ -912,7 +911,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   }
 
   void _insertEmoji(String name, String surrogates) {
-    insertEmojiToken(_controller, name, surrogates);
+    _controller.insertEmoji(name, surrogates);
   }
 
   void _showNoSendPermissionToast() {
