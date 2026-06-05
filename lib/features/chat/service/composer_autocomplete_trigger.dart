@@ -40,6 +40,16 @@ class ComposerAutocompleteTrigger {
     return count.isOdd;
   }
 
+  /// Start index of the trigger character (@, #, or :) within a match whose
+  /// first group is optional leading whitespace.
+  static int _triggerCharStart(RegExpMatch m) {
+    final String? leading = m.group(1);
+    if (leading == null || leading.isEmpty) {
+      return m.start;
+    }
+    return m.start + leading.length;
+  }
+
   static ComposerAutocompleteTrigger? detect(String textUpToCursor) {
     if (textUpToCursor.isEmpty) {
       return null;
@@ -60,7 +70,7 @@ class ComposerAutocompleteTrigger {
     if (m != null) {
       return ComposerAutocompleteTrigger(
         kind: ComposerAutocompleteTriggerKind.mention,
-        matchStart: m.start,
+        matchStart: _triggerCharStart(m),
         matchEnd: m.end,
         matchedText: m.group(2) ?? '',
       );
@@ -70,7 +80,7 @@ class ComposerAutocompleteTrigger {
     if (m != null) {
       return ComposerAutocompleteTrigger(
         kind: ComposerAutocompleteTriggerKind.channel,
-        matchStart: m.start,
+        matchStart: _triggerCharStart(m),
         matchEnd: m.end,
         matchedText: m.group(2) ?? '',
       );
@@ -84,7 +94,7 @@ class ComposerAutocompleteTrigger {
       }
       return ComposerAutocompleteTrigger(
         kind: ComposerAutocompleteTriggerKind.emoji,
-        matchStart: m.start,
+        matchStart: _triggerCharStart(m),
         matchEnd: m.end,
         matchedText: namePart,
       );
