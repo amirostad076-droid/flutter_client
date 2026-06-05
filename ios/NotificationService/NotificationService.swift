@@ -25,6 +25,7 @@ final class NotificationService: UNNotificationServiceExtension {
             deliver(content: request.content)
             return
         }
+        Self.applyThreadIdentifier(to: mutableContent, userInfo: request.content.userInfo)
         bestAttemptContent = mutableContent
         guard let imageUrl = Self.resolveImageUrl(from: request.content.userInfo) else {
             deliver(content: mutableContent)
@@ -78,6 +79,18 @@ final class NotificationService: UNNotificationServiceExtension {
 }
 
 private extension NotificationService {
+    static func applyThreadIdentifier(
+        to content: UNMutableNotificationContent,
+        userInfo: [AnyHashable: Any]
+    ) {
+        if !content.threadIdentifier.isEmpty {
+            return
+        }
+        if let threadId = PushNotificationPayload.resolveThreadIdentifier(from: userInfo) {
+            content.threadIdentifier = threadId
+        }
+    }
+
     static func resolveImageUrl(from userInfo: [AnyHashable: Any]) -> URL? {
         if isMediaDisabled(in: userInfo) {
             return nil

@@ -144,7 +144,6 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     let identifier = Self.resolveNotificationIdentifier(from: userInfo)
     UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
       var attachments = sourceContent?.attachments ?? []
-      let channelId = Self.resolveChannelId(from: userInfo)
       let remoteDuplicateIds = notifications.compactMap { notification -> String? in
         let requestId = notification.request.identifier
         if requestId == identifier {
@@ -155,14 +154,6 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
           deliveredMessageId == requestId
         {
           return nil
-        }
-        if let channelId,
-          Self.resolveChannelId(from: deliveredUserInfo) == channelId
-        {
-          if attachments.isEmpty {
-            attachments = notification.request.content.attachments
-          }
-          return requestId
         }
         if Self.resolveMessageId(from: deliveredUserInfo) == identifier {
           if attachments.isEmpty {
@@ -199,7 +190,7 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     if !attachments.isEmpty {
       content.attachments = attachments
     }
-    if let threadId = Self.resolveChannelId(from: userInfo) {
+    if let threadId = PushNotificationPayload.resolveThreadIdentifier(from: userInfo) {
       content.threadIdentifier = threadId
     }
     let request = UNNotificationRequest(
@@ -287,18 +278,6 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
       let id = data["id"] as? String, !id.isEmpty
     {
       return id
-    }
-    return nil
-  }
-
-  private static func resolveChannelId(from userInfo: [AnyHashable: Any]) -> String? {
-    if let channelId = userInfo["channel_id"] as? String, !channelId.isEmpty {
-      return channelId
-    }
-    if let data = userInfo["data"] as? [String: Any],
-      let channelId = data["channel_id"] as? String, !channelId.isEmpty
-    {
-      return channelId
     }
     return nil
   }
