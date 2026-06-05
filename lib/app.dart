@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/shell/presentation/native_titlebar.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast_overlay.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/incoming_voice_call_layer.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/widgets/beta_banner.dart';
 import 'package:window_manager/window_manager.dart';
 
 bool get _isDesktopPlatform =>
@@ -78,7 +79,9 @@ class FluxerApp extends ConsumerWidget {
           child: IncomingVoiceCallLayer(child: child!),
         );
         if (!_isDesktopPlatform) {
-          return FluxerToastOverlay(child: layered);
+          return BetaBanner(
+            child: FluxerToastOverlay(child: layered),
+          );
         }
         return FluxerToastOverlay(
           child: DragToResizeArea(

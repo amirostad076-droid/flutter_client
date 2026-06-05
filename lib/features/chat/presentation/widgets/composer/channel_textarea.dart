@@ -1075,22 +1075,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 FluxerMenuGroup(
                   children: [
                     FluxerBottomSheetMenuItem(
-                      icon: PhosphorIconsFill.microphone,
-                      label: l10n.chatAttachmentSendVoiceMessage,
-                      onTap: () {
-                        close();
-                        if (!mounted) {
-                          return;
-                        }
-                        unawaited(
-                          VoiceMessageComposerSheet.show(
-                            context,
-                            channelId: channelId,
-                          ),
-                        );
-                      },
-                    ),
-                    FluxerBottomSheetMenuItem(
                       icon: PhosphorIconsRegular.images,
                       label: l10n.chatAttachmentSourceGallery,
                       onTap: () async {

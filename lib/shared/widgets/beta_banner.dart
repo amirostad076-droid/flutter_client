@@ -1,0 +1,22 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class BetaBanner extends ConsumerWidget {
+  const BetaBanner({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Banner(
+      location: BannerLocation.topEnd,
+      message: 'ALPHA',
+      color: Theme.of(context).colorScheme.primary,
+      textStyle: Theme.of(context).textTheme.displayLarge!.copyWith(
+        fontSize: 10,
+        color: Theme.of(context).scaffoldBackgroundColor,
+      ),
+      child: child,
+    );
+  }
+}
