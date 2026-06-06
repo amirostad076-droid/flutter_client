@@ -87,6 +87,53 @@ void main() {
     },
   );
 
+  test(
+    'switchChannel loads target messages when changing channels',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+        ),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-2',
+          guildId: 'guild-2',
+          name: 'other',
+        ),
+      );
+      final String targetId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final adapter = _ChatAdapter(
+        messagesByChannel: <String, List<Map<String, Object?>>>{
+          'channel-2': <Map<String, Object?>>[
+            _messageJson(
+              id: targetId,
+              channelId: 'channel-2',
+              authorId: 'other',
+            ),
+          ],
+        },
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      await notifier.switchChannel('channel-2', targetMessageId: targetId);
+      await _flushAsync();
+
+      final state = container.read(chatViewModelProvider);
+      expect(state.channelId, 'channel-2');
+      expect(state.isLoading, isFalse);
+      expect(state.messages.map((m) => m.id), contains(targetId));
+      expect(adapter.messageRequestUris, isNotEmpty);
+    },
+  );
+
   test('auto ack does not run while channel messages are loading', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);

@@ -10,7 +10,9 @@ import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
@@ -581,7 +583,7 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     if (targetMessageId != null) {
-      if (state.channelId == channelId && state.isLoading) {
+      if (state.channelId == channelId && state.isLoading && !isChannelChange) {
         return;
       }
       state = _switchedChannelState(
@@ -1919,15 +1921,11 @@ class ChatViewModel extends _$ChatViewModel {
     required String channelId,
     required String messageId,
   }) async {
-    final db.Channel? channel = await ref
-        .read(fluxerDatabaseProvider)
-        .channelDao
-        .getChannelById(channelId);
-    final String? guildId = channel?.guildId;
-    final String path = guildId == null || guildId.isEmpty
-        ? RoutePaths.dmChannelMessage(channelId, messageId)
-        : RoutePaths.guildChannelMessage(guildId, channelId, messageId);
-    ref.read(fluxerRouterProvider).go(path);
+    await navigateToChannelMessage(
+      ref: ref,
+      channelId: channelId,
+      messageId: messageId,
+    );
   }
 
   void clearErrorMessage() {

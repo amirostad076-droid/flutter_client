@@ -563,6 +563,10 @@
   "@channelAccessDeniedDescription": {
     "description": "Body of the channel access denied modal."
   },
+  "messageJumpLinkNoAccess": "No access",
+  "@messageJumpLinkNoAccess": {
+    "description": "Inline label shown on message jump links when the target channel is inaccessible."
+  },
   "okay": "Okay",
   "@okay": {
     "description": "Generic confirmation button label."

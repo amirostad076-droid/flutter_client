@@ -447,6 +447,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'You do not have access to the channel where this message was sent.';
 
   @override
+  String get messageJumpLinkNoAccess => 'No access';
+
+  @override
   String get okay => 'Okay';
 
   @override

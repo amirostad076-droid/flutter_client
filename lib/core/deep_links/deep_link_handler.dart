@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:app_links/app_links.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
-import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/core/utils/channel_jump_link.dart';
+import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
 import 'package:fluxer_app/features/auth/providers/pending_invite_code_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -141,34 +142,38 @@ class DeepLinkHandler extends _$DeepLinkHandler {
   }
 
   void _handleChannelDeepLink(GoRouter router, List<String> segments) {
-    if (segments.length >= 4 && segments[1] == '@me') {
-      navigateToContentVia(
-        ref,
-        RoutePaths.dmChannelMessage(segments[2], segments[3]),
-      );
+    if (segments.length >= 2 && segments[1] == '@me') {
+      if (segments.length >= 4) {
+        unawaited(
+          navigateToChannelJumpLinkVia(
+            ref: ref,
+            link: MessageJumpLink(
+              scope: '@me',
+              channelId: segments[2],
+              messageId: segments[3],
+            ),
+          ),
+        );
+        return;
+      }
+      if (segments.length >= 3) {
+        unawaited(
+          navigateToChannelJumpLinkVia(
+            ref: ref,
+            link: ChannelJumpLink(scope: '@me', channelId: segments[2]),
+          ),
+        );
+        return;
+      }
       return;
     }
-    if (segments.length >= 3 && segments[1] == '@me') {
-      navigateToContentVia(ref, RoutePaths.dmChannel(segments[2]));
-      return;
-    }
-    if (segments.length >= 4) {
-      navigateToContentVia(
-        ref,
-        RoutePaths.guildChannelMessage(segments[1], segments[2], segments[3]),
-      );
-      return;
-    }
-    if (segments.length >= 3) {
-      navigateToContentVia(
-        ref,
-        RoutePaths.guildChannel(segments[1], segments[2]),
-      );
+    final ChannelJumpLink? link = channelJumpLinkFromPathSegments(segments);
+    if (link != null) {
+      unawaited(navigateToChannelJumpLinkVia(ref: ref, link: link));
       return;
     }
     if (segments.length >= 2) {
       router.go(RoutePaths.guild(segments[1]));
-      return;
     }
   }
 }

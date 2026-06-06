@@ -13,8 +13,7 @@ import 'package:fluxer_app/core/utils/channel_jump_link.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
-import 'package:fluxer_app/features/chat/presentation/'
-    'sheets/channel_access_denied_sheet.dart';
+import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/role_providers.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
@@ -256,14 +255,13 @@ class ChannelJumpLinkMention extends ConsumerWidget {
     final channelAsync = link.isDm
         ? null
         : ref.watch(channelByIdProvider(link.channelId));
+    final channel = channelAsync?.value;
     final guildAsync = link.isDm
         ? null
-        : ref.watch(_guildByIdProvider(link.scope));
+        : ref.watch(_guildByIdProvider(channel?.guildId ?? link.scope));
     final dmNameAsync = link.isDm
         ? ref.watch(_dmNameByChannelIdProvider(link.channelId))
         : null;
-
-    final channel = channelAsync?.value;
     final guild = guildAsync?.value;
     final dmName = dmNameAsync?.value ?? link.channelId;
 
@@ -275,43 +273,27 @@ class ChannelJumpLinkMention extends ConsumerWidget {
     final iconSize = (style.fontSize ?? 14) * 0.9;
 
     void onTap() {
-      // Channel not found
-      if (!link.isDm && channel == null) {
-        unawaited(showChannelAccessDeniedSheet(context));
-        return;
-      }
-      final messageId = isMessage ? (link as MessageJumpLink).messageId : null;
-      if (link.isDm) {
-        if (messageId != null) {
-          navigateToContent(
-            context,
-            RoutePaths.dmChannelMessage(link.channelId, messageId),
-          );
-        } else {
-          navigateToContent(context, RoutePaths.dmChannel(link.channelId));
-        }
-      } else if (messageId != null) {
-        navigateToContent(
-          context,
-          RoutePaths.guildChannelMessage(link.scope, link.channelId, messageId),
-        );
-      } else {
-        navigateToContent(
-          context,
-          RoutePaths.guildChannel(link.scope, link.channelId),
-        );
-      }
+      unawaited(
+        navigateToChannelJumpLink(ref: ref, context: context, link: link),
+      );
     }
 
     if (!link.isDm && channel == null && channelAsync?.isLoading == false) {
-      return GestureDetector(
+      final l10n = FluxerLocalizations.of(context);
+      return _JumpLinkPill(
+        baseStyle: style,
         onTap: onTap,
-        child: Text(
-          url,
-          style: style.copyWith(
-            color: colors.textLink,
-            decoration: TextDecoration.none,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PhosphorIcon(
+              PhosphorIconsFill.lock,
+              size: iconSize,
+              color: colors.markupMentionText,
+            ),
+            SizedBox(width: iconSize * 0.2),
+            Text(l10n.messageJumpLinkNoAccess, style: style),
+          ],
         ),
       );
     }

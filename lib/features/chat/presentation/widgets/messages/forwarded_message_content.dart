@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/core/router/navigate_to_content.dart';
-import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/utils/channel_jump_link.dart';
+import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
@@ -314,21 +316,13 @@ class _ForwardedSourceButtonState
   }
 
   void _jumpToOriginal(_ForwardedSourceData data) {
-    if (data.guildId != null) {
-      navigateToContent(
-        context,
-        RoutePaths.guildChannelMessage(
-          data.guildId!,
-          data.channelId,
-          data.messageId,
-        ),
-      );
-      return;
-    }
-
-    navigateToContent(
-      context,
-      RoutePaths.dmChannelMessage(data.channelId, data.messageId),
+    final ChannelJumpLink link = MessageJumpLink(
+      scope: data.guildId ?? '@me',
+      channelId: data.channelId,
+      messageId: data.messageId,
+    );
+    unawaited(
+      navigateToChannelJumpLink(ref: ref, context: context, link: link),
     );
   }
 

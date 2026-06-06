@@ -26,6 +26,8 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_details_providers.dart';
+import 'package:fluxer_app/core/utils/channel_jump_link.dart';
+import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
@@ -3339,14 +3341,12 @@ Future<void> _jumpToMessage(
   }
 
   close();
-  final path = resolvedGuildId == null || resolvedGuildId.isEmpty
-      ? RoutePaths.dmChannelMessage(message.channelId, message.id)
-      : RoutePaths.guildChannelMessage(
-          resolvedGuildId,
-          message.channelId,
-          message.id,
-        );
-  ref.read(fluxerRouterProvider).go(path);
+  final ChannelJumpLink link = MessageJumpLink(
+    scope: resolvedGuildId ?? '@me',
+    channelId: message.channelId,
+    messageId: message.id,
+  );
+  await navigateToChannelJumpLink(ref: ref, context: context, link: link);
 }
 
 String _formatDate(DateTime dateTime) {

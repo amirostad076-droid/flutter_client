@@ -880,6 +880,12 @@ abstract class FluxerLocalizations {
   /// **'You do not have access to the channel where this message was sent.'**
   String get channelAccessDeniedDescription;
 
+  /// Inline label shown on message jump links when the target channel is inaccessible.
+  ///
+  /// In en, this message translates to:
+  /// **'No access'**
+  String get messageJumpLinkNoAccess;
+
   /// Generic confirmation button label.
   ///
   /// In en, this message translates to:
