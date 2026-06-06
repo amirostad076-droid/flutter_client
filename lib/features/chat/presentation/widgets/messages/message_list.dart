@@ -281,6 +281,15 @@ class _MessageListState extends ConsumerState<MessageList> {
     unawaited(_chatViewModel.markCurrentChannelRead());
   }
 
+  void _confirmJumpHighlightScroll(String messageId) {
+    final String? highlightedMessageId = ref
+        .read(chatViewModelProvider)
+        .highlightedMessageId;
+    if (highlightedMessageId == messageId) {
+      _chatViewModel.extendJumpHighlight(messageId);
+    }
+  }
+
   void _scrollToTarget(String messageId, {double alignment = 0.5}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) {
@@ -288,6 +297,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       }
       final BuildContext? itemContext = _itemKeys[messageId]?.currentContext;
       if (itemContext != null) {
+        _confirmJumpHighlightScroll(messageId);
         unawaited(
           Scrollable.ensureVisible(
             itemContext,
@@ -317,6 +327,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           if (contextAfterLayout == null) {
             return;
           }
+          _confirmJumpHighlightScroll(messageId);
           unawaited(
             Scrollable.ensureVisible(
               contextAfterLayout,
@@ -339,6 +350,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required Message message,
     required Message? previousMessage,
     required String? visualUnreadId,
+    required String? highlightedMessageId,
     required String? currentUserId,
     required bool isDmChannel,
     required String? guildId,
@@ -377,6 +389,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         key: itemKey,
         message: message,
         isGrouped: isGrouped,
+        isJumpHighlighted: message.id == highlightedMessageId,
         currentUserId: currentUserId,
         canDelete: canDelete,
         canAddReactions: channelCanAddReactions,
@@ -439,6 +452,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required BuildContext context,
     required List<Message> messages,
     required String? visualUnreadId,
+    required String? highlightedMessageId,
     required String? currentUserId,
     required bool isDmChannel,
     required String? guildId,
@@ -463,6 +477,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           message: message,
           previousMessage: previousMessage,
           visualUnreadId: visualUnreadId,
+          highlightedMessageId: highlightedMessageId,
           currentUserId: currentUserId,
           isDmChannel: isDmChannel,
           guildId: guildId,
@@ -481,6 +496,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required List<Message> messages,
     required Message? preCenterLastMessage,
     required String? visualUnreadId,
+    required String? highlightedMessageId,
     required String? currentUserId,
     required bool isDmChannel,
     required String? guildId,
@@ -504,6 +520,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           message: message,
           previousMessage: previousMessage,
           visualUnreadId: visualUnreadId,
+          highlightedMessageId: highlightedMessageId,
           currentUserId: currentUserId,
           isDmChannel: isDmChannel,
           guildId: guildId,
@@ -521,6 +538,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required BuildContext context,
     required MessageListPivotSplit split,
     required String? visualUnreadId,
+    required String? highlightedMessageId,
     required String? currentUserId,
     required bool isDmChannel,
     required String? guildId,
@@ -550,6 +568,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                 messages: split.postCenter,
                 preCenterLastMessage: preCenterLastMessage,
                 visualUnreadId: visualUnreadId,
+                highlightedMessageId: highlightedMessageId,
                 currentUserId: currentUserId,
                 isDmChannel: isDmChannel,
                 guildId: guildId,
@@ -571,6 +590,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                 context: context,
                 messages: split.preCenter,
                 visualUnreadId: visualUnreadId,
+                highlightedMessageId: highlightedMessageId,
                 currentUserId: currentUserId,
                 isDmChannel: isDmChannel,
                 guildId: guildId,
@@ -709,6 +729,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
     final String? oldestUnreadId = unreadSummary.oldestUnreadMessageId;
     final String? stickyUnreadId = state.stickyUnreadMessageId;
+    final String? highlightedMessageId = state.highlightedMessageId;
     final String? visualUnreadId = _visualUnreadId(
       messages: messages,
       stickyUnreadId: stickyUnreadId,
@@ -799,6 +820,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         context: context,
         split: split,
         visualUnreadId: visualUnreadId,
+        highlightedMessageId: highlightedMessageId,
         currentUserId: currentUserId,
         isDmChannel: isDmChannel,
         guildId: guildId,

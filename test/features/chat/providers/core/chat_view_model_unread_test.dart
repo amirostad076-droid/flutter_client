@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
@@ -995,6 +996,159 @@ void main() {
     expect(readState?.stickyUnreadMessageId, null);
     expect(readState?.manual, isFalse);
     expect(container.read(chatViewModelProvider).stickyUnreadMessageId, null);
+  });
+
+  group('highlightJumpMessage', () {
+    test('sets highlightedMessageId immediately', () {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      final adapter = _ChatAdapter();
+      final container = _container(db, adapter);
+      addTearDown(() {
+        container.dispose();
+        unawaited(db.close());
+      });
+      final notifier = container.read(chatViewModelProvider.notifier);
+      notifier.highlightJumpMessage('message-1');
+      expect(
+        container.read(chatViewModelProvider).highlightedMessageId,
+        'message-1',
+      );
+    });
+
+    test('persists highlight until scroll is confirmed on slow loads', () {
+      fakeAsync((FakeAsync async) {
+        final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+        final adapter = _ChatAdapter();
+        final container = _container(db, adapter);
+        final notifier = container.read(chatViewModelProvider.notifier);
+        notifier.highlightJumpMessage('message-1');
+        async.elapse(const Duration(seconds: 10));
+        expect(
+          container.read(chatViewModelProvider).highlightedMessageId,
+          'message-1',
+        );
+        container.dispose();
+        unawaited(db.close());
+      });
+    });
+
+    test('clears highlightedMessageId 2 seconds after scroll is confirmed', () {
+      fakeAsync((FakeAsync async) {
+        final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+        final adapter = _ChatAdapter();
+        final container = _container(db, adapter);
+        final notifier = container.read(chatViewModelProvider.notifier);
+        notifier.highlightJumpMessage('message-1');
+        async.elapse(const Duration(seconds: 5));
+        notifier.extendJumpHighlight('message-1');
+        async.elapse(const Duration(milliseconds: 1999));
+        expect(
+          container.read(chatViewModelProvider).highlightedMessageId,
+          'message-1',
+        );
+        async.elapse(const Duration(milliseconds: 1));
+        expect(
+          container.read(chatViewModelProvider).highlightedMessageId,
+          null,
+        );
+        container.dispose();
+        unawaited(db.close());
+      });
+    });
+
+    test('replaces highlight when jumping to a new message', () {
+      fakeAsync((FakeAsync async) {
+        final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+        final adapter = _ChatAdapter();
+        final container = _container(db, adapter);
+        final notifier = container.read(chatViewModelProvider.notifier);
+        notifier.highlightJumpMessage('message-1');
+        notifier.extendJumpHighlight('message-1');
+        notifier.highlightJumpMessage('message-2');
+        notifier.extendJumpHighlight('message-2');
+        expect(
+          container.read(chatViewModelProvider).highlightedMessageId,
+          'message-2',
+        );
+        async.elapse(const Duration(milliseconds: 2000));
+        expect(
+          container.read(chatViewModelProvider).highlightedMessageId,
+          null,
+        );
+        container.dispose();
+        unawaited(db.close());
+      });
+    });
+
+    test(
+      'switchChannel with targetMessageId highlights the target message',
+      () async {
+        final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+        addTearDown(db.close);
+        await db.channelDao.upsertChannel(
+          ChannelsCompanion.insert(
+            id: 'channel-1',
+            guildId: 'guild-1',
+            name: 'general',
+          ),
+        );
+        final String targetId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+        final adapter = _ChatAdapter(
+          messagesByChannel: <String, List<Map<String, Object?>>>{
+            'channel-1': <Map<String, Object?>>[
+              _messageJson(
+                id: targetId,
+                channelId: 'channel-1',
+                authorId: 'other',
+              ),
+            ],
+          },
+        );
+        final container = _container(db, adapter);
+        addTearDown(container.dispose);
+        final notifier = container.read(chatViewModelProvider.notifier);
+        final Future<void> switchFuture = notifier.switchChannel(
+          'channel-1',
+          targetMessageId: targetId,
+        );
+        await _flushAsync();
+        expect(
+          container.read(chatViewModelProvider).highlightedMessageId,
+          targetId,
+        );
+        await switchFuture;
+        await _flushAsync();
+      },
+    );
+
+    test('switchChannel without target clears jump highlight', () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+        ),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-2',
+          guildId: 'guild-2',
+          name: 'other',
+        ),
+      );
+      final adapter = _ChatAdapter();
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+      final notifier = container.read(chatViewModelProvider.notifier);
+      notifier.highlightJumpMessage('message-1');
+      await notifier.switchChannel('channel-2');
+      expect(
+        container.read(chatViewModelProvider).highlightedMessageId,
+        null,
+      );
+    });
   });
 }
 

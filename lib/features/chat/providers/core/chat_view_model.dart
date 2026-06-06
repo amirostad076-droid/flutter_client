@@ -57,6 +57,7 @@ part 'chat_view_model.g.dart';
 const _kPageSize = 30;
 const _kReadAckMinInterval = Duration(seconds: 1);
 const _kDraftSaveDebounce = Duration(milliseconds: 400);
+const _kJumpHighlightDuration = Duration(milliseconds: 2000);
 
 enum _SendBlockReason { empty, noPermission, slowmode, channelNotReady }
 
@@ -71,6 +72,8 @@ class ChatViewState {
   final int scrollToBottomSignal;
   final (String messageId, int version)? scrollToMessageSignal;
   final String? stickyUnreadMessageId;
+  final String? highlightedMessageId;
+  final int jumpHighlightSequence;
   final bool isLoading;
   final bool isSyncingMessages;
   final bool isLoadingMore;
@@ -95,6 +98,8 @@ class ChatViewState {
     required this.errorMessage,
     this.scrollToMessageSignal,
     this.stickyUnreadMessageId,
+    this.highlightedMessageId,
+    this.jumpHighlightSequence = 0,
   });
 
   bool get canSend => messageText.trim().isNotEmpty;
@@ -108,6 +113,8 @@ class ChatViewState {
     int? scrollToBottomSignal,
     Object? scrollToMessageSignal = _unset,
     Object? stickyUnreadMessageId = _unset,
+    Object? highlightedMessageId = _unset,
+    int? jumpHighlightSequence,
     bool? isLoading,
     bool? isSyncingMessages,
     bool? isLoadingMore,
@@ -133,6 +140,11 @@ class ChatViewState {
       stickyUnreadMessageId: stickyUnreadMessageId == _unset
           ? this.stickyUnreadMessageId
           : stickyUnreadMessageId as String?,
+      highlightedMessageId: highlightedMessageId == _unset
+          ? this.highlightedMessageId
+          : highlightedMessageId as String?,
+      jumpHighlightSequence:
+          jumpHighlightSequence ?? this.jumpHighlightSequence,
       isLoading: isLoading ?? this.isLoading,
       isSyncingMessages: isSyncingMessages ?? this.isSyncingMessages,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
@@ -154,6 +166,7 @@ class ChatViewModel extends _$ChatViewModel {
   );
   Timer? _readAckRetryTimer;
   Timer? _draftSaveTimer;
+  Timer? _jumpHighlightTimer;
   final Set<String> _loadedUnreadBoundaryKeys = <String>{};
   bool _readViewportActive = false;
   bool _readViewportNearBottom = true;
@@ -176,6 +189,7 @@ class ChatViewModel extends _$ChatViewModel {
       ..onDispose(() {
         _readAckRetryTimer?.cancel();
         _draftSaveTimer?.cancel();
+        _jumpHighlightTimer?.cancel();
         unawaited(_eventsSub?.cancel());
       });
     return const ChatViewState(
@@ -507,6 +521,8 @@ class ChatViewModel extends _$ChatViewModel {
     required bool hasMoreNewerMessages,
     String? errorMessage,
   }) {
+    _jumpHighlightTimer?.cancel();
+    _jumpHighlightTimer = null;
     return ChatViewState(
       channelId: channelId,
       messages: messages,
@@ -521,7 +537,43 @@ class ChatViewModel extends _$ChatViewModel {
       hasMoreMessages: hasMoreMessages,
       hasMoreNewerMessages: hasMoreNewerMessages,
       errorMessage: errorMessage,
+      highlightedMessageId: null,
+      jumpHighlightSequence: state.jumpHighlightSequence,
     );
+  }
+
+  void highlightJumpMessage(String messageId) {
+    _jumpHighlightTimer?.cancel();
+    _jumpHighlightTimer = null;
+    final int sequence = state.jumpHighlightSequence + 1;
+    state = state.copyWith(
+      highlightedMessageId: messageId,
+      jumpHighlightSequence: sequence,
+    );
+  }
+
+  void extendJumpHighlight(String messageId) {
+    if (state.highlightedMessageId != messageId) {
+      return;
+    }
+    _scheduleJumpHighlightClear(
+      messageId: messageId,
+      sequence: state.jumpHighlightSequence,
+    );
+  }
+
+  void _scheduleJumpHighlightClear({
+    required String messageId,
+    required int sequence,
+  }) {
+    _jumpHighlightTimer?.cancel();
+    _jumpHighlightTimer = Timer(_kJumpHighlightDuration, () {
+      if (state.highlightedMessageId == messageId &&
+          state.jumpHighlightSequence == sequence) {
+        state = state.copyWith(highlightedMessageId: null);
+      }
+      _jumpHighlightTimer = null;
+    });
   }
 
   Future<void> switchChannel(
@@ -598,6 +650,7 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreMessages: true,
         hasMoreNewerMessages: false,
       );
+      highlightJumpMessage(targetMessageId);
       await _loadMessages(channelId, targetMessageId: targetMessageId);
       return;
     }
@@ -1879,6 +1932,7 @@ class ChatViewModel extends _$ChatViewModel {
       );
       return;
     }
+    highlightJumpMessage(messageId);
     if (state.messages.any((Message m) => m.id == messageId)) {
       scrollToMessage(messageId);
       return;

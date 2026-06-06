@@ -67,6 +67,13 @@ const _kMentionColor = Color.from(
   blue: 50 / 255,
 );
 
+/// Jump highlight background matching web `--message-reply-bg`.
+const _kJumpHighlightBg = Color.fromRGBO(59, 130, 246, 0.1);
+
+const _kJumpHighlightBarWidth = 2.0;
+const _kJumpHighlightFadeDuration = Duration(milliseconds: 320);
+const _kJumpHighlightFadeCurve = Cubic(0.32, 0.72, 0, 1);
+
 /// Avatar column width: 40px avatar + 16px gap to the
 /// right.
 const _kAvatarColumnWidth = 56.0;
@@ -119,6 +126,7 @@ class MessageItem extends ConsumerStatefulWidget {
   onReaction;
   final bool inboxPreviewMode;
   final bool hideMentionHighlight;
+  final bool isJumpHighlighted;
 
   /// When set, resolves author guild role highlight for inbox previews
   /// (active guild sheet may differ from the channel's guild).
@@ -147,6 +155,7 @@ class MessageItem extends ConsumerStatefulWidget {
     this.onReaction,
     this.inboxPreviewMode = false,
     this.hideMentionHighlight = false,
+    this.isJumpHighlighted = false,
     this.previewRoleGuildId,
     super.key,
   });
@@ -541,6 +550,30 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     );
     final bool shouldHighlightMention =
         msg.isMentioned && !widget.hideMentionHighlight;
+    final bool showJumpHighlight =
+        widget.isJumpHighlighted && !widget.inboxPreviewMode;
+    final bool showMentionHighlight =
+        shouldHighlightMention && !showJumpHighlight;
+    final bool hasLeftAccentBar = showJumpHighlight || showMentionHighlight;
+    final Color rowBackgroundColor = showJumpHighlight
+        ? _kJumpHighlightBg
+        : showMentionHighlight
+        ? _kMentionColor.withValues(alpha: _isHovered ? 0.14 : 0.1)
+        : _isHovered
+        ? context.colors.backgroundModifierHover
+        : Colors.transparent;
+    final Border? rowBorder = showJumpHighlight
+        ? Border(
+            left: BorderSide(
+              color: context.colors.brandPrimaryLight,
+              width: _kJumpHighlightBarWidth,
+            ),
+          )
+        : showMentionHighlight
+        ? const Border(
+            left: BorderSide(color: _kMentionColor, width: 2),
+          )
+        : null;
     final bool isFailed = msg.hasFailed;
     final bool isSending = msg.isSending;
     final bool hasUploadingPlaceholderAttachments =
@@ -564,28 +597,22 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             setState(() => _isHovered = false);
           }
         },
-        child: Container(
+        child: AnimatedContainer(
+          duration: _kJumpHighlightFadeDuration,
+          curve: _kJumpHighlightFadeCurve,
           decoration: BoxDecoration(
-            color: shouldHighlightMention
-                ? _kMentionColor.withValues(alpha: _isHovered ? 0.14 : 0.1)
-                : _isHovered
-                ? context.colors.backgroundModifierHover
-                : Colors.transparent,
-            border: shouldHighlightMention
-                ? const Border(
-                    left: BorderSide(color: _kMentionColor, width: 2),
-                  )
-                : null,
+            color: rowBackgroundColor,
+            border: rowBorder,
           ),
           padding: widget.inboxPreviewMode
               ? EdgeInsets.only(
-                  left: shouldHighlightMention ? 7 : 8,
+                  left: hasLeftAccentBar ? 7 : 8,
                   right: 8,
                   top: isGrouped ? 2 : 8,
                   bottom: isGrouped ? 2 : 8,
                 )
               : EdgeInsets.only(
-                  left: shouldHighlightMention ? 14 : 16,
+                  left: hasLeftAccentBar ? 14 : 16,
                   right: 16,
                   top: isGrouped ? 2 : 8,
                   bottom: isGrouped ? 2 : 8,
