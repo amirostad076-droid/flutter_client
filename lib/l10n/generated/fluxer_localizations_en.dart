@@ -3277,10 +3277,11 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get voiceChannelE2eeEncrypted =>
-      'This voice channel is end-to-end encrypted.';
+      'Microphone, camera, and screen share content are end-to-end encrypted.';
 
   @override
-  String get voiceCallE2eeEncrypted => 'This call is end-to-end encrypted.';
+  String get voiceCallE2eeEncrypted =>
+      'Microphone, camera, and screen share content are end-to-end encrypted.';
 
   @override
   String get voiceChannelE2eeBroken =>

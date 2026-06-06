@@ -5563,13 +5563,13 @@ abstract class FluxerLocalizations {
   /// Pre-join banner on a guild voice channel where every connected participant supports E2EE.
   ///
   /// In en, this message translates to:
-  /// **'This voice channel is end-to-end encrypted.'**
+  /// **'Microphone, camera, and screen share content are end-to-end encrypted.'**
   String get voiceChannelE2eeEncrypted;
 
   /// Pre-join banner on a DM or group DM call where every connected participant supports E2EE.
   ///
   /// In en, this message translates to:
-  /// **'This call is end-to-end encrypted.'**
+  /// **'Microphone, camera, and screen share content are end-to-end encrypted.'**
   String get voiceCallE2eeEncrypted;
 
   /// Pre-join banner on a guild voice channel where E2EE capability is mixed among participants.

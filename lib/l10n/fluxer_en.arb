@@ -3967,11 +3967,11 @@
   "@voiceChannelNoConnectPermission": {
     "description": "Tooltip on the disabled join voice channel button when the user lacks Connect permission."
   },
-  "voiceChannelE2eeEncrypted": "This voice channel is end-to-end encrypted.",
+  "voiceChannelE2eeEncrypted": "Microphone, camera, and screen share content are end-to-end encrypted.",
   "@voiceChannelE2eeEncrypted": {
     "description": "Pre-join banner on a guild voice channel where every connected participant supports E2EE."
   },
-  "voiceCallE2eeEncrypted": "This call is end-to-end encrypted.",
+  "voiceCallE2eeEncrypted": "Microphone, camera, and screen share content are end-to-end encrypted.",
   "@voiceCallE2eeEncrypted": {
     "description": "Pre-join banner on a DM or group DM call where every connected participant supports E2EE."
   },
