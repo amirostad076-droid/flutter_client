@@ -14,7 +14,8 @@ class BetaBanner extends ConsumerWidget {
       color: Theme.of(context).colorScheme.primary,
       textStyle: Theme.of(context).textTheme.displayLarge!.copyWith(
         fontSize: 10,
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Colors.white,
+        fontWeight: FontWeight.w600,
       ),
       child: child,
     );
