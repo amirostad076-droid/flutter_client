@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'unread_dm_provider.g.dart';
@@ -28,6 +30,7 @@ class UnreadDmChannels extends _$UnreadDmChannels {
 
   @override
   UnreadDmState build() {
+    ref.watch(currentUserIdProvider);
     final db = ref.watch(fluxerDatabaseProvider);
 
     unawaited(_dmSubscription?.cancel());
@@ -49,6 +52,15 @@ class UnreadDmChannels extends _$UnreadDmChannels {
     });
 
     return const UnreadDmState();
+  }
+
+  bool _shouldExcludeChannel(DmChannel channel) {
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    return shouldExcludeFromDmConversationList(
+      type: channel.type,
+      channelId: channel.id,
+      currentUserId: currentUserId,
+    );
   }
 
   Future<void> _reconcile([List<DmChannel>? rows]) async {
@@ -83,7 +95,7 @@ class UnreadDmChannels extends _$UnreadDmChannels {
       );
     }).toList();
     final unreadChannels = allChannels
-        .where((entry) => entry.hasUnread)
+        .where((entry) => entry.hasUnread && !_shouldExcludeChannel(entry.channel))
         .map((entry) => entry.channel)
         .toList();
     final unreadIds = unreadChannels.map((c) => c.id).toSet();
@@ -113,13 +125,17 @@ class UnreadDmChannels extends _$UnreadDmChannels {
     // Merge: keep existing + add new unread
     final merged = <String, DmChannel>{};
     for (final c in state.channels) {
-      merged[c.id] = c;
+      if (!_shouldExcludeChannel(c)) {
+        merged[c.id] = c;
+      }
     }
     for (final c in unreadChannels) {
       merged[c.id] = c;
     }
 
-    final newChannels = merged.values.toList()
+    final newChannels = merged.values
+        .where((c) => !_shouldExcludeChannel(c))
+        .toList()
       ..sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
 
     state = UnreadDmState(channels: newChannels, unreadChannelIds: unreadIds);
