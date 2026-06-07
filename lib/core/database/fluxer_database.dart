@@ -137,7 +137,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 50;
+  int get schemaVersion => 52;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -531,6 +531,20 @@ class FluxerDatabase extends _$FluxerDatabase {
           )
           ''',
         );
+      }
+      if (from < 51) {
+        // v51: legacy tokens remain in SQLite until app startup migration.
+      }
+      if (from < 52 && from >= 51) {
+        final List<QueryRow> columns = await customSelect(
+          'PRAGMA table_info(auth_sessions)',
+        ).get();
+        final bool hasTokenColumn = columns.any(
+          (QueryRow row) => row.read<String>('name') == 'token',
+        );
+        if (hasTokenColumn) {
+          await customStatement('ALTER TABLE auth_sessions DROP COLUMN token');
+        }
       }
     },
   );

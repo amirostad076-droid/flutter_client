@@ -312,10 +312,7 @@ class LoginViewModel extends _$LoginViewModel {
     bool clearMfaChallenge = false,
     bool clearIpAuthChallenge = false,
   }) async {
-    final session = await ref
-        .read(fluxerDatabaseProvider)
-        .authSessionDao
-        .getActiveSession();
+    final session = await ref.read(authRepositoryProvider).getActiveSession();
     if (session != null) {
       ref.read(fluxerAuthTokenProvider.notifier).setToken(session.token);
     }

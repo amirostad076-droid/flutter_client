@@ -19,6 +19,7 @@ import 'package:fluxer_app/core/push/services/firebase_messaging_push_service.da
 import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
+import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
 import 'package:fluxer_app/features/friends/providers/friend_relationships_sync_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
@@ -54,9 +55,12 @@ class AppStartup extends _$AppStartup {
     ]);
     unawaited(EmojiSpriteSheet.preload());
     final database = ref.read(fluxerDatabaseProvider);
-    debugPrint('[AppStartup] Database obtained, querying session…');
+    final authRepository = ref.read(authRepositoryProvider);
+    debugPrint('[AppStartup] Database obtained, migrating legacy tokens…');
+    await authRepository.migrateLegacyTokens();
+    debugPrint('[AppStartup] Querying session…');
 
-    var session = await database.authSessionDao.getActiveSession();
+    var session = await authRepository.getActiveSession();
     debugPrint('[AppStartup] Session: ${session != null ? 'found' : 'none'}');
 
     if (session == null) {
@@ -89,7 +93,7 @@ class AppStartup extends _$AppStartup {
             'trying next…',
           );
           await database.authSessionDao.markInvalid(session.userId);
-          session = await database.authSessionDao.getActiveSession();
+          session = await authRepository.getActiveSession();
           continue;
         }
         // Other errors — server unreachable, proceed authenticated.

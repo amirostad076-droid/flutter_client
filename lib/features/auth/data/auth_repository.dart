@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' hide AuthSession;
+import 'package:fluxer_app/features/auth/data/auth_token_storage.dart';
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
 import 'package:fluxer_app/features/auth/domain/auth_session.dart';
 import 'package:fluxer_app/features/auth/domain/ban_view.dart';
@@ -13,8 +13,9 @@ import 'package:fluxer_dart/export.dart';
 class AuthRepository {
   final FluxerClient _client;
   final FluxerDatabase _db;
+  final AuthTokenStorage _tokenStorage;
 
-  const AuthRepository(this._client, this._db);
+  const AuthRepository(this._client, this._db, this._tokenStorage);
 
   Future<LoginResult> login({
     required String email,
@@ -182,12 +183,38 @@ class AuthRepository {
     }
   }
 
-  Future<AuthSession?> restoreSession() async {
+  Future<AuthSession?> restoreSession() {
+    return getActiveSession();
+  }
+
+  Future<AuthSession?> getActiveSession() async {
     final row = await _db.authSessionDao.getActiveSession();
     if (row == null) {
       return null;
     }
-    return AuthSession(token: row.token, userId: row.userId);
+    return _resolveSessionForUserId(row.userId);
+  }
+
+  Future<AuthSession?> getSession(String userId) async {
+    final row = await _db.authSessionDao.getSession(userId);
+    if (row == null) {
+      return null;
+    }
+    return _resolveSessionForUserId(userId);
+  }
+
+  Future<void> migrateLegacyTokens() async {
+    final List<({String userId, String token})> legacyTokens =
+        await _db.authSessionDao.getLegacyTokens();
+    if (legacyTokens.isEmpty) {
+      await _db.authSessionDao.dropLegacyTokenColumnIfPresent();
+      return;
+    }
+    for (final ({String userId, String token}) entry in legacyTokens) {
+      await _tokenStorage.saveToken(userId: entry.userId, token: entry.token);
+    }
+    await _db.authSessionDao.clearLegacyTokens();
+    await _db.authSessionDao.dropLegacyTokenColumnIfPresent();
   }
 
   Future<void> logout(String userId) async {
@@ -197,6 +224,7 @@ class AuthRepository {
       // Best-effort API call — proceed with local cleanup regardless.
     }
     await _db.authSessionDao.removeSession(userId);
+    await _tokenStorage.deleteToken(userId);
     await _db.clearUserData();
   }
 
@@ -229,14 +257,12 @@ class AuthRepository {
     String? discriminator,
     String? avatar,
   }) async {
-    await _db.authSessionDao.saveSession(
-      AuthSessionsCompanion.insert(
-        token: session.token,
-        userId: session.userId,
-        username: Value(username),
-        discriminator: Value(discriminator),
-        avatar: Value(avatar),
-      ),
+    await _tokenStorage.saveToken(userId: session.userId, token: session.token);
+    await _db.authSessionDao.saveSessionMetadata(
+      userId: session.userId,
+      username: username,
+      discriminator: discriminator,
+      avatar: avatar,
     );
   }
 
@@ -400,6 +426,20 @@ class AuthRepository {
 
   Future<void> removeStoredAccount(String userId) async {
     await _db.authSessionDao.removeSession(userId);
+    await _tokenStorage.deleteToken(userId);
+  }
+
+  Future<void> clearAllSessions() async {
+    await _db.authSessionDao.clearSession();
+    await _tokenStorage.deleteAllTokens();
+  }
+
+  Future<AuthSession?> _resolveSessionForUserId(String userId) async {
+    final String? token = await _tokenStorage.readToken(userId);
+    if (token == null || token.isEmpty) {
+      return null;
+    }
+    return AuthSession(token: token, userId: userId);
   }
 
   IpAuthorizationChallenge? _extractIpAuthChallenge(DioException error) {

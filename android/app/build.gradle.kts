@@ -7,6 +7,16 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+configurations.all {
+    val tinkAndroid = "com.google.crypto.tink:tink-android:1.21.0"
+    resolutionStrategy {
+        force(tinkAndroid)
+        dependencySubstitution {
+            substitute(module("com.google.crypto.tink:tink")).using(module(tinkAndroid))
+        }
+    }
+}
+
 val requestedTasks = gradle.startParameter.taskNames.joinToString(" ").lowercase()
 if (requestedTasks.contains("fcm")) {
     apply(plugin = "com.google.gms.google-services")

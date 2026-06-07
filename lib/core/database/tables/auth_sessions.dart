@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 
 class AuthSessions extends Table {
-  TextColumn get token => text()();
   TextColumn get userId => text()();
   TextColumn get username => text().nullable()();
   TextColumn get discriminator => text().nullable()();

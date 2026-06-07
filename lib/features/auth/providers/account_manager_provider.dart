@@ -1,8 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
-import 'package:fluxer_app/core/database/fluxer_database.dart' hide AuthSession;
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
@@ -47,22 +45,9 @@ class AccountManager extends _$AccountManager {
 
   /// Loads stored accounts from the database.
   Future<void> loadAccounts() async {
-    final db = ref.read(fluxerDatabaseProvider);
-    final sessions = await db.authSessionDao.getAllSessions();
-    state = state.copyWith(
-      accounts: sessions
-          .map(
-            (s) => StoredAccount(
-              userId: s.userId,
-              isValid: s.isValid,
-              lastActive: s.lastActive,
-              username: s.username,
-              discriminator: s.discriminator,
-              avatar: s.avatar,
-            ),
-          )
-          .toList(),
-    );
+    final repo = ref.read(authRepositoryProvider);
+    final accounts = await repo.getStoredAccounts();
+    state = state.copyWith(accounts: accounts);
   }
 
   /// Switches to a different stored account.
@@ -75,9 +60,11 @@ class AccountManager extends _$AccountManager {
 
     try {
       final db = ref.read(fluxerDatabaseProvider);
-      final session = await db.authSessionDao.getSession(userId);
+      final authRepository = ref.read(authRepositoryProvider);
+      final metadata = await db.authSessionDao.getSession(userId);
+      final session = await authRepository.getSession(userId);
 
-      if (session == null || !session.isValid) {
+      if (metadata == null || !metadata.isValid || session == null) {
         throw const AuthFailure('Session is no longer valid.');
       }
 
@@ -91,15 +78,7 @@ class AccountManager extends _$AccountManager {
       }
 
       // Update lastActive to make this the active session.
-      await db.authSessionDao.saveSession(
-        AuthSessionsCompanion.insert(
-          token: session.token,
-          userId: session.userId,
-          username: Value(session.username),
-          discriminator: Value(session.discriminator),
-          avatar: Value(session.avatar),
-        ),
-      );
+      await db.authSessionDao.touchSession(userId);
 
       if (PushProviderGuard.isApple) {
         await ref
@@ -179,8 +158,8 @@ class AccountManager extends _$AccountManager {
   /// Removes a non-current stored account (invalidates its server session
   /// using the account's own token, then deletes locally).
   Future<void> removeAccount(String userId) async {
-    final db = ref.read(fluxerDatabaseProvider);
-    final session = await db.authSessionDao.getSession(userId);
+    final authRepository = ref.read(authRepositoryProvider);
+    final session = await authRepository.getSession(userId);
 
     if (session != null) {
       // Best-effort server logout using the stored account's own token,
@@ -199,7 +178,7 @@ class AccountManager extends _$AccountManager {
         talker.warning('[AccountManager] Failed to logout stored account: $e');
       }
 
-      await db.authSessionDao.removeSession(userId);
+      await authRepository.removeStoredAccount(userId);
     }
 
     await loadAccounts();
