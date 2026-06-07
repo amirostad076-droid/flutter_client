@@ -50,6 +50,18 @@ We welcome contributions from the community. Please check out the V1 umbrella is
 
 Pull requests should target the `canary` branch. For local testing, use the `canary` build flavor so your build matches that branch (see Mobile builds below).
 
+### Tech stack
+
+- **Flutter / Dart** — cross platform UI (mobile today, desktop in progress)
+- **Riverpod** — state management (with code generation)
+- **go_router** — navigation and deep links
+- **Drift** — local SQLite database
+- **Dio** — HTTP client
+- **[fluxer_dart](https://github.com/fluxerapp/dart_sdk)** — Fluxer API client (OpenAPI generated)
+- **WebSockets** — real time gateway events
+- **LiveKit / WebRTC** — voice and video calls
+- **FCM / UnifiedPush / APNs** — push notifications (platform dependent)
+
 ### Build generated files
 
 Riverpod generated files are not committed, so you need to generate them before running the project.
