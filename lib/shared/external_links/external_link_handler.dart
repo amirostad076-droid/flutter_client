@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/shared/external_links/external_link_warning_sheet.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:fluxer_app/shared/external_links/external_url_launcher.dart';
 
 /// Opens a URL using the app-wide trusted-domain warning flow.
 Future<void> handleExternalLinkTap(BuildContext context, String url) async {
@@ -12,7 +13,7 @@ Future<void> handleExternalLinkTap(BuildContext context, String url) async {
   }
 
   if (!_shouldWarnForUri(uri)) {
-    await _openExternalUrl(uri);
+    await _openExternalUrl(context, uri);
     return;
   }
 
@@ -20,7 +21,7 @@ Future<void> handleExternalLinkTap(BuildContext context, String url) async {
   final notifier = container.read(userSettingsViewModelProvider.notifier);
 
   if (notifier.isTrustedDomain(uri.host)) {
-    await _openExternalUrl(uri);
+    await _openExternalUrl(context, uri);
     return;
   }
 
@@ -37,7 +38,11 @@ Future<void> handleExternalLinkTap(BuildContext context, String url) async {
         await notifier.addTrustedDomain(uri.host);
       }
 
-      await _openExternalUrl(uri);
+      if (!context.mounted) {
+        return;
+      }
+
+      await _openExternalUrl(context, uri);
     },
   );
 }
@@ -46,6 +51,9 @@ bool _shouldWarnForUri(Uri uri) {
   return (uri.scheme == 'http' || uri.scheme == 'https') && uri.host.isNotEmpty;
 }
 
-Future<void> _openExternalUrl(Uri uri) async {
-  await launchUrl(uri, mode: LaunchMode.externalApplication);
+Future<void> _openExternalUrl(BuildContext context, Uri uri) async {
+  await openExternalUrl(
+    uri,
+    style: ExternalUrlBrowserStyle.fromColorTheme(context.colors),
+  );
 }
