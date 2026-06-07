@@ -33,10 +33,13 @@ Future<GuildUserDisplay?> _loadGuildUserDisplayFromDatabase({
 
 Future<void> _fetchAndCacheGuildMember({
   required Ref ref,
+  required db.FluxerDatabase database,
   required String userId,
   required String guildId,
 }) async {
-  final db.FluxerDatabase database = ref.read(fluxerDatabaseProvider);
+  if (!ref.mounted) {
+    return;
+  }
   try {
     final sdk = await ref
         .read(fluxerClientProvider)
@@ -58,6 +61,9 @@ Future<void> _fetchAndCacheGuildMember({
     await database.memberDao.upsertMember(
       memberCompanionFromSdk(sdk, guildId: guildId),
     );
+    if (!ref.mounted) {
+      return;
+    }
     ref.invalidate(guildUserDisplayProvider((userId, guildId)));
     ref.invalidate(guildUserDisplayFromDbProvider((userId, guildId)));
     ref.invalidate(memberRoleColorProvider((userId, guildId)));
@@ -100,6 +106,7 @@ guildUserDisplayProvider = FutureProvider.autoDispose
         unawaited(
           _fetchAndCacheGuildMember(
             ref: ref,
+            database: database,
             userId: userId,
             guildId: guildId,
           ),
