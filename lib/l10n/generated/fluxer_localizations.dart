@@ -4444,6 +4444,210 @@ abstract class FluxerLocalizations {
   /// **'Reveal spoiler'**
   String get chatMediaSpoilerRevealLabel;
 
+  /// Short label on the mature media blur overlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal'**
+  String get matureMediaRevealButton;
+
+  /// Accessibility label for the mature media reveal button.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to reveal'**
+  String get matureMediaRevealHint;
+
+  /// Title for mature content gates and warnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Mature content'**
+  String get matureContentTitle;
+
+  /// Title for a mature community gate.
+  ///
+  /// In en, this message translates to:
+  /// **'Mature community'**
+  String get matureCommunityTitle;
+
+  /// Title for a mature category gate.
+  ///
+  /// In en, this message translates to:
+  /// **'Mature category'**
+  String get matureCategoryTitle;
+
+  /// Title for a mature channel gate.
+  ///
+  /// In en, this message translates to:
+  /// **'Mature channel'**
+  String get matureChannelTitle;
+
+  /// Title for a community content warning gate.
+  ///
+  /// In en, this message translates to:
+  /// **'Community content warning'**
+  String get communityContentWarningTitle;
+
+  /// Title for a category content warning gate.
+  ///
+  /// In en, this message translates to:
+  /// **'Category content warning'**
+  String get categoryContentWarningTitle;
+
+  /// Title for a channel content warning gate.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel content warning'**
+  String get channelContentWarningTitle;
+
+  /// Default body text for content warning gates.
+  ///
+  /// In en, this message translates to:
+  /// **'This contains sensitive content.'**
+  String get defaultContentWarningBody;
+
+  /// Body for a mature community gate without custom warning text.
+  ///
+  /// In en, this message translates to:
+  /// **'This community is marked for mature content and may contain material that may be inappropriate for some users.'**
+  String get matureCommunityBody;
+
+  /// Body for a mature category gate without custom warning text.
+  ///
+  /// In en, this message translates to:
+  /// **'This category is marked for mature content and may contain material that may be inappropriate for some users.'**
+  String get matureCategoryBody;
+
+  /// Body for a mature text channel gate without custom warning text.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel is marked for mature content and may contain material that may be inappropriate for some users.'**
+  String get matureChannelBody;
+
+  /// Body for a mature voice channel gate without custom warning text.
+  ///
+  /// In en, this message translates to:
+  /// **'This voice channel is marked for mature content and may contain material that may be inappropriate for some users.'**
+  String get matureVoiceChannelBody;
+
+  /// Body for a mature link channel gate without custom warning text.
+  ///
+  /// In en, this message translates to:
+  /// **'This link channel is marked for mature content and may open material that may be inappropriate for some users.'**
+  String get matureLinkChannelBody;
+
+  /// Body when a minor cannot access a mature community.
+  ///
+  /// In en, this message translates to:
+  /// **'This mature community is not available to your account.'**
+  String get matureCommunityUnavailableBody;
+
+  /// Body when a minor cannot access a mature category.
+  ///
+  /// In en, this message translates to:
+  /// **'This mature category is not available to your account.'**
+  String get matureCategoryUnavailableBody;
+
+  /// Body when a minor cannot access a mature channel.
+  ///
+  /// In en, this message translates to:
+  /// **'This mature channel is not available to your account.'**
+  String get matureChannelUnavailableBody;
+
+  /// Primary action on mature content gates.
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed'**
+  String get matureContentProceedButton;
+
+  /// Primary action on content-warning-only gates.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand'**
+  String get matureContentUnderstandButton;
+
+  /// Primary action on mature link channel gates.
+  ///
+  /// In en, this message translates to:
+  /// **'Open link'**
+  String get matureContentOpenLinkButton;
+
+  /// Privacy settings section title for sensitive content filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitive content'**
+  String get sensitiveContentSectionTitle;
+
+  /// Privacy settings section description for sensitive content filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how mature or sensitive media is filtered in different contexts'**
+  String get sensitiveContentSectionDescription;
+
+  /// Label for friend DM sensitive content filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct messages from friends'**
+  String get sensitiveContentFriendDmLabel;
+
+  /// Label for non-friend DM sensitive content filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct messages from others'**
+  String get sensitiveContentNonFriendDmLabel;
+
+  /// Label for guild channel sensitive content filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages in community channels'**
+  String get sensitiveContentGuildLabel;
+
+  /// Sensitive content filter option to show media.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get sensitiveContentFilterShow;
+
+  /// Sensitive content filter option to blur media.
+  ///
+  /// In en, this message translates to:
+  /// **'Blur'**
+  String get sensitiveContentFilterBlur;
+
+  /// Sensitive content filter option to block media.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get sensitiveContentFilterBlock;
+
+  /// Toggle label for blurring unscanned media.
+  ///
+  /// In en, this message translates to:
+  /// **'Blur media until safety scan completes'**
+  String get sensitiveContentBlurUnscannedLabel;
+
+  /// Description for blur-unscanned toggle for adult accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, images and videos are blurred until the content safety scan finishes.'**
+  String get sensitiveContentBlurUnscannedDescriptionAdult;
+
+  /// Description for blur-unscanned toggle for minor accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'This setting is always on for your account.'**
+  String get sensitiveContentBlurUnscannedDescriptionMinor;
+
+  /// Reset button for sensitive content settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get sensitiveContentResetButton;
+
+  /// Save button for sensitive content settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get sensitiveContentSaveButton;
+
   /// Filename-like progress label for a temporary message attachment while multiple selected files are uploading.
   ///
   /// In en, this message translates to:

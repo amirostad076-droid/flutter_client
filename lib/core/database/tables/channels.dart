@@ -14,6 +14,10 @@ class Channels extends Table {
   TextColumn get lastPinTimestamp => text().nullable()();
   IntColumn get rateLimitPerUser => integer().withDefault(const Constant(0))();
   BoolColumn get nsfw => boolean().withDefault(const Constant(false))();
+  BoolColumn get nsfwOverride => boolean().nullable()();
+  IntColumn get contentWarningLevel =>
+      integer().withDefault(const Constant(0))();
+  TextColumn get contentWarningText => text().nullable()();
   TextColumn get permissionOverwritesJson => text().nullable()();
 
   @override

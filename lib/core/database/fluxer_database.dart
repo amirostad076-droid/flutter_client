@@ -137,7 +137,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 53;
+  int get schemaVersion => 54;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -549,6 +549,26 @@ class FluxerDatabase extends _$FluxerDatabase {
       if (from < 53) {
         await m.addColumn(users, users.mentionFlags);
         await m.addColumn(members, members.mentionFlags);
+      }
+      if (from < 54) {
+        await m.addColumn(channels, channels.nsfwOverride);
+        await m.addColumn(channels, channels.contentWarningLevel);
+        await m.addColumn(channels, channels.contentWarningText);
+        await m.addColumn(servers, servers.nsfw);
+        await m.addColumn(servers, servers.contentWarningLevel);
+        await m.addColumn(servers, servers.contentWarningText);
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.matureContentAgreedChannelIdsJson,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.matureContentAgreedCategoryIdsJson,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.matureContentAgreedGuildIdsJson,
+        );
       }
     },
   );

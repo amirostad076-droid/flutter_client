@@ -107,6 +107,41 @@ class UserPreferencesDao extends DatabaseAccessor<FluxerDatabase>
     ),
   );
 
+  Future<MatureContentAgreements> getMatureContentAgreements(
+    String userId,
+  ) async {
+    final UserPreferencesTableData? prefs = await getPreferences(userId);
+    return MatureContentAgreements(
+      agreedChannelIds: _decodeStringList(
+        prefs?.matureContentAgreedChannelIdsJson,
+      ),
+      agreedCategoryIds: _decodeStringList(
+        prefs?.matureContentAgreedCategoryIdsJson,
+      ),
+      agreedGuildIds: _decodeStringList(
+        prefs?.matureContentAgreedGuildIdsJson,
+      ),
+    );
+  }
+
+  Future<void> setMatureContentAgreements(
+    String userId,
+    MatureContentAgreements agreements,
+  ) => savePreferences(
+    UserPreferencesTableCompanion(
+      userId: Value(userId),
+      matureContentAgreedChannelIdsJson: Value(
+        _encodeStringList(agreements.agreedChannelIds),
+      ),
+      matureContentAgreedCategoryIdsJson: Value(
+        _encodeStringList(agreements.agreedCategoryIds),
+      ),
+      matureContentAgreedGuildIdsJson: Value(
+        _encodeStringList(agreements.agreedGuildIds),
+      ),
+    ),
+  );
+
   Future<void> clearAll() => delete(userPreferencesTable).go();
 }
 
@@ -127,6 +162,30 @@ List<String> _decodeStringList(String? value) {
 
 String _encodeStringList(Iterable<String> values) =>
     jsonEncode(_dedupeStrings(values));
+
+class MatureContentAgreements {
+  const MatureContentAgreements({
+    this.agreedChannelIds = const [],
+    this.agreedCategoryIds = const [],
+    this.agreedGuildIds = const [],
+  });
+
+  final List<String> agreedChannelIds;
+  final List<String> agreedCategoryIds;
+  final List<String> agreedGuildIds;
+
+  MatureContentAgreements copyWith({
+    List<String>? agreedChannelIds,
+    List<String>? agreedCategoryIds,
+    List<String>? agreedGuildIds,
+  }) {
+    return MatureContentAgreements(
+      agreedChannelIds: agreedChannelIds ?? this.agreedChannelIds,
+      agreedCategoryIds: agreedCategoryIds ?? this.agreedCategoryIds,
+      agreedGuildIds: agreedGuildIds ?? this.agreedGuildIds,
+    );
+  }
+}
 
 List<String> _dedupeStrings(Iterable<String> values) {
   final seen = <String>{};

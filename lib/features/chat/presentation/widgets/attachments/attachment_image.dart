@@ -66,6 +66,7 @@ class AttachmentImage extends StatelessWidget {
                   context,
                   items: gallery.map(_buildMediaViewerItem).toList(),
                   initialIndex: imageGalleryIndex.clamp(0, gallery.length - 1),
+                  channelId: channelId,
                   onForward: (channelId != null && messageId != null)
                       ? (int index) => showForwardMediaSheet(
                           context,
@@ -127,6 +128,7 @@ class AttachmentImage extends StatelessWidget {
       filename: value.filename,
       width: value.width,
       height: value.height,
+      isMatureMedia: value.isMatureMedia,
     );
   }
 }

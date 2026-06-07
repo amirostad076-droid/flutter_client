@@ -2593,6 +2593,120 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatMediaSpoilerRevealLabel => 'Reveal spoiler';
 
   @override
+  String get matureMediaRevealButton => 'Reveal';
+
+  @override
+  String get matureMediaRevealHint => 'Click to reveal';
+
+  @override
+  String get matureContentTitle => 'Mature content';
+
+  @override
+  String get matureCommunityTitle => 'Mature community';
+
+  @override
+  String get matureCategoryTitle => 'Mature category';
+
+  @override
+  String get matureChannelTitle => 'Mature channel';
+
+  @override
+  String get communityContentWarningTitle => 'Community content warning';
+
+  @override
+  String get categoryContentWarningTitle => 'Category content warning';
+
+  @override
+  String get channelContentWarningTitle => 'Channel content warning';
+
+  @override
+  String get defaultContentWarningBody => 'This contains sensitive content.';
+
+  @override
+  String get matureCommunityBody =>
+      'This community is marked for mature content and may contain material that may be inappropriate for some users.';
+
+  @override
+  String get matureCategoryBody =>
+      'This category is marked for mature content and may contain material that may be inappropriate for some users.';
+
+  @override
+  String get matureChannelBody =>
+      'This channel is marked for mature content and may contain material that may be inappropriate for some users.';
+
+  @override
+  String get matureVoiceChannelBody =>
+      'This voice channel is marked for mature content and may contain material that may be inappropriate for some users.';
+
+  @override
+  String get matureLinkChannelBody =>
+      'This link channel is marked for mature content and may open material that may be inappropriate for some users.';
+
+  @override
+  String get matureCommunityUnavailableBody =>
+      'This mature community is not available to your account.';
+
+  @override
+  String get matureCategoryUnavailableBody =>
+      'This mature category is not available to your account.';
+
+  @override
+  String get matureChannelUnavailableBody =>
+      'This mature channel is not available to your account.';
+
+  @override
+  String get matureContentProceedButton => 'Proceed';
+
+  @override
+  String get matureContentUnderstandButton => 'I understand';
+
+  @override
+  String get matureContentOpenLinkButton => 'Open link';
+
+  @override
+  String get sensitiveContentSectionTitle => 'Sensitive content';
+
+  @override
+  String get sensitiveContentSectionDescription =>
+      'Control how mature or sensitive media is filtered in different contexts';
+
+  @override
+  String get sensitiveContentFriendDmLabel => 'Direct messages from friends';
+
+  @override
+  String get sensitiveContentNonFriendDmLabel => 'Direct messages from others';
+
+  @override
+  String get sensitiveContentGuildLabel => 'Messages in community channels';
+
+  @override
+  String get sensitiveContentFilterShow => 'Show';
+
+  @override
+  String get sensitiveContentFilterBlur => 'Blur';
+
+  @override
+  String get sensitiveContentFilterBlock => 'Block';
+
+  @override
+  String get sensitiveContentBlurUnscannedLabel =>
+      'Blur media until safety scan completes';
+
+  @override
+  String get sensitiveContentBlurUnscannedDescriptionAdult =>
+      'When enabled, images and videos are blurred until the content safety scan finishes.';
+
+  @override
+  String get sensitiveContentBlurUnscannedDescriptionMinor =>
+      'This setting is always on for your account.';
+
+  @override
+  String get sensitiveContentResetButton => 'Reset';
+
+  @override
+  String get sensitiveContentSaveButton => 'Save';
+
+  @override
   String chatUploadingAttachmentsSummary(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

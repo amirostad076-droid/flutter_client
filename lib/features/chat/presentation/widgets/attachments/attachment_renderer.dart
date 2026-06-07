@@ -10,6 +10,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attach
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_video.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_upload_progress.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
+import 'package:fluxer_app/features/mature_content/presentation/widgets/mature_media_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -63,12 +64,23 @@ class AttachmentRenderer extends StatelessWidget {
           SpoilerOverlay(
             isSpoiler: attachment.isSpoiler,
             initiallyRevealed: revealSpoilers,
-            child: content,
+            child: _wrapMatureMedia(content),
           ),
           if (expiryFootnoteText != null)
             AttachmentExpiryFootnote(text: expiryFootnoteText),
         ],
       ),
+    );
+  }
+
+  Widget _wrapMatureMedia(Widget child) {
+    if (!attachment.isMatureMedia || channelId == null) {
+      return child;
+    }
+    return MatureMediaOverlay(
+      channelId: channelId,
+      isMatureMedia: true,
+      child: child,
     );
   }
 

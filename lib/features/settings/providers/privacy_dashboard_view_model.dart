@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/mature_content/providers/sensitive_content_provider.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_dart/export.dart';
@@ -533,6 +534,7 @@ class PrivacyDashboardViewModel extends _$PrivacyDashboardViewModel {
         editedBlurUnscannedMedia: null,
         isSavingSensitiveContent: false,
       );
+      unawaited(ref.read(sensitiveContentProvider.notifier).load());
     } on Object catch (e, st) {
       talker.error('Failed to save sensitive content settings', e, st);
       state = state.copyWith(isSavingSensitiveContent: false);

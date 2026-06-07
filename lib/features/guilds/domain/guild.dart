@@ -21,6 +21,9 @@ class Guild {
   final List<String> features;
   final bool unavailable;
   final int disabledOperations;
+  final bool nsfw;
+  final int contentWarningLevel;
+  final String? contentWarningText;
 
   const Guild({
     required this.id,
@@ -35,6 +38,9 @@ class Guild {
     this.features = const [],
     this.unavailable = false,
     this.disabledOperations = 0,
+    this.nsfw = false,
+    this.contentWarningLevel = 0,
+    this.contentWarningText,
   });
 
   factory Guild.fromRow(db.Server row) {
@@ -51,6 +57,9 @@ class Guild {
       features: (jsonDecode(row.featuresJson) as List<dynamic>).cast<String>(),
       unavailable: row.unavailable,
       disabledOperations: row.disabledOperations,
+      nsfw: row.nsfw,
+      contentWarningLevel: row.contentWarningLevel,
+      contentWarningText: row.contentWarningText,
     );
   }
 
@@ -68,6 +77,9 @@ class Guild {
       featuresJson: Value(jsonEncode(features)),
       unavailable: Value(unavailable),
       disabledOperations: Value(disabledOperations),
+      nsfw: Value(nsfw),
+      contentWarningLevel: Value(contentWarningLevel),
+      contentWarningText: Value(contentWarningText),
     );
   }
 

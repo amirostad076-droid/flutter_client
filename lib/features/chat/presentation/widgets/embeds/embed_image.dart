@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
+import 'package:fluxer_app/features/mature_content/presentation/widgets/mature_media_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/embed_media_viewer_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
@@ -62,7 +63,11 @@ class EmbedImage extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         spoilerSyncController: spoilerSyncController,
         syncKeys: spoilerSyncKeys,
-        child: ClipRRect(
+        child: MatureMediaOverlay(
+          channelId: channelId,
+          isMatureMedia: embed.isMatureMedia,
+          borderRadius: BorderRadius.circular(4),
+          child: ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: GestureDetector(
             onTap: canOpenEmbedMediaViewer(media)
@@ -99,6 +104,7 @@ class EmbedImage extends StatelessWidget {
               ),
             ),
           ),
+        ),
         ),
       ),
     );

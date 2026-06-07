@@ -36,6 +36,9 @@ db.ServersCompanion guildFromSdk(
     position: Value(position),
     unavailable: Value(unavailable),
     disabledOperations: Value(sdk.disabledOperations),
+    nsfw: Value(sdk.nsfw),
+    contentWarningLevel: Value(sdk.contentWarningLevel.json ?? 0),
+    contentWarningText: Value(sdk.contentWarningText),
   );
 }
 
@@ -73,6 +76,9 @@ db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String guildId) {
     lastPinTimestamp: Value(sdk.lastPinTimestamp?.toIso8601String()),
     rateLimitPerUser: Value(sdk.rateLimitPerUser ?? 0),
     nsfw: Value(sdk.nsfw ?? false),
+    nsfwOverride: Value(sdk.nsfwOverride),
+    contentWarningLevel: Value(sdk.contentWarningLevel?.json ?? 0),
+    contentWarningText: Value(sdk.contentWarningText),
     permissionOverwritesJson: Value(
       encodePermissionOverwritesJson(sdk.permissionOverwrites),
     ),

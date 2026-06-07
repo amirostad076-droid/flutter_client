@@ -23,6 +23,7 @@ import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dar
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/mature_content/utils/channel_gate_navigator.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -403,16 +404,39 @@ class GuildSidebar extends ConsumerWidget {
                     )
                   : null,
               onTap: () async {
+                final String? guildId = ref.read(activeGuildIdProvider);
                 if (channel.type == ChannelType.link) {
-                  final channelUrl = channel.url;
+                  if (guildId == null) {
+                    return;
+                  }
+                  final bool canProceed = await promptForChannelGateIfNeeded(
+                    context: context,
+                    container: ref.container,
+                    channelId: channel.id,
+                    guildId: guildId,
+                    channelType: channel.type,
+                  );
+                  if (!context.mounted || !canProceed) {
+                    return;
+                  }
+                  final String? channelUrl = channel.url;
                   if (channelUrl != null && channelUrl.isNotEmpty) {
                     unawaited(handleExternalLinkTap(context, channelUrl));
                   }
                   return;
                 }
 
-                final String? guildId = ref.read(activeGuildIdProvider);
                 if (guildId != null) {
+                  final bool canProceed = await promptForChannelGateIfNeeded(
+                    context: context,
+                    container: ref.container,
+                    channelId: channel.id,
+                    guildId: guildId,
+                    channelType: channel.type,
+                  );
+                  if (!context.mounted || !canProceed) {
+                    return;
+                  }
                   final VoiceSessionState voiceSession = ref.read(
                     voiceSessionProvider,
                   );

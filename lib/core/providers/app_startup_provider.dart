@@ -22,6 +22,8 @@ import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
 import 'package:fluxer_app/features/friends/providers/friend_relationships_sync_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/mature_content/providers/mature_content_agreements_provider.dart';
+import 'package:fluxer_app/features/mature_content/providers/sensitive_content_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/emoji_sprite_sheet.dart';
@@ -112,6 +114,8 @@ class AppStartup extends _$AppStartup {
     await ref.read(themePreferenceProvider.notifier).load(session.userId);
     await ref.read(appearancePreferencesProvider.notifier).load(session.userId);
     await ref.read(chatPreferencesProvider.notifier).load(session.userId);
+    unawaited(ref.read(sensitiveContentProvider.notifier).load());
+    unawaited(ref.read(matureContentAgreementsProvider.notifier).reload());
 
     ref
       ..read(gatewayConnectBindingProvider)

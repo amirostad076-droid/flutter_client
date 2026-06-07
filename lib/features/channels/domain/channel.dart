@@ -51,6 +51,9 @@ class Channel {
   final int position;
   final int rateLimitPerUser;
   final bool nsfw;
+  final bool? nsfwOverride;
+  final int contentWarningLevel;
+  final String? contentWarningText;
   final String? permissionOverwritesJson;
 
   const Channel({
@@ -64,6 +67,9 @@ class Channel {
     this.position = 0,
     this.rateLimitPerUser = 0,
     this.nsfw = false,
+    this.nsfwOverride,
+    this.contentWarningLevel = 0,
+    this.contentWarningText,
     this.permissionOverwritesJson,
   });
 
@@ -79,6 +85,9 @@ class Channel {
       position: row.position,
       rateLimitPerUser: row.rateLimitPerUser,
       nsfw: row.nsfw,
+      nsfwOverride: row.nsfwOverride,
+      contentWarningLevel: row.contentWarningLevel,
+      contentWarningText: row.contentWarningText,
       permissionOverwritesJson: row.permissionOverwritesJson,
     );
   }
@@ -95,6 +104,9 @@ class Channel {
       position: Value(position),
       rateLimitPerUser: Value(rateLimitPerUser),
       nsfw: Value(nsfw),
+      nsfwOverride: Value(nsfwOverride),
+      contentWarningLevel: Value(contentWarningLevel),
+      contentWarningText: Value(contentWarningText),
       permissionOverwritesJson: Value(permissionOverwritesJson),
     );
   }

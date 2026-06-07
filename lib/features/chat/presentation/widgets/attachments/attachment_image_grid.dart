@@ -4,6 +4,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_expiry_footnote.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
+import 'package:fluxer_app/features/mature_content/presentation/widgets/mature_media_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -190,7 +191,11 @@ class AttachmentImageGrid extends StatelessWidget {
       child: SpoilerOverlay(
         isSpoiler: attachment.isSpoiler,
         initiallyRevealed: revealSpoilers,
-        child: GestureDetector(
+        child: MatureMediaOverlay(
+          channelId: channelId,
+          isMatureMedia: attachment.isMatureMedia,
+          borderRadius: BorderRadius.circular(8),
+          child: GestureDetector(
           onTap: canOpenViewer
               ? () => showAttachmentMediaViewer(
                   context,
@@ -201,10 +206,12 @@ class AttachmentImageGrid extends StatelessWidget {
                           filename: item.filename,
                           width: item.width,
                           height: item.height,
+                          isMatureMedia: item.isMatureMedia,
                         ),
                       )
                       .toList(),
                   initialIndex: index,
+                  channelId: channelId,
                   onForward: (channelId != null && messageId != null)
                       ? (int i) => showForwardMediaSheet(
                           context,
@@ -223,6 +230,7 @@ class AttachmentImageGrid extends StatelessWidget {
               errorBuilder: (_, _, _) => const ColoredBox(color: Colors.black),
             ),
           ),
+        ),
         ),
       ),
     );

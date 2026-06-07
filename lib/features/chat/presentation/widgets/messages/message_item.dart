@@ -1165,6 +1165,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         revealSpoiler: revealSpoilers,
         spoilerSyncController: _spoilerSyncController,
         spoilerSyncKeys: spoilerSyncKeys,
+        channelId: channelId,
       ),
     };
 

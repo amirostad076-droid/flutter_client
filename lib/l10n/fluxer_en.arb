@@ -3188,6 +3188,142 @@
   "@chatMediaSpoilerRevealLabel": {
     "description": "Accessibility label for the button that reveals concealed spoiler attachment and embed image media."
   },
+  "matureMediaRevealButton": "Reveal",
+  "@matureMediaRevealButton": {
+    "description": "Short label on the mature media blur overlay."
+  },
+  "matureMediaRevealHint": "Click to reveal",
+  "@matureMediaRevealHint": {
+    "description": "Accessibility label for the mature media reveal button."
+  },
+  "matureContentTitle": "Mature content",
+  "@matureContentTitle": {
+    "description": "Title for mature content gates and warnings."
+  },
+  "matureCommunityTitle": "Mature community",
+  "@matureCommunityTitle": {
+    "description": "Title for a mature community gate."
+  },
+  "matureCategoryTitle": "Mature category",
+  "@matureCategoryTitle": {
+    "description": "Title for a mature category gate."
+  },
+  "matureChannelTitle": "Mature channel",
+  "@matureChannelTitle": {
+    "description": "Title for a mature channel gate."
+  },
+  "communityContentWarningTitle": "Community content warning",
+  "@communityContentWarningTitle": {
+    "description": "Title for a community content warning gate."
+  },
+  "categoryContentWarningTitle": "Category content warning",
+  "@categoryContentWarningTitle": {
+    "description": "Title for a category content warning gate."
+  },
+  "channelContentWarningTitle": "Channel content warning",
+  "@channelContentWarningTitle": {
+    "description": "Title for a channel content warning gate."
+  },
+  "defaultContentWarningBody": "This contains sensitive content.",
+  "@defaultContentWarningBody": {
+    "description": "Default body text for content warning gates."
+  },
+  "matureCommunityBody": "This community is marked for mature content and may contain material that may be inappropriate for some users.",
+  "@matureCommunityBody": {
+    "description": "Body for a mature community gate without custom warning text."
+  },
+  "matureCategoryBody": "This category is marked for mature content and may contain material that may be inappropriate for some users.",
+  "@matureCategoryBody": {
+    "description": "Body for a mature category gate without custom warning text."
+  },
+  "matureChannelBody": "This channel is marked for mature content and may contain material that may be inappropriate for some users.",
+  "@matureChannelBody": {
+    "description": "Body for a mature text channel gate without custom warning text."
+  },
+  "matureVoiceChannelBody": "This voice channel is marked for mature content and may contain material that may be inappropriate for some users.",
+  "@matureVoiceChannelBody": {
+    "description": "Body for a mature voice channel gate without custom warning text."
+  },
+  "matureLinkChannelBody": "This link channel is marked for mature content and may open material that may be inappropriate for some users.",
+  "@matureLinkChannelBody": {
+    "description": "Body for a mature link channel gate without custom warning text."
+  },
+  "matureCommunityUnavailableBody": "This mature community is not available to your account.",
+  "@matureCommunityUnavailableBody": {
+    "description": "Body when a minor cannot access a mature community."
+  },
+  "matureCategoryUnavailableBody": "This mature category is not available to your account.",
+  "@matureCategoryUnavailableBody": {
+    "description": "Body when a minor cannot access a mature category."
+  },
+  "matureChannelUnavailableBody": "This mature channel is not available to your account.",
+  "@matureChannelUnavailableBody": {
+    "description": "Body when a minor cannot access a mature channel."
+  },
+  "matureContentProceedButton": "Proceed",
+  "@matureContentProceedButton": {
+    "description": "Primary action on mature content gates."
+  },
+  "matureContentUnderstandButton": "I understand",
+  "@matureContentUnderstandButton": {
+    "description": "Primary action on content-warning-only gates."
+  },
+  "matureContentOpenLinkButton": "Open link",
+  "@matureContentOpenLinkButton": {
+    "description": "Primary action on mature link channel gates."
+  },
+  "sensitiveContentSectionTitle": "Sensitive content",
+  "@sensitiveContentSectionTitle": {
+    "description": "Privacy settings section title for sensitive content filters."
+  },
+  "sensitiveContentSectionDescription": "Control how mature or sensitive media is filtered in different contexts",
+  "@sensitiveContentSectionDescription": {
+    "description": "Privacy settings section description for sensitive content filters."
+  },
+  "sensitiveContentFriendDmLabel": "Direct messages from friends",
+  "@sensitiveContentFriendDmLabel": {
+    "description": "Label for friend DM sensitive content filter."
+  },
+  "sensitiveContentNonFriendDmLabel": "Direct messages from others",
+  "@sensitiveContentNonFriendDmLabel": {
+    "description": "Label for non-friend DM sensitive content filter."
+  },
+  "sensitiveContentGuildLabel": "Messages in community channels",
+  "@sensitiveContentGuildLabel": {
+    "description": "Label for guild channel sensitive content filter."
+  },
+  "sensitiveContentFilterShow": "Show",
+  "@sensitiveContentFilterShow": {
+    "description": "Sensitive content filter option to show media."
+  },
+  "sensitiveContentFilterBlur": "Blur",
+  "@sensitiveContentFilterBlur": {
+    "description": "Sensitive content filter option to blur media."
+  },
+  "sensitiveContentFilterBlock": "Block",
+  "@sensitiveContentFilterBlock": {
+    "description": "Sensitive content filter option to block media."
+  },
+  "sensitiveContentBlurUnscannedLabel": "Blur media until safety scan completes",
+  "@sensitiveContentBlurUnscannedLabel": {
+    "description": "Toggle label for blurring unscanned media."
+  },
+  "sensitiveContentBlurUnscannedDescriptionAdult": "When enabled, images and videos are blurred until the content safety scan finishes.",
+  "@sensitiveContentBlurUnscannedDescriptionAdult": {
+    "description": "Description for blur-unscanned toggle for adult accounts."
+  },
+  "sensitiveContentBlurUnscannedDescriptionMinor": "This setting is always on for your account.",
+  "@sensitiveContentBlurUnscannedDescriptionMinor": {
+    "description": "Description for blur-unscanned toggle for minor accounts."
+  },
+  "sensitiveContentResetButton": "Reset",
+  "@sensitiveContentResetButton": {
+    "description": "Reset button for sensitive content settings."
+  },
+  "sensitiveContentSaveButton": "Save",
+  "@sensitiveContentSaveButton": {
+    "description": "Save button for sensitive content settings."
+  },
   "chatUploadingAttachmentsSummary": "Uploading {count, plural, one {# file} other {# files}}",
   "@chatUploadingAttachmentsSummary": {
     "description": "Filename-like progress label for a temporary message attachment while multiple selected files are uploading.",

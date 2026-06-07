@@ -24,6 +24,7 @@ import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/mature_content/utils/channel_gate_navigator.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -66,8 +67,20 @@ class _DMListState extends ConsumerState<DMList> {
   void personalNote() {
     final userId = ref.read(currentUserIdProvider);
     if (userId != null) {
-      navigateToContent(context, RoutePaths.dmChannel(userId));
+      unawaited(_navigateToDmChannel(userId));
     }
+  }
+
+  Future<void> _navigateToDmChannel(String channelId) async {
+    final bool canProceed = await promptForChannelGateIfNeeded(
+      context: context,
+      container: ref.container,
+      channelId: channelId,
+    );
+    if (!mounted || !canProceed) {
+      return;
+    }
+    navigateToContent(context, RoutePaths.dmChannel(channelId));
   }
 
   Future<void> _showPersonalNotesContextMenu(
@@ -229,10 +242,7 @@ class _DMListState extends ConsumerState<DMList> {
                             isSelected: isNotes,
                             onTap: () {
                               if (userId != null) {
-                                navigateToContent(
-                                  context,
-                                  RoutePaths.dmChannel(userId),
-                                );
+                                unawaited(_navigateToDmChannel(userId));
                               }
                             },
                             onLongPress: userId != null
@@ -744,7 +754,7 @@ class _DMListState extends ConsumerState<DMList> {
       if (!mounted) {
         return;
       }
-      navigateToContent(context, RoutePaths.dmChannel(channelId));
+      await _navigateToDmChannel(channelId);
     } on Exception {
       if (!mounted) {
         return;
@@ -810,7 +820,7 @@ class _DMListState extends ConsumerState<DMList> {
     child: InkWell(
       onTap: () {
         if (userId != null) {
-          navigateToContent(context, RoutePaths.dmChannel(userId));
+          unawaited(_navigateToDmChannel(userId));
         }
       },
       onLongPress: userId != null
@@ -957,7 +967,7 @@ class _DMListState extends ConsumerState<DMList> {
           borderRadius: layout.radiusMd,
           hoverColor: context.colors.surfaceInteractiveHoverBg,
           onTap: () {
-            navigateToContent(context, RoutePaths.dmChannel(c.id));
+            unawaited(_navigateToDmChannel(c.id));
           },
           onLongPress: isMobile ? () => _showDmContextMenu(context, c) : null,
           child: Container(

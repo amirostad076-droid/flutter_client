@@ -222,6 +222,7 @@ class _ForwardedEmbed extends StatelessWidget {
         revealSpoiler: revealSpoilers,
         spoilerSyncController: spoilerSyncController,
         spoilerSyncKeys: spoilerSyncKeys,
+        channelId: channelId,
       ),
     };
 

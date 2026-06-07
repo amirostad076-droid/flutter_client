@@ -526,50 +526,58 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
     FluxerLayoutTheme layout,
   ) {
     final vm = ref.read(privacyDashboardViewModelProvider.notifier);
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final List<FluxerRadioItem<int>> filterItems = <FluxerRadioItem<int>>[
+      FluxerRadioItem(value: 0, label: l10n.sensitiveContentFilterShow),
+      FluxerRadioItem(value: 1, label: l10n.sensitiveContentFilterBlur),
+      FluxerRadioItem(value: 2, label: l10n.sensitiveContentFilterBlock),
+    ];
+    final List<FluxerRadioItem<int>> guildFilterItems = <FluxerRadioItem<int>>[
+      FluxerRadioItem(value: 0, label: l10n.sensitiveContentFilterShow),
+      FluxerRadioItem(value: 1, label: l10n.sensitiveContentFilterBlur),
+    ];
 
     return FluxerSettingsSection(
-      title: 'Sensitive Content',
-      description:
-          'Control how mature or sensitive media is filtered '
-          'in different contexts',
+      title: l10n.sensitiveContentSectionTitle,
+      description: l10n.sensitiveContentSectionDescription,
       children: [
         FluxerSettingsSubsection(
           children: [
             FluxerRadioGroup<int>(
-              label: 'Direct messages from friends',
+              label: l10n.sensitiveContentFriendDmLabel,
               value: state.effectiveFriendDmFilter,
-              items: const [
-                FluxerRadioItem(value: 0, label: 'Show'),
-                FluxerRadioItem(value: 1, label: 'Blur'),
-                FluxerRadioItem(value: 2, label: 'Block'),
-              ],
+              items: filterItems,
               onChanged: vm.editFriendDmFilter,
             ),
-            FluxerRadioGroup<int>(
-              label: 'Direct messages from others',
-              value: state.effectiveNonFriendDmFilter,
-              items: const [
-                FluxerRadioItem(value: 0, label: 'Show'),
-                FluxerRadioItem(value: 1, label: 'Blur'),
-                FluxerRadioItem(value: 2, label: 'Block'),
-              ],
-              onChanged: vm.editNonFriendDmFilter,
+            Opacity(
+              opacity: state.isAdult ? 1 : 0.5,
+              child: IgnorePointer(
+                ignoring: !state.isAdult,
+                child: FluxerRadioGroup<int>(
+                  label: l10n.sensitiveContentNonFriendDmLabel,
+                  value: state.effectiveNonFriendDmFilter,
+                  items: filterItems,
+                  onChanged: vm.editNonFriendDmFilter,
+                ),
+              ),
             ),
-            FluxerRadioGroup<int>(
-              label: 'Messages in community channels',
-              value: state.effectiveGuildFilter,
-              items: const [
-                FluxerRadioItem(value: 0, label: 'Show'),
-                FluxerRadioItem(value: 1, label: 'Blur'),
-              ],
-              onChanged: vm.editGuildFilter,
+            Opacity(
+              opacity: state.isAdult ? 1 : 0.5,
+              child: IgnorePointer(
+                ignoring: !state.isAdult,
+                child: FluxerRadioGroup<int>(
+                  label: l10n.sensitiveContentGuildLabel,
+                  value: state.effectiveGuildFilter,
+                  items: guildFilterItems,
+                  onChanged: vm.editGuildFilter,
+                ),
+              ),
             ),
             FluxerSwitchGroupItem(
-              label: 'Blur media until safety scan completes',
+              label: l10n.sensitiveContentBlurUnscannedLabel,
               description: state.isAdult
-                  ? 'When enabled, images and videos are blurred '
-                        'until the content safety scan finishes.'
-                  : 'This setting is always on for your account.',
+                  ? l10n.sensitiveContentBlurUnscannedDescriptionAdult
+                  : l10n.sensitiveContentBlurUnscannedDescriptionMinor,
               value: !state.isAdult || state.effectiveBlurUnscannedMedia,
               enabled: state.isAdult,
               onChanged: (v) => vm.editBlurUnscannedMedia(value: v),
@@ -581,7 +589,7 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
                     child: SizedBox(
                       width: double.infinity,
                       child: FluxerButton.secondary(
-                        label: 'Reset',
+                        label: l10n.sensitiveContentResetButton,
                         onPressed: vm.resetSensitiveContent,
                       ),
                     ),
@@ -591,7 +599,7 @@ class _UserPrivacyDashboardState extends ConsumerState<UserPrivacyDashboard> {
                     child: SizedBox(
                       width: double.infinity,
                       child: FluxerButton.primary(
-                        label: 'Save',
+                        label: l10n.sensitiveContentSaveButton,
                         isLoading: state.isSavingSensitiveContent,
                         onPressedAsync: vm.saveSensitiveContent,
                       ),

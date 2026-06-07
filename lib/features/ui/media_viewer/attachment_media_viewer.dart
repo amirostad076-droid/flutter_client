@@ -5,7 +5,9 @@ import 'dart:ui';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/mature_content/presentation/widgets/mature_media_overlay.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -18,18 +20,21 @@ class AttachmentMediaViewerItem {
     required this.filename,
     this.width,
     this.height,
+    this.isMatureMedia = false,
   });
 
   final String url;
   final String filename;
   final int? width;
   final int? height;
+  final bool isMatureMedia;
 }
 
 Future<void> showAttachmentMediaViewer(
   BuildContext context, {
   required List<AttachmentMediaViewerItem> items,
   int initialIndex = 0,
+  String? channelId,
   void Function(int index)? onForward,
 }) async {
   if (items.isEmpty) {
@@ -44,6 +49,7 @@ Future<void> showAttachmentMediaViewer(
       return AttachmentMediaViewerShell(
         items: items,
         initialIndex: clampedInitialIndex,
+        channelId: channelId,
         onForward: onForward,
       );
     },
@@ -53,28 +59,30 @@ Future<void> showAttachmentMediaViewer(
   );
 }
 
-class AttachmentMediaViewerShell extends StatefulWidget {
+class AttachmentMediaViewerShell extends ConsumerStatefulWidget {
   const AttachmentMediaViewerShell({
     required this.items,
     required this.initialIndex,
+    this.channelId,
     this.onForward,
     super.key,
   });
 
   final List<AttachmentMediaViewerItem> items;
   final int initialIndex;
+  final String? channelId;
 
   /// When non-null, the action bar shows a Forward button; invoked with the
   /// index of the item on screen when tapped (after the viewer closes).
   final void Function(int index)? onForward;
 
   @override
-  State<AttachmentMediaViewerShell> createState() =>
+  ConsumerState<AttachmentMediaViewerShell> createState() =>
       _AttachmentMediaViewerShellState();
 }
 
 class _AttachmentMediaViewerShellState
-    extends State<AttachmentMediaViewerShell> {
+    extends ConsumerState<AttachmentMediaViewerShell> {
   static const double _desktopZoomScale = 2.5;
   static const double _mobileMaxScale = 5;
   late final PageController _pageController;
@@ -367,6 +375,7 @@ class _AttachmentMediaViewerShellState
                     _MediaViewerThumbnailStrip(
                       items: widget.items,
                       currentIndex: _currentIndex,
+                      channelId: widget.channelId,
                       onSelectIndex: _executeSelectIndex,
                     ),
                   if (widget.items.length > 1)
@@ -426,13 +435,18 @@ class _AttachmentMediaViewerShellState
         child: const Center(child: Icon(PhosphorIconsRegular.image)),
       ),
     );
+    final Widget media = MatureMediaOverlay(
+      channelId: widget.channelId,
+      isMatureMedia: item.isMatureMedia,
+      child: image,
+    );
     if (isMobile) {
       return InteractiveViewer(
         transformationController: _mobileControllers[index],
         minScale: 1,
         maxScale: _mobileMaxScale,
         clipBehavior: Clip.none,
-        child: Center(child: image),
+        child: Center(child: media),
       );
     }
     return MouseRegion(
@@ -501,7 +515,7 @@ class _AttachmentMediaViewerShellState
             offset: _desktopPanOffset,
             child: Transform.scale(
               scale: _isDesktopZoomed ? _desktopZoomScale : 1,
-              child: image,
+              child: media,
             ),
           ),
         ),
@@ -583,10 +597,12 @@ class _MediaViewerThumbnailStrip extends StatelessWidget {
     required this.items,
     required this.currentIndex,
     required this.onSelectIndex,
+    this.channelId,
   });
 
   final List<AttachmentMediaViewerItem> items;
   final int currentIndex;
+  final String? channelId;
   final ValueChanged<int> onSelectIndex;
 
   @override
@@ -598,6 +614,9 @@ class _MediaViewerThumbnailStrip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         itemBuilder: (BuildContext context, int index) {
           final bool isSelected = index == currentIndex;
+          final AttachmentMediaViewerItem item = items[index];
+          final bool hideMatureThumbnail =
+              item.isMatureMedia && channelId != null;
           return GestureDetector(
             onTap: () => onSelectIndex(index),
             child: AnimatedContainer(
@@ -614,10 +633,15 @@ class _MediaViewerThumbnailStrip extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(7),
-                child: CachedNetworkImage(
-                  imageUrl: items[index].url,
-                  fit: BoxFit.cover,
-                ),
+                child: hideMatureThumbnail
+                    ? ColoredBox(
+                        color: context.colors.spoilerBackground,
+                        child: const SizedBox.expand(),
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: item.url,
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
           );

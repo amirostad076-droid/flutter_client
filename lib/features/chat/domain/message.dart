@@ -15,6 +15,7 @@ const int messageFlagSuppressEmbeds = 1 << 2;
 const int messageFlagSuppressNotifications = 1 << 12;
 const int messageFlagCompactAttachments = 1 << 17;
 const int attachmentFlagIsSpoiler = 1 << 3;
+const int attachmentFlagContainsExplicitMedia = 1 << 4;
 
 /// Message wire-type constants (mirrors the server's
 /// `MessageTypes` enum). Use these everywhere instead of
@@ -162,6 +163,7 @@ class Embed {
   final EmbedMedia? video;
   final List<EmbedField> fields;
   final String? providerName;
+  final bool? nsfw;
 
   const Embed({
     required this.type,
@@ -177,7 +179,10 @@ class Embed {
     this.video,
     this.fields = const [],
     this.providerName,
+    this.nsfw,
   });
+
+  bool get isMatureMedia => nsfw == true;
 
   factory Embed.fromSdk(MessageEmbedResponse sdk) => Embed(
     type: _parseEmbedType(sdk.type),
@@ -195,6 +200,7 @@ class Embed {
     video: sdk.video != null ? EmbedMedia.fromSdk(sdk.video!) : null,
     fields: sdk.fields?.map(EmbedField.fromSdk).toList() ?? const [],
     providerName: sdk.provider?.name,
+    nsfw: sdk.nsfw,
   );
 
   factory Embed.fromJson(Map<String, dynamic> json) => Embed(
@@ -227,6 +233,7 @@ class Embed {
     providerName:
         (json['providerName'] as String?) ??
         ((json['provider'] as Map<String, dynamic>?)?['name'] as String?),
+    nsfw: json['nsfw'] as bool?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -243,6 +250,7 @@ class Embed {
     'video': video?.toJson(),
     'fields': fields.map((f) => f.toJson()).toList(),
     'providerName': providerName,
+    'nsfw': nsfw,
   };
 
   static EmbedType _parseEmbedType(String type) => switch (type) {
@@ -381,6 +389,8 @@ class Attachment {
 
   bool get isPreviewMedia => isImage || isVideo;
   bool get isSpoiler => (flags & attachmentFlagIsSpoiler) != 0;
+  bool get isMatureMedia =>
+      nsfw == true || (flags & attachmentFlagContainsExplicitMedia) != 0;
 }
 
 class MessageSticker {

@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_shared.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
+import 'package:fluxer_app/features/mature_content/presentation/widgets/mature_media_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
@@ -23,6 +24,7 @@ class EmbedVideo extends StatelessWidget {
   final bool revealSpoiler;
   final FluxerSpoilerSyncController? spoilerSyncController;
   final List<String> spoilerSyncKeys;
+  final String? channelId;
 
   const EmbedVideo({
     required this.embed,
@@ -31,6 +33,7 @@ class EmbedVideo extends StatelessWidget {
     this.revealSpoiler = false,
     this.spoilerSyncController,
     this.spoilerSyncKeys = const [],
+    this.channelId,
     super.key,
   });
 
@@ -90,9 +93,14 @@ class EmbedVideo extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
               spoilerSyncController: spoilerSyncController,
               syncKeys: spoilerSyncKeys,
-              child: ClipRRect(
+              child: MatureMediaOverlay(
+                channelId: channelId,
+                isMatureMedia: embed.isMatureMedia,
                 borderRadius: BorderRadius.circular(4),
-                child: _VideoPlayer(embed: embed),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: _VideoPlayer(embed: embed),
+                ),
               ),
             ),
           ),

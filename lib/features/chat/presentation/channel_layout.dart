@@ -5,6 +5,8 @@ import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_header.dart';
+import 'package:fluxer_app/features/mature_content/presentation/widgets/mature_content_channel_gate.dart';
+import 'package:fluxer_app/features/mature_content/providers/mature_content_agreements_provider.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/inline_expression_panel.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
@@ -42,6 +44,10 @@ class ChannelLayout extends ConsumerWidget {
     final bool isVoiceChannel = channel?.type == ChannelType.voice;
     final isMobile = isMobileLayout(context);
     final isPanelOpen = ref.watch(expressionPanelProvider);
+    final AsyncValue<bool> showGateAsync = ref.watch(
+      shouldShowMatureContentGateProvider(channelId),
+    );
+    final bool showMatureContentGate = showGateAsync.value ?? false;
 
     return MobileChatBackScope(
       child: ColoredBox(
@@ -67,7 +73,13 @@ class ChannelLayout extends ConsumerWidget {
                         child: Row(
                           children: [
                             Expanded(
-                              child: isVoiceChannel
+                              child: showMatureContentGate
+                                  ? MatureContentChannelGate(
+                                      channelId: channelId,
+                                      guildId: guildId,
+                                      channelType: channel?.type,
+                                    )
+                                  : isVoiceChannel
                                   ? VoiceChannelPageView(
                                       guildId: guildId,
                                       channelId: channelId,

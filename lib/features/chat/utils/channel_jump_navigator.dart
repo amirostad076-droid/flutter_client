@@ -12,8 +12,10 @@ import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/router/shell_navigator_keys.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/channel_access_denied_sheet.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/mature_content/utils/channel_gate_navigator.dart';
 
 /// Builds the in-app route for a resolved channel jump target.
 String buildChannelJumpRoutePath({
@@ -156,6 +158,26 @@ Future<void> _applyChannelJumpResolution({
           .read(chatViewModelProvider.notifier)
           .goToRepliedMessage(channelId: channelId, messageId: messageId);
     case ChannelJumpNavigate(:final path, :final channelId, :final messageId):
+      final BuildContext? gateContext =
+          context ?? rootNavigatorKey.currentContext;
+      if (gateContext != null && gateContext.mounted) {
+        final db.Channel? channel = await container
+            .read(fluxerDatabaseProvider)
+            .channelDao
+            .getChannelById(channelId);
+        final bool canProceed = await promptForChannelGateIfNeeded(
+          context: gateContext,
+          container: container,
+          channelId: channelId,
+          guildId: channel?.guildId,
+          channelType: channel == null
+              ? null
+              : channelTypeFromInt(channel.type),
+        );
+        if (!canProceed) {
+          return;
+        }
+      }
       if (navigateToPath != null) {
         navigateToPath(path);
       } else {
