@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
+import 'package:fluxer_app/features/chat/providers/messages/forward_destinations_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_length_limits_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
@@ -24,6 +26,7 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/emoji_picker/fluxer_emoji_picker_popout.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod/src/framework.dart' show Override;
@@ -74,6 +77,18 @@ MessageSnapshot _snapshot({
 
 const String _userId = 'user_1';
 const String _guildId = 'guild_1';
+
+/// Drives a dependency-triggered reload (not a refresh) of the overridden
+/// destinations provider in the no-flicker regression test.
+class _ReloadTrigger extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state++;
+}
+
+final NotifierProvider<_ReloadTrigger, int> _reloadTriggerProvider =
+    NotifierProvider<_ReloadTrigger, int>(_ReloadTrigger.new);
 
 UserSettingsViewState _userSettings() => const UserSettingsViewState(
   userId: _userId,
@@ -151,6 +166,7 @@ Widget _app(
   FluxerDatabase db,
   Message message, {
   void Function(BuildContext context)? onOpen,
+  List<Override> extraOverrides = const <Override>[],
 }) {
   final colorTheme = buildDarkColorTheme();
   return ProviderScope(
@@ -167,6 +183,7 @@ Widget _app(
       dmViewModelProvider.overrideWith(_FakeDms.new),
       maxMessageLengthProvider.overrideWithValue(2000),
       premiumMaxMessageLengthProvider.overrideWithValue(4000),
+      ...extraOverrides,
     ],
     child: MaterialApp(
       localizationsDelegates: FluxerLocalizations.localizationsDelegates,
@@ -310,6 +327,63 @@ void main() {
       expect(find.text('voice-room'), findsOneWidget);
       expect(find.text('general'), findsNothing);
       expect(find.text('Alice'), findsNothing);
+    });
+
+    testWidgets('keeps the destination list visible while it reloads', (
+      WidgetTester tester,
+    ) async {
+      final FluxerDatabase db = await _seedDb();
+      addTearDown(db.close);
+
+      const ForwardDestination general = ForwardDestination(
+        channelId: 'general',
+        displayName: 'general',
+        kind: ForwardDestinationKind.guildText,
+        guildId: _guildId,
+        guildName: 'Owned',
+      );
+      final Completer<List<ForwardDestination>> reloadGate =
+          Completer<List<ForwardDestination>>();
+      Future<List<ForwardDestination>> Function() source = () =>
+          Future<List<ForwardDestination>>.value(const <ForwardDestination>[
+            general,
+          ]);
+
+      await tester.pumpWidget(
+        _app(
+          db,
+          _message(channelId: 'source-chan'),
+          extraOverrides: <Override>[
+            forwardDestinationsProvider(
+              sourceChannelId: 'source-chan',
+              sourceHasEmbeds: false,
+              sourceHasAttachments: false,
+            ).overrideWith((ref) {
+              ref.watch(_reloadTriggerProvider);
+              return source();
+            }),
+          ],
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      expect(find.text('general'), findsOneWidget);
+
+      // A forward mutates channels/DMs that the provider watches, so it reloads
+      // while the recompute is still pending. The retained list must stay
+      // visible instead of flashing the loading spinner (web parity).
+      source = () => reloadGate.future;
+      ProviderScope.containerOf(
+        tester.element(find.text('general')),
+        listen: false,
+      ).read(_reloadTriggerProvider.notifier).bump();
+      await tester.pump();
+
+      expect(find.byType(FluxerLoadingSpinner), findsNothing);
+      expect(find.text('general'), findsOneWidget);
+
+      reloadGate.complete(const <ForwardDestination>[general]);
+      await tester.pumpAndSettle();
     });
   });
 

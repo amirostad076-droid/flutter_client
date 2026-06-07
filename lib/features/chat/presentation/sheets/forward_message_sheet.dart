@@ -315,6 +315,7 @@ class _ForwardMessageSheetBodyState
         ),
         Expanded(
           child: destinationsAsync.when(
+            skipLoadingOnReload: true,
             data: (List<ForwardDestination> list) =>
                 _buildList(context, l10n, list),
             loading: () => const Center(child: FluxerLoadingSpinner()),
