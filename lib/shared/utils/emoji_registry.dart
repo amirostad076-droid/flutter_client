@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
+import 'package:fluxer_app/shared/utils/emoji_search.dart';
 
 class EmojiEntry {
   EmojiEntry({
@@ -8,12 +9,18 @@ class EmojiEntry {
     required this.surrogates,
     required this.category,
     required this.spriteIndex,
+    this.keywords = const <String>[],
     this.diversityIndex,
     this.hasDiversity = false,
-  }) : namesLower = names.map((n) => n.toLowerCase()).toList(growable: false);
+  }) : namesLower = names.map((n) => n.toLowerCase()).toList(growable: false),
+       keywordsLower = keywords
+           .map((k) => k.toLowerCase())
+           .toList(growable: false);
 
   final List<String> names;
   final List<String> namesLower;
+  final List<String> keywords;
+  final List<String> keywordsLower;
   final String surrogates;
   final String category;
   final int spriteIndex;
@@ -100,10 +107,14 @@ class EmojiRegistry {
         unicodeSurrogates.add(surrogates);
 
         final names = (obj['names'] as List<dynamic>).cast<String>();
+        final keywords =
+            (obj['keywords'] as List<dynamic>?)?.cast<String>() ??
+            const <String>[];
         final hasDiversity = obj.containsKey('skins');
         final emoji = EmojiEntry(
           names: names,
           surrogates: surrogates,
+          keywords: keywords,
           category: category,
           spriteIndex: spriteIndex,
           diversityIndex: hasDiversity ? diversityIndex : null,
@@ -164,12 +175,32 @@ class EmojiRegistry {
   }
 
   static List<EmojiEntry> search(String query) {
-    if (query.isEmpty) {
-      return [];
+    final q = normalizeEmojiSearchQuery(query);
+    if (q.isEmpty) {
+      return <EmojiEntry>[];
     }
-    final q = query.toLowerCase();
-    return allEmojis
-        .where((e) => e.namesLower.any((n) => n.contains(q)))
-        .toList();
+    final entries = allEmojis;
+    final ranked = <({EmojiEntry entry, int tier, int order})>[];
+    for (var i = 0; i < entries.length; i++) {
+      final e = entries[i];
+      final tier = emojiMatchTier(
+        names: e.names,
+        namesLower: e.namesLower,
+        keywordsLower: e.keywordsLower,
+        query: q,
+      );
+      if (tier == null) {
+        continue;
+      }
+      ranked.add((entry: e, tier: tier, order: i));
+    }
+    ranked.sort((a, b) {
+      if (a.tier != b.tier) {
+        return a.tier - b.tier;
+      }
+      final int byName = a.entry.primaryName.compareTo(b.entry.primaryName);
+      return byName != 0 ? byName : a.order - b.order;
+    });
+    return ranked.map((r) => r.entry).toList(growable: false);
   }
 }

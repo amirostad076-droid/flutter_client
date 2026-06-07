@@ -83,6 +83,14 @@ class EmojiUsageDao extends DatabaseAccessor<FluxerDatabase>
     return result.take(limit).toList();
   }
 
+  /// Returns the frecency score for every tracked emoji keyed by its usage key
+  /// (`unicode:<name>` / `custom:<guildId>:<id>`). Used to rank autocomplete
+  /// results without per-key queries.
+  Future<Map<String, double>> getFrecencyScores() async {
+    final all = await select(emojiUsage).get();
+    return {for (final usage in all) usage.key: _score(usage)};
+  }
+
   double _score(EmojiUsageData usage) {
     final hours = DateTime.now().difference(usage.lastUsed).inHours;
     final decay = max<double>(0, 1.0 - hours / _kDecayHours);
