@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_textarea.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/inline_expression_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/neko_sprite.dart';
@@ -26,9 +25,7 @@ void listenChatViewModelErrors(WidgetRef ref) {
       }
       ref
           .read(toastProvider.notifier)
-          .show(
-            FluxerToast(message: next, variant: FluxerToastVariant.danger),
-          );
+          .show(FluxerToast(message: next, variant: FluxerToastVariant.danger));
       ref.read(chatViewModelProvider.notifier).clearErrorMessage();
     },
   );
@@ -37,8 +34,6 @@ void listenChatViewModelErrors(WidgetRef ref) {
 /// Shared message list, composer, and overlay chrome for channel chat surfaces.
 class ChannelChatPanel extends ConsumerWidget {
   const ChannelChatPanel({
-    required this.composerAutocompletePanelHost,
-    required this.composerAutocompletePanelScrollController,
     this.displayChannelId,
     this.targetMessageId,
     this.loadMessages = true,
@@ -47,8 +42,6 @@ class ChannelChatPanel extends ConsumerWidget {
     super.key,
   });
 
-  final ComposerAutocompletePanelHost composerAutocompletePanelHost;
-  final ScrollController composerAutocompletePanelScrollController;
   final String? displayChannelId;
   final String? targetMessageId;
   final bool loadMessages;
@@ -119,7 +112,9 @@ class ChannelChatPanel extends ConsumerWidget {
                                   child: Material(
                                     color: context.colors.backgroundPrimary,
                                     shape: const CircleBorder(),
-                                    child: FluxerSheetCloseButton(onTap: onClose!),
+                                    child: FluxerSheetCloseButton(
+                                      onTap: onClose!,
+                                    ),
                                   ),
                                 ),
                               if (showNeko) const NekoSprite(),
@@ -129,24 +124,10 @@ class ChannelChatPanel extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: ComposerAutocompletePanelStrip(
-                        host: composerAutocompletePanelHost,
-                        scrollController:
-                            composerAutocompletePanelScrollController,
-                      ),
-                    ),
                   ],
                 ),
               ),
-              ChannelTextarea(
-                autocompletePanelHost: composerAutocompletePanelHost,
-                autocompletePanelScrollController:
-                    composerAutocompletePanelScrollController,
-              ),
+              const ChannelTextarea(),
               if (isMobile && isPanelOpen)
                 const SizedBox(height: kCollapsedPanelHeight),
             ],

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_header.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/voice/direct_voice_session_strip.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/voice/dm_embedded_voice_call_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/upload_drop_overlay.dart';
@@ -39,17 +38,6 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
   ({String channelId, String? targetMessageId, bool loadMessages})?
   _lastSwitchRequest;
   ({String channelId, String? targetMessageId})? _lastClosedPanelRequest;
-
-  final ComposerAutocompletePanelHost _composerAutocompletePanelHost =
-      ComposerAutocompletePanelHost(null);
-  final ScrollController _composerAutocompletePanelScroll = ScrollController();
-
-  @override
-  void dispose() {
-    _composerAutocompletePanelScroll.dispose();
-    _composerAutocompletePanelHost.dispose();
-    super.dispose();
-  }
 
   @override
   void didUpdateWidget(ChannelChatContent oldWidget) {
@@ -132,9 +120,6 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
                   targetMessageId: widget.targetMessageId,
                   loadMessages: shouldLoadMessages,
                   showInlineEmojiPicker: widget.showInlineEmojiPicker,
-                  composerAutocompletePanelHost: _composerAutocompletePanelHost,
-                  composerAutocompletePanelScrollController:
-                      _composerAutocompletePanelScroll,
                 ),
               ),
             ],

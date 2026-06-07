@@ -4,11 +4,11 @@ import 'dart:math' show max;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
-import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/chat/service/composer_autocomplete_trigger.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/domain/guild_asset_mode.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/fluxer_tag_change_sheet.dart';
@@ -16,7 +16,6 @@ import 'package:fluxer_app/features/settings/presentation/widgets/image_crop_she
 import 'package:fluxer_app/features/settings/presentation/widgets/profile_preview_card.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxer_app/features/ui/input/emoji_autocomplete_overlay.dart';
 import 'package:fluxer_app/features/ui/input/emoji_text_editing_controller.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -47,7 +46,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   final _expressionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
 
   bool _controllersInitialized = false;
-  List<GuildEmojiEntry> _customEmojis = const [];
+  final FocusNode _bioFocusNode = FocusNode();
+  final GlobalKey<ComposerAutocompleteFieldState> _bioFieldKey =
+      GlobalKey<ComposerAutocompleteFieldState>();
 
   @override
   void initState() {
@@ -58,6 +59,8 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     _nickController = TextEditingController();
     _guildPronounsController = TextEditingController();
     _guildBioController = EmojiTextEditingController();
+    _bioFocusNode.onKeyEvent = (FocusNode node, KeyEvent event) =>
+        handleComposerAutocompleteKey(_bioFieldKey.currentState, event);
   }
 
   @override
@@ -68,6 +71,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     _nickController.dispose();
     _guildPronounsController.dispose();
     _guildBioController.dispose();
+    _bioFocusNode.dispose();
     super.dispose();
   }
 
@@ -75,19 +79,6 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     if (!_controllersInitialized && state.isProfileLoaded) {
       _resetControllers(state);
       _controllersInitialized = true;
-      unawaited(_loadCustomEmojis());
-    }
-  }
-
-  Future<void> _loadCustomEmojis() async {
-    final db = ref.read(fluxerDatabaseProvider);
-    final rows = await db.guildEmojiDao.getAll();
-    if (mounted) {
-      setState(() {
-        _customEmojis = rows
-            .map(GuildEmojiEntry.fromRow)
-            .toList(growable: false);
-      });
     }
   }
 
@@ -803,11 +794,15 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         ? () => vm.updateGuildBio(controller.actualText)
         : () => vm.updateBio(controller.actualText);
 
-    return EmojiAutocompleteOverlay(
+    return ComposerAutocompleteField(
+      key: _bioFieldKey,
       controller: controller,
+      focusNode: _bioFocusNode,
+      allowedTriggers: const <ComposerAutocompleteTriggerKind>{
+        ComposerAutocompleteTriggerKind.emoji,
+      },
       maxActualLength: _kMaxBioLength,
-      customEmojis: _customEmojis,
-      onEmojiInserted: onChanged,
+      onApplied: onChanged,
       child: ListenableBuilder(
         listenable: controller,
         builder: (context, _) {
@@ -819,6 +814,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           );
           return FluxerInput.multiline(
             controller: controller,
+            focusNode: _bioFocusNode,
             label: l10n.aboutMeLabel,
             maxLength: bioDisplayMaxLength,
             maxLines: 6,

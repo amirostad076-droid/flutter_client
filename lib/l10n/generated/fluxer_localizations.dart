@@ -1690,6 +1690,12 @@ abstract class FluxerLocalizations {
   /// **'No emojis match your search'**
   String get emojiSearchEmpty;
 
+  /// Short right-side label in the chat composer emoji autocomplete shown for built-in (unicode) emoji; custom emoji show their guild name instead. Keep it concise.
+  ///
+  /// In en, this message translates to:
+  /// **'Default emoji'**
+  String get emojiAutocompleteDefaultLabel;
+
   /// Frequently used emojis section.
   ///
   /// In en, this message translates to:

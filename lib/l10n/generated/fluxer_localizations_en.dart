@@ -889,6 +889,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get emojiSearchEmpty => 'No emojis match your search';
 
   @override
+  String get emojiAutocompleteDefaultLabel => 'Default emoji';
+
+  @override
   String get emojiFrequentlyUsed => 'Frequently Used';
 
   @override

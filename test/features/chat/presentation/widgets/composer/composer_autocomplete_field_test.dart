@@ -1,0 +1,185 @@
+import 'package:drift/native.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_theme.dart';
+import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/chat/service/composer_autocomplete_trigger.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/ui/input/emoji_text_editing_controller.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/utils/emoji_registry.dart';
+
+class _FakeGuilds extends GuildListViewModel {
+  _FakeGuilds(this._guilds);
+
+  final List<Guild> _guilds;
+
+  @override
+  GuildListViewState build() => GuildListViewState(guilds: _guilds);
+}
+
+/// Pumps an emoji-only [ComposerAutocompleteField] in bio configuration
+/// (no channel, emoji trigger only) wrapping a plain `TextField`.
+Future<EmojiTextEditingController> _pumpBioField(
+  WidgetTester tester, {
+  required FluxerDatabase db,
+  List<GuildEmojiEntry> custom = const <GuildEmojiEntry>[],
+  VoidCallback? onApplied,
+}) async {
+  final controller = EmojiTextEditingController();
+  addTearDown(controller.dispose);
+  final focusNode = FocusNode();
+  addTearDown(focusNode.dispose);
+  final colorTheme = buildDarkColorTheme();
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        fluxerDatabaseProvider.overrideWithValue(db),
+        activeGuildIdProvider.overrideWith((ref) => null),
+        guildListViewModelProvider.overrideWith(
+          () => _FakeGuilds(const <Guild>[
+            Guild(id: 'g1', name: 'Linux Hub', ownerId: 'owner'),
+          ]),
+        ),
+        allGuildEmojisForPickerProvider.overrideWith(
+          (ref) => Stream<List<GuildEmojiEntry>>.value(custom),
+        ),
+      ],
+      child: MaterialApp(
+        localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+        supportedLocales: FluxerLocalizations.supportedLocales,
+        theme: buildFluxerTheme(
+          colorTheme: colorTheme,
+          textTheme: FluxerTextTheme.fromColors(colorTheme),
+          layoutTheme: FluxerLayoutTheme.scaled(),
+        ),
+        home: Scaffold(
+          body: ComposerAutocompleteField(
+            controller: controller,
+            focusNode: focusNode,
+            allowedTriggers: const <ComposerAutocompleteTriggerKind>{
+              ComposerAutocompleteTriggerKind.emoji,
+            },
+            maxActualLength: 320,
+            onApplied: onApplied,
+            child: TextField(controller: controller, focusNode: focusNode),
+          ),
+        ),
+      ),
+    ),
+  );
+  return controller;
+}
+
+/// Lets the typing debounce, the custom-emoji stream `.future`, and the
+/// open/close fade settle without `pumpAndSettle` (custom-emoji network images
+/// never settle).
+Future<void> _settleAutocomplete(WidgetTester tester) async {
+  await tester.pump(const Duration(milliseconds: 350));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 150));
+}
+
+ComposerAutocompleteFieldState _fieldState(WidgetTester tester) =>
+    tester.state<ComposerAutocompleteFieldState>(
+      find.byType(ComposerAutocompleteField),
+    );
+
+void main() {
+  setUpAll(() async {
+    await EmojiRegistry.preload();
+  });
+
+  testWidgets('bio emoji autocomplete interleaves a custom emoji and labels '
+      'its guild', (tester) async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    await _pumpBioField(
+      tester,
+      db: db,
+      custom: <GuildEmojiEntry>[
+        GuildEmojiEntry(
+          id: 'e1',
+          name: 'smile',
+          animated: false,
+          guildId: 'g1',
+        ),
+      ],
+    );
+
+    await tester.enterText(find.byType(TextField), ':smile');
+    await _settleAutocomplete(tester);
+
+    // The custom ":smile:" (an exact match) is ranked in and labelled with its
+    // guild, alongside the unicode ":smile:".
+    expect(find.text('Linux Hub'), findsOneWidget);
+    expect(find.text(':smile:'), findsWidgets);
+  });
+
+  testWidgets('selecting a suggestion inserts it and closes the menu', (
+    tester,
+  ) async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    var applied = 0;
+
+    final controller = await _pumpBioField(
+      tester,
+      db: db,
+      custom: <GuildEmojiEntry>[
+        GuildEmojiEntry(
+          id: 'e1',
+          name: 'smile',
+          animated: false,
+          guildId: 'g1',
+        ),
+      ],
+      onApplied: () => applied++,
+    );
+
+    await tester.enterText(find.byType(TextField), ':smile');
+    await _settleAutocomplete(tester);
+
+    final state = _fieldState(tester);
+    expect(state.hasOpenMenu, isTrue);
+
+    state
+      ..moveSelection(1)
+      ..applyCurrentSelection();
+    await tester.pump();
+
+    // The trigger text is replaced by an inline emoji chip, the menu closes,
+    // and onApplied fires.
+    expect(state.hasOpenMenu, isFalse);
+    expect(controller.text.contains(':smile'), isFalse);
+    expect(controller.actualText.contains('smile'), isTrue);
+    expect(applied, 1);
+  });
+
+  testWidgets('disallowed triggers produce no menu', (tester) async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    await _pumpBioField(tester, db: db);
+
+    // An emoji-only field ignores @mention and #channel triggers entirely.
+    await tester.enterText(find.byType(TextField), '@everyone');
+    await _settleAutocomplete(tester);
+    expect(_fieldState(tester).hasOpenMenu, isFalse);
+
+    await tester.enterText(find.byType(TextField), '#general');
+    await _settleAutocomplete(tester);
+    expect(_fieldState(tester).hasOpenMenu, isFalse);
+  });
+}

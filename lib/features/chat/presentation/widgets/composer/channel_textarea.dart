@@ -13,7 +13,7 @@ import 'package:fluxer_app/features/chat/domain/cloud_composer_attachments.dart'
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_attachment_area.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_composer_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_recorder.dart';
@@ -60,14 +60,7 @@ const double _kMobileComposerSuffixHeight =
 
 /// The chat input bar at the bottom of the chat area.
 class ChannelTextarea extends ConsumerStatefulWidget {
-  const ChannelTextarea({
-    required this.autocompletePanelHost,
-    required this.autocompletePanelScrollController,
-    super.key,
-  });
-
-  final ComposerAutocompletePanelHost autocompletePanelHost;
-  final ScrollController autocompletePanelScrollController;
+  const ChannelTextarea({super.key});
 
   @override
   ConsumerState<ChannelTextarea> createState() => _ChannelTextareaState();
@@ -76,10 +69,8 @@ class ChannelTextarea extends ConsumerStatefulWidget {
 class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   late final ComposerMentionController _controller;
   final _focusNode = FocusNode();
-  final GlobalKey<ComposerAutocompleteChatFieldState> _composerFieldKey =
-      GlobalKey<ComposerAutocompleteChatFieldState>();
-  final ComposerAutocompleteMenuNotifier _composerMenuOpen =
-      ComposerAutocompleteMenuNotifier(false);
+  final GlobalKey<ComposerAutocompleteFieldState> _composerFieldKey =
+      GlobalKey<ComposerAutocompleteFieldState>();
   final _expressionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _gifPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _mediaPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
@@ -102,7 +93,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   @override
   void dispose() {
-    _composerMenuOpen.dispose();
     _focusNode
       ..unfocus()
       ..dispose();
@@ -118,33 +108,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
     }
-    final ComposerAutocompleteChatFieldState? composer =
-        _composerFieldKey.currentState;
-    final bool menuOpen = composer?.hasOpenMenu ?? false;
-    if (menuOpen) {
-      if (event.logicalKey == LogicalKeyboardKey.escape) {
-        composer?.closeAutocompleteMenu();
-        return KeyEventResult.handled;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-        composer?.moveSelection(1);
-        return KeyEventResult.handled;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-        composer?.moveSelection(-1);
-        return KeyEventResult.handled;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.tab) {
-        composer?.applyCurrentSelection();
-        return KeyEventResult.handled;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.enter) {
-        if (HardwareKeyboard.instance.isShiftPressed) {
-          return KeyEventResult.ignored;
-        }
-        composer?.applyCurrentSelection();
-        return KeyEventResult.handled;
-      }
+    final KeyEventResult navResult = handleComposerAutocompleteKey(
+      _composerFieldKey.currentState,
+      event,
+    );
+    if (navResult == KeyEventResult.handled) {
+      return navResult;
     }
     if (event.logicalKey == LogicalKeyboardKey.keyV &&
         (HardwareKeyboard.instance.isMetaPressed ||
@@ -259,25 +228,27 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        ComposerAutocompleteChatField(
+        ComposerAutocompleteField(
           key: _composerFieldKey,
           controller: _controller,
           focusNode: _focusNode,
           channelId: channelId,
           enabled: perms.isComposerEnabled,
-          style: context.textStyles.inputText,
-          minLines: minLines,
-          maxLines: maxLines,
-          menuOpenListenable: _composerMenuOpen,
-          panelHost: widget.autocompletePanelHost,
-          panelScrollController: widget.autocompletePanelScrollController,
-          textAlignVertical: textAlignVertical,
-          inputFormatters: _messageLengthInputFormatters(
-            maxMessageLength: maxMessageLength,
-            perms: perms,
-            channelId: channelId,
+          child: TextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            enabled: perms.isComposerEnabled,
+            style: context.textStyles.inputText,
+            minLines: minLines,
+            maxLines: maxLines,
+            decoration: effectiveDecoration,
+            textAlignVertical: textAlignVertical,
+            inputFormatters: _messageLengthInputFormatters(
+              maxMessageLength: maxMessageLength,
+              perms: perms,
+              channelId: channelId,
+            ),
           ),
-          decoration: effectiveDecoration,
         ),
         Positioned(
           right: 8,

@@ -8,7 +8,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/picker_search_input.dart';
@@ -140,17 +140,16 @@ class _ForwardMessageSheetBodyState
 
   late final ComposerMentionController _commentController;
   final FocusNode _commentFocus = FocusNode();
-  final ComposerAutocompleteMenuNotifier _commentMenuOpen =
-      ComposerAutocompleteMenuNotifier(false);
-  final ComposerAutocompletePanelHost _commentPanelHost =
-      ComposerAutocompletePanelHost(null);
-  final ScrollController _commentPanelScroll = ScrollController();
+  final GlobalKey<ComposerAutocompleteFieldState> _commentFieldKey =
+      GlobalKey<ComposerAutocompleteFieldState>();
   Timer? _slowmodeTicker;
 
   @override
   void initState() {
     super.initState();
     _commentController = ComposerMentionController(ref: ref);
+    _commentFocus.onKeyEvent = (FocusNode node, KeyEvent event) =>
+        handleComposerAutocompleteKey(_commentFieldKey.currentState, event);
     _searchController.addListener(_onSearchChanged);
     _commentController.addListener(_onCommentChanged);
   }
@@ -164,9 +163,6 @@ class _ForwardMessageSheetBodyState
       ..removeListener(_onCommentChanged)
       ..dispose();
     _commentFocus.dispose();
-    _commentMenuOpen.dispose();
-    _commentPanelHost.dispose();
-    _commentPanelScroll.dispose();
     _slowmodeTicker?.cancel();
     super.dispose();
   }
@@ -458,10 +454,6 @@ class _ForwardMessageSheetBodyState
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ComposerAutocompletePanelStrip(
-          host: _commentPanelHost,
-          scrollController: _commentPanelScroll,
-        ),
         FluxerBottomSheetFooter(
           showTopBorder: true,
           child: Column(
@@ -528,49 +520,52 @@ class _ForwardMessageSheetBodyState
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colors.backgroundHeaderSecondary),
       ),
-      child: ComposerAutocompleteChatField(
+      child: ComposerAutocompleteField(
+        key: _commentFieldKey,
         controller: _commentController,
         focusNode: _commentFocus,
         channelId: widget.sourceChannelId,
         enabled: !commentDisabled,
-        style: context.textStyles.inputText,
-        minLines: 1,
-        maxLines: 4,
-        menuOpenListenable: _commentMenuOpen,
-        panelHost: _commentPanelHost,
-        panelScrollController: _commentPanelScroll,
-        inputFormatters: <TextInputFormatter>[
-          LengthLimitingTextInputFormatter(maxMessageLength),
-        ],
-        decoration: InputDecoration(
-          isDense: true,
-          border: InputBorder.none,
-          hintText: l10n.forwardCommentHint,
-          hintStyle: context.textStyles.inputHint,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 12,
-          ),
-          suffixIcon: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: commentDisabled ? null : _openCommentEmojiPicker,
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: Center(
-                child: PhosphorIcon(
-                  PhosphorIconsFill.smiley,
-                  size: 22,
-                  color: commentDisabled
-                      ? colors.textTertiaryMuted
-                      : colors.textTertiary,
+        child: TextField(
+          controller: _commentController,
+          focusNode: _commentFocus,
+          enabled: !commentDisabled,
+          style: context.textStyles.inputText,
+          minLines: 1,
+          maxLines: 4,
+          inputFormatters: <TextInputFormatter>[
+            LengthLimitingTextInputFormatter(maxMessageLength),
+          ],
+          decoration: InputDecoration(
+            isDense: true,
+            border: InputBorder.none,
+            hintText: l10n.forwardCommentHint,
+            hintStyle: context.textStyles.inputHint,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
+            suffixIcon: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: commentDisabled ? null : _openCommentEmojiPicker,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(
+                  child: PhosphorIcon(
+                    PhosphorIconsFill.smiley,
+                    size: 22,
+                    color: commentDisabled
+                        ? colors.textTertiaryMuted
+                        : colors.textTertiary,
+                  ),
                 ),
               ),
             ),
-          ),
-          suffixIconConstraints: const BoxConstraints(
-            minWidth: 40,
-            minHeight: 40,
+            suffixIconConstraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
           ),
         ),
       ),

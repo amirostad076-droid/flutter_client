@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/router/shell_popup_overlay_sync.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_panel.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/upload_drop_overlay.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
@@ -21,8 +20,9 @@ Future<void> showVoiceChannelChatSheet(
   bool useRootNavigator = false,
 }) {
   final ProviderContainer container = ProviderScope.containerOf(context);
-  final String previousChannelId =
-      container.read(chatViewModelProvider).channelId;
+  final String previousChannelId = container
+      .read(chatViewModelProvider)
+      .channelId;
   return FluxerBottomSheet.show<void>(
     context,
     title: channelName,
@@ -31,18 +31,16 @@ Future<void> showVoiceChannelChatSheet(
     builder: (BuildContext sheetContext, VoidCallback close) {
       return SizedBox(
         width: double.infinity,
-        child: _VoiceChannelChatSheetBody(
-          channelId: channelId,
-          onClose: close,
-        ),
+        child: _VoiceChannelChatSheetBody(channelId: channelId, onClose: close),
       );
     },
   ).whenComplete(() {
     Future<void>.microtask(() {
       final String? routeChannelId = container.read(activeChannelIdProvider);
       final String resumeChannelId = routeChannelId ?? previousChannelId;
-      final String activeChatChannelId =
-          container.read(chatViewModelProvider).channelId;
+      final String activeChatChannelId = container
+          .read(chatViewModelProvider)
+          .channelId;
       if (resumeChannelId.isNotEmpty &&
           activeChatChannelId != resumeChannelId) {
         unawaited(
@@ -74,9 +72,6 @@ class _VoiceChannelChatSheetBody extends ConsumerStatefulWidget {
 
 class _VoiceChannelChatSheetBodyState
     extends ConsumerState<_VoiceChannelChatSheetBody> {
-  final ComposerAutocompletePanelHost _composerAutocompletePanelHost =
-      ComposerAutocompletePanelHost(null);
-  final ScrollController _composerAutocompletePanelScroll = ScrollController();
   bool _didSwitchChannel = false;
   late final ExpressionPanel _expressionPanelNotifier;
   late final String _backgroundChannelId;
@@ -100,7 +95,9 @@ class _VoiceChannelChatSheetBodyState
     if (resumeChannelId.isEmpty) {
       return;
     }
-    final String activeChatChannelId = ref.read(chatViewModelProvider).channelId;
+    final String activeChatChannelId = ref
+        .read(chatViewModelProvider)
+        .channelId;
     if (activeChatChannelId == resumeChannelId) {
       return;
     }
@@ -127,13 +124,6 @@ class _VoiceChannelChatSheetBodyState
   }
 
   @override
-  void dispose() {
-    _composerAutocompletePanelScroll.dispose();
-    _composerAutocompletePanelHost.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     listenChatViewModelErrors(ref);
     return UploadDropOverlay(
@@ -142,9 +132,6 @@ class _VoiceChannelChatSheetBodyState
         loadMessages: true,
         showInlineEmojiPicker: true,
         onClose: _handleClose,
-        composerAutocompletePanelHost: _composerAutocompletePanelHost,
-        composerAutocompletePanelScrollController:
-            _composerAutocompletePanelScroll,
       ),
     );
   }

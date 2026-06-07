@@ -14,8 +14,9 @@ import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_length_limits_provider.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
@@ -155,6 +156,9 @@ Widget _app(
   return ProviderScope(
     overrides: <Override>[
       fluxerDatabaseProvider.overrideWithValue(db),
+      allGuildEmojisForPickerProvider.overrideWith(
+        (ref) => Stream<List<GuildEmojiEntry>>.value(const []),
+      ),
       allChannelsProvider.overrideWith(
         (ref) => Stream<List<Channel>>.value(_seededChannels),
       ),
@@ -372,7 +376,7 @@ void main() {
       expect(smiley, findsOneWidget);
       expect(
         find.descendant(
-          of: find.byType(ComposerAutocompleteChatField),
+          of: find.byType(ComposerAutocompleteField),
           matching: smiley,
         ),
         findsOneWidget,

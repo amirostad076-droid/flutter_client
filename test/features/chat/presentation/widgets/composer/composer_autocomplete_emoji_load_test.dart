@@ -1,92 +1,94 @@
 import 'dart:async';
 
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
-import 'package:fluxer_app/features/channels/domain/channel.dart';
-import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_chat_field.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
+import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:riverpod/src/framework.dart' show Override;
+import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 
 const String _channelId = 'general';
 const String _guildId = 'guild_1';
 
-class _FakeChannelList extends ChannelListViewModel {
+class _FakeGuilds extends GuildListViewModel {
+  _FakeGuilds(this._guilds);
+
+  final List<Guild> _guilds;
+
   @override
-  ChannelListState build() => const ChannelListState(
-    guild: null,
-    categories: <ChannelCategory>[
-      ChannelCategory(
-        id: 'cat',
-        name: 'cat',
-        channels: <Channel>[
-          Channel(id: _channelId, guildId: _guildId, name: 'general'),
-        ],
-      ),
-    ],
-    selectedChannelId: null,
-    collapsedCategories: <String>{},
+  GuildListViewState build() => GuildListViewState(guilds: _guilds);
+}
+
+Widget _app(Widget child) {
+  final colorTheme = buildDarkColorTheme();
+  return MaterialApp(
+    localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+    supportedLocales: FluxerLocalizations.supportedLocales,
+    theme: buildFluxerTheme(
+      colorTheme: colorTheme,
+      textTheme: FluxerTextTheme.fromColors(colorTheme),
+      layoutTheme: FluxerLayoutTheme.scaled(),
+    ),
+    home: Scaffold(body: child),
   );
 }
 
-List<String> _rowTitles(ComposerAutocompletePanelHost host) =>
-    host.value?.rows
-        .map((ComposerAutocompletePanelRow r) => r.title)
-        .toList() ??
-    <String>[];
-
 void main() {
+  setUpAll(() async {
+    await EmojiRegistry.preload();
+  });
+
   testWidgets(
     'custom guild emoji surface in colon autocomplete once their stream loads',
     (tester) async {
-      final StreamController<List<GuildEmojiEntry>> emojis =
-          StreamController<List<GuildEmojiEntry>>();
+      final emojis = StreamController<List<GuildEmojiEntry>>();
       addTearDown(emojis.close);
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final textController = TextEditingController();
+      addTearDown(textController.dispose);
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
 
-      final TextEditingController textController = TextEditingController();
-      final FocusNode focusNode = FocusNode();
-      final ComposerAutocompletePanelHost panelHost =
-          ComposerAutocompletePanelHost(null);
-      final ComposerAutocompleteMenuNotifier menuOpen =
-          ComposerAutocompleteMenuNotifier(false);
-      final ScrollController panelScroll = ScrollController();
-
-      final colorTheme = buildDarkColorTheme();
       await tester.pumpWidget(
         ProviderScope(
-          overrides: <Override>[
-            channelListViewModelProvider.overrideWith(_FakeChannelList.new),
-            guildEmojisForPickerProvider(
-              _guildId,
-            ).overrideWith((ref) => emojis.stream),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: FluxerLocalizations.localizationsDelegates,
-            supportedLocales: FluxerLocalizations.supportedLocales,
-            theme: buildFluxerTheme(
-              colorTheme: colorTheme,
-              textTheme: FluxerTextTheme.fromColors(colorTheme),
-              layoutTheme: FluxerLayoutTheme.scaled(),
+          overrides: [
+            fluxerDatabaseProvider.overrideWithValue(db),
+            activeGuildIdProvider.overrideWith((ref) => _guildId),
+            guildListViewModelProvider.overrideWith(
+              () => _FakeGuilds(const <Guild>[
+                Guild(id: _guildId, name: 'Guild One', ownerId: 'owner'),
+              ]),
             ),
-            home: Scaffold(
-              body: ComposerAutocompleteChatField(
+            allGuildEmojisForPickerProvider.overrideWith(
+              (ref) => emojis.stream,
+            ),
+            channelMessagePermissionsProvider(_channelId).overrideWith(
+              (ref) => Future<ChannelMessagePermissions>.value(
+                ChannelMessagePermissions.all,
+              ),
+            ),
+          ],
+          child: _app(
+            ComposerAutocompleteField(
+              controller: textController,
+              focusNode: focusNode,
+              channelId: _channelId,
+              child: TextField(
                 controller: textController,
                 focusNode: focusNode,
-                channelId: _channelId,
-                decoration: const InputDecoration(),
-                style: const TextStyle(),
-                minLines: 1,
-                maxLines: 6,
-                enabled: true,
-                menuOpenListenable: menuOpen,
-                panelHost: panelHost,
-                panelScrollController: panelScroll,
               ),
             ),
           ),
@@ -101,9 +103,10 @@ void main() {
       // Past the typing debounce; the stream is still pending so no custom
       // emoji can be listed yet.
       await tester.pump(const Duration(milliseconds: 350));
-      expect(_rowTitles(panelHost), isNot(contains(':partyblob:')));
+      expect(find.text(':partyblob:'), findsNothing);
 
-      // The guild's custom emoji resolve after the trigger already fired.
+      // The guild's custom emoji resolve after the trigger already fired; the
+      // warm-emoji listener reschedules the search.
       emojis.add(<GuildEmojiEntry>[
         GuildEmojiEntry(
           id: 'e1',
@@ -113,16 +116,10 @@ void main() {
         ),
       ]);
       await tester.pump();
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 150));
 
-      final ComposerAutocompletePanelSnapshot? snapshot = panelHost.value;
-      expect(snapshot, isNotNull);
-      final ComposerAutocompletePanelRow row = snapshot!.rows.firstWhere(
-        (ComposerAutocompletePanelRow r) => r.title == ':partyblob:',
-        orElse: () => throw StateError('custom emoji row missing'),
-      );
-      expect(row.emojiImageUrl, isNotNull);
-      expect(row.emojiSurrogates, isNull);
+      expect(find.text(':partyblob:'), findsWidgets);
     },
   );
 }
