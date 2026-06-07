@@ -88,7 +88,7 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     let userInfo = notification.request.content.userInfo
     emitPushMessage(
       userInfo: userInfo,
-      messageId: Self.resolveNotificationIdentifier(from: userInfo)
+      messageId: PushNotificationPayload.resolveNotificationIdentifier(from: userInfo)
     )
     completionHandler([])
     presentLocalNotificationReplacingRemoteDuplicate(
@@ -141,7 +141,7 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     userInfo: [AnyHashable: Any],
     sourceContent: UNNotificationContent? = nil
   ) {
-    let identifier = Self.resolveNotificationIdentifier(from: userInfo)
+    let identifier = PushNotificationPayload.resolveNotificationIdentifier(from: userInfo)
     UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
       var attachments = sourceContent?.attachments ?? []
       let remoteDuplicateIds = notifications.compactMap { notification -> String? in
@@ -150,12 +150,12 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
           return nil
         }
         let deliveredUserInfo = notification.request.content.userInfo
-        if let deliveredMessageId = Self.resolveMessageId(from: deliveredUserInfo),
+        if let deliveredMessageId = PushNotificationPayload.resolveMessageId(from: deliveredUserInfo),
           deliveredMessageId == requestId
         {
           return nil
         }
-        if Self.resolveMessageId(from: deliveredUserInfo) == identifier {
+        if PushNotificationPayload.resolveMessageId(from: deliveredUserInfo) == identifier {
           if attachments.isEmpty {
             attachments = notification.request.content.attachments
           }
@@ -190,7 +190,7 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     if !attachments.isEmpty {
       content.attachments = attachments
     }
-    if let threadId = PushNotificationPayload.resolveThreadIdentifier(from: userInfo) {
+    if let threadId = PushNotificationPayload.resolveChannelThreadIdentifier(from: userInfo) {
       content.threadIdentifier = threadId
     }
     let request = UNNotificationRequest(
@@ -210,7 +210,7 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     var notification: [String: Any] = [:]
     notification["title"] = display.title
     notification["body"] = display.body
-    let id = messageId ?? resolveNotificationIdentifier(from: userInfo)
+    let id = messageId ?? PushNotificationPayload.resolveNotificationIdentifier(from: userInfo)
     return [
       "messageId": id,
       "notification": notification,
@@ -256,30 +256,6 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
       title: title ?? defaultNotificationTitle,
       body: body ?? defaultNotificationBody
     )
-  }
-
-  private static func resolveNotificationIdentifier(from userInfo: [AnyHashable: Any]) -> String {
-    resolveMessageId(from: userInfo) ?? UUID().uuidString
-  }
-
-  private static func resolveMessageId(from userInfo: [AnyHashable: Any]) -> String? {
-    if let messageId = userInfo["message_id"] as? String, !messageId.isEmpty {
-      return messageId
-    }
-    if let data = userInfo["data"] as? [String: Any] {
-      if let messageId = data["message_id"] as? String, !messageId.isEmpty {
-        return messageId
-      }
-    }
-    if let id = userInfo["id"] as? String, !id.isEmpty {
-      return id
-    }
-    if let data = userInfo["data"] as? [String: Any],
-      let id = data["id"] as? String, !id.isEmpty
-    {
-      return id
-    }
-    return nil
   }
 
   private static func userInfoDictionary(_ userInfo: [AnyHashable: Any]) -> [AnyHashable: Any] {

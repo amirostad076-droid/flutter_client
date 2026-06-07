@@ -21,6 +21,7 @@
 		FB0ADAC52F5C91D70078A4D4 /* ApplePushBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0ADAC42F5C91D70078A4D4 /* ApplePushBridge.swift */; };
 		FB0ADAC62F5C91D80078A4D4 /* PushNotificationPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0ADAC82F5C91D80078A4D4 /* PushNotificationPayload.swift */; };
 		FB0ADAC72F5C91D80078A4D5 /* PushNotificationPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0ADAC82F5C91D80078A4D4 /* PushNotificationPayload.swift */; };
+		FB0ADAC92F5C91D80078A4D6 /* PushNotificationPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0ADAC82F5C91D80078A4D4 /* PushNotificationPayload.swift */; };
 		FBA74A012F83B0FA00330527 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBA74A002F83B0FA00330527 /* ReplayKit.framework */; };
 		FBA74A082F83B0FA00330527 /* BroadcastExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FBA749FF2F83B0FA00330527 /* BroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FBA74A263F83B0FA00330527 /* Atomic.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA74A203F83B0FA00330527 /* Atomic.swift */; };
@@ -627,6 +628,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */,
+				FB0ADAC92F5C91D80078A4D6 /* PushNotificationPayload.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

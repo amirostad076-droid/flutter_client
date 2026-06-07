@@ -83,10 +83,7 @@ private extension NotificationService {
         to content: UNMutableNotificationContent,
         userInfo: [AnyHashable: Any]
     ) {
-        if !content.threadIdentifier.isEmpty {
-            return
-        }
-        if let threadId = PushNotificationPayload.resolveThreadIdentifier(from: userInfo) {
+        if let threadId = PushNotificationPayload.resolveChannelThreadIdentifier(from: userInfo) {
             content.threadIdentifier = threadId
         }
     }
