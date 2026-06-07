@@ -158,16 +158,16 @@ Future<MatureContentGateReason> matureContentGateReason(
   Ref ref,
   String channelId,
 ) async {
-  final ResolvedMatureGateContext? context = await ref.watch(
-    matureGateContextProvider(channelId).future,
-  );
-  if (context == null) {
-    return MatureContentGateReason.none;
-  }
   final SensitiveContentState settings = ref.watch(sensitiveContentProvider);
   final MatureContentAgreementsState agreements = ref.watch(
     matureContentAgreementsProvider,
   );
+  final ResolvedMatureGateContext? context = await ref.watch(
+    matureGateContextProvider(channelId).future,
+  );
+  if (!ref.mounted || context == null) {
+    return MatureContentGateReason.none;
+  }
   return resolveChannelGateReason(
     context: context,
     nsfwAllowed: settings.nsfwAllowed,
@@ -180,6 +180,9 @@ Future<bool> shouldShowMatureContentGate(Ref ref, String channelId) async {
   final MatureContentGateReason reason = await ref.watch(
     matureContentGateReasonProvider(channelId).future,
   );
+  if (!ref.mounted) {
+    return false;
+  }
   return reason != MatureContentGateReason.none;
 }
 
@@ -211,13 +214,29 @@ Future<MatureMediaPolicy> matureMediaPolicy(
   if (!request.isMatureMedia) {
     return MatureMediaPolicy.none;
   }
+  final SensitiveContentState settings = ref.watch(sensitiveContentProvider);
   final ClientSensitiveMediaFilterLevel filterLevel = await ref.watch(
     sensitiveMediaFilterForChannelProvider(request.channelId).future,
   );
+  if (!ref.mounted) {
+    return const MatureMediaPolicy(
+      shouldBlur: true,
+      shouldBlock: false,
+      canReveal: false,
+      gateReason: MatureContentGateReason.none,
+    );
+  }
   final ResolvedMatureGateContext? context = await ref.watch(
     matureGateContextProvider(request.channelId).future,
   );
-  final SensitiveContentState settings = ref.watch(sensitiveContentProvider);
+  if (!ref.mounted) {
+    return const MatureMediaPolicy(
+      shouldBlur: true,
+      shouldBlock: false,
+      canReveal: false,
+      gateReason: MatureContentGateReason.none,
+    );
+  }
   final MatureContentGateReason mediaGateReason = resolveMediaGateReason(
     nsfwAllowed: settings.nsfwAllowed,
     effectiveMatureContent: context?.effectiveMatureContent ?? false,
