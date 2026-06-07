@@ -157,11 +157,8 @@ class _MessageListState extends ConsumerState<MessageList> {
       _explicitPivotMessageId = widget.targetMessageId;
       _scrollAnchoredPivotMessageId = null;
     }
-    if (!state.hasMoreNewerMessages) {
-      _explicitPivotMessageId = null;
-      return;
-    }
-    if (widget.targetMessageId != null) {
+    if (widget.targetMessageId != null &&
+        state.messages.any((Message m) => m.id == widget.targetMessageId)) {
       _explicitPivotMessageId = widget.targetMessageId;
       return;
     }
@@ -169,6 +166,10 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (stickyUnreadId != null &&
         state.messages.any((Message m) => m.id == stickyUnreadId)) {
       _explicitPivotMessageId = stickyUnreadId;
+      return;
+    }
+    if (!state.hasMoreNewerMessages) {
+      _explicitPivotMessageId = null;
     }
   }
 
@@ -248,11 +249,16 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (!_scrollController.hasClients) {
       return;
     }
-    final bool isNearBottom = _isLiveNearBottom();
+    final ChatViewState state = ref.read(chatViewModelProvider);
+    final bool liveNearBottom = _isLiveNearBottom();
+    final bool hasStickyUnread = state.stickyUnreadMessageId != null;
+    final bool isNearBottom = hasStickyUnread && !liveNearBottom
+        ? false
+        : liveNearBottom;
     if (isNearBottom) {
       _scrollAnchoredPivotMessageId = null;
     } else {
-      final List<Message> messages = ref.read(chatViewModelProvider).messages;
+      final List<Message> messages = state.messages;
       if (messages.isNotEmpty) {
         _scrollAnchoredPivotMessageId ??= messages.last.id;
       }

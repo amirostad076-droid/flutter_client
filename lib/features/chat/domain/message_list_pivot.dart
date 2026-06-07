@@ -65,16 +65,16 @@ String? resolvePivotMessageId({
   if (messages.isEmpty) {
     return null;
   }
+  if (explicitPivotMessageId != null &&
+      messages.any((Message m) => m.id == explicitPivotMessageId)) {
+    return explicitPivotMessageId;
+  }
   if (!hasMoreNewerMessages) {
     if (scrollAnchoredPivotMessageId != null &&
         messages.any((Message m) => m.id == scrollAnchoredPivotMessageId)) {
       return scrollAnchoredPivotMessageId;
     }
     return null;
-  }
-  if (explicitPivotMessageId != null &&
-      messages.any((Message m) => m.id == explicitPivotMessageId)) {
-    return explicitPivotMessageId;
   }
   if (scrollAnchoredPivotMessageId != null &&
       messages.any((Message m) => m.id == scrollAnchoredPivotMessageId)) {

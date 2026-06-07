@@ -100,10 +100,20 @@ void main() {
   });
 
   group('resolvePivotMessageId', () {
-    test('returns null when viewing latest at bottom', () {
+    test('uses explicit pivot when viewing latest with sticky unread', () {
       final String? actual = resolvePivotMessageId(
         hasMoreNewerMessages: false,
         explicitPivotMessageId: idB,
+        scrollAnchoredPivotMessageId: null,
+        messages: [_message(idA), _message(idB)],
+      );
+      expect(actual, idB);
+    });
+
+    test('returns null when viewing latest at bottom without explicit pivot', () {
+      final String? actual = resolvePivotMessageId(
+        hasMoreNewerMessages: false,
+        explicitPivotMessageId: null,
         scrollAnchoredPivotMessageId: null,
         messages: [_message(idA), _message(idB)],
       );
