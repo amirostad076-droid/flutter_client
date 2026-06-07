@@ -691,6 +691,16 @@ class ChatViewModel extends _$ChatViewModel {
       hasMoreMessages: true,
       hasMoreNewerMessages: false,
     );
+    if (hasUnread) {
+      final String? aroundMessageId = await _unreadChannelLoadAnchor(channelId);
+      await _refreshMessagesFromNetwork(
+        channelId,
+        aroundMessageId: aroundMessageId,
+        showLoadingSpinner: true,
+        runOnMessagesLoaded: true,
+      );
+      return;
+    }
     await _refreshMessagesFromNetwork(channelId, showLoadingSpinner: true);
   }
 
@@ -705,10 +715,28 @@ class ChatViewModel extends _$ChatViewModel {
     );
   }
 
+  Future<String?> _unreadChannelLoadAnchor(String channelId) async {
+    final db.ReadState? readState = await ref
+        .read(fluxerDatabaseProvider)
+        .readStateDao
+        .getReadState(channelId);
+    final String? stickyId = readState?.stickyUnreadMessageId;
+    if (stickyId != null && stickyId.isNotEmpty) {
+      return stickyId;
+    }
+    final String? ackId = readState?.lastMessageId;
+    if (ackId != null && ackId.isNotEmpty) {
+      return ackId;
+    }
+    return null;
+  }
+
   Future<void> _refreshMessagesFromNetwork(
     String channelId, {
     String? targetMessageId,
+    String? aroundMessageId,
     bool showLoadingSpinner = false,
+    bool runOnMessagesLoaded = false,
   }) async {
     if (showLoadingSpinner) {
       state = state.copyWith(
@@ -721,7 +749,7 @@ class ChatViewModel extends _$ChatViewModel {
       final repo = ref.read(messageRepositoryProvider);
       final page = await repo.loadMessagePage(
         channelId: channelId,
-        around: targetMessageId,
+        around: targetMessageId ?? aroundMessageId,
       );
       if (state.channelId != channelId) {
         return;
@@ -750,7 +778,8 @@ class ChatViewModel extends _$ChatViewModel {
         messages: merged,
         embeddedReplyParents: page.embeddedReplyParents,
       );
-      if (targetMessageId == null) {
+      if (targetMessageId == null &&
+          (aroundMessageId == null || runOnMessagesLoaded)) {
         await _onMessagesLoaded(channelId);
       }
     } on Exception catch (e) {
@@ -1081,12 +1110,12 @@ class ChatViewModel extends _$ChatViewModel {
     }
 
     final oldestLoadedId = state.messages.first.id;
-    if (compareSnowflakeIds(oldestLoadedId, ackMessageId) <= 0) {
+    if (compareSnowflakeIds(ackMessageId, oldestLoadedId) <= 0) {
       return;
     }
 
     final latestLoadedId = state.messages.last.id;
-    if (compareSnowflakeIds(latestLoadedId, ackMessageId) <= 0) {
+    if (compareSnowflakeIds(ackMessageId, latestLoadedId) >= 0) {
       return;
     }
 

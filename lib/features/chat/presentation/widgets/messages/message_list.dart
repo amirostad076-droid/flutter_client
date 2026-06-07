@@ -163,6 +163,12 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     if (widget.targetMessageId != null) {
       _explicitPivotMessageId = widget.targetMessageId;
+      return;
+    }
+    final String? stickyUnreadId = state.stickyUnreadMessageId;
+    if (stickyUnreadId != null &&
+        state.messages.any((Message m) => m.id == stickyUnreadId)) {
+      _explicitPivotMessageId = stickyUnreadId;
     }
   }
 
@@ -342,6 +348,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onScrollToMessage(String messageId) {
+    _explicitPivotMessageId = messageId;
     _scrollToTarget(messageId);
   }
 

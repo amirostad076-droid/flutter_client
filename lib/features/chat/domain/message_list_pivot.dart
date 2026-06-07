@@ -76,6 +76,10 @@ String? resolvePivotMessageId({
       messages.any((Message m) => m.id == explicitPivotMessageId)) {
     return explicitPivotMessageId;
   }
+  if (scrollAnchoredPivotMessageId != null &&
+      messages.any((Message m) => m.id == scrollAnchoredPivotMessageId)) {
+    return scrollAnchoredPivotMessageId;
+  }
   if (messages.length == 1) {
     return messages.first.id;
   }

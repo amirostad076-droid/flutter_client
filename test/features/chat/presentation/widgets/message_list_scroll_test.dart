@@ -186,6 +186,35 @@ void main() {
     expect(bottomOffset, lessThan(24));
   });
 
+  testWidgets('pinned pivot keeps offset when appending post-center page', (
+    tester,
+  ) async {
+    final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
+        GlobalKey<CenterSliverScrollHarnessState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 400,
+            child: CenterSliverScrollHarness(
+              key: harnessKey,
+              initialCount: 50,
+              pivotIndex: 10,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    harnessKey.currentState!.scrollToMiddle();
+    await tester.pumpAndSettle();
+    final double offsetBefore = harnessKey.currentState!.scrollOffset!;
+    harnessKey.currentState!.appendPostCenterItems(30);
+    await tester.pumpAndSettle();
+    final double offsetAfter = harnessKey.currentState!.scrollOffset!;
+    expect(offsetAfter, closeTo(offsetBefore, 1));
+  });
+
   testWidgets('first post-center item keeps offset at middle scroll', (
     tester,
   ) async {

@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_auto_ack_allowed_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
@@ -282,6 +283,7 @@ void main() {
         channelId: const Value('channel-1'),
         lastMessageId: Value(ackId),
         mentionCount: const Value(0),
+        manual: const Value(true),
       ),
     );
     final adapter = _ChatAdapter(
@@ -641,7 +643,7 @@ void main() {
   );
 
   test(
-    'auto ack fetches missing unread boundary before preserving divider',
+    'unread channel loads around ack instead of patching disjoint pages',
     () async {
       final db = FluxerDatabase.forTesting(NativeDatabase.memory());
       addTearDown(db.close);
@@ -661,15 +663,135 @@ void main() {
           channelId: const Value('channel-1'),
           lastMessageId: Value(ackId),
           mentionCount: const Value(0),
+          manual: const Value(true),
         ),
       );
       final adapter = _ChatAdapter(
-        initialMessages: [
-          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        messagesAroundByAnchor: <String, List<Map<String, Object?>>>{
+          ackId: <Map<String, Object?>>[
+            _messageJson(
+              id: boundaryId,
+              channelId: 'channel-1',
+              authorId: 'other',
+            ),
+            _messageJson(
+              id: latestId,
+              channelId: 'channel-1',
+              authorId: 'other',
+            ),
+          ],
+        },
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      notifier.setReadViewportActive(isActive: true);
+      await _flushAsync();
+
+      expect(adapter.aroundQueries, [ackId]);
+      expect(adapter.afterQueries, isEmpty);
+      final messages = container.read(chatViewModelProvider).messages;
+      expect(messages.map((message) => message.id), [boundaryId, latestId]);
+      expect(
+        container.read(chatViewModelProvider).stickyUnreadMessageId,
+        boundaryId,
+      );
+    },
+  );
+
+  test('unread channel with large gap loads contiguous around anchor', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 10));
+    final unreadId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 11));
+    final midId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 12));
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 30, 12));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(0),
+        manual: const Value(true),
+        stickyUnreadMessageId: Value(unreadId),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      messagesAroundByAnchor: <String, List<Map<String, Object?>>>{
+        unreadId: <Map<String, Object?>>[
+          _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: unreadId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: midId, channelId: 'channel-1', authorId: 'other'),
         ],
-        messagesAfterAck: [
+      },
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    await _flushAsync();
+
+    expect(adapter.aroundQueries, [unreadId]);
+    expect(adapter.afterQueries, isEmpty);
+    final List<String> loadedIds = container
+        .read(chatViewModelProvider)
+        .messages
+        .map((message) => message.id)
+        .toList();
+    expect(loadedIds, [ackId, unreadId, midId]);
+    for (var index = 1; index < loadedIds.length; index++) {
+      expect(
+        compareSnowflakeIds(loadedIds[index], loadedIds[index - 1]),
+        greaterThan(0),
+      );
+    }
+    expect(
+      container.read(chatViewModelProvider).hasMoreNewerMessages,
+      isTrue,
+    );
+  });
+
+  test(
+    'boundary fetch is skipped when ack is older than the loaded window',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final unreadId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(0),
+        manual: const Value(true),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: <Map<String, Object?>>[
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+      ],
+      messagesAfterAck: <Map<String, Object?>>[
           _messageJson(
-            id: boundaryId,
+            id: unreadId,
             channelId: 'channel-1',
             authorId: 'other',
           ),
@@ -680,15 +802,15 @@ void main() {
 
       final notifier = container.read(chatViewModelProvider.notifier);
       await notifier.switchChannel('channel-1');
-      notifier.setReadViewportActive(isActive: true);
+      notifier
+        ..setReadViewportActive(isActive: true)
+        ..updateReadViewport(isNearBottom: true);
       await _flushAsync();
 
-      expect(adapter.afterQueries, [ackId]);
-      final messages = container.read(chatViewModelProvider).messages;
-      expect(messages.map((message) => message.id), [boundaryId, latestId]);
+      expect(adapter.afterQueries, isEmpty);
       expect(
-        container.read(chatViewModelProvider).stickyUnreadMessageId,
-        boundaryId,
+        container.read(chatViewModelProvider).messages.map((m) => m.id),
+        isNot(contains(unreadId)),
       );
     },
   );
@@ -1192,13 +1314,16 @@ class _ChatAdapter implements HttpClientAdapter {
     this.initialMessages = const [],
     this.messagesByChannel = const {},
     this.messagesAfterAck = const [],
+    this.messagesAroundByAnchor = const {},
   });
 
   final List<Map<String, Object?>> initialMessages;
   final Map<String, List<Map<String, Object?>>> messagesByChannel;
   final List<Map<String, Object?>> messagesAfterAck;
+  final Map<String, List<Map<String, Object?>>> messagesAroundByAnchor;
   final List<Uri> messageRequestUris = [];
   final List<String> afterQueries = [];
+  final List<String> aroundQueries = [];
   final List<String> ackedMessageIds = [];
   bool holdMessageFetch = false;
   bool holdAck = false;
@@ -1236,16 +1361,28 @@ class _ChatAdapter implements HttpClientAdapter {
       final channelId = channelMessagesMatch.group(1)!;
       messageRequestUris.add(options.uri);
       final after = options.uri.queryParameters['after'];
+      final around = options.uri.queryParameters['around'];
       if (after != null) {
         afterQueries.add(after);
+      }
+      if (around != null) {
+        aroundQueries.add(around);
       }
       if (holdMessageFetch) {
         _messageFetchCompleter ??= Completer<void>();
         await _messageFetchCompleter!.future;
       }
-      final messages = after == null
-          ? (messagesByChannel[channelId] ?? initialMessages)
-          : messagesAfterAck;
+      final List<Map<String, Object?>> messages;
+      if (around != null) {
+        messages =
+            messagesAroundByAnchor[around] ??
+            messagesByChannel[channelId] ??
+            initialMessages;
+      } else if (after != null) {
+        messages = messagesAfterAck;
+      } else {
+        messages = messagesByChannel[channelId] ?? initialMessages;
+      }
       return ResponseBody.fromString(
         jsonEncode(messages),
         200,
