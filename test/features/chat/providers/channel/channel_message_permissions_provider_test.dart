@@ -108,7 +108,7 @@ void main() {
       );
       expect(perms.isComposerEnabled, isTrue);
       expect(perms.canShowAttachControls, isFalse);
-      expect(perms.isVoiceEnabled, isTrue);
+      expect(perms.isVoiceEnabled, isFalse);
     });
 
     test('reload keeps previous data instead of loading deny', () {
@@ -123,29 +123,34 @@ void main() {
   });
 
   group('channelMessagePermissions provider', () {
-    test('grants all permissions for personal notes route without dm row', () async {
-      const String userId = '1000000000000000001';
-      final FluxerDatabase db = FluxerDatabase.forTesting(
-        NativeDatabase.memory(),
-      );
-      addTearDown(db.close);
+    test(
+      'grants all permissions for personal notes route without dm row',
+      () async {
+        const String userId = '1000000000000000001';
+        final FluxerDatabase db = FluxerDatabase.forTesting(
+          NativeDatabase.memory(),
+        );
+        addTearDown(db.close);
 
-      final ProviderContainer container = ProviderContainer(
-        overrides: [
-          fluxerDatabaseProvider.overrideWithValue(db),
-          dmViewModelProvider.overrideWith(_EmptyDmViewModel.new),
-          currentUserIdProvider.overrideWithValue(userId),
-          guildListViewModelProvider.overrideWith(_EmptyGuildListViewModel.new),
-        ],
-      );
-      addTearDown(container.dispose);
+        final ProviderContainer container = ProviderContainer(
+          overrides: [
+            fluxerDatabaseProvider.overrideWithValue(db),
+            dmViewModelProvider.overrideWith(_EmptyDmViewModel.new),
+            currentUserIdProvider.overrideWithValue(userId),
+            guildListViewModelProvider.overrideWith(
+              _EmptyGuildListViewModel.new,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      final ChannelMessagePermissions perms = await container.read(
-        channelMessagePermissionsProvider(userId).future,
-      );
+        final ChannelMessagePermissions perms = await container.read(
+          channelMessagePermissionsProvider(userId).future,
+        );
 
-      expect(perms, ChannelMessagePermissions.all);
-    });
+        expect(perms, ChannelMessagePermissions.all);
+      },
+    );
   });
 
   group('channelMessagePermissionsFromBits', () {

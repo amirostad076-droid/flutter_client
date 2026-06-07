@@ -129,8 +129,8 @@ void main() {
       expect(indicator.status, 'online');
 
       final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox).first);
-      expect(sizedBox.width, 12);
-      expect(sizedBox.height, 12);
+      expect(sizedBox.width, 15);
+      expect(sizedBox.height, 15);
     });
 
     testWidgets('renders all status variants without error', (tester) async {

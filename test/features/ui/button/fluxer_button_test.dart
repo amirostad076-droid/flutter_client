@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 Widget buildTestApp(Widget child) {
@@ -58,7 +59,7 @@ void main() {
       expect(tapped, isFalse);
     });
 
-    testWidgets('shows CircularProgressIndicator when loading', (tester) async {
+    testWidgets('shows FluxerLoadingSpinner when loading', (tester) async {
       await tester.pumpWidget(
         buildTestApp(
           FluxerButton.primary(
@@ -69,7 +70,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(FluxerLoadingSpinner), findsOneWidget);
       expect(find.text('Loading'), findsNothing);
     });
 

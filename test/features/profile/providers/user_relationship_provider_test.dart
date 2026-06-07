@@ -13,6 +13,9 @@ class _FakeFriendRepository implements FriendRepository {
   Stream<List<Friend>> watchRelationships() => Stream.value(_friends);
 
   @override
+  Future<List<Friend>> getRelationships() async => _friends;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

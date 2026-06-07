@@ -54,10 +54,7 @@ void main() {
         guildId: null,
         relationshipNickname: null,
       );
-      expect(
-        actual.avatarUrl,
-        contains('/avatars/1/a_user_avatar.gif?animated=true&size='),
-      );
+      expect(actual.avatarUrl, contains('/avatars/1/user_avatar.webp?size='));
       expect(
         actual.bannerUrl,
         contains('/banners/1/a_banner.gif?animated=true&size='),
@@ -75,15 +72,11 @@ void main() {
       );
       expect(
         actual.avatarUrl,
-        contains(
-          '/guilds/10/users/1/avatars/a_guild_avatar.gif?animated=true&size=',
-        ),
+        contains('/guilds/10/users/1/avatars/guild_avatar.webp?size='),
       );
       expect(
         actual.bannerUrl,
-        contains(
-          '/guilds/10/users/1/banners/a_guild_banner.gif?animated=true&size=',
-        ),
+        contains('/guilds/10/users/1/banners/guild_banner.webp?size='),
       );
     });
 

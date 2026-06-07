@@ -194,9 +194,12 @@ void main() {
       addTearDown(db.close);
       const guildId = 'guild_test_1';
       const userId = 'user_test_1';
-      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
-      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
-      final lastId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final now = DateTime.now().toUtc();
+      final channelId = _snowflakeForUtc(
+        now.subtract(const Duration(hours: 5)),
+      );
+      final ackId = _snowflakeForUtc(now.subtract(const Duration(hours: 3)));
+      final lastId = _snowflakeForUtc(now.subtract(const Duration(hours: 2)));
       await db.guildDao.upsertServer(
         ServersCompanion.insert(id: guildId, name: 'Test Guild'),
       );
@@ -282,12 +285,21 @@ void main() {
     addTearDown(db.close);
     const guildId = 'guild_test_1';
     const userId = 'user_test_1';
-    final olderChannelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 8));
-    final newerChannelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 9));
-    final olderAckId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
-    final olderLastId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
-    final newerAckId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
-    final newerLastId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+    final now = DateTime.now().toUtc();
+    final olderChannelId = _snowflakeForUtc(
+      now.subtract(const Duration(hours: 9)),
+    );
+    final newerChannelId = _snowflakeForUtc(
+      now.subtract(const Duration(hours: 8)),
+    );
+    final olderAckId = _snowflakeForUtc(now.subtract(const Duration(hours: 4)));
+    final olderLastId = _snowflakeForUtc(
+      now.subtract(const Duration(hours: 3)),
+    );
+    final newerAckId = _snowflakeForUtc(now.subtract(const Duration(hours: 2)));
+    final newerLastId = _snowflakeForUtc(
+      now.subtract(const Duration(hours: 1)),
+    );
     await db.guildDao.upsertServer(
       ServersCompanion.insert(id: guildId, name: 'Test Guild'),
     );

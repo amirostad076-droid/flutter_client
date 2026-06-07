@@ -42,7 +42,7 @@ void main() {
           ),
         ),
       );
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(find.text('Messages'), findsOneWidget);
       expect(find.byType(Divider), findsOneWidget);
@@ -88,7 +88,7 @@ void main() {
           ),
         ),
       );
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       final titleRow = tester.widget<Row>(
         find.byWidgetPredicate((widget) {

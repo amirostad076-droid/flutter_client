@@ -82,6 +82,16 @@ UserSettingsResponse _settingsResponseWithTheme(String theme) =>
       'developer_mode': false,
       'trusted_domains': <String>[],
       'default_hide_muted_channels': false,
+      'sensitive_content_friend_dm_filter': 0,
+      'sensitive_content_non_friend_dm_filter': 0,
+      'sensitive_content_guild_filter': 0,
+      'suppress_unprivileged_self_mentions': false,
+      'suppress_unprivileged_self_mentions_bypass_user_ids': <String>[],
+      'staff_dm_access_user_ids': <String>[],
+      'synced_preferences': '',
+      'profile_privacy': 0,
+      'default_share_voice_activity': false,
+      'custom_status': null,
     });
 
 Widget _wrap(Widget child, {required FluxerDatabase db}) {
@@ -239,11 +249,11 @@ void main() {
     expect(container.read(appearancePreferencesProvider).showFavorites, isTrue);
 
     await tester.dragUntilVisible(
-      find.bySemanticsLabel('Enable Favorites'),
+      find.bySemanticsLabel(RegExp('Enable Favorites')),
       find.byType(Scrollable),
       const Offset(0, -200),
     );
-    await tester.tap(find.bySemanticsLabel('Enable Favorites'));
+    await tester.tap(find.bySemanticsLabel(RegExp('Enable Favorites')));
     await tester.pump();
 
     expect(

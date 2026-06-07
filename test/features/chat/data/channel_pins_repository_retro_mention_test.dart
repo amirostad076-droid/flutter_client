@@ -38,6 +38,9 @@ Map<String, Object?> _pinJson({
     'timestamp': dateTimeFromUserSnowflakeOrNull(id)!.toIso8601String(),
     'pinned': true,
     'mention_everyone': mentionEveryone,
+    'tts': false,
+    'mentions': <Object?>[],
+    'mention_roles': <Object?>[],
   },
   'pinned_at': DateTime.utc(2026, 5, 6, 13).toIso8601String(),
 };
