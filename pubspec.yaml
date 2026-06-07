@@ -80,6 +80,7 @@ dependencies:
 dependency_overrides:
   device_info_plus: ^12.4.0
   analyzer: ^10.0.0
+  dart_style: 3.1.7
 
 dev_dependencies:
   accessibility_radar: ^0.3.0
