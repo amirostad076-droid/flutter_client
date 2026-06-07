@@ -352,12 +352,22 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         channelMessagePermissionsForComposer(
           ref.watch(channelMessagePermissionsProvider(channelId)),
         );
+    final String guildId =
+        findChannelById(ref.watch(channelListViewModelProvider), channelId)
+            ?.guildId ??
+        '';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (replyTo != null)
-          ReplyInputBar(replyTo: replyTo, onCancel: chatNotifier.cancelReply),
+          ReplyInputBar(
+            replyTo: replyTo,
+            guildId: guildId,
+            shouldReplyMention: vm.replyMentioning,
+            onToggleMention: chatNotifier.setReplyMentioning,
+            onCancel: chatNotifier.cancelReply,
+          ),
         if (editingMessage != null)
           EditingInputBar(onCancel: chatNotifier.cancelEdit),
         ChannelAttachmentArea(channelId: channelId),

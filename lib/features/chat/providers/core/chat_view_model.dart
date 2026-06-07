@@ -41,6 +41,7 @@ import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/chat/utils/voice_message_constants.dart';
+import 'package:fluxer_app/features/chat/utils/mention_reply_preference_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
@@ -67,6 +68,7 @@ class ChatViewState {
   final String channelId;
   final List<Message> messages;
   final Message? replyingTo;
+  final bool replyMentioning;
   final Message? editingMessage;
   final String messageText;
   final int scrollToBottomSignal;
@@ -86,6 +88,7 @@ class ChatViewState {
     required this.channelId,
     required this.messages,
     required this.replyingTo,
+    required this.replyMentioning,
     required this.editingMessage,
     required this.messageText,
     required this.scrollToBottomSignal,
@@ -108,6 +111,7 @@ class ChatViewState {
     String? channelId,
     List<Message>? messages,
     Object? replyingTo = _unset,
+    bool? replyMentioning,
     Object? editingMessage = _unset,
     String? messageText,
     int? scrollToBottomSignal,
@@ -129,6 +133,7 @@ class ChatViewState {
       replyingTo: replyingTo == _unset
           ? this.replyingTo
           : replyingTo as Message?,
+      replyMentioning: replyMentioning ?? this.replyMentioning,
       editingMessage: editingMessage == _unset
           ? this.editingMessage
           : editingMessage as Message?,
@@ -196,6 +201,7 @@ class ChatViewModel extends _$ChatViewModel {
       channelId: '',
       messages: [],
       replyingTo: null,
+      replyMentioning: false,
       editingMessage: null,
       messageText: '',
       scrollToBottomSignal: 0,
@@ -231,6 +237,7 @@ class ChatViewModel extends _$ChatViewModel {
             ? ''
             : state.messageText,
         replyingTo: clearComposerForDelete ? null : state.replyingTo,
+        replyMentioning: clearComposerForDelete ? false : state.replyMentioning,
       );
       if (clearComposerForDelete) {
         unawaited(_flushComposerDraftSave());
@@ -246,6 +253,7 @@ class ChatViewModel extends _$ChatViewModel {
         editingMessage: null,
         messageText: '',
         replyingTo: clearComposerForDelete ? null : state.replyingTo,
+        replyMentioning: clearComposerForDelete ? false : state.replyMentioning,
       );
       if (clearComposerForDelete) {
         unawaited(_flushComposerDraftSave());
@@ -505,13 +513,24 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     final draft = await _loadComposerDraft(channelId);
-    state = state.copyWith(messageText: draft.text, replyingTo: draft.reply);
+    final bool replyMentioning = draft.reply == null
+        ? false
+        : await _defaultReplyMentionFor(
+            message: draft.reply!,
+            channelId: channelId,
+          );
+    state = state.copyWith(
+      messageText: draft.text,
+      replyingTo: draft.reply,
+      replyMentioning: replyMentioning,
+    );
   }
 
   ChatViewState _switchedChannelState({
     required String channelId,
     required List<Message> messages,
     required ({String text, Message? reply}) draft,
+    required bool replyMentioning,
     required int scrollToBottomSignal,
     required bool isLoading,
     required bool isSyncingMessages,
@@ -527,6 +546,7 @@ class ChatViewModel extends _$ChatViewModel {
       channelId: channelId,
       messages: messages,
       replyingTo: draft.reply,
+      replyMentioning: replyMentioning,
       editingMessage: null,
       messageText: draft.text,
       scrollToBottomSignal: scrollToBottomSignal,
@@ -602,6 +622,7 @@ class ChatViewModel extends _$ChatViewModel {
         channelId: channelId,
         messages: const [],
         draft: (text: '', reply: null),
+        replyMentioning: false,
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: loadMessages,
         isSyncingMessages: false,
@@ -619,11 +640,18 @@ class ChatViewModel extends _$ChatViewModel {
       );
     }
     final draft = await _loadComposerDraft(channelId);
+    final bool replyMentioning = draft.reply == null
+        ? false
+        : await _defaultReplyMentionFor(
+            message: draft.reply!,
+            channelId: channelId,
+          );
     if (!loadMessages) {
       state = _switchedChannelState(
         channelId: channelId,
         messages: state.messages,
         draft: draft,
+        replyMentioning: replyMentioning,
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: false,
         isSyncingMessages: false,
@@ -642,6 +670,7 @@ class ChatViewModel extends _$ChatViewModel {
         channelId: channelId,
         messages: const [],
         draft: draft,
+        replyMentioning: replyMentioning,
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: true,
         isSyncingMessages: false,
@@ -667,6 +696,7 @@ class ChatViewModel extends _$ChatViewModel {
         channelId: channelId,
         messages: cached,
         draft: draft,
+        replyMentioning: replyMentioning,
         scrollToBottomSignal: state.scrollToBottomSignal,
         isLoading: false,
         isSyncingMessages: true,
@@ -683,6 +713,7 @@ class ChatViewModel extends _$ChatViewModel {
       channelId: channelId,
       messages: const [],
       draft: draft,
+      replyMentioning: replyMentioning,
       scrollToBottomSignal: state.scrollToBottomSignal,
       isLoading: true,
       isSyncingMessages: false,
@@ -1406,6 +1437,7 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     final String? replyToId = state.replyingTo?.id;
+    final bool replyMention = state.replyMentioning;
     final String clientNonce = clientNonceGenerator.next();
     final List<PendingAttachment> claimed = uploadNotifier.claimForMessage(
       clientNonce,
@@ -1437,6 +1469,7 @@ class ChatViewModel extends _$ChatViewModel {
     );
     state = state.copyWith(
       replyingTo: null,
+      replyMentioning: false,
       messages: [...state.messages, optimisticMessage],
       errorMessage: null,
     );
@@ -1448,6 +1481,7 @@ class ChatViewModel extends _$ChatViewModel {
         channelId: channelId,
         outgoingText: '',
         replyToId: replyToId,
+        replyMention: replyMention,
         clientNonce: clientNonce,
         stickerIds: const <String>[],
         favoriteMemeId: null,
@@ -1544,6 +1578,7 @@ class ChatViewModel extends _$ChatViewModel {
     }
 
     final replyToId = state.replyingTo?.id;
+    final bool replyMention = state.replyMentioning;
     final db.User? currentUser = currentUserId == null
         ? null
         : await ref
@@ -1589,6 +1624,7 @@ class ChatViewModel extends _$ChatViewModel {
     talker.debug('[ChatViewModel] send optimistic channelId=$channelId');
     state = state.copyWith(
       replyingTo: null,
+      replyMentioning: false,
       messageText: clearMessageText ? '' : state.messageText,
       messages: [...state.messages, optimisticMessage],
       errorMessage: null,
@@ -1611,6 +1647,7 @@ class ChatViewModel extends _$ChatViewModel {
           channelId: channelId,
           outgoingText: outgoingText,
           replyToId: replyToId,
+          replyMention: replyMention,
           clientNonce: clientNonce,
           stickerIds: stickerIds,
           favoriteMemeId: favoriteMemeId,
@@ -1625,6 +1662,7 @@ class ChatViewModel extends _$ChatViewModel {
         channelId: channelId,
         outgoingText: outgoingText,
         replyToId: replyToId,
+        replyMention: replyMention,
         clientNonce: clientNonce,
         stickerIds: stickerIds,
         favoriteMemeId: favoriteMemeId,
@@ -1638,6 +1676,7 @@ class ChatViewModel extends _$ChatViewModel {
     required String channelId,
     required String outgoingText,
     required String? replyToId,
+    required bool replyMention,
     required String clientNonce,
     required List<String> stickerIds,
     required String? favoriteMemeId,
@@ -1650,6 +1689,7 @@ class ChatViewModel extends _$ChatViewModel {
             channelId: channelId,
             content: outgoingText,
             replyToId: replyToId,
+            replyMention: replyMention,
             clientNonce: clientNonce,
             stickerIds: stickerIds,
             favoriteMemeId: favoriteMemeId,
@@ -1686,6 +1726,7 @@ class ChatViewModel extends _$ChatViewModel {
     required String channelId,
     required String outgoingText,
     required String? replyToId,
+    required bool replyMention,
     required String clientNonce,
     required List<String> stickerIds,
     required String? favoriteMemeId,
@@ -1704,6 +1745,7 @@ class ChatViewModel extends _$ChatViewModel {
             channelId: channelId,
             content: outgoingText,
             replyToId: replyToId,
+            replyMention: replyMention,
             clientNonce: clientNonce,
             stickerIds: stickerIds,
             favoriteMemeId: favoriteMemeId,
@@ -1930,13 +1972,71 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void startReply(Message message) {
-    state = state.copyWith(replyingTo: message, editingMessage: null);
+    unawaited(_startReply(message));
+  }
+
+  Future<void> _startReply(Message message) async {
+    final String channelId = state.channelId;
+    final bool replyMentioning = await _defaultReplyMentionFor(
+      message: message,
+      channelId: channelId,
+    );
+    state = state.copyWith(
+      replyingTo: message,
+      replyMentioning: replyMentioning,
+      editingMessage: null,
+    );
+    unawaited(_flushComposerDraftSave());
+  }
+
+  void setReplyMentioning(bool mentioning) {
+    if (state.replyMentioning == mentioning) {
+      return;
+    }
+    state = state.copyWith(replyMentioning: mentioning);
     unawaited(_flushComposerDraftSave());
   }
 
   void cancelReply() {
-    state = state.copyWith(replyingTo: null);
+    state = state.copyWith(replyingTo: null, replyMentioning: false);
     unawaited(_flushComposerDraftSave());
+  }
+
+  Future<bool> _defaultReplyMentionFor({
+    required Message message,
+    required String channelId,
+  }) async {
+    final db.FluxerDatabase database = ref.read(fluxerDatabaseProvider);
+    final String? guildId = await _guildIdForChannel(channelId);
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    final bool isOwnMessage =
+        currentUserId != null && message.authorId == currentUserId;
+    final MentionReplyPreferences preference =
+        await resolveMentionReplyPreferenceFromDb(
+          database: database,
+          authorId: message.authorId,
+          guildId: guildId,
+        );
+    return getDefaultReplyMention(
+      isOwnMessage: isOwnMessage,
+      guildId: guildId,
+      preference: preference,
+    );
+  }
+
+  Future<String?> _guildIdForChannel(String channelId) async {
+    if (channelId.isEmpty) {
+      return null;
+    }
+    final db.Channel? channel = await ref
+        .read(fluxerDatabaseProvider)
+        .channelDao
+        .getChannelById(channelId);
+    final String guildId = channel?.guildId ?? '';
+    if (guildId.isEmpty) {
+      return null;
+    }
+    return guildId;
   }
 
   void scrollToMessage(String messageId) {
@@ -2042,6 +2142,7 @@ class ChatViewModel extends _$ChatViewModel {
     state = state.copyWith(
       editingMessage: message,
       replyingTo: null,
+      replyMentioning: false,
       messageText: message.content,
     );
   }

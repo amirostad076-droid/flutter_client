@@ -9,6 +9,7 @@ class Members extends Table {
   TextColumn get roleIdsJson => text().withDefault(const Constant('[]'))();
   DateTimeColumn get joinedAt => dateTime().nullable()();
   DateTimeColumn get communicationDisabledUntil => dateTime().nullable()();
+  IntColumn get mentionFlags => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {userId, guildId};

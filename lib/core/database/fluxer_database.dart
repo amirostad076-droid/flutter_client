@@ -137,7 +137,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 52;
+  int get schemaVersion => 53;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -545,6 +545,10 @@ class FluxerDatabase extends _$FluxerDatabase {
         if (hasTokenColumn) {
           await customStatement('ALTER TABLE auth_sessions DROP COLUMN token');
         }
+      }
+      if (from < 53) {
+        await m.addColumn(users, users.mentionFlags);
+        await m.addColumn(members, members.mentionFlags);
       }
     },
   );

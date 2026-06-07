@@ -6884,6 +6884,66 @@ abstract class FluxerLocalizations {
   /// **'Original message failed to load'**
   String get chatReplyOriginalFailedToLoad;
 
+  /// Title of the confirmation alert shown when toggling reply mention against the recipient preference.
+  ///
+  /// In en, this message translates to:
+  /// **'Override mention preference?'**
+  String get chatReplyMentionOverrideTitle;
+
+  /// Confirmation body when the recipient prefers @mentions on replies but the user disabled it.
+  ///
+  /// In en, this message translates to:
+  /// **'{authorNickname} prefers to be @mentioned on replies. Send without the mention anyway?'**
+  String chatReplyMentionPrefersMentionBody(String authorNickname);
+
+  /// Confirmation body when the recipient prefers no @mention on replies but the user enabled it.
+  ///
+  /// In en, this message translates to:
+  /// **'{authorNickname} prefers replies without an @mention. Send with the mention anyway?'**
+  String chatReplyMentionPrefersNoMentionBody(String authorNickname);
+
+  /// Confirm button label on the override-mention-preference alert.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore preference'**
+  String get chatReplyMentionIgnorePreference;
+
+  /// Tooltip on the reply bar mention toggle when mention-on-reply is currently on.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to disable pinging the user you\'re replying to.'**
+  String get chatReplyMentionDisableTooltip;
+
+  /// Tooltip on the reply bar mention toggle when mention-on-reply is currently off.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to enable pinging the user you\'re replying to.'**
+  String get chatReplyMentionEnableTooltip;
+
+  /// Accessibility label for the reply bar mention toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mention replied user'**
+  String get chatReplyMentionAccessibilityLabel;
+
+  /// On state suffix appended to the reply bar mention toggle label.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get chatReplyMentionOn;
+
+  /// Off state suffix appended to the reply bar mention toggle label.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get chatReplyMentionOff;
+
+  /// Accessible label for the cancel-reply button in the reply bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel reply'**
+  String get chatReplyCancel;
+
   /// Composer hint text while editing a message.
   ///
   /// In en, this message translates to:

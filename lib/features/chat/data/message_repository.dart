@@ -31,6 +31,7 @@ class MessageListLoadResult {
 Map<String, dynamic> buildMessageCreateBody({
   required String content,
   String? replyToId,
+  bool replyMention = true,
   String? clientNonce,
   List<String> stickerIds = const [],
   String? favoriteMemeId,
@@ -43,7 +44,7 @@ Map<String, dynamic> buildMessageCreateBody({
   }
   if (replyToId != null) {
     body['message_reference'] = <String, dynamic>{'message_id': replyToId};
-    body['allowed_mentions'] = <String, dynamic>{'replied_user': true};
+    body['allowed_mentions'] = <String, dynamic>{'replied_user': replyMention};
   }
   if (stickerIds.isNotEmpty) {
     body['sticker_ids'] = stickerIds;
@@ -461,6 +462,7 @@ class MessageRepository {
     required String channelId,
     required String content,
     String? replyToId,
+    bool replyMention = true,
     String? clientNonce,
     List<String> stickerIds = const [],
     String? favoriteMemeId,
@@ -472,6 +474,7 @@ class MessageRepository {
       final Map<String, dynamic> body = buildMessageCreateBody(
         content: content,
         replyToId: replyToId,
+        replyMention: replyMention,
         clientNonce: clientNonce,
         stickerIds: stickerIds,
         favoriteMemeId: favoriteMemeId,

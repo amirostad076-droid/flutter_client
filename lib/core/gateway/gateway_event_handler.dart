@@ -512,14 +512,7 @@ class GatewayEventHandler {
           for (final member in guildData.members) {
             await database.userDao.upsertUser(userFromPartialSdk(member.user));
             await database.memberDao.upsertMember(
-              db.MembersCompanion.insert(
-                userId: member.user.id,
-                guildId: guildId,
-                nick: Value(member.nick),
-                serverAvatar: Value(member.avatar),
-                roleIdsJson: Value(jsonEncode(member.roles)),
-                joinedAt: Value(member.joinedAt),
-              ),
+              memberCompanionFromSdk(member, guildId: guildId),
             );
           }
 

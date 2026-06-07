@@ -4905,6 +4905,58 @@
   "@chatReplyOriginalFailedToLoad": {
     "description": "Placeholder in the inline reply preview when the parent message could not be loaded."
   },
+  "chatReplyMentionOverrideTitle": "Override mention preference?",
+  "@chatReplyMentionOverrideTitle": {
+    "description": "Title of the confirmation alert shown when toggling reply mention against the recipient preference."
+  },
+  "chatReplyMentionPrefersMentionBody": "{authorNickname} prefers to be @mentioned on replies. Send without the mention anyway?",
+  "@chatReplyMentionPrefersMentionBody": {
+    "description": "Confirmation body when the recipient prefers @mentions on replies but the user disabled it.",
+    "placeholders": {
+      "authorNickname": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "chatReplyMentionPrefersNoMentionBody": "{authorNickname} prefers replies without an @mention. Send with the mention anyway?",
+  "@chatReplyMentionPrefersNoMentionBody": {
+    "description": "Confirmation body when the recipient prefers no @mention on replies but the user enabled it.",
+    "placeholders": {
+      "authorNickname": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "chatReplyMentionIgnorePreference": "Ignore preference",
+  "@chatReplyMentionIgnorePreference": {
+    "description": "Confirm button label on the override-mention-preference alert."
+  },
+  "chatReplyMentionDisableTooltip": "Click to disable pinging the user you're replying to.",
+  "@chatReplyMentionDisableTooltip": {
+    "description": "Tooltip on the reply bar mention toggle when mention-on-reply is currently on."
+  },
+  "chatReplyMentionEnableTooltip": "Click to enable pinging the user you're replying to.",
+  "@chatReplyMentionEnableTooltip": {
+    "description": "Tooltip on the reply bar mention toggle when mention-on-reply is currently off."
+  },
+  "chatReplyMentionAccessibilityLabel": "Mention replied user",
+  "@chatReplyMentionAccessibilityLabel": {
+    "description": "Accessibility label for the reply bar mention toggle."
+  },
+  "chatReplyMentionOn": "On",
+  "@chatReplyMentionOn": {
+    "description": "On state suffix appended to the reply bar mention toggle label."
+  },
+  "chatReplyMentionOff": "Off",
+  "@chatReplyMentionOff": {
+    "description": "Off state suffix appended to the reply bar mention toggle label."
+  },
+  "chatReplyCancel": "Cancel reply",
+  "@chatReplyCancel": {
+    "description": "Accessible label for the cancel-reply button in the reply bar."
+  },
   "chatEditMessageHint": "Edit message",
   "@chatEditMessageHint": {
     "description": "Composer hint text while editing a message."

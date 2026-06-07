@@ -20,6 +20,7 @@ class Users extends Table {
   BoolColumn get premiumBadgeMasked => boolean().nullable()();
   BoolColumn get premiumBadgeTimestampHidden => boolean().nullable()();
   BoolColumn get premiumBadgeSequenceHidden => boolean().nullable()();
+  IntColumn get mentionFlags => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

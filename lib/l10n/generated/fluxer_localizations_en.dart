@@ -4038,6 +4038,42 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatReplyOriginalFailedToLoad => 'Original message failed to load';
 
   @override
+  String get chatReplyMentionOverrideTitle => 'Override mention preference?';
+
+  @override
+  String chatReplyMentionPrefersMentionBody(String authorNickname) {
+    return '$authorNickname prefers to be @mentioned on replies. Send without the mention anyway?';
+  }
+
+  @override
+  String chatReplyMentionPrefersNoMentionBody(String authorNickname) {
+    return '$authorNickname prefers replies without an @mention. Send with the mention anyway?';
+  }
+
+  @override
+  String get chatReplyMentionIgnorePreference => 'Ignore preference';
+
+  @override
+  String get chatReplyMentionDisableTooltip =>
+      'Click to disable pinging the user you\'re replying to.';
+
+  @override
+  String get chatReplyMentionEnableTooltip =>
+      'Click to enable pinging the user you\'re replying to.';
+
+  @override
+  String get chatReplyMentionAccessibilityLabel => 'Mention replied user';
+
+  @override
+  String get chatReplyMentionOn => 'On';
+
+  @override
+  String get chatReplyMentionOff => 'Off';
+
+  @override
+  String get chatReplyCancel => 'Cancel reply';
+
+  @override
   String get chatEditMessageHint => 'Edit message';
 
   @override

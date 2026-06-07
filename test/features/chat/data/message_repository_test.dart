@@ -26,4 +26,21 @@ void main() {
     expect(body['content'], 'hello');
     expect(body['nonce'], '1501123056699965440');
   });
+
+  test('buildMessageCreateBody includes replied_user when replying', () {
+    final bodyEnabled = buildMessageCreateBody(
+      content: 'hello',
+      replyToId: '123',
+      replyMention: true,
+    );
+    final bodyDisabled = buildMessageCreateBody(
+      content: 'hello',
+      replyToId: '123',
+      replyMention: false,
+    );
+
+    expect(bodyEnabled['message_reference'], {'message_id': '123'});
+    expect(bodyEnabled['allowed_mentions'], {'replied_user': true});
+    expect(bodyDisabled['allowed_mentions'], {'replied_user': false});
+  });
 }

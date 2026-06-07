@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
@@ -11,9 +13,11 @@ import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_i
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_references_provider.dart';
+import 'package:fluxer_app/features/chat/utils/mention_reply_preference_utils.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
+import 'package:fluxer_dart/models/mention_reply_preferences.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -249,58 +253,172 @@ class ReplyConnectorPainter extends CustomPainter {
 
 /// The reply bar shown above the input when the user
 /// is composing a reply.
-class ReplyInputBar extends StatelessWidget {
+class ReplyInputBar extends ConsumerWidget {
   final Message replyTo;
+  final String guildId;
+  final bool shouldReplyMention;
+  final ValueChanged<bool> onToggleMention;
   final VoidCallback onCancel;
 
   const ReplyInputBar({
     required this.replyTo,
+    required this.guildId,
+    required this.shouldReplyMention,
+    required this.onToggleMention,
     required this.onCancel,
     super.key,
   });
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    decoration: BoxDecoration(
-      color: context.colors.chatInputBackground,
-      border: Border(
-        top: BorderSide(color: context.colors.userAreaDividerColor),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final String? currentUserId = ref.watch(currentUserIdProvider);
+    final bool isOwnMessage =
+        currentUserId != null && replyTo.authorId == currentUserId;
+    final bool isWebhook =
+        replyTo.webhookId != null && replyTo.webhookId!.isNotEmpty;
+    final bool canMention =
+        guildId.isNotEmpty && !isOwnMessage && !isWebhook;
+    final bool shouldMention = shouldReplyMention && canMention;
+    final Color activeMentionColor = context.colors.markupMentionText;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: context.colors.chatInputBackground,
+        border: Border(
+          top: BorderSide(color: context.colors.userAreaDividerColor),
+        ),
       ),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: RichText(
-            overflow: TextOverflow.ellipsis,
-            text: TextSpan(
-              style: const TextStyle(fontSize: 14),
-              children: [
-                TextSpan(
-                  text: 'Replying to ',
-                  style: TextStyle(color: context.colors.textPrimaryMuted),
-                ),
-                TextSpan(
-                  text: replyTo.authorName,
-                  style: TextStyle(
-                    color: context.colors.textChat,
-                    fontWeight: FontWeight.w600,
+      child: Row(
+        children: [
+          Expanded(
+            child: RichText(
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                style: const TextStyle(fontSize: 14),
+                children: [
+                  TextSpan(
+                    text: 'Replying to ',
+                    style: TextStyle(color: context.colors.textPrimaryMuted),
                   ),
-                ),
-              ],
+                  TextSpan(
+                    text: replyTo.authorName,
+                    style: TextStyle(
+                      color: context.colors.textChat,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        IconButton(
-          icon: const PhosphorIcon(PhosphorIconsFill.xCircle, size: 16),
-          color: context.colors.textPrimaryMuted,
-          onPressed: onCancel,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-        ),
-      ],
-    ),
-  );
+          if (canMention)
+            Tooltip(
+              message: shouldMention
+                  ? l10n.chatReplyMentionDisableTooltip
+                  : l10n.chatReplyMentionEnableTooltip,
+              child: Semantics(
+                button: true,
+                checked: shouldMention,
+                label: l10n.chatReplyMentionAccessibilityLabel,
+                child: InkWell(
+                  onTap: () => unawaited(
+                    _toggleMention(
+                      context: context,
+                      ref: ref,
+                      shouldMention: shouldMention,
+                      authorNickname: replyTo.authorName,
+                      onToggleMention: onToggleMention,
+                    ),
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PhosphorIcon(
+                          PhosphorIconsRegular.at,
+                          size: 20,
+                          color: shouldMention
+                              ? activeMentionColor
+                              : context.colors.textPrimaryMuted,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          shouldMention
+                              ? l10n.chatReplyMentionOn
+                              : l10n.chatReplyMentionOff,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: shouldMention
+                                ? activeMentionColor
+                                : context.colors.textPrimaryMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          Semantics(
+            label: l10n.chatReplyCancel,
+            child: IconButton(
+              icon: const PhosphorIcon(PhosphorIconsFill.xCircle, size: 16),
+              color: context.colors.textPrimaryMuted,
+              onPressed: onCancel,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _toggleMention({
+    required BuildContext context,
+    required WidgetRef ref,
+    required bool shouldMention,
+    required String authorNickname,
+    required ValueChanged<bool> onToggleMention,
+  }) async {
+    final bool next = !shouldMention;
+    final MentionReplyPreferences preference =
+        await resolveMentionReplyPreferenceFromDb(
+          database: ref.read(fluxerDatabaseProvider),
+          authorId: replyTo.authorId,
+          guildId: guildId.isEmpty ? null : guildId,
+        );
+    final ReplyMentionPreferenceConflict? conflict =
+        getReplyMentionPreferenceConflict(
+          mentioning: next,
+          preference: preference,
+        );
+    if (conflict != null && context.mounted) {
+      final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+      final String description = switch (conflict) {
+        ReplyMentionPreferenceConflict.prefersMention =>
+          l10n.chatReplyMentionPrefersMentionBody(authorNickname),
+        ReplyMentionPreferenceConflict.prefersNoMention =>
+          l10n.chatReplyMentionPrefersNoMentionBody(authorNickname),
+      };
+      await FluxerConfirmModal.show(
+        context,
+        title: l10n.chatReplyMentionOverrideTitle,
+        description: description,
+        confirmLabel: l10n.chatReplyMentionIgnorePreference,
+        onConfirm: () => onToggleMention(next),
+      );
+      return;
+    }
+    onToggleMention(next);
+  }
 }
 
 /// The edit bar shown above the input while message editing is active.
