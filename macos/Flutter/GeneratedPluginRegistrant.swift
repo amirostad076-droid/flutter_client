@@ -26,7 +26,6 @@ import passkeys_darwin
 import record_macos
 import screen_retriever_macos
 import share_plus
-import sqlite3_flutter_libs
 import super_native_extensions
 import ua_client_hints
 import url_launcher_macos
@@ -55,7 +54,6 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   RecordMacOsPlugin.register(with: registry.registrar(forPlugin: "RecordMacOsPlugin"))
   ScreenRetrieverMacosPlugin.register(with: registry.registrar(forPlugin: "ScreenRetrieverMacosPlugin"))
   SharePlusMacosPlugin.register(with: registry.registrar(forPlugin: "SharePlusMacosPlugin"))
-  Sqlite3FlutterLibsPlugin.register(with: registry.registrar(forPlugin: "Sqlite3FlutterLibsPlugin"))
   SuperNativeExtensionsPlugin.register(with: registry.registrar(forPlugin: "SuperNativeExtensionsPlugin"))
   UAClientHintsPlugin.register(with: registry.registrar(forPlugin: "UAClientHintsPlugin"))
   UrlLauncherPlugin.register(with: registry.registrar(forPlugin: "UrlLauncherPlugin"))
