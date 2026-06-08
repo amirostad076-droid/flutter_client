@@ -3666,6 +3666,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get voiceControlScreenShare => 'Screen share';
 
   @override
+  String get voiceScreenShareNotificationText => 'Sharing your screen.';
+
+  @override
   String get voiceControlMore => 'More';
 
   @override

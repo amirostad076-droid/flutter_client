@@ -6238,6 +6238,12 @@ abstract class FluxerLocalizations {
   /// **'Screen share'**
   String get voiceControlScreenShare;
 
+  /// Body text for the Android foreground notification shown while screen sharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing your screen.'**
+  String get voiceScreenShareNotificationText;
+
   /// Tooltip: more voice actions in the voice call control bar.
   ///
   /// In en, this message translates to:
