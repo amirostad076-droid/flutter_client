@@ -2,6 +2,12 @@
 
 Describe the problem this pull request solves or the value it adds.
 
+## Requirements
+
+- Link an issue (`Fixes #…`) or paste a [GitHub Discussion](https://github.com/orgs/fluxerapp/discussions) URL in this PR body.
+- All commits must be signed and verified on GitHub (GPG, SSH, or S/MIME).
+- Maintainers may add the `no-issue` label when traceability does not apply (e.g. docs only or release automation).
+
 ## PR type
 
 - [ ] Feature
