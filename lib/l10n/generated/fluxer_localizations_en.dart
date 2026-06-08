@@ -4561,4 +4561,88 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get purgePersonalNotesFailed => 'Could not clear personal notes';
+
+  @override
+  String get userSettingsGroupYourAccount => 'YOUR ACCOUNT';
+
+  @override
+  String get userSettingsGroupApplication => 'APPLICATION';
+
+  @override
+  String get userSettingsGroupDeveloper => 'DEVELOPER';
+
+  @override
+  String get userSettingsGroupStaffOnly => 'STAFF-ONLY';
+
+  @override
+  String get userSettingsNavProfile => 'Profile';
+
+  @override
+  String get userSettingsNavSecurityLogin => 'Security & Login';
+
+  @override
+  String get userSettingsNavFluxerPlutonium => 'Fluxer Plutonium';
+
+  @override
+  String get userSettingsNavGiftsAndCodes => 'Gifts & Codes';
+
+  @override
+  String get userSettingsNavExpressionPacks => 'Expression Packs';
+
+  @override
+  String get userSettingsNavPrivacyDashboard => 'Privacy Dashboard';
+
+  @override
+  String get userSettingsNavAuthorizedApps => 'Authorized Apps';
+
+  @override
+  String get userSettingsNavBlockedUsers => 'Blocked Users';
+
+  @override
+  String get userSettingsNavLinkedDevices => 'Linked Devices';
+
+  @override
+  String get userSettingsNavConnections => 'Connections';
+
+  @override
+  String get userSettingsNavLookAndFeel => 'Look & Feel';
+
+  @override
+  String get userSettingsNavAccessibility => 'Accessibility';
+
+  @override
+  String get userSettingsNavMessagesAndMedia => 'Messages & Media';
+
+  @override
+  String get userSettingsNavAudioAndVideo => 'Audio & Video';
+
+  @override
+  String get userSettingsNavSoundsAndAlerts => 'Sounds & Alerts';
+
+  @override
+  String get userSettingsNavLanguageAndTime => 'Language & Time';
+
+  @override
+  String get userSettingsNavAdvanced => 'Advanced';
+
+  @override
+  String get userSettingsNavApplications => 'Applications';
+
+  @override
+  String get userSettingsNavAppLogs => 'App Logs';
+
+  @override
+  String get userSettingsNavDeveloperTools => 'Developer Tools';
+
+  @override
+  String get userSettingsNavLimitsConfig => 'Limits Config';
+
+  @override
+  String get userSettingsNavFeatureFlags => 'Feature Flags';
+
+  @override
+  String get userSettingsNavWhatsNew => 'What\'s New';
+
+  @override
+  String get userSettingsNavLogOut => 'Log Out';
 }

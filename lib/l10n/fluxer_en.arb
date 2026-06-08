@@ -5556,5 +5556,117 @@
   "purgePersonalNotesFailed": "Could not clear personal notes",
   "@purgePersonalNotesFailed": {
     "description": "Toast or error title when the purge personal notes API call fails."
+  },
+  "userSettingsGroupYourAccount": "YOUR ACCOUNT",
+  "@userSettingsGroupYourAccount": {
+    "description": "Section heading for account-related items in user settings navigation."
+  },
+  "userSettingsGroupApplication": "APPLICATION",
+  "@userSettingsGroupApplication": {
+    "description": "Section heading for app preference items in user settings navigation."
+  },
+  "userSettingsGroupDeveloper": "DEVELOPER",
+  "@userSettingsGroupDeveloper": {
+    "description": "Section heading for developer items in user settings navigation."
+  },
+  "userSettingsGroupStaffOnly": "STAFF-ONLY",
+  "@userSettingsGroupStaffOnly": {
+    "description": "Section heading for staff-only items in user settings navigation."
+  },
+  "userSettingsNavProfile": "Profile",
+  "@userSettingsNavProfile": {
+    "description": "User settings navigation item for profile settings."
+  },
+  "userSettingsNavSecurityLogin": "Security & Login",
+  "@userSettingsNavSecurityLogin": {
+    "description": "User settings navigation item for security and login settings."
+  },
+  "userSettingsNavFluxerPlutonium": "Fluxer Plutonium",
+  "@userSettingsNavFluxerPlutonium": {
+    "description": "User settings navigation item for Fluxer Plutonium subscription settings."
+  },
+  "userSettingsNavGiftsAndCodes": "Gifts & Codes",
+  "@userSettingsNavGiftsAndCodes": {
+    "description": "User settings navigation item for gifts and promo codes."
+  },
+  "userSettingsNavExpressionPacks": "Expression Packs",
+  "@userSettingsNavExpressionPacks": {
+    "description": "User settings navigation item for expression pack settings."
+  },
+  "userSettingsNavPrivacyDashboard": "Privacy Dashboard",
+  "@userSettingsNavPrivacyDashboard": {
+    "description": "User settings navigation item for the privacy dashboard."
+  },
+  "userSettingsNavAuthorizedApps": "Authorized Apps",
+  "@userSettingsNavAuthorizedApps": {
+    "description": "User settings navigation item for authorized applications."
+  },
+  "userSettingsNavBlockedUsers": "Blocked Users",
+  "@userSettingsNavBlockedUsers": {
+    "description": "User settings navigation item for blocked users."
+  },
+  "userSettingsNavLinkedDevices": "Linked Devices",
+  "@userSettingsNavLinkedDevices": {
+    "description": "User settings navigation item for linked devices."
+  },
+  "userSettingsNavConnections": "Connections",
+  "@userSettingsNavConnections": {
+    "description": "User settings navigation item for connected accounts."
+  },
+  "userSettingsNavLookAndFeel": "Look & Feel",
+  "@userSettingsNavLookAndFeel": {
+    "description": "User settings navigation item for appearance settings."
+  },
+  "userSettingsNavAccessibility": "Accessibility",
+  "@userSettingsNavAccessibility": {
+    "description": "User settings navigation item for accessibility settings."
+  },
+  "userSettingsNavMessagesAndMedia": "Messages & Media",
+  "@userSettingsNavMessagesAndMedia": {
+    "description": "User settings navigation item for messages and media settings."
+  },
+  "userSettingsNavAudioAndVideo": "Audio & Video",
+  "@userSettingsNavAudioAndVideo": {
+    "description": "User settings navigation item for audio and video settings."
+  },
+  "userSettingsNavSoundsAndAlerts": "Sounds & Alerts",
+  "@userSettingsNavSoundsAndAlerts": {
+    "description": "User settings navigation item for sounds and alert settings."
+  },
+  "userSettingsNavLanguageAndTime": "Language & Time",
+  "@userSettingsNavLanguageAndTime": {
+    "description": "User settings navigation item for language and time settings."
+  },
+  "userSettingsNavAdvanced": "Advanced",
+  "@userSettingsNavAdvanced": {
+    "description": "User settings navigation item for advanced settings."
+  },
+  "userSettingsNavApplications": "Applications",
+  "@userSettingsNavApplications": {
+    "description": "User settings navigation item for developer applications."
+  },
+  "userSettingsNavAppLogs": "App Logs",
+  "@userSettingsNavAppLogs": {
+    "description": "User settings navigation item for in-app logs."
+  },
+  "userSettingsNavDeveloperTools": "Developer Tools",
+  "@userSettingsNavDeveloperTools": {
+    "description": "User settings navigation item for staff developer tools."
+  },
+  "userSettingsNavLimitsConfig": "Limits Config",
+  "@userSettingsNavLimitsConfig": {
+    "description": "User settings navigation item for staff limits configuration."
+  },
+  "userSettingsNavFeatureFlags": "Feature Flags",
+  "@userSettingsNavFeatureFlags": {
+    "description": "User settings navigation item for staff feature flags."
+  },
+  "userSettingsNavWhatsNew": "What's New",
+  "@userSettingsNavWhatsNew": {
+    "description": "User settings navigation item for release notes."
+  },
+  "userSettingsNavLogOut": "Log Out",
+  "@userSettingsNavLogOut": {
+    "description": "User settings navigation item to sign out of the account."
   }
 }

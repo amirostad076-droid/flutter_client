@@ -19,6 +19,8 @@ import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.da
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
+import 'package:fluxer_app/features/settings/domain/user_settings_section.dart';
+import 'package:fluxer_app/features/settings/presentation/user_settings_nav.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_accessibility.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_appearance.dart';
@@ -32,6 +34,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_privacy_d
 import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_security_login.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/features/settings/utils/user_settings_nav_l10n.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -114,48 +117,6 @@ class UserSettingsModal extends ConsumerStatefulWidget {
 }
 
 class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
-  static const _items = [
-    SettingsSidebarItem.separator('YOUR ACCOUNT'),
-    SettingsSidebarItem('Profile', icon: PhosphorIconsFill.user),
-    SettingsSidebarItem(
-      'Security & Login',
-      icon: PhosphorIconsFill.shieldCheck,
-    ),
-    SettingsSidebarItem('Fluxer Plutonium', icon: PhosphorIconsFill.crown),
-    SettingsSidebarItem('Gifts & Codes', icon: PhosphorIconsFill.gift),
-    SettingsSidebarItem('Expression Packs', icon: PhosphorIconsFill.sticker),
-    SettingsSidebarItem('Privacy Dashboard', icon: PhosphorIconsFill.eyeSlash),
-    SettingsSidebarItem('Authorized Apps', icon: PhosphorIconsFill.robot),
-    SettingsSidebarItem('Blocked Users', icon: PhosphorIconsFill.prohibit),
-    SettingsSidebarItem('Linked Devices', icon: PhosphorIconsFill.devices),
-    SettingsSidebarItem('Connections', icon: PhosphorIconsFill.userList),
-    SettingsSidebarItem.separator('APPLICATION'),
-    SettingsSidebarItem('Look & Feel', icon: PhosphorIconsFill.paintBrush),
-    SettingsSidebarItem(
-      'Accessibility',
-      icon: PhosphorIconsFill.personSimpleCircle,
-    ),
-    SettingsSidebarItem('Messages & Media', icon: PhosphorIconsFill.chatCircle),
-    SettingsSidebarItem('Audio & Video', icon: PhosphorIconsFill.microphone),
-    SettingsSidebarItem('Keybinds', icon: PhosphorIconsFill.keyboard),
-    SettingsSidebarItem('Sounds & Alerts', icon: PhosphorIconsFill.bell),
-    SettingsSidebarItem('Language & Time', icon: PhosphorIconsFill.translate),
-    SettingsSidebarItem('Advanced', icon: PhosphorIconsFill.flask),
-    SettingsSidebarItem.separator('DEVELOPER'),
-    SettingsSidebarItem('Applications', icon: PhosphorIconsFill.code),
-    SettingsSidebarItem.separator('STAFF-ONLY'),
-    SettingsSidebarItem('Developer Tools', icon: PhosphorIconsFill.code),
-    SettingsSidebarItem('Limits Config', icon: PhosphorIconsFill.flag),
-    SettingsSidebarItem('Feature Flags', icon: PhosphorIconsFill.flag),
-    SettingsSidebarItem.separator(),
-    SettingsSidebarItem("What's New", icon: PhosphorIconsFill.megaphone),
-    SettingsSidebarItem(
-      'Log Out',
-      icon: PhosphorIconsFill.signOut,
-      isDestructive: true,
-    ),
-  ];
-
   var _selectedIndex = 1;
 
   @override
@@ -187,6 +148,8 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
   }
 
   Widget _buildDesktopLayout(UserSettingsViewState state) {
+    final l10n = FluxerLocalizations.of(context);
+    final selectedEntry = userSettingsDesktopNav[_selectedIndex];
     return Column(
       children: [
         Expanded(
@@ -197,7 +160,9 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
                 child: ColoredBox(
                   color: context.colors.backgroundPrimary,
                   child: SettingsSidebar(
-                    items: _items,
+                    items: userSettingsDesktopNav
+                        .map((entry) => entry.toSidebarItem(l10n))
+                        .toList(),
                     selectedIndex: _selectedIndex,
                     onSelected: _onItemSelected,
                     userId: state.userId,
@@ -220,7 +185,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
                       child: Row(
                         children: [
                           Text(
-                            _items[_selectedIndex].label,
+                            selectedEntry.displayLabel(l10n),
                             style: context.textStyles.heading,
                           ),
                           const Spacer(),
@@ -241,8 +206,12 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
   }
 
   void _onItemSelected(int index) {
-    if (_items[index].isDestructive) {
+    final entry = userSettingsDesktopNav[index];
+    if (entry.isLogout) {
       unawaited(_logout());
+      return;
+    }
+    if (entry.isSeparator) {
       return;
     }
     setState(() => _selectedIndex = index);
@@ -290,50 +259,16 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
   }
 
   Widget _buildContent(UserSettingsViewState state) {
-    final label = _items[_selectedIndex].label;
-    switch (label) {
-      case 'Profile':
-        return FluxerSettingsSheet(
-          hasUnsavedChanges: state.isDirty,
-          isSaving: state.isSaving,
-          onReset: () =>
-              ref.read(userSettingsViewModelProvider.notifier).reset(),
-          onSave: () => ref.read(userSettingsViewModelProvider.notifier).save(),
-          child: const UserProfile(),
-        );
-      case 'Look & Feel':
-        return UserAppearance(
-          isCompact: state.messageDisplayCompact,
-          onToggleCompact: () =>
-              ref.read(userSettingsViewModelProvider.notifier).toggleCompact(),
-        );
-      case 'Security & Login':
-        return const UserSecurityLogin();
-      case 'Privacy Dashboard':
-        return const UserPrivacyDashboard();
-      case 'Accessibility':
-        return const UserAccessibility();
-      case 'Messages & Media':
-        return const UserMessagesMedia();
-      case 'Authorized Apps':
-        return const UserAuthorizedApps();
-      case 'Blocked Users':
-        return const UserBlockedUsers();
-      case 'Linked Devices':
-        return const UserLinkedDevices();
-      case 'Connections':
-        return const UserConnections();
-      default:
-        return Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: context.colors.textPrimaryMuted,
-              fontSize: 24,
-            ),
-          ),
-        );
+    final section = userSettingsDesktopNav[_selectedIndex].section;
+    if (section == null) {
+      return const SizedBox.shrink();
     }
+    return _buildUserSettingsSectionContent(
+      context: context,
+      ref: ref,
+      state: state,
+      section: section,
+    );
   }
 
   Widget _buildCloseButton() => InkWell(
@@ -385,7 +320,9 @@ class _MobileSettingsNavBodyState
         if (mounted && !_didOpenInitialSection) {
           _didOpenInitialSection = true;
           _openSettingsPage(
-            widget.openSecuritySection ? 'Security & Login' : 'Profile',
+            widget.openSecuritySection
+                ? UserSettingsSection.securityLogin
+                : UserSettingsSection.profile,
           );
         }
       });
@@ -394,170 +331,31 @@ class _MobileSettingsNavBodyState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = FluxerLocalizations.of(context);
     return FluxerSettingsNavList(
       controller: widget.scrollController,
-      groups: [
-        FluxerSettingsNavGroup(
-          label: 'YOUR ACCOUNT',
-          items: [
-            FluxerSettingsNavItem(
-              label: 'Profile',
-              icon: PhosphorIconsFill.user,
-              onTap: () => _openSettingsPage('Profile'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Security & Login',
-              icon: PhosphorIconsFill.shieldCheck,
-              onTap: () => _openSettingsPage('Security & Login'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Fluxer Plutonium',
-              icon: PhosphorIconsFill.crown,
-              onTap: () => _openSettingsPage('Fluxer Plutonium'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Gifts & Codes',
-              icon: PhosphorIconsFill.gift,
-              onTap: () => _openSettingsPage('Gifts & Codes'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Expression Packs',
-              icon: PhosphorIconsFill.sticker,
-              onTap: () => _openSettingsPage('Expression Packs'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Privacy Dashboard',
-              icon: PhosphorIconsFill.eyeSlash,
-              onTap: () => _openSettingsPage('Privacy Dashboard'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Authorized Apps',
-              icon: PhosphorIconsFill.robot,
-              onTap: () => _openSettingsPage('Authorized Apps'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Blocked Users',
-              icon: PhosphorIconsFill.prohibit,
-              onTap: () => _openSettingsPage('Blocked Users'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Linked Devices',
-              icon: PhosphorIconsFill.devices,
-              onTap: () => _openSettingsPage('Linked Devices'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Connections',
-              icon: PhosphorIconsFill.userList,
-              onTap: () => _openSettingsPage('Connections'),
-            ),
-          ],
-        ),
-        FluxerSettingsNavGroup(
-          label: 'APPLICATION',
-          items: [
-            FluxerSettingsNavItem(
-              label: 'Look & Feel',
-              icon: PhosphorIconsFill.paintBrush,
-              onTap: () => _openSettingsPage('Look & Feel'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Accessibility',
-              icon: PhosphorIconsFill.personSimpleCircle,
-              onTap: () => _openSettingsPage('Accessibility'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Messages & Media',
-              icon: PhosphorIconsFill.chatCircle,
-              onTap: () => _openSettingsPage('Messages & Media'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Audio & Video',
-              icon: PhosphorIconsFill.microphone,
-              onTap: () => _openSettingsPage('Audio & Video'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Sounds & Alerts',
-              icon: PhosphorIconsFill.bell,
-              onTap: () => _openSettingsPage('Sounds & Alerts'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Language & Time',
-              icon: PhosphorIconsFill.translate,
-              onTap: () => _openSettingsPage('Language & Time'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Advanced',
-              icon: PhosphorIconsFill.flask,
-              onTap: () => _openSettingsPage('Advanced'),
-            ),
-          ],
-        ),
-        FluxerSettingsNavGroup(
-          label: 'DEVELOPER',
-          items: [
-            FluxerSettingsNavItem(
-              label: 'Applications',
-              icon: PhosphorIconsFill.code,
-              onTap: () => _openSettingsPage('Applications'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'App Logs',
-              icon: PhosphorIconsFill.list,
-              onTap: _openAppLogs,
-            ),
-          ],
-        ),
-        FluxerSettingsNavGroup(
-          label: 'STAFF-ONLY',
-          items: [
-            FluxerSettingsNavItem(
-              label: 'Developer Tools',
-              icon: PhosphorIconsFill.code,
-              onTap: () => _openSettingsPage('Developer Tools'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Limits Config',
-              icon: PhosphorIconsFill.flag,
-              onTap: () => _openSettingsPage('Limits Config'),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Feature Flags',
-              icon: PhosphorIconsFill.flag,
-              onTap: () => _openSettingsPage('Feature Flags'),
-            ),
-          ],
-        ),
-        FluxerSettingsNavGroup(
-          items: [
-            FluxerSettingsNavItem(
-              label: "What's New",
-              icon: PhosphorIconsFill.megaphone,
-              onTap: () => _openSettingsPage("What's New"),
-            ),
-            FluxerSettingsNavItem(
-              label: 'Log Out',
-              icon: PhosphorIconsFill.signOut,
-              isDanger: true,
-              onTap: _logout,
-            ),
-          ],
-        ),
-      ],
+      groups: buildUserSettingsMobileNavGroups(
+        l10n: l10n,
+        onOpenSection: _openSettingsPage,
+        onOpenAppLogs: _openAppLogs,
+        onLogout: _logout,
+      ),
       footer: const _SettingsBuildInfoFooter(),
     );
   }
 
-  void _openSettingsPage(String label) {
+  void _openSettingsPage(UserSettingsSection section) {
+    final l10n = FluxerLocalizations.of(context);
     final canDismiss = ValueNotifier<bool>(true);
     unawaited(
       FluxerBottomSheet.showScrollable<void>(
         context,
-        title: label,
+        title: userSettingsSectionLabel(l10n, section),
         useRootNavigator: true,
         canDismissNotifier: canDismiss,
         builder: (sheetContext, scrollController, close) =>
             _MobileSettingsContentBody(
-              label: label,
+              section: section,
               onClose: close,
               scrollController: scrollController,
               canDismissNotifier: canDismiss,
@@ -613,13 +411,13 @@ class _MobileSettingsNavBodyState
 
 class _MobileSettingsContentBody extends ConsumerWidget {
   const _MobileSettingsContentBody({
-    required this.label,
+    required this.section,
     required this.onClose,
     required this.scrollController,
     this.canDismissNotifier,
   });
 
-  final String label;
+  final UserSettingsSection section;
   final VoidCallback onClose;
   final ScrollController scrollController;
   final ValueNotifier<bool>? canDismissNotifier;
@@ -634,46 +432,105 @@ class _MobileSettingsContentBody extends ConsumerWidget {
       }
     });
 
-    switch (label) {
-      case 'Profile':
-        return FluxerSettingsSheet(
-          hasUnsavedChanges: state.isDirty,
-          isSaving: state.isSaving,
-          onReset: () =>
-              ref.read(userSettingsViewModelProvider.notifier).reset(),
-          onSave: () => ref.read(userSettingsViewModelProvider.notifier).save(),
-          child: UserProfile(scrollController: scrollController),
-        );
-      case 'Look & Feel':
-        return UserLookAndFeel(scrollController: scrollController);
-      case 'Security & Login':
-        return UserSecurityLogin(scrollController: scrollController);
-      case 'Privacy Dashboard':
-        return UserPrivacyDashboard(scrollController: scrollController);
-      case 'Accessibility':
-        return UserAccessibility(scrollController: scrollController);
-      case 'Messages & Media':
-        return UserMessagesMedia(scrollController: scrollController);
-      case 'Authorized Apps':
-        return UserAuthorizedApps(scrollController: scrollController);
-      case 'Blocked Users':
-        return UserBlockedUsers(scrollController: scrollController);
-      case 'Linked Devices':
-        return UserLinkedDevices(scrollController: scrollController);
-      case 'Connections':
-        return UserConnections(scrollController: scrollController);
-      default:
-        return Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: context.colors.textPrimaryMuted,
-              fontSize: 24,
-            ),
-          ),
-        );
-    }
+    return _buildUserSettingsSectionContent(
+      context: context,
+      ref: ref,
+      state: state,
+      section: section,
+      scrollController: scrollController,
+    );
   }
+}
+
+Widget _buildUserSettingsSectionContent({
+  required BuildContext context,
+  required WidgetRef ref,
+  required UserSettingsViewState state,
+  required UserSettingsSection section,
+  ScrollController? scrollController,
+}) {
+  switch (section) {
+    case UserSettingsSection.profile:
+      return FluxerSettingsSheet(
+        hasUnsavedChanges: state.isDirty,
+        isSaving: state.isSaving,
+        onReset: () => ref.read(userSettingsViewModelProvider.notifier).reset(),
+        onSave: () => ref.read(userSettingsViewModelProvider.notifier).save(),
+        child: scrollController == null
+            ? const UserProfile()
+            : UserProfile(scrollController: scrollController),
+      );
+    case UserSettingsSection.lookAndFeel:
+      if (scrollController == null) {
+        return UserAppearance(
+          isCompact: state.messageDisplayCompact,
+          onToggleCompact: () =>
+              ref.read(userSettingsViewModelProvider.notifier).toggleCompact(),
+        );
+      }
+      return UserLookAndFeel(scrollController: scrollController);
+    case UserSettingsSection.securityLogin:
+      return scrollController == null
+          ? const UserSecurityLogin()
+          : UserSecurityLogin(scrollController: scrollController);
+    case UserSettingsSection.privacyDashboard:
+      return scrollController == null
+          ? const UserPrivacyDashboard()
+          : UserPrivacyDashboard(scrollController: scrollController);
+    case UserSettingsSection.accessibility:
+      return scrollController == null
+          ? const UserAccessibility()
+          : UserAccessibility(scrollController: scrollController);
+    case UserSettingsSection.messagesAndMedia:
+      return scrollController == null
+          ? const UserMessagesMedia()
+          : UserMessagesMedia(scrollController: scrollController);
+    case UserSettingsSection.authorizedApps:
+      return scrollController == null
+          ? const UserAuthorizedApps()
+          : UserAuthorizedApps(scrollController: scrollController);
+    case UserSettingsSection.blockedUsers:
+      return scrollController == null
+          ? const UserBlockedUsers()
+          : UserBlockedUsers(scrollController: scrollController);
+    case UserSettingsSection.linkedDevices:
+      return scrollController == null
+          ? const UserLinkedDevices()
+          : UserLinkedDevices(scrollController: scrollController);
+    case UserSettingsSection.connections:
+      return scrollController == null
+          ? const UserConnections()
+          : UserConnections(scrollController: scrollController);
+    // case UserSettingsSection.fluxerPlutonium:
+    // case UserSettingsSection.giftsAndCodes:
+    case UserSettingsSection.expressionPacks:
+    case UserSettingsSection.audioAndVideo:
+    case UserSettingsSection.keybinds:
+    case UserSettingsSection.soundsAndAlerts:
+    case UserSettingsSection.languageAndTime:
+    case UserSettingsSection.advanced:
+    case UserSettingsSection.applications:
+    case UserSettingsSection.developerTools:
+    case UserSettingsSection.limitsConfig:
+    case UserSettingsSection.featureFlags:
+    case UserSettingsSection.whatsNew:
+      return _buildUserSettingsPlaceholder(context, section);
+  }
+}
+
+Widget _buildUserSettingsPlaceholder(
+  BuildContext context,
+  UserSettingsSection section,
+) {
+  return Center(
+    child: Text(
+      userSettingsSectionLabel(FluxerLocalizations.of(context), section),
+      style: TextStyle(
+        color: context.colors.textPrimaryMuted,
+        fontSize: 24,
+      ),
+    ),
+  );
 }
 
 class _SettingsBuildInfoFooter extends ConsumerWidget {

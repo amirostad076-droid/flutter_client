@@ -7811,6 +7811,174 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Could not clear personal notes'**
   String get purgePersonalNotesFailed;
+
+  /// Section heading for account-related items in user settings navigation.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR ACCOUNT'**
+  String get userSettingsGroupYourAccount;
+
+  /// Section heading for app preference items in user settings navigation.
+  ///
+  /// In en, this message translates to:
+  /// **'APPLICATION'**
+  String get userSettingsGroupApplication;
+
+  /// Section heading for developer items in user settings navigation.
+  ///
+  /// In en, this message translates to:
+  /// **'DEVELOPER'**
+  String get userSettingsGroupDeveloper;
+
+  /// Section heading for staff-only items in user settings navigation.
+  ///
+  /// In en, this message translates to:
+  /// **'STAFF-ONLY'**
+  String get userSettingsGroupStaffOnly;
+
+  /// User settings navigation item for profile settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get userSettingsNavProfile;
+
+  /// User settings navigation item for security and login settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Security & Login'**
+  String get userSettingsNavSecurityLogin;
+
+  /// User settings navigation item for Fluxer Plutonium subscription settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluxer Plutonium'**
+  String get userSettingsNavFluxerPlutonium;
+
+  /// User settings navigation item for gifts and promo codes.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifts & Codes'**
+  String get userSettingsNavGiftsAndCodes;
+
+  /// User settings navigation item for expression pack settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Expression Packs'**
+  String get userSettingsNavExpressionPacks;
+
+  /// User settings navigation item for the privacy dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Dashboard'**
+  String get userSettingsNavPrivacyDashboard;
+
+  /// User settings navigation item for authorized applications.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorized Apps'**
+  String get userSettingsNavAuthorizedApps;
+
+  /// User settings navigation item for blocked users.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked Users'**
+  String get userSettingsNavBlockedUsers;
+
+  /// User settings navigation item for linked devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked Devices'**
+  String get userSettingsNavLinkedDevices;
+
+  /// User settings navigation item for connected accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get userSettingsNavConnections;
+
+  /// User settings navigation item for appearance settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Look & Feel'**
+  String get userSettingsNavLookAndFeel;
+
+  /// User settings navigation item for accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessibility'**
+  String get userSettingsNavAccessibility;
+
+  /// User settings navigation item for messages and media settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages & Media'**
+  String get userSettingsNavMessagesAndMedia;
+
+  /// User settings navigation item for audio and video settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio & Video'**
+  String get userSettingsNavAudioAndVideo;
+
+  /// User settings navigation item for sounds and alert settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Sounds & Alerts'**
+  String get userSettingsNavSoundsAndAlerts;
+
+  /// User settings navigation item for language and time settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Language & Time'**
+  String get userSettingsNavLanguageAndTime;
+
+  /// User settings navigation item for advanced settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get userSettingsNavAdvanced;
+
+  /// User settings navigation item for developer applications.
+  ///
+  /// In en, this message translates to:
+  /// **'Applications'**
+  String get userSettingsNavApplications;
+
+  /// User settings navigation item for in-app logs.
+  ///
+  /// In en, this message translates to:
+  /// **'App Logs'**
+  String get userSettingsNavAppLogs;
+
+  /// User settings navigation item for staff developer tools.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer Tools'**
+  String get userSettingsNavDeveloperTools;
+
+  /// User settings navigation item for staff limits configuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Limits Config'**
+  String get userSettingsNavLimitsConfig;
+
+  /// User settings navigation item for staff feature flags.
+  ///
+  /// In en, this message translates to:
+  /// **'Feature Flags'**
+  String get userSettingsNavFeatureFlags;
+
+  /// User settings navigation item for release notes.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s New'**
+  String get userSettingsNavWhatsNew;
+
+  /// User settings navigation item to sign out of the account.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Out'**
+  String get userSettingsNavLogOut;
 }
 
 class _FluxerLocalizationsDelegate
