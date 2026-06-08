@@ -19,6 +19,22 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_settings_view_model.g.dart';
 
+bool _hasVerifiedPhoneFromProfile(UserPrivateResponse profile) {
+  try {
+    final Object? json = profile.toJson();
+    if (json is Map<String, dynamic>) {
+      final Object? value = json['has_verified_phone'];
+      if (value is bool) {
+        return value;
+      }
+    }
+  } on Object {
+    // Fall through.
+  }
+  final String? phone = profile.phone;
+  return phone != null && phone.trim().isNotEmpty;
+}
+
 const int _kGuildProfileFlagAvatarUnset = 1 << 0;
 const int _kGuildProfileFlagBannerUnset = 1 << 1;
 
@@ -66,6 +82,7 @@ class UserSettingsViewState {
   final String? passwordLastChangedAt;
   final bool mfaEnabled;
   final String? phone;
+  final bool hasVerifiedPhone;
   final List<int> authenticatorTypes;
   final bool premiumWillCancel;
 
@@ -152,6 +169,7 @@ class UserSettingsViewState {
     this.passwordLastChangedAt,
     this.mfaEnabled = false,
     this.phone,
+    this.hasVerifiedPhone = false,
     this.authenticatorTypes = const [],
     this.premiumWillCancel = false,
     this.premiumType,
@@ -429,6 +447,7 @@ class UserSettingsViewState {
     Object? passwordLastChangedAt = _unset,
     bool? mfaEnabled,
     Object? phone = _unset,
+    bool? hasVerifiedPhone,
     List<int>? authenticatorTypes,
     bool? premiumWillCancel,
     Object? premiumType = _unset,
@@ -521,6 +540,7 @@ class UserSettingsViewState {
           : passwordLastChangedAt as String?,
       mfaEnabled: mfaEnabled ?? this.mfaEnabled,
       phone: phone == _unset ? this.phone : phone as String?,
+      hasVerifiedPhone: hasVerifiedPhone ?? this.hasVerifiedPhone,
       authenticatorTypes: authenticatorTypes ?? this.authenticatorTypes,
       premiumWillCancel: premiumWillCancel ?? this.premiumWillCancel,
       premiumType: premiumType == _unset
@@ -784,8 +804,8 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
         verified: profile.verified,
         passwordLastChangedAt: profile.passwordLastChangedAt,
         mfaEnabled: profile.mfaEnabled,
-        // TODO: Switch phone-number profile field to WhatsApp field.
-        phone: null,
+        phone: profile.phone,
+        hasVerifiedPhone: _hasVerifiedPhoneFromProfile(profile),
         authenticatorTypes:
             profile.authenticatorTypes
                 ?.map((t) => t.json)

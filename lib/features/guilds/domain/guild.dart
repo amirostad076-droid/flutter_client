@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 
 export 'package:fluxer_app/core/media/fluxer_media_cdn.dart'
     show fluxerMediaCdn;
@@ -21,6 +22,7 @@ class Guild {
   final List<String> features;
   final bool unavailable;
   final int disabledOperations;
+  final int verificationLevel;
   final bool nsfw;
   final int contentWarningLevel;
   final String? contentWarningText;
@@ -38,6 +40,7 @@ class Guild {
     this.features = const [],
     this.unavailable = false,
     this.disabledOperations = 0,
+    this.verificationLevel = 0,
     this.nsfw = false,
     this.contentWarningLevel = 0,
     this.contentWarningText,
@@ -57,6 +60,7 @@ class Guild {
       features: (jsonDecode(row.featuresJson) as List<dynamic>).cast<String>(),
       unavailable: row.unavailable,
       disabledOperations: row.disabledOperations,
+      verificationLevel: row.verificationLevel,
       nsfw: row.nsfw,
       contentWarningLevel: row.contentWarningLevel,
       contentWarningText: row.contentWarningText,
@@ -77,6 +81,7 @@ class Guild {
       featuresJson: Value(jsonEncode(features)),
       unavailable: Value(unavailable),
       disabledOperations: Value(disabledOperations),
+      verificationLevel: Value(verificationLevel),
       nsfw: Value(nsfw),
       contentWarningLevel: Value(contentWarningLevel),
       contentWarningText: Value(contentWarningText),
@@ -94,6 +99,9 @@ class Guild {
   ///
   /// `SEND_MESSAGE` is bit `1 << 4` of the `disabled_operations` bitmask.
   bool get isSendDisabled => (disabledOperations & (1 << 4)) != 0;
+
+  int get effectiveVerificationLevel =>
+      effectiveGuildVerificationLevel(verificationLevel, isDiscoverable);
 
   bool get hasAnimatedIcon => icon?.startsWith('a_') ?? false;
   bool get hasAnimatedBanner => banner?.startsWith('a_') ?? false;

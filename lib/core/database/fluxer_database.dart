@@ -137,7 +137,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 54;
+  int get schemaVersion => 55;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -569,6 +569,9 @@ class FluxerDatabase extends _$FluxerDatabase {
           userPreferencesTable,
           userPreferencesTable.matureContentAgreedGuildIdsJson,
         );
+      }
+      if (from < 55) {
+        await m.addColumn(servers, servers.verificationLevel);
       }
     },
   );

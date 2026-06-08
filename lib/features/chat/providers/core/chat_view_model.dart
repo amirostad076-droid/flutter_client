@@ -24,6 +24,9 @@ import 'package:fluxer_app/features/channels/providers/read_state_repository_pro
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
+import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
+import 'package:fluxer_app/features/chat/providers/guild/guild_composer_access_provider.dart';
+import 'package:fluxer_app/features/chat/utils/guild_composer_barrier_l10n.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_auto_ack_allowed_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_read_ack_gate.dart';
@@ -43,6 +46,7 @@ import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/chat/utils/voice_message_constants.dart';
 import 'package:fluxer_app/features/chat/utils/mention_reply_preference_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
+import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -60,7 +64,13 @@ const _kReadAckMinInterval = Duration(seconds: 1);
 const _kDraftSaveDebounce = Duration(milliseconds: 400);
 const _kJumpHighlightDuration = Duration(milliseconds: 2000);
 
-enum _SendBlockReason { empty, noPermission, slowmode, channelNotReady }
+enum _SendBlockReason {
+  empty,
+  noPermission,
+  slowmode,
+  channelNotReady,
+  guildAccess,
+}
 
 class ChatViewState {
   static const _unset = Object();
@@ -1422,6 +1432,16 @@ class ChatViewModel extends _$ChatViewModel {
     if (state.editingMessage != null) {
       return;
     }
+    final GuildComposerAccess? guildBlock = await _resolveGuildComposerBlock(
+      channelId,
+    );
+    if (guildBlock != null) {
+      _notifySendBlocked(
+        _SendBlockReason.guildAccess,
+        guildBlock: guildBlock,
+      );
+      return;
+    }
     final String? currentUserId = ref.read(currentUserIdProvider);
     final db.User? currentUser = currentUserId == null
         ? null
@@ -1518,6 +1538,19 @@ class ChatViewModel extends _$ChatViewModel {
     }
     if (state.editingMessage != null) {
       await saveEditedMessage(text: text);
+      return;
+    }
+    final GuildComposerAccess? guildBlock = await _resolveGuildComposerBlock(
+      channelId,
+    );
+    if (guildBlock != null) {
+      talker.debug(
+        '[ChatViewModel] send blocked: guild_access channelId=$channelId',
+      );
+      _notifySendBlocked(
+        _SendBlockReason.guildAccess,
+        guildBlock: guildBlock,
+      );
       return;
     }
     final String? currentUserId = ref.read(currentUserIdProvider);
@@ -1796,7 +1829,10 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  void _notifySendBlocked(_SendBlockReason reason) {
+  void _notifySendBlocked(
+    _SendBlockReason reason, {
+    GuildComposerAccess? guildBlock,
+  }) {
     switch (reason) {
       case _SendBlockReason.empty:
         return;
@@ -1809,6 +1845,22 @@ class ChatViewModel extends _$ChatViewModel {
             .show(
               FluxerToast(
                 message: l10n.channelNoSendPermissionHint,
+                variant: FluxerToastVariant.warning,
+              ),
+            );
+      case _SendBlockReason.guildAccess:
+        final GuildComposerBlockReason? blockReason = guildBlock?.reason;
+        if (blockReason == null) {
+          return;
+        }
+        final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
+          PlatformDispatcher.instance.locale,
+        );
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: guildComposerBarrierMessage(l10n, blockReason),
                 variant: FluxerToastVariant.warning,
               ),
             );
@@ -2145,9 +2197,33 @@ class ChatViewModel extends _$ChatViewModel {
     if (channelId.isEmpty) {
       return;
     }
+    final GuildComposerAccess? access = ref
+        .read(guildComposerAccessProvider(channelId))
+        .value;
+    if (access != null && !access.canAccess) {
+      return;
+    }
+    final ChannelMessagePermissions? perms = ref
+        .read(channelMessagePermissionsProvider(channelId))
+        .value;
+    if (perms != null && perms.isResolved && !perms.canSendMessages) {
+      return;
+    }
     unawaited(
       ref.read(typingSenderProvider.notifier).notifyUserTyping(channelId),
     );
+  }
+
+  Future<GuildComposerAccess?> _resolveGuildComposerBlock(
+    String channelId,
+  ) async {
+    final GuildComposerAccess access = await ref.read(
+      guildComposerAccessProvider(channelId).future,
+    );
+    if (!access.canAccess) {
+      return access;
+    }
+    return null;
   }
 
   void startEdit(Message message) {

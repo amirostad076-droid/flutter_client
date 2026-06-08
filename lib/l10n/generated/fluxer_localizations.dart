@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'fluxer_localizations_en.dart';
+import 'fluxer_localizations_sv.dart';
 
 // ignore_for_file: type=lint
 
@@ -92,7 +93,10 @@ abstract class FluxerLocalizations {
       ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('sv'),
+  ];
 
   /// Title on the reconnecting / server error screen.
   ///
@@ -4534,6 +4538,60 @@ abstract class FluxerLocalizations {
   /// **'You can\'t send messages in this channel.'**
   String get channelNoSendPermissionHint;
 
+  /// Composer barrier when guild-wide messaging is disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Messaging is temporarily paused in this community.'**
+  String get channelComposerBarrierGuildSendDisabled;
+
+  /// Composer barrier when the current user is timed out in the guild.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re timed out. Messaging, reactions, and voice are paused until the timeout expires.'**
+  String get channelComposerBarrierTimedOut;
+
+  /// Composer barrier when the user must claim their account before messaging.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to claim your account to send messages in this community.'**
+  String get channelComposerBarrierUnclaimedAccount;
+
+  /// Composer barrier when the user must verify their email before messaging.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to verify your email to send messages in this community.'**
+  String get channelComposerBarrierUnverifiedEmail;
+
+  /// Composer barrier when the user's account is younger than the guild verification requirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is too new to send messages in this community.'**
+  String get channelComposerBarrierAccountTooNew;
+
+  /// Composer barrier when the user's guild membership is too recent.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t been a member of this community long enough to send messages.'**
+  String get channelComposerBarrierNotMemberLongEnough;
+
+  /// Composer barrier when the user must verify a phone number before messaging.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to verify a phone number to send messages in this community.'**
+  String get channelComposerBarrierNoPhoneNumber;
+
+  /// Action button on the composer barrier for unverified email.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify email'**
+  String get channelComposerBarrierVerifyEmail;
+
+  /// Action button on the composer barrier for missing phone verification.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify phone'**
+  String get channelComposerBarrierVerifyPhone;
+
   /// Shown when adding files would exceed the per-message attachment limit.
   ///
   /// In en, this message translates to:
@@ -7768,7 +7826,7 @@ class _FluxerLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en'].contains(locale.languageCode);
+      <String>['en', 'sv'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_FluxerLocalizationsDelegate old) => false;
@@ -7779,6 +7837,8 @@ FluxerLocalizations lookupFluxerLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return FluxerLocalizationsEn();
+    case 'sv':
+      return FluxerLocalizationsSv();
   }
 
   throw FlutterError(

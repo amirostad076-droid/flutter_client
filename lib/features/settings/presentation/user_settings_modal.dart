@@ -54,18 +54,25 @@ String _userSettingsFooterText(AppRuntimeInfo info, FluxerLocalizations l10n) {
 }
 
 class UserSettingsModal extends ConsumerStatefulWidget {
-  const UserSettingsModal({this.openProfileSection = false, super.key});
+  const UserSettingsModal({
+    this.openProfileSection = false,
+    this.openSecuritySection = false,
+    super.key,
+  });
 
   final bool openProfileSection;
+  final bool openSecuritySection;
 
   static Future<void> show(
     BuildContext context, {
     bool openProfileSection = false,
+    bool openSecuritySection = false,
   }) {
     if (isMobileLayout(context)) {
       return _showMobileSettings(
         context,
         openProfileSection: openProfileSection,
+        openSecuritySection: openSecuritySection,
       );
     }
 
@@ -76,13 +83,17 @@ class UserSettingsModal extends ConsumerStatefulWidget {
       isScrollControlled: true,
       useSafeArea: true,
       constraints: const BoxConstraints(maxWidth: 1400),
-      builder: (_) => UserSettingsModal(openProfileSection: openProfileSection),
+      builder: (_) => UserSettingsModal(
+        openProfileSection: openProfileSection,
+        openSecuritySection: openSecuritySection,
+      ),
     );
   }
 
   static Future<void> _showMobileSettings(
     BuildContext context, {
     bool openProfileSection = false,
+    bool openSecuritySection = false,
   }) async {
     await FluxerBottomSheet.showScrollable<void>(
       context,
@@ -93,6 +104,7 @@ class UserSettingsModal extends ConsumerStatefulWidget {
             onClose: close,
             scrollController: scrollController,
             openProfileSection: openProfileSection,
+            openSecuritySection: openSecuritySection,
           ),
     );
   }
@@ -145,6 +157,16 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
   ];
 
   var _selectedIndex = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.openSecuritySection) {
+      _selectedIndex = 2;
+    } else if (widget.openProfileSection) {
+      _selectedIndex = 1;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -338,11 +360,13 @@ class _MobileSettingsNavBody extends ConsumerStatefulWidget {
     required this.onClose,
     required this.scrollController,
     this.openProfileSection = false,
+    this.openSecuritySection = false,
   });
 
   final VoidCallback onClose;
   final ScrollController scrollController;
   final bool openProfileSection;
+  final bool openSecuritySection;
 
   @override
   ConsumerState<_MobileSettingsNavBody> createState() =>
@@ -351,16 +375,18 @@ class _MobileSettingsNavBody extends ConsumerStatefulWidget {
 
 class _MobileSettingsNavBodyState
     extends ConsumerState<_MobileSettingsNavBody> {
-  var _didOpenProfile = false;
+  var _didOpenInitialSection = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.openProfileSection) {
+    if (widget.openProfileSection || widget.openSecuritySection) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !_didOpenProfile) {
-          _didOpenProfile = true;
-          _openSettingsPage('Profile');
+        if (mounted && !_didOpenInitialSection) {
+          _didOpenInitialSection = true;
+          _openSettingsPage(
+            widget.openSecuritySection ? 'Security & Login' : 'Profile',
+          );
         }
       });
     }

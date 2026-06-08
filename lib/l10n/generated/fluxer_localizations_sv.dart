@@ -4,9 +4,9 @@ import 'fluxer_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for English (`en`).
-class FluxerLocalizationsEn extends FluxerLocalizations {
-  FluxerLocalizationsEn([String locale = 'en']) : super(locale);
+/// The translations for Swedish (`sv`).
+class FluxerLocalizationsSv extends FluxerLocalizations {
+  FluxerLocalizationsSv([String locale = 'sv']) : super(locale);
 
   @override
   String get reconnectingTitle => 'We fluxed up!';

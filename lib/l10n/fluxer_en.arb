@@ -3248,6 +3248,42 @@
   "@channelNoSendPermissionHint": {
     "description": "Placeholder text in the channel message input when the user lacks Send Messages permission."
   },
+  "channelComposerBarrierGuildSendDisabled": "Messaging is temporarily paused in this community.",
+  "@channelComposerBarrierGuildSendDisabled": {
+    "description": "Composer barrier when guild-wide messaging is disabled."
+  },
+  "channelComposerBarrierTimedOut": "You're timed out. Messaging, reactions, and voice are paused until the timeout expires.",
+  "@channelComposerBarrierTimedOut": {
+    "description": "Composer barrier when the current user is timed out in the guild."
+  },
+  "channelComposerBarrierUnclaimedAccount": "You need to claim your account to send messages in this community.",
+  "@channelComposerBarrierUnclaimedAccount": {
+    "description": "Composer barrier when the user must claim their account before messaging."
+  },
+  "channelComposerBarrierUnverifiedEmail": "You need to verify your email to send messages in this community.",
+  "@channelComposerBarrierUnverifiedEmail": {
+    "description": "Composer barrier when the user must verify their email before messaging."
+  },
+  "channelComposerBarrierAccountTooNew": "Your account is too new to send messages in this community.",
+  "@channelComposerBarrierAccountTooNew": {
+    "description": "Composer barrier when the user's account is younger than the guild verification requirement."
+  },
+  "channelComposerBarrierNotMemberLongEnough": "You haven't been a member of this community long enough to send messages.",
+  "@channelComposerBarrierNotMemberLongEnough": {
+    "description": "Composer barrier when the user's guild membership is too recent."
+  },
+  "channelComposerBarrierNoPhoneNumber": "You need to verify a phone number to send messages in this community.",
+  "@channelComposerBarrierNoPhoneNumber": {
+    "description": "Composer barrier when the user must verify a phone number before messaging."
+  },
+  "channelComposerBarrierVerifyEmail": "Verify email",
+  "@channelComposerBarrierVerifyEmail": {
+    "description": "Action button on the composer barrier for unverified email."
+  },
+  "channelComposerBarrierVerifyPhone": "Verify phone",
+  "@channelComposerBarrierVerifyPhone": {
+    "description": "Action button on the composer barrier for missing phone verification."
+  },
   "chatAttachmentTooMany": "Too many attachments (max {max})",
   "@chatAttachmentTooMany": {
     "description": "Shown when adding files would exceed the per-message attachment limit.",

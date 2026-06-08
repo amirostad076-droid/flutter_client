@@ -14,6 +14,7 @@ class Servers extends Table {
   BoolColumn get unavailable => boolean().withDefault(const Constant(false))();
   IntColumn get disabledOperations =>
       integer().withDefault(const Constant(0))();
+  IntColumn get verificationLevel => integer().withDefault(const Constant(0))();
   BoolColumn get nsfw => boolean().withDefault(const Constant(false))();
   IntColumn get contentWarningLevel =>
       integer().withDefault(const Constant(0))();

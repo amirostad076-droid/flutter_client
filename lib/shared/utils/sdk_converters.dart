@@ -36,6 +36,7 @@ db.ServersCompanion guildFromSdk(
     position: Value(position),
     unavailable: Value(unavailable),
     disabledOperations: Value(sdk.disabledOperations),
+    verificationLevel: Value(sdk.verificationLevel.json ?? 0),
     nsfw: Value(sdk.nsfw),
     contentWarningLevel: Value(sdk.contentWarningLevel.json ?? 0),
     contentWarningText: Value(sdk.contentWarningText),

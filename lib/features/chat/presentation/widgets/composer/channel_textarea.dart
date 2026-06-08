@@ -19,6 +19,9 @@ import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_mes
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_recorder.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/reply_preview.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_composer_barrier.dart';
+import 'package:fluxer_app/features/chat/providers/guild/guild_composer_access_provider.dart';
+import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
@@ -89,6 +92,21 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           .read(chatViewModelProvider.notifier)
           .updateMessageText(_controller.toWireText());
     });
+  }
+
+  void _clearComposerForBlockedAccess() {
+    _focusNode.unfocus();
+    if (_controller.toWireText().isNotEmpty) {
+      _controller.clear();
+      ref.read(chatViewModelProvider.notifier).updateMessageText('');
+    }
+    final ChatViewModel chatNotifier = ref.read(chatViewModelProvider.notifier);
+    if (ref.read(chatViewModelProvider).replyingTo != null) {
+      chatNotifier.cancelReply();
+    }
+    if (ref.read(chatViewModelProvider).editingMessage != null) {
+      chatNotifier.cancelEdit();
+    }
   }
 
   @override
@@ -312,13 +330,37 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         _handleFavoriteMemeSelection(pending);
       });
 
+    final channelId = ref.watch(
+      chatViewModelProvider.select((s) => s.channelId),
+    );
+    final AsyncValue<GuildComposerAccess> composerAccessAsync = ref.watch(
+      guildComposerAccessProvider(channelId),
+    );
+    ref.listen<AsyncValue<GuildComposerAccess>>(
+      guildComposerAccessProvider(channelId),
+      (AsyncValue<GuildComposerAccess>? previous, AsyncValue<GuildComposerAccess> next) {
+        final bool? wasAllowed = previous?.value?.canAccess;
+        final bool isAllowed = next.value?.canAccess ?? true;
+        if (wasAllowed != false && !isAllowed) {
+          _clearComposerForBlockedAccess();
+        }
+      },
+    );
+
+    final GuildComposerAccess composerAccess = composerAccessAsync.when(
+      skipLoadingOnReload: true,
+      data: (GuildComposerAccess value) => value,
+      error: (Object _, StackTrace _) => GuildComposerAccess.allowed,
+      loading: () => GuildComposerAccess.allowed,
+    );
+    if (!composerAccess.canAccess) {
+      return ChannelComposerBarrier(access: composerAccess);
+    }
+
     final vm = ref.watch(chatViewModelProvider);
     final chatNotifier = ref.read(chatViewModelProvider.notifier);
     final replyTo = vm.replyingTo;
     final editingMessage = vm.editingMessage;
-    final channelId = ref.watch(
-      chatViewModelProvider.select((s) => s.channelId),
-    );
     final ChannelMessagePermissions perms =
         channelMessagePermissionsForComposer(
           ref.watch(channelMessagePermissionsProvider(channelId)),
