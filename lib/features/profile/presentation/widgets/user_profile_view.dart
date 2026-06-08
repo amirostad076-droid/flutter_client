@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
+import 'package:fluxer_app/core/permissions/permission_resolver.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart' show RoutePaths;
@@ -15,6 +18,7 @@ import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
+import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_app/features/profile/presentation/sheets/user_profile_actions_sheet.dart';
 import 'package:fluxer_app/features/profile/presentation/sheets/user_profile_confirmation_sheet.dart';
 import 'package:fluxer_app/features/profile/presentation/sheets/user_profile_note_edit_sheet.dart';
@@ -29,6 +33,7 @@ import 'package:fluxer_app/features/profile/providers/user_note_view_model.dart'
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/profile/providers/user_profile_guild_provider.dart';
 import 'package:fluxer_app/features/profile/providers/user_relationship_provider.dart';
+import 'package:fluxer_app/features/profile/utils/profile_menu_capabilities.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -312,6 +317,9 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
     required bool isCurrentUser,
     required bool hasGuildProfile,
     required bool isShowingGlobalProfile,
+    ProfileMenuCapabilities menuCaps = ProfileMenuCapabilities.none,
+    String? guildMemberNick,
+    DateTime? guildMemberTimeoutUntil,
     bool isWebhook = false,
   }) {
     final layout = context.layout;
@@ -388,85 +396,99 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                       child: Row(
                         children: <Widget>[
                           UserProfileRelationshipButton(
-                          relationshipStatus: relationship?.friendStatus,
-                          isCurrentUser: isCurrentUser,
-                          onUnblock: () => _handleRelationshipAction(
-                            repoCall: () => ref
-                                .read(friendRepositoryProvider)
-                                .removeRelationship(userId),
-                            confirmTitle: FluxerLocalizations.of(
-                              context,
-                            ).userProfileUnblockConfirmTitle,
-                            confirmDescription: FluxerLocalizations.of(
-                              context,
-                            ).userProfileUnblockConfirmDescription(username),
-                            confirmPrimary: FluxerLocalizations.of(
-                              context,
-                            ).userProfileUnblockUser,
-                            confirmVariant: FluxerButtonVariant.primary,
-                          ),
-                          onRemoveFriend: () => _handleRelationshipAction(
-                            repoCall: () => ref
-                                .read(friendRepositoryProvider)
-                                .removeRelationship(userId),
-                            confirmTitle: FluxerLocalizations.of(
-                              context,
-                            ).userProfileRemoveFriendConfirmTitle,
-                            confirmDescription: FluxerLocalizations.of(context)
-                                .userProfileRemoveFriendConfirmDescription(
-                                  username,
+                            relationshipStatus: relationship?.friendStatus,
+                            isCurrentUser: isCurrentUser,
+                            onUnblock: () => _handleRelationshipAction(
+                              repoCall: () => ref
+                                  .read(friendRepositoryProvider)
+                                  .removeRelationship(userId),
+                              confirmTitle: FluxerLocalizations.of(
+                                context,
+                              ).userProfileUnblockConfirmTitle,
+                              confirmDescription: FluxerLocalizations.of(
+                                context,
+                              ).userProfileUnblockConfirmDescription(username),
+                              confirmPrimary: FluxerLocalizations.of(
+                                context,
+                              ).userProfileUnblockUser,
+                              confirmVariant: FluxerButtonVariant.primary,
+                            ),
+                            onRemoveFriend: () => _handleRelationshipAction(
+                              repoCall: () => ref
+                                  .read(friendRepositoryProvider)
+                                  .removeRelationship(userId),
+                              confirmTitle: FluxerLocalizations.of(
+                                context,
+                              ).userProfileRemoveFriendConfirmTitle,
+                              confirmDescription:
+                                  FluxerLocalizations.of(
+                                    context,
+                                  ).userProfileRemoveFriendConfirmDescription(
+                                    username,
+                                  ),
+                              confirmPrimary: FluxerLocalizations.of(
+                                context,
+                              ).userProfileRemoveFriend,
+                              confirmVariant: FluxerButtonVariant.dangerPrimary,
+                            ),
+                            onAcceptRequest: () => _handleRelationshipAction(
+                              repoCall: () => ref
+                                  .read(friendRepositoryProvider)
+                                  .acceptFriendRequest(userId),
+                            ),
+                            onCancelRequest: () => _handleRelationshipAction(
+                              repoCall: () => ref
+                                  .read(friendRepositoryProvider)
+                                  .removeRelationship(userId),
+                            ),
+                            onSendFriendRequest: () =>
+                                _handleRelationshipAction(
+                                  repoCall: () => ref
+                                      .read(friendRepositoryProvider)
+                                      .sendFriendRequest(userId),
                                 ),
-                            confirmPrimary: FluxerLocalizations.of(
-                              context,
-                            ).userProfileRemoveFriend,
-                            confirmVariant: FluxerButtonVariant.dangerPrimary,
                           ),
-                          onAcceptRequest: () => _handleRelationshipAction(
-                            repoCall: () => ref
-                                .read(friendRepositoryProvider)
-                                .acceptFriendRequest(userId),
-                          ),
-                          onCancelRequest: () => _handleRelationshipAction(
-                            repoCall: () => ref
-                                .read(friendRepositoryProvider)
-                                .removeRelationship(userId),
-                          ),
-                          onSendFriendRequest: () => _handleRelationshipAction(
-                            repoCall: () => ref
-                                .read(friendRepositoryProvider)
-                                .sendFriendRequest(userId),
-                          ),
-                        ),
-                        SizedBox(width: layout.s2),
-                        if (actionUser == null)
-                          FluxerButton.circleAlt(
-                            icon: PhosphorIconsFill.gear,
-                            onPressed: () => UserSettingsModal.show(context),
-                          )
-                        else
-                          _MoreButton(
-                            onTap: (Offset position) {
-                              unawaited(
-                                UserProfileActionsSheet.show(
-                                  context,
-                                  ref,
-                                  relationship: relationship,
-                                  user: actionUser,
-                                  isCurrentUser: isCurrentUser,
-                                  position: position,
-                                  hasGuildProfile: hasGuildProfile,
-                                  isShowingGlobalProfile:
-                                      isShowingGlobalProfile,
-                                  onShowGlobalProfile: () {
-                                    setState(() => _showGlobalProfile = true);
-                                  },
-                                  onShowCommunityProfile: () {
-                                    setState(() => _showGlobalProfile = false);
-                                  },
-                                ),
-                              );
-                            },
-                          ),
+                          SizedBox(width: layout.s2),
+                          if (actionUser == null)
+                            FluxerButton.circleAlt(
+                              icon: PhosphorIconsFill.gear,
+                              onPressed: () => UserSettingsModal.show(context),
+                            )
+                          else
+                            _MoreButton(
+                              onTap: (Offset position) {
+                                unawaited(
+                                  UserProfileActionsSheet.show(
+                                    context,
+                                    ref,
+                                    relationship: relationship,
+                                    user: actionUser,
+                                    isCurrentUser: isCurrentUser,
+                                    position: position,
+                                    hasGuildProfile: hasGuildProfile,
+                                    isShowingGlobalProfile:
+                                        isShowingGlobalProfile,
+                                    onShowGlobalProfile: () {
+                                      setState(() => _showGlobalProfile = true);
+                                    },
+                                    onShowCommunityProfile: () {
+                                      setState(
+                                        () => _showGlobalProfile = false,
+                                      );
+                                    },
+                                    displayName: displayName,
+                                    guildId: widget.guildId,
+                                    message: widget.message,
+                                    avatarUrl: avatarUrl,
+                                    avatarColor: avatarColor,
+                                    capabilities: menuCaps,
+                                    currentNick: guildMemberNick,
+                                    currentTimeoutUntil:
+                                        guildMemberTimeoutUntil,
+                                  ),
+                                );
+                              },
+                            ),
                         ],
                       ),
                     ),
@@ -760,6 +782,68 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                 return a.id.compareTo(b.id);
               });
         final bool isCurrentProfile = ownUserId == response.user.id;
+        final DateTime? guildMemberTimeoutUntil =
+            response.guildMember?.communicationDisabledUntil;
+        ProfileMenuCapabilities menuCaps = ProfileMenuCapabilities.none;
+        if (guildId != null) {
+          final String? ownerId = guildInfo?.ownerId;
+          final int everyonePermissions = roleById[guildId]?.permissions ?? 0;
+
+          final AsyncValue<CurrentUserMemberIdentity?> viewerIdentityAsync = ref
+              .watch(currentUserMemberIdentityProvider(guildId));
+          final String? viewerRoleIdsJson =
+              viewerIdentityAsync.value?.roleIdsJson;
+          final List<String> viewerRoleIds =
+              (viewerRoleIdsJson != null && viewerRoleIdsJson.isNotEmpty)
+              ? List<String>.from(
+                  jsonDecode(viewerRoleIdsJson) as List<dynamic>,
+                )
+              : <String>[];
+          final List<MemberRole> viewerRoles = viewerRoleIds
+              .where((String id) => id != guildId)
+              .map((String id) => roleById[id])
+              .whereType<MemberRole>()
+              .toList(growable: false);
+
+          final int viewerPermissions = resolveGuildPermissions(
+            guildOwnerId: ownerId ?? '',
+            currentUserId: ownUserId,
+            everyonePermissions: everyonePermissions,
+            memberRoles: viewerRoles,
+          );
+
+          final List<MemberRole> targetHierarchyRoles = memberRoles
+              .where((MemberRole role) => role.id != guildId)
+              .toList(growable: false);
+          final int targetPermissions = resolveGuildPermissions(
+            guildOwnerId: ownerId ?? '',
+            currentUserId: response.user.id,
+            everyonePermissions: everyonePermissions,
+            memberRoles: targetHierarchyRoles,
+          );
+
+          menuCaps = resolveProfileMenuCapabilities(
+            isCurrentUser: isCurrentProfile,
+            hasGuildMember: response.guildMember != null,
+            targetIsTimedOut:
+                guildMemberTimeoutUntil != null &&
+                guildMemberTimeoutUntil.isAfter(DateTime.now()),
+            targetIsBot: response.user.bot ?? false,
+            viewerIsOwner: ownerId != null && ownerId == ownUserId,
+            viewerPermissions: viewerPermissions,
+            canManageTarget: canManageTarget(
+              currentUserId: ownUserId,
+              ownerId: ownerId,
+              viewerHighest: highestRole(viewerRoles),
+              targetHighest: highestRole(targetHierarchyRoles),
+              targetIsOwner: ownerId != null && ownerId == response.user.id,
+            ),
+            targetHasAdministrator: hasPermission(
+              targetPermissions,
+              Permission.administrator,
+            ),
+          );
+        }
         final GuildUserDisplay profileDisplay =
             resolveGuildUserDisplayFromProfile(
               response: response,
@@ -818,6 +902,9 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
           isCurrentUser: isCurrentProfile,
           hasGuildProfile: profileDisplay.hasGuildProfile,
           isShowingGlobalProfile: profileDisplay.isShowingGlobalProfile,
+          menuCaps: menuCaps,
+          guildMemberNick: response.guildMember?.nick,
+          guildMemberTimeoutUntil: guildMemberTimeoutUntil,
         );
       },
     );
