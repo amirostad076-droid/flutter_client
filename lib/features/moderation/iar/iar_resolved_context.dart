@@ -129,6 +129,11 @@ IarResolvedContext resolveIarContext(
       message.authorIsBot,
       guildId,
     ),
+    // The multi-step flow is message-only (and currently has no caller); user
+    // reports always use the simple sheet, so this branch is unreachable.
+    IarUserContext() => throw UnsupportedError(
+      'User reports use showSimpleIarReportSheet, not the multi-step flow.',
+    ),
   };
 }
 

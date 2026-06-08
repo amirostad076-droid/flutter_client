@@ -27,7 +27,10 @@ Future<void> showSimpleIarReportSheet(
   final l10n = FluxerLocalizations.of(context);
   return FluxerBottomSheet.show<void>(
     context,
-    title: l10n.iarReportMessageTitle,
+    title: switch (iarContext) {
+      IarMessageContext() => l10n.iarReportMessageTitle,
+      IarUserContext() => l10n.iarReportUserTitle,
+    },
     builder: (sheetContext, close) =>
         _SimpleIarReportBody(iarContext: iarContext, close: close),
   );
@@ -79,6 +82,17 @@ class _SimpleIarReportBodyState extends ConsumerState<_SimpleIarReportBody> {
                   category: iarReasonToMessageCategory(reason),
                 ),
               );
+        case IarUserContext(:final userId, :final guildId):
+          await ref
+              .read(fluxerClientProvider)
+              .reports
+              .reportUser(
+                body: ReportUserRequest(
+                  userId: userId,
+                  category: iarReasonToUserCategory(reason),
+                  guildId: guildId,
+                ),
+              );
       }
       if (!mounted) {
         return;
@@ -118,7 +132,10 @@ class _SimpleIarReportBodyState extends ConsumerState<_SimpleIarReportBody> {
     final l10n = FluxerLocalizations.of(context);
     final layout = context.layout;
 
-    final options = iarFlatMessageReasonSelectOptions(l10n);
+    final options = switch (widget.iarContext) {
+      IarMessageContext() => iarFlatMessageReasonSelectOptions(l10n),
+      IarUserContext() => iarFlatUserReasonSelectOptions(l10n),
+    };
     final routingNote = iarChildSafetyRoutingNote(l10n, _selectedReason);
     final safetyNote = iarSpecialSafetyNote(l10n, _selectedReason);
 

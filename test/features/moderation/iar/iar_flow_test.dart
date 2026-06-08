@@ -193,4 +193,94 @@ void main() {
       );
     });
   });
+
+  group('iarReasonToUserCategory', () {
+    const expected = <IarRuleReason, UserReportCategoryEnum>{
+      IarRuleReason.harassment: UserReportCategoryEnum.harassment,
+      IarRuleReason.hate: UserReportCategoryEnum.hateSpeech,
+      IarRuleReason.violence: UserReportCategoryEnum.harassment,
+      IarRuleReason.terrorismExtremism: UserReportCategoryEnum.other,
+      IarRuleReason.matureContent: UserReportCategoryEnum.harassment,
+      IarRuleReason.childSafety: UserReportCategoryEnum.underageUser,
+      IarRuleReason.harmfulMisinformation: UserReportCategoryEnum.other,
+      IarRuleReason.illegalActivity: UserReportCategoryEnum.other,
+      IarRuleReason.spamScams: UserReportCategoryEnum.spamAccount,
+      IarRuleReason.malware: UserReportCategoryEnum.spamAccount,
+      IarRuleReason.privacy: UserReportCategoryEnum.harassment,
+      IarRuleReason.impersonation: UserReportCategoryEnum.impersonation,
+      IarRuleReason.inappropriateProfile:
+          UserReportCategoryEnum.inappropriateProfile,
+      IarRuleReason.raidCoordination: UserReportCategoryEnum.other,
+      IarRuleReason.selfHarm: UserReportCategoryEnum.other,
+      IarRuleReason.other: UserReportCategoryEnum.other,
+    };
+
+    test('maps every reason to the web user category', () {
+      for (final reason in IarRuleReason.values) {
+        expect(
+          iarReasonToUserCategory(reason),
+          equals(expected[reason]),
+          reason: '$reason',
+        );
+      }
+    });
+
+    test(r'never maps to the $unknown sentinel', () {
+      for (final reason in IarRuleReason.values) {
+        expect(
+          iarReasonToUserCategory(reason),
+          isNot(equals(UserReportCategoryEnum.$unknown)),
+          reason: '$reason maps to \$unknown',
+        );
+      }
+    });
+  });
+
+  group('userReportReasons', () {
+    // Order and membership mirror web `getUserRuleReasonOptions`.
+    const expectedOrder = [
+      IarRuleReason.harassment,
+      IarRuleReason.hate,
+      IarRuleReason.violence,
+      IarRuleReason.matureContent,
+      IarRuleReason.childSafety,
+      IarRuleReason.harmfulMisinformation,
+      IarRuleReason.spamScams,
+      IarRuleReason.malware,
+      IarRuleReason.privacy,
+      IarRuleReason.impersonation,
+      IarRuleReason.inappropriateProfile,
+      IarRuleReason.illegalActivity,
+      IarRuleReason.selfHarm,
+      IarRuleReason.other,
+    ];
+    const excluded = {
+      IarRuleReason.terrorismExtremism,
+      IarRuleReason.raidCoordination,
+    };
+
+    test('matches the web user reason list in order', () {
+      expect(userReportReasons, orderedEquals(expectedOrder));
+    });
+
+    test('includes inappropriateProfile and excludes guild-only reasons', () {
+      expect(userReportReasons, contains(IarRuleReason.inappropriateProfile));
+      expect(
+        userReportReasons,
+        isNot(contains(IarRuleReason.terrorismExtremism)),
+      );
+      expect(
+        userReportReasons,
+        isNot(contains(IarRuleReason.raidCoordination)),
+      );
+    });
+
+    test('together with the excluded reasons covers the whole enum', () {
+      expect({
+        ...userReportReasons,
+        ...excluded,
+      }, equals(IarRuleReason.values.toSet()));
+      expect(userReportReasons.toSet().intersection(excluded), isEmpty);
+    });
+  });
 }

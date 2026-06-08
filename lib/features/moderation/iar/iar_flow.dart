@@ -6,9 +6,9 @@
 // then a specific `IarRuleReason`. At submit time the reason is mapped onto
 // the backend `MessageReportCategoryEnum` via [iarReasonToMessageCategory].
 //
-// Mobile currently exposes only the `message` IAR context. The `user` and
-// `guild` contexts on the web are intentionally deferred until those entry
-// points exist on mobile.
+// Mobile exposes the `message` and `user` IAR contexts. The `guild` context
+// on the web is intentionally deferred until that entry point exists on
+// mobile.
 
 import 'package:dio/dio.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
@@ -176,8 +176,8 @@ IarReportFailure classifyIarReportFailure(Object error) {
   return IarReportFailure.generic;
 }
 
-/// Discriminated input to the IAR flow. Only the message variant is wired
-/// up today; user/guild variants will be added when those entry points land.
+/// Discriminated input to the IAR flow. The message and user variants are
+/// wired up; the guild variant will be added when that entry point lands.
 sealed class IarContext {
   const IarContext();
 }
@@ -188,4 +188,69 @@ class IarMessageContext extends IarContext {
 
   /// Guild owning the channel, or null for DMs and group DMs.
   final String? guildId;
+}
+
+class IarUserContext extends IarContext {
+  const IarUserContext({
+    required this.userId,
+    required this.username,
+    required this.displayName,
+    required this.avatarUrl,
+    this.avatarColor,
+    this.guildId,
+  });
+
+  final String userId;
+  final String username;
+  final String displayName;
+  final String? avatarUrl;
+  final int? avatarColor;
+
+  /// Community the report is scoped to, or null for a global (DM/friends)
+  /// report.
+  final String? guildId;
+}
+
+/// User-report reasons in the web's `getUserRuleReasonOptions` display order:
+/// the message list plus `inappropriateProfile` (which has no message entry),
+/// minus `terrorismExtremism`/`raidCoordination` (guild-only).
+const List<IarRuleReason> userReportReasons = [
+  IarRuleReason.harassment,
+  IarRuleReason.hate,
+  IarRuleReason.violence,
+  IarRuleReason.matureContent,
+  IarRuleReason.childSafety,
+  IarRuleReason.harmfulMisinformation,
+  IarRuleReason.spamScams,
+  IarRuleReason.malware,
+  IarRuleReason.privacy,
+  IarRuleReason.impersonation,
+  IarRuleReason.inappropriateProfile,
+  IarRuleReason.illegalActivity,
+  IarRuleReason.selfHarm,
+  IarRuleReason.other,
+];
+
+/// Maps a chosen reason onto the backend wire-format [UserReportCategoryEnum].
+/// Mirrors `REPORT_CATEGORY_BY_REASON.user` from the web.
+UserReportCategoryEnum iarReasonToUserCategory(IarRuleReason reason) {
+  return switch (reason) {
+    IarRuleReason.harassment => UserReportCategoryEnum.harassment,
+    IarRuleReason.hate => UserReportCategoryEnum.hateSpeech,
+    IarRuleReason.violence => UserReportCategoryEnum.harassment,
+    IarRuleReason.terrorismExtremism => UserReportCategoryEnum.other,
+    IarRuleReason.matureContent => UserReportCategoryEnum.harassment,
+    IarRuleReason.childSafety => UserReportCategoryEnum.underageUser,
+    IarRuleReason.harmfulMisinformation => UserReportCategoryEnum.other,
+    IarRuleReason.illegalActivity => UserReportCategoryEnum.other,
+    IarRuleReason.spamScams => UserReportCategoryEnum.spamAccount,
+    IarRuleReason.malware => UserReportCategoryEnum.spamAccount,
+    IarRuleReason.privacy => UserReportCategoryEnum.harassment,
+    IarRuleReason.impersonation => UserReportCategoryEnum.impersonation,
+    IarRuleReason.inappropriateProfile =>
+      UserReportCategoryEnum.inappropriateProfile,
+    IarRuleReason.raidCoordination => UserReportCategoryEnum.other,
+    IarRuleReason.selfHarm => UserReportCategoryEnum.other,
+    IarRuleReason.other => UserReportCategoryEnum.other,
+  };
 }

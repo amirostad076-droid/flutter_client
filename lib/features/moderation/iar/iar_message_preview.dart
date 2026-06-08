@@ -3,6 +3,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 
 /// Faithful preview of the reported message (reuses [MessageItem] in preview
 /// mode), matching web `IARModalPreview.tsx`.
@@ -18,6 +19,20 @@ class IarPreview extends StatelessWidget {
         message: message,
         guildId: guildId,
       ),
+      IarUserContext(
+        :final userId,
+        :final username,
+        :final displayName,
+        :final avatarUrl,
+        :final avatarColor,
+      ) =>
+        _UserPreviewCard(
+          userId: userId,
+          username: username,
+          displayName: displayName,
+          avatarUrl: avatarUrl,
+          avatarColor: avatarColor,
+        ),
     };
   }
 }
@@ -57,6 +72,74 @@ class _MessagePreviewCard extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _UserPreviewCard extends StatelessWidget {
+  const _UserPreviewCard({
+    required this.userId,
+    required this.username,
+    required this.displayName,
+    required this.avatarUrl,
+    required this.avatarColor,
+  });
+
+  final String userId;
+  final String username;
+  final String displayName;
+  final String? avatarUrl;
+  final int? avatarColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final layout = context.layout;
+    final textStyles = context.textStyles;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.backgroundSecondary,
+        borderRadius: layout.radiusMd,
+        border: Border.all(color: colors.backgroundHeaderSecondary),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(layout.s3),
+        child: Row(
+          children: [
+            FluxerAvatar.user(
+              fallbackText: displayName,
+              userId: userId,
+              imageUrl: avatarUrl,
+              avatarColor: avatarColor,
+            ),
+            SizedBox(width: layout.s3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    displayName,
+                    style: textStyles.bodyMedium.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    '@$username',
+                    style: textStyles.bodySmall.copyWith(
+                      color: colors.textTertiary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

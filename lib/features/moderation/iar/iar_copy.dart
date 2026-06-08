@@ -170,6 +170,11 @@ List<FluxerRadioItem<IarPrimaryPath>> iarPrimaryPathOptions(
 String _iarPreferencePathLabel(FluxerLocalizations l10n, IarContext context) {
   return switch (context) {
     IarMessageContext() => l10n.iarPathPreferenceMessage,
+    // The multi-step flow is message-only (and currently has no caller); user
+    // reports always use the simple sheet, so this branch is unreachable.
+    IarUserContext() => throw UnsupportedError(
+      'User reports use showSimpleIarReportSheet, not the multi-step flow.',
+    ),
   };
 }
 
@@ -230,6 +235,40 @@ List<FluxerSelectItem<IarRuleReason>> iarFlatMessageReasonSelectOptions(
         value: reason,
         label: label,
         description: iarMessageReasonDescription(l10n, reason),
+      ),
+    );
+  }
+  return items;
+}
+
+/// Display name for a rule reason within the user-report flow. Delegates to
+/// [iarMessageReasonLabel] and adds the `inappropriateProfile` label, which is
+/// surfaced only in the user/guild taxonomy.
+String? iarUserReasonLabel(FluxerLocalizations l10n, IarRuleReason reason) {
+  if (reason == IarRuleReason.inappropriateProfile) {
+    return l10n.iarReasonInappropriateProfile;
+  }
+  return iarMessageReasonLabel(l10n, reason);
+}
+
+/// Reason dropdown options for the simple mobile user-report flow: the flat
+/// [userReportReasons] list in web `getUserRuleReasonOptions` order.
+List<FluxerSelectItem<IarRuleReason>> iarFlatUserReasonSelectOptions(
+  FluxerLocalizations l10n,
+) {
+  final items = <FluxerSelectItem<IarRuleReason>>[];
+  for (final reason in userReportReasons) {
+    final label = iarUserReasonLabel(l10n, reason);
+    if (label == null) {
+      continue;
+    }
+    items.add(
+      FluxerSelectItem(
+        value: reason,
+        label: label,
+        description: reason == IarRuleReason.inappropriateProfile
+            ? l10n.iarReasonInappropriateProfileDescription
+            : iarMessageReasonDescription(l10n, reason),
       ),
     );
   }

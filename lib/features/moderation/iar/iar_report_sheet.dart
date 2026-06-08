@@ -159,6 +159,17 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
                   category: iarReasonToMessageCategory(reason),
                 ),
               );
+        case IarUserContext(:final userId, :final guildId):
+          await ref
+              .read(fluxerClientProvider)
+              .reports
+              .reportUser(
+                body: ReportUserRequest(
+                  userId: userId,
+                  category: iarReasonToUserCategory(reason),
+                  guildId: guildId,
+                ),
+              );
       }
       if (mounted) {
         setState(() => _step = IarStep.success);
@@ -302,10 +313,7 @@ class _IarReportBodyState extends ConsumerState<_IarReportBody> {
       await ref
           .read(fluxerClientProvider)
           .guilds
-          .leaveGuild(
-            guildId: guildId,
-            body: const SudoVerificationSchema(),
-          );
+          .leaveGuild(guildId: guildId, body: const SudoVerificationSchema());
     } on Object catch (error, stack) {
       talker.error('[IAR] Failed to leave guild', error, stack);
       if (mounted) {
