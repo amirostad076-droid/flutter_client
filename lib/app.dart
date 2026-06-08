@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/native_titlebar.dart';
+import 'package:fluxer_app/features/shell/presentation/widgets/beta_warning_layer.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast_overlay.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/incoming_voice_call_layer.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -76,7 +77,9 @@ class FluxerApp extends ConsumerWidget {
       routerConfig: router,
       builder: (context, child) {
         final Widget layered = AppUiLifecycleObserver(
-          child: IncomingVoiceCallLayer(child: child!),
+          child: BetaWarningLayer(
+            child: IncomingVoiceCallLayer(child: child!),
+          ),
         );
         if (!_isDesktopPlatform) {
           return BetaBanner(
