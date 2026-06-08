@@ -666,6 +666,15 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId == channelId && state.isLoading && !isChannelChange) {
         return;
       }
+      if (state.channelId == channelId &&
+          !isChannelChange &&
+          !state.isLoading &&
+          !state.isSyncingMessages &&
+          state.messages.any((Message m) => m.id == targetMessageId)) {
+        highlightJumpMessage(targetMessageId);
+        scrollToMessage(targetMessageId);
+        return;
+      }
       state = _switchedChannelState(
         channelId: channelId,
         messages: const [],
@@ -681,6 +690,9 @@ class ChatViewModel extends _$ChatViewModel {
       );
       highlightJumpMessage(targetMessageId);
       await _loadMessages(channelId, targetMessageId: targetMessageId);
+      if (state.channelId == channelId) {
+        scrollToMessage(targetMessageId);
+      }
       return;
     }
     if (state.channelId == channelId &&

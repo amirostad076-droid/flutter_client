@@ -180,10 +180,20 @@ class _MessageListState extends ConsumerState<MessageList> {
     return _scrollController.position.pixels <= _kReadBottomThreshold;
   }
 
+  bool _hasActiveJumpTarget() {
+    if (widget.targetMessageId != null || _pendingScrollTarget != null) {
+      return true;
+    }
+    return ref.read(chatViewModelProvider).highlightedMessageId != null;
+  }
+
   void _onMessagesAppended({
     required List<Message> previousMessages,
     required List<Message> nextMessages,
   }) {
+    if (_hasActiveJumpTarget()) {
+      return;
+    }
     if (previousMessages.isEmpty ||
         nextMessages.length <= previousMessages.length ||
         !_scrollController.hasClients) {
@@ -246,7 +256,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _syncReadViewport() {
-    if (!_scrollController.hasClients) {
+    if (!_scrollController.hasClients || _hasActiveJumpTarget()) {
       return;
     }
     final ChatViewState state = ref.read(chatViewModelProvider);
@@ -267,6 +277,9 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onScrollToBottom() {
+    if (_hasActiveJumpTarget()) {
+      return;
+    }
     final ChatViewState chatState = ref.read(chatViewModelProvider);
     _scrollAnchoredPivotMessageId = null;
     if (chatState.hasMoreNewerMessages) {

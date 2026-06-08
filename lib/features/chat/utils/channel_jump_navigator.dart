@@ -157,7 +157,7 @@ Future<void> _applyChannelJumpResolution({
       await container
           .read(chatViewModelProvider.notifier)
           .goToRepliedMessage(channelId: channelId, messageId: messageId);
-    case ChannelJumpNavigate(:final path, :final channelId, :final messageId):
+    case ChannelJumpNavigate(:final path, :final channelId):
       final BuildContext? gateContext =
           context ?? rootNavigatorKey.currentContext;
       if (gateContext != null && gateContext.mounted) {
@@ -182,14 +182,6 @@ Future<void> _applyChannelJumpResolution({
         navigateToPath(path);
       } else {
         _navigateToPathViaContainer(container, path);
-      }
-      if (messageId != null && messageId.isNotEmpty) {
-        unawaited(
-          container.read(chatViewModelProvider.notifier).switchChannel(
-            channelId,
-            targetMessageId: messageId,
-          ),
-        );
       }
   }
 }

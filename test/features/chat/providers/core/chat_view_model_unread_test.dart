@@ -1240,6 +1240,58 @@ void main() {
         );
         await switchFuture;
         await _flushAsync();
+        expect(
+          container.read(chatViewModelProvider).scrollToMessageSignal?.$1,
+          targetId,
+        );
+      },
+    );
+
+    test(
+      'switchChannel with same targetMessageId skips reload when target is loaded',
+      () async {
+        final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+        addTearDown(db.close);
+        await db.channelDao.upsertChannel(
+          ChannelsCompanion.insert(
+            id: 'channel-1',
+            guildId: 'guild-1',
+            name: 'general',
+          ),
+        );
+        final String targetId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+        final adapter = _ChatAdapter(
+          messagesByChannel: <String, List<Map<String, Object?>>>{
+            'channel-1': <Map<String, Object?>>[
+              _messageJson(
+                id: targetId,
+                channelId: 'channel-1',
+                authorId: 'other',
+              ),
+            ],
+          },
+        );
+        final container = _container(db, adapter);
+        addTearDown(container.dispose);
+        final notifier = container.read(chatViewModelProvider.notifier);
+        await notifier.switchChannel(
+          'channel-1',
+          targetMessageId: targetId,
+        );
+        await _flushAsync();
+        final messagesAfterFirstLoad = List.of(
+          container.read(chatViewModelProvider).messages,
+        );
+        await notifier.switchChannel(
+          'channel-1',
+          targetMessageId: targetId,
+        );
+        await _flushAsync();
+        final ChatViewState state = container.read(chatViewModelProvider);
+        expect(state.messages, messagesAfterFirstLoad);
+        expect(state.isLoading, false);
+        expect(state.highlightedMessageId, targetId);
+        expect(state.scrollToMessageSignal?.$1, targetId);
       },
     );
 
