@@ -997,7 +997,8 @@ class Message {
   bool get hasEmbeds => embeds.isNotEmpty;
   bool get hasAttachments => attachments.isNotEmpty;
   bool get hasStickers => stickers.isNotEmpty;
-  bool get isReply => replyToId != null;
+  bool get isReply =>
+      replyToId != null && !(messageReference?.isForward ?? false);
 
   String? get replyParentMessageId => replyToId ?? messageReference?.messageId;
 

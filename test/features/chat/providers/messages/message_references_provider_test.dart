@@ -68,6 +68,49 @@ void main() {
       expect(message.replyToId, '100');
       expect(message.isReply, isTrue);
     });
+
+    test('forward reference keeps replyToId but isReply is false', () {
+      final schema = MessageResponseSchema.fromJson(<String, Object?>{
+        'id': '300',
+        'channel_id': 'channel-2',
+        'author': <String, Object?>{
+          'id': 'author-1',
+          'username': 'user',
+          'discriminator': '0001',
+          'global_name': null,
+          'avatar': null,
+          'avatar_color': null,
+          'flags': 0,
+        },
+        'type': 0,
+        'flags': 0,
+        'content': '',
+        'timestamp': DateTime.utc(2026, 1, 3).toIso8601String(),
+        'pinned': false,
+        'mention_everyone': false,
+        'tts': false,
+        'mentions': <Object?>[],
+        'mention_roles': <Object?>[],
+        'message_reference': <String, Object?>{
+          'channel_id': 'channel-1',
+          'message_id': '100',
+          'type': 1,
+        },
+        'message_snapshots': <Object?>[
+          <String, Object?>{
+            'type': 0,
+            'flags': 0,
+            'content': 'forwarded text',
+            'timestamp': DateTime.utc(2026, 1, 1).toIso8601String(),
+          },
+        ],
+      });
+
+      final message = Message.fromSdk(schema);
+      expect(message.replyToId, '100');
+      expect(message.isReply, isFalse);
+      expect(message.isForwarded, isTrue);
+    });
   });
 
   group('MessageReferencesNotifier', () {
