@@ -1525,7 +1525,11 @@ class GatewayEventHandler {
         });
       }
     } else if (idx != -1) {
-      final count = ((reactions[idx]['count'] as int?) ?? 1) - 1;
+      final existing = reactions[idx];
+      if (isCurrentUser && !(existing['hasReacted'] as bool? ?? false)) {
+        return;
+      }
+      final count = ((existing['count'] as int?) ?? 1) - 1;
       if (count <= 0) {
         reactions.removeAt(idx);
       } else {

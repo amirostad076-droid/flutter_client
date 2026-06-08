@@ -1,11 +1,106 @@
+import 'dart:convert';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart' as domain;
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 
 void main() {
+  group('reaction remove', () {
+    const currentUserId = '100';
+    const messageId = '500';
+    const channelId = '200';
+    const thumbsUp = ReactionEmoji(name: '👍');
+
+    Future<FluxerDatabase> createDatabase({
+      required int count,
+      required bool hasReacted,
+    }) async {
+      final database = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(database.close);
+      await database.messageDao.upsertMessage(
+        domain.Message(
+          id: messageId,
+          channelId: channelId,
+          authorId: '300',
+          authorName: 'author',
+          content: 'hello',
+          timestamp: DateTime.utc(2026, 1, 2),
+          reactions: [
+            domain.Reaction(
+              emoji: thumbsUp.name,
+              count: count,
+              hasReacted: hasReacted,
+            ),
+          ],
+        ).toCompanion(),
+      );
+      return database;
+    }
+
+    Future<domain.Reaction?> loadReaction(FluxerDatabase database) async {
+      final row = await database.messageDao.getMessage(messageId);
+      expect(row, isNotNull);
+      final reactions = (jsonDecode(row!.reactionsJson) as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+      if (reactions.isEmpty) {
+        return null;
+      }
+      return domain.Reaction.fromJson(reactions.single);
+    }
+
+    Future<void> dispatchRemove({
+      required FluxerDatabase database,
+      required String userId,
+    }) async {
+      final handler = GatewayEventHandler(
+        database: database,
+        currentUserId: currentUserId,
+      );
+      await handler.handle(
+        MessageReactionRemoveEvent(
+          channelId: channelId,
+          messageId: messageId,
+          userId: userId,
+          emoji: thumbsUp,
+        ),
+      );
+    }
+
+    test(
+      'skips duplicate decrement when current user already unreacted locally',
+      () async {
+        final database = await createDatabase(count: 2, hasReacted: false);
+        await dispatchRemove(database: database, userId: currentUserId);
+        final reaction = await loadReaction(database);
+        expect(reaction, isNotNull);
+        expect(reaction!.count, 2);
+        expect(reaction.hasReacted, isFalse);
+      },
+    );
+
+    test('decrements when current user still has hasReacted true', () async {
+      final database = await createDatabase(count: 2, hasReacted: true);
+      await dispatchRemove(database: database, userId: currentUserId);
+      final reaction = await loadReaction(database);
+      expect(reaction, isNotNull);
+      expect(reaction!.count, 1);
+      expect(reaction.hasReacted, isFalse);
+    });
+
+    test('decrements for other users without touching hasReacted', () async {
+      final database = await createDatabase(count: 2, hasReacted: true);
+      await dispatchRemove(database: database, userId: '999');
+      final reaction = await loadReaction(database);
+      expect(reaction, isNotNull);
+      expect(reaction!.count, 1);
+      expect(reaction.hasReacted, isTrue);
+    });
+  });
+
   test('READY persists guild stickers from raw guild payload', () async {
     final database = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(database.close);
