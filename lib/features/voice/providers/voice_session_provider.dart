@@ -1075,7 +1075,10 @@ class VoiceSession extends _$VoiceSession {
         }
       }
       try {
-        await lp.setScreenShareEnabled(nextSelfStream);
+        await lp.setScreenShareEnabled(
+          nextSelfStream,
+          captureScreenAudio: nextSelfStream,
+        );
       } on Object catch (e, st) {
         talker.error('[Voice] setScreenShareEnabled failed', e, st);
         if (nextSelfStream) {
