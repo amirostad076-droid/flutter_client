@@ -2818,6 +2818,229 @@
   "@userProfileActionFailed": {
     "description": "Toast shown when a relationship action (block, unblock, friend request, etc.) fails."
   },
+  "userProfileChangeNickname": "Change nickname",
+  "@userProfileChangeNickname": {
+    "description": "Three-dot menu item to change a member's nickname."
+  },
+  "userProfileKick": "Kick",
+  "@userProfileKick": {
+    "description": "Three-dot menu item to kick a member from the community."
+  },
+  "userProfileBan": "Ban",
+  "@userProfileBan": {
+    "description": "Three-dot menu item to ban a member from the community."
+  },
+  "userProfileTimeout": "Timeout",
+  "@userProfileTimeout": {
+    "description": "Three-dot menu item to time out a member."
+  },
+  "userProfileRemoveTimeout": "Remove timeout",
+  "@userProfileRemoveTimeout": {
+    "description": "Three-dot menu item to remove an active timeout from a member."
+  },
+  "userProfileTransferOwnership": "Transfer ownership",
+  "@userProfileTransferOwnership": {
+    "description": "Three-dot menu item to transfer community ownership to the member."
+  },
+  "userProfileReportUser": "Report user",
+  "@userProfileReportUser": {
+    "description": "Three-dot menu item to report the user."
+  },
+  "userProfileReportMessage": "Report message",
+  "@userProfileReportMessage": {
+    "description": "Three-dot menu item to report the message that opened this profile."
+  },
+  "userProfileKickConfirmTitle": "Kick {username}?",
+  "@userProfileKickConfirmTitle": {
+    "description": "Confirmation sheet title before kicking a member.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileKickConfirmDescription": "Are you sure you want to kick {username}? They can rejoin with a new invite.",
+  "@userProfileKickConfirmDescription": {
+    "description": "Confirmation sheet body before kicking a member.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileRemoveTimeoutConfirmTitle": "Remove timeout?",
+  "@userProfileRemoveTimeoutConfirmTitle": {
+    "description": "Confirmation sheet title before removing a member's timeout."
+  },
+  "userProfileRemoveTimeoutConfirmDescription": "Removing the timeout will allow {username} to send messages, react, and join voice channels again.",
+  "@userProfileRemoveTimeoutConfirmDescription": {
+    "description": "Confirmation sheet body before removing a member's timeout.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileTransferConfirmTitle": "Transfer ownership?",
+  "@userProfileTransferConfirmTitle": {
+    "description": "Confirmation sheet title before transferring community ownership."
+  },
+  "userProfileTransferConfirmDescription": "Transfer ownership of this community to {username}? This is irreversible and you will lose all owner privileges.",
+  "@userProfileTransferConfirmDescription": {
+    "description": "Confirmation sheet body before transferring community ownership.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileBanSheetTitle": "Ban {username}",
+  "@userProfileBanSheetTitle": {
+    "description": "Title of the ban member sheet.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileBanDurationLabel": "Ban duration",
+  "@userProfileBanDurationLabel": {
+    "description": "Label for the ban duration selector."
+  },
+  "userProfileBanCustomSecondsLabel": "Custom duration (seconds)",
+  "@userProfileBanCustomSecondsLabel": {
+    "description": "Label for the custom ban duration input."
+  },
+  "userProfileBanCustomSecondsHelper": "Any value from {min} to {max} seconds",
+  "@userProfileBanCustomSecondsHelper": {
+    "description": "Helper text for the custom ban duration input.",
+    "placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}
+  },
+  "userProfileBanDeleteHistoryLabel": "Delete message history",
+  "@userProfileBanDeleteHistoryLabel": {
+    "description": "Label for the ban delete-message-history selector."
+  },
+  "userProfileBanDeleteNone": "Don't delete any",
+  "@userProfileBanDeleteNone": {
+    "description": "Ban delete-history option: delete no messages."
+  },
+  "userProfileBanDelete24h": "Previous 24 hours",
+  "@userProfileBanDelete24h": {
+    "description": "Ban delete-history option: delete the previous 24 hours of messages."
+  },
+  "userProfileBanDelete7d": "Previous 7 days",
+  "@userProfileBanDelete7d": {
+    "description": "Ban delete-history option: delete the previous 7 days of messages."
+  },
+  "userProfileBanReasonLabel": "Reason (optional)",
+  "@userProfileBanReasonLabel": {
+    "description": "Label for the optional ban reason input."
+  },
+  "userProfileBanReasonHint": "Enter a reason for the ban",
+  "@userProfileBanReasonHint": {
+    "description": "Placeholder for the optional ban reason input."
+  },
+  "userProfileBanSubmit": "Ban member",
+  "@userProfileBanSubmit": {
+    "description": "Submit button on the ban member sheet."
+  },
+  "userProfileTimeoutSheetTitle": "Timeout {username}",
+  "@userProfileTimeoutSheetTitle": {
+    "description": "Title of the timeout member sheet.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileTimeoutDurationLabel": "Timeout duration",
+  "@userProfileTimeoutDurationLabel": {
+    "description": "Label for the timeout duration selector."
+  },
+  "userProfileTimeoutSubmit": "Time out member",
+  "@userProfileTimeoutSubmit": {
+    "description": "Submit button on the timeout member sheet."
+  },
+  "userProfileNicknameLabel": "Nickname",
+  "@userProfileNicknameLabel": {
+    "description": "Label for the change nickname input."
+  },
+  "userProfileNicknameHint": "Enter a nickname",
+  "@userProfileNicknameHint": {
+    "description": "Placeholder for the change nickname input."
+  },
+  "userProfileNicknameSave": "Save",
+  "@userProfileNicknameSave": {
+    "description": "Save button on the change nickname sheet."
+  },
+  "userProfileKickSuccess": "Kicked {username}",
+  "@userProfileKickSuccess": {
+    "description": "Toast shown after kicking a member.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileBanSuccess": "Banned {username}",
+  "@userProfileBanSuccess": {
+    "description": "Toast shown after banning a member.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileTimeoutSuccess": "Timed out {username}",
+  "@userProfileTimeoutSuccess": {
+    "description": "Toast shown after timing out a member.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileRemoveTimeoutSuccess": "Removed timeout for {username}",
+  "@userProfileRemoveTimeoutSuccess": {
+    "description": "Toast shown after removing a member's timeout.",
+    "placeholders": {"username": {"type": "String"}}
+  },
+  "userProfileNicknameSuccess": "Nickname updated",
+  "@userProfileNicknameSuccess": {
+    "description": "Toast shown after updating a member's nickname."
+  },
+  "userProfileTransferSuccess": "Ownership transferred",
+  "@userProfileTransferSuccess": {
+    "description": "Toast shown after transferring community ownership."
+  },
+  "durationPermanent": "Permanent",
+  "@durationPermanent": {
+    "description": "Duration option label for a permanent (non-expiring) duration."
+  },
+  "duration60Seconds": "60 seconds",
+  "@duration60Seconds": {
+    "description": "Duration option label for 60 seconds."
+  },
+  "duration5Minutes": "5 minutes",
+  "@duration5Minutes": {
+    "description": "Duration option label for 5 minutes."
+  },
+  "duration10Minutes": "10 minutes",
+  "@duration10Minutes": {
+    "description": "Duration option label for 10 minutes."
+  },
+  "duration1Hour": "1 hour",
+  "@duration1Hour": {
+    "description": "Duration option label for 1 hour."
+  },
+  "duration12Hours": "12 hours",
+  "@duration12Hours": {
+    "description": "Duration option label for 12 hours."
+  },
+  "duration1Day": "1 day",
+  "@duration1Day": {
+    "description": "Duration option label for 1 day."
+  },
+  "duration3Days": "3 days",
+  "@duration3Days": {
+    "description": "Duration option label for 3 days."
+  },
+  "duration5Days": "5 days",
+  "@duration5Days": {
+    "description": "Duration option label for 5 days."
+  },
+  "duration1Week": "1 week",
+  "@duration1Week": {
+    "description": "Duration option label for 1 week."
+  },
+  "duration2Weeks": "2 weeks",
+  "@duration2Weeks": {
+    "description": "Duration option label for 2 weeks."
+  },
+  "duration1Month": "1 month",
+  "@duration1Month": {
+    "description": "Duration option label for 1 month."
+  },
+  "durationCustom": "Custom…",
+  "@durationCustom": {
+    "description": "Duration option label for a user-specified custom duration."
+  },
+  "iarReportUserTitle": "Report user",
+  "@iarReportUserTitle": {
+    "description": "Title of the simple user-report sheet."
+  },
+  "iarReasonInappropriateProfile": "Inappropriate profile",
+  "@iarReasonInappropriateProfile": {
+    "description": "User-report reason: the user's profile contains inappropriate content."
+  },
+  "iarReasonInappropriateProfileDescription": "This user's profile contains inappropriate content",
+  "@iarReasonInappropriateProfileDescription": {
+    "description": "Description for the inappropriate-profile user-report reason."
+  },
   "typingIndicatorOne": "{name} is typing...",
   "@typingIndicatorOne": {
     "description": "Typing indicator shown above the chat input when exactly one other user is typing.",

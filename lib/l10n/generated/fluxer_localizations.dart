@@ -3970,6 +3970,324 @@ abstract class FluxerLocalizations {
   /// **'Action failed, please try again'**
   String get userProfileActionFailed;
 
+  /// Three-dot menu item to change a member's nickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Change nickname'**
+  String get userProfileChangeNickname;
+
+  /// Three-dot menu item to kick a member from the community.
+  ///
+  /// In en, this message translates to:
+  /// **'Kick'**
+  String get userProfileKick;
+
+  /// Three-dot menu item to ban a member from the community.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban'**
+  String get userProfileBan;
+
+  /// Three-dot menu item to time out a member.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeout'**
+  String get userProfileTimeout;
+
+  /// Three-dot menu item to remove an active timeout from a member.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove timeout'**
+  String get userProfileRemoveTimeout;
+
+  /// Three-dot menu item to transfer community ownership to the member.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer ownership'**
+  String get userProfileTransferOwnership;
+
+  /// Three-dot menu item to report the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Report user'**
+  String get userProfileReportUser;
+
+  /// Three-dot menu item to report the message that opened this profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Report message'**
+  String get userProfileReportMessage;
+
+  /// Confirmation sheet title before kicking a member.
+  ///
+  /// In en, this message translates to:
+  /// **'Kick {username}?'**
+  String userProfileKickConfirmTitle(String username);
+
+  /// Confirmation sheet body before kicking a member.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to kick {username}? They can rejoin with a new invite.'**
+  String userProfileKickConfirmDescription(String username);
+
+  /// Confirmation sheet title before removing a member's timeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove timeout?'**
+  String get userProfileRemoveTimeoutConfirmTitle;
+
+  /// Confirmation sheet body before removing a member's timeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Removing the timeout will allow {username} to send messages, react, and join voice channels again.'**
+  String userProfileRemoveTimeoutConfirmDescription(String username);
+
+  /// Confirmation sheet title before transferring community ownership.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer ownership?'**
+  String get userProfileTransferConfirmTitle;
+
+  /// Confirmation sheet body before transferring community ownership.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer ownership of this community to {username}? This is irreversible and you will lose all owner privileges.'**
+  String userProfileTransferConfirmDescription(String username);
+
+  /// Title of the ban member sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban {username}'**
+  String userProfileBanSheetTitle(String username);
+
+  /// Label for the ban duration selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban duration'**
+  String get userProfileBanDurationLabel;
+
+  /// Label for the custom ban duration input.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom duration (seconds)'**
+  String get userProfileBanCustomSecondsLabel;
+
+  /// Helper text for the custom ban duration input.
+  ///
+  /// In en, this message translates to:
+  /// **'Any value from {min} to {max} seconds'**
+  String userProfileBanCustomSecondsHelper(int min, int max);
+
+  /// Label for the ban delete-message-history selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message history'**
+  String get userProfileBanDeleteHistoryLabel;
+
+  /// Ban delete-history option: delete no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t delete any'**
+  String get userProfileBanDeleteNone;
+
+  /// Ban delete-history option: delete the previous 24 hours of messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous 24 hours'**
+  String get userProfileBanDelete24h;
+
+  /// Ban delete-history option: delete the previous 7 days of messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous 7 days'**
+  String get userProfileBanDelete7d;
+
+  /// Label for the optional ban reason input.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get userProfileBanReasonLabel;
+
+  /// Placeholder for the optional ban reason input.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a reason for the ban'**
+  String get userProfileBanReasonHint;
+
+  /// Submit button on the ban member sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban member'**
+  String get userProfileBanSubmit;
+
+  /// Title of the timeout member sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeout {username}'**
+  String userProfileTimeoutSheetTitle(String username);
+
+  /// Label for the timeout duration selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeout duration'**
+  String get userProfileTimeoutDurationLabel;
+
+  /// Submit button on the timeout member sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Time out member'**
+  String get userProfileTimeoutSubmit;
+
+  /// Label for the change nickname input.
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname'**
+  String get userProfileNicknameLabel;
+
+  /// Placeholder for the change nickname input.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a nickname'**
+  String get userProfileNicknameHint;
+
+  /// Save button on the change nickname sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get userProfileNicknameSave;
+
+  /// Toast shown after kicking a member.
+  ///
+  /// In en, this message translates to:
+  /// **'Kicked {username}'**
+  String userProfileKickSuccess(String username);
+
+  /// Toast shown after banning a member.
+  ///
+  /// In en, this message translates to:
+  /// **'Banned {username}'**
+  String userProfileBanSuccess(String username);
+
+  /// Toast shown after timing out a member.
+  ///
+  /// In en, this message translates to:
+  /// **'Timed out {username}'**
+  String userProfileTimeoutSuccess(String username);
+
+  /// Toast shown after removing a member's timeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed timeout for {username}'**
+  String userProfileRemoveTimeoutSuccess(String username);
+
+  /// Toast shown after updating a member's nickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname updated'**
+  String get userProfileNicknameSuccess;
+
+  /// Toast shown after transferring community ownership.
+  ///
+  /// In en, this message translates to:
+  /// **'Ownership transferred'**
+  String get userProfileTransferSuccess;
+
+  /// Duration option label for a permanent (non-expiring) duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanent'**
+  String get durationPermanent;
+
+  /// Duration option label for 60 seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'60 seconds'**
+  String get duration60Seconds;
+
+  /// Duration option label for 5 minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'5 minutes'**
+  String get duration5Minutes;
+
+  /// Duration option label for 10 minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'10 minutes'**
+  String get duration10Minutes;
+
+  /// Duration option label for 1 hour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour'**
+  String get duration1Hour;
+
+  /// Duration option label for 12 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'12 hours'**
+  String get duration12Hours;
+
+  /// Duration option label for 1 day.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day'**
+  String get duration1Day;
+
+  /// Duration option label for 3 days.
+  ///
+  /// In en, this message translates to:
+  /// **'3 days'**
+  String get duration3Days;
+
+  /// Duration option label for 5 days.
+  ///
+  /// In en, this message translates to:
+  /// **'5 days'**
+  String get duration5Days;
+
+  /// Duration option label for 1 week.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week'**
+  String get duration1Week;
+
+  /// Duration option label for 2 weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'2 weeks'**
+  String get duration2Weeks;
+
+  /// Duration option label for 1 month.
+  ///
+  /// In en, this message translates to:
+  /// **'1 month'**
+  String get duration1Month;
+
+  /// Duration option label for a user-specified custom duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom…'**
+  String get durationCustom;
+
+  /// Title of the simple user-report sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Report user'**
+  String get iarReportUserTitle;
+
+  /// User-report reason: the user's profile contains inappropriate content.
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate profile'**
+  String get iarReasonInappropriateProfile;
+
+  /// Description for the inappropriate-profile user-report reason.
+  ///
+  /// In en, this message translates to:
+  /// **'This user\'s profile contains inappropriate content'**
+  String get iarReasonInappropriateProfileDescription;
+
   /// Typing indicator shown above the chat input when exactly one other user is typing.
   ///
   /// In en, this message translates to:

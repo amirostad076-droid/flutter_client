@@ -2246,6 +2246,188 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get userProfileActionFailed => 'Action failed, please try again';
 
   @override
+  String get userProfileChangeNickname => 'Change nickname';
+
+  @override
+  String get userProfileKick => 'Kick';
+
+  @override
+  String get userProfileBan => 'Ban';
+
+  @override
+  String get userProfileTimeout => 'Timeout';
+
+  @override
+  String get userProfileRemoveTimeout => 'Remove timeout';
+
+  @override
+  String get userProfileTransferOwnership => 'Transfer ownership';
+
+  @override
+  String get userProfileReportUser => 'Report user';
+
+  @override
+  String get userProfileReportMessage => 'Report message';
+
+  @override
+  String userProfileKickConfirmTitle(String username) {
+    return 'Kick $username?';
+  }
+
+  @override
+  String userProfileKickConfirmDescription(String username) {
+    return 'Are you sure you want to kick $username? They can rejoin with a new invite.';
+  }
+
+  @override
+  String get userProfileRemoveTimeoutConfirmTitle => 'Remove timeout?';
+
+  @override
+  String userProfileRemoveTimeoutConfirmDescription(String username) {
+    return 'Removing the timeout will allow $username to send messages, react, and join voice channels again.';
+  }
+
+  @override
+  String get userProfileTransferConfirmTitle => 'Transfer ownership?';
+
+  @override
+  String userProfileTransferConfirmDescription(String username) {
+    return 'Transfer ownership of this community to $username? This is irreversible and you will lose all owner privileges.';
+  }
+
+  @override
+  String userProfileBanSheetTitle(String username) {
+    return 'Ban $username';
+  }
+
+  @override
+  String get userProfileBanDurationLabel => 'Ban duration';
+
+  @override
+  String get userProfileBanCustomSecondsLabel => 'Custom duration (seconds)';
+
+  @override
+  String userProfileBanCustomSecondsHelper(int min, int max) {
+    return 'Any value from $min to $max seconds';
+  }
+
+  @override
+  String get userProfileBanDeleteHistoryLabel => 'Delete message history';
+
+  @override
+  String get userProfileBanDeleteNone => 'Don\'t delete any';
+
+  @override
+  String get userProfileBanDelete24h => 'Previous 24 hours';
+
+  @override
+  String get userProfileBanDelete7d => 'Previous 7 days';
+
+  @override
+  String get userProfileBanReasonLabel => 'Reason (optional)';
+
+  @override
+  String get userProfileBanReasonHint => 'Enter a reason for the ban';
+
+  @override
+  String get userProfileBanSubmit => 'Ban member';
+
+  @override
+  String userProfileTimeoutSheetTitle(String username) {
+    return 'Timeout $username';
+  }
+
+  @override
+  String get userProfileTimeoutDurationLabel => 'Timeout duration';
+
+  @override
+  String get userProfileTimeoutSubmit => 'Time out member';
+
+  @override
+  String get userProfileNicknameLabel => 'Nickname';
+
+  @override
+  String get userProfileNicknameHint => 'Enter a nickname';
+
+  @override
+  String get userProfileNicknameSave => 'Save';
+
+  @override
+  String userProfileKickSuccess(String username) {
+    return 'Kicked $username';
+  }
+
+  @override
+  String userProfileBanSuccess(String username) {
+    return 'Banned $username';
+  }
+
+  @override
+  String userProfileTimeoutSuccess(String username) {
+    return 'Timed out $username';
+  }
+
+  @override
+  String userProfileRemoveTimeoutSuccess(String username) {
+    return 'Removed timeout for $username';
+  }
+
+  @override
+  String get userProfileNicknameSuccess => 'Nickname updated';
+
+  @override
+  String get userProfileTransferSuccess => 'Ownership transferred';
+
+  @override
+  String get durationPermanent => 'Permanent';
+
+  @override
+  String get duration60Seconds => '60 seconds';
+
+  @override
+  String get duration5Minutes => '5 minutes';
+
+  @override
+  String get duration10Minutes => '10 minutes';
+
+  @override
+  String get duration1Hour => '1 hour';
+
+  @override
+  String get duration12Hours => '12 hours';
+
+  @override
+  String get duration1Day => '1 day';
+
+  @override
+  String get duration3Days => '3 days';
+
+  @override
+  String get duration5Days => '5 days';
+
+  @override
+  String get duration1Week => '1 week';
+
+  @override
+  String get duration2Weeks => '2 weeks';
+
+  @override
+  String get duration1Month => '1 month';
+
+  @override
+  String get durationCustom => 'Custom…';
+
+  @override
+  String get iarReportUserTitle => 'Report user';
+
+  @override
+  String get iarReasonInappropriateProfile => 'Inappropriate profile';
+
+  @override
+  String get iarReasonInappropriateProfileDescription =>
+      'This user\'s profile contains inappropriate content';
+
+  @override
   String typingIndicatorOne(String name) {
     return '$name is typing...';
   }
