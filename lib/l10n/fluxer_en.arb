@@ -4217,6 +4217,10 @@
   "@voiceControlScreenShare": {
     "description": "Tooltip: share screen in the voice call control bar (when supported)."
   },
+  "voiceScreenShareNotificationText": "Sharing your screen.",
+  "@voiceScreenShareNotificationText": {
+    "description": "Body text for the Android foreground notification shown while screen sharing."
+  },
   "voiceControlMore": "More",
   "@voiceControlMore": {
     "description": "Tooltip: more voice actions in the voice call control bar."

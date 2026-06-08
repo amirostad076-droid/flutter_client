@@ -151,7 +151,10 @@ class VoiceChannelControlBar extends ConsumerWidget {
                               unawaited(
                                 ref
                                     .read(voiceSessionProvider.notifier)
-                                    .toggleSelfStream(),
+                                    .toggleSelfStream(
+                                      screenShareNotificationText:
+                                          l10n.voiceScreenShareNotificationText,
+                                    ),
                               );
                             }
                           : null,

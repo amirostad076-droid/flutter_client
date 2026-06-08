@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart'
 import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_screen_share_watch_tile_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
+import 'package:fluxer_app/features/voice/utils/android_screen_share_background.dart';
 import 'package:fluxer_app/features/voice/utils/camera_permission.dart';
 import 'package:fluxer_app/features/voice/utils/channel_e2ee_status.dart';
 import 'package:fluxer_app/features/voice/utils/microphone_permission.dart';
@@ -815,6 +816,7 @@ class VoiceSession extends _$VoiceSession {
       ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.voiceDisconnect),
     );
     ref.read(voiceScreenShareWatchTileProvider.notifier).setActiveTileId(null);
+    await disableAndroidScreenShareBackground();
     final String? channelId = state.channelId;
     final String? guildId = state.guildId;
     final String? connectionId = state.activeConnectionId;
@@ -1016,7 +1018,9 @@ class VoiceSession extends _$VoiceSession {
     }
   }
 
-  Future<void> toggleSelfStream() async {
+  Future<void> toggleSelfStream({
+    required String screenShareNotificationText,
+  }) async {
     final VoiceSessionState s = state;
     if (!s.isInVoice || s.channelId == null || !s.isConnected) {
       return;
@@ -1056,12 +1060,32 @@ class VoiceSession extends _$VoiceSession {
         );
         return;
       }
+      if (nextSelfStream) {
+        final bool hasBackground = await enableAndroidScreenShareBackground(
+          notificationText: screenShareNotificationText,
+        );
+        if (!hasBackground) {
+          talker.warning(
+            '[Voice] Screen-share background service could not be started.',
+          );
+          state = state.copyWith(
+            errorMessage: kVoiceSessionErrorScreenShareToggle,
+          );
+          return;
+        }
+      }
       try {
         await lp.setScreenShareEnabled(nextSelfStream);
       } on Object catch (e, st) {
         talker.error('[Voice] setScreenShareEnabled failed', e, st);
+        if (nextSelfStream) {
+          await disableAndroidScreenShareBackground();
+        }
         state = state.copyWith(errorMessage: _classifyScreenShareException(e));
         return;
+      }
+      if (!nextSelfStream) {
+        await disableAndroidScreenShareBackground();
       }
       talker.debug(
         '[Voice] setScreenShareEnabled completed: enable=$nextSelfStream',
@@ -1074,6 +1098,7 @@ class VoiceSession extends _$VoiceSession {
         requireTrack: true,
       );
       if (nextSelfStream && !published) {
+        await disableAndroidScreenShareBackground();
         return;
       }
       unawaited(
