@@ -4087,6 +4087,119 @@
     "description": "Toggle description for the Enable Favorites switch."
   },
 
+  "favoritesTitle": "Favorites",
+  "@favoritesTitle": {
+    "description": "Title for the favorites section."
+  },
+  "favoritesEmptyTitle": "No favorites yet",
+  "@favoritesEmptyTitle": {
+    "description": "Empty state title when no channels are favorited."
+  },
+  "favoritesEmptyDescription": "Star channels from the chat header to keep them here.",
+  "@favoritesEmptyDescription": {
+    "description": "Empty state description for favorites."
+  },
+  "favoritesWelcomeTitle": "Welcome to favorites",
+  "@favoritesWelcomeTitle": {
+    "description": "Welcome screen title for favorites."
+  },
+  "favoritesWelcomeDescription": "Your personal space for quick access to channels, DMs, and groups you love. Press the star on any channel to add it here.",
+  "@favoritesWelcomeDescription": {
+    "description": "Welcome screen description for favorites."
+  },
+  "favoritesWelcomeTip": "Not for you? Turn it off anytime.",
+  "@favoritesWelcomeTip": {
+    "description": "Welcome screen tip for disabling favorites."
+  },
+  "favoritesDisableButton": "Disable favorites",
+  "@favoritesDisableButton": {
+    "description": "Button to disable favorites from welcome screen."
+  },
+  "favoritesAddedToast": "Added to Favorites",
+  "@favoritesAddedToast": {
+    "description": "Toast when a channel is added to favorites."
+  },
+  "favoritesRemovedToast": "Removed from Favorites",
+  "@favoritesRemovedToast": {
+    "description": "Toast when a channel is removed from favorites."
+  },
+  "favoritesHiddenToast": "Favorites hidden",
+  "@favoritesHiddenToast": {
+    "description": "Toast when favorites UI is hidden."
+  },
+  "favoritesMute": "Mute favorites",
+  "@favoritesMute": {
+    "description": "Action to mute the favorites section."
+  },
+  "favoritesUnmute": "Unmute favorites",
+  "@favoritesUnmute": {
+    "description": "Action to unmute the favorites section."
+  },
+  "favoritesHeaderMenu": "Favorites menu",
+  "@favoritesHeaderMenu": {
+    "description": "Accessibility label for favorites header menu."
+  },
+  "favoritesCreateCategory": "Create category",
+  "@favoritesCreateCategory": {
+    "description": "Action to create a favorites category."
+  },
+  "favoritesCategoryNameLabel": "Category name",
+  "@favoritesCategoryNameLabel": {
+    "description": "Label for favorites category name input."
+  },
+  "favoritesHideMutedChannels": "Hide muted channels",
+  "@favoritesHideMutedChannels": {
+    "description": "Toggle to hide muted channels in favorites."
+  },
+  "favoritesShowMutedChannels": "Show muted channels",
+  "@favoritesShowMutedChannels": {
+    "description": "Toggle to show muted channels in favorites."
+  },
+  "favoritesSetNickname": "Set nickname",
+  "@favoritesSetNickname": {
+    "description": "Action to set a favorite channel nickname."
+  },
+  "favoritesNicknameLabel": "Nickname",
+  "@favoritesNicknameLabel": {
+    "description": "Label for favorite channel nickname input."
+  },
+  "favoritesSaveNickname": "Save nickname",
+  "@favoritesSaveNickname": {
+    "description": "Button to save favorite channel nickname."
+  },
+  "favoritesMoveToCategory": "Move to category",
+  "@favoritesMoveToCategory": {
+    "description": "Action to move a favorite to a category."
+  },
+  "favoritesUncategorized": "Uncategorized",
+  "@favoritesUncategorized": {
+    "description": "Label for uncategorized favorites."
+  },
+  "favoritesOtherCategory": "Other",
+  "@favoritesOtherCategory": {
+    "description": "Label for favorites in deleted categories."
+  },
+  "favoritesRemoveFromFavorites": "Remove from Favorites",
+  "@favoritesRemoveFromFavorites": {
+    "description": "Action to remove a channel from favorites."
+  },
+  "favoritesAddToFavorites": "Add to Favorites",
+  "@favoritesAddToFavorites": {
+    "description": "Action to add a channel to favorites."
+  },
+  "favoritesHideConfirmTitle": "Hide favorites",
+  "@favoritesHideConfirmTitle": {
+    "description": "Title for hide favorites confirmation."
+  },
+  "favoritesHideConfirmDescription": "This will hide all favorites-related UI elements including buttons and menu items. Your existing favorites will be preserved and can be re-enabled anytime from Settings > Advanced > Appearance.",
+  "@favoritesHideConfirmDescription": {
+    "description": "Description for hide favorites confirmation."
+  },
+  "favoritesDirectMessageSubtitle": "Direct Message",
+  "@favoritesDirectMessageSubtitle": {
+    "description": "Subtitle for a 1:1 DM in the favorites channel list."
+  },
+
   "messagesMediaDisplayGroupTitle": "Display",
   "@messagesMediaDisplayGroupTitle": {
     "description": "Top-level section title for message display settings."

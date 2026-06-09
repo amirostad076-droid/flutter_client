@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_list.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
+import 'package:fluxer_app/features/favorites/presentation/favorites_sidebar.dart';
 import 'package:fluxer_app/features/guilds/presentation/widgets/guild_navbar.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
@@ -132,9 +133,18 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     return _buildMobileBody();
   }
 
+  Widget _sidebarForLocation(String location) {
+    if (location.startsWith('/channels/@me')) {
+      return const DMList();
+    }
+    if (location.startsWith('/channels/@favorites')) {
+      return const FavoritesSidebar();
+    }
+    return const GuildSidebar();
+  }
+
   Widget _buildDesktopBody() {
     final location = _cachedLocation;
-    final isDm = location.startsWith('/channels/@me');
 
     final layout = context.layout;
     final leftSidebarsWidth = layout.guildListWidth + layout.sidebarWidth;
@@ -149,9 +159,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
                 child: Row(
                   children: [
                     const GuildNavbar(),
-                    Expanded(
-                      child: isDm ? const DMList() : const GuildSidebar(),
-                    ),
+                    Expanded(child: _sidebarForLocation(location)),
                   ],
                 ),
               ),
@@ -410,7 +418,6 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   }
 
   Widget _buildMobileSidebar(String location) {
-    final isDm = location.startsWith('/channels/@me');
     return ColoredBox(
       color: context.colors.channelSidebarBackground,
       child: SafeArea(
@@ -418,7 +425,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         child: Row(
           children: [
             const GuildNavbar(),
-            Expanded(child: isDm ? const DMList() : const GuildSidebar()),
+            Expanded(child: _sidebarForLocation(location)),
           ],
         ),
       ),

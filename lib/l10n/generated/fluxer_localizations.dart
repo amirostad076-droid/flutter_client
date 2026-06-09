@@ -5738,6 +5738,174 @@ abstract class FluxerLocalizations {
   /// **'When enabled, you can favorite channels and they\'ll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.'**
   String get lookAndFeelEnableFavoritesDescription;
 
+  /// Title for the favorites section.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get favoritesTitle;
+
+  /// Empty state title when no channels are favorited.
+  ///
+  /// In en, this message translates to:
+  /// **'No favorites yet'**
+  String get favoritesEmptyTitle;
+
+  /// Empty state description for favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Star channels from the chat header to keep them here.'**
+  String get favoritesEmptyDescription;
+
+  /// Welcome screen title for favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to favorites'**
+  String get favoritesWelcomeTitle;
+
+  /// Welcome screen description for favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Your personal space for quick access to channels, DMs, and groups you love. Press the star on any channel to add it here.'**
+  String get favoritesWelcomeDescription;
+
+  /// Welcome screen tip for disabling favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Not for you? Turn it off anytime.'**
+  String get favoritesWelcomeTip;
+
+  /// Button to disable favorites from welcome screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable favorites'**
+  String get favoritesDisableButton;
+
+  /// Toast when a channel is added to favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to Favorites'**
+  String get favoritesAddedToast;
+
+  /// Toast when a channel is removed from favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from Favorites'**
+  String get favoritesRemovedToast;
+
+  /// Toast when favorites UI is hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites hidden'**
+  String get favoritesHiddenToast;
+
+  /// Action to mute the favorites section.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute favorites'**
+  String get favoritesMute;
+
+  /// Action to unmute the favorites section.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute favorites'**
+  String get favoritesUnmute;
+
+  /// Accessibility label for favorites header menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites menu'**
+  String get favoritesHeaderMenu;
+
+  /// Action to create a favorites category.
+  ///
+  /// In en, this message translates to:
+  /// **'Create category'**
+  String get favoritesCreateCategory;
+
+  /// Label for favorites category name input.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get favoritesCategoryNameLabel;
+
+  /// Toggle to hide muted channels in favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide muted channels'**
+  String get favoritesHideMutedChannels;
+
+  /// Toggle to show muted channels in favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Show muted channels'**
+  String get favoritesShowMutedChannels;
+
+  /// Action to set a favorite channel nickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Set nickname'**
+  String get favoritesSetNickname;
+
+  /// Label for favorite channel nickname input.
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname'**
+  String get favoritesNicknameLabel;
+
+  /// Button to save favorite channel nickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Save nickname'**
+  String get favoritesSaveNickname;
+
+  /// Action to move a favorite to a category.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to category'**
+  String get favoritesMoveToCategory;
+
+  /// Label for uncategorized favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get favoritesUncategorized;
+
+  /// Label for favorites in deleted categories.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get favoritesOtherCategory;
+
+  /// Action to remove a channel from favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from Favorites'**
+  String get favoritesRemoveFromFavorites;
+
+  /// Action to add a channel to favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Favorites'**
+  String get favoritesAddToFavorites;
+
+  /// Title for hide favorites confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide favorites'**
+  String get favoritesHideConfirmTitle;
+
+  /// Description for hide favorites confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This will hide all favorites-related UI elements including buttons and menu items. Your existing favorites will be preserved and can be re-enabled anytime from Settings > Advanced > Appearance.'**
+  String get favoritesHideConfirmDescription;
+
+  /// Subtitle for a 1:1 DM in the favorites channel list.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct Message'**
+  String get favoritesDirectMessageSubtitle;
+
   /// Top-level section title for message display settings.
   ///
   /// In en, this message translates to:

@@ -14,6 +14,7 @@ import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_provider.dart';
+import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_availability_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
@@ -189,6 +190,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
         ref
             .read(themePreferenceProvider.notifier)
             .applyServerSettings(settings),
+      );
+      unawaited(
+        ref.read(favoritesSyncServiceProvider).hydrateFromUserSettings(settings),
       );
     },
     onUnavailableGuildsReady: (rawGuilds) {

@@ -17,6 +17,7 @@ abstract final class RouteNames {
   static const dmMessage = 'dm-message';
   static const favorites = 'favorites';
   static const favoritesChannel = 'favorites-channel';
+  static const favoritesMessage = 'favorites-message';
   static const guild = 'guild';
   static const guildMembers = 'guild-members';
   static const channel = 'channel';
@@ -44,6 +45,8 @@ abstract final class RoutePaths {
   static const favoritesBase = '/channels/@favorites';
   static String favoritesChannel(String channelId) =>
       '/channels/@favorites/$channelId';
+  static String favoritesChannelMessage(String channelId, String messageId) =>
+      '/channels/@favorites/$channelId/$messageId';
   static String guild(String guildId) => '/channels/$guildId';
   static String guildMembers(String guildId) => '/channels/$guildId/members';
   static String guildChannel(String guildId, String channelId) =>

@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Minimal synced preferences schema for favorites field (40) only.
+// Other fields are preserved as unknown fields on decode/re-encode.
+
+syntax = "proto3";
+
+package fluxer.user.preferences.v1;
+
+message SyncedPreferences {
+  FavoritesState favorites = 40;
+}
+
+message FavoritesState {
+  repeated FavoriteChannel channels = 1;
+  repeated FavoriteCategory categories = 2;
+  repeated string collapsed_category_ids = 3;
+  bool hide_muted_channels = 4;
+  bool muted = 5;
+}
+
+message FavoriteChannel {
+  string channel_id = 1;
+  string guild_id = 2;
+  optional string parent_id = 3;
+  int32 position = 4;
+  optional string nickname = 5;
+}
+
+message FavoriteCategory {
+  string id = 1;
+  string name = 2;
+  int32 position = 3;
+}

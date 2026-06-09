@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
+import 'package:fluxer_app/features/favorites/utils/favorites_shell_navigation.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_chat_sheet.dart';
@@ -188,14 +190,17 @@ class VoiceChannelControlBar extends ConsumerWidget {
                     icon: PhosphorIconsFill.phoneDisconnect,
                     onPressed: () {
                       final String? guildId = session.guildId;
-                      if (context.mounted &&
-                          isMobileLayout(context) &&
-                          guildId != null &&
-                          guildId.isNotEmpty) {
-                        navigateToContent(
-                          context,
-                          '${RoutePaths.guild(guildId)}?view=list',
-                        );
+                      if (context.mounted && isMobileLayout(context)) {
+                        final String location =
+                            ref.read(currentLocationProvider);
+                        if (isFavoritesChannelRoute(location)) {
+                          returnToFavoritesList(ref);
+                        } else if (guildId != null && guildId.isNotEmpty) {
+                          navigateToContent(
+                            context,
+                            '${RoutePaths.guild(guildId)}?view=list',
+                          );
+                        }
                       }
                       unawaited(
                         ref.read(voiceSessionProvider.notifier).leaveVoice(),

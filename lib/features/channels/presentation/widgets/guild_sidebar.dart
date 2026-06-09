@@ -7,7 +7,6 @@ import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
-import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -21,21 +20,17 @@ import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
+import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
+import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
-import 'package:fluxer_app/features/guilds/domain/guild.dart';
-import 'package:fluxer_app/features/mature_content/utils/channel_gate_navigator.dart';
-import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
-import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_chat_sheet.dart';
-import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_join_bottom_sheet.dart';
-import 'package:fluxer_app/features/voice/providers/voice_join_eligibility_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
-import 'package:fluxer_app/features/voice/utils/voice_connection_actions.dart';
 import 'package:fluxer_app/features/voice/utils/voice_e2ee_display.dart';
-import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -405,122 +400,16 @@ class GuildSidebar extends ConsumerWidget {
                   : null,
               onTap: () async {
                 final String? guildId = ref.read(activeGuildIdProvider);
-                if (channel.type == ChannelType.link) {
-                  if (guildId == null) {
-                    return;
-                  }
-                  final bool canProceed = await promptForChannelGateIfNeeded(
-                    context: context,
-                    container: ref.container,
-                    channelId: channel.id,
-                    guildId: guildId,
-                    channelType: channel.type,
-                  );
-                  if (!context.mounted || !canProceed) {
-                    return;
-                  }
-                  final String? channelUrl = channel.url;
-                  if (channelUrl != null && channelUrl.isNotEmpty) {
-                    unawaited(handleExternalLinkTap(context, channelUrl));
-                  }
+                if (guildId == null) {
                   return;
                 }
-
-                if (guildId != null) {
-                  final bool canProceed = await promptForChannelGateIfNeeded(
-                    context: context,
-                    container: ref.container,
-                    channelId: channel.id,
-                    guildId: guildId,
-                    channelType: channel.type,
-                  );
-                  if (!context.mounted || !canProceed) {
-                    return;
-                  }
-                  final VoiceSessionState voiceSession = ref.read(
-                    voiceSessionProvider,
-                  );
-                  final bool isInCurrentVoiceChannel =
-                      channel.type == ChannelType.voice &&
-                      voiceSession.isInVoice &&
-                      voiceSession.guildId == guildId &&
-                      voiceSession.channelId == channel.id;
-                  if (channel.type == ChannelType.voice &&
-                      isMobileLayout(context)) {
-                    if (isInCurrentVoiceChannel) {
-                      navigateToContent(
-                        context,
-                        RoutePaths.guildChannel(guildId, channel.id),
-                      );
-                      return;
-                    }
-                    final VoiceChannelJoinSheetResult? joinResult =
-                        await showVoiceChannelJoinBottomSheet(
-                          context,
-                          channelName: channel.name,
-                          guildId: guildId,
-                          channelId: channel.id,
-                        );
-                    if (!context.mounted || joinResult == null) {
-                      return;
-                    }
-                    switch (joinResult) {
-                      case VoiceChannelJoinOpenChat():
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (context.mounted) {
-                            unawaited(
-                              showVoiceChannelChatSheet(
-                                context,
-                                channelId: channel.id,
-                                channelName: channel.name,
-                              ),
-                            );
-                          }
-                        });
-                      case VoiceChannelJoinConnectResult(
-                        :final initialSelfMute,
-                        :final initialSelfDeaf,
-                      ):
-                        navigateToContent(
-                          context,
-                          RoutePaths.guildChannel(guildId, channel.id),
-                        );
-                        unawaited(
-                          joinVoiceChannelWithConfirmation(
-                            ref: ref,
-                            context: context,
-                            guildId: guildId,
-                            channelId: channel.id,
-                            initialSelfMute: initialSelfMute,
-                            initialSelfDeaf: initialSelfDeaf,
-                          ),
-                        );
-                    }
-                    return;
-                  }
-                  navigateToContent(
-                    context,
-                    RoutePaths.guildChannel(guildId, channel.id),
-                  );
-                  if (channel.type == ChannelType.voice &&
-                      !isInCurrentVoiceChannel) {
-                    final bool canJoinVoice = canJoinGuildVoiceChannelFromBits(
-                      guildId: guildId,
-                      channelType: channel.type,
-                      permissionBits: effectivePermissionBits,
-                    );
-                    if (canJoinVoice) {
-                      unawaited(
-                        joinVoiceChannelWithConfirmation(
-                          ref: ref,
-                          context: context,
-                          guildId: guildId,
-                          channelId: channel.id,
-                        ),
-                      );
-                    }
-                  }
-                }
+                await navigateToGuildChannelContent(
+                  context: context,
+                  ref: ref,
+                  guildId: guildId,
+                  channel: channel,
+                  effectivePermissionBits: effectivePermissionBits,
+                );
               },
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
@@ -577,21 +466,59 @@ class GuildSidebar extends ConsumerWidget {
     Channel channel, {
     required bool hasUnread,
     required Offset position,
-  }) => FluxerActionMenu.show(
-    context,
-    position: position,
-    builder: (context, close) => [
-      FluxerMenuItem(
-        label: 'Mark as Read',
-        icon: PhosphorIconsRegular.envelopeOpen,
-        enabled: hasUnread,
-        onPressed: () {
-          close();
-          unawaited(_readStateRepository(ref).ackLatest(channel.id));
-        },
-      ),
-    ],
-  );
+  }) async {
+    final showFavorites = ref.read(
+      appearancePreferencesProvider.select((s) => s.showFavorites),
+    );
+    final isFavorite = showFavorites &&
+        await ref.read(favoriteChannelsRepositoryProvider).isFavorite(channel.id);
+    if (!context.mounted) {
+      return;
+    }
+    return FluxerActionMenu.show(
+      context,
+      position: position,
+      builder: (context, close) => [
+        if (showFavorites)
+          FluxerMenuItem(
+            label: isFavorite
+                ? 'Remove from Favorites'
+                : 'Add to Favorites',
+            icon: isFavorite ? PhosphorIconsFill.star : PhosphorIconsBold.star,
+            onPressed: () {
+              close();
+              unawaited(_toggleFavorite(ref, channel: channel, isFavorite: isFavorite));
+            },
+          ),
+        FluxerMenuItem(
+          label: 'Mark as Read',
+          icon: PhosphorIconsRegular.envelopeOpen,
+          enabled: hasUnread,
+          onPressed: () {
+            close();
+            unawaited(_readStateRepository(ref).ackLatest(channel.id));
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _toggleFavorite(
+    WidgetRef ref, {
+    required Channel channel,
+    required bool isFavorite,
+  }) async {
+    final repository = ref.read(favoriteChannelsRepositoryProvider);
+    if (isFavorite) {
+      await repository.removeChannel(channel.id);
+      return;
+    }
+    await repository.addChannel(
+      channelId: channel.id,
+      guildId: channel.guildId,
+      nickname: channel.name,
+    );
+  }
 
   Future<void> _showCategoryActions(
     BuildContext context,

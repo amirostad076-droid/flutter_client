@@ -1,19 +1,32 @@
 import 'package:drift/native.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/daos/favorite_channels_dao.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/favorites/data/favorite_channels_repository.dart';
+import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
 
 void main() {
   late FluxerDatabase database;
+  late ProviderContainer container;
   late FavoriteChannelsRepository repository;
 
   setUp(() {
     database = FluxerDatabase.forTesting(NativeDatabase.memory());
-    repository = FavoriteChannelsRepository(database);
+    container = ProviderContainer(
+      overrides: [
+        fluxerDatabaseProvider.overrideWithValue(database),
+      ],
+    );
+    repository = FavoriteChannelsRepository(
+      database,
+      container.read(favoritesSyncServiceProvider),
+    );
   });
 
   tearDown(() async {
+    container.dispose();
     await database.close();
   });
 

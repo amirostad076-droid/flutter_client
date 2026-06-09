@@ -3352,6 +3352,93 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'When enabled, you can favorite channels and they\'ll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.';
 
   @override
+  String get favoritesTitle => 'Favorites';
+
+  @override
+  String get favoritesEmptyTitle => 'No favorites yet';
+
+  @override
+  String get favoritesEmptyDescription =>
+      'Star channels from the chat header to keep them here.';
+
+  @override
+  String get favoritesWelcomeTitle => 'Welcome to favorites';
+
+  @override
+  String get favoritesWelcomeDescription =>
+      'Your personal space for quick access to channels, DMs, and groups you love. Press the star on any channel to add it here.';
+
+  @override
+  String get favoritesWelcomeTip => 'Not for you? Turn it off anytime.';
+
+  @override
+  String get favoritesDisableButton => 'Disable favorites';
+
+  @override
+  String get favoritesAddedToast => 'Added to Favorites';
+
+  @override
+  String get favoritesRemovedToast => 'Removed from Favorites';
+
+  @override
+  String get favoritesHiddenToast => 'Favorites hidden';
+
+  @override
+  String get favoritesMute => 'Mute favorites';
+
+  @override
+  String get favoritesUnmute => 'Unmute favorites';
+
+  @override
+  String get favoritesHeaderMenu => 'Favorites menu';
+
+  @override
+  String get favoritesCreateCategory => 'Create category';
+
+  @override
+  String get favoritesCategoryNameLabel => 'Category name';
+
+  @override
+  String get favoritesHideMutedChannels => 'Hide muted channels';
+
+  @override
+  String get favoritesShowMutedChannels => 'Show muted channels';
+
+  @override
+  String get favoritesSetNickname => 'Set nickname';
+
+  @override
+  String get favoritesNicknameLabel => 'Nickname';
+
+  @override
+  String get favoritesSaveNickname => 'Save nickname';
+
+  @override
+  String get favoritesMoveToCategory => 'Move to category';
+
+  @override
+  String get favoritesUncategorized => 'Uncategorized';
+
+  @override
+  String get favoritesOtherCategory => 'Other';
+
+  @override
+  String get favoritesRemoveFromFavorites => 'Remove from Favorites';
+
+  @override
+  String get favoritesAddToFavorites => 'Add to Favorites';
+
+  @override
+  String get favoritesHideConfirmTitle => 'Hide favorites';
+
+  @override
+  String get favoritesHideConfirmDescription =>
+      'This will hide all favorites-related UI elements including buttons and menu items. Your existing favorites will be preserved and can be re-enabled anytime from Settings > Advanced > Appearance.';
+
+  @override
+  String get favoritesDirectMessageSubtitle => 'Direct Message';
+
+  @override
   String get messagesMediaDisplayGroupTitle => 'Display';
 
   @override

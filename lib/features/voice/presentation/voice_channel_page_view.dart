@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
@@ -101,7 +102,9 @@ class _VoiceChannelPageViewState extends ConsumerState<VoiceChannelPageView> {
   @override
   Widget build(BuildContext context) {
     final ChannelListState listState = ref.watch(channelListViewModelProvider);
-    final Channel? channel = findChannelById(listState, widget.channelId);
+    final Channel? channel =
+        findChannelById(listState, widget.channelId) ??
+        ref.watch(channelByIdProvider(widget.channelId)).value;
     final String name = channel?.name ?? '';
     final VoiceSessionState voice = ref.watch(voiceSessionProvider);
     final bool inThisChannel = _isVoiceSessionOnThisChannel(

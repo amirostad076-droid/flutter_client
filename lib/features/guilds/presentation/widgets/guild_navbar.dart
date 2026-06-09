@@ -34,6 +34,7 @@ import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/unread_dm_provider.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
+import 'package:fluxer_app/features/favorites/providers/favorites_unread_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/modals/add_guild_modal.dart';
@@ -269,6 +270,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     final showFavorites = ref.watch(
       appearancePreferencesProvider.select((s) => s.showFavorites),
     );
+    final favoritesUnread = ref.watch(favoritesUnreadSummaryProvider);
 
     final List<DmChannel> allowlistedDms;
     final List<DmChannel> regularDms;
@@ -338,6 +340,8 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
             label: 'Favorites',
             isSelected: isFavorites,
             icon: PhosphorIconsFill.star,
+            mentionCount: favoritesUnread.mentionCount,
+            hasUnread: favoritesUnread.hasUnread,
             onTap: () {
               context.go(RoutePaths.favoritesBase);
             },

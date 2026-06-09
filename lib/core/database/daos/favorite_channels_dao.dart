@@ -200,6 +200,97 @@ class FavoriteChannelsDao extends DatabaseAccessor<FluxerDatabase>
     );
   }
 
+  Future<bool> renameCategory({
+    required String id,
+    required String name,
+  }) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) {
+      return false;
+    }
+    final updated = await (update(favoriteCategories)
+          ..where((t) => t.id.equals(id)))
+        .write(FavoriteCategoriesCompanion(name: Value(trimmed)));
+    return updated > 0;
+  }
+
+  Future<void> moveCategory({
+    required String id,
+    required int position,
+  }) async {
+    await transaction(() async {
+      final existing = await (select(favoriteCategories)
+            ..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+      if (existing == null) {
+        return;
+      }
+      final categories = await getCategories();
+      final reordered = categories.where((cat) => cat.id != id).toList();
+      final nextIndex = position.clamp(0, reordered.length);
+      reordered.insert(nextIndex, existing);
+      for (var i = 0; i < reordered.length; i++) {
+        await (update(favoriteCategories)..where((t) => t.id.equals(reordered[i].id)))
+            .write(FavoriteCategoriesCompanion(position: Value(i)));
+      }
+    });
+  }
+
+  Future<bool> setChannelNickname({
+    required String channelId,
+    String? nickname,
+  }) async {
+    final trimmed = nickname?.trim();
+    final normalized = trimmed == null || trimmed.isEmpty ? null : trimmed;
+    final updated = await (update(favoriteChannels)
+          ..where((t) => t.channelId.equals(channelId)))
+        .write(FavoriteChannelsCompanion(nickname: Value(normalized)));
+    return updated > 0;
+  }
+
+  Future<void> replaceAllFromSync({
+    required List<FavoriteChannel> channels,
+    required List<FavoriteCategory> categories,
+    required List<String> collapsedCategoryIds,
+    required bool hideMutedChannels,
+    required bool muted,
+  }) async {
+    await transaction(() async {
+      await delete(favoriteChannels).go();
+      await delete(favoriteCategories).go();
+      await _ensureSettings();
+      for (final category in categories) {
+        await into(favoriteCategories).insert(
+          FavoriteCategoriesCompanion.insert(
+            id: category.id,
+            name: category.name,
+            position: Value(category.position),
+          ),
+        );
+      }
+      for (final channel in channels) {
+        await into(favoriteChannels).insert(
+          FavoriteChannelsCompanion.insert(
+            channelId: channel.channelId,
+            guildId: Value(channel.guildId),
+            parentId: Value(channel.parentId),
+            position: Value(channel.position),
+            nickname: Value(channel.nickname),
+          ),
+        );
+      }
+      await (update(favoriteSettings)..where((t) => t.id.equals(1))).write(
+        FavoriteSettingsCompanion(
+          collapsedCategoryIdsJson: Value(
+            _encodeStringList(collapsedCategoryIds),
+          ),
+          hideMuted: Value(hideMutedChannels),
+          muted: Value(muted),
+        ),
+      );
+    });
+  }
+
   Future<void> clearAll() async {
     await delete(favoriteChannels).go();
     await delete(favoriteCategories).go();

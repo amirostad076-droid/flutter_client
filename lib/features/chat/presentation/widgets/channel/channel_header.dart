@@ -6,10 +6,12 @@ import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/channel_details_sheet.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
@@ -17,6 +19,7 @@ import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
+import 'package:fluxer_app/features/favorites/utils/favorites_shell_navigation.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
@@ -54,7 +57,9 @@ class ChannelHeader extends ConsumerWidget {
       chatViewModelProvider.select((s) => s.channelId),
     );
     final channelState = ref.watch(channelListViewModelProvider);
-    final channel = findChannelById(channelState, channelId);
+    final channel =
+        findChannelById(channelState, channelId) ??
+        ref.watch(channelByIdProvider(channelId)).value;
     final String? currentUserId = ref.watch(currentUserIdProvider);
     final dm = channel == null
         ? findDmById(
@@ -86,6 +91,7 @@ class ChannelHeader extends ConsumerWidget {
           LayoutMode.mobile => _buildMobileBar(
             context,
             ref,
+            channelId: channelId,
             l10n: l10n,
             channel: channel,
             dm: dm,
@@ -95,6 +101,7 @@ class ChannelHeader extends ConsumerWidget {
           _ => _buildDesktopBar(
             context,
             ref,
+            channelId: channelId,
             l10n: l10n,
             channel: channel,
             dm: dm,
@@ -111,6 +118,7 @@ class ChannelHeader extends ConsumerWidget {
   Widget _buildMobileBar(
     BuildContext context,
     WidgetRef ref, {
+    required String channelId,
     required FluxerLocalizations l10n,
     required Channel? channel,
     required DmConversation? dm,
@@ -138,6 +146,11 @@ class ChannelHeader extends ConsumerWidget {
             color: context.colors.textPrimaryMuted,
             onPressed: () {
               FocusManager.instance.primaryFocus?.unfocus();
+              final String location = ref.read(currentLocationProvider);
+              if (isFavoritesChannelRoute(location)) {
+                returnToFavoritesList(ref);
+                return;
+              }
               ref.read(currentRevealSideProvider.notifier).set(RevealSide.left);
               ref.read(drawerRevealSyncTriggerProvider.notifier).nudge();
             },
@@ -169,7 +182,9 @@ class ChannelHeader extends ConsumerWidget {
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
-                          _resolveTitle(
+                          _resolveHeaderTitle(
+                            ref,
+                            channelId: channelId,
                             l10n: l10n,
                             channel: channel,
                             dm: dm,
@@ -270,6 +285,7 @@ class ChannelHeader extends ConsumerWidget {
   Widget _buildDesktopBar(
     BuildContext context,
     WidgetRef ref, {
+    required String channelId,
     required FluxerLocalizations l10n,
     required Channel? channel,
     required DmConversation? dm,
@@ -302,7 +318,9 @@ class ChannelHeader extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        _resolveTitle(
+                        _resolveHeaderTitle(
+                          ref,
+                          channelId: channelId,
                           l10n: l10n,
                           channel: channel,
                           dm: dm,
@@ -358,6 +376,8 @@ class ChannelHeader extends ConsumerWidget {
           ],
           const Spacer(),
           if (showMessageActions) ...[
+            if (_shouldShowFavoriteStar(ref, channel: channel, dm: dm))
+              _buildFavoriteStar(context, ref, channel: channel, dm: dm),
             if (channel != null)
               _topBarIcon(
                 context,
@@ -619,6 +639,27 @@ class ChannelHeader extends ConsumerWidget {
     return voice.guildId == guildId;
   }
 
+  String _resolveHeaderTitle(
+    WidgetRef ref, {
+    required String channelId,
+    required FluxerLocalizations l10n,
+    required Channel? channel,
+    required DmConversation? dm,
+    required bool isPersonalNotes,
+  }) {
+    final String? nickname =
+        ref.watch(favoriteChannelProvider(channelId)).value?.nickname;
+    if (nickname != null && nickname.isNotEmpty) {
+      return nickname;
+    }
+    return _resolveTitle(
+      l10n: l10n,
+      channel: channel,
+      dm: dm,
+      isPersonalNotes: isPersonalNotes,
+    );
+  }
+
   String _resolveTitle({
     required FluxerLocalizations l10n,
     required Channel? channel,
@@ -685,27 +726,87 @@ class ChannelHeader extends ConsumerWidget {
     if (!context.mounted) {
       return;
     }
-    ref
-        .read(toastProvider.notifier)
-        .show(
+    final l10n = FluxerLocalizations.of(context);
+    ref.read(toastProvider.notifier).show(
           FluxerToast(
             message: isFavorite
-                ? 'Removed from Favorites'
-                : 'Added to Favorites',
+                ? l10n.favoritesRemovedToast
+                : l10n.favoritesAddedToast,
             variant: FluxerToastVariant.success,
           ),
         );
   }
 
+  bool _shouldShowFavoriteStar(
+    WidgetRef ref, {
+    required Channel? channel,
+    required DmConversation? dm,
+  }) {
+    final showFavorites = ref.watch(
+      appearancePreferencesProvider.select((s) => s.showFavorites),
+    );
+    if (!showFavorites) {
+      return false;
+    }
+    final targetChannelId = channel?.id ?? dm?.id;
+    if (targetChannelId == null) {
+      return false;
+    }
+    final currentUserId = ref.watch(currentUserIdProvider);
+    if (_isPersonalNotesHeader(
+      dm: dm,
+      channelId: targetChannelId,
+      currentUserId: currentUserId,
+    )) {
+      return false;
+    }
+    return true;
+  }
+
+  Widget _buildFavoriteStar(
+    BuildContext context,
+    WidgetRef ref, {
+    required Channel? channel,
+    required DmConversation? dm,
+  }) {
+    final targetChannelId = channel?.id ?? dm?.id;
+    final isFavorite =
+        targetChannelId != null &&
+        (ref.watch(favoriteChannelProvider(targetChannelId)).asData?.value !=
+            null);
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onLongPress: () => _showFavoriteActions(context, ref),
+        child: FluxerButton.circle(
+          icon: isFavorite ? PhosphorIconsFill.star : PhosphorIconsBold.star,
+          variant: isFavorite
+              ? FluxerButtonVariant.primary
+              : FluxerButtonVariant.secondary,
+          size: FluxerButtonSize.small,
+          iconSize: 20,
+          onPressedAsync: () => _toggleFavorite(
+            context,
+            ref,
+            channel: channel,
+            dm: dm,
+            isFavorite: isFavorite,
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showFavoriteActions(BuildContext context, WidgetRef ref) {
+    final l10n = FluxerLocalizations.of(context);
     unawaited(
       FluxerBottomSheet.show<void>(
         context,
-        title: 'Favorites',
+        title: l10n.favoritesTitle,
         variant: FluxerBottomSheetVariant.menu,
         builder: (sheetContext, close) => FluxerBottomSheetContent(
           child: FluxerBottomSheetMenuItem(
-            label: 'Hide Favorites',
+            label: l10n.favoritesHideConfirmTitle,
             icon: PhosphorIconsBold.eyeSlash,
             onTap: () {
               close();
@@ -714,11 +815,9 @@ class ChannelHeader extends ConsumerWidget {
                     .read(appearancePreferencesProvider.notifier)
                     .setShowFavorites(value: false),
               );
-              ref
-                  .read(toastProvider.notifier)
-                  .show(
-                    const FluxerToast(
-                      message: 'Favorites hidden',
+              ref.read(toastProvider.notifier).show(
+                    FluxerToast(
+                      message: l10n.favoritesHiddenToast,
                       variant: FluxerToastVariant.success,
                     ),
                   );

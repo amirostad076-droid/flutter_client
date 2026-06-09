@@ -8,8 +8,8 @@ import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
-import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
@@ -21,10 +21,11 @@ import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
-import 'package:fluxer_app/features/mature_content/utils/channel_gate_navigator.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -72,15 +73,11 @@ class _DMListState extends ConsumerState<DMList> {
   }
 
   Future<void> _navigateToDmChannel(String channelId) async {
-    final bool canProceed = await promptForChannelGateIfNeeded(
+    await navigateToDmChannelContent(
       context: context,
-      container: ref.container,
+      ref: ref,
       channelId: channelId,
     );
-    if (!mounted || !canProceed) {
-      return;
-    }
-    navigateToContent(context, RoutePaths.dmChannel(channelId));
   }
 
   Future<void> _showPersonalNotesContextMenu(
@@ -1123,6 +1120,11 @@ class _DMListState extends ConsumerState<DMList> {
     final rels = await db.relationshipDao.getRelationships();
     final rel = rels.where((r) => r.userId == convo.recipientId).firstOrNull;
     final devMode = ref.read(userSettingsViewModelProvider).developerMode;
+    final showFavorites = ref.read(
+      appearancePreferencesProvider.select((s) => s.showFavorites),
+    );
+    final isFavorite = showFavorites &&
+        await ref.read(favoriteChannelsRepositoryProvider).isFavorite(convo.id);
     if (!mounted || !context.mounted) {
       return;
     }
@@ -1132,6 +1134,8 @@ class _DMListState extends ConsumerState<DMList> {
         convo: convo,
         isMuted: isMuted,
         isPinned: isPinned,
+        isFavorite: isFavorite,
+        showFavorites: showFavorites,
         relationshipType: rel?.type,
         developerMode: devMode,
       ),
@@ -1192,7 +1196,15 @@ class _DMListState extends ConsumerState<DMList> {
         // TODO(fluxer_app): open change friend nickname sheet
         break;
       case _DmAction.favoriteDm:
-        // TODO(fluxer_app): implement favorite DM
+        final repository = ref.read(favoriteChannelsRepositoryProvider);
+        if (await repository.isFavorite(convo.id)) {
+          await repository.removeChannel(convo.id);
+        } else {
+          await repository.addChannel(
+            channelId: convo.id,
+            nickname: convo.displayName,
+          );
+        }
         break;
       case _DmAction.mute15Min:
         unawaited(
@@ -1652,6 +1664,8 @@ class _DmBottomSheet extends StatelessWidget {
   final DmConversation convo;
   final bool isMuted;
   final bool isPinned;
+  final bool isFavorite;
+  final bool showFavorites;
   final int? relationshipType;
   final bool developerMode;
 
@@ -1659,6 +1673,8 @@ class _DmBottomSheet extends StatelessWidget {
     required this.convo,
     required this.isMuted,
     required this.isPinned,
+    required this.isFavorite,
+    required this.showFavorites,
     required this.relationshipType,
     required this.developerMode,
   });
@@ -1696,6 +1712,16 @@ class _DmBottomSheet extends StatelessWidget {
                 : (isPinned ? l10n.dmUnpinDm : l10n.dmPinDm),
             onTap: () => pop(_DmAction.pinToggle),
           ),
+          if (showFavorites)
+            FluxerBottomSheetMenuItem(
+              icon: PhosphorIconsFill.star,
+              label: convo.isGroup
+                  ? (isFavorite
+                        ? l10n.dmUnfavoriteGroupDm
+                        : l10n.dmFavoriteGroupDm)
+                  : (isFavorite ? l10n.dmUnfavoriteDm : l10n.dmFavoriteDm),
+              onTap: () => pop(_DmAction.favoriteDm),
+            ),
         ],
       ),
     );

@@ -1,9 +1,11 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
 
 class FavoriteChannelsRepository {
-  const FavoriteChannelsRepository(this._database);
+  FavoriteChannelsRepository(this._database, this._syncService);
 
   final db.FluxerDatabase _database;
+  final FavoritesSyncService _syncService;
 
   Stream<List<db.FavoriteChannel>> watchChannels() =>
       _database.favoriteChannelsDao.watchChannels();
@@ -25,38 +27,110 @@ class FavoriteChannelsRepository {
     String? guildId,
     String? parentId,
     String? nickname,
-  }) => _database.favoriteChannelsDao.addChannel(
-    channelId: channelId,
-    guildId: guildId,
-    parentId: parentId,
-    nickname: nickname,
-  );
+  }) async {
+    final added = await _database.favoriteChannelsDao.addChannel(
+      channelId: channelId,
+      guildId: guildId,
+      parentId: parentId,
+      nickname: nickname,
+    );
+    if (added) {
+      await _syncService.applyAfterLocalMutation();
+    }
+    return added;
+  }
 
-  Future<bool> removeChannel(String channelId) =>
-      _database.favoriteChannelsDao.removeChannel(channelId);
+  Future<bool> removeChannel(String channelId) async {
+    final removed = await _database.favoriteChannelsDao.removeChannel(channelId);
+    if (removed) {
+      await _syncService.applyAfterLocalMutation();
+    }
+    return removed;
+  }
 
   Future<void> moveChannel({
     required String channelId,
     required int position,
     String? parentId,
-  }) => _database.favoriteChannelsDao.moveChannel(
-    channelId: channelId,
-    position: position,
-    parentId: parentId,
-  );
+  }) async {
+    await _database.favoriteChannelsDao.moveChannel(
+      channelId: channelId,
+      position: position,
+      parentId: parentId,
+    );
+    await _syncService.applyAfterLocalMutation();
+  }
 
-  Future<bool> addCategory({required String id, required String name}) =>
-      _database.favoriteChannelsDao.addCategory(id: id, name: name);
+  Future<bool> addCategory({required String id, required String name}) async {
+    final added = await _database.favoriteChannelsDao.addCategory(
+      id: id,
+      name: name,
+    );
+    if (added) {
+      await _syncService.applyAfterLocalMutation();
+    }
+    return added;
+  }
 
-  Future<bool> removeCategory(String id) =>
-      _database.favoriteChannelsDao.removeCategory(id);
+  Future<bool> removeCategory(String id) async {
+    final removed = await _database.favoriteChannelsDao.removeCategory(id);
+    if (removed) {
+      await _syncService.applyAfterLocalMutation();
+    }
+    return removed;
+  }
 
-  Future<void> setCollapsedCategoryIds(List<String> categoryIds) =>
-      _database.favoriteChannelsDao.setCollapsedCategoryIds(categoryIds);
+  Future<bool> renameCategory({
+    required String id,
+    required String name,
+  }) async {
+    final renamed = await _database.favoriteChannelsDao.renameCategory(
+      id: id,
+      name: name,
+    );
+    if (renamed) {
+      await _syncService.applyAfterLocalMutation();
+    }
+    return renamed;
+  }
 
-  Future<void> setHideMuted({required bool value}) =>
-      _database.favoriteChannelsDao.setHideMuted(value: value);
+  Future<void> moveCategory({
+    required String id,
+    required int position,
+  }) async {
+    await _database.favoriteChannelsDao.moveCategory(
+      id: id,
+      position: position,
+    );
+    await _syncService.applyAfterLocalMutation();
+  }
 
-  Future<void> setMuted({required bool value}) =>
-      _database.favoriteChannelsDao.setMuted(value: value);
+  Future<bool> setChannelNickname({
+    required String channelId,
+    String? nickname,
+  }) async {
+    final updated = await _database.favoriteChannelsDao.setChannelNickname(
+      channelId: channelId,
+      nickname: nickname,
+    );
+    if (updated) {
+      await _syncService.applyAfterLocalMutation();
+    }
+    return updated;
+  }
+
+  Future<void> setCollapsedCategoryIds(List<String> categoryIds) async {
+    await _database.favoriteChannelsDao.setCollapsedCategoryIds(categoryIds);
+    await _syncService.applyAfterLocalMutation();
+  }
+
+  Future<void> setHideMuted({required bool value}) async {
+    await _database.favoriteChannelsDao.setHideMuted(value: value);
+    await _syncService.applyAfterLocalMutation();
+  }
+
+  Future<void> setMuted({required bool value}) async {
+    await _database.favoriteChannelsDao.setMuted(value: value);
+    await _syncService.applyAfterLocalMutation();
+  }
 }

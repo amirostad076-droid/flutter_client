@@ -12,11 +12,12 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/login_screen.dart';
 import 'package:fluxer_app/features/chat/presentation/channel_layout.dart';
 import 'package:fluxer_app/features/dm/presentation/dm_layout.dart';
-import 'package:fluxer_app/features/favorites/presentation/favorites_page.dart';
+import 'package:fluxer_app/features/favorites/presentation/favorites_layout.dart';
 import 'package:fluxer_app/features/notifications/presentation/notifications_page.dart';
 import 'package:fluxer_app/features/profile/presentation/profile_page.dart';
 import 'package:fluxer_app/features/settings/presentation/guild_settings_modal.dart';
 import 'package:fluxer_app/features/shell/presentation/app_layout.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/reconnecting_screen.dart';
 import 'package:fluxer_app/features/shell/presentation/splash_screen.dart';
 import 'package:fluxer_app/features/shell/presentation/stub_screen.dart';
@@ -325,15 +326,56 @@ GoRouter fluxerRouter(Ref ref) {
               GoRoute(
                 path: '/channels/@favorites',
                 name: RouteNames.favorites,
+                redirect: (context, state) async {
+                  if (state.uri.path != RoutePaths.favoritesBase) {
+                    return null;
+                  }
+                  if (isMobileLayout(context)) {
+                    return null;
+                  }
+                  final db = ref.read(fluxerDatabaseProvider);
+                  final channels = await db.favoriteChannelsDao
+                      .watchChannels()
+                      .first;
+                  if (channels.isEmpty) {
+                    return null;
+                  }
+                  final settings = await db.favoriteChannelsDao.getSettings();
+                  final hideMuted = settings.hideMuted;
+                  for (final favorite in channels) {
+                    if (!hideMuted || favorite.guildId == null) {
+                      return RoutePaths.favoritesChannel(favorite.channelId);
+                    }
+                  }
+                  return RoutePaths.favoritesChannel(channels.first.channelId);
+                },
                 pageBuilder: (context, state) => _fadeTransitionPage(
                   key: state.pageKey,
-                  child: const FavoritesPage(),
+                  child: const FavoritesLayout(),
                 ),
                 routes: [
                   GoRoute(
                     path: ':channelId',
                     name: RouteNames.favoritesChannel,
-                    redirect: (context, state) => RoutePaths.favoritesBase,
+                    pageBuilder: (context, state) => _slideTransitionPage(
+                      key: state.pageKey,
+                      child: FavoritesLayout(
+                        channelId: state.pathParameters['channelId'],
+                      ),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: ':messageId',
+                        name: RouteNames.favoritesMessage,
+                        pageBuilder: (context, state) => _slideTransitionPage(
+                          key: state.pageKey,
+                          child: FavoritesLayout(
+                            channelId: state.pathParameters['channelId'],
+                            messageId: state.pathParameters['messageId'],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

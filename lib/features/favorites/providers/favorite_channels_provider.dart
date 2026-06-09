@@ -2,10 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/favorites/data/favorite_channels_repository.dart';
+import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
 
 final Provider<FavoriteChannelsRepository> favoriteChannelsRepositoryProvider =
     Provider<FavoriteChannelsRepository>((ref) {
-      return FavoriteChannelsRepository(ref.watch(fluxerDatabaseProvider));
+      return FavoriteChannelsRepository(
+        ref.watch(fluxerDatabaseProvider),
+        ref.watch(favoritesSyncServiceProvider),
+      );
     });
 
 final StreamProvider<List<db.FavoriteChannel>> favoriteChannelsProvider =

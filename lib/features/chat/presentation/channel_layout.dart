@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_header.dart';
 import 'package:fluxer_app/features/mature_content/presentation/widgets/mature_content_channel_gate.dart';
@@ -37,10 +38,10 @@ class ChannelLayout extends ConsumerWidget {
     final isMemberListVisible = ref.watch(
       channelListViewModelProvider.select((s) => s.isMemberListVisible),
     );
-    final Channel? channel = findChannelById(
-      ref.watch(channelListViewModelProvider),
-      channelId,
-    );
+    final channelState = ref.watch(channelListViewModelProvider);
+    final Channel? channel =
+        findChannelById(channelState, channelId) ??
+        ref.watch(channelByIdProvider(channelId)).value;
     final bool isVoiceChannel = channel?.type == ChannelType.voice;
     final isMobile = isMobileLayout(context);
     final isPanelOpen = ref.watch(expressionPanelProvider);
