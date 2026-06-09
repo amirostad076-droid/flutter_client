@@ -8,10 +8,14 @@ const Duration kMessageListPaginationCooldown = Duration(milliseconds: 300);
 
 /// Guards bidirectional message list pagination triggers.
 class MessageListPaginationGuard {
-  MessageListPaginationGuard({ScrollController? scrollController})
-    : _scrollController = scrollController;
+  MessageListPaginationGuard({
+    ScrollController? scrollController,
+    bool Function()? isProgrammaticScroll,
+  }) : _scrollController = scrollController,
+       _isProgrammaticScroll = isProgrammaticScroll;
 
   final ScrollController? _scrollController;
+  final bool Function()? _isProgrammaticScroll;
   bool _paginationCooldown = false;
   Timer? _cooldownTimer;
   double? _lastScrollPixels;
@@ -28,6 +32,17 @@ class MessageListPaginationGuard {
     _cooldownTimer = Timer(kMessageListPaginationCooldown, () {
       _paginationCooldown = false;
     });
+  }
+
+  void resetScrollIntent() {
+    _lastScrollPixels = null;
+    _paginationCooldown = false;
+    _cooldownTimer?.cancel();
+    _cooldownTimer = null;
+  }
+
+  void seedScrollPixels(double pixels) {
+    _lastScrollPixels = pixels;
   }
 
   bool shouldHandleScroll({
@@ -89,6 +104,9 @@ class MessageListPaginationGuard {
   }
 
   bool _hasUserScrollIntent(ScrollPosition position) {
+    if (_isProgrammaticScroll?.call() ?? false) {
+      return false;
+    }
     if (position.isScrollingNotifier.value) {
       _lastScrollPixels = position.pixels;
       return true;

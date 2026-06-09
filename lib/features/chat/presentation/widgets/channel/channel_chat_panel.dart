@@ -80,7 +80,10 @@ class ChannelChatPanel extends ConsumerWidget {
                         child: !loadMessages
                             ? const SizedBox.expand()
                             : isMessageListReady
-                            ? MessageList(targetMessageId: targetMessageId)
+                            ? MessageList(
+                                key: ValueKey<String>(activeChannelId),
+                                targetMessageId: targetMessageId,
+                              )
                             : Center(
                                 child: FluxerLoadingSpinner(
                                   color: context.colors.brandPrimary,
