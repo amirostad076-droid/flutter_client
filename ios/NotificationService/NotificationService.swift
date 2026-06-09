@@ -16,7 +16,6 @@ final class NotificationService: UNNotificationServiceExtension {
     private var fallbackContent: UNNotificationContent?
     private var didDeliver: Bool = false
     private let deliverLock = NSLock()
-    private static let maxDownloadBytes: Int64 = 5 * 1024 * 1024
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         self.contentHandler = contentHandler
@@ -26,12 +25,35 @@ final class NotificationService: UNNotificationServiceExtension {
             return
         }
         Self.applyThreadIdentifier(to: mutableContent, userInfo: request.content.userInfo)
+        let emojiResult = NotificationEmojiDecoder.decode(body: mutableContent.body)
+        mutableContent.body = emojiResult.body
         bestAttemptContent = mutableContent
-        guard let imageUrl = Self.resolveImageUrl(from: request.content.userInfo) else {
+        let messageImageUrl = NotificationPayloadMedia.resolveImageUrl(from: request.content.userInfo)
+        let emojiImageUrl = emojiResult.imageUrls.first
+        guard messageImageUrl != nil || emojiImageUrl != nil else {
             deliver(content: mutableContent)
             return
         }
-        Self.downloadImage(from: imageUrl) { localFileUrl in
+        if let messageImageUrl {
+            downloadAndAttach(
+                url: messageImageUrl,
+                identifier: NotificationImageAttachment.messageImageIdentifier
+            )
+        } else if let emojiImageUrl {
+            downloadAndAttach(
+                url: emojiImageUrl,
+                identifier: NotificationImageAttachment.emojiImageIdentifier
+            )
+        }
+    }
+
+    override func serviceExtensionTimeWillExpire() {
+        let content: UNNotificationContent = bestAttemptContent ?? fallbackContent ?? UNNotificationContent()
+        deliver(content: content)
+    }
+
+    private func downloadAndAttach(url: URL, identifier: String) {
+        NotificationImageAttachment.downloadImage(from: url) { localFileUrl in
             self.deliverLock.lock()
             let alreadyDelivered = self.didDeliver
             self.deliverLock.unlock()
@@ -43,7 +65,10 @@ final class NotificationService: UNNotificationServiceExtension {
             }
             var tempFilesToRemove: [URL] = []
             if let mutableContent = self.bestAttemptContent, let fileURL = localFileUrl {
-                let attachmentResult = Self.makeImageAttachment(fileURL: fileURL)
+                let attachmentResult = NotificationImageAttachment.makeImageAttachment(
+                    fileURL: fileURL,
+                    identifier: identifier
+                )
                 tempFilesToRemove = attachmentResult.filesToRemove
                 if let attachment = attachmentResult.attachment {
                     mutableContent.attachments = [attachment]
@@ -58,11 +83,6 @@ final class NotificationService: UNNotificationServiceExtension {
                 try? FileManager.default.removeItem(at: tempURL)
             }
         }
-    }
-
-    override func serviceExtensionTimeWillExpire() {
-        let content: UNNotificationContent = bestAttemptContent ?? fallbackContent ?? UNNotificationContent()
-        deliver(content: content)
     }
 
     private func deliver(content: UNNotificationContent) {
@@ -86,199 +106,5 @@ private extension NotificationService {
         if let threadId = PushNotificationPayload.resolveChannelThreadIdentifier(from: userInfo) {
             content.threadIdentifier = threadId
         }
-    }
-
-    static func resolveImageUrl(from userInfo: [AnyHashable: Any]) -> URL? {
-        if isMediaDisabled(in: userInfo) {
-            return nil
-        }
-        if let nested = userInfo["data"] as? [AnyHashable: Any] {
-            if isMediaDisabled(in: nested) {
-                return nil
-            }
-            if let url = imageUrl(in: nested) {
-                return url
-            }
-        }
-        return imageUrl(in: userInfo)
-    }
-
-    static func isMediaDisabled(in payload: [AnyHashable: Any]) -> Bool {
-        if let hasMedia = payload["has_media"] as? Bool, !hasMedia {
-            return true
-        }
-        if let hasMedia = payload["has_media"] as? NSNumber, !hasMedia.boolValue {
-            return true
-        }
-        if let hasMediaString = payload["has_media"] as? String, hasMediaString.lowercased() == "false" {
-            return true
-        }
-        return false
-    }
-
-    static func imageUrl(in payload: [AnyHashable: Any]) -> URL? {
-        for key in ["image_url", "image"] {
-            guard let raw = payload[key] as? String else {
-                continue
-            }
-            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !trimmed.isEmpty else {
-                continue
-            }
-            guard let url = URL(string: trimmed), let scheme = url.scheme?.lowercased() else {
-                continue
-            }
-            if scheme == "https" || scheme == "http" {
-                return url
-            }
-        }
-        return nil
-    }
-
-    static func makeImageAttachment(fileURL: URL) -> (attachment: UNNotificationAttachment?, filesToRemove: [URL]) {
-        var filesToRemove: [URL] = [fileURL]
-        let attachmentURL: URL
-        if let convertedURL = normalizedAttachmentFileURL(fileURL) {
-            attachmentURL = convertedURL
-            filesToRemove.append(convertedURL)
-        } else {
-            attachmentURL = fileURL
-        }
-        let typeHint = typeHintIdentifier(for: attachmentURL)
-        var options: [String: Any] = [:]
-        if let typeHint {
-            options[UNNotificationAttachmentOptionsTypeHintKey] = typeHint
-        }
-        let attachment = try? UNNotificationAttachment(
-            identifier: "fluxer.message.image",
-            url: attachmentURL,
-            options: options.isEmpty ? nil : options
-        )
-        return (attachment, filesToRemove)
-    }
-
-    static func normalizedAttachmentFileURL(_ fileURL: URL) -> URL? {
-        let ext = fileURL.pathExtension.lowercased()
-        if ext != "webp" && ext != "heic" && ext != "heif" {
-            return nil
-        }
-        guard let data = try? Data(contentsOf: fileURL), let image = UIImage(data: data) else {
-            return nil
-        }
-        guard let pngData = image.pngData() else {
-            return nil
-        }
-        let destination = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString + ".png")
-        do {
-            try pngData.write(to: destination, options: .atomic)
-            return destination
-        } catch {
-            return nil
-        }
-    }
-
-    static func typeHintIdentifier(for fileURL: URL) -> String? {
-        switch fileURL.pathExtension.lowercased() {
-        case "png":
-            return "public.png"
-        case "gif":
-            return "public.gif"
-        case "jpg", "jpeg":
-            return "public.jpeg"
-        default:
-            return "public.png"
-        }
-    }
-
-    static func downloadImage(from url: URL, completion: @escaping (URL?) -> Void) {
-        var request = URLRequest(url: url)
-        request.timeoutInterval = 20
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.timeoutIntervalForRequest = 20
-        configuration.timeoutIntervalForResource = 25
-        let session = URLSession(configuration: configuration)
-        let task = session.dataTask(with: request) { data, response, error in
-            session.invalidateAndCancel()
-            if error != nil {
-                completion(nil)
-                return
-            }
-            guard let data, !data.isEmpty else {
-                completion(nil)
-                return
-            }
-            if Int64(data.count) > maxDownloadBytes {
-                completion(nil)
-                return
-            }
-            if let http = response as? HTTPURLResponse, let lengthHeader = http.value(forHTTPHeaderField: "Content-Length"), let declared = Int64(lengthHeader), declared > maxDownloadBytes {
-                completion(nil)
-                return
-            }
-            let mime = (response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Content-Type")?.lowercased()
-            let ext = fileExtension(from: url, mimeType: mime, data: data)
-            let destination = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ext)
-            do {
-                try data.write(to: destination, options: .atomic)
-                completion(destination)
-            } catch {
-                completion(nil)
-            }
-        }
-        task.resume()
-    }
-
-    static func fileExtension(from url: URL, mimeType: String?, data: Data) -> String {
-        if let mime = mimeType {
-            if mime.contains("jpeg") || mime.contains("jpg") {
-                return ".jpg"
-            }
-            if mime.contains("png") {
-                return ".png"
-            }
-            if mime.contains("gif") {
-                return ".gif"
-            }
-            if mime.contains("webp") {
-                return ".webp"
-            }
-            if mime.contains("heic") || mime.contains("heif") {
-                return ".heic"
-            }
-        }
-        let pathExt = url.pathExtension.lowercased()
-        let allowed = ["png", "jpg", "jpeg", "gif", "webp", "heic", "heif"]
-        if allowed.contains(pathExt) {
-            if pathExt == "jpeg" || pathExt == "jpg" {
-                return ".jpg"
-            }
-            return ".\(pathExt)"
-        }
-        return sniffExtension(from: data) ?? ".jpg"
-    }
-
-    static func sniffExtension(from data: Data) -> String? {
-        guard !data.isEmpty else {
-            return nil
-        }
-        let prefix = [UInt8](data.prefix(min(16, data.count)))
-        if prefix.count >= 3, prefix[0] == 0xFF, prefix[1] == 0xD8, prefix[2] == 0xFF {
-            return ".jpg"
-        }
-        if prefix.count >= 8, prefix[0] == 0x89, prefix[1] == 0x50, prefix[2] == 0x4E, prefix[3] == 0x47 {
-            return ".png"
-        }
-        if prefix.count >= 6, prefix[0] == 0x47, prefix[1] == 0x49, prefix[2] == 0x46 {
-            return ".gif"
-        }
-        if prefix.count >= 12 {
-            let start = Data(prefix[0..<4])
-            let webp = Data(prefix[8..<12])
-            if String(data: start, encoding: .ascii) == "RIFF" && String(data: webp, encoding: .ascii) == "WEBP" {
-                return ".webp"
-            }
-        }
-        return nil
     }
 }

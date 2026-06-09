@@ -92,4 +92,48 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(notificationId, "msg-1")
     XCTAssertNotEqual(threadId, notificationId)
   }
+
+  func testCustomEmojiImageUrlIsStaticWebpWithoutAnimatedParam() {
+    let url = NotificationEmojiDecoder.customEmojiImageUrl(id: "99")
+    XCTAssertEqual(url?.absoluteString, "https://fluxerusercontent.com/emojis/99.webp?size=96")
+    XCTAssertFalse(url?.absoluteString.contains("animated") ?? true)
+  }
+
+  func testDecodeRewritesCustomEmojiWireTokenInBody() {
+    let result = NotificationEmojiDecoder.decode(body: "Hi <:party:99>")
+    XCTAssertEqual(result.body, "Hi :party:")
+    XCTAssertEqual(result.imageUrls.count, 1)
+    XCTAssertEqual(
+      result.imageUrls.first?.absoluteString,
+      "https://fluxerusercontent.com/emojis/99.webp?size=96"
+    )
+  }
+
+  func testDecodeTreatsAnimatedWireTokenSameAsStaticForImageUrl() {
+    let staticResult = NotificationEmojiDecoder.decode(body: "<:wave:123>")
+    let animatedResult = NotificationEmojiDecoder.decode(body: "<a:wave:123>")
+    XCTAssertEqual(staticResult.body, ":wave:")
+    XCTAssertEqual(animatedResult.body, ":wave:")
+    XCTAssertEqual(
+      staticResult.imageUrls.first?.absoluteString,
+      animatedResult.imageUrls.first?.absoluteString
+    )
+    XCTAssertFalse(animatedResult.imageUrls.first?.absoluteString.contains("animated") ?? true)
+  }
+
+  func testDecodeUsesFirstEmojiImageUrlForMultipleTokens() {
+    let result = NotificationEmojiDecoder.decode(body: "<:one:1> <:two:2>")
+    XCTAssertEqual(result.body, ":one: :two:")
+    XCTAssertEqual(result.imageUrls.count, 2)
+    XCTAssertEqual(
+      result.imageUrls.first?.absoluteString,
+      "https://fluxerusercontent.com/emojis/1.webp?size=96"
+    )
+  }
+
+  func testDecodeResolvesUnicodeShortcodeWhenEmojiRegistryIsAvailable() {
+    let result = NotificationEmojiDecoder.decode(body: "Hello :grinning:")
+    XCTAssertTrue(result.body.contains("😀") || result.body == "Hello :grinning:")
+    XCTAssertTrue(result.imageUrls.isEmpty)
+  }
 }

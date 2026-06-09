@@ -181,10 +181,93 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     identifier: String,
     attachments: [UNNotificationAttachment] = []
   ) {
-    let content = UNMutableNotificationContent()
     let display = Self.resolveDisplayContent(from: userInfo)
-    content.title = display.title
-    content.body = display.body
+    let emojiResult = NotificationEmojiDecoder.decode(body: display.body)
+    if !attachments.isEmpty {
+      addLocalNotification(
+        userInfo: userInfo,
+        identifier: identifier,
+        title: display.title,
+        body: emojiResult.body,
+        attachments: attachments
+      )
+      return
+    }
+    if let messageImageUrl = NotificationPayloadMedia.resolveImageUrl(from: userInfo) {
+      downloadAndScheduleLocalNotification(
+        userInfo: userInfo,
+        identifier: identifier,
+        title: display.title,
+        body: emojiResult.body,
+        imageUrl: messageImageUrl,
+        attachmentIdentifier: NotificationImageAttachment.messageImageIdentifier
+      )
+      return
+    }
+    if let emojiImageUrl = emojiResult.imageUrls.first {
+      downloadAndScheduleLocalNotification(
+        userInfo: userInfo,
+        identifier: identifier,
+        title: display.title,
+        body: emojiResult.body,
+        imageUrl: emojiImageUrl,
+        attachmentIdentifier: NotificationImageAttachment.emojiImageIdentifier
+      )
+      return
+    }
+    addLocalNotification(
+      userInfo: userInfo,
+      identifier: identifier,
+      title: display.title,
+      body: emojiResult.body,
+      attachments: []
+    )
+  }
+
+  private func downloadAndScheduleLocalNotification(
+    userInfo: [AnyHashable: Any],
+    identifier: String,
+    title: String,
+    body: String,
+    imageUrl: URL,
+    attachmentIdentifier: String
+  ) {
+    NotificationImageAttachment.downloadImage(from: imageUrl) { localFileUrl in
+      var attachments: [UNNotificationAttachment] = []
+      var tempFilesToRemove: [URL] = []
+      if let fileURL = localFileUrl {
+        let attachmentResult = NotificationImageAttachment.makeImageAttachment(
+          fileURL: fileURL,
+          identifier: attachmentIdentifier
+        )
+        tempFilesToRemove = attachmentResult.filesToRemove
+        if let attachment = attachmentResult.attachment {
+          attachments = [attachment]
+        }
+      }
+      self.addLocalNotification(
+        userInfo: userInfo,
+        identifier: identifier,
+        title: title,
+        body: body,
+        attachments: attachments
+      )
+      for tempURL in tempFilesToRemove {
+        try? FileManager.default.removeItem(at: tempURL)
+      }
+    }
+  }
+
+  private func addLocalNotification(
+    userInfo: [AnyHashable: Any],
+    identifier: String,
+    title: String,
+    body: String,
+    attachments: [UNNotificationAttachment]
+  ) {
+    let content = UNMutableNotificationContent()
+    content.title = title
+    content.body = body
     content.sound = .default
     content.userInfo = Self.userInfoDictionary(userInfo)
     if !attachments.isEmpty {
@@ -207,9 +290,10 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
   ) -> [String: Any] {
     let payload = flattenUserInfo(userInfo)
     let display = resolveDisplayContent(from: userInfo)
+    let decodedBody = NotificationEmojiDecoder.decode(body: display.body).body
     var notification: [String: Any] = [:]
     notification["title"] = display.title
-    notification["body"] = display.body
+    notification["body"] = decodedBody
     let id = messageId ?? PushNotificationPayload.resolveNotificationIdentifier(from: userInfo)
     return [
       "messageId": id,
