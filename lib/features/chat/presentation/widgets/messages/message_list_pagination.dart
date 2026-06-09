@@ -56,7 +56,7 @@ class MessageListPaginationGuard {
       return false;
     }
     final ScrollPosition position = _scrollController!.position;
-    if (!_hasUserScrollIntent(position)) {
+    if (!hasUserScrollIntent(position)) {
       return false;
     }
     return position.pixels >=
@@ -78,10 +78,14 @@ class MessageListPaginationGuard {
       return false;
     }
     final ScrollPosition position = _scrollController!.position;
-    if (!_hasUserScrollIntent(position)) {
+    if (!hasUserScrollIntent(position)) {
       return false;
     }
     return position.pixels <= kMessageListLoadNewerThreshold;
+  }
+
+  bool hasUserScrollIntent(ScrollPosition position) {
+    return _hasUserScrollIntent(position);
   }
 
   bool _hasUserScrollIntent(ScrollPosition position) {

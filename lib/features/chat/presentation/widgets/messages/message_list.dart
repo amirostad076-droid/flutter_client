@@ -89,6 +89,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   String? _explicitPivotMessageId;
   String? _scrollAnchoredPivotMessageId;
   String? _lastChannelId;
+  bool _initialUnreadPivotReleased = false;
 
   @override
   void initState() {
@@ -133,6 +134,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onScroll() {
+    _maybeReleaseInitialUnreadPivot();
     final ChatViewState chatState = ref.read(chatViewModelProvider);
     if (_paginationGuard.shouldLoadMore(
       hasMoreMessages: chatState.hasMoreMessages,
@@ -156,6 +158,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       _lastChannelId = state.channelId;
       _explicitPivotMessageId = widget.targetMessageId;
       _scrollAnchoredPivotMessageId = null;
+      _initialUnreadPivotReleased = false;
     }
     if (widget.targetMessageId != null &&
         state.messages.any((Message m) => m.id == widget.targetMessageId)) {
@@ -163,13 +166,38 @@ class _MessageListState extends ConsumerState<MessageList> {
       return;
     }
     final String? stickyUnreadId = state.stickyUnreadMessageId;
-    if (stickyUnreadId != null &&
+    if (!_initialUnreadPivotReleased &&
+        stickyUnreadId != null &&
         state.messages.any((Message m) => m.id == stickyUnreadId)) {
       _explicitPivotMessageId = stickyUnreadId;
       return;
     }
     if (!state.hasMoreNewerMessages) {
       _explicitPivotMessageId = null;
+    }
+  }
+
+  void _maybeReleaseInitialUnreadPivot() {
+    if (_initialUnreadPivotReleased || !_scrollController.hasClients) {
+      return;
+    }
+    final ScrollPosition position = _scrollController.position;
+    if (!_paginationGuard.hasUserScrollIntent(position)) {
+      return;
+    }
+    final String? stickyUnreadId = ref
+        .read(chatViewModelProvider)
+        .stickyUnreadMessageId;
+    if (stickyUnreadId == null || _explicitPivotMessageId != stickyUnreadId) {
+      return;
+    }
+    _initialUnreadPivotReleased = true;
+    _explicitPivotMessageId = null;
+    if (!_isLiveNearBottom()) {
+      final List<Message> messages = ref.read(chatViewModelProvider).messages;
+      if (messages.isNotEmpty) {
+        _scrollAnchoredPivotMessageId ??= messages.last.id;
+      }
     }
   }
 
@@ -280,8 +308,12 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (_hasActiveJumpTarget()) {
       return;
     }
+    _initialUnreadPivotReleased = true;
     final ChatViewState chatState = ref.read(chatViewModelProvider);
     _scrollAnchoredPivotMessageId = null;
+    if (widget.targetMessageId == null) {
+      _explicitPivotMessageId = null;
+    }
     if (chatState.hasMoreNewerMessages) {
       unawaited(
         ref.read(chatViewModelProvider.notifier).jumpToLatestMessages(),
