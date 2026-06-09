@@ -193,4 +193,104 @@ void main() {
       );
     });
   });
+
+  group('shouldShowUnreadIndicators', () {
+    test('returns false when there is no unread', () {
+      expect(
+        shouldShowUnreadIndicators(
+          hasUnread: false,
+          liveNearBottom: false,
+          hasMoreNewerMessages: false,
+          isManualReadState: false,
+          inUnreadReview: false,
+          stickyUnreadMessageId: null,
+        ),
+        isFalse,
+      );
+    });
+
+    test('suppresses at bottom on latest page with unread', () {
+      expect(
+        shouldShowUnreadIndicators(
+          hasUnread: true,
+          liveNearBottom: true,
+          hasMoreNewerMessages: false,
+          isManualReadState: false,
+          inUnreadReview: false,
+          stickyUnreadMessageId: null,
+        ),
+        isFalse,
+      );
+    });
+
+    test('shows when scrolled up with unread', () {
+      expect(
+        shouldShowUnreadIndicators(
+          hasUnread: true,
+          liveNearBottom: false,
+          hasMoreNewerMessages: false,
+          isManualReadState: false,
+          inUnreadReview: false,
+          stickyUnreadMessageId: null,
+        ),
+        isTrue,
+      );
+    });
+
+    test('shows at bottom when read state is manual', () {
+      expect(
+        shouldShowUnreadIndicators(
+          hasUnread: true,
+          liveNearBottom: true,
+          hasMoreNewerMessages: false,
+          isManualReadState: true,
+          inUnreadReview: false,
+          stickyUnreadMessageId: null,
+        ),
+        isTrue,
+      );
+    });
+
+    test('shows during unread review even at bottom', () {
+      expect(
+        shouldShowUnreadIndicators(
+          hasUnread: true,
+          liveNearBottom: true,
+          hasMoreNewerMessages: false,
+          isManualReadState: false,
+          inUnreadReview: true,
+          stickyUnreadMessageId: 'msg-1',
+        ),
+        isTrue,
+      );
+    });
+
+    test('shows at bottom when sticky unread is set', () {
+      expect(
+        shouldShowUnreadIndicators(
+          hasUnread: true,
+          liveNearBottom: true,
+          hasMoreNewerMessages: false,
+          isManualReadState: false,
+          inUnreadReview: false,
+          stickyUnreadMessageId: 'msg-1',
+        ),
+        isTrue,
+      );
+    });
+
+    test('shows at bottom when newer pages remain', () {
+      expect(
+        shouldShowUnreadIndicators(
+          hasUnread: true,
+          liveNearBottom: true,
+          hasMoreNewerMessages: true,
+          isManualReadState: false,
+          inUnreadReview: false,
+          stickyUnreadMessageId: null,
+        ),
+        isTrue,
+      );
+    });
+  });
 }

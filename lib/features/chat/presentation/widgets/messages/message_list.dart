@@ -92,6 +92,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   String? _lastChannelId;
   bool _initialUnreadPivotReleased = false;
   bool _awaitingInitialUnreadScroll = false;
+  bool _pinnedLiveNearBottom = false;
 
   @override
   void initState() {
@@ -138,6 +139,9 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   void _onScroll() {
     final ChatViewState chatState = ref.read(chatViewModelProvider);
+    if (!_isLiveNearBottom()) {
+      _pinnedLiveNearBottom = false;
+    }
     if (_paginationGuard.shouldLoadMore(
       hasMoreMessages: chatState.hasMoreMessages,
       isLoadingMore: chatState.isLoadingMore,
@@ -178,6 +182,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       _scrollAnchoredPivotMessageId = null;
       _initialUnreadPivotReleased = false;
       _awaitingInitialUnreadScroll = false;
+      _pinnedLiveNearBottom = false;
       _paginationGuard.resetScrollIntent();
     }
     if (_awaitingInitialUnreadScroll) {
@@ -238,6 +243,13 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
+  bool _effectiveLiveNearBottom() {
+    if (_pinnedLiveNearBottom) {
+      return true;
+    }
+    return _isLiveNearBottom();
+  }
+
   bool _hasActiveJumpTarget() {
     if (widget.targetMessageId != null || _pendingScrollTarget != null) {
       return true;
@@ -285,11 +297,13 @@ class _MessageListState extends ConsumerState<MessageList> {
       minScrollExtent: position.minScrollExtent,
     );
     if (liveNearBottom && !state.hasMoreNewerMessages) {
+      _pinnedLiveNearBottom = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _scrollController.hasClients) {
           _scrollController.jumpTo(
             _scrollController.position.minScrollExtent,
           );
+          _pinnedLiveNearBottom = false;
         }
       });
       return;
@@ -901,7 +915,18 @@ class _MessageListState extends ConsumerState<MessageList> {
       currentUserId: currentUserId,
     );
     final int unreadCount = unreadSummary.displayUnreadCount;
-    final DateTime? unreadSince = _messageTimestamp(messages, visualUnreadId);
+    final bool showUnreadIndicators = shouldShowUnreadIndicators(
+      hasUnread: unreadCount > 0,
+      liveNearBottom: _effectiveLiveNearBottom(),
+      hasMoreNewerMessages: state.hasMoreNewerMessages,
+      isManualReadState: readState?.manual ?? false,
+      inUnreadReview: _isInUnreadReview(state),
+      stickyUnreadMessageId: stickyUnreadId,
+    );
+    final String? effectiveVisualUnreadId =
+        showUnreadIndicators ? visualUnreadId : null;
+    final DateTime? unreadSince =
+        _messageTimestamp(messages, effectiveVisualUnreadId);
     final int chatFontSize = ref.watch(
       themePreferenceProvider.select(
         (ThemePreferenceState s) => s.chatFontSize,
@@ -983,7 +1008,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       body = _buildCenterScrollView(
         context: context,
         split: split,
-        visualUnreadId: visualUnreadId,
+        visualUnreadId: effectiveVisualUnreadId,
         highlightedMessageId: highlightedMessageId,
         currentUserId: currentUserId,
         isDmChannel: isDmChannel,
@@ -1005,7 +1030,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
 
     final bool showUnreadBar =
-        !state.isLoading && messages.isNotEmpty && unreadCount > 0;
+        !state.isLoading && messages.isNotEmpty && showUnreadIndicators;
     final Widget scaledBody = Stack(
       fit: StackFit.expand,
       children: [

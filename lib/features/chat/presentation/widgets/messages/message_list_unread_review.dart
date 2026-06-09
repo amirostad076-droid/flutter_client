@@ -66,3 +66,25 @@ bool isLiveNearBottom({
     threshold: threshold,
   );
 }
+
+bool shouldShowUnreadIndicators({
+  required bool hasUnread,
+  required bool liveNearBottom,
+  required bool hasMoreNewerMessages,
+  required bool isManualReadState,
+  required bool inUnreadReview,
+  required String? stickyUnreadMessageId,
+}) {
+  if (!hasUnread) {
+    return false;
+  }
+  if (isManualReadState ||
+      inUnreadReview ||
+      (stickyUnreadMessageId != null && stickyUnreadMessageId.isNotEmpty)) {
+    return true;
+  }
+  if (liveNearBottom && !hasMoreNewerMessages) {
+    return false;
+  }
+  return true;
+}
