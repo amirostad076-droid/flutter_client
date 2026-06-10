@@ -48,9 +48,9 @@ dependencies:
   riverpod_annotation: ^4.0.2
   web_socket_channel: ^3.0.2
   window_manager: ^0.5.1
-  talker: 5.1.16
+  talker: ^5.1.17
   talker_flutter: 5.1.16
-  talker_dio_logger: 5.1.16
+  talker_dio_logger: ^5.1.17
   app_links: ^7.1.1
   media_kit: ^1.2.6
   media_kit_libs_video: ^1.0.7
@@ -78,6 +78,7 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   protobuf: ^6.0.0
   fixnum: ^1.1.1
+  visibility_detector: ^0.4.0+2
 
 dependency_overrides:
   device_info_plus: ^12.4.0
