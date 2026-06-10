@@ -9,10 +9,10 @@ import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
-import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
+import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
@@ -22,11 +22,11 @@ import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
-import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -137,28 +137,30 @@ class _DMListState extends ConsumerState<DMList> {
         return;
       }
       if (ref.read(chatViewModelProvider).channelId == channelId) {
-        await ref
-            .read(chatViewModelProvider.notifier)
-            .switchChannel(channelId);
+        await ref.read(chatViewModelProvider.notifier).switchChannel(channelId);
       }
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: deletedCount > 0
-              ? l10n.purgePersonalNotesSuccess(deletedCount)
-              : l10n.purgePersonalNotesAlreadyEmpty,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: deletedCount > 0
+                  ? l10n.purgePersonalNotesSuccess(deletedCount)
+                  : l10n.purgePersonalNotesAlreadyEmpty,
+              variant: FluxerToastVariant.success,
+            ),
+          );
     } on Exception {
       if (!mounted || !context.mounted) {
         return;
       }
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: l10n.purgePersonalNotesFailed,
-          variant: FluxerToastVariant.danger,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.purgePersonalNotesFailed,
+              variant: FluxerToastVariant.danger,
+            ),
+          );
     }
   }
 
@@ -273,10 +275,10 @@ class _DMListState extends ConsumerState<DMList> {
                         pinnedIds: pinnedIds,
                         mutedIds: mutedIds,
                       )
-              : _buildConvoList(
-                  context,
-                  visibleConvos,
-                  selectedId,
+                    : _buildConvoList(
+                        context,
+                        visibleConvos,
+                        selectedId,
                         isMobile: isMobile,
                         pinnedIds: pinnedIds,
                         mutedIds: mutedIds,
@@ -1123,7 +1125,8 @@ class _DMListState extends ConsumerState<DMList> {
     final showFavorites = ref.read(
       appearancePreferencesProvider.select((s) => s.showFavorites),
     );
-    final isFavorite = showFavorites &&
+    final isFavorite =
+        showFavorites &&
         await ref.read(favoriteChannelsRepositoryProvider).isFavorite(convo.id);
     if (!mounted || !context.mounted) {
       return;
@@ -1205,7 +1208,6 @@ class _DMListState extends ConsumerState<DMList> {
             nickname: convo.displayName,
           );
         }
-        break;
       case _DmAction.mute15Min:
         unawaited(
           ref.read(dmRepositoryProvider).muteDm(convo.id, durationSeconds: 900),

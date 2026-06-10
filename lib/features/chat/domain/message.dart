@@ -203,7 +203,7 @@ class Embed {
     this.nsfw,
   });
 
-  bool get isMatureMedia => nsfw == true;
+  bool get isMatureMedia => nsfw ?? false;
 
   factory Embed.fromSdk(MessageEmbedResponse sdk) => Embed(
     type: _parseEmbedType(sdk.type),
@@ -411,7 +411,7 @@ class Attachment {
   bool get isPreviewMedia => isImage || isVideo;
   bool get isSpoiler => (flags & attachmentFlagIsSpoiler) != 0;
   bool get isMatureMedia =>
-      nsfw == true || (flags & attachmentFlagContainsExplicitMedia) != 0;
+      (nsfw ?? false) || (flags & attachmentFlagContainsExplicitMedia) != 0;
 }
 
 class MessageSticker {
