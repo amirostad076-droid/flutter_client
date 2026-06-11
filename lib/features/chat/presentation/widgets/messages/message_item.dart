@@ -524,30 +524,17 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     final bool prefersPersistedAuthor = messagePrefersPersistedAuthorDisplay(
       msg,
     );
-    final bool isCurrentUserAuthor =
-        widget.currentUserId != null && msg.authorId == widget.currentUserId;
     Color? authorRoleColor;
     if (guildId != null && !prefersPersistedAuthor) {
       authorRoleColor = ref
           .watch(memberRoleColorProvider((msg.authorId, guildId)))
           .value;
     }
-    GuildUserDisplay? guildDisplay;
-    if (guildId != null && !prefersPersistedAuthor) {
-      if (isCurrentUserAuthor) {
-        guildDisplay = ref
-            .watch(guildUserDisplayFromDbProvider((msg.authorId, guildId)))
-            .value;
-      } else {
-        guildDisplay = ref
-            .watch(guildUserDisplayProvider((msg.authorId, guildId)))
-            .value;
-      }
-    }
-    final GuildUserDisplay authorDisplay = resolveMessageAuthorDisplay(
+    final GuildUserDisplay authorDisplay = watchMessageAuthorDisplay(
+      ref: ref,
       message: msg,
       guildId: guildId,
-      guildDisplay: guildDisplay,
+      currentUserId: widget.currentUserId,
     );
     final bool shouldHighlightMention =
         msg.isMentioned && !widget.hideMentionHighlight;

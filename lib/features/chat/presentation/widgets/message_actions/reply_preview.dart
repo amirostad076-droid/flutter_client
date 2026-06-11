@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -16,7 +15,10 @@ import 'package:fluxer_app/features/chat/providers/messages/message_references_p
 import 'package:fluxer_app/features/chat/utils/mention_reply_preference_utils.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
+import 'package:fluxer_app/shared/utils/guild_user_display.dart'
+    show GuildUserDisplay, messagePrefersPersistedAuthorDisplay;
 import 'package:fluxer_dart/models/mention_reply_preferences.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -57,8 +59,19 @@ class InlineReplyPreview extends ConsumerWidget {
         );
     final replyMsg = resolution.message;
     final guildId = ref.watch(activeGuildIdProvider);
+    final String? currentUserId = ref.watch(currentUserIdProvider);
+    final GuildUserDisplay? replyAuthorDisplay = replyMsg == null
+        ? null
+        : watchMessageAuthorDisplay(
+            ref: ref,
+            message: replyMsg,
+            guildId: guildId,
+            currentUserId: currentUserId,
+          );
+    final bool prefersPersistedAuthor =
+        replyMsg != null && messagePrefersPersistedAuthorDisplay(replyMsg);
     Color? roleColor;
-    if (replyMsg != null && guildId != null) {
+    if (replyMsg != null && guildId != null && !prefersPersistedAuthor) {
       roleColor = ref
           .watch(memberRoleColorProvider((replyMsg.authorId, guildId)))
           .value;
@@ -85,15 +98,13 @@ class InlineReplyPreview extends ConsumerWidget {
           return Row(
             children: [
               if (resolution.state == MessageReferenceState.loaded &&
-                  replyMsg != null) ...[
+                  replyMsg != null &&
+                  replyAuthorDisplay != null) ...[
                 FluxerAvatar.user(
-                  fallbackText: replyMsg.authorName,
+                  fallbackText: replyAuthorDisplay.displayName,
                   userId: replyMsg.authorId,
-                  imageUrl: FluxerMediaUrl.userAvatar(
-                    userId: replyMsg.authorId,
-                    hash: replyMsg.authorAvatar,
-                  ),
-                  avatarColor: replyMsg.authorAvatarColor,
+                  imageUrl: replyAuthorDisplay.avatarUrl,
+                  avatarColor: replyAuthorDisplay.avatarColor,
                   size: 16,
                   showStatus: false,
                 ),
@@ -101,7 +112,7 @@ class InlineReplyPreview extends ConsumerWidget {
                 ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: maxAuthorWidth),
                   child: Text(
-                    replyMsg.authorName,
+                    replyAuthorDisplay.displayName,
                     style: TextStyle(
                       color: nameColor,
                       fontSize: 13,
@@ -273,6 +284,12 @@ class ReplyInputBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final String? currentUserId = ref.watch(currentUserIdProvider);
+    final GuildUserDisplay replyAuthorDisplay = watchMessageAuthorDisplay(
+      ref: ref,
+      message: replyTo,
+      guildId: guildId.isEmpty ? null : guildId,
+      currentUserId: currentUserId,
+    );
     final bool isOwnMessage =
         currentUserId != null && replyTo.authorId == currentUserId;
     final bool isWebhook =
@@ -301,7 +318,7 @@ class ReplyInputBar extends ConsumerWidget {
                     style: TextStyle(color: context.colors.textPrimaryMuted),
                   ),
                   TextSpan(
-                    text: replyTo.authorName,
+                    text: replyAuthorDisplay.displayName,
                     style: TextStyle(
                       color: context.colors.textChat,
                       fontWeight: FontWeight.w600,
@@ -326,7 +343,7 @@ class ReplyInputBar extends ConsumerWidget {
                       context: context,
                       ref: ref,
                       shouldMention: shouldMention,
-                      authorNickname: replyTo.authorName,
+                      authorNickname: replyAuthorDisplay.displayName,
                       onToggleMention: onToggleMention,
                     ),
                   ),
