@@ -100,7 +100,9 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
     listenChatViewModelErrors(ref);
 
     return ColoredBox(
-      color: context.colors.chatBackground,
+      color: isMobile
+          ? context.colors.chatInputBackground
+          : context.colors.chatBackground,
       child: SafeArea(
         child: UploadDropOverlay(
           channelId: widget.channelId,
