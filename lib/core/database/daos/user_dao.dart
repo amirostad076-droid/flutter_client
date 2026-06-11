@@ -22,6 +22,13 @@ class UserDao extends DatabaseAccessor<FluxerDatabase> with _$UserDaoMixin {
   Stream<User?> watchUserById(String id) =>
       (select(users)..where((u) => u.id.equals(id))).watchSingleOrNull();
 
+  Stream<List<User>> watchUsersByIds(List<String> ids) {
+    if (ids.isEmpty) {
+      return Stream<List<User>>.value(const <User>[]);
+    }
+    return (select(users)..where((u) => u.id.isIn(ids))).watch();
+  }
+
   Future<void> upsertUser(UsersCompanion user) =>
       into(users).insertOnConflictUpdate(user);
 
@@ -43,6 +50,25 @@ class UserDao extends DatabaseAccessor<FluxerDatabase> with _$UserDaoMixin {
   }) => (update(users)..where((u) => u.id.equals(id))).write(
     UsersCompanion(status: Value(status), customStatus: Value(customStatus)),
   );
+
+  Future<void> updateUserPresencesBatch(
+    List<({String userId, String status, String? customStatus})> updates,
+  ) async {
+    if (updates.isEmpty) {
+      return;
+    }
+    await transaction(() async {
+      for (final ({String userId, String status, String? customStatus}) entry
+          in updates) {
+        await (update(users)..where((u) => u.id.equals(entry.userId))).write(
+          UsersCompanion(
+            status: Value(entry.status),
+            customStatus: Value(entry.customStatus),
+          ),
+        );
+      }
+    });
+  }
 
   Future<void> clearAll() => delete(users).go();
 }

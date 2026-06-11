@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -23,16 +25,58 @@ class MemberRepository {
   }
 
   Stream<List<Member>> watchMembers(String guildId) {
-    return _db.memberDao.watchMembers(guildId).asyncMap((members) async {
-      final roles = await _db.roleDao.getRoles(guildId);
-      final userIds = members.map((m) => m.userId).toList();
-      final userList = await _db.userDao.getUsersByIds(userIds);
-      final users = {for (final u in userList) u.id: u};
+    final StreamController<List<Member>> controller =
+        StreamController<List<Member>>();
+    StreamSubscription<List<db.Member>>? memberSub;
+    StreamSubscription<List<db.User>>? userSub;
+    List<db.Member> latestMembers = <db.Member>[];
 
-      return members
-          .map((m) => Member.fromRow(m, users[m.userId], roles))
-          .toList();
-    });
+    Future<void> emitMembers() async {
+      if (controller.isClosed) {
+        return;
+      }
+      controller.add(await _membersFromRows(guildId, latestMembers));
+    }
+
+    memberSub = _db.memberDao.watchMembers(guildId).listen(
+      (List<db.Member> members) {
+        latestMembers = members;
+        unawaited(userSub?.cancel());
+        userSub = null;
+        unawaited(emitMembers());
+        if (members.isEmpty) {
+          return;
+        }
+        final List<String> userIds = members.map((db.Member m) => m.userId).toList();
+        userSub = _db.userDao.watchUsersByIds(userIds).listen((_) {
+          unawaited(emitMembers());
+        });
+      },
+      onError: controller.addError,
+    );
+
+    controller.onCancel = () async {
+      await memberSub?.cancel();
+      await userSub?.cancel();
+      await controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  Future<List<Member>> _membersFromRows(
+    String guildId,
+    List<db.Member> members,
+  ) async {
+    final List<db.Role> roles = await _db.roleDao.getRoles(guildId);
+    final List<String> userIds = members.map((db.Member m) => m.userId).toList();
+    final List<db.User> userList = await _db.userDao.getUsersByIds(userIds);
+    final Map<String, db.User> users = <String, db.User>{
+      for (final db.User u in userList) u.id: u,
+    };
+    return members
+        .map((db.Member m) => Member.fromRow(m, users[m.userId], roles))
+        .toList();
   }
 
   Future<List<Member>> getMembers(String guildId, {int limit = 100}) async {

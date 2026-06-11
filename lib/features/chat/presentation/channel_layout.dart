@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.da
 import 'package:fluxer_app/features/mature_content/presentation/widgets/mature_content_channel_gate.dart';
 import 'package:fluxer_app/features/mature_content/providers/mature_content_agreements_provider.dart';
 import 'package:fluxer_app/features/members/presentation/widgets/channel_members.dart';
+import 'package:fluxer_app/features/members/providers/member_list_subscription_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/mobile_chat_back_scope.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/voice/presentation/voice_channel_page_view.dart';
@@ -49,6 +50,7 @@ class ChannelLayout extends ConsumerWidget {
       shouldShowMatureContentGateProvider(channelId),
     );
     final bool showMatureContentGate = showGateAsync.value ?? false;
+    ref.watch(memberListSubscriptionProvider);
 
     return MobileChatBackScope(
       child: ColoredBox(

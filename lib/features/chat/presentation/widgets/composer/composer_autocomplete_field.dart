@@ -33,6 +33,7 @@ import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
 import 'package:fluxer_app/features/members/providers/member_providers.dart';
+import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/input/emoji_inline_token.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_text_editing_controller.dart';

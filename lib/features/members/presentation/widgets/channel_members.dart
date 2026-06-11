@@ -8,6 +8,8 @@ import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
+import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
+import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 
@@ -87,24 +89,27 @@ class _ChannelMembersPanel extends StatelessWidget {
   }
 }
 
-class _MemberListItem extends StatefulWidget {
+class _MemberListItem extends ConsumerStatefulWidget {
   final Member member;
   final String? guildId;
 
   const _MemberListItem({required this.member, required this.guildId});
 
   @override
-  State<_MemberListItem> createState() => _MemberListItemState();
+  ConsumerState<_MemberListItem> createState() => _MemberListItemState();
 }
 
-class _MemberListItemState extends State<_MemberListItem> {
+class _MemberListItemState extends ConsumerState<_MemberListItem> {
   var _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
     final member = widget.member;
     final layout = context.layout;
-    final isOffline = member.status == 'offline';
+    final String status =
+        ref.watch(userPresenceProvider(member.id)).value?.status ??
+        member.status;
+    final bool isOffline = !isMemberPresenceOnline(status);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -145,7 +150,7 @@ class _MemberListItemState extends State<_MemberListItem> {
                     ),
                     avatarColor: member.avatarColor,
                     roleColor: member.roleColor,
-                    status: member.status,
+                    status: status,
                     size: 32,
                   ),
                   const SizedBox(width: 10),
@@ -172,9 +177,9 @@ class _MemberListItemState extends State<_MemberListItem> {
                             ],
                           ],
                         ),
-                        if (member.customStatus != null)
+                        if ((ref.watch(userPresenceProvider(member.id)).value?.customStatus ?? member.customStatus) != null)
                           Text(
-                            member.customStatus!,
+                            ref.watch(userPresenceProvider(member.id)).value?.customStatus ?? member.customStatus!,
                             style: TextStyle(
                               color: context.colors.textPrimaryMuted,
                               fontSize: 11,

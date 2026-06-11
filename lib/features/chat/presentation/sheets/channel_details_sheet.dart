@@ -37,9 +37,11 @@ import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/favorites/domain/favorite_guild_id.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
+import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
+import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -1572,102 +1574,104 @@ class _DmMemberGroups extends ConsumerWidget {
   final DmConversation dm;
   final String? currentUserId;
 
-  static bool _isOnline(String status) =>
-      status != 'offline' && status != 'invisible';
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userId = currentUserId;
+    final String? userId = currentUserId;
     if (userId == null) {
       return const SizedBox.shrink();
     }
-    return FutureBuilder<db.User?>(
-      future: ref.read(fluxerDatabaseProvider).userDao.getUserById(userId),
-      builder: (context, snapshot) {
-        final currentUser = snapshot.data;
-        final currentUserStatus = currentUser?.status ?? 'online';
-
-        final onlineRows = <Widget>[];
-        final offlineRows = <Widget>[];
-
-        Widget currentUserRow() => _SimpleMemberRow(
-          userId: userId,
-          name: currentUser?.globalName ?? currentUser?.username ?? 'You',
-          avatarUrl: currentUser?.avatar == null
-              ? null
-              : FluxerMediaUrl.userAvatar(
-                  userId: userId,
-                  hash: currentUser!.avatar,
-                ),
-          avatarColor: currentUser?.avatarColor,
-          status: currentUserStatus,
-          isBot: currentUser?.bot ?? false,
-          isCurrentUser: true,
-          onTap: () => FluxerUserProfileSheet.show(context, userId: userId),
+    String resolveStatus(String id) =>
+        ref.watch(userPresenceProvider(id)).value?.status ?? 'offline';
+    final db.User? currentUser = ref.watch(userPresenceProvider(userId)).value;
+    final List<_DmParticipant> participants = <_DmParticipant>[
+      _DmParticipant(
+        id: userId,
+        name: currentUser?.globalName ?? currentUser?.username ?? 'You',
+        avatar: currentUser?.avatar,
+        avatarColor: currentUser?.avatarColor,
+        isBot: currentUser?.bot ?? false,
+        isCurrentUser: true,
+      ),
+      if (dm.isGroup)
+        for (final GroupMemberInfo member in dm.groupMembers)
+          if (member.id != userId)
+            _DmParticipant(
+              id: member.id,
+              name: member.name,
+              avatar: member.avatar,
+              isCurrentUser: false,
+            )
+      else if (!dm.isPersonalNotes)
+        _DmParticipant(
+          id: dm.recipientId,
+          name: dm.recipientName,
+          avatar: dm.recipientAvatar,
+          isBot: dm.isBot,
+          isSystem: dm.isSystem,
+          isCurrentUser: false,
+        ),
+    ];
+    final List<GroupDmMemberGroup<_DmParticipant>> groups =
+        groupDmMembersByPresence<_DmParticipant>(
+          members: participants,
+          resolveUserId: (_DmParticipant p) => p.id,
+          resolveDisplayName: (_DmParticipant p) => p.name,
+          resolveStatus: resolveStatus,
+          onlineHeader: 'Online',
+          offlineHeader: 'Offline',
         );
-
-        if (_isOnline(currentUserStatus)) {
-          onlineRows.add(currentUserRow());
-        } else {
-          offlineRows.add(currentUserRow());
-        }
-
-        if (dm.isGroup) {
-          for (final member in dm.groupMembers) {
-            // Per-member presence isn't loaded into DmConversation yet.
-            offlineRows.add(
-              _SimpleMemberRow(
-                userId: member.id,
-                name: member.name,
-                avatarUrl: FluxerMediaUrl.userAvatar(
-                  userId: member.id,
-                  hash: member.avatar,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        for (final GroupDmMemberGroup<_DmParticipant> group in groups)
+          FluxerListSection(
+            header: group.displayName,
+            children: <Widget>[
+              for (final _DmParticipant participant in group.members)
+                _SimpleMemberRow(
+                  userId: participant.id,
+                  name: participant.name,
+                  avatarUrl: participant.avatar == null
+                      ? null
+                      : FluxerMediaUrl.userAvatar(
+                          userId: participant.id,
+                          hash: participant.avatar,
+                        ),
+                  avatarColor: participant.avatarColor,
+                  status: resolveStatus(participant.id),
+                  isBot: participant.isBot,
+                  isSystem: participant.isSystem,
+                  isCurrentUser: participant.isCurrentUser,
+                  onTap: () => FluxerUserProfileSheet.show(
+                    context,
+                    userId: participant.id,
+                  ),
                 ),
-                isCurrentUser: member.id == userId,
-                onTap: () =>
-                    FluxerUserProfileSheet.show(context, userId: member.id),
-              ),
-            );
-          }
-        } else if (!dm.isPersonalNotes) {
-          final recipientRow = _SimpleMemberRow(
-            userId: dm.recipientId,
-            name: dm.recipientName,
-            avatarUrl: FluxerMediaUrl.userAvatar(
-              userId: dm.recipientId,
-              hash: dm.recipientAvatar,
-            ),
-            status: dm.recipientStatus,
-            isBot: dm.isBot,
-            isSystem: dm.isSystem,
-            onTap: () =>
-                FluxerUserProfileSheet.show(context, userId: dm.recipientId),
-          );
-          if (_isOnline(dm.recipientStatus)) {
-            onlineRows.add(recipientRow);
-          } else {
-            offlineRows.add(recipientRow);
-          }
-        }
-
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (onlineRows.isNotEmpty)
-              FluxerListSection(
-                header: 'Online — ${onlineRows.length}',
-                children: onlineRows,
-              ),
-            if (offlineRows.isNotEmpty)
-              FluxerListSection(
-                header: 'Offline — ${offlineRows.length}',
-                children: offlineRows,
-              ),
-          ],
-        );
-      },
+            ],
+          ),
+      ],
     );
   }
+}
+
+class _DmParticipant {
+  const _DmParticipant({
+    required this.id,
+    required this.name,
+    this.avatar,
+    this.avatarColor,
+    this.isBot = false,
+    this.isSystem = false,
+    this.isCurrentUser = false,
+  });
+
+  final String id;
+  final String name;
+  final String? avatar;
+  final int? avatarColor;
+  final bool isBot;
+  final bool isSystem;
+  final bool isCurrentUser;
 }
 
 class _SimpleMemberRow extends StatelessWidget {
@@ -1845,7 +1849,7 @@ class _RenderGroup {
   });
 }
 
-bool _isMemberOnline(Member m) => m.status != 'offline';
+bool _isMemberOnline(Member m) => isMemberPresenceOnline(m.status);
 
 List<_RenderGroup> _splitOnlineOffline(List<RoleGroup> roleGroups) {
   final online = <_RenderGroup>[];

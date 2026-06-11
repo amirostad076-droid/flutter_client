@@ -17,6 +17,8 @@ import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
+import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
@@ -735,7 +737,12 @@ class _DMListState extends ConsumerState<DMList> {
                       guildId: c.id,
                       hash: c.icon,
                     ),
-                    status: c.groupStatus,
+                    status: groupDmAggregateStatus(
+                      participantIds: c.remoteRecipientIds,
+                      resolveStatus: (String id) =>
+                          ref.watch(userPresenceProvider(id)).value?.status ??
+                          'offline',
+                    ),
                     members: _clusterMembers(c),
                     size: avatarSize,
                   )
@@ -749,7 +756,13 @@ class _DMListState extends ConsumerState<DMList> {
                       animated: isSelected,
                     ),
                     status: shouldShowDmRecipientPresence(c)
-                        ? c.recipientStatus
+                        ? ref
+                                  .watch(
+                                    userPresenceProvider(c.recipientId),
+                                  )
+                                  .value
+                                  ?.status ??
+                              'offline'
                         : null,
                     showStatus: shouldShowDmRecipientPresence(c),
                     size: avatarSize,
@@ -1391,7 +1404,7 @@ class _InviteToGuildAction {
   const _InviteToGuildAction(this.guildId);
 }
 
-class _DmBottomSheet extends StatelessWidget {
+class _DmBottomSheet extends ConsumerWidget {
   final DmConversation convo;
   final bool isMuted;
   final bool isPinned;
@@ -1411,7 +1424,7 @@ class _DmBottomSheet extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final layout = context.layout;
     final l10n = FluxerLocalizations.of(context);
     final hasUnread = convo.unreadCount > 0;
@@ -1666,7 +1679,15 @@ class _DmBottomSheet extends StatelessWidget {
                           hash: convo.recipientAvatar,
                         ),
                         status: shouldShowDmRecipientPresence(convo)
-                            ? convo.recipientStatus
+                            ? ref
+                                      .watch(
+                                        userPresenceProvider(
+                                          convo.recipientId,
+                                        ),
+                                      )
+                                      .value
+                                      ?.status ??
+                                  'offline'
                             : null,
                         showStatus: shouldShowDmRecipientPresence(convo),
                         size: 48,
