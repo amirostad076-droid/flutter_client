@@ -3248,6 +3248,15 @@
   "@channelNoSendPermissionHint": {
     "description": "Placeholder text in the channel message input when the user lacks Send Messages permission."
   },
+  "systemDmComposerBarrier": "System announcements from {productName} staff. You can't reply here.",
+  "@systemDmComposerBarrier": {
+    "description": "Read-only system DM barrier message. productName is the Fluxer product name.",
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
   "channelComposerBarrierGuildSendDisabled": "Messaging is temporarily paused in this community.",
   "@channelComposerBarrierGuildSendDisabled": {
     "description": "Composer barrier when guild-wide messaging is disabled."

@@ -14,6 +14,7 @@ import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_attachment_area.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_composer_barrier.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/system_dm_composer_barrier.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_composer_sheet.dart';
@@ -37,6 +38,7 @@ import 'package:fluxer_app/features/chat/utils/composer_voice_button_visibility.
 import 'package:fluxer_app/features/chat/utils/file_upload_constants.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/chat/utils/paste_text_attachment.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -333,6 +335,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
+    final dm = findDmById(
+      ref.watch(dmViewModelProvider.select((s) => s.conversations)),
+      channelId,
+    );
+    if (dm != null && isSystemDmConversation(dm)) {
+      return const SystemDmComposerBarrier();
+    }
     final AsyncValue<GuildComposerAccess> composerAccessAsync = ref.watch(
       guildComposerAccessProvider(channelId),
     );

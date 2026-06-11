@@ -14,12 +14,14 @@ class UserProfileActionCardRow extends StatelessWidget {
     required this.onVoiceCall,
     required this.onVideoCall,
     required this.onEditProfile,
+    this.canCall = true,
     super.key,
   });
 
   final bool isCurrentUser;
   final bool isFriend;
   final bool isBlocked;
+  final bool canCall;
   final Future<void> Function() onMessage;
   final Future<void> Function() onVoiceCall;
   final Future<void> Function() onVideoCall;
@@ -50,7 +52,7 @@ class UserProfileActionCardRow extends StatelessWidget {
             usesBrandPrimaryCircle: true,
           ),
         ),
-        if (isFriend) ...[
+        if (isFriend && canCall) ...[
           Expanded(
             child: _ProfileActionCard(
               label: l10n.userProfileVoiceCall,

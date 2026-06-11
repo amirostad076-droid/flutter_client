@@ -2,10 +2,27 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 
 const int dmPersonalNotesChannelType = 999;
+
+const String fluxerBotUserId = '0';
+
+bool isSystemDmConversation(DmConversation dm) =>
+    !dm.isGroup && dm.recipientId == fluxerBotUserId;
+
+bool isBotOrSystemDmRecipient(DmConversation dm) =>
+    !dm.isGroup && (dm.isBot || dm.isSystem);
+
+bool canStartDmCall(DmConversation dm) =>
+    !dm.isGroup && !dm.isPersonalNotes && !isBotOrSystemDmRecipient(dm);
+
+bool canCallUser({required bool isBot, required bool isSystem}) =>
+    !isBot && !isSystem;
+
+bool shouldShowDmRecipientPresence(DmConversation dm) => !dm.isSystem;
 
 bool isDmPersonalNotesType(int type) => type == dmPersonalNotesChannelType;
 

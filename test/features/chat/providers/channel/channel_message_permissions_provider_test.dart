@@ -9,6 +9,8 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
+import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
@@ -49,6 +51,20 @@ class _EmptyDmViewModel extends DmViewModel {
   DmViewState build() => const DmViewState(
     conversations: [],
     friendsList: [],
+    activeTab: FriendsTab.online,
+    searchQuery: '',
+  );
+}
+
+class _FixedDmViewModel extends DmViewModel {
+  _FixedDmViewModel(this._conversations);
+
+  final List<DmConversation> _conversations;
+
+  @override
+  DmViewState build() => DmViewState(
+    conversations: _conversations,
+    friendsList: const [],
     activeTab: FriendsTab.online,
     searchQuery: '',
   );
@@ -151,6 +167,78 @@ void main() {
         expect(perms, ChannelMessagePermissions.all);
       },
     );
+
+    test('denies all permissions for system DM with Fluxerbot recipient', () async {
+      const String channelId = '1000000000000000100';
+      final FluxerDatabase db = FluxerDatabase.forTesting(
+        NativeDatabase.memory(),
+      );
+      addTearDown(db.close);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: [
+          fluxerDatabaseProvider.overrideWithValue(db),
+          dmViewModelProvider.overrideWith(
+            () => _FixedDmViewModel(<DmConversation>[
+              DmConversation(
+                id: channelId,
+                type: 1,
+                recipientId: fluxerBotUserId,
+                recipientName: 'Fluxer',
+                lastMessage: '',
+                lastMessageTime: DateTime.utc(2026, 1, 1),
+                isBot: true,
+                isSystem: true,
+              ),
+            ]),
+          ),
+          currentUserIdProvider.overrideWithValue('1000000000000000001'),
+          guildListViewModelProvider.overrideWith(_EmptyGuildListViewModel.new),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final ChannelMessagePermissions perms = await container.read(
+        channelMessagePermissionsProvider(channelId).future,
+      );
+
+      expect(perms, ChannelMessagePermissions.none);
+    });
+
+    test('grants all permissions for regular DM', () async {
+      const String channelId = '1000000000000000200';
+      final FluxerDatabase db = FluxerDatabase.forTesting(
+        NativeDatabase.memory(),
+      );
+      addTearDown(db.close);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: [
+          fluxerDatabaseProvider.overrideWithValue(db),
+          dmViewModelProvider.overrideWith(
+            () => _FixedDmViewModel(<DmConversation>[
+              DmConversation(
+                id: channelId,
+                type: 1,
+                recipientId: '1000000000000000300',
+                recipientName: 'Friend',
+                lastMessage: 'Hi',
+                lastMessageTime: DateTime.utc(2026, 1, 1),
+              ),
+            ]),
+          ),
+          currentUserIdProvider.overrideWithValue('1000000000000000001'),
+          guildListViewModelProvider.overrideWith(_EmptyGuildListViewModel.new),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final ChannelMessagePermissions perms = await container.read(
+        channelMessagePermissionsProvider(channelId).future,
+      );
+
+      expect(perms, ChannelMessagePermissions.all);
+    });
   });
 
   group('channelMessagePermissionsFromBits', () {

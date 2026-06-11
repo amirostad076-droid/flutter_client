@@ -747,7 +747,10 @@ class _DMListState extends ConsumerState<DMList> {
                       hash: c.recipientAvatar,
                       animated: isSelected,
                     ),
-                    status: c.recipientStatus,
+                    status: shouldShowDmRecipientPresence(c)
+                        ? c.recipientStatus
+                        : null,
+                    showStatus: shouldShowDmRecipientPresence(c),
                     size: avatarSize,
                   ),
                 SizedBox(width: layout.s3),
@@ -776,18 +779,10 @@ class _DMListState extends ConsumerState<DMList> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (!c.isGroup && (c.isBot || c.isSystem))
+                          if (!c.isGroup && isBotOrSystemDmRecipient(c))
                             Padding(
                               padding: const EdgeInsets.only(left: 4),
-                              child: _UserTag(
-                                label: c.isSystem
-                                    ? FluxerLocalizations.of(
-                                        context,
-                                      ).userTagSystem
-                                    : FluxerLocalizations.of(
-                                        context,
-                                      ).userTagBot,
-                              ),
+                              child: FluxerUserTag(isSystem: c.isSystem),
                             ),
                         ],
                       ),
@@ -1477,11 +1472,12 @@ class _DmBottomSheet extends StatelessWidget {
             label: l10n.dmViewProfile,
             onTap: () => pop(_DmAction.viewProfile),
           ),
-          FluxerBottomSheetMenuItem(
-            icon: PhosphorIconsFill.phone,
-            label: l10n.dmVoiceCall,
-            onTap: () => pop(_DmAction.voiceCall),
-          ),
+          if (canStartDmCall(convo))
+            FluxerBottomSheetMenuItem(
+              icon: PhosphorIconsFill.phone,
+              label: l10n.dmVoiceCall,
+              onTap: () => pop(_DmAction.voiceCall),
+            ),
           FluxerBottomSheetMenuItem(
             icon: PhosphorIconsFill.notePencil,
             label: l10n.dmAddNote,
@@ -1666,7 +1662,10 @@ class _DmBottomSheet extends StatelessWidget {
                           userId: convo.recipientId,
                           hash: convo.recipientAvatar,
                         ),
-                        status: convo.recipientStatus,
+                        status: shouldShowDmRecipientPresence(convo)
+                            ? convo.recipientStatus
+                            : null,
+                        showStatus: shouldShowDmRecipientPresence(convo),
                         size: 48,
                       ),
                 title: convo.displayName,
@@ -1861,35 +1860,6 @@ class _DmInviteSheet extends ConsumerWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _UserTag extends StatelessWidget {
-  final String label;
-
-  const _UserTag({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return Container(
-      constraints: const BoxConstraints(minHeight: 15),
-      padding: const EdgeInsets.symmetric(horizontal: 5.5, vertical: 2),
-      decoration: BoxDecoration(
-        color: colors.brandPrimary,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label.toUpperCase(),
-        style: TextStyle(
-          color: colors.brandPrimaryFill,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          height: 1,
-        ),
-      ),
     );
   }
 }

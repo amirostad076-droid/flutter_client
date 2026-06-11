@@ -2643,6 +2643,11 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'You can\'t send messages in this channel.';
 
   @override
+  String systemDmComposerBarrier(String productName) {
+    return 'System announcements from $productName staff. You can\'t reply here.';
+  }
+
+  @override
   String get channelComposerBarrierGuildSendDisabled =>
       'Messaging is temporarily paused in this community.';
 

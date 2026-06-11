@@ -71,7 +71,11 @@ bool canManageMessagesInChannel({
 bool canPinMessageInChannel({
   required bool isDmChannel,
   int? channelPermissionBits,
+  bool interactionsBlocked = false,
 }) {
+  if (interactionsBlocked) {
+    return false;
+  }
   if (isDmChannel) {
     return true;
   }
@@ -88,7 +92,11 @@ bool canPinMessageInChannel({
 bool canAddReactionsInChannel({
   required bool isDmChannel,
   int? channelPermissionBits,
+  bool interactionsBlocked = false,
 }) {
+  if (interactionsBlocked) {
+    return false;
+  }
   if (isDmChannel) {
     return true;
   }

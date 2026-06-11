@@ -110,6 +110,13 @@ Future<ChannelMessagePermissions> channelMessagePermissions(
     ),
   );
   if (isDmChannel) {
+    final dm = findDmById(
+      ref.watch(dmViewModelProvider.select((state) => state.conversations)),
+      channelId,
+    );
+    if (dm != null && isSystemDmConversation(dm)) {
+      return ChannelMessagePermissions.none;
+    }
     return ChannelMessagePermissions.all;
   }
   final String? currentUserId = ref.watch(currentUserIdProvider);

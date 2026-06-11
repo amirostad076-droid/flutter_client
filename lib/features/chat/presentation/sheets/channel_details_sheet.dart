@@ -28,6 +28,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_m
 import 'package:fluxer_app/features/chat/providers/channel/channel_details_providers.dart';
 import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
@@ -536,7 +537,8 @@ class _DetailsIdentityHeader extends ConsumerWidget {
       dm: dm,
     );
     final topic = channelEntity?.topic?.trim();
-    final isBot = dm != null && !dm!.isGroup && dm!.isBot;
+    final bool showUserTag =
+        dm != null && isBotOrSystemDmRecipient(dm!);
     final hasTopic = topic != null && topic.isNotEmpty;
     final int? effectivePermissionBits = channelEntity != null
         ? ref
@@ -561,7 +563,9 @@ class _DetailsIdentityHeader extends ConsumerWidget {
           color: context.colors.textPrimary,
         ),
       },
-      titleAdornments: [if (isBot) const FluxerBotBadge()],
+      titleAdornments: [
+        if (showUserTag) FluxerUserTag(isSystem: dm!.isSystem),
+      ],
       body: hasTopic
           ? _TopicCard(
               topic: topic,

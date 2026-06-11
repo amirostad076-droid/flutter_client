@@ -14,6 +14,7 @@ import 'package:fluxer_app/core/router/route_names.dart' show RoutePaths;
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
@@ -321,6 +322,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
     String? guildMemberNick,
     DateTime? guildMemberTimeoutUntil,
     bool isWebhook = false,
+    bool canCall = true,
   }) {
     final layout = context.layout;
     final colors = context.colors;
@@ -524,6 +526,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                     isFriend:
                         relationship?.friendStatus == FriendStatus.accepted,
                     isBlocked: isBlocked,
+                    canCall: canCall,
                     onMessage: () =>
                         _handleMessage(userId, isBlocked, username),
                     onVoiceCall: () => _handleOutboundDmCall(
@@ -905,6 +908,10 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
           menuCaps: menuCaps,
           guildMemberNick: response.guildMember?.nick,
           guildMemberTimeoutUntil: guildMemberTimeoutUntil,
+          canCall: canCallUser(
+            isBot: response.user.bot ?? false,
+            isSystem: response.user.system ?? false,
+          ),
         );
       },
     );

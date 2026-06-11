@@ -194,9 +194,9 @@ class ChannelHeader extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (dm != null && !dm.isGroup && dm.isBot) ...[
+                      if (dm != null && isBotOrSystemDmRecipient(dm)) ...[
                         const SizedBox(width: 6),
-                        const FluxerBotBadge(),
+                        FluxerUserTag(isSystem: dm.isSystem),
                       ],
                       if (channel != null) ...<Widget>[
                         const SizedBox(width: 4),
@@ -246,7 +246,7 @@ class ChannelHeader extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
           ],
-          if (dm != null && !isPersonalNotes) ...[
+          if (dm != null && canStartDmCall(dm)) ...[
             FluxerButton.circle(
               icon: PhosphorIconsFill.phone,
               variant: FluxerButtonVariant.secondary,
@@ -335,9 +335,9 @@ class ChannelHeader extends ConsumerWidget {
               ),
             ),
           ),
-          if (dm != null && !dm.isGroup && dm.isBot) ...[
+          if (dm != null && isBotOrSystemDmRecipient(dm)) ...[
             const SizedBox(width: 6),
-            const FluxerBotBadge(),
+            FluxerUserTag(isSystem: dm.isSystem),
           ],
           if (channel != null) ...<Widget>[
             const SizedBox(width: 8),
@@ -350,7 +350,7 @@ class ChannelHeader extends ConsumerWidget {
             ),
           ],
           const SizedBox(width: 8),
-          if (dm != null && !isPersonalNotes) ...[
+          if (dm != null && canStartDmCall(dm)) ...[
             FluxerButton.circle(
               icon: PhosphorIconsFill.phone,
               variant: FluxerButtonVariant.secondary,
@@ -536,7 +536,10 @@ class ChannelHeader extends ConsumerWidget {
               hash: dm.recipientAvatar,
               animated: true,
             ),
-            status: dm.recipientStatus,
+            status: shouldShowDmRecipientPresence(dm)
+                ? dm.recipientStatus
+                : null,
+            showStatus: shouldShowDmRecipientPresence(dm),
             size: 32,
           ),
           if (showE2eeBadge)

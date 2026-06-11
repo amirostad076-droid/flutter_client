@@ -4538,6 +4538,12 @@ abstract class FluxerLocalizations {
   /// **'You can\'t send messages in this channel.'**
   String get channelNoSendPermissionHint;
 
+  /// Read-only system DM barrier message. productName is the Fluxer product name.
+  ///
+  /// In en, this message translates to:
+  /// **'System announcements from {productName} staff. You can\'t reply here.'**
+  String systemDmComposerBarrier(String productName);
+
   /// Composer barrier when guild-wide messaging is disabled.
   ///
   /// In en, this message translates to:

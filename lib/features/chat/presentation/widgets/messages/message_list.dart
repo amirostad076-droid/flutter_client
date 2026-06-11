@@ -33,6 +33,7 @@ import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/chat/utils/message_grouping_utils.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
+import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/personal_notes_welcome_section.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
@@ -933,14 +934,23 @@ class _MessageListState extends ConsumerState<MessageList> {
         : channelMessagePermissionsForComposer(
             ref.watch(channelMessagePermissionsProvider(channelId)),
           );
+    final DmConversation? dmConversation = ref.watch(
+      dmViewModelProvider.select((DmViewState dmState) {
+        return findDmById(dmState.conversations, channelId);
+      }),
+    );
+    final bool interactionsBlocked =
+        dmConversation != null && isSystemDmConversation(dmConversation);
     final bool channelCanSendMessages = channelMessagePerms.canSendMessages;
     final bool channelCanAddReactions = canAddReactionsInChannel(
       isDmChannel: isDmChannel,
       channelPermissionBits: channelPermissionBits,
+      interactionsBlocked: interactionsBlocked,
     );
     final bool channelCanPinMessage = canPinMessageInChannel(
       isDmChannel: isDmChannel,
       channelPermissionBits: channelPermissionBits,
+      interactionsBlocked: interactionsBlocked,
     );
     final bool channelCanManageMessages = canManageMessagesInChannel(
       isDmChannel: isDmChannel,
