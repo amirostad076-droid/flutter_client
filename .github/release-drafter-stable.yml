@@ -1,0 +1,57 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+tag-prefix: v
+commitish: stable
+filter-by-commitish: true
+include-pre-releases: true
+pull-request-limit: 100
+latest: true
+
+exclude-contributors:
+  - dependabot
+  - dependabot[bot]
+  - renovate
+  - renovate[bot]
+  - renovate-bot
+  - github-actions
+  - github-actions[bot]
+  - fluxer-automation
+  - fluxer-automation[bot]
+
+categories:
+  - type: pre-exclude
+    when:
+      labels:
+        - skip-changelog
+
+  - type: version-resolver
+    semver-increment: major
+    when:
+      label: breaking
+
+  - title: Features
+    semver-increment: minor
+    when:
+      labels:
+        - feature
+        - enhancement
+
+  - title: Fixes
+    when:
+      labels:
+        - fix
+        - bug
+
+  - title: Other
+
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+change-title-escapes: '\<*_&'
+
+template: |
+  ## Stable release
+
+  Production build for App Store and Android APK distribution
+
+  ## Changes
+
+  $CHANGES

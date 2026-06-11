@@ -1,0 +1,65 @@
+name-template: "v$RESOLVED_VERSION (Beta)"
+tag-template: "v$RESOLVED_VERSION"
+tag-prefix: v
+commitish: beta
+filter-by-commitish: true
+prerelease-identifier: beta
+pull-request-limit: 100
+
+exclude-contributors:
+  - dependabot
+  - dependabot[bot]
+  - renovate
+  - renovate[bot]
+  - renovate-bot
+  - github-actions
+  - github-actions[bot]
+  - fluxer-automation
+  - fluxer-automation[bot]
+
+autolabeler:
+  - label: feature
+    title:
+      - '/^feat(\([^)]+\))?!?:/i'
+  - label: fix
+    title:
+      - '/^fix(\([^)]+\))?!?:/i'
+  - label: skip-changelog
+    title:
+      - '/^(chore|ci|build|style|refactor|test)(\([^)]+\))?!?:/i'
+    files:
+      - ".github/**"
+
+categories:
+  - type: pre-exclude
+    when:
+      labels:
+        - skip-changelog
+
+  - title: Features
+    semver-increment: minor
+    when:
+      labels:
+        - feature
+        - enhancement
+
+  - title: Fixes
+    when:
+      labels:
+        - fix
+        - bug
+
+  - title: Other
+
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+change-title-escapes: '\<*_&'
+
+template: |
+  ## Beta release
+
+  Pre-release build for TestFlight and Android APK (FCM + OSS).
+
+  ## Changes
+
+  $CHANGES
+
