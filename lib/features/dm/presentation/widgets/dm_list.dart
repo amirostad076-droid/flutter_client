@@ -21,6 +21,7 @@ import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/favorites/domain/favorite_guild_id.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
@@ -931,6 +932,7 @@ class _DMListState extends ConsumerState<DMList> {
         } else {
           await repository.addChannel(
             channelId: convo.id,
+            guildId: favoriteDmGuildId,
             nickname: convo.displayName,
           );
         }

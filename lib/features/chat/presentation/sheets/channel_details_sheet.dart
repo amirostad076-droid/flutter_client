@@ -34,6 +34,7 @@ import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/favorites/domain/favorite_guild_id.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
@@ -218,7 +219,10 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
     } else {
       await repository.addChannel(
         channelId: channelId,
-        guildId: channel?.guildId,
+        guildId: resolveFavoriteGuildId(
+          channelGuildId: channel?.guildId,
+          isDm: dm != null,
+        ),
         nickname: channel?.name ?? dm?.displayName,
       );
     }

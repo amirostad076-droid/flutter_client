@@ -5,7 +5,7 @@ import 'package:fluxer_app/core/database/daos/favorite_channels_dao.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/favorites/data/favorite_channels_repository.dart';
-import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
+import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 
 void main() {
   late FluxerDatabase database;
@@ -17,10 +17,7 @@ void main() {
     container = ProviderContainer(
       overrides: [fluxerDatabaseProvider.overrideWithValue(database)],
     );
-    repository = FavoriteChannelsRepository(
-      database,
-      container.read(favoritesSyncServiceProvider),
-    );
+    repository = container.read(favoriteChannelsRepositoryProvider);
   });
 
   tearDown(() async {
