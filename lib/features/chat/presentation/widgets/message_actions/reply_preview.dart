@@ -31,8 +31,15 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 /// [ReplyConnectorPainter] in [MessageItem].
 class InlineReplyPreview extends ConsumerWidget {
   final Message message;
+  final String? guildId;
+  final String? currentUserId;
 
-  const InlineReplyPreview({required this.message, super.key});
+  const InlineReplyPreview({
+    required this.message,
+    this.guildId,
+    this.currentUserId,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,22 +65,26 @@ class InlineReplyPreview extends ConsumerWidget {
           channelMessages: channelMessages,
         );
     final replyMsg = resolution.message;
-    final guildId = ref.watch(activeGuildIdProvider);
-    final String? currentUserId = ref.watch(currentUserIdProvider);
+    final String? resolvedGuildId =
+        guildId ?? ref.watch(activeGuildIdProvider);
+    final String? resolvedCurrentUserId =
+        currentUserId ?? ref.watch(currentUserIdProvider);
     final GuildUserDisplay? replyAuthorDisplay = replyMsg == null
         ? null
         : watchMessageAuthorDisplay(
             ref: ref,
             message: replyMsg,
-            guildId: guildId,
-            currentUserId: currentUserId,
+            guildId: resolvedGuildId,
+            currentUserId: resolvedCurrentUserId,
           );
     final bool prefersPersistedAuthor =
         replyMsg != null && messagePrefersPersistedAuthorDisplay(replyMsg);
     Color? roleColor;
-    if (replyMsg != null && guildId != null && !prefersPersistedAuthor) {
+    if (replyMsg != null &&
+        resolvedGuildId != null &&
+        !prefersPersistedAuthor) {
       roleColor = ref
-          .watch(memberRoleColorProvider((replyMsg.authorId, guildId)))
+          .watch(memberRoleColorProvider((replyMsg.authorId, resolvedGuildId)))
           .value;
     }
     final nameColor = (roleColor ?? context.colors.textChat).withValues(

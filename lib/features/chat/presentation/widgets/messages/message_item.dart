@@ -611,7 +611,10 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                   if (!isGrouped && msg.isReply)
                     _wrapMessageSendingDim(
                       dim: dimMessagePartsExceptAttachments,
-                      child: _buildReplyRow(msg),
+                      child: _buildReplyRow(
+                        msg,
+                        guildId: guildId,
+                      ),
                     ),
                   if (!isGrouped &&
                       msg.isForwarded &&
@@ -693,7 +696,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   /// Builds the reply preview row with space for the
   /// connector line.
-  Widget _buildReplyRow(Message msg) {
+  Widget _buildReplyRow(Message msg, {required String? guildId}) {
     const replyAreaHeight = _kReplyRowHeight + _kReplyBottomGap;
     const avatarCenterX = 20.0;
     const lineTop = _kReplyRowHeight / 2;
@@ -720,7 +723,11 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             height: _kReplyRowHeight,
             child: Align(
               alignment: Alignment.centerLeft,
-              child: InlineReplyPreview(message: msg),
+              child: InlineReplyPreview(
+                message: msg,
+                guildId: guildId,
+                currentUserId: widget.currentUserId,
+              ),
             ),
           ),
         ),
