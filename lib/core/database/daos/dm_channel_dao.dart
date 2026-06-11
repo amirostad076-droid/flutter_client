@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart';
@@ -87,4 +89,53 @@ class DmChannelDao extends DatabaseAccessor<FluxerDatabase>
 
   Future<DmChannel?> getDmChannelById(String id) =>
       (select(dmChannels)..where((d) => d.id.equals(id))).getSingleOrNull();
+
+  Future<void> addRecipientId(String channelId, String userId) async {
+    final DmChannel? row = await getDmChannelById(channelId);
+    if (row == null) {
+      return;
+    }
+    final List<String> recipientIds = _parseRecipientIds(row.recipientIds);
+    if (recipientIds.contains(userId)) {
+      return;
+    }
+    final List<String> updated = <String>[...recipientIds, userId];
+    await (update(dmChannels)..where((d) => d.id.equals(channelId))).write(
+      DmChannelsCompanion(
+        recipientIds: Value(jsonEncode(updated)),
+        recipientCount: Value(updated.length + 1),
+      ),
+    );
+  }
+
+  Future<void> removeRecipientId(String channelId, String userId) async {
+    final DmChannel? row = await getDmChannelById(channelId);
+    if (row == null) {
+      return;
+    }
+    final List<String> updated = _parseRecipientIds(
+      row.recipientIds,
+    ).where((String id) => id != userId).toList();
+    await (update(dmChannels)..where((d) => d.id.equals(channelId))).write(
+      DmChannelsCompanion(
+        recipientIds: Value(jsonEncode(updated)),
+        recipientCount: Value(updated.length + 1),
+        recipientId: updated.isEmpty
+            ? const Value.absent()
+            : Value(updated.first),
+      ),
+    );
+  }
+
+  List<String> _parseRecipientIds(String json) {
+    try {
+      final List<dynamic> raw = jsonDecode(json) as List<dynamic>;
+      return raw
+          .map((dynamic e) => e.toString())
+          .where((String s) => s.isNotEmpty)
+          .toList();
+    } on Object {
+      return <String>[];
+    }
+  }
 }

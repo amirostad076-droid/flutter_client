@@ -450,7 +450,7 @@ class _FavoriteLeadingIcon extends ConsumerWidget {
             ? null
             : FluxerMediaUrl.guildIcon(guildId: dm.id, hash: dm.icon),
         members: [
-          for (final member in dm.groupMembers)
+          for (final member in dm.groupMembers.take(3))
             AvatarClusterMember(
               userId: member.id,
               imageUrl: FluxerMediaUrl.userAvatar(

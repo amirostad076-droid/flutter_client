@@ -96,6 +96,7 @@ class QuickSwitcherResultRow extends StatelessWidget {
                   : null,
               status: groupStatus,
               members: groupMembers
+                  .take(3)
                   .map(
                     (GroupMemberInfo member) => AvatarClusterMember(
                       userId: member.id,

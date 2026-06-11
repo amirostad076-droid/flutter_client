@@ -4,7 +4,6 @@ const int _kMentionLimit = 100;
 const int _kRoleMentionLimit = 10;
 const int _kChannelLimit = 10;
 const int _kEmojiLimit = 10;
-const int _kGatewayMentionChunkWaitMs = 280;
 const int _kAutocompleteTypingDebounceMs = 300;
 const Duration _kAutocompleteFadeDuration = Duration(milliseconds: 100);
 
@@ -371,38 +370,46 @@ class ComposerAutocompleteFieldState
     final String? guildId = ch?.guildId;
     if (guildId != null && guildId.isNotEmpty) {
       ref.read(memberListViewModelProvider.notifier).loadMembers(guildId);
-      final MemberListViewState memberState = ref.read(
-        memberListViewModelProvider,
-      );
-      final List<Member> local = memberState.roleGroups
+      List<Member> local = ref
+          .read(memberListViewModelProvider)
+          .roleGroups
           .expand((RoleGroup g) => g.members)
           .toList();
-      final Set<String> localMemberIds = <String>{
-        for (final Member m in local) m.id,
-      };
       final MemberRepository repo = ref.read(memberRepositoryProvider);
+      final GuildMemberChunkWaiter chunkWaiter = ref.read(
+        guildMemberChunkWaiterProvider,
+      );
       List<Member> remote = const <Member>[];
       final String searchQuery = parsed.usernameQuery.trim();
-      if (searchQuery.isNotEmpty) {
-        try {
-          ref
-              .read(gatewayConnectionProvider)
-              .requestGuildMembers(
-                guildId: guildId,
-                query: searchQuery,
-                limit: _kMentionLimit,
-              );
-          await Future<void>.delayed(
-            const Duration(milliseconds: _kGatewayMentionChunkWaitMs),
+      try {
+        final GatewayConnection connection = ref.read(
+          gatewayConnectionProvider,
+        );
+        if (searchQuery.isNotEmpty) {
+          connection.requestGuildMembers(
+            guildId: guildId,
+            query: searchQuery,
+            limit: _kMentionLimit,
           );
+          await chunkWaiter.waitForChunk(guildId);
           remote = await repo.searchMembersForAutocomplete(
             guildId: guildId,
             query: searchQuery,
           );
-        } on Object {
-          remote = const <Member>[];
+        } else if (local.length < _kMentionLimit) {
+          connection.requestGuildMembers(
+            guildId: guildId,
+            limit: _kMentionLimit,
+          );
+          await chunkWaiter.waitForChunk(guildId);
+          local = await repo.getCachedMembers(guildId);
         }
+      } on Object {
+        remote = const <Member>[];
       }
+      final Set<String> localMemberIds = <String>{
+        for (final Member m in local) m.id,
+      };
       final Set<String> remoteSearchMemberIds = <String>{
         for (final Member m in remote) m.id,
       };
@@ -431,10 +438,36 @@ class ComposerAutocompleteFieldState
       );
     }
     if (dm.isGroup) {
+      final String? currentUserId = ref.read(currentUserIdProvider);
+      final List<String> participantIds = dm.remoteRecipientIds
+          .where((String id) => id != currentUserId)
+          .toList();
+      final List<db.User> users = await ref
+          .read(fluxerDatabaseProvider)
+          .userDao
+          .getUsersByIds(participantIds);
+      final Map<String, db.User> userById = <String, db.User>{
+        for (final db.User u in users) u.id: u,
+      };
+      final Map<String, GroupMemberInfo> cachedById = <String, GroupMemberInfo>{
+        for (final GroupMemberInfo g in dm.groupMembers) g.id: g,
+      };
+      final List<Member> members = <Member>[];
+      for (final String id in participantIds) {
+        final db.User? user = userById[id];
+        final GroupMemberInfo? cached = cachedById[id];
+        members.add(
+          Member(
+            id: id,
+            username: user?.username ?? cached?.name ?? '',
+            globalName: user?.globalName ?? cached?.name,
+            status: user?.status ?? 'offline',
+            isBot: user?.bot ?? false,
+          ),
+        );
+      }
       return (
-        members: dm.groupMembers
-            .map((GroupMemberInfo g) => Member(id: g.id, username: g.name))
-            .toList(),
+        members: members,
         remoteSearchMemberIds: <String>{},
         localMemberIds: <String>{},
       );

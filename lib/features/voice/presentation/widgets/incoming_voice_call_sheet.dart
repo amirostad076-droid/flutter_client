@@ -19,6 +19,7 @@ const String kIncomingVoiceResultIgnore = 'ignore';
 
 List<AvatarClusterMember> _clusterMembers(DmConversation convo) {
   return convo.groupMembers
+      .take(3)
       .map(
         (GroupMemberInfo m) => AvatarClusterMember(
           userId: m.id,

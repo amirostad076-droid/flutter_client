@@ -148,7 +148,7 @@ class DmRepository {
     List<String> recipientIds,
     Map<String, db.User> userMap,
   ) {
-    return recipientIds.take(3).map((id) {
+    return recipientIds.map((id) {
       final user = userMap[id];
       return GroupMemberInfo(
         id: id,

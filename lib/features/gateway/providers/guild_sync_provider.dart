@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.dart';
+import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -27,8 +31,23 @@ class GuildSync extends _$GuildSync {
         },
       );
       state = {...state, guildId};
-    } catch (e) {
+      unawaited(_backfillMembersIfSparse(guildId));
+    } on Object catch (e) {
       talker.warning('[GuildSync] Failed to sync guild $guildId: $e');
+    }
+  }
+
+  Future<void> _backfillMembersIfSparse(String guildId) async {
+    await ref.read(guildMemberChunkWaiterProvider).waitForChunk(
+      guildId,
+      timeout: const Duration(seconds: 3),
+    );
+    try {
+      await ref.read(memberRepositoryProvider).backfillMembersIfSparse(guildId);
+    } on Object catch (e) {
+      talker.warning(
+        '[GuildSync] REST member backfill failed for $guildId: $e',
+      );
     }
   }
 

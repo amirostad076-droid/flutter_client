@@ -1343,6 +1343,7 @@ class _DMListState extends ConsumerState<DMList> {
 
 List<AvatarClusterMember> _clusterMembers(DmConversation convo) {
   return convo.groupMembers
+      .take(3)
       .map(
         (m) => AvatarClusterMember(
           userId: m.id,

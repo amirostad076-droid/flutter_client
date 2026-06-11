@@ -43,6 +43,7 @@ typedef GuildAvailabilityChangedCallback =
       bool unavailableHidden,
     });
 typedef GuildAvailableCallback = void Function(String guildId);
+typedef GuildMembersChunkCallback = void Function(String guildId);
 typedef VoiceServerUpdateCallback = void Function(VoiceServerUpdateEvent event);
 typedef GatewayErrorCallback = void Function(GatewayErrorEvent event);
 
@@ -86,6 +87,7 @@ class GatewayEventHandler {
     this.onUnavailableGuildsReady,
     this.onGuildAvailabilityChanged,
     this.onGuildAvailable,
+    this.onMembersChunk,
   });
 
   final db.FluxerDatabase database;
@@ -120,6 +122,7 @@ class GatewayEventHandler {
   final UnavailableGuildsReadyCallback? onUnavailableGuildsReady;
   final GuildAvailabilityChangedCallback? onGuildAvailabilityChanged;
   final GuildAvailableCallback? onGuildAvailable;
+  final GuildMembersChunkCallback? onMembersChunk;
 
   String? _currentUserId;
 
@@ -247,8 +250,24 @@ class GatewayEventHandler {
       case ChannelRecipientAddEvent():
         talker.debug('[Gateway] CHANNEL_RECIPIENT_ADD: ${event.channelId}');
         unawaited(database.userDao.upsertUser(userFromPartialSdk(event.user)));
+        unawaited(
+          database.dmChannelDao.addRecipientId(
+            event.channelId,
+            event.user.id,
+          ),
+        );
       case ChannelRecipientRemoveEvent():
         talker.debug('[Gateway] CHANNEL_RECIPIENT_REMOVE: ${event.channelId}');
+        if (event.user.id == currentUserId) {
+          unawaited(database.dmChannelDao.deleteDmChannel(event.channelId));
+        } else {
+          unawaited(
+            database.dmChannelDao.removeRecipientId(
+              event.channelId,
+              event.user.id,
+            ),
+          );
+        }
       case PassiveUpdatesEvent():
         _handlePassiveUpdates(event);
       case GuildRoleCreateEvent():
@@ -1313,6 +1332,7 @@ class GatewayEventHandler {
     for (final member in event.members) {
       _handleMemberUpsert(event.guildId, member);
     }
+    onMembersChunk?.call(event.guildId);
   }
 
   void _handlePresenceUpdateBulk(PresenceUpdateBulkEvent event) {

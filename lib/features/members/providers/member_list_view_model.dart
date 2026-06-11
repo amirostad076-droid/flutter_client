@@ -41,8 +41,8 @@ class MemberListViewModel extends _$MemberListViewModel {
     return const MemberListViewState(roleGroups: [], selectedGuildId: null);
   }
 
-  void loadMembers(String guildId) {
-    if (guildId == state.selectedGuildId) {
+  void loadMembers(String guildId, {bool force = false}) {
+    if (!force && guildId == state.selectedGuildId) {
       return;
     }
 

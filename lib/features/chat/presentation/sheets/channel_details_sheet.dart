@@ -690,7 +690,7 @@ class _DetailsAvatar extends ConsumerWidget {
           status: dm.groupStatus,
           size: _size,
           members: [
-            for (final member in dm.groupMembers)
+            for (final member in dm.groupMembers.take(3))
               AvatarClusterMember(
                 userId: member.id,
                 fallbackText: member.name,

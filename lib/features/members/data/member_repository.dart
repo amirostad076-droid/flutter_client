@@ -10,11 +10,17 @@ import 'package:fluxer_dart/export.dart';
 
 class MemberRepository {
   static const int _mentionAutocompleteMaxMatches = 100;
+  static const int _restBackfillPageSize = 100;
+  static const int _restBackfillMaxGuildMembers = 1000;
 
   final FluxerClient _client;
   final db.FluxerDatabase _db;
 
   const MemberRepository(this._client, this._db);
+
+  Future<List<Member>> getCachedMembers(String guildId) {
+    return watchMembers(guildId).first;
+  }
 
   Stream<List<Member>> watchMembers(String guildId) {
     return _db.memberDao.watchMembers(guildId).asyncMap((members) async {
@@ -30,93 +36,110 @@ class MemberRepository {
   }
 
   Future<List<Member>> getMembers(String guildId, {int limit = 100}) async {
-    List<dynamic> rawList;
+    final List<GuildMemberResponse> members = await _fetchGuildMemberPage(
+      guildId: guildId,
+      limit: limit,
+    );
+    await _upsertGuildMembersFromSdk(guildId, members);
+    return getCachedMembers(guildId);
+  }
+
+  /// Fills the local cache from REST when gateway lazy sync left the roster sparse.
+  Future<void> backfillMembersIfSparse(String guildId) async {
+    final db.Server? server = await _db.guildDao.getServerById(guildId);
+    if (server == null) {
+      return;
+    }
+    final int expectedCount = server.memberCount;
+    if (expectedCount <= 0 || expectedCount > _restBackfillMaxGuildMembers) {
+      return;
+    }
+    int cachedCount = (await _db.memberDao.getMembers(guildId)).length;
+    if (cachedCount >= expectedCount) {
+      return;
+    }
+    String? after;
+    while (cachedCount < expectedCount) {
+      final List<GuildMemberResponse> page = await _fetchGuildMemberPage(
+        guildId: guildId,
+        limit: _restBackfillPageSize,
+        after: after,
+      );
+      if (page.isEmpty) {
+        return;
+      }
+      await _upsertGuildMembersFromSdk(guildId, page);
+      cachedCount = (await _db.memberDao.getMembers(guildId)).length;
+      if (page.length < _restBackfillPageSize) {
+        return;
+      }
+      after = page.last.user.id;
+    }
+  }
+
+  Future<List<GuildMemberResponse>> _fetchGuildMemberPage({
+    required String guildId,
+    required int limit,
+    String? after,
+  }) async {
     try {
-      final members = await _client.guilds.listGuildMembers(
+      return await _client.guilds.listGuildMembers(
         guildId: guildId,
         limit: limit,
+        after: after,
       );
-
-      rawList = members
-          .map(
-            (sdk) => {
-              'user': {
-                'id': sdk.user.id,
-                'username': sdk.user.username,
-                'discriminator': sdk.user.discriminator,
-                'global_name': sdk.user.globalName,
-                'avatar': sdk.user.avatar,
-                'avatar_color': sdk.user.avatarColor,
-                'bot': sdk.user.bot ?? false,
-              },
-              'nick': sdk.nick,
-              'avatar': sdk.avatar,
-              'roles': sdk.roles,
-              'joined_at': sdk.joinedAt,
-              'communication_disabled_until': sdk.communicationDisabledUntil,
-            },
-          )
-          .toList();
     } on DioException catch (e) {
       if (e.response?.statusCode == 200 && e.response?.data != null) {
-        rawList = e.response!.data as List<dynamic>;
-      } else {
-        throw Exception(e.response?.statusMessage ?? 'Failed to fetch members');
+        final List<dynamic> rawList = e.response!.data as List<dynamic>;
+        return rawList
+            .map(
+              (dynamic item) => GuildMemberResponse.fromJson(
+                item as Map<String, Object?>,
+              ),
+            )
+            .toList();
       }
+      throw Exception(e.response?.statusMessage ?? 'Failed to fetch members');
     }
+  }
 
-    final memberCompanions = <db.MembersCompanion>[];
-    final userCompanions = <db.UsersCompanion>[];
-
-    for (final item in rawList) {
-      final map = item as Map<String, dynamic>;
-      final user = map['user'] as Map<String, dynamic>;
-
-      final userId = user['id'] as String;
+  Future<void> _upsertGuildMembersFromSdk(
+    String guildId,
+    List<GuildMemberResponse> members,
+  ) async {
+    if (members.isEmpty) {
+      return;
+    }
+    final List<db.UsersCompanion> userCompanions = <db.UsersCompanion>[];
+    final List<db.MembersCompanion> memberCompanions = <db.MembersCompanion>[];
+    for (final GuildMemberResponse sdk in members) {
+      final String userId = sdk.user.id;
       userCompanions.add(
         db.UsersCompanion.insert(
           id: userId,
-          username: user['username'] as String,
-          discriminator: Value(user['discriminator'] as String? ?? '0000'),
-          globalName: Value(user['global_name'] as String?),
-          avatar: Value(user['avatar'] as String?),
-          avatarColor: Value(user['avatar_color'] as int?),
-          bot: Value(user['bot'] as bool? ?? false),
+          username: sdk.user.username,
+          discriminator: Value(sdk.user.discriminator),
+          globalName: Value(sdk.user.globalName),
+          avatar: Value(sdk.user.avatar),
+          avatarColor: Value(sdk.user.avatarColor),
+          bot: Value(sdk.user.bot ?? false),
           memberSince: Value(dateTimeFromUserSnowflakeOrNull(userId)),
         ),
       );
-
-      final roles =
-          (map['roles'] as List<dynamic>?)?.map((r) => r.toString()).toList() ??
-          <String>[];
-
       memberCompanions.add(
         db.MembersCompanion.insert(
-          userId: user['id'] as String,
+          userId: userId,
           guildId: guildId,
-          nick: Value(map['nick'] as String?),
-          serverAvatar: Value(map['avatar'] as String?),
-          roleIdsJson: Value(jsonEncode(roles)),
-          joinedAt: Value(map['joined_at'] as DateTime?),
-          communicationDisabledUntil: Value(
-            map['communication_disabled_until'] as DateTime?,
-          ),
+          nick: Value(sdk.nick),
+          serverAvatar: Value(sdk.avatar),
+          roleIdsJson: Value(jsonEncode(sdk.roles)),
+          joinedAt: Value(sdk.joinedAt),
+          communicationDisabledUntil: Value(sdk.communicationDisabledUntil),
         ),
       );
     }
-
     await _db.userDao.upsertUsers(userCompanions);
     await _db.memberDao.upsertMembers(memberCompanions);
-
-    final rows = await _db.memberDao.getMembers(guildId);
-    final dbRoles = await _db.roleDao.getRoles(guildId);
-    final userIds = rows.map((m) => m.userId).toList();
-    final userList = await _db.userDao.getUsersByIds(userIds);
-    final users = {for (final u in userList) u.id: u};
-
-    return rows
-        .map((m) => Member.fromRow(m, users[m.userId], dbRoles))
-        .toList();
   }
 
   Future<List<MemberRole>> getRoles(String guildId) async {
