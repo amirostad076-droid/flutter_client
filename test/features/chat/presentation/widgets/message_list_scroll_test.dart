@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list_pagination.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list_unread_review.dart';
 
 /// Minimal reproduction of the chat center-sliver scroll layout.
@@ -93,6 +94,15 @@ class CenterSliverScrollHarnessState extends State<CenterSliverScrollHarness> {
       return;
     }
     scrollController.jumpTo(scrollController.position.maxScrollExtent);
+  }
+
+  bool isNearTopForLoadMore() {
+    if (!scrollController.hasClients) {
+      return false;
+    }
+    final ScrollPosition position = scrollController.position;
+    return position.pixels >=
+        position.maxScrollExtent - kMessageListLoadMoreThreshold;
   }
 
   void scrollToBottom() {
@@ -305,6 +315,46 @@ void main() {
     );
     expect(
       isNearScrollExtentEnd(pixels: offset, minScrollExtent: minExtent),
+      isTrue,
+    );
+  });
+
+  testWidgets('pinned unread pivot can reach loadMore threshold at top', (
+    tester,
+  ) async {
+    final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
+        GlobalKey<CenterSliverScrollHarnessState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 400,
+            child: CenterSliverScrollHarness(
+              key: harnessKey,
+              initialCount: 50,
+              pivotIndex: 10,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final MessageListPaginationGuard activeGuard = MessageListPaginationGuard(
+      scrollController: harnessKey.currentState!.scrollController,
+    );
+    addTearDown(activeGuard.dispose);
+    harnessKey.currentState!.scrollToTop();
+    await tester.pumpAndSettle();
+    expect(harnessKey.currentState!.isNearTopForLoadMore(), isTrue);
+    activeGuard.seedScrollPixels(
+      harnessKey.currentState!.scrollController.position.pixels - 10,
+    );
+    expect(
+      activeGuard.shouldLoadMore(
+        hasMoreMessages: true,
+        isLoadingMore: false,
+        isLoadingNewer: false,
+      ),
       isTrue,
     );
   });

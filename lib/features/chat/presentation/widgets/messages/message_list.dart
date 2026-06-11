@@ -282,9 +282,6 @@ class _MessageListState extends ConsumerState<MessageList> {
         previousMessages.first.id != nextMessages.first.id;
     final ChatViewState state = ref.read(chatViewModelProvider);
     if (isStartPrepend) {
-      if (_isInUnreadReview(state)) {
-        _restoreScrollOffset(_scrollController.position.pixels);
-      }
       return;
     }
     if (_isInUnreadReview(state)) {
@@ -363,7 +360,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       } else {
         final List<Message> messages = state.messages;
         if (messages.isNotEmpty) {
-          _scrollAnchoredPivotMessageId ??= messages.last.id;
+          _scrollAnchoredPivotMessageId = messages.last.id;
         }
       }
     }
