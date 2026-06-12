@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
@@ -9,6 +10,7 @@ import 'package:fluxer_app/features/favorites/providers/favorite_channels_provid
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
+import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.dart';
 import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_app/features/quick_switcher/data/quick_switcher_candidate_builder.dart';
 import 'package:fluxer_app/features/quick_switcher/data/quick_switcher_channel_resolver.dart';
@@ -351,9 +353,28 @@ class QuickSwitcher extends _$QuickSwitcher {
       }
       return;
     }
-    final List<Member> results = await ref
-        .read(memberRepositoryProvider)
-        .searchMembersForAutocomplete(guildId: guildId, query: rawSearch);
+    List<Member> results = const <Member>[];
+    try {
+      final connection = ref.read(gatewayConnectionProvider);
+      connection.requestGuildMembers(
+        guildId: guildId,
+        query: rawSearch,
+        limit: kQuickSwitcherMemberSearchLimit,
+      );
+      await ref.read(guildMemberChunkWaiterProvider).waitForChunk(guildId);
+      final List<String> scopeUserIds = ref
+          .read(guildMemberChunkWaiterProvider)
+          .lastChunkUserIds(guildId);
+      results = await ref
+          .read(memberRepositoryProvider)
+          .searchMembersForAutocomplete(
+            guildId: guildId,
+            query: rawSearch,
+            scopeUserIds: scopeUserIds,
+          );
+    } on Object {
+      results = const <Member>[];
+    }
     _memberSearchResults = results.take(kQuickSwitcherMemberSearchLimit).toList();
     if (state.isOpen) {
       state = state.copyWith(isLoadingMembers: false);

@@ -23,10 +23,7 @@ Stream<int> guildMemberRowCount(Ref ref, String guildId) {
     return Stream<int>.value(0);
   }
   final database = ref.watch(fluxerDatabaseProvider);
-  return database.memberDao
-      .watchMembers(guildId)
-      .map((rows) => rows.length)
-      .distinct();
+  return database.memberDao.watchMemberCount(guildId);
 }
 
 typedef CurrentUserMemberIdentity = ({String? roleIdsJson});

@@ -43,7 +43,16 @@ typedef GuildAvailabilityChangedCallback =
       bool unavailableHidden,
     });
 typedef GuildAvailableCallback = void Function(String guildId);
-typedef GuildMembersChunkCallback = void Function(String guildId);
+typedef GuildMembersChunkCallback =
+    void Function(String guildId, List<String> userIds);
+typedef GuildMembersChunkProgressCallback = void Function(
+  String guildId,
+  int chunkIndex,
+  int chunkCount,
+  List<String> userIds,
+);
+typedef GuildMemberListUpdateCallback =
+    void Function(GuildMemberListUpdateEvent event);
 typedef VoiceServerUpdateCallback = void Function(VoiceServerUpdateEvent event);
 typedef GatewayErrorCallback = void Function(GatewayErrorEvent event);
 
@@ -51,21 +60,6 @@ String? _presenceCustomStatusTextFromMap(Map<String, dynamic> presence) {
   final Map<String, dynamic>? customStatusMap =
       presence['custom_status'] as Map<String, dynamic>?;
   return customStatusMap?['text'] as String?;
-}
-
-const int _kMemberListRangeMaxEnd = 100000;
-const int _kMemberListRangeMaxSpan = 99;
-
-bool _isValidMemberListRange(List<int>? range) {
-  if (range == null || range.length != 2) {
-    return false;
-  }
-  final int start = range[0];
-  final int end = range[1];
-  return start >= 0 &&
-      end >= start &&
-      end <= _kMemberListRangeMaxEnd &&
-      end - start <= _kMemberListRangeMaxSpan;
 }
 
 class GatewayEventHandler {
@@ -103,6 +97,8 @@ class GatewayEventHandler {
     this.onGuildAvailabilityChanged,
     this.onGuildAvailable,
     this.onMembersChunk,
+    this.onMembersChunkProgress,
+    this.onMemberListUpdate,
   });
 
   final db.FluxerDatabase database;
@@ -138,6 +134,8 @@ class GatewayEventHandler {
   final GuildAvailabilityChangedCallback? onGuildAvailabilityChanged;
   final GuildAvailableCallback? onGuildAvailable;
   final GuildMembersChunkCallback? onMembersChunk;
+  final GuildMembersChunkProgressCallback? onMembersChunkProgress;
+  final GuildMemberListUpdateCallback? onMemberListUpdate;
 
   String? _currentUserId;
 
@@ -521,8 +519,17 @@ class GatewayEventHandler {
           final guildData = GuildCreateData.fromJson(rawGuild);
           final guildId = guildData.guild.id;
           final position = guildPositions[guildId] ?? fallbackPosition++;
+          final int? memberCount =
+              (rawGuild['member_count'] as num?)?.toInt();
+          final int? onlineCount =
+              (rawGuild['online_count'] as num?)?.toInt();
           guildCompanions.add(
-            guildFromSdk(guildData.guild, position: position),
+            guildFromSdk(
+              guildData.guild,
+              position: position,
+              memberCount: memberCount,
+              onlineCount: onlineCount,
+            ),
           );
           processedGuilds.add(guildData);
         }
@@ -1345,7 +1352,9 @@ class GatewayEventHandler {
   }
 
   void _handleMembersChunk(GuildMembersChunkEvent event) {
-    for (final member in event.members) {
+    final List<String> userIds = <String>[];
+    for (final GuildMemberResponse member in event.members) {
+      userIds.add(member.user.id);
       _handleMemberUpsert(event.guildId, member);
     }
     final List<Map<String, dynamic>>? presences = event.presences;
@@ -1369,44 +1378,17 @@ class GatewayEventHandler {
         unawaited(database.userDao.updateUserPresencesBatch(updates));
       }
     }
-    onMembersChunk?.call(event.guildId);
+    onMembersChunk?.call(event.guildId, userIds);
+    onMembersChunkProgress?.call(
+      event.guildId,
+      event.chunkIndex,
+      event.chunkCount,
+      userIds,
+    );
   }
 
   Future<void> _handleMemberListUpdate(GuildMemberListUpdateEvent event) async {
-    final List<({String userId, String status, String? customStatus})> updates =
-        <({String userId, String status, String? customStatus})>[];
-    for (final MemberListOp op in event.ops) {
-      if (op.op != 'SYNC' || !_isValidMemberListRange(op.range)) {
-        continue;
-      }
-      final List<MemberListItem>? items = op.items;
-      if (items == null) {
-        continue;
-      }
-      for (final MemberListItem item in items) {
-        final MemberListMember? listMember = item.member;
-        if (listMember == null) {
-          continue;
-        }
-        final String? status = listMember.status;
-        if (status == null || status.isEmpty) {
-          continue;
-        }
-        final String userId = listMember.member.user.id;
-        updates.add((
-          userId: userId,
-          status: status,
-          customStatus: listMember.customStatus,
-        ));
-        unawaited(
-          database.userDao.upsertUser(userFromPartialSdk(listMember.member.user)),
-        );
-      }
-    }
-    if (updates.isEmpty) {
-      return;
-    }
-    await database.userDao.updateUserPresencesBatch(updates);
+    onMemberListUpdate?.call(event);
   }
 
   void _handlePresenceUpdateBulk(PresenceUpdateBulkEvent event) {

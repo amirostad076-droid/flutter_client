@@ -1,80 +1,180 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/members/domain/member.dart';
-import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
-import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
-import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
-import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
-import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/features/members/domain/member_list_group_names.dart';
+import 'package:fluxer_app/features/members/domain/member_list_layout.dart';
+import 'package:fluxer_app/features/members/domain/member_list_range_utils.dart';
+import 'package:fluxer_app/features/members/domain/member_list_viewport_state.dart';
+import 'package:fluxer_app/features/members/presentation/widgets/member_list_member_row.dart';
+import 'package:fluxer_app/features/members/presentation/widgets/member_list_shared_widgets.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/features/members/providers/guild_roles_provider.dart';
+import 'package:fluxer_app/features/members/providers/member_providers.dart';
+import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
+import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
+import 'package:fluxer_dart/gateway.dart';
 
-const _kPanelWidth = 264.0;
+const double _kPanelWidth = 264.0;
 
-class ChannelMembers extends ConsumerWidget {
+class ChannelMembers extends ConsumerStatefulWidget {
   const ChannelMembers({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final memberState = ref.watch(memberListViewModelProvider);
-    final groups = memberState.roleGroups;
+  ConsumerState<ChannelMembers> createState() => _ChannelMembersState();
+}
 
-    if (groups.isEmpty) {
+class _ChannelMembersState extends ConsumerState<ChannelMembers> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_handleScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final String? guildId = ref.read(activeGuildIdProvider);
+      if (guildId != null) {
+        prefetchGuildRolesIfMissing(
+          database: ref.read(fluxerDatabaseProvider),
+          repository: ref.read(memberRepositoryProvider),
+          guildId: guildId,
+        );
+      }
+      _updateDesiredRanges();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_handleScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    _updateDesiredRanges();
+  }
+
+  void _updateDesiredRanges() {
+    final String? guildId = ref.read(activeGuildIdProvider);
+    final String? channelId = ref.read(activeChannelIdProvider);
+    if (guildId == null || channelId == null) {
+      return;
+    }
+    final MemberListViewportListState? listState = ref
+        .read(memberListViewportProvider.notifier)
+        .getList(guildId: guildId, channelId: channelId);
+    final int totalRows = listState?.totalRows ?? 0;
+    if (!_scrollController.hasClients) {
+      ref.read(memberListDesiredRangesProvider.notifier).setRanges(
+        guildId: guildId,
+        channelId: channelId,
+        ranges: kMemberListInitialSubscriptionRanges,
+      );
+      return;
+    }
+    final List<MemberListGroupLayout> layouts = listState != null
+        ? buildMemberListLayout(listState.groups)
+        : const <MemberListGroupLayout>[];
+    final List<MemberListRange> ranges = buildMemberListRangeWindow(
+      scrollTop: _scrollController.position.pixels,
+      clientHeight: _scrollController.position.viewportDimension,
+      rowHeight: kMemberListRowHeight,
+      totalRows: totalRows > 0 ? totalRows : null,
+      layouts: layouts.isNotEmpty ? layouts : null,
+    );
+    ref.read(memberListDesiredRangesProvider.notifier).setRanges(
+      guildId: guildId,
+      channelId: channelId,
+      ranges: ranges.isEmpty ? kMemberListInitialSubscriptionRanges : ranges,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String? guildId = ref.watch(activeGuildIdProvider);
+    final String? channelId = ref.watch(activeChannelIdProvider);
+    if (guildId == null || channelId == null) {
       return const _ChannelMembersPanel(child: SizedBox.shrink());
     }
-
+    ref.watch(memberListViewportProvider);
+    final MemberListViewportListState? listState = ref
+        .read(memberListViewportProvider.notifier)
+        .getList(guildId: guildId, channelId: channelId);
+    final Map<String, db.Role> rolesById =
+        ref.watch(guildRolesByIdProvider(guildId)).value ?? <String, db.Role>{};
+    if (listState == null || !listState.hasReceivedInitialPayload) {
+      return _ChannelMembersPanel(
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: EdgeInsets.only(
+            top: 10,
+            left: context.layout.s2,
+            right: context.layout.s2,
+            bottom: context.layout.s4,
+          ),
+          itemCount: 12,
+          itemBuilder: (BuildContext context, int index) {
+            return MemberListSkeletonItem(index: index);
+          },
+        ),
+      );
+    }
+    final List<MemberListGroupLayout> layouts =
+        buildMemberListLayout(listState.groups);
+    final int totalRows = listState.totalRows > 0
+        ? listState.totalRows
+        : getTotalRowsFromLayout(layouts);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateDesiredRanges());
     return _ChannelMembersPanel(
       child: ListView.builder(
+        controller: _scrollController,
         padding: EdgeInsets.only(
           top: 10,
           left: context.layout.s2,
           right: context.layout.s2,
           bottom: context.layout.s4,
         ),
-        itemCount: groups.length,
-        itemBuilder: (context, index) {
-          final group = groups[index];
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildGroupHeader(context, group),
-              ...group.members.map(
-                (m) => _MemberListItem(
-                  member: m,
-                  guildId: memberState.selectedGuildId,
-                ),
-              ),
-            ],
+        itemCount: totalRows,
+        itemBuilder: (BuildContext context, int rowIndex) {
+          final MemberListGroupHeaderData? header = resolveMemberListGroupHeader(
+            groups: listState.groups,
+            layouts: layouts,
+            rowIndex: rowIndex,
+            rolesById: rolesById,
+          );
+          if (header != null) {
+            return MemberListSidebarGroupHeader(
+              groupName: header.name,
+              count: header.count,
+              roleColor: header.roleColor,
+            );
+          }
+          final MemberListViewportRow? row = listState.rows[rowIndex];
+          if (row == null || row.type != MemberListViewportRowType.member) {
+            return const MemberListSkeletonRow();
+          }
+          final MemberListMember? listMember = row.listMember;
+          if (listMember == null || row.userId == null) {
+            return const MemberListSkeletonRow();
+          }
+          return MemberListSidebarMemberRow(
+            guildId: guildId,
+            listMember: listMember,
+            userId: row.userId!,
+            rolesById: rolesById,
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildGroupHeader(BuildContext context, RoleGroup group) {
-    final layout = context.layout;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(layout.s2, layout.s3, layout.s2, layout.s1),
-      child: Text(
-        group.displayName,
-        style: context.textStyles.categoryName.copyWith(
-          color: group.role != null
-              ? Color(group.role!.color)
-              : context.colors.textPrimaryMuted,
-        ),
       ),
     );
   }
 }
 
 class _ChannelMembersPanel extends StatelessWidget {
-  final Widget child;
-
   const _ChannelMembersPanel({required this.child});
+
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -85,117 +185,6 @@ class _ChannelMembersPanel extends StatelessWidget {
         border: Border(left: BorderSide(color: context.colors.borderColor)),
       ),
       child: child,
-    );
-  }
-}
-
-class _MemberListItem extends ConsumerStatefulWidget {
-  final Member member;
-  final String? guildId;
-
-  const _MemberListItem({required this.member, required this.guildId});
-
-  @override
-  ConsumerState<_MemberListItem> createState() => _MemberListItemState();
-}
-
-class _MemberListItemState extends ConsumerState<_MemberListItem> {
-  var _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final member = widget.member;
-    final layout = context.layout;
-    final String status =
-        ref.watch(userPresenceProvider(member.id)).value?.status ??
-        member.status;
-    final bool isOffline = !isMemberPresenceOnline(status);
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => unawaited(
-          FluxerUserProfileSheet.show(
-            context,
-            userId: member.id,
-            guildId: widget.guildId,
-          ),
-        ),
-        child: Opacity(
-          opacity: isOffline ? 0.3 : 1.0,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 1),
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: layout.s2,
-                vertical: layout.s1,
-              ),
-              decoration: BoxDecoration(
-                color: _isHovered
-                    ? context.colors.backgroundModifierHover
-                    : Colors.transparent,
-                borderRadius: layout.radiusMd,
-              ),
-              child: Row(
-                children: [
-                  FluxerAvatar.user(
-                    fallbackText: member.displayName,
-                    userId: member.id,
-                    imageUrl: FluxerMediaUrl.userAvatar(
-                      userId: member.id,
-                      hash: member.avatar,
-                    ),
-                    avatarColor: member.avatarColor,
-                    roleColor: member.roleColor,
-                    status: status,
-                    size: 32,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                member.displayName,
-                                style: context.textStyles.label.copyWith(
-                                  color: member.roleColor != null
-                                      ? Color(member.roleColor!)
-                                      : context.colors.textChat,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (member.isBot) ...[
-                              SizedBox(width: layout.s1),
-                              const FluxerBotBadge(),
-                            ],
-                          ],
-                        ),
-                        if ((ref.watch(userPresenceProvider(member.id)).value?.customStatus ?? member.customStatus) != null)
-                          Text(
-                            ref.watch(userPresenceProvider(member.id)).value?.customStatus ?? member.customStatus!,
-                            style: TextStyle(
-                              color: context.colors.textPrimaryMuted,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

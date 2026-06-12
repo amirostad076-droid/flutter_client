@@ -9,8 +9,8 @@ import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/composer_mention_query.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
-import 'package:fluxer_app/features/members/domain/member.dart';
-import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
+import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
+import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_app/features/ui/input/emoji_inline_token.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_text_editing_controller.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
@@ -36,14 +36,13 @@ String _composerMentionUserLabel(WidgetRef ref, String userId) {
   final Channel? ch = findChannelById(listState, channelId);
   final String? guildId = ch?.guildId;
   if (guildId != null && guildId.isNotEmpty) {
-    final MemberListViewState roster = ref.read(memberListViewModelProvider);
-    for (final RoleGroup g in roster.roleGroups) {
-      for (final Member m in g.members) {
-        if (m.id == userId) {
-          return memberDisplayLabel(m);
-        }
-      }
+    final GuildUserDisplay? display = ref
+        .read(guildUserDisplayFromDbProvider((userId, guildId)))
+        .value;
+    if (display != null) {
+      return display.displayName;
     }
+    ref.read(guildUserDisplayProvider((userId, guildId)));
   }
   return _shortMentionWireIdFallback(userId);
 }

@@ -11,6 +11,7 @@ import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
@@ -39,7 +40,12 @@ import 'package:fluxer_app/features/favorites/providers/favorite_channels_provid
 import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
 import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
-import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
+import 'package:fluxer_app/features/members/presentation/widgets/guild_members_tab_content.dart';
+import 'package:fluxer_app/features/members/data/member_repository.dart';
+import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.dart';
+import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
+import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
+import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -143,6 +149,16 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
   @override
   void dispose() {
     widget.scrollController.removeListener(_onScroll);
+    final String? guildId = _targetGuildId;
+    final String? channelId = _targetChannelId;
+    if (guildId != null && channelId != null) {
+      ref
+          .read(memberListViewportProvider.notifier)
+          .clearChannel(guildId: guildId, channelId: channelId);
+      ref
+          .read(memberListDesiredRangesProvider.notifier)
+          .clearChannel(guildId: guildId, channelId: channelId);
+    }
     super.dispose();
   }
 
@@ -510,6 +526,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
               : _MembersTab(
                   dm: widget.dm,
                   guildId: widget.channel?.guildId,
+                  channelId: targetChannelId,
                   scrollController: widget.scrollController,
                 ),
         ),
@@ -745,11 +762,13 @@ class _MembersTab extends ConsumerWidget {
   const _MembersTab({
     required this.dm,
     required this.guildId,
+    required this.channelId,
     required this.scrollController,
   });
 
   final DmConversation? dm;
   final String? guildId;
+  final String? channelId;
   final ScrollController scrollController;
 
   @override
@@ -773,63 +792,17 @@ class _MembersTab extends ConsumerWidget {
       );
     }
 
-    final roleGroups = ref.watch(memberListViewModelProvider).roleGroups;
-    if (roleGroups.isEmpty) {
+    if (guildId == null || channelId == null) {
       return const _EmptySheetState(
         icon: PhosphorIconsBold.users,
         title: 'No members to show',
         body: 'Members will appear here once the community data is loaded.',
       );
     }
-
-    final guildOwnerId = guildId == null
-        ? null
-        : ref.watch(guildByIdProvider(guildId!)).asData?.value?.ownerId;
-    final currentUserId = ref.watch(currentUserIdProvider);
-
-    final renderGroups = _splitOnlineOffline(roleGroups);
-
-    return ListView.builder(
-      controller: scrollController,
-      padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
-      itemCount: renderGroups.length,
-      itemBuilder: (context, groupIndex) {
-        final group = renderGroups[groupIndex];
-        return FluxerListSection(
-          header: group.displayName,
-          headerColor: group.headerColor,
-          children: [
-            for (final member in group.members)
-              _SimpleMemberRow(
-                userId: member.id,
-                name: member.displayName,
-                avatarUrl: FluxerMediaUrl.userAvatar(
-                  userId: member.id,
-                  hash: member.avatar,
-                ),
-                avatarColor: member.avatarColor,
-                status: member.status,
-                isBot: member.isBot,
-                isOwner: guildOwnerId != null && member.id == guildOwnerId,
-                customStatus: member.customStatus,
-                dimmed: group.dimMembers,
-                onTap: () => FluxerUserProfileSheet.show(
-                  context,
-                  userId: member.id,
-                  guildId: guildId,
-                ),
-                onLongPress: () => _showGuildMemberActionsSheet(
-                  context,
-                  ref: ref,
-                  member: member,
-                  guildId: guildId,
-                  isCurrentUser: member.id == currentUserId,
-                  isOwner: guildOwnerId != null && member.id == guildOwnerId,
-                ),
-              ),
-          ],
-        );
-      },
+    return GuildMembersTabContent(
+      guildId: guildId!,
+      channelId: channelId!,
+      scrollController: scrollController,
     );
   }
 }
@@ -1279,80 +1252,38 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
   }
 
   Future<void> _openFromSheet() async {
-    final users = await _loadFromCandidates();
+    final String? guildId = widget.guildId;
     if (!mounted) {
       return;
     }
-    final selected = await FluxerBottomSheet.showScrollable<List<_PickerUser>>(
+    final List<_PickerUser>? selected =
+        await FluxerBottomSheet.showScrollable<List<_PickerUser>>(
       context,
       title: 'Filter by user',
       initialChildSize: 0.85,
       minChildSize: 0.5,
-      builder: (sheetContext, scrollController, close) => _UserFilterSheet(
-        availableUsers: users,
-        initialSelectedIds: _selectedAuthorIds,
-        scrollController: scrollController,
-        onDone: (chosen) => Navigator.of(sheetContext).pop(chosen),
-      ),
+      builder: (sheetContext, scrollController, close) {
+        if (guildId != null) {
+          return _GuildUserSearchFilterSheet(
+            guildId: guildId,
+            initialSelectedIds: _selectedAuthorIds,
+            scrollController: scrollController,
+            onDone: (List<_PickerUser> chosen) =>
+                Navigator.of(sheetContext).pop(chosen),
+          );
+        }
+        return _DmUserFilterSheetLoader(
+          channelId: widget.channelId,
+          initialSelectedIds: _selectedAuthorIds,
+          scrollController: scrollController,
+          onDone: (List<_PickerUser> chosen) =>
+              Navigator.of(sheetContext).pop(chosen),
+        );
+      },
     );
     if (selected != null) {
       _setAuthorSelection(selected);
     }
-  }
-
-  Future<List<_PickerUser>> _loadFromCandidates() async {
-    final database = ref.read(fluxerDatabaseProvider);
-    final guildId = widget.guildId;
-    if (guildId != null) {
-      final members = await database.memberDao.getMembers(guildId);
-      final ids = members.map((m) => m.userId).toList();
-      final users = await database.userDao.getUsersByIds(ids);
-      final memberByUserId = {for (final m in members) m.userId: m};
-      final pickers =
-          <_PickerUser>[
-            for (final user in users)
-              _PickerUser.fromUserRow(
-                user,
-                nick: memberByUserId[user.id]?.nick,
-              ),
-          ]..sort(
-            (a, b) => a.displayName.toLowerCase().compareTo(
-              b.displayName.toLowerCase(),
-            ),
-          );
-      return pickers;
-    }
-
-    final dmRow = await database.dmChannelDao.getDmChannelById(
-      widget.channelId,
-    );
-    final ids = <String>{};
-    if (dmRow != null) {
-      try {
-        final raw = jsonDecode(dmRow.recipientIds);
-        if (raw is List) {
-          for (final entry in raw) {
-            if (entry is String && entry.isNotEmpty) {
-              ids.add(entry);
-            }
-          }
-        }
-      } on FormatException {
-        // Ignore malformed cache; falls back to recipientId only.
-      }
-      if (dmRow.recipientId.isNotEmpty) {
-        ids.add(dmRow.recipientId);
-      }
-    }
-    final users = await database.userDao.getUsersByIds(ids.toList());
-    final pickers =
-        <_PickerUser>[for (final user in users) _PickerUser.fromUserRow(user)]
-          ..sort(
-            (a, b) => a.displayName.toLowerCase().compareTo(
-              b.displayName.toLowerCase(),
-            ),
-          );
-    return pickers;
   }
 
   Future<void> _openHasSheet() async {
@@ -1835,55 +1766,6 @@ class _NewGroupCtaRow extends StatelessWidget {
   }
 }
 
-class _RenderGroup {
-  final String displayName;
-  final List<Member> members;
-  final Color? headerColor;
-  final bool dimMembers;
-
-  const _RenderGroup({
-    required this.displayName,
-    required this.members,
-    this.headerColor,
-    this.dimMembers = false,
-  });
-}
-
-bool _isMemberOnline(Member m) => isMemberPresenceOnline(m.status);
-
-List<_RenderGroup> _splitOnlineOffline(List<RoleGroup> roleGroups) {
-  final online = <_RenderGroup>[];
-  final offline = <Member>[];
-
-  for (final group in roleGroups) {
-    final onlineMembers = group.members.where(_isMemberOnline).toList();
-    final offlineMembers = group.members.where((m) => !_isMemberOnline(m));
-    offline.addAll(offlineMembers);
-    if (onlineMembers.isEmpty) {
-      continue;
-    }
-    final base = group.role?.name ?? 'Online';
-    online.add(
-      _RenderGroup(
-        displayName: '$base — ${onlineMembers.length}',
-        members: onlineMembers,
-        headerColor: group.role != null ? Color(group.role!.color) : null,
-      ),
-    );
-  }
-
-  if (offline.isNotEmpty) {
-    online.add(
-      _RenderGroup(
-        displayName: 'Offline — ${offline.length}',
-        members: offline,
-        dimMembers: true,
-      ),
-    );
-  }
-  return online;
-}
-
 class _SearchFilterChip extends StatelessWidget {
   const _SearchFilterChip({
     required this.label,
@@ -2077,6 +1959,17 @@ class _PickerUser {
     );
   }
 
+  factory _PickerUser.fromMember(Member member) {
+    return _PickerUser(
+      id: member.id,
+      username: member.username,
+      displayName: member.displayName,
+      avatar: member.avatar,
+      avatarColor: member.avatarColor,
+      status: member.status,
+    );
+  }
+
   final String id;
   final String username;
   final String displayName;
@@ -2085,6 +1978,283 @@ class _PickerUser {
   final String status;
 
   String get tag => username.isNotEmpty ? '@$username' : '@$id';
+}
+
+const int _kUserFilterSearchLimit = 100;
+const Duration _kUserFilterSearchDebounce = Duration(milliseconds: 300);
+
+class _DmUserFilterSheetLoader extends ConsumerStatefulWidget {
+  const _DmUserFilterSheetLoader({
+    required this.channelId,
+    required this.initialSelectedIds,
+    required this.scrollController,
+    required this.onDone,
+  });
+
+  final String channelId;
+  final Set<String> initialSelectedIds;
+  final ScrollController scrollController;
+  final ValueChanged<List<_PickerUser>> onDone;
+
+  @override
+  ConsumerState<_DmUserFilterSheetLoader> createState() =>
+      _DmUserFilterSheetLoaderState();
+}
+
+class _DmUserFilterSheetLoaderState
+    extends ConsumerState<_DmUserFilterSheetLoader> {
+  late final Future<List<_PickerUser>> _usersFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _usersFuture = _loadDmCandidates();
+  }
+
+  Future<List<_PickerUser>> _loadDmCandidates() async {
+    final db.FluxerDatabase database = ref.read(fluxerDatabaseProvider);
+    final db.DmChannel? dmRow = await database.dmChannelDao.getDmChannelById(
+      widget.channelId,
+    );
+    final Set<String> ids = <String>{};
+    if (dmRow != null) {
+      try {
+        final Object? raw = jsonDecode(dmRow.recipientIds);
+        if (raw is List<dynamic>) {
+          for (final Object? entry in raw) {
+            if (entry is String && entry.isNotEmpty) {
+              ids.add(entry);
+            }
+          }
+        }
+      } on FormatException {
+        // Ignore malformed cache; falls back to recipientId only.
+      }
+      if (dmRow.recipientId.isNotEmpty) {
+        ids.add(dmRow.recipientId);
+      }
+    }
+    final List<db.User> users = await database.userDao.getUsersByIds(
+      ids.toList(),
+    );
+    final List<_PickerUser> pickers =
+        <_PickerUser>[for (final db.User user in users) _PickerUser.fromUserRow(user)]
+          ..sort(
+            (a, b) => a.displayName.toLowerCase().compareTo(
+              b.displayName.toLowerCase(),
+            ),
+          );
+    return pickers;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<_PickerUser>>(
+      future: _usersFuture,
+      builder: (BuildContext context, AsyncSnapshot<List<_PickerUser>> snap) {
+        if (!snap.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return _UserFilterSheet(
+          availableUsers: snap.data!,
+          initialSelectedIds: widget.initialSelectedIds,
+          scrollController: widget.scrollController,
+          onDone: widget.onDone,
+        );
+      },
+    );
+  }
+}
+
+class _GuildUserSearchFilterSheet extends ConsumerStatefulWidget {
+  const _GuildUserSearchFilterSheet({
+    required this.guildId,
+    required this.initialSelectedIds,
+    required this.scrollController,
+    required this.onDone,
+  });
+
+  final String guildId;
+  final Set<String> initialSelectedIds;
+  final ScrollController scrollController;
+  final ValueChanged<List<_PickerUser>> onDone;
+
+  @override
+  ConsumerState<_GuildUserSearchFilterSheet> createState() =>
+      _GuildUserSearchFilterSheetState();
+}
+
+class _GuildUserSearchFilterSheetState
+    extends ConsumerState<_GuildUserSearchFilterSheet> {
+  late final TextEditingController _searchController;
+  late final Map<String, _PickerUser> _selectedById;
+  List<_PickerUser> _results = <_PickerUser>[];
+  bool _isLoading = false;
+  String _searchTerm = '';
+  Timer? _searchDebounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _selectedById = <String, _PickerUser>{
+      for (final String id in widget.initialSelectedIds)
+        id: _PickerUser(id: id, username: '', displayName: id),
+    };
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController
+      ..removeListener(_onSearchChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() => _searchTerm = _searchController.text);
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(_kUserFilterSearchDebounce, () {
+      unawaited(_fetchUsers(_searchTerm.trim()));
+    });
+  }
+
+  Future<void> _fetchUsers(String query) async {
+    if (query.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _results = <_PickerUser>[];
+          _isLoading = false;
+        });
+      }
+      return;
+    }
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
+    List<_PickerUser> pickers = <_PickerUser>[];
+    try {
+      final connection = ref.read(gatewayConnectionProvider);
+      connection.requestGuildMembers(
+        guildId: widget.guildId,
+        query: query,
+        limit: _kUserFilterSearchLimit,
+      );
+      await ref.read(guildMemberChunkWaiterProvider).waitForChunk(widget.guildId);
+      final List<String> scopeUserIds = ref
+          .read(guildMemberChunkWaiterProvider)
+          .lastChunkUserIds(widget.guildId);
+      final List<Member> members = await ref
+          .read(memberRepositoryProvider)
+          .searchMembersForAutocomplete(
+            guildId: widget.guildId,
+            query: query,
+            scopeUserIds: scopeUserIds,
+          );
+      pickers = members.map(_PickerUser.fromMember).toList()
+        ..sort(
+          (a, b) => a.displayName.toLowerCase().compareTo(
+            b.displayName.toLowerCase(),
+          ),
+        );
+    } on Object {
+      pickers = <_PickerUser>[];
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _results = pickers;
+      _isLoading = false;
+    });
+  }
+
+  void _toggle(_PickerUser user) {
+    setState(() {
+      if (_selectedById.containsKey(user.id)) {
+        _selectedById.remove(user.id);
+      } else {
+        _selectedById[user.id] = user;
+      }
+    });
+  }
+
+  List<_PickerUser> _selectionForResult() => _selectedById.values.toList();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        children: <Widget>[
+          FluxerInput(
+            controller: _searchController,
+            hint: 'Search users',
+            prefixIcon: const PhosphorIcon(PhosphorIconsBold.magnifyingGlass),
+            suffixIcon: _searchTerm.isNotEmpty
+                ? const PhosphorIcon(PhosphorIconsBold.x)
+                : null,
+            onSuffixTap: _searchTerm.isNotEmpty
+                ? () {
+                    _searchController.clear();
+                  }
+                : null,
+            textInputAction: TextInputAction.search,
+            autofocus: true,
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: _searchTerm.trim().isEmpty
+                ? Center(
+                    child: Text(
+                      'Type to search members',
+                      style: context.textStyles.bodySmall.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  )
+                : _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _results.isEmpty
+                ? Center(
+                    child: Text(
+                      'No users found',
+                      style: context.textStyles.bodySmall.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    controller: widget.scrollController,
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    itemCount: _results.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 4),
+                    itemBuilder: (BuildContext context, int index) {
+                      final _PickerUser user = _results[index];
+                      final bool isSelected = _selectedById.containsKey(user.id);
+                      return _UserFilterRow(
+                        user: user,
+                        isSelected: isSelected,
+                        onTap: () => _toggle(user),
+                      );
+                    },
+                  ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FluxerButton.primary(
+              label: 'Done',
+              onPressed: () => widget.onDone(_selectionForResult()),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _UserFilterSheet extends StatefulWidget {

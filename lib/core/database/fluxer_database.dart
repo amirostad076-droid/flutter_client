@@ -44,6 +44,7 @@ import 'package:fluxer_app/core/database/tables/favorite_settings.dart';
 import 'package:fluxer_app/core/database/tables/guild_emojis.dart';
 import 'package:fluxer_app/core/database/tables/guild_last_channels.dart';
 import 'package:fluxer_app/core/database/tables/guild_stickers.dart';
+import 'package:fluxer_app/core/database/tables/member_cache_access.dart';
 import 'package:fluxer_app/core/database/tables/members.dart';
 import 'package:fluxer_app/core/database/tables/messages.dart';
 import 'package:fluxer_app/core/database/tables/mobile_push_registrations.dart';
@@ -76,6 +77,7 @@ part 'fluxer_database.g.dart';
     Messages,
     Roles,
     Members,
+    MemberCacheAccess,
     Relationships,
     DmChannels,
     ReadStates,
@@ -137,7 +139,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 55;
+  int get schemaVersion => 56;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -570,6 +572,9 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 55) {
         await m.addColumn(servers, servers.verificationLevel);
+      }
+      if (from < 56) {
+        await m.createTable(memberCacheAccess);
       }
     },
   );

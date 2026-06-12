@@ -369,59 +369,43 @@ class ComposerAutocompleteFieldState
     final Channel? ch = _guildChannel();
     final String? guildId = ch?.guildId;
     if (guildId != null && guildId.isNotEmpty) {
-      ref.read(memberListViewModelProvider.notifier).loadMembers(guildId);
-      List<Member> local = ref
-          .read(memberListViewModelProvider)
-          .roleGroups
-          .expand((RoleGroup g) => g.members)
-          .toList();
       final MemberRepository repo = ref.read(memberRepositoryProvider);
       final GuildMemberChunkWaiter chunkWaiter = ref.read(
         guildMemberChunkWaiterProvider,
       );
-      List<Member> remote = const <Member>[];
       final String searchQuery = parsed.usernameQuery.trim();
+      List<Member> members = const <Member>[];
+      Set<String> localMemberIds = <String>{};
+      Set<String> remoteSearchMemberIds = <String>{};
       try {
         final GatewayConnection connection = ref.read(
           gatewayConnectionProvider,
         );
+        connection.requestGuildMembers(
+          guildId: guildId,
+          query: searchQuery.isEmpty ? null : searchQuery,
+          limit: _kMentionLimit,
+        );
+        await chunkWaiter.waitForChunk(guildId);
+        final List<String> scopeUserIds = chunkWaiter.lastChunkUserIds(guildId);
+        members = await repo.searchMembersForAutocomplete(
+          guildId: guildId,
+          query: searchQuery,
+          scopeUserIds: scopeUserIds,
+        );
+        final Set<String> memberIds = <String>{
+          for (final Member m in members) m.id,
+        };
         if (searchQuery.isNotEmpty) {
-          connection.requestGuildMembers(
-            guildId: guildId,
-            query: searchQuery,
-            limit: _kMentionLimit,
-          );
-          await chunkWaiter.waitForChunk(guildId);
-          remote = await repo.searchMembersForAutocomplete(
-            guildId: guildId,
-            query: searchQuery,
-          );
-        } else if (local.length < _kMentionLimit) {
-          connection.requestGuildMembers(
-            guildId: guildId,
-            limit: _kMentionLimit,
-          );
-          await chunkWaiter.waitForChunk(guildId);
-          local = await repo.getCachedMembers(guildId);
+          remoteSearchMemberIds = memberIds;
+        } else {
+          localMemberIds = memberIds;
         }
       } on Object {
-        remote = const <Member>[];
-      }
-      final Set<String> localMemberIds = <String>{
-        for (final Member m in local) m.id,
-      };
-      final Set<String> remoteSearchMemberIds = <String>{
-        for (final Member m in remote) m.id,
-      };
-      final Map<String, Member> byId = <String, Member>{};
-      for (final Member m in local) {
-        byId[m.id] = m;
-      }
-      for (final Member m in remote) {
-        byId.putIfAbsent(m.id, () => m);
+        members = const <Member>[];
       }
       return (
-        members: byId.values.toList(),
+        members: members,
         remoteSearchMemberIds: remoteSearchMemberIds,
         localMemberIds: localMemberIds,
       );

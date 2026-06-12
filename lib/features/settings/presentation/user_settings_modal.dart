@@ -18,7 +18,6 @@ import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
-import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
 import 'package:fluxer_app/features/settings/domain/user_settings_section.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_nav.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
@@ -246,7 +245,6 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
       ..invalidate(organizedGuildListProvider)
       ..invalidate(folderExpandedStateProvider)
       ..invalidate(channelListViewModelProvider)
-      ..invalidate(memberListViewModelProvider)
       ..invalidate(chatViewModelProvider)
       ..invalidate(userSettingsViewModelProvider)
       ..invalidate(loginViewModelProvider);
@@ -397,7 +395,6 @@ class _MobileSettingsNavBodyState
       ..invalidate(organizedGuildListProvider)
       ..invalidate(folderExpandedStateProvider)
       ..invalidate(channelListViewModelProvider)
-      ..invalidate(memberListViewModelProvider)
       ..invalidate(chatViewModelProvider)
       ..invalidate(userSettingsViewModelProvider)
       ..invalidate(loginViewModelProvider);

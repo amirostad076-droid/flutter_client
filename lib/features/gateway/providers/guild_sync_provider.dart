@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.dart';
+import 'package:fluxer_app/features/members/providers/guild_roles_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -31,6 +32,7 @@ class GuildSync extends _$GuildSync {
         },
       );
       state = {...state, guildId};
+      prefetchGuildRoles(ref.read(memberRepositoryProvider), guildId);
       unawaited(_backfillMembersIfSparse(guildId));
     } on Object catch (e) {
       talker.warning('[GuildSync] Failed to sync guild $guildId: $e');

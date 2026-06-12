@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -11,81 +9,39 @@ import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 
 class MemberRepository {
-  static const int _mentionAutocompleteMaxMatches = 100;
-  static const int _restBackfillPageSize = 100;
-  static const int _restBackfillMaxGuildMembers = 1000;
+  static const int mentionAutocompleteMaxMatches = 100;
+  static const int restBackfillPageSize = 100;
+  static const int restBackfillMaxGuildMembers = 1000;
 
   final FluxerClient _client;
   final db.FluxerDatabase _db;
 
   const MemberRepository(this._client, this._db);
 
-  Future<List<Member>> getCachedMembers(String guildId) {
-    return watchMembers(guildId).first;
-  }
-
-  Stream<List<Member>> watchMembers(String guildId) {
-    final StreamController<List<Member>> controller =
-        StreamController<List<Member>>();
-    StreamSubscription<List<db.Member>>? memberSub;
-    StreamSubscription<List<db.User>>? userSub;
-    List<db.Member> latestMembers = <db.Member>[];
-
-    Future<void> emitMembers() async {
-      if (controller.isClosed) {
-        return;
-      }
-      controller.add(await _membersFromRows(guildId, latestMembers));
-    }
-
-    memberSub = _db.memberDao.watchMembers(guildId).listen(
-      (List<db.Member> members) {
-        latestMembers = members;
-        unawaited(userSub?.cancel());
-        userSub = null;
-        unawaited(emitMembers());
-        if (members.isEmpty) {
-          return;
-        }
-        final List<String> userIds = members.map((db.Member m) => m.userId).toList();
-        userSub = _db.userDao.watchUsersByIds(userIds).listen((_) {
-          unawaited(emitMembers());
-        });
-      },
-      onError: controller.addError,
-    );
-
-    controller.onCancel = () async {
-      await memberSub?.cancel();
-      await userSub?.cancel();
-      await controller.close();
-    };
-
-    return controller.stream;
-  }
-
-  Future<List<Member>> _membersFromRows(
+  Future<List<Member>> getMembersByUserIds(
     String guildId,
-    List<db.Member> members,
+    List<String> userIds,
   ) async {
-    final List<db.Role> roles = await _db.roleDao.getRoles(guildId);
-    final List<String> userIds = members.map((db.Member m) => m.userId).toList();
-    final List<db.User> userList = await _db.userDao.getUsersByIds(userIds);
-    final Map<String, db.User> users = <String, db.User>{
-      for (final db.User u in userList) u.id: u,
-    };
-    return members
-        .map((db.Member m) => Member.fromRow(m, users[m.userId], roles))
-        .toList();
+    if (userIds.isEmpty) {
+      return const <Member>[];
+    }
+    final List<db.Member> rows = await _db.memberDao.getMembersByUserIds(
+      guildId,
+      userIds,
+    );
+    return _membersFromRows(guildId, rows);
   }
 
   Future<List<Member>> getMembers(String guildId, {int limit = 100}) async {
-    final List<GuildMemberResponse> members = await _fetchGuildMemberPage(
+    final List<GuildMemberResponse> sdkMembers = await _fetchGuildMemberPage(
       guildId: guildId,
       limit: limit,
     );
-    await _upsertGuildMembersFromSdk(guildId, members);
-    return getCachedMembers(guildId);
+    await _upsertGuildMembersFromSdk(guildId, sdkMembers);
+    final List<String> userIds = sdkMembers
+        .map((GuildMemberResponse m) => m.user.id)
+        .toList();
+    return getMembersByUserIds(guildId, userIds);
   }
 
   /// Fills the local cache from REST when gateway lazy sync left the roster sparse.
@@ -95,10 +51,10 @@ class MemberRepository {
       return;
     }
     final int expectedCount = server.memberCount;
-    if (expectedCount <= 0 || expectedCount > _restBackfillMaxGuildMembers) {
+    if (expectedCount <= 0 || expectedCount > restBackfillMaxGuildMembers) {
       return;
     }
-    int cachedCount = (await _db.memberDao.getMembers(guildId)).length;
+    int cachedCount = await _db.memberDao.countMembers(guildId);
     if (cachedCount >= expectedCount) {
       return;
     }
@@ -106,15 +62,15 @@ class MemberRepository {
     while (cachedCount < expectedCount) {
       final List<GuildMemberResponse> page = await _fetchGuildMemberPage(
         guildId: guildId,
-        limit: _restBackfillPageSize,
+        limit: restBackfillPageSize,
         after: after,
       );
       if (page.isEmpty) {
         return;
       }
       await _upsertGuildMembersFromSdk(guildId, page);
-      cachedCount = (await _db.memberDao.getMembers(guildId)).length;
-      if (page.length < _restBackfillPageSize) {
+      cachedCount = await _db.memberDao.countMembers(guildId);
+      if (page.length < restBackfillPageSize) {
         return;
       }
       after = page.last.user.id;
@@ -232,38 +188,62 @@ class MemberRepository {
     return rows.map(MemberRole.fromRow).toList();
   }
 
-  /// Resolves mention matches from the local database.
+  /// Resolves mention matches from scoped local rows.
   ///
   /// Callers should first send gateway opcode 8 (`requestGuildMembers`) with the
-  /// same [query] so `GUILD_MEMBERS_CHUNK` can populate rows. Do not use
-  /// `POST /guilds/:id/members-search`: that route requires moderation permissions.
+  /// same [query] so `GUILD_MEMBERS_CHUNK` can populate rows, then pass
+  /// [scopeUserIds] from the chunk. Do not use `POST /guilds/:id/members-search`:
+  /// that route requires moderation permissions.
   Future<List<Member>> searchMembersForAutocomplete({
     required String guildId,
     required String query,
+    required List<String> scopeUserIds,
   }) async {
-    final String trimmed = query.trim();
-    if (trimmed.isEmpty) {
+    if (scopeUserIds.isEmpty) {
       return const <Member>[];
     }
-    final String qLower = trimmed.toLowerCase();
-    final List<db.Member> rows = await _db.memberDao.getMembers(guildId);
+    final List<db.Member> rows = await _db.memberDao.getMembersByUserIds(
+      guildId,
+      scopeUserIds,
+    );
     final List<db.Role> roles = await _db.roleDao.getRoles(guildId);
     final List<String> userIds = rows.map((db.Member m) => m.userId).toList();
     final List<db.User> userList = await _db.userDao.getUsersByIds(userIds);
     final Map<String, db.User> users = <String, db.User>{
       for (final db.User u in userList) u.id: u,
     };
+    final String trimmed = query.trim();
+    final String? qLower = trimmed.isEmpty ? null : trimmed.toLowerCase();
     final List<Member> hits = <Member>[];
     for (final db.Member row in rows) {
-      final Member m = Member.fromRow(row, users[row.userId], roles);
-      if (_mentionHaystackContainsQuery(m, qLower)) {
-        hits.add(m);
-        if (hits.length >= _mentionAutocompleteMaxMatches) {
-          break;
-        }
+      final Member member = Member.fromRow(row, users[row.userId], roles);
+      if (qLower != null && !_mentionHaystackContainsQuery(member, qLower)) {
+        continue;
+      }
+      hits.add(member);
+      if (hits.length >= mentionAutocompleteMaxMatches) {
+        break;
       }
     }
     return hits;
+  }
+
+  Future<List<Member>> _membersFromRows(
+    String guildId,
+    List<db.Member> members,
+  ) async {
+    if (members.isEmpty) {
+      return const <Member>[];
+    }
+    final List<db.Role> roles = await _db.roleDao.getRoles(guildId);
+    final List<String> userIds = members.map((db.Member m) => m.userId).toList();
+    final List<db.User> userList = await _db.userDao.getUsersByIds(userIds);
+    final Map<String, db.User> users = <String, db.User>{
+      for (final db.User u in userList) u.id: u,
+    };
+    return members
+        .map((db.Member m) => Member.fromRow(m, users[m.userId], roles))
+        .toList();
   }
 }
 

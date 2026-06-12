@@ -26,6 +26,9 @@ class GuildDao extends DatabaseAccessor<FluxerDatabase> with _$GuildDaoMixin {
   Future<Server?> getServerById(String id) =>
       (select(servers)..where((s) => s.id.equals(id))).getSingleOrNull();
 
+  Stream<Server?> watchServerById(String id) =>
+      (select(servers)..where((s) => s.id.equals(id))).watchSingleOrNull();
+
   Future<void> upsertServer(ServersCompanion server) =>
       into(servers).insertOnConflictUpdate(server);
 
@@ -36,6 +39,22 @@ class GuildDao extends DatabaseAccessor<FluxerDatabase> with _$GuildDaoMixin {
       }
     });
   }
+
+  Future<void> updateServerCounts(
+    String id, {
+    int? memberCount,
+    int? onlineCount,
+  }) =>
+      (update(servers)..where((s) => s.id.equals(id))).write(
+        ServersCompanion(
+          memberCount: memberCount == null
+              ? const Value.absent()
+              : Value(memberCount),
+          onlineCount: onlineCount == null
+              ? const Value.absent()
+              : Value(onlineCount),
+        ),
+      );
 
   Future<void> markUnavailable(String id) =>
       (update(servers)..where((s) => s.id.equals(id))).write(

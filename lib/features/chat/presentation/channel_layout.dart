@@ -50,7 +50,7 @@ class ChannelLayout extends ConsumerWidget {
       shouldShowMatureContentGateProvider(channelId),
     );
     final bool showMatureContentGate = showGateAsync.value ?? false;
-    ref.watch(memberListSubscriptionProvider);
+    ref.listen(memberListSubscriptionProvider, (_, _) {});
 
     return MobileChatBackScope(
       child: ColoredBox(

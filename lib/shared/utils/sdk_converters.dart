@@ -25,6 +25,8 @@ db.ServersCompanion guildFromSdk(
   GuildResponse sdk, {
   int position = 0,
   bool unavailable = false,
+  int? memberCount,
+  int? onlineCount,
 }) {
   return db.ServersCompanion.insert(
     id: sdk.id,
@@ -32,6 +34,12 @@ db.ServersCompanion guildFromSdk(
     icon: Value(sdk.icon),
     banner: Value(sdk.banner),
     ownerId: Value(sdk.ownerId),
+    memberCount: memberCount == null
+        ? const Value.absent()
+        : Value(memberCount),
+    onlineCount: onlineCount == null
+        ? const Value.absent()
+        : Value(onlineCount),
     featuresJson: Value(jsonEncode(sdk.features)),
     position: Value(position),
     unavailable: Value(unavailable),

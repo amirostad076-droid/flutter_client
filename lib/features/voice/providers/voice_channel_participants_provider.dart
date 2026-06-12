@@ -207,9 +207,8 @@ Future<List<VoiceSidebarParticipant>> voiceChannelSidebarParticipants(
   final List<String> userIds = byUser.keys.toList();
   final database.FluxerDatabase db = ref.watch(fluxerDatabaseProvider);
   final List<database.User> userRows = await db.userDao.getUsersByIds(userIds);
-  final List<database.Member> memberRows = await db.memberDao.getMembers(
-    guildId,
-  );
+  final List<database.Member> memberRows = await db.memberDao
+      .getMembersByUserIds(guildId, userIds);
   final Map<String, database.User> usersById = <String, database.User>{
     for (final database.User u in userRows) u.id: u,
   };

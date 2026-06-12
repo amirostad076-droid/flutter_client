@@ -18,9 +18,10 @@ import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_prov
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_list.dart';
 import 'package:fluxer_app/features/favorites/presentation/favorites_sidebar.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
+import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
+import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
 import 'package:fluxer_app/features/guilds/presentation/widgets/guild_navbar.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
-import 'package:fluxer_app/features/members/providers/member_list_view_model.dart';
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -116,9 +117,23 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         ref
             .read(channelListViewModelProvider.notifier)
             .loadChannels(next, guild: guild);
-        ref.read(memberListViewModelProvider.notifier).loadMembers(next);
         ref.read(guildSyncProvider.notifier).syncIfNeeded(next);
       }
+    });
+    ref.listen(activeChannelIdProvider, (String? previous, String? next) {
+      if (previous == null || previous == next) {
+        return;
+      }
+      final String? guildId = ref.read(activeGuildIdProvider);
+      if (guildId == null) {
+        return;
+      }
+      ref
+          .read(memberListViewportProvider.notifier)
+          .clearChannel(guildId: guildId, channelId: previous);
+      ref
+          .read(memberListDesiredRangesProvider.notifier)
+          .clearChannel(guildId: guildId, channelId: previous);
     });
 
     final isMobile = isMobileLayout(context);
