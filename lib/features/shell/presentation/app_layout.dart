@@ -110,31 +110,35 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         unawaited(showUnifiedPushDistributorSetup(rootContext));
       });
     }
-    ref.listen(activeGuildIdProvider, (previous, next) {
-      if (next != null) {
-        final guilds = ref.read(guildListViewModelProvider).guilds;
-        final guild = guilds.where((g) => g.id == next).firstOrNull;
+    ref
+      ..listen<String?>(activeGuildIdProvider, (String? previous, String? next) {
+        if (next != null) {
+          final guilds = ref.read(guildListViewModelProvider).guilds;
+          final guild = guilds.where((g) => g.id == next).firstOrNull;
+          ref
+              .read(channelListViewModelProvider.notifier)
+              .loadChannels(next, guild: guild);
+          ref.read(guildSyncProvider.notifier).syncIfNeeded(next);
+        }
+      })
+      ..listen<String?>(activeChannelIdProvider, (
+        String? previous,
+        String? next,
+      ) {
+        if (previous == null || previous == next) {
+          return;
+        }
+        final String? guildId = ref.read(activeGuildIdProvider);
+        if (guildId == null) {
+          return;
+        }
         ref
-            .read(channelListViewModelProvider.notifier)
-            .loadChannels(next, guild: guild);
-        ref.read(guildSyncProvider.notifier).syncIfNeeded(next);
-      }
-    });
-    ref.listen(activeChannelIdProvider, (String? previous, String? next) {
-      if (previous == null || previous == next) {
-        return;
-      }
-      final String? guildId = ref.read(activeGuildIdProvider);
-      if (guildId == null) {
-        return;
-      }
-      ref
-          .read(memberListViewportProvider.notifier)
-          .clearChannel(guildId: guildId, channelId: previous);
-      ref
-          .read(memberListDesiredRangesProvider.notifier)
-          .clearChannel(guildId: guildId, channelId: previous);
-    });
+            .read(memberListViewportProvider.notifier)
+            .clearChannel(guildId: guildId, channelId: previous);
+        ref
+            .read(memberListDesiredRangesProvider.notifier)
+            .clearChannel(guildId: guildId, channelId: previous);
+      });
 
     final isMobile = isMobileLayout(context);
 
