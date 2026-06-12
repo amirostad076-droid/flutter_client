@@ -3,11 +3,9 @@ import 'dart:async';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
-import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
@@ -18,6 +16,7 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/role_providers.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod/src/providers/future_provider.dart';
 
@@ -140,18 +139,12 @@ class UserMention extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final guildId = ref.watch(activeGuildIdProvider);
-
-    final userAsync = ref.watch(_userByIdProvider(userId));
-    final memberAsync = guildId != null
-        ? ref.watch(_memberByUserIdProvider((userId, guildId)))
-        : null;
-
-    final user = userAsync.value;
-    final member = memberAsync?.value;
-
-    final name = member?.nick ?? user?.globalName ?? user?.username ?? userId;
-
+    final String? guildId = resolveGuildIdForChannel(ref, channelId);
+    final String name = watchMentionUserDisplayName(
+      ref: ref,
+      userId: userId,
+      channelId: channelId,
+    );
     final colors = context.colors;
     final style = (baseStyle ?? const TextStyle()).copyWith(
       color: colors.markupMentionText,
@@ -168,20 +161,6 @@ class UserMention extends ConsumerWidget {
     );
   }
 }
-
-final FutureProviderFamily<User?, String> _userByIdProvider = FutureProvider
-    .autoDispose
-    .family<User?, String>((ref, id) {
-      final db = ref.watch(fluxerDatabaseProvider);
-      return db.userDao.getUserById(id);
-    });
-
-final FutureProviderFamily<Member?, (String, String)> _memberByUserIdProvider =
-    FutureProvider.autoDispose.family<Member?, (String, String)>((ref, args) {
-      final (userId, guildId) = args;
-      final db = ref.watch(fluxerDatabaseProvider);
-      return db.memberDao.getMemberByUserId(userId, guildId);
-    });
 
 class RoleMention extends ConsumerWidget {
   const RoleMention({required this.roleId, this.baseStyle, super.key});

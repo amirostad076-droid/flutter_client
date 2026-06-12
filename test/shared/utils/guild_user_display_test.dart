@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
+import 'package:fluxer_app/shared/utils/mention_display_utils.dart';
 import 'package:fluxer_dart/export.dart';
 
 void main() {
@@ -398,6 +399,44 @@ void main() {
           ),
         ),
         'proxy_user',
+      );
+    });
+  });
+
+  group('mention display name resolution', () {
+    test('shortMentionWireIdFallback keeps short ids intact', () {
+      expect(shortMentionWireIdFallback('1234567890'), '1234567890');
+    });
+
+    test('shortMentionWireIdFallback truncates long snowflakes', () {
+      expect(
+        shortMentionWireIdFallback('123456789012345678'),
+        '12345678…',
+      );
+    });
+
+    test('resolveMentionUserDisplayName uses guild display when present', () {
+      const GuildUserDisplay display = GuildUserDisplay(
+        displayName: 'ModeratorNick',
+        accountDisplayName: 'Global Name',
+        avatarUrl: null,
+        avatarColor: null,
+      );
+      expect(
+        resolveMentionUserDisplayName(
+          userId: '123456789012345678',
+          guildDisplay: display,
+        ),
+        'ModeratorNick',
+      );
+    });
+
+    test('resolveMentionUserDisplayName falls back to truncated id', () {
+      expect(
+        resolveMentionUserDisplayName(
+          userId: '123456789012345678',
+        ),
+        '12345678…',
       );
     });
   });

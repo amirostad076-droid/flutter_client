@@ -185,6 +185,7 @@ class MessageRepository {
         if (sdk.webhookId == null) {
           await _db.userDao.upsertUser(userFromPartialSdk(sdk.author));
         }
+        await upsertMentionUsersFromSdk(_db, sdk.mentions);
       }
       await _db.messageDao.upsertMessages(
         messages.map((m) => m.toCompanion()).toList(),
@@ -248,6 +249,7 @@ class MessageRepository {
       if (sdk.webhookId == null) {
         await _db.userDao.upsertUser(userFromPartialSdk(sdk.author));
       }
+      await upsertMentionUsersFromSdk(_db, sdk.mentions);
       final message = Message.fromSdk(sdk, currentUserId: _currentUserId);
       await _db.messageDao.upsertMessage(message.toCompanion());
       return message;
@@ -355,6 +357,10 @@ class MessageRepository {
               username: (author['username'] as String?) ?? '',
               memberSince: Value(dateTimeFromUserSnowflakeOrNull(authorId)),
             ),
+          );
+          await upsertMentionUsersFromJson(
+            _db,
+            map['mentions'] as List<dynamic>?,
           );
         }
       } on Object catch (e) {

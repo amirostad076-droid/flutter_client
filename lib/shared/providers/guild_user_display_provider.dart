@@ -5,9 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
+import 'package:fluxer_app/shared/utils/mention_display_utils.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:riverpod/src/providers/future_provider.dart';
@@ -71,6 +74,37 @@ Future<void> _fetchAndCacheGuildMember({
   } on Object {
     // Keep the cached row when the member fetch fails.
   }
+}
+
+String? resolveGuildIdForChannel(WidgetRef ref, String? channelId) {
+  if (channelId != null && channelId.isNotEmpty) {
+    return ref.watch(channelByIdProvider(channelId)).value?.guildId;
+  }
+  return ref.watch(activeGuildIdProvider);
+}
+
+String watchMentionUserDisplayName({
+  required WidgetRef ref,
+  required String userId,
+  String? channelId,
+}) {
+  final String? guildId = resolveGuildIdForChannel(ref, channelId);
+  if (guildId != null && guildId.isNotEmpty) {
+    final GuildUserDisplay? display = ref
+        .watch(guildUserDisplayProvider((userId, guildId)))
+        .value;
+    return resolveMentionUserDisplayName(
+      userId: userId,
+      guildDisplay: display,
+    );
+  }
+  final GuildUserDisplay? display = ref
+      .watch(guildUserDisplayFromDbProvider((userId, null)))
+      .value;
+  return resolveMentionUserDisplayName(
+    userId: userId,
+    guildDisplay: display,
+  );
 }
 
 GuildUserDisplay watchMessageAuthorDisplay({

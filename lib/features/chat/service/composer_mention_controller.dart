@@ -11,21 +11,15 @@ import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
+import 'package:fluxer_app/shared/utils/mention_display_utils.dart';
 import 'package:fluxer_app/features/ui/input/emoji_inline_token.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_text_editing_controller.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 
-String _shortMentionWireIdFallback(String userId) {
-  if (userId.length <= 10) {
-    return userId;
-  }
-  return '${userId.substring(0, 8)}…';
-}
-
 String _composerMentionUserLabel(WidgetRef ref, String userId) {
   final String channelId = ref.read(chatViewModelProvider).channelId;
   if (channelId.isEmpty) {
-    return _shortMentionWireIdFallback(userId);
+    return shortMentionWireIdFallback(userId);
   }
   final DmViewState dmState = ref.read(dmViewModelProvider);
   final DmConversation? dm = findDmById(dmState.conversations, channelId);
@@ -44,13 +38,13 @@ String _composerMentionUserLabel(WidgetRef ref, String userId) {
     }
     ref.read(guildUserDisplayProvider((userId, guildId)));
   }
-  return _shortMentionWireIdFallback(userId);
+  return shortMentionWireIdFallback(userId);
 }
 
 String _composerMentionChannelLabel(WidgetRef ref, String targetChannelId) {
   final ChannelListState listState = ref.read(channelListViewModelProvider);
   final Channel? ch = findChannelById(listState, targetChannelId);
-  return ch?.name ?? _shortMentionWireIdFallback(targetChannelId);
+  return ch?.name ?? shortMentionWireIdFallback(targetChannelId);
 }
 
 /// A user, role, or channel mention rendered inline as a chip while [wireText]
@@ -126,7 +120,7 @@ class ComposerMentionController extends InlineTokenTextEditingController {
       final String? channelId = m.group(3);
       if (roleId != null) {
         final db.Role? row = rolesById[roleId];
-        final String label = row?.name ?? _shortMentionWireIdFallback(roleId);
+        final String label = row?.name ?? shortMentionWireIdFallback(roleId);
         final int? colorArgb = row?.color;
         display.write(
           allocateToken(

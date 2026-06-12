@@ -997,6 +997,9 @@ class GatewayEventHandler {
       unawaited(
         database.userDao.upsertUser(userFromPartialSdk(event.message.author)),
       );
+      unawaited(
+        upsertMentionUsersFromSdk(database, event.message.mentions),
+      );
     }
 
     await database.messageDao.upsertMessage(msg.toCompanion());
@@ -1125,6 +1128,9 @@ class GatewayEventHandler {
     if (event.message.webhookId == null) {
       unawaited(
         database.userDao.upsertUser(userFromPartialSdk(event.message.author)),
+      );
+      unawaited(
+        upsertMentionUsersFromSdk(database, event.message.mentions),
       );
     }
     await database.messageDao.upsertMessage(msg.toCompanion());

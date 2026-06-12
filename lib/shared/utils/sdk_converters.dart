@@ -139,3 +139,43 @@ db.UsersCompanion userFromPartialSdk(UserPartialResponse sdk) {
         : Value(mentionFlags.json),
   );
 }
+
+Future<void> upsertMentionUsersFromSdk(
+  db.FluxerDatabase database,
+  Iterable<UserPartialResponse>? mentions,
+) async {
+  if (mentions == null) {
+    return;
+  }
+  final List<db.UsersCompanion> users = mentions
+      .map(userFromPartialSdk)
+      .toList(growable: false);
+  if (users.isEmpty) {
+    return;
+  }
+  await database.userDao.upsertUsers(users);
+}
+
+Future<void> upsertMentionUsersFromJson(
+  db.FluxerDatabase database,
+  List<dynamic>? mentions,
+) async {
+  if (mentions == null || mentions.isEmpty) {
+    return;
+  }
+  final List<db.UsersCompanion> users = <db.UsersCompanion>[];
+  for (final dynamic item in mentions) {
+    if (item is! Map<String, dynamic>) {
+      continue;
+    }
+    users.add(
+      userFromPartialSdk(
+        UserPartialResponse.fromJson(item.cast<String, Object?>()),
+      ),
+    );
+  }
+  if (users.isEmpty) {
+    return;
+  }
+  await database.userDao.upsertUsers(users);
+}
