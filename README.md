@@ -1,3 +1,8 @@
+> [!CAUTION]
+> The Fluxer Flutter mobile client is still in beta so features will be missing or broken. Currently the only way to report issues is on the Fluxer Mobile community (Plutonium members only), this will change in the future.
+> 
+> Note there is currently no set release date for the app.
+
 <p align="center">
   <img src="./docs/media/logo-graphic.png" alt="Fluxer graphic logo" width="400">
 </p>
@@ -17,20 +22,22 @@
 
 This is the repo for the offical Fluxer mobile app powered by Flutter (desktop is in the works also but mobile is the main focus currently).
 
-You can follow more about the V1 development in and what features are planned/implemented in this [Google Sheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQsix2JGxkfq14mej1OEv-8SKmAJgeZjteIv6v70YY0TlzNmDkKaY4643lxZrnt8A/pubhtml?gid=664213458&single=true).
+You can follow more about the V1 development in and what features are planned/implemented in this [Roadmap issue](https://github.com/fluxerapp/flutter_client/issues/184).
 
 # Community
 
 > [!NOTE]
-> Currently the community is locked to Fluxer Plutonium members only. This limit will be lifted after the beta period.
+> Currently the community is locked to Fluxer Plutonium members only. This limit will be lifted after the beta period (the link below will not work yet).
 
 For updates, support, and discussion, [join the Fluxer Mobile community on Fluxer](https://fluxer.gg/fluxer-mobile).
 
 ## Download
 
-**Apple App Store**: Coming soon!
+**Apple App Store**: Coming when V1 is finished.
 
-**Google Play Store**: Coming soon!
+**Google Play Store**: Coming when V1 is finished.
+
+**Fdroid**: Coming when V1 is finished.
 
 **Android APK (FCM)**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/fluxerapp/flutter_client) for auto updates. Requires Google Play Services (Firebase Messaging for Notifications).
 
@@ -46,9 +53,15 @@ Stable, beta, and canary Android release builds on Github are signed with this S
 
 ## Contributing
 
-We welcome contributions from the community. Please check out the V1 umbrella issue to see how you can help.
+During the current beta, we are only accepting contributions for bug fixes. To submit a PR, it must be for a linked reported issue.
+
+After the beta period, we will be updating these guidlines. 
 
 Pull requests should target the `canary` branch. For local testing, use the `canary` build flavor so your build matches that branch (see Mobile builds below).
+
+### Translating
+
+We welcome contributions for app translations. Translations are managed through our own Weblate instance. More information about that will be linked here soon.
 
 ### Tech stack
 
