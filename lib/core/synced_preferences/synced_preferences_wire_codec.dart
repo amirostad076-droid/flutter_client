@@ -8,6 +8,15 @@ import 'package:fluxer_app/core/synced_preferences/generated/favorites.pb.dart'
 /// Field number for [pb.SyncedPreferences.favorites] in the full schema.
 const int kSyncedPreferencesFavoritesFieldNumber = 40;
 
+class SyncedPreferencesWireEncodeException implements Exception {
+  SyncedPreferencesWireEncodeException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => 'SyncedPreferencesWireEncodeException: $message';
+}
+
 class SyncedPreferencesWireCodec {
   const SyncedPreferencesWireCodec._();
 
@@ -23,20 +32,71 @@ class SyncedPreferencesWireCodec {
       favoritesOnlyWire,
       kSyncedPreferencesFavoritesFieldNumber,
     );
+    if (favoritesFieldChunks.isEmpty) {
+      throw SyncedPreferencesWireEncodeException(
+        'Failed to encode favorites field chunks',
+      );
+    }
     if (currentWire == null || currentWire.isEmpty) {
       return base64Encode(_concatChunks(favoritesFieldChunks));
     }
-    try {
-      final currentBytes = base64Decode(currentWire);
-      final updated = _replaceField(
-        target: currentBytes,
-        fieldNumber: kSyncedPreferencesFavoritesFieldNumber,
-        sourceFieldChunks: favoritesFieldChunks,
+    final currentBytes = base64Decode(currentWire);
+    final updated = _replaceField(
+      target: currentBytes,
+      fieldNumber: kSyncedPreferencesFavoritesFieldNumber,
+      sourceFieldChunks: favoritesFieldChunks,
+    );
+    final encoded = base64Encode(updated);
+    if (!verifyWirePreservesForeignFields(before: currentWire, after: encoded)) {
+      throw SyncedPreferencesWireEncodeException(
+        'Foreign synced preference fields were not preserved',
       );
-      return base64Encode(updated);
-    } on Object {
-      return base64Encode(favoritesOnlyWire);
     }
+    return encoded;
+  }
+
+  static bool verifyWirePreservesForeignFields({
+    required String before,
+    required String after,
+  }) {
+    if (before.isEmpty) {
+      return true;
+    }
+    try {
+      final beforeChunks = _foreignFieldChunks(base64Decode(before));
+      final afterChunks = _foreignFieldChunks(base64Decode(after));
+      if (beforeChunks.length != afterChunks.length) {
+        return false;
+      }
+      for (var i = 0; i < beforeChunks.length; i++) {
+        final left = beforeChunks[i];
+        final right = afterChunks[i];
+        if (left.field != right.field ||
+            !_bytesEqual(left.bytes, right.bytes)) {
+          return false;
+        }
+      }
+      return true;
+    } on Object {
+      return false;
+    }
+  }
+
+  static int countForeignFields(String wire) {
+    if (wire.isEmpty) {
+      return 0;
+    }
+    try {
+      return _foreignFieldChunks(base64Decode(wire)).length;
+    } on Object {
+      return 0;
+    }
+  }
+
+  static List<_TopLevelFieldChunk> _foreignFieldChunks(Uint8List bytes) {
+    return _parseTopLevelFieldChunks(bytes)
+        .where((chunk) => chunk.field != kSyncedPreferencesFavoritesFieldNumber)
+        .toList();
   }
 
   static Uint8List _replaceField({
@@ -99,11 +159,12 @@ class SyncedPreferencesWireCodec {
   static _VarintRead? _readVarint(Uint8List bytes, int offset) {
     var value = 0;
     var shift = 0;
-    while (offset < bytes.length) {
-      final byte = bytes[offset++];
+    var index = offset;
+    while (index < bytes.length) {
+      final byte = bytes[index++];
       value |= (byte & 0x7f) << shift;
       if ((byte & 0x80) == 0) {
-        return _VarintRead(value: value, nextOffset: offset);
+        return _VarintRead(value: value, nextOffset: index);
       }
       shift += 7;
     }
@@ -131,6 +192,18 @@ class SyncedPreferencesWireCodec {
       return nextOffset <= bytes.length ? nextOffset : null;
     }
     return null;
+  }
+
+  static bool _bytesEqual(Uint8List a, Uint8List b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   static Uint8List _concatChunks(List<Uint8List> chunks) {

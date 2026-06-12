@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/synced_preferences/favorites_state_codec.dart';
+import 'package:fluxer_app/core/synced_preferences/synced_preferences_wire_codec.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -73,9 +74,13 @@ class FavoritesSyncService {
     final hasLocalData = _hasFavoritesData(localState);
     final hasServerData = _hasFavoritesData(serverState);
     final wasFirstHydrate = !_hasHydrated;
-    _hasHydrated = true;
 
-    if (_isFavoritesProtected()) {
+    if (_isFavoritesProtected() && !wasFirstHydrate) {
+      await _applyRemoteAdditionsIfNeeded(
+        localState: localState,
+        serverState: serverState,
+      );
+      _hasHydrated = true;
       _flushPendingPush();
       return;
     }
@@ -96,31 +101,39 @@ class FavoritesSyncService {
         schedulePush();
       } else {
         _isDirty = false;
-        _flushPendingPush();
       }
+      _hasHydrated = true;
+      _flushPendingPush();
       return;
     }
 
     if (!hasLocalData && !hasServerData) {
       _isDirty = false;
+      _hasHydrated = true;
       _flushPendingPush();
       return;
     }
 
     if (FavoritesStateCodec.statesEqual(localState, serverState)) {
       _isDirty = false;
+      _hasHydrated = true;
       _flushPendingPush();
       return;
     }
 
     if (hasLocalData && !hasServerData) {
-      _isDirty = true;
-      schedulePush();
+      if (wasFirstHydrate || encoded.isEmpty) {
+        _isDirty = true;
+        _hasHydrated = true;
+        schedulePush();
+      }
+      _flushPendingPush();
       return;
     }
 
     await _applyState(serverState, fromRemote: true);
     _isDirty = false;
+    _hasHydrated = true;
     _flushPendingPush();
   }
 
@@ -161,8 +174,9 @@ class FavoritesSyncService {
         talker.error('[FavoritesSync] Roundtrip unstable, push skipped');
         return;
       }
+      final currentWire = _wireBlob.isEmpty ? null : _wireBlob;
       final encoded = FavoritesStateCodec.encodeFavoritesIntoWire(
-        currentWire: _wireBlob.isEmpty ? null : _wireBlob,
+        currentWire: currentWire,
         local: localState,
       );
       if (generation != _pushGeneration) {
@@ -177,7 +191,12 @@ class FavoritesSyncService {
       _pendingPush = false;
       _recentlyAckedUntil = DateTime.now().add(_kFavoritesRecentAckWindow);
       _rateLimitAttempts = 0;
-      talker.debug('[FavoritesSync] Pushed favorites to server');
+      talker.debug(
+        '[FavoritesSync] Pushed favorites (${encoded.length} bytes, '
+        '${SyncedPreferencesWireCodec.countForeignFields(encoded)} foreign fields)',
+      );
+    } on SyncedPreferencesWireEncodeException catch (error, stackTrace) {
+      talker.error('[FavoritesSync] Wire encode failed', error, stackTrace);
     } on Object catch (error, stackTrace) {
       if (_isRateLimitError(error)) {
         _scheduleRateLimitRetry();
@@ -227,6 +246,34 @@ class FavoritesSyncService {
     _rateLimitTimer = Timer(delay, () {
       unawaited(_flushPush());
     });
+  }
+
+  Future<void> _applyRemoteAdditionsIfNeeded({
+    required FavoritesLocalState localState,
+    required FavoritesLocalState serverState,
+  }) async {
+    if (!_hasRemoteAdditions(localState, serverState)) {
+      return;
+    }
+    final target = FavoritesStateCodec.mergeForMigration(
+      local: localState,
+      server: serverState,
+    );
+    if (FavoritesStateCodec.statesEqual(target, localState)) {
+      return;
+    }
+    await _applyState(target, fromRemote: true);
+  }
+
+  bool _hasRemoteAdditions(
+    FavoritesLocalState local,
+    FavoritesLocalState remote,
+  ) {
+    final localIds = local.channels.map((channel) => channel.channelId).toSet();
+    final remoteIds = remote.channels
+        .map((channel) => channel.channelId)
+        .toSet();
+    return remoteIds.difference(localIds).isNotEmpty;
   }
 
   bool _isFavoritesProtected() {

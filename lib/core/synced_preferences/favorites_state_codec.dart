@@ -66,7 +66,10 @@ class FavoritesStateCodec {
       final bytes = base64Decode(encoded);
       final synced = pb.SyncedPreferences.fromBuffer(bytes);
       if (!synced.hasFavorites()) {
-        return FavoritesWireDecodeResult.empty;
+        return const FavoritesWireDecodeResult._(
+          status: FavoritesWireDecodeStatus.failure,
+          state: FavoritesLocalState.empty,
+        );
       }
       return FavoritesWireDecodeResult._(
         status: FavoritesWireDecodeStatus.success,
@@ -308,14 +311,7 @@ class FavoritesStateCodec {
   static pb.FavoritesState _toProto(FavoritesLocalState local) {
     return pb.FavoritesState(
       channels: [
-        for (final channel in local.channels)
-          pb.FavoriteChannel(
-            channelId: channel.channelId,
-            guildId: _encodeGuildIdForWire(channel.guildId),
-            parentId: channel.parentId ?? '',
-            position: channel.position,
-            nickname: channel.nickname ?? '',
-          ),
+        for (final channel in local.channels) _channelToProto(channel),
       ],
       categories: [
         for (final category in local.categories)
@@ -347,6 +343,23 @@ class FavoritesStateCodec {
       return favoriteDmGuildId;
     }
     return trimmed;
+  }
+
+  static pb.FavoriteChannel _channelToProto(db.FavoriteChannel channel) {
+    final proto = pb.FavoriteChannel(
+      channelId: channel.channelId,
+      guildId: _encodeGuildIdForWire(channel.guildId),
+      position: channel.position,
+    );
+    final parentId = channel.parentId;
+    if (parentId != null) {
+      proto.parentId = parentId;
+    }
+    final nickname = channel.nickname;
+    if (nickname != null) {
+      proto.nickname = nickname;
+    }
+    return proto;
   }
 
   static String _encodeGuildIdForWire(String? guildId) {

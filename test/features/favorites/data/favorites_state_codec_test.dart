@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/synced_preferences/favorites_state_codec.dart';
+import 'package:fluxer_app/core/synced_preferences/synced_preferences_wire_codec.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -99,6 +103,65 @@ void main() {
         'not-valid-base64!!!',
       );
       expect(result.status, FavoritesWireDecodeStatus.failure);
+    });
+
+    test('non-empty wire without favorites field is decode failure', () {
+      final foreignOnly = base64Encode(_encodeStringField(1, 'other-pref'));
+      final result = FavoritesStateCodec.decodeFavoritesFromWireResult(
+        foreignOnly,
+      );
+      expect(result.status, FavoritesWireDecodeStatus.failure);
+    });
+
+    test('encode preserves foreign fields in multi-field blob', () {
+      const initial = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(
+            channelId: 'initial',
+            guildId: 'guild',
+            position: 0,
+          ),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+      final favoritesWire = base64Decode(
+        FavoritesStateCodec.encodeFavoritesIntoWire(
+          currentWire: null,
+          local: initial,
+        ),
+      );
+      final combined = base64Encode(
+        Uint8List.fromList([
+          ..._encodeStringField(1, 'preserve'),
+          ...favoritesWire,
+        ]),
+      );
+      final updated = FavoritesStateCodec.encodeFavoritesIntoWire(
+        currentWire: combined,
+        local: const FavoritesLocalState(
+          channels: [
+            db.FavoriteChannel(
+              channelId: 'updated',
+              guildId: 'guild',
+              position: 0,
+            ),
+          ],
+          categories: [],
+          collapsedCategoryIds: [],
+          hideMutedChannels: false,
+          muted: false,
+        ),
+      );
+      expect(
+        SyncedPreferencesWireCodec.verifyWirePreservesForeignFields(
+          before: combined,
+          after: updated,
+        ),
+        isTrue,
+      );
     });
 
     test('statesEqual compares favorites semantically', () {
@@ -219,4 +282,25 @@ void main() {
       expect(decoded.channels.single.channelId, 'updated');
     });
   });
+}
+
+List<int> _encodeVarint(int value) {
+  final bytes = <int>[];
+  var current = value;
+  while (current > 0x7f) {
+    bytes.add((current & 0x7f) | 0x80);
+    current >>= 7;
+  }
+  bytes.add(current);
+  return bytes;
+}
+
+Uint8List _encodeStringField(int fieldNumber, String value) {
+  final valueBytes = utf8.encode(value);
+  final tag = (fieldNumber << 3) | 2;
+  return Uint8List.fromList([
+    ..._encodeVarint(tag),
+    ..._encodeVarint(valueBytes.length),
+    ...valueBytes,
+  ]);
 }

@@ -3,6 +3,7 @@ import 'package:fluxer_app/features/channels/domain/hide_muted_channels_filter.d
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/favorites/domain/favorite_guild_id.dart';
 import 'package:fluxer_app/features/favorites/domain/resolved_favorite_entry.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
@@ -24,11 +25,11 @@ final Provider<List<ResolvedFavoriteEntry>> favoriteResolvedEntriesProvider =
             favorite: favorite,
             channel: channelById[favorite.channelId],
             dm: dmById[favorite.channelId],
-            guildId: favorite.guildId,
-            guildName: favorite.guildId == null
+            guildId: _resolveFavoriteGuildId(favorite.guildId),
+            guildName: _isDmFavoriteGuildId(favorite.guildId)
                 ? null
                 : guildById[favorite.guildId]?.name,
-            guild: favorite.guildId == null
+            guild: _isDmFavoriteGuildId(favorite.guildId)
                 ? null
                 : guildById[favorite.guildId],
           ),
@@ -108,7 +109,7 @@ bool _isAccessible(
     return true;
   }
   final guildId = entry.guildId;
-  if (guildId == null || guildId.isEmpty) {
+  if (guildId == null || guildId.isEmpty || guildId == favoriteDmGuildId) {
     return true;
   }
   final mutedSet =
@@ -117,4 +118,18 @@ bool _isAccessible(
     channelId: entry.channelId,
     mutedChannelIds: mutedSet,
   );
+}
+
+bool _isDmFavoriteGuildId(String? guildId) {
+  if (guildId == null || guildId.isEmpty) {
+    return true;
+  }
+  return guildId == favoriteDmGuildId;
+}
+
+String? _resolveFavoriteGuildId(String? guildId) {
+  if (_isDmFavoriteGuildId(guildId)) {
+    return null;
+  }
+  return guildId;
 }

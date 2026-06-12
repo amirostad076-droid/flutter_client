@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/synced_preferences/favorites_state_codec.dart';
+import 'package:fluxer_app/core/synced_preferences/synced_preferences_wire_codec.dart';
 import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
 import 'package:fluxer_dart/export.dart';
 
@@ -318,6 +319,101 @@ void main() {
       expect(usersApi.pushCount, 1);
     });
 
+    test('first hydrate merges server favorites when dirty from pre-ready tap', () async {
+      const server = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(
+            channelId: 'desktop-1',
+            guildId: 'guild-1',
+            position: 0,
+          ),
+          db.FavoriteChannel(
+            channelId: 'desktop-2',
+            guildId: 'guild-1',
+            position: 1,
+          ),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+
+      await database.favoriteChannelsDao.addChannel(
+        channelId: 'android-1',
+        guildId: '@me',
+      );
+      await syncService.applyAfterLocalMutation();
+
+      await syncService.hydrateFromUserSettings(_settingsFor(server));
+      await _waitForDebounce();
+
+      final channels = await database.favoriteChannelsDao.watchChannels().first;
+      expect(
+        channels.map((channel) => channel.channelId),
+        containsAll(['android-1', 'desktop-1', 'desktop-2']),
+      );
+      expect(usersApi.pushCount, 1);
+      final pushed = FavoritesStateCodec.decodeFavoritesFromWire(
+        usersApi.lastPushBody!.syncedPreferences!,
+      );
+      expect(
+        pushed.channels.map((channel) => channel.channelId),
+        containsAll(['android-1', 'desktop-1', 'desktop-2']),
+      );
+    });
+
+    test('hydrate merges remote additions while dirty', () async {
+      const initial = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(
+            channelId: 'local-1',
+            guildId: 'guild-1',
+            position: 0,
+          ),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+      const expanded = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(
+            channelId: 'local-1',
+            guildId: 'guild-1',
+            position: 0,
+          ),
+          db.FavoriteChannel(
+            channelId: 'desktop-added',
+            guildId: 'guild-1',
+            position: 1,
+          ),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+
+      await syncService.hydrateFromUserSettings(_settingsFor(initial));
+      await database.favoriteChannelsDao.addChannel(
+        channelId: 'local-2',
+        guildId: 'guild-1',
+      );
+      await syncService.applyAfterLocalMutation();
+      await _waitForDebounce();
+      expect(usersApi.pushCount, 1);
+
+      await syncService.hydrateFromUserSettings(_settingsFor(expanded));
+
+      final channels = await database.favoriteChannelsDao.watchChannels().first;
+      expect(
+        channels.map((channel) => channel.channelId),
+        containsAll(['local-1', 'local-2', 'desktop-added']),
+      );
+    });
+
     test('retries push after 429 rate limit', () async {
       usersApi.pushError = DioException(
         requestOptions: RequestOptions(path: '/users/@me/settings'),
@@ -423,6 +519,41 @@ void main() {
       expect(_readStringField(updatedBytes, 1), 'other-field-data');
       final decoded = FavoritesStateCodec.decodeFavoritesFromWire(updated);
       expect(decoded.channels.single.channelId, 'updated');
+    });
+
+    test('verifyWirePreservesForeignFields rejects stripped blobs', () {
+      const initial = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(
+            channelId: 'initial',
+            guildId: 'guild',
+            position: 0,
+          ),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+      final favoritesOnly = FavoritesStateCodec.encodeFavoritesIntoWire(
+        currentWire: null,
+        local: initial,
+      );
+      final foreignField = _encodeStringField(1, 'keep-me');
+      final combined = base64Encode(
+        Uint8List.fromList([
+          ...foreignField,
+          ...base64Decode(favoritesOnly),
+        ]),
+      );
+      expect(
+        SyncedPreferencesWireCodec.verifyWirePreservesForeignFields(
+          before: combined,
+          after: favoritesOnly,
+        ),
+        isFalse,
+      );
+      expect(SyncedPreferencesWireCodec.countForeignFields(combined), 1);
     });
   });
 }
