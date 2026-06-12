@@ -4,6 +4,26 @@ import 'package:fluxer_app/core/database/daos/favorite_channels_dao.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/synced_preferences/generated/favorites.pb.dart'
     as pb;
+import 'package:fluxer_app/core/synced_preferences/synced_preferences_wire_codec.dart';
+import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/favorites/domain/favorite_guild_id.dart';
+
+enum FavoritesWireDecodeStatus { empty, success, failure }
+
+class FavoritesWireDecodeResult {
+  const FavoritesWireDecodeResult._({
+    required this.status,
+    required this.state,
+  });
+
+  final FavoritesWireDecodeStatus status;
+  final FavoritesLocalState state;
+
+  static const empty = FavoritesWireDecodeResult._(
+    status: FavoritesWireDecodeStatus.empty,
+    state: FavoritesLocalState.empty,
+  );
+}
 
 class FavoritesLocalState {
   const FavoritesLocalState({
@@ -33,18 +53,35 @@ class FavoritesStateCodec {
   const FavoritesStateCodec._();
 
   static FavoritesLocalState decodeFavoritesFromWire(String encoded) {
+    return decodeFavoritesFromWireResult(encoded).state;
+  }
+
+  static FavoritesWireDecodeResult decodeFavoritesFromWireResult(
+    String encoded,
+  ) {
     if (encoded.isEmpty) {
-      return FavoritesLocalState.empty;
+      return FavoritesWireDecodeResult.empty;
     }
     try {
       final bytes = base64Decode(encoded);
       final synced = pb.SyncedPreferences.fromBuffer(bytes);
       if (!synced.hasFavorites()) {
-        return FavoritesLocalState.empty;
+        return FavoritesWireDecodeResult.empty;
       }
-      return _fromProto(synced.favorites);
-    } on Object {
-      return FavoritesLocalState.empty;
+      return FavoritesWireDecodeResult._(
+        status: FavoritesWireDecodeStatus.success,
+        state: normalizeForSync(_fromProto(synced.favorites)),
+      );
+    } on Object catch (error, stackTrace) {
+      talker.error(
+        '[FavoritesStateCodec] Failed to decode synced preferences',
+        error,
+        stackTrace,
+      );
+      return const FavoritesWireDecodeResult._(
+        status: FavoritesWireDecodeStatus.failure,
+        state: FavoritesLocalState.empty,
+      );
     }
   }
 
@@ -54,7 +91,7 @@ class FavoritesStateCodec {
     }
     try {
       final state = pb.FavoritesState.fromBuffer(bytes);
-      return _fromProto(state);
+      return normalizeForSync(_fromProto(state));
     } on Object {
       return FavoritesLocalState.empty;
     }
@@ -64,56 +101,85 @@ class FavoritesStateCodec {
     required String? currentWire,
     required FavoritesLocalState local,
   }) {
-    pb.SyncedPreferences synced;
-    if (currentWire != null && currentWire.isNotEmpty) {
-      try {
-        synced = pb.SyncedPreferences.fromBuffer(base64Decode(currentWire));
-      } on Object {
-        synced = pb.SyncedPreferences();
-      }
-    } else {
-      synced = pb.SyncedPreferences();
-    }
-    synced.favorites = _toProto(local);
-    return base64Encode(synced.writeToBuffer());
+    return SyncedPreferencesWireCodec.encodeFavoritesIntoWire(
+      currentWire: currentWire,
+      local: local,
+    );
+  }
+
+  static pb.FavoritesState toProto(FavoritesLocalState local) {
+    return _toProto(normalizeForSync(local));
+  }
+
+  static bool verifyRoundtripStability(FavoritesLocalState candidate) {
+    final normalized = normalizeForSync(candidate);
+    final roundtripped = normalizeForSync(
+      _fromProto(_toProto(normalized)),
+    );
+    return statesEqual(normalized, roundtripped);
+  }
+
+  static FavoritesLocalState normalizeForSync(FavoritesLocalState state) {
+    return FavoritesLocalState(
+      channels: [
+        for (final channel in state.channels)
+          db.FavoriteChannel(
+            channelId: channel.channelId,
+            guildId: _normalizeGuildIdForStorage(channel.guildId),
+            parentId: _normalizeOptionalString(channel.parentId),
+            position: channel.position,
+            nickname: _normalizeOptionalString(channel.nickname),
+          ),
+      ],
+      categories: state.categories,
+      collapsedCategoryIds: _normalizeCollapsedCategoryIds(
+        state.collapsedCategoryIds,
+      ),
+      hideMutedChannels: state.hideMutedChannels,
+      muted: state.muted,
+    );
   }
 
   static bool statesEqual(FavoritesLocalState a, FavoritesLocalState b) {
-    if (a.hideMutedChannels != b.hideMutedChannels || a.muted != b.muted) {
+    final left = normalizeForSync(a);
+    final right = normalizeForSync(b);
+    if (left.hideMutedChannels != right.hideMutedChannels ||
+        left.muted != right.muted) {
       return false;
     }
-    if (!_stringSetsEqual(a.collapsedCategoryIds, b.collapsedCategoryIds)) {
+    if (!_stringSetsEqual(left.collapsedCategoryIds, right.collapsedCategoryIds)) {
       return false;
     }
-    if (a.channels.length != b.channels.length ||
-        a.categories.length != b.categories.length) {
+    if (left.channels.length != right.channels.length ||
+        left.categories.length != right.categories.length) {
       return false;
     }
-    final sortedChannelsA = [...a.channels]
+    final sortedChannelsA = [...left.channels]
       ..sort((x, y) => x.position.compareTo(y.position));
-    final sortedChannelsB = [...b.channels]
+    final sortedChannelsB = [...right.channels]
       ..sort((x, y) => x.position.compareTo(y.position));
     for (var i = 0; i < sortedChannelsA.length; i++) {
-      final left = sortedChannelsA[i];
-      final right = sortedChannelsB[i];
-      if (left.channelId != right.channelId ||
-          left.guildId != right.guildId ||
-          left.parentId != right.parentId ||
-          left.position != right.position ||
-          left.nickname != right.nickname) {
+      final channelA = sortedChannelsA[i];
+      final channelB = sortedChannelsB[i];
+      if (channelA.channelId != channelB.channelId ||
+          _normalizeGuildIdForCompare(channelA.guildId) !=
+              _normalizeGuildIdForCompare(channelB.guildId) ||
+          channelA.parentId != channelB.parentId ||
+          channelA.position != channelB.position ||
+          channelA.nickname != channelB.nickname) {
         return false;
       }
     }
-    final sortedCategoriesA = [...a.categories]
+    final sortedCategoriesA = [...left.categories]
       ..sort((x, y) => x.position.compareTo(y.position));
-    final sortedCategoriesB = [...b.categories]
+    final sortedCategoriesB = [...right.categories]
       ..sort((x, y) => x.position.compareTo(y.position));
     for (var i = 0; i < sortedCategoriesA.length; i++) {
-      final left = sortedCategoriesA[i];
-      final right = sortedCategoriesB[i];
-      if (left.id != right.id ||
-          left.name != right.name ||
-          left.position != right.position) {
+      final categoryA = sortedCategoriesA[i];
+      final categoryB = sortedCategoriesB[i];
+      if (categoryA.id != categoryB.id ||
+          categoryA.name != categoryB.name ||
+          categoryA.position != categoryB.position) {
         return false;
       }
     }
@@ -132,10 +198,15 @@ class FavoritesStateCodec {
     required FavoritesLocalState local,
     required FavoritesLocalState server,
   }) {
+    final normalizedLocal = normalizeForSync(local);
+    final normalizedServer = normalizeForSync(server);
     final seenChannels = <String>{};
     final channels = <db.FavoriteChannel>[];
     var position = 0;
-    for (final channel in [...local.channels, ...server.channels]) {
+    for (final channel in [
+      ...normalizedLocal.channels,
+      ...normalizedServer.channels,
+    ]) {
       if (seenChannels.contains(channel.channelId)) {
         continue;
       }
@@ -154,7 +225,10 @@ class FavoritesStateCodec {
     final seenCategories = <String>{};
     final categories = <db.FavoriteCategory>[];
     var categoryPosition = 0;
-    for (final category in [...local.categories, ...server.categories]) {
+    for (final category in [
+      ...normalizedLocal.categories,
+      ...normalizedServer.categories,
+    ]) {
       if (seenCategories.contains(category.id)) {
         continue;
       }
@@ -169,16 +243,18 @@ class FavoritesStateCodec {
     }
 
     final collapsed = {
-      ...local.collapsedCategoryIds,
-      ...server.collapsedCategoryIds,
+      ...normalizedLocal.collapsedCategoryIds,
+      ...normalizedServer.collapsedCategoryIds,
     }.toList();
 
-    return FavoritesLocalState(
-      channels: channels,
-      categories: categories,
-      collapsedCategoryIds: collapsed,
-      hideMutedChannels: local.hideMutedChannels,
-      muted: local.muted,
+    return normalizeForSync(
+      FavoritesLocalState(
+        channels: channels,
+        categories: categories,
+        collapsedCategoryIds: collapsed,
+        hideMutedChannels: normalizedLocal.hideMutedChannels,
+        muted: normalizedLocal.muted,
+      ),
     );
   }
 
@@ -188,12 +264,14 @@ class FavoritesStateCodec {
     final channels = await dao.watchChannels().first;
     final categories = await dao.getCategories();
     final settings = await dao.getSettings();
-    return FavoritesLocalState(
-      channels: channels,
-      categories: categories,
-      collapsedCategoryIds: favoriteSettingsCollapsedCategoryIds(settings),
-      hideMutedChannels: settings.hideMuted,
-      muted: settings.muted,
+    return normalizeForSync(
+      FavoritesLocalState(
+        channels: channels,
+        categories: categories,
+        collapsedCategoryIds: favoriteSettingsCollapsedCategoryIds(settings),
+        hideMutedChannels: settings.hideMuted,
+        muted: settings.muted,
+      ),
     );
   }
 
@@ -233,7 +311,7 @@ class FavoritesStateCodec {
         for (final channel in local.channels)
           pb.FavoriteChannel(
             channelId: channel.channelId,
-            guildId: channel.guildId ?? '',
+            guildId: _encodeGuildIdForWire(channel.guildId),
             parentId: channel.parentId ?? '',
             position: channel.position,
             nickname: channel.nickname ?? '',
@@ -251,5 +329,53 @@ class FavoritesStateCodec {
       hideMutedChannels: local.hideMutedChannels,
       muted: local.muted,
     );
+  }
+
+  static String? _normalizeGuildIdForStorage(String? guildId) {
+    final trimmed = guildId?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed;
+  }
+
+  static String _normalizeGuildIdForCompare(String? guildId) {
+    final trimmed = guildId?.trim();
+    if (trimmed == null ||
+        trimmed.isEmpty ||
+        trimmed == favoriteDmGuildId) {
+      return favoriteDmGuildId;
+    }
+    return trimmed;
+  }
+
+  static String _encodeGuildIdForWire(String? guildId) {
+    final trimmed = guildId?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return favoriteDmGuildId;
+    }
+    return trimmed;
+  }
+
+  static String? _normalizeOptionalString(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed;
+  }
+
+  static List<String> _normalizeCollapsedCategoryIds(List<String> values) {
+    final seen = <String>{};
+    final normalized = <String>[];
+    for (final value in values) {
+      final trimmed = value.trim();
+      if (trimmed.isEmpty || seen.contains(trimmed)) {
+        continue;
+      }
+      seen.add(trimmed);
+      normalized.add(trimmed);
+    }
+    return normalized;
   }
 }

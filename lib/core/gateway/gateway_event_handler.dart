@@ -34,6 +34,7 @@ typedef ConnectionsUpdateCallback =
     void Function(List<ConnectionResponse> connections);
 typedef UserSettingsHydrateCallback =
     void Function(UserSettingsResponse settings);
+typedef SessionChangingCallback = void Function();
 typedef UnavailableGuildsReadyCallback =
     void Function(List<Map<String, dynamic>> rawGuilds);
 typedef GuildAvailabilityChangedCallback =
@@ -93,6 +94,7 @@ class GatewayEventHandler {
     this.onAuthSessionIdHashChanged,
     this.onConnectionsUpdate,
     this.onUserSettingsHydrate,
+    this.onSessionChanging,
     this.onUnavailableGuildsReady,
     this.onGuildAvailabilityChanged,
     this.onGuildAvailable,
@@ -130,6 +132,7 @@ class GatewayEventHandler {
   final void Function(String? idHash)? onAuthSessionIdHashChanged;
   final ConnectionsUpdateCallback? onConnectionsUpdate;
   final UserSettingsHydrateCallback? onUserSettingsHydrate;
+  final SessionChangingCallback? onSessionChanging;
   final UnavailableGuildsReadyCallback? onUnavailableGuildsReady;
   final GuildAvailabilityChangedCallback? onGuildAvailabilityChanged;
   final GuildAvailableCallback? onGuildAvailable;
@@ -413,6 +416,7 @@ class GatewayEventHandler {
   }
 
   Future<void> _handleReady(ReadyEvent event) async {
+    onSessionChanging?.call();
     talker.info(
       '[Gateway] READY received (session: ${event.sessionId})'
       ' — guilds: ${event.guilds.length}'

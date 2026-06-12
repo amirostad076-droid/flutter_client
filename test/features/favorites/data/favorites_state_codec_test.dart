@@ -94,6 +94,13 @@ void main() {
       expect(merged.muted, isFalse);
     });
 
+    test('decode failure does not masquerade as empty server', () {
+      final result = FavoritesStateCodec.decodeFavoritesFromWireResult(
+        'not-valid-base64!!!',
+      );
+      expect(result.status, FavoritesWireDecodeStatus.failure);
+    });
+
     test('statesEqual compares favorites semantically', () {
       const left = FavoritesLocalState(
         channels: [
@@ -143,6 +150,33 @@ void main() {
 
       expect(FavoritesStateCodec.statesEqual(left, right), isTrue);
       expect(FavoritesStateCodec.statesEqual(left, different), isFalse);
+    });
+
+    test('statesEqual treats null and @me guildId as equivalent', () {
+      const withNull = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(channelId: 'dm-1', position: 0),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+      const withAtMe = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(
+            channelId: 'dm-1',
+            guildId: '@me',
+            position: 0,
+          ),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+
+      expect(FavoritesStateCodec.statesEqual(withNull, withAtMe), isTrue);
     });
 
     test('preserves wire blob when updating favorites field', () {

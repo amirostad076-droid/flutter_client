@@ -202,6 +202,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
           .read(connectionsViewModelProvider.notifier)
           .setConnections(connections);
     },
+    onSessionChanging: () {
+      ref.read(favoritesSyncServiceProvider).markSessionChanging();
+    },
     onUserSettingsHydrate: (settings) {
       unawaited(
         ref

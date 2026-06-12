@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
 import 'package:fluxer_app/features/auth/domain/stored_account.dart';
 import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
+import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'account_manager_provider.g.dart';
@@ -91,6 +92,8 @@ class AccountManager extends _$AccountManager {
             .unregisterCurrentToken();
       }
 
+      ref.read(favoritesSyncServiceProvider).reset();
+
       // Trigger full app restart with new session.
       ref.invalidate(appStartupProvider);
 
@@ -148,6 +151,7 @@ class AccountManager extends _$AccountManager {
       await UnifiedPushService.instance.unregisterFromDistributor();
     }
     await repo.logout(userId);
+    ref.read(favoritesSyncServiceProvider).reset();
     await loadAccounts();
 
     // Always go to login — account selector shows remaining accounts.

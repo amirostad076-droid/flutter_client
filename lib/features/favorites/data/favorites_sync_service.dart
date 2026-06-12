@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/synced_preferences/favorites_state_codec.dart';
@@ -10,6 +11,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'favorites_sync_service.g.dart';
 
 const Duration _kFavoritesSyncDebounce = Duration(milliseconds: 500);
+const Duration _kFavoritesRecentAckWindow = Duration(seconds: 60);
+const Duration _kFavoritesRateLimitBaseDelay = Duration(seconds: 5);
+const int _kFavoritesRateLimitMaxAttempts = 6;
 
 @Riverpod(keepAlive: true)
 FavoritesSyncService favoritesSyncService(Ref ref) {
@@ -22,67 +26,102 @@ class FavoritesSyncService {
   final Ref _ref;
   String _wireBlob = '';
   bool _hasHydrated = false;
+  bool _isDirty = false;
   bool _isApplyingRemote = false;
   bool _isPushInFlight = false;
   bool _pendingPush = false;
+  DateTime? _recentlyAckedUntil;
   Timer? _pushTimer;
+  Timer? _rateLimitTimer;
   int _pushGeneration = 0;
+  int _rateLimitAttempts = 0;
 
-  bool get _hasUnsyncedLocalChanges {
-    return _pendingPush ||
-        _isPushInFlight ||
-        (_pushTimer?.isActive ?? false);
+  void reset() {
+    _pushTimer?.cancel();
+    _rateLimitTimer?.cancel();
+    _wireBlob = '';
+    _hasHydrated = false;
+    _isDirty = false;
+    _isApplyingRemote = false;
+    _isPushInFlight = false;
+    _pendingPush = false;
+    _recentlyAckedUntil = null;
+    _pushGeneration++;
+    _rateLimitAttempts = 0;
+  }
+
+  void markSessionChanging() {
+    _hasHydrated = false;
   }
 
   Future<void> hydrateFromUserSettings(UserSettingsResponse settings) async {
-    if (_hasUnsyncedLocalChanges) {
+    final encoded = settings.syncedPreferences;
+    _wireBlob = encoded;
+
+    final decodeResult = FavoritesStateCodec.decodeFavoritesFromWireResult(
+      encoded,
+    );
+    if (decodeResult.status == FavoritesWireDecodeStatus.failure) {
+      _hasHydrated = true;
+      _flushPendingPush();
       return;
     }
-    final encoded = settings.syncedPreferences;
-    final serverState = FavoritesStateCodec.decodeFavoritesFromWire(encoded);
+
     final dao = _ref.read(fluxerDatabaseProvider).favoriteChannelsDao;
     final localState = await FavoritesStateCodec.readFromDatabase(dao);
-    final hasLocalData =
-        localState.channels.isNotEmpty || localState.categories.isNotEmpty;
-    final hasServerData =
-        serverState.channels.isNotEmpty || serverState.categories.isNotEmpty;
-
-    _wireBlob = encoded;
+    final serverState = decodeResult.state;
+    final hasLocalData = _hasFavoritesData(localState);
+    final hasServerData = _hasFavoritesData(serverState);
+    final wasFirstHydrate = !_hasHydrated;
     _hasHydrated = true;
 
+    if (_isFavoritesProtected()) {
+      _flushPendingPush();
+      return;
+    }
+
+    if (wasFirstHydrate &&
+        hasLocalData &&
+        hasServerData &&
+        !FavoritesStateCodec.statesEqual(localState, serverState)) {
+      final target = FavoritesStateCodec.mergeForMigration(
+        local: localState,
+        server: serverState,
+      );
+      if (!FavoritesStateCodec.statesEqual(target, localState)) {
+        await _applyState(target, fromRemote: true);
+      }
+      if (!FavoritesStateCodec.statesEqual(target, serverState)) {
+        _isDirty = true;
+        schedulePush();
+      } else {
+        _isDirty = false;
+        _flushPendingPush();
+      }
+      return;
+    }
+
     if (!hasLocalData && !hasServerData) {
+      _isDirty = false;
       _flushPendingPush();
       return;
     }
 
     if (FavoritesStateCodec.statesEqual(localState, serverState)) {
+      _isDirty = false;
       _flushPendingPush();
       return;
     }
 
     if (hasLocalData && !hasServerData) {
+      _isDirty = true;
       schedulePush();
       return;
     }
 
-    final FavoritesLocalState target = hasLocalData && hasServerData
-        ? FavoritesStateCodec.mergeForMigration(
-            local: localState,
-            server: serverState,
-          )
-        : serverState;
-
-    if (!FavoritesStateCodec.statesEqual(target, localState)) {
-      await _applyState(target, fromRemote: true);
-    }
-
-    if (hasLocalData &&
-        hasServerData &&
-        !FavoritesStateCodec.statesEqual(target, serverState)) {
-      schedulePush();
-    } else {
-      _flushPendingPush();
-    }
+    await _applyState(serverState, fromRemote: true);
+    _isDirty = false;
+    _flushPendingPush();
   }
 
   void schedulePush() {
@@ -113,20 +152,18 @@ class FavoritesSyncService {
       final serverState = FavoritesStateCodec.decodeFavoritesFromWire(
         _wireBlob,
       );
-      final pushState = FavoritesStateCodec.mergeForMigration(
-        local: localState,
-        server: serverState,
-      );
-      if (FavoritesStateCodec.statesEqual(pushState, serverState)) {
+      if (FavoritesStateCodec.statesEqual(localState, serverState)) {
+        _isDirty = false;
         _pendingPush = false;
         return;
       }
-      if (!FavoritesStateCodec.statesEqual(pushState, localState)) {
-        await _applyState(pushState, fromRemote: false);
+      if (!FavoritesStateCodec.verifyRoundtripStability(localState)) {
+        talker.error('[FavoritesSync] Roundtrip unstable, push skipped');
+        return;
       }
       final encoded = FavoritesStateCodec.encodeFavoritesIntoWire(
         currentWire: _wireBlob.isEmpty ? null : _wireBlob,
-        local: pushState,
+        local: localState,
       );
       if (generation != _pushGeneration) {
         return;
@@ -136,9 +173,17 @@ class FavoritesSyncService {
         body: UserSettingsUpdateRequest(syncedPreferences: encoded),
       );
       _wireBlob = encoded;
+      _isDirty = false;
       _pendingPush = false;
+      _recentlyAckedUntil = DateTime.now().add(_kFavoritesRecentAckWindow);
+      _rateLimitAttempts = 0;
       talker.debug('[FavoritesSync] Pushed favorites to server');
     } on Object catch (error, stackTrace) {
+      if (_isRateLimitError(error)) {
+        _scheduleRateLimitRetry();
+        talker.warning('[FavoritesSync] Push rate-limited, will retry');
+        return;
+      }
       talker.error('[FavoritesSync] Push failed', error, stackTrace);
     } finally {
       _isPushInFlight = false;
@@ -147,6 +192,7 @@ class FavoritesSyncService {
   }
 
   Future<void> applyAfterLocalMutation() async {
+    _isDirty = true;
     schedulePush();
   }
 
@@ -165,6 +211,54 @@ class FavoritesSyncService {
     });
   }
 
+  void _scheduleRateLimitRetry() {
+    _pendingPush = true;
+    _pushTimer?.cancel();
+    _rateLimitTimer?.cancel();
+    _rateLimitAttempts = (_rateLimitAttempts + 1).clamp(
+      1,
+      _kFavoritesRateLimitMaxAttempts,
+    );
+    final delay = Duration(
+      milliseconds:
+          _kFavoritesRateLimitBaseDelay.inMilliseconds *
+          (1 << (_rateLimitAttempts - 1).clamp(0, 4)),
+    );
+    _rateLimitTimer = Timer(delay, () {
+      unawaited(_flushPush());
+    });
+  }
+
+  bool _isFavoritesProtected() {
+    if (_isDirty || _isPushInFlight || (_pushTimer?.isActive ?? false)) {
+      return true;
+    }
+    return _isRecentlyAcked();
+  }
+
+  bool _isRecentlyAcked() {
+    final ackedUntil = _recentlyAckedUntil;
+    if (ackedUntil == null) {
+      return false;
+    }
+    if (ackedUntil.isAfter(DateTime.now())) {
+      return true;
+    }
+    _recentlyAckedUntil = null;
+    return false;
+  }
+
+  bool _hasFavoritesData(FavoritesLocalState state) {
+    return state.channels.isNotEmpty || state.categories.isNotEmpty;
+  }
+
+  bool _isRateLimitError(Object error) {
+    if (error is DioException) {
+      return error.response?.statusCode == 429;
+    }
+    return false;
+  }
+
   Future<void> _applyState(
     FavoritesLocalState state, {
     required bool fromRemote,
@@ -172,12 +266,13 @@ class FavoritesSyncService {
     _isApplyingRemote = fromRemote;
     try {
       final dao = _ref.read(fluxerDatabaseProvider).favoriteChannelsDao;
+      final normalized = FavoritesStateCodec.normalizeForSync(state);
       await dao.replaceAllFromSync(
-        channels: state.channels,
-        categories: state.categories,
-        collapsedCategoryIds: state.collapsedCategoryIds,
-        hideMutedChannels: state.hideMutedChannels,
-        muted: state.muted,
+        channels: normalized.channels,
+        categories: normalized.categories,
+        collapsedCategoryIds: normalized.collapsedCategoryIds,
+        hideMutedChannels: normalized.hideMutedChannels,
+        muted: normalized.muted,
       );
     } finally {
       _isApplyingRemote = false;
