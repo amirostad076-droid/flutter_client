@@ -135,6 +135,7 @@ abstract class FluxerLocalizations {
     Locale('de'),
     Locale('de', 'CH'),
     Locale('el'),
+    Locale('en', 'GB'),
     Locale('en', 'US'),
     Locale('es'),
     Locale('es', '419'),
@@ -8782,6 +8783,8 @@ FluxerLocalizations lookupFluxerLocalizations(Locale locale) {
     case 'en':
       {
         switch (locale.countryCode) {
+          case 'GB':
+            return FluxerLocalizationsEnGb();
           case 'US':
             return FluxerLocalizationsEnUs();
         }
