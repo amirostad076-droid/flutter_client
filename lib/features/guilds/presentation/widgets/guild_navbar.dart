@@ -206,8 +206,11 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       }
     }
 
+    final scrollOffset = scrollPosition.pixels;
+    final hideTopIndicatorOverDms = scrollOffset < 80;
+
     _topIndicator.value = (
-      show: showTop,
+      show: showTop && !hideTopIndicatorOverDms,
       severity: topSeverity,
       targetId: topTarget,
     );
@@ -256,6 +259,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       guildListViewModelProvider.select((s) => s.guilds),
     );
     final activeGuildId = ref.watch(activeGuildIdProvider);
+    final activeChannelId = ref.watch(activeChannelIdProvider);
     final currentLocation = ref.watch(currentLocationProvider);
     final isDm = currentLocation.startsWith('/channels/@me');
     final isFavorites = currentLocation.startsWith('/channels/@favorites');
@@ -354,8 +358,9 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
             displayName: dm.name ?? 'Direct Message',
             mentionCount: dm.unreadCount,
             hasUnread: unreadDmState.hasUnread(dm.id),
+            isPendingRemoval: unreadDmState.isPendingRemoval(dm.id),
             type: dm.type,
-            isSelected: currentLocation.contains(dm.id),
+            isSelected: activeChannelId == dm.id,
             onContextMenu: (position) => _handleDmContextMenu(
               context,
               position: position,
@@ -383,8 +388,11 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                           displayName: dm.name ?? 'Direct Message',
                           mentionCount: dm.unreadCount,
                           hasUnread: unreadDmState.hasUnread(dm.id),
+                          isPendingRemoval: unreadDmState.isPendingRemoval(
+                            dm.id,
+                          ),
                           type: dm.type,
-                          isSelected: currentLocation.contains(dm.id),
+                          isSelected: activeChannelId == dm.id,
                           onContextMenu: (position) => _handleDmContextMenu(
                             context,
                             position: position,

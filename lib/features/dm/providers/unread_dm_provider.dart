@@ -12,13 +12,18 @@ part 'unread_dm_provider.g.dart';
 class UnreadDmState {
   final List<DmChannel> channels;
   final Set<String> unreadChannelIds;
+  final Set<String> pendingRemovalIds;
 
   const UnreadDmState({
     this.channels = const [],
     this.unreadChannelIds = const {},
+    this.pendingRemovalIds = const {},
   });
 
   bool hasUnread(String channelId) => unreadChannelIds.contains(channelId);
+
+  bool isPendingRemoval(String channelId) =>
+      pendingRemovalIds.contains(channelId);
 }
 
 @Riverpod(keepAlive: true)
@@ -63,6 +68,28 @@ class UnreadDmChannels extends _$UnreadDmChannels {
     );
   }
 
+  List<DmChannel> _sortChannels(List<DmChannel> channels) {
+    return channels.toList()
+      ..sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
+  }
+
+  List<DmChannel> _orderChannels({
+    required Map<String, DmChannel> merged,
+    required Set<String> previousIds,
+    required Set<String> addedIds,
+  }) {
+    final visible = merged.values
+        .where((channel) => !_shouldExcludeChannel(channel))
+        .toList();
+    if (addedIds.isEmpty && visible.length == previousIds.length) {
+      return state.channels
+          .where((channel) => merged.containsKey(channel.id))
+          .map((channel) => merged[channel.id]!)
+          .toList();
+    }
+    return _sortChannels(visible);
+  }
+
   Future<void> _reconcile([List<DmChannel>? rows]) async {
     if (rows != null) {
       _latestRows = rows;
@@ -102,29 +129,30 @@ class UnreadDmChannels extends _$UnreadDmChannels {
         .toList();
     final unreadIds = unreadChannels.map((c) => c.id).toSet();
     final currentIds = state.channels.map((c) => c.id).toSet();
+    var pendingRemovalIds = {...state.pendingRemovalIds};
 
-    // Start removal timers for channels that became read
     for (final id in currentIds) {
       if (!unreadIds.contains(id)) {
         if (!_removalTimers.containsKey(id)) {
+          pendingRemovalIds.add(id);
           _removalTimers[id] = Timer(const Duration(milliseconds: 750), () {
             _removalTimers.remove(id);
             state = UnreadDmState(
               channels: state.channels.where((c) => c.id != id).toList(),
               unreadChannelIds: {...state.unreadChannelIds}..remove(id),
+              pendingRemovalIds: {...state.pendingRemovalIds}..remove(id),
             );
           });
         }
       }
     }
 
-    // Cancel timers for channels that became unread again
     for (final channel in unreadChannels) {
       _removalTimers[channel.id]?.cancel();
       _removalTimers.remove(channel.id);
+      pendingRemovalIds.remove(channel.id);
     }
 
-    // Merge: keep existing + add new unread
     final merged = <String, DmChannel>{};
     for (final c in state.channels) {
       if (!_shouldExcludeChannel(c)) {
@@ -135,10 +163,17 @@ class UnreadDmChannels extends _$UnreadDmChannels {
       merged[c.id] = c;
     }
 
-    final newChannels =
-        merged.values.where((c) => !_shouldExcludeChannel(c)).toList()
-          ..sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
+    final addedIds = merged.keys.toSet().difference(currentIds);
+    final newChannels = _orderChannels(
+      merged: merged,
+      previousIds: currentIds,
+      addedIds: addedIds,
+    );
 
-    state = UnreadDmState(channels: newChannels, unreadChannelIds: unreadIds);
+    state = UnreadDmState(
+      channels: newChannels,
+      unreadChannelIds: unreadIds,
+      pendingRemovalIds: pendingRemovalIds,
+    );
   }
 }

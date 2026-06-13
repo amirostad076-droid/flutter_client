@@ -92,4 +92,75 @@ void main() {
       expect(state.hasUnread(dmId), isTrue);
     },
   );
+
+  test('unread DM provider preserves channel order when only data updates', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    await db.dmChannelDao.upsertDmChannels([
+      DmChannelsCompanion.insert(
+        id: 'dm-older',
+        recipientId: 'other-a',
+        lastMessageTime: Value(DateTime.utc(2026, 1, 1)),
+        unreadCount: const Value(0),
+      ),
+      DmChannelsCompanion.insert(
+        id: 'dm-newer',
+        recipientId: 'other-b',
+        lastMessageTime: Value(DateTime.utc(2026, 1, 2)),
+        unreadCount: const Value(0),
+      ),
+    ]);
+    await db.readStateDao.upsertReadState(
+      const ReadStatesCompanion(
+        channelId: Value('dm-older'),
+        mentionCount: Value(1),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      const ReadStatesCompanion(
+        channelId: Value('dm-newer'),
+        mentionCount: Value(1),
+      ),
+    );
+    final container = ProviderContainer(
+      overrides: [fluxerDatabaseProvider.overrideWithValue(db)],
+    );
+    addTearDown(container.dispose);
+
+    final subscription = container.listen(
+      unreadDmChannelsProvider,
+      (_, _) {},
+      fireImmediately: true,
+    );
+    addTearDown(subscription.close);
+
+    await pumpEventQueue();
+    final initialOrder = container
+        .read(unreadDmChannelsProvider)
+        .channels
+        .map((channel) => channel.id)
+        .toList();
+    expect(initialOrder, containsAll(['dm-older', 'dm-newer']));
+
+    await db.readStateDao.upsertReadState(
+      const ReadStatesCompanion(
+        channelId: Value('dm-older'),
+        mentionCount: Value(2),
+      ),
+    );
+    await pumpEventQueue();
+
+    final updatedOrder = container
+        .read(unreadDmChannelsProvider)
+        .channels
+        .map((channel) => channel.id)
+        .toList();
+    expect(updatedOrder, initialOrder);
+    expect(
+      container.read(unreadDmChannelsProvider).channels.singleWhere(
+        (channel) => channel.id == 'dm-older',
+      ).unreadCount,
+      2,
+    );
+  });
 }
