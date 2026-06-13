@@ -2,6 +2,7 @@ import 'dart:async' show unawaited;
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
+import 'package:fluxer_app/core/api/session_authorization_header.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as database;
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
@@ -293,7 +294,9 @@ class VoiceParticipantMediaTile extends StatelessWidget {
     }
     final Map<String, String>? headers = token == null || token.isEmpty
         ? null
-        : <String, String>{'Authorization': 'Bearer $token'};
+        : <String, String>{
+            'Authorization': formatSessionAuthorizationHeader(token),
+          };
     return Image.network(
       previewUrl,
       fit: BoxFit.cover,

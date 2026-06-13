@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/api/captcha_dialog.dart';
 import 'package:fluxer_app/core/api/captcha_interceptor.dart';
 import 'package:fluxer_app/core/api/fluxer_client_properties.dart';
 import 'package:fluxer_app/core/api/retry_interceptor.dart';
+import 'package:fluxer_app/core/api/session_authorization_header.dart';
 import 'package:fluxer_app/core/api/sudo_dialog.dart';
 import 'package:fluxer_app/core/api/sudo_interceptor.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
@@ -71,7 +72,9 @@ Dio fluxerDio(Ref ref) {
   );
 
   if (token != null && token.isNotEmpty) {
-    dio.options.headers['Authorization'] = 'Bearer $token';
+    dio.options.headers['Authorization'] = formatSessionAuthorizationHeader(
+      token,
+    );
   }
 
   dio.interceptors.add(RetryInterceptor(dio: dio));
@@ -104,7 +107,10 @@ Dio fluxerDio(Ref ref) {
   if (kDebugMode) {
     dio.interceptors.add(
       TalkerDioLogger(
-        settings: const TalkerDioLoggerSettings(printResponseTime: true),
+        settings: const TalkerDioLoggerSettings(
+          printResponseTime: true,
+          printRequestHeaders: true,
+        ),
       ),
     );
   }

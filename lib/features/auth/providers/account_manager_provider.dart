@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
+import 'package:fluxer_app/core/api/session_authorization_header.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
@@ -115,7 +116,9 @@ class AccountManager extends _$AccountManager {
       await Dio(
         BaseOptions(
           baseUrl: baseUrl,
-          headers: {'Authorization': token},
+          headers: {
+            'Authorization': formatSessionAuthorizationHeader(token),
+          },
           connectTimeout: const Duration(seconds: 5),
           receiveTimeout: const Duration(seconds: 5),
         ),
@@ -173,7 +176,9 @@ class AccountManager extends _$AccountManager {
         await Dio(
           BaseOptions(
             baseUrl: baseUrl,
-            headers: {'Authorization': session.token},
+            headers: {
+              'Authorization': formatSessionAuthorizationHeader(session.token),
+            },
             connectTimeout: const Duration(seconds: 5),
             receiveTimeout: const Duration(seconds: 5),
           ),
