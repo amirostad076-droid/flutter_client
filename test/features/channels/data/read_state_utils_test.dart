@@ -122,4 +122,58 @@ void main() {
       );
     },
   );
+
+  test(
+    'resolveLatestMessageIdForUnread falls back to channel pointer when ack is behind',
+    () {
+      final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+
+      expect(
+        resolveLatestMessageIdForUnread(
+          strictLatestMessageId: null,
+          channelLastMessageId: lastMessageId,
+          ackLastMessageId: ackId,
+          mentionCount: 0,
+        ),
+        lastMessageId,
+      );
+    },
+  );
+
+  test(
+    'resolveLatestMessageIdForUnread falls back to channel pointer for mentions',
+    () {
+      final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+
+      expect(
+        resolveLatestMessageIdForUnread(
+          strictLatestMessageId: null,
+          channelLastMessageId: lastMessageId,
+          ackLastMessageId: lastMessageId,
+          mentionCount: 2,
+        ),
+        lastMessageId,
+      );
+    },
+  );
+
+  test(
+    'resolveLatestMessageIdForUnread keeps strict resolver result when present',
+    () {
+      final cachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+
+      expect(
+        resolveLatestMessageIdForUnread(
+          strictLatestMessageId: cachedId,
+          channelLastMessageId: channelId,
+          ackLastMessageId: ackId,
+          mentionCount: 0,
+        ),
+        cachedId,
+      );
+    },
+  );
 }

@@ -62,6 +62,49 @@ Future<String?> resolveLatestMessageIdForChannel(
   );
 }
 
+String? resolveLatestMessageIdForUnread({
+  required String? strictLatestMessageId,
+  required String? channelLastMessageId,
+  required String? ackLastMessageId,
+  required int mentionCount,
+}) {
+  if (strictLatestMessageId != null && strictLatestMessageId.isNotEmpty) {
+    return strictLatestMessageId;
+  }
+  if (channelLastMessageId == null || channelLastMessageId.isEmpty) {
+    return null;
+  }
+  if (mentionCount > 0) {
+    return channelLastMessageId;
+  }
+  if (ackLastMessageId != null &&
+      ackLastMessageId.isNotEmpty &&
+      compareSnowflakeIds(ackLastMessageId, channelLastMessageId) < 0) {
+    return channelLastMessageId;
+  }
+  return null;
+}
+
+Future<String?> resolveLatestMessageIdForUnreadDisplay(
+  FluxerDatabase db,
+  String channelId, {
+  String? channelLastMessageId,
+  String? ackLastMessageId,
+  int mentionCount = 0,
+}) async {
+  final strictLatestMessageId = await resolveLatestMessageIdForChannel(
+    db,
+    channelId,
+    channelLastMessageId: channelLastMessageId,
+  );
+  return resolveLatestMessageIdForUnread(
+    strictLatestMessageId: strictLatestMessageId,
+    channelLastMessageId: channelLastMessageId,
+    ackLastMessageId: ackLastMessageId,
+    mentionCount: mentionCount,
+  );
+}
+
 bool hasUnreadByReadState({
   required String? channelLastMessageId,
   required String? ackLastMessageId,

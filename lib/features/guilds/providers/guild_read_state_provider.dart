@@ -90,6 +90,8 @@ class GuildReadState extends _$GuildReadState {
   bool _seeded = false;
   Future<void>? _pendingRecompute;
   final Set<String> _queuedGuildIds = <String>{};
+  final Map<String, StreamSubscription<List<Message>>> _messageSubs =
+      <String, StreamSubscription<List<Message>>>{};
 
   @override
   Map<String, GuildReadStateEntry> build() {
@@ -100,6 +102,7 @@ class GuildReadState extends _$GuildReadState {
       final next = <String, ReadState>{for (final r in rows) r.channelId: r};
       final touched = _diffReadStates(_readStateSnapshot, next);
       _readStateSnapshot = next;
+      _syncMessageSubscriptions(db, currentUserId);
       if (touched.isNotEmpty) {
         _queueChannelIds(touched, db, currentUserId);
       }
@@ -109,6 +112,7 @@ class GuildReadState extends _$GuildReadState {
       final next = <String, Channel>{for (final c in channels) c.id: c};
       final touched = _diffChannels(_channelSnapshot, next);
       _channelSnapshot = next;
+      _syncMessageSubscriptions(db, currentUserId);
       if (touched.isNotEmpty) {
         _queueChannelIds(touched, db, currentUserId);
       }
@@ -139,6 +143,10 @@ class GuildReadState extends _$GuildReadState {
       unawaited(channelSub.cancel());
       unawaited(settingsSub.cancel());
       unawaited(guildSub.cancel());
+      for (final sub in _messageSubs.values) {
+        unawaited(sub.cancel());
+      }
+      _messageSubs.clear();
     });
 
     return <String, GuildReadStateEntry>{};
@@ -157,7 +165,32 @@ class GuildReadState extends _$GuildReadState {
     final allReadStates = await db.readStateDao.getReadStates();
     _channelSnapshot = {for (final c in allChannels) c.id: c};
     _readStateSnapshot = {for (final r in allReadStates) r.channelId: r};
+    _syncMessageSubscriptions(db, currentUserId);
     await _recomputeGuilds(guilds.map((g) => g.id).toSet(), db, currentUserId);
+  }
+
+  void _syncMessageSubscriptions(
+    FluxerDatabase db,
+    String? currentUserId,
+  ) {
+    final watchedChannelIds = _channelSnapshot.keys
+        .where((channelId) => _readStateSnapshot.containsKey(channelId))
+        .toSet();
+    for (final channelId in _messageSubs.keys.toList()) {
+      if (!watchedChannelIds.contains(channelId)) {
+        unawaited(_messageSubs.remove(channelId)?.cancel());
+      }
+    }
+    for (final channelId in watchedChannelIds) {
+      if (_messageSubs.containsKey(channelId)) {
+        continue;
+      }
+      _messageSubs[channelId] = db.messageDao.watchMessages(channelId).listen((
+        _,
+      ) {
+        _queueChannelIds({channelId}, db, currentUserId);
+      });
+    }
   }
 
   void _queueChannelIds(
@@ -289,12 +322,14 @@ class GuildReadState extends _$GuildReadState {
     required String? currentUserId,
   }) async {
     final isVoice = channel.type == _voiceType;
-    final latestMessageId = await resolveLatestMessageIdForChannel(
+    final rawMentions = readState?.mentionCount ?? 0;
+    final latestMessageId = await resolveLatestMessageIdForUnreadDisplay(
       db,
       channel.id,
       channelLastMessageId: channel.lastMessageId,
+      ackLastMessageId: readState?.lastMessageId,
+      mentionCount: rawMentions,
     );
-    final rawMentions = readState?.mentionCount ?? 0;
     final visibleMentions =
         canShowMentionCount(
           channelLastMessageId: latestMessageId,

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -32,8 +33,11 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
   final db = ref.watch(fluxerDatabaseProvider);
   final currentUserId = ref.watch(currentUserIdProvider);
   ref.watch(gatewayReadyProvider);
+  ref.watch(effectiveGuildChannelPermissionBitsProvider(channelId));
   final controller = StreamController<UnreadState>();
   var disposed = false;
+  StreamSubscription<Object?>? memberSub;
+  String? watchedMemberGuildId;
 
   Future<void> recompute() async {
     if (disposed) {
@@ -42,12 +46,14 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
 
     final channel = await db.channelDao.getChannelById(channelId);
     final readState = await db.readStateDao.getReadState(channelId);
-    final latestMessageId = await resolveLatestMessageIdForChannel(
+    final rawMentionCount = readState?.mentionCount ?? 0;
+    final latestMessageId = await resolveLatestMessageIdForUnreadDisplay(
       db,
       channelId,
       channelLastMessageId: channel?.lastMessageId,
+      ackLastMessageId: readState?.lastMessageId,
+      mentionCount: rawMentionCount,
     );
-    final rawMentionCount = readState?.mentionCount ?? 0;
     final visibleMentionCount =
         canShowMentionCount(
           channelLastMessageId: latestMessageId,
@@ -56,16 +62,27 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
         )
         ? rawMentionCount
         : 0;
-    if (channel != null &&
-        !await canReadChannelForUnread(
-          database: db,
-          channel: channel,
-          currentUserId: currentUserId,
-        )) {
-      if (!disposed) {
-        controller.add(const UnreadState());
+    if (channel != null) {
+      final permissionOutcome = await evaluateChannelUnreadPermission(
+        database: db,
+        channel: channel,
+        currentUserId: currentUserId,
+      );
+      if (permissionOutcome.isDefinitive && !permissionOutcome.canRead) {
+        if (!disposed) {
+          controller.add(const UnreadState());
+        }
+        return;
       }
-      return;
+      if (currentUserId != null &&
+          currentUserId.isNotEmpty &&
+          watchedMemberGuildId != channel.guildId) {
+        unawaited(memberSub?.cancel());
+        watchedMemberGuildId = channel.guildId;
+        memberSub = db.memberDao
+            .watchMemberByUserId(currentUserId, channel.guildId)
+            .listen((_) => unawaited(recompute()));
+      }
     }
 
     final guildSettings = channel == null
@@ -155,6 +172,7 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
     unawaited(readStateSub.cancel());
     unawaited(messageSub.cancel());
     unawaited(settingsSub.cancel());
+    unawaited(memberSub?.cancel());
     unawaited(controller.close());
   });
 

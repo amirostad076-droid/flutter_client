@@ -127,13 +127,20 @@ Future<QuickSwitcherUnreadChannel?> _guildUnreadFromReadState({
   if (!unreadSettings.allowsGuildMessageUnread && mentionCount == 0) {
     return null;
   }
+  final String? latestMessageId = await resolveLatestMessageIdForUnreadDisplay(
+    db,
+    row.id,
+    channelLastMessageId: row.lastMessageId,
+    ackLastMessageId: readState.lastMessageId,
+    mentionCount: rawMentions,
+  );
   final int fallbackAckMs = await guildChannelFallbackAckMs(
     database: db,
     channel: row,
     currentUserId: currentUserId,
   );
   if (shouldSuppressStaleUnread(
-    channelLastMessageId: row.lastMessageId,
+    channelLastMessageId: latestMessageId,
     ackLastMessageId: readState.lastMessageId,
     fallbackAckMs: fallbackAckMs,
     mentionCount: mentionCount,
@@ -142,7 +149,7 @@ Future<QuickSwitcherUnreadChannel?> _guildUnreadFromReadState({
     return null;
   }
   final bool hasUnread = isQuickSwitcherChannelUnread(
-    channelLastMessageId: row.lastMessageId,
+    channelLastMessageId: latestMessageId,
     ackLastMessageId: readState.lastMessageId,
     mentionCount: mentionCount,
     fallbackAckMs: fallbackAckMs,
@@ -154,7 +161,7 @@ Future<QuickSwitcherUnreadChannel?> _guildUnreadFromReadState({
     channelId: row.id,
     guildId: row.guildId,
     mentionCount: mentionCount,
-    lastMessageId: row.lastMessageId,
+    lastMessageId: latestMessageId,
   );
 }
 
