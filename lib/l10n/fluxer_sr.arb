@@ -1,4 +1,162 @@
 {
+    "emojiTabEmojis": "Emojis",
+    "@emojiTabEmojis": {
+        "description": "Emojis tab."
+    },
+    "gifPickerSearch": "Search GIFs",
+    "@gifPickerSearch": {
+        "description": "Generic GIF picker search placeholder while provider configuration loads."
+    },
+    "gifPickerSearchKlipy": "Search KLIPY",
+    "@gifPickerSearchKlipy": {
+        "description": "GIF picker search placeholder for KLIPY."
+    },
+    "gifPickerSearchTenor": "Search Tenor",
+    "@gifPickerSearchTenor": {
+        "description": "GIF picker search placeholder for Tenor."
+    },
+    "gifPickerPoweredByKlipy": "KLIPY",
+    "@gifPickerPoweredByKlipy": {
+        "description": "Short powered-by KLIPY label in the GIF picker search field."
+    },
+    "gifPickerFavorites": "Favorites",
+    "@gifPickerFavorites": {
+        "description": "Favorites category tile in the GIF picker."
+    },
+    "gifPickerTrending": "Trending GIFs",
+    "@gifPickerTrending": {
+        "description": "Trending GIFs category and view title."
+    },
+    "gifPickerNoResultsTitle": "No Search Results",
+    "@gifPickerNoResultsTitle": {
+        "description": "GIF picker empty search title."
+    },
+    "gifPickerNoResultsDescription": "Try another search term",
+    "@gifPickerNoResultsDescription": {
+        "description": "GIF picker empty search description."
+    },
+    "gifPickerLoadFailedTitle": "Couldn't load GIFs",
+    "@gifPickerLoadFailedTitle": {
+        "description": "GIF picker load failure title."
+    },
+    "gifPickerLoadFailedBody": "Check your connection and try again.",
+    "@gifPickerLoadFailedBody": {
+        "description": "GIF picker load failure description."
+    },
+    "emojiCategoryPeople": "People",
+    "@emojiCategoryPeople": {
+        "description": "People & smileys category."
+    },
+    "emojiCategoryNature": "Nature",
+    "@emojiCategoryNature": {
+        "description": "Animals & nature category."
+    },
+    "emojiCategoryFood": "Food & Drink",
+    "@emojiCategoryFood": {
+        "description": "Food & drink category."
+    },
+    "emojiCategoryActivity": "Activities",
+    "@emojiCategoryActivity": {
+        "description": "Activities & sports category."
+    },
+    "emojiCategoryTravel": "Travel & Places",
+    "@emojiCategoryTravel": {
+        "description": "Travel & places category."
+    },
+    "emojiCategoryObjects": "Objects",
+    "@emojiCategoryObjects": {
+        "description": "Objects category."
+    },
+    "emojiCategorySymbols": "Symbols",
+    "@emojiCategorySymbols": {
+        "description": "Symbols category."
+    },
+    "emojiCategoryFlags": "Flags",
+    "@emojiCategoryFlags": {
+        "description": "Flags category."
+    },
+    "emojiPlutoniumUpsellText": "Unlock {emojiCount} from {communityCount} with Plutonium.",
+    "@emojiPlutoniumUpsellText": {
+        "description": "Upsell banner text in emoji picker for non-premium users.",
+        "placeholders": {
+            "emojiCount": {
+                "type": "String"
+            },
+            "communityCount": {
+                "type": "String"
+            }
+        }
+    },
+    "emojiPlutoniumUpsellButton": "Get Plutonium",
+    "@emojiPlutoniumUpsellButton": {
+        "description": "Button label on the Plutonium upsell banner."
+    },
+    "emojiPlutoniumUpsellDismiss": "Don't show this again",
+    "@emojiPlutoniumUpsellDismiss": {
+        "description": "Dismiss link on the Plutonium upsell banner."
+    },
+    "emojiPlutoniumUpsellCustomEmoji": "{count, plural, =1{1 custom emoji} other{{count} custom emojis}}",
+    "@emojiPlutoniumUpsellCustomEmoji": {
+        "description": "Emoji count label in upsell banner.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "emojiPlutoniumUpsellCommunity": "{count, plural, =1{1 community} other{{count} communities}}",
+    "@emojiPlutoniumUpsellCommunity": {
+        "description": "Community count label in upsell banner.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "externalLinkWarningTitle": "External Link Warning",
+    "@externalLinkWarningTitle": {
+        "description": "Title of the external link warning modal."
+    },
+    "externalLinkWarningLeaving": "You are about to leave Fluxer",
+    "@externalLinkWarningLeaving": {
+        "description": "Primary warning text shown in the external link warning modal."
+    },
+    "externalLinkWarningDescription": "External links can be dangerous. Please be careful.",
+    "@externalLinkWarningDescription": {
+        "description": "Supporting text shown in the external link warning modal."
+    },
+    "externalLinkWarningDestinationUrl": "Destination URL:",
+    "@externalLinkWarningDestinationUrl": {
+        "description": "Label above the destination URL in the external link warning modal."
+    },
+    "externalLinksSectionTitle": "External Links",
+    "@externalLinksSectionTitle": {
+        "description": "Heading for the external links settings section."
+    },
+    "externalLinksSectionDescription": "Configure how external link warnings are handled.",
+    "@externalLinksSectionDescription": {
+        "description": "Description for the external links settings section."
+    },
+    "externalLinkWarningTrustPrefix": "Always trust ",
+    "@externalLinkWarningTrustPrefix": {
+        "description": "Prefix before the hostname in the trust-domain checkbox label."
+    },
+    "externalLinkWarningTrustSuffix": " — skip this warning next time",
+    "@externalLinkWarningTrustSuffix": {
+        "description": "Suffix after the hostname in the trust-domain checkbox label."
+    },
+    "externalLinkVisitSite": "Visit Site",
+    "@externalLinkVisitSite": {
+        "description": "Primary action to continue to an external site."
+    },
+    "externalLinkTrustAllLabel": "Trust all external links",
+    "@externalLinkTrustAllLabel": {
+        "description": "Label for the setting that trusts all external links."
+    },
+    "externalLinkStripTrackingLabel": "Strip tracking parameters from URLs",
+    "@externalLinkStripTrackingLabel": {
+        "description": "Label for the setting that strips tracking parameters from URLs in outgoing messages."
+    },
     "reconnectingTitle": "We fluxed up!",
     "@reconnectingTitle": {
         "description": "Title on the reconnecting / server error screen."
@@ -251,130 +409,6 @@
                 "type": "String"
             }
         }
-    },
-    "accountManageTitle": "Manage accounts",
-    "@accountManageTitle": {
-        "description": "Title for the in-app account switcher sheet."
-    },
-    "accountSwitchFailed": "Couldn't switch accounts. Try again.",
-    "@accountSwitchFailed": {
-        "description": "Error when switching accounts from the account switcher."
-    },
-    "profileTabMenuSwitchAccounts": "Switch accounts",
-    "@profileTabMenuSwitchAccounts": {
-        "description": "Menu item to open the account switcher from the profile tab."
-    },
-    "statusChangeSheetTitle": "Set status",
-    "@statusChangeSheetTitle": {
-        "description": "Title for the status change bottom sheet."
-    },
-    "statusOnlineStatusSection": "Online status",
-    "@statusOnlineStatusSection": {
-        "description": "Section header for presence status options."
-    },
-    "statusOnline": "Online",
-    "@statusOnline": {
-        "description": "Online presence status label."
-    },
-    "statusIdle": "Idle",
-    "@statusIdle": {
-        "description": "Idle presence status label."
-    },
-    "statusDnd": "Do not disturb",
-    "@statusDnd": {
-        "description": "Do not disturb presence status label."
-    },
-    "statusInvisible": "Invisible",
-    "@statusInvisible": {
-        "description": "Invisible presence status label."
-    },
-    "statusOffline": "Offline",
-    "@statusOffline": {
-        "description": "Offline presence status label."
-    },
-    "statusUntilIChangeIt": "Until I change it",
-    "@statusUntilIChangeIt": {
-        "description": "Presence status expiry option for a permanent status."
-    },
-    "statusDontClear": "Don't clear",
-    "@statusDontClear": {
-        "description": "Custom status expiry option to never auto-clear."
-    },
-    "statusFor10Seconds": "For 10 seconds",
-    "@statusFor10Seconds": {
-        "description": "Presence status expiry option for 10 seconds."
-    },
-    "statusClearAfter10Seconds": "10 seconds",
-    "@statusClearAfter10Seconds": {
-        "description": "Custom status clear-after option for 10 seconds."
-    },
-    "statusClearAfter15Minutes": "15 minutes",
-    "@statusClearAfter15Minutes": {
-        "description": "Custom status clear-after option for 15 minutes."
-    },
-    "statusClearAfter30Minutes": "30 minutes",
-    "@statusClearAfter30Minutes": {
-        "description": "Custom status clear-after option for 30 minutes."
-    },
-    "statusClearAfter1Hour": "1 hour",
-    "@statusClearAfter1Hour": {
-        "description": "Custom status clear-after option for 1 hour."
-    },
-    "statusClearAfter3Hours": "3 hours",
-    "@statusClearAfter3Hours": {
-        "description": "Custom status clear-after option for 3 hours."
-    },
-    "statusClearAfter4Hours": "4 hours",
-    "@statusClearAfter4Hours": {
-        "description": "Custom status clear-after option for 4 hours."
-    },
-    "statusClearAfter8Hours": "8 hours",
-    "@statusClearAfter8Hours": {
-        "description": "Custom status clear-after option for 8 hours."
-    },
-    "statusClearAfter24Hours": "24 hours",
-    "@statusClearAfter24Hours": {
-        "description": "Custom status clear-after option for 24 hours."
-    },
-    "statusClearAfter3Days": "3 days",
-    "@statusClearAfter3Days": {
-        "description": "Custom status clear-after option for 3 days."
-    },
-    "statusDndDescription": "You won't receive notifications on desktop",
-    "@statusDndDescription": {
-        "description": "Description shown for the do not disturb status option."
-    },
-    "statusInvisibleDescription": "You'll appear offline",
-    "@statusInvisibleDescription": {
-        "description": "Description shown for the invisible status option."
-    },
-    "customStatusSetTitle": "Set custom status",
-    "@customStatusSetTitle": {
-        "description": "Title for the custom status editor."
-    },
-    "customStatusCurrentHint": "Custom status",
-    "@customStatusCurrentHint": {
-        "description": "Hint label for the current custom status row."
-    },
-    "customStatusClear": "Clear custom status",
-    "@customStatusClear": {
-        "description": "Action to remove the current custom status."
-    },
-    "customStatusPlaceholder": "What's happening?",
-    "@customStatusPlaceholder": {
-        "description": "Placeholder for the custom status text field."
-    },
-    "customStatusChooseEmoji": "Choose an emoji",
-    "@customStatusChooseEmoji": {
-        "description": "Button to pick an emoji for custom status."
-    },
-    "customStatusClearAfter": "Clear after",
-    "@customStatusClearAfter": {
-        "description": "Label for the custom status expiry picker."
-    },
-    "customStatusSave": "Save",
-    "@customStatusSave": {
-        "description": "Button to save custom status changes."
     },
     "accountActive": "Active account",
     "@accountActive": {
@@ -1296,164 +1330,6 @@
     "emojiTabStickers": "Stickers",
     "@emojiTabStickers": {
         "description": "Stickers tab."
-    },
-    "emojiTabEmojis": "Emojis",
-    "@emojiTabEmojis": {
-        "description": "Emojis tab."
-    },
-    "gifPickerSearch": "Search GIFs",
-    "@gifPickerSearch": {
-        "description": "Generic GIF picker search placeholder while provider configuration loads."
-    },
-    "gifPickerSearchKlipy": "Search KLIPY",
-    "@gifPickerSearchKlipy": {
-        "description": "GIF picker search placeholder for KLIPY."
-    },
-    "gifPickerSearchTenor": "Search Tenor",
-    "@gifPickerSearchTenor": {
-        "description": "GIF picker search placeholder for Tenor."
-    },
-    "gifPickerPoweredByKlipy": "KLIPY",
-    "@gifPickerPoweredByKlipy": {
-        "description": "Short powered-by KLIPY label in the GIF picker search field."
-    },
-    "gifPickerFavorites": "Favorites",
-    "@gifPickerFavorites": {
-        "description": "Favorites category tile in the GIF picker."
-    },
-    "gifPickerTrending": "Trending GIFs",
-    "@gifPickerTrending": {
-        "description": "Trending GIFs category and view title."
-    },
-    "gifPickerNoResultsTitle": "No Search Results",
-    "@gifPickerNoResultsTitle": {
-        "description": "GIF picker empty search title."
-    },
-    "gifPickerNoResultsDescription": "Try another search term",
-    "@gifPickerNoResultsDescription": {
-        "description": "GIF picker empty search description."
-    },
-    "gifPickerLoadFailedTitle": "Couldn't load GIFs",
-    "@gifPickerLoadFailedTitle": {
-        "description": "GIF picker load failure title."
-    },
-    "gifPickerLoadFailedBody": "Check your connection and try again.",
-    "@gifPickerLoadFailedBody": {
-        "description": "GIF picker load failure description."
-    },
-    "emojiCategoryPeople": "People",
-    "@emojiCategoryPeople": {
-        "description": "People & smileys category."
-    },
-    "emojiCategoryNature": "Nature",
-    "@emojiCategoryNature": {
-        "description": "Animals & nature category."
-    },
-    "emojiCategoryFood": "Food & Drink",
-    "@emojiCategoryFood": {
-        "description": "Food & drink category."
-    },
-    "emojiCategoryActivity": "Activities",
-    "@emojiCategoryActivity": {
-        "description": "Activities & sports category."
-    },
-    "emojiCategoryTravel": "Travel & Places",
-    "@emojiCategoryTravel": {
-        "description": "Travel & places category."
-    },
-    "emojiCategoryObjects": "Objects",
-    "@emojiCategoryObjects": {
-        "description": "Objects category."
-    },
-    "emojiCategorySymbols": "Symbols",
-    "@emojiCategorySymbols": {
-        "description": "Symbols category."
-    },
-    "emojiCategoryFlags": "Flags",
-    "@emojiCategoryFlags": {
-        "description": "Flags category."
-    },
-    "emojiPlutoniumUpsellText": "Unlock {emojiCount} from {communityCount} with Plutonium.",
-    "@emojiPlutoniumUpsellText": {
-        "description": "Upsell banner text in emoji picker for non-premium users.",
-        "placeholders": {
-            "emojiCount": {
-                "type": "String"
-            },
-            "communityCount": {
-                "type": "String"
-            }
-        }
-    },
-    "emojiPlutoniumUpsellButton": "Get Plutonium",
-    "@emojiPlutoniumUpsellButton": {
-        "description": "Button label on the Plutonium upsell banner."
-    },
-    "emojiPlutoniumUpsellDismiss": "Don't show this again",
-    "@emojiPlutoniumUpsellDismiss": {
-        "description": "Dismiss link on the Plutonium upsell banner."
-    },
-    "emojiPlutoniumUpsellCustomEmoji": "{count, plural, =1{1 custom emoji} other{{count} custom emojis}}",
-    "@emojiPlutoniumUpsellCustomEmoji": {
-        "description": "Emoji count label in upsell banner.",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
-    },
-    "emojiPlutoniumUpsellCommunity": "{count, plural, =1{1 community} other{{count} communities}}",
-    "@emojiPlutoniumUpsellCommunity": {
-        "description": "Community count label in upsell banner.",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
-    },
-    "externalLinkWarningTitle": "External Link Warning",
-    "@externalLinkWarningTitle": {
-        "description": "Title of the external link warning modal."
-    },
-    "externalLinkWarningLeaving": "You are about to leave Fluxer",
-    "@externalLinkWarningLeaving": {
-        "description": "Primary warning text shown in the external link warning modal."
-    },
-    "externalLinkWarningDescription": "External links can be dangerous. Please be careful.",
-    "@externalLinkWarningDescription": {
-        "description": "Supporting text shown in the external link warning modal."
-    },
-    "externalLinkWarningDestinationUrl": "Destination URL:",
-    "@externalLinkWarningDestinationUrl": {
-        "description": "Label above the destination URL in the external link warning modal."
-    },
-    "externalLinksSectionTitle": "External Links",
-    "@externalLinksSectionTitle": {
-        "description": "Heading for the external links settings section."
-    },
-    "externalLinksSectionDescription": "Configure how external link warnings are handled.",
-    "@externalLinksSectionDescription": {
-        "description": "Description for the external links settings section."
-    },
-    "externalLinkWarningTrustPrefix": "Always trust ",
-    "@externalLinkWarningTrustPrefix": {
-        "description": "Prefix before the hostname in the trust-domain checkbox label."
-    },
-    "externalLinkWarningTrustSuffix": " — skip this warning next time",
-    "@externalLinkWarningTrustSuffix": {
-        "description": "Suffix after the hostname in the trust-domain checkbox label."
-    },
-    "externalLinkVisitSite": "Visit Site",
-    "@externalLinkVisitSite": {
-        "description": "Primary action to continue to an external site."
-    },
-    "externalLinkTrustAllLabel": "Trust all external links",
-    "@externalLinkTrustAllLabel": {
-        "description": "Label for the setting that trusts all external links."
-    },
-    "externalLinkStripTrackingLabel": "Strip tracking parameters from URLs",
-    "@externalLinkStripTrackingLabel": {
-        "description": "Label for the setting that strips tracking parameters from URLs in outgoing messages."
     },
     "externalLinkStripTrackingDescription": "Automatically remove tracking parameters (like utm_source, fbclid, gclid) from URLs in messages you send. Cleans the link before it reaches anyone else.",
     "@externalLinkStripTrackingDescription": {
@@ -3500,6 +3376,51 @@
     "@channelNoSendPermissionHint": {
         "description": "Placeholder text in the channel message input when the user lacks Send Messages permission."
     },
+    "systemDmComposerBarrier": "System announcements from {productName} staff. You can't reply here.",
+    "@systemDmComposerBarrier": {
+        "description": "Read-only system DM barrier message. productName is the Fluxer product name.",
+        "placeholders": {
+            "productName": {
+                "type": "String"
+            }
+        }
+    },
+    "channelComposerBarrierGuildSendDisabled": "Messaging is temporarily paused in this community.",
+    "@channelComposerBarrierGuildSendDisabled": {
+        "description": "Composer barrier when guild-wide messaging is disabled."
+    },
+    "channelComposerBarrierTimedOut": "You're timed out. Messaging, reactions, and voice are paused until the timeout expires.",
+    "@channelComposerBarrierTimedOut": {
+        "description": "Composer barrier when the current user is timed out in the guild."
+    },
+    "channelComposerBarrierUnclaimedAccount": "You need to claim your account to send messages in this community.",
+    "@channelComposerBarrierUnclaimedAccount": {
+        "description": "Composer barrier when the user must claim their account before messaging."
+    },
+    "channelComposerBarrierUnverifiedEmail": "You need to verify your email to send messages in this community.",
+    "@channelComposerBarrierUnverifiedEmail": {
+        "description": "Composer barrier when the user must verify their email before messaging."
+    },
+    "channelComposerBarrierAccountTooNew": "Your account is too new to send messages in this community.",
+    "@channelComposerBarrierAccountTooNew": {
+        "description": "Composer barrier when the user's account is younger than the guild verification requirement."
+    },
+    "channelComposerBarrierNotMemberLongEnough": "You haven't been a member of this community long enough to send messages.",
+    "@channelComposerBarrierNotMemberLongEnough": {
+        "description": "Composer barrier when the user's guild membership is too recent."
+    },
+    "channelComposerBarrierNoPhoneNumber": "You need to verify a phone number to send messages in this community.",
+    "@channelComposerBarrierNoPhoneNumber": {
+        "description": "Composer barrier when the user must verify a phone number before messaging."
+    },
+    "channelComposerBarrierVerifyEmail": "Verify email",
+    "@channelComposerBarrierVerifyEmail": {
+        "description": "Action button on the composer barrier for unverified email."
+    },
+    "channelComposerBarrierVerifyPhone": "Verify phone",
+    "@channelComposerBarrierVerifyPhone": {
+        "description": "Action button on the composer barrier for missing phone verification."
+    },
     "chatAttachmentTooMany": "Too many attachments (max {max})",
     "@chatAttachmentTooMany": {
         "description": "Shown when adding files would exceed the per-message attachment limit.",
@@ -4303,6 +4224,118 @@
     "lookAndFeelEnableFavoritesDescription": "When enabled, you can favorite channels and they'll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.",
     "@lookAndFeelEnableFavoritesDescription": {
         "description": "Toggle description for the Enable Favorites switch."
+    },
+    "favoritesTitle": "Favorites",
+    "@favoritesTitle": {
+        "description": "Title for the favorites section."
+    },
+    "favoritesEmptyTitle": "No favorites yet",
+    "@favoritesEmptyTitle": {
+        "description": "Empty state title when no channels are favorited."
+    },
+    "favoritesEmptyDescription": "Star channels from the chat header to keep them here.",
+    "@favoritesEmptyDescription": {
+        "description": "Empty state description for favorites."
+    },
+    "favoritesWelcomeTitle": "Welcome to favorites",
+    "@favoritesWelcomeTitle": {
+        "description": "Welcome screen title for favorites."
+    },
+    "favoritesWelcomeDescription": "Your personal space for quick access to channels, DMs, and groups you love. Press the star on any channel to add it here.",
+    "@favoritesWelcomeDescription": {
+        "description": "Welcome screen description for favorites."
+    },
+    "favoritesWelcomeTip": "Not for you? Turn it off anytime.",
+    "@favoritesWelcomeTip": {
+        "description": "Welcome screen tip for disabling favorites."
+    },
+    "favoritesDisableButton": "Disable favorites",
+    "@favoritesDisableButton": {
+        "description": "Button to disable favorites from welcome screen."
+    },
+    "favoritesAddedToast": "Added to Favorites",
+    "@favoritesAddedToast": {
+        "description": "Toast when a channel is added to favorites."
+    },
+    "favoritesRemovedToast": "Removed from Favorites",
+    "@favoritesRemovedToast": {
+        "description": "Toast when a channel is removed from favorites."
+    },
+    "favoritesHiddenToast": "Favorites hidden",
+    "@favoritesHiddenToast": {
+        "description": "Toast when favorites UI is hidden."
+    },
+    "favoritesMute": "Mute favorites",
+    "@favoritesMute": {
+        "description": "Action to mute the favorites section."
+    },
+    "favoritesUnmute": "Unmute favorites",
+    "@favoritesUnmute": {
+        "description": "Action to unmute the favorites section."
+    },
+    "favoritesHeaderMenu": "Favorites menu",
+    "@favoritesHeaderMenu": {
+        "description": "Accessibility label for favorites header menu."
+    },
+    "favoritesCreateCategory": "Create category",
+    "@favoritesCreateCategory": {
+        "description": "Action to create a favorites category."
+    },
+    "favoritesCategoryNameLabel": "Category name",
+    "@favoritesCategoryNameLabel": {
+        "description": "Label for favorites category name input."
+    },
+    "favoritesHideMutedChannels": "Hide muted channels",
+    "@favoritesHideMutedChannels": {
+        "description": "Toggle to hide muted channels in favorites."
+    },
+    "favoritesShowMutedChannels": "Show muted channels",
+    "@favoritesShowMutedChannels": {
+        "description": "Toggle to show muted channels in favorites."
+    },
+    "favoritesSetNickname": "Set nickname",
+    "@favoritesSetNickname": {
+        "description": "Action to set a favorite channel nickname."
+    },
+    "favoritesNicknameLabel": "Nickname",
+    "@favoritesNicknameLabel": {
+        "description": "Label for favorite channel nickname input."
+    },
+    "favoritesSaveNickname": "Save nickname",
+    "@favoritesSaveNickname": {
+        "description": "Button to save favorite channel nickname."
+    },
+    "favoritesMoveToCategory": "Move to category",
+    "@favoritesMoveToCategory": {
+        "description": "Action to move a favorite to a category."
+    },
+    "favoritesUncategorized": "Uncategorized",
+    "@favoritesUncategorized": {
+        "description": "Label for uncategorized favorites."
+    },
+    "favoritesOtherCategory": "Other",
+    "@favoritesOtherCategory": {
+        "description": "Label for favorites in deleted categories."
+    },
+    "favoritesRemoveFromFavorites": "Remove from Favorites",
+    "@favoritesRemoveFromFavorites": {
+        "description": "Action to remove a channel from favorites."
+    },
+    "favoritesAddToFavorites": "Add to Favorites",
+    "@favoritesAddToFavorites": {
+        "description": "Action to add a channel to favorites."
+    },
+    "favoritesHideConfirmTitle": "Hide favorites",
+    "@favoritesHideConfirmTitle": {
+        "description": "Title for hide favorites confirmation."
+    },
+    "favoritesHideConfirmDescription": "This will hide all favorites-related UI elements including buttons and menu items. Your existing favorites will be preserved and can be re-enabled anytime from Settings > Advanced > Appearance.",
+    "@favoritesHideConfirmDescription": {
+        "description": "Description for hide favorites confirmation."
+    },
+    "favoritesDirectMessageSubtitle": "Direct Message",
+    "@favoritesDirectMessageSubtitle": {
+        "description": "Subtitle for a 1:1 DM in the favorites channel list."
     },
     "messagesMediaDisplayGroupTitle": "Display",
     "@messagesMediaDisplayGroupTitle": {
@@ -5776,51 +5809,6 @@
     "@purgePersonalNotesFailed": {
         "description": "Toast or error title when the purge personal notes API call fails."
     },
-    "systemDmComposerBarrier": "System announcements from {productName} staff. You can't reply here.",
-    "@systemDmComposerBarrier": {
-        "description": "Read-only system DM barrier message. productName is the Fluxer product name.",
-        "placeholders": {
-            "productName": {
-                "type": "String"
-            }
-        }
-    },
-    "channelComposerBarrierGuildSendDisabled": "Messaging is temporarily paused in this community.",
-    "@channelComposerBarrierGuildSendDisabled": {
-        "description": "Composer barrier when guild-wide messaging is disabled."
-    },
-    "channelComposerBarrierTimedOut": "You're timed out. Messaging, reactions, and voice are paused until the timeout expires.",
-    "@channelComposerBarrierTimedOut": {
-        "description": "Composer barrier when the current user is timed out in the guild."
-    },
-    "channelComposerBarrierUnclaimedAccount": "You need to claim your account to send messages in this community.",
-    "@channelComposerBarrierUnclaimedAccount": {
-        "description": "Composer barrier when the user must claim their account before messaging."
-    },
-    "channelComposerBarrierUnverifiedEmail": "You need to verify your email to send messages in this community.",
-    "@channelComposerBarrierUnverifiedEmail": {
-        "description": "Composer barrier when the user must verify their email before messaging."
-    },
-    "channelComposerBarrierAccountTooNew": "Your account is too new to send messages in this community.",
-    "@channelComposerBarrierAccountTooNew": {
-        "description": "Composer barrier when the user's account is younger than the guild verification requirement."
-    },
-    "channelComposerBarrierNotMemberLongEnough": "You haven't been a member of this community long enough to send messages.",
-    "@channelComposerBarrierNotMemberLongEnough": {
-        "description": "Composer barrier when the user's guild membership is too recent."
-    },
-    "channelComposerBarrierNoPhoneNumber": "You need to verify a phone number to send messages in this community.",
-    "@channelComposerBarrierNoPhoneNumber": {
-        "description": "Composer barrier when the user must verify a phone number before messaging."
-    },
-    "channelComposerBarrierVerifyEmail": "Verify email",
-    "@channelComposerBarrierVerifyEmail": {
-        "description": "Action button on the composer barrier for unverified email."
-    },
-    "channelComposerBarrierVerifyPhone": "Verify phone",
-    "@channelComposerBarrierVerifyPhone": {
-        "description": "Action button on the composer barrier for missing phone verification."
-    },
     "userSettingsGroupYourAccount": "YOUR ACCOUNT",
     "@userSettingsGroupYourAccount": {
         "description": "Section heading for account-related items in user settings navigation."
@@ -6080,117 +6068,5 @@
     "quickSwitcherSearchAliasSaved": "Saved",
     "@quickSwitcherSearchAliasSaved": {
         "description": "Quick switcher search alias for bookmarks."
-    },
-    "favoritesTitle": "Favorites",
-    "@favoritesTitle": {
-        "description": "Title for the favorites section."
-    },
-    "favoritesEmptyTitle": "No favorites yet",
-    "@favoritesEmptyTitle": {
-        "description": "Empty state title when no channels are favorited."
-    },
-    "favoritesEmptyDescription": "Star channels from the chat header to keep them here.",
-    "@favoritesEmptyDescription": {
-        "description": "Empty state description for favorites."
-    },
-    "favoritesWelcomeTitle": "Welcome to favorites",
-    "@favoritesWelcomeTitle": {
-        "description": "Welcome screen title for favorites."
-    },
-    "favoritesWelcomeDescription": "Your personal space for quick access to channels, DMs, and groups you love. Press the star on any channel to add it here.",
-    "@favoritesWelcomeDescription": {
-        "description": "Welcome screen description for favorites."
-    },
-    "favoritesWelcomeTip": "Not for you? Turn it off anytime.",
-    "@favoritesWelcomeTip": {
-        "description": "Welcome screen tip for disabling favorites."
-    },
-    "favoritesDisableButton": "Disable favorites",
-    "@favoritesDisableButton": {
-        "description": "Button to disable favorites from welcome screen."
-    },
-    "favoritesAddedToast": "Added to Favorites",
-    "@favoritesAddedToast": {
-        "description": "Toast when a channel is added to favorites."
-    },
-    "favoritesRemovedToast": "Removed from Favorites",
-    "@favoritesRemovedToast": {
-        "description": "Toast when a channel is removed from favorites."
-    },
-    "favoritesHiddenToast": "Favorites hidden",
-    "@favoritesHiddenToast": {
-        "description": "Toast when favorites UI is hidden."
-    },
-    "favoritesMute": "Mute favorites",
-    "@favoritesMute": {
-        "description": "Action to mute the favorites section."
-    },
-    "favoritesUnmute": "Unmute favorites",
-    "@favoritesUnmute": {
-        "description": "Action to unmute the favorites section."
-    },
-    "favoritesHeaderMenu": "Favorites menu",
-    "@favoritesHeaderMenu": {
-        "description": "Accessibility label for favorites header menu."
-    },
-    "favoritesCreateCategory": "Create category",
-    "@favoritesCreateCategory": {
-        "description": "Action to create a favorites category."
-    },
-    "favoritesCategoryNameLabel": "Category name",
-    "@favoritesCategoryNameLabel": {
-        "description": "Label for favorites category name input."
-    },
-    "favoritesHideMutedChannels": "Hide muted channels",
-    "@favoritesHideMutedChannels": {
-        "description": "Toggle to hide muted channels in favorites."
-    },
-    "favoritesShowMutedChannels": "Show muted channels",
-    "@favoritesShowMutedChannels": {
-        "description": "Toggle to show muted channels in favorites."
-    },
-    "favoritesSetNickname": "Set nickname",
-    "@favoritesSetNickname": {
-        "description": "Action to set a favorite channel nickname."
-    },
-    "favoritesNicknameLabel": "Nickname",
-    "@favoritesNicknameLabel": {
-        "description": "Label for favorite channel nickname input."
-    },
-    "favoritesSaveNickname": "Save nickname",
-    "@favoritesSaveNickname": {
-        "description": "Button to save favorite channel nickname."
-    },
-    "favoritesMoveToCategory": "Move to category",
-    "@favoritesMoveToCategory": {
-        "description": "Action to move a favorite to a category."
-    },
-    "favoritesUncategorized": "Uncategorized",
-    "@favoritesUncategorized": {
-        "description": "Label for uncategorized favorites."
-    },
-    "favoritesOtherCategory": "Other",
-    "@favoritesOtherCategory": {
-        "description": "Label for favorites in deleted categories."
-    },
-    "favoritesRemoveFromFavorites": "Remove from Favorites",
-    "@favoritesRemoveFromFavorites": {
-        "description": "Action to remove a channel from favorites."
-    },
-    "favoritesAddToFavorites": "Add to Favorites",
-    "@favoritesAddToFavorites": {
-        "description": "Action to add a channel to favorites."
-    },
-    "favoritesHideConfirmTitle": "Hide favorites",
-    "@favoritesHideConfirmTitle": {
-        "description": "Title for hide favorites confirmation."
-    },
-    "favoritesHideConfirmDescription": "This will hide all favorites-related UI elements including buttons and menu items. Your existing favorites will be preserved and can be re-enabled anytime from Settings > Advanced > Appearance.",
-    "@favoritesHideConfirmDescription": {
-        "description": "Description for hide favorites confirmation."
-    },
-    "favoritesDirectMessageSubtitle": "Direct Message",
-    "@favoritesDirectMessageSubtitle": {
-        "description": "Subtitle for a 1:1 DM in the favorites channel list."
     }
 }
