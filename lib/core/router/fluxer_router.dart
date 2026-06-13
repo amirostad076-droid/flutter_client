@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/router/shell_navigator_keys.dart';
 import 'package:fluxer_app/core/router/shell_popup_route_observer.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/login_screen.dart';
+import 'package:fluxer_app/features/auth/providers/account_manager_provider.dart';
 import 'package:fluxer_app/features/chat/presentation/channel_layout.dart';
 import 'package:fluxer_app/features/dm/presentation/dm_layout.dart';
 import 'package:fluxer_app/features/favorites/presentation/favorites_layout.dart';
@@ -138,7 +139,8 @@ GoRouter fluxerRouter(Ref ref) {
       (_, _) => refreshNotifier.notify(),
     )
     ..listen(gatewayReadyProvider, (_, _) => refreshNotifier.notify())
-    ..listen(appStartupProvider, (_, _) => refreshNotifier.notify());
+    ..listen(appStartupProvider, (_, _) => refreshNotifier.notify())
+    ..listen(accountManagerProvider, (_, _) => refreshNotifier.notify());
 
   void setShellPopupOverlay({required bool hasOverlay}) {
     ref
@@ -168,6 +170,11 @@ GoRouter fluxerRouter(Ref ref) {
       final isConnectionFailed = ref.read(gatewayConnectionFailedProvider);
       final isGatewayReady = ref.read(gatewayReadyProvider);
       final isStartupComplete = ref.read(appStartupProvider) is AsyncData;
+      final isAccountSwitching = ref.read(accountManagerProvider).isSwitching;
+
+      if (isAccountSwitching) {
+        return isOnLoading ? null : '/loading';
+      }
 
       // Still starting up — stay on splash.
       if (!isStartupComplete) {

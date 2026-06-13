@@ -13,6 +13,8 @@ import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
+import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
+import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -65,9 +67,9 @@ class AccountSwitcherSheetBody extends ConsumerWidget {
   }
 
   Future<void> _handleSelectAccount(
-    BuildContext context,
     WidgetRef ref,
     StoredAccount account,
+    FluxerLocalizations l10n,
   ) async {
     final String? currentUserId = ref.read(currentUserIdProvider);
     if (account.userId == currentUserId) {
@@ -75,7 +77,11 @@ class AccountSwitcherSheetBody extends ConsumerWidget {
     }
     if (!account.isValid) {
       onClose();
-      await Navigator.of(context, rootNavigator: true).push<void>(
+      final BuildContext? rootContext = rootNavigatorKey.currentContext;
+      if (rootContext == null || !rootContext.mounted) {
+        return;
+      }
+      await Navigator.of(rootContext, rootNavigator: true).push<void>(
         MaterialPageRoute<void>(
           fullscreenDialog: true,
           builder: (_) => AddAccountScreen(prefillEmail: account.identifier),
@@ -83,33 +89,32 @@ class AccountSwitcherSheetBody extends ConsumerWidget {
       );
       return;
     }
-    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    onClose();
     try {
       await ref.read(accountManagerProvider.notifier).switchToAccount(
         account.userId,
       );
-      if (context.mounted) {
-        onClose();
-      }
     } on SessionExpiredFailure {
       ref.read(loginViewModelProvider.notifier)
         ..updateEmail(account.identifier)
         ..hideAccountSelector();
-      onClose();
-      if (context.mounted) {
-        await Navigator.of(context, rootNavigator: true).push<void>(
-          MaterialPageRoute<void>(
-            fullscreenDialog: true,
-            builder: (_) => AddAccountScreen(prefillEmail: account.identifier),
-          ),
-        );
+      final BuildContext? rootContext = rootNavigatorKey.currentContext;
+      if (rootContext == null || !rootContext.mounted) {
+        return;
       }
+      await Navigator.of(rootContext, rootNavigator: true).push<void>(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => AddAccountScreen(prefillEmail: account.identifier),
+        ),
+      );
     } on Object catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.accountSwitchFailed)),
-        );
-      }
+      ref.read(toastProvider.notifier).show(
+        FluxerToast(
+          message: l10n.accountSwitchFailed,
+          variant: FluxerToastVariant.danger,
+        ),
+      );
     }
   }
 
@@ -125,8 +130,8 @@ class AccountSwitcherSheetBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AccountManagerState state = ref.watch(accountManagerProvider);
-    final List<StoredAccount> accounts = state.accounts;
+    final List<StoredAccount> accounts =
+        ref.watch(accountManagerProvider).accounts;
     final String? currentUserId = ref.watch(currentUserIdProvider);
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final layout = context.layout;
@@ -135,47 +140,38 @@ class AccountSwitcherSheetBody extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return AbsorbPointer(
-      absorbing: state.isSwitching,
-      child: AnimatedOpacity(
-        opacity: state.isSwitching ? 0.5 : 1.0,
-        duration: context.motion.fast,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-              ...accounts.map(
-                (StoredAccount account) => Padding(
-                  padding: EdgeInsets.only(bottom: layout.s2),
-                  child: AccountRow(
-                    account: account,
-                    isCurrent: account.userId == currentUserId,
-                    onTap: () => unawaited(
-                      _handleSelectAccount(context, ref, account),
-                    ),
-                    onSignOut: () => unawaited(
-                      _confirmSignOut(
-                        context,
-                        ref,
-                        account,
-                        isCurrent: account.userId == currentUserId,
-                      ),
-                    ),
-                  ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ...accounts.map(
+          (StoredAccount account) => Padding(
+            padding: EdgeInsets.only(bottom: layout.s2),
+            child: AccountRow(
+              account: account,
+              isCurrent: account.userId == currentUserId,
+              onTap: () => unawaited(
+                _handleSelectAccount(ref, account, l10n),
+              ),
+              onSignOut: () => unawaited(
+                _confirmSignOut(
+                  context,
+                  ref,
+                  account,
+                  isCurrent: account.userId == currentUserId,
                 ),
               ),
-              SizedBox(height: layout.s2),
-              FluxerButton.secondary(
-                onPressed: state.isSwitching
-                    ? null
-                    : () => unawaited(_handleAddAccount(context)),
-                label: l10n.accountAdd,
-                icon: PhosphorIconsBold.plus,
-                fitContent: true,
-              ),
-          ],
+            ),
+          ),
         ),
-      ),
+        SizedBox(height: layout.s2),
+        FluxerButton.secondary(
+          onPressed: () => unawaited(_handleAddAccount(context)),
+          label: l10n.accountAdd,
+          icon: PhosphorIconsBold.plus,
+          fitContent: true,
+        ),
+      ],
     );
   }
 }
