@@ -9,6 +9,7 @@ import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:fluxer_app/features/guilds/domain/guild_read_state_contribution.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_read_state_ready_provider.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -89,6 +90,8 @@ class GuildReadState extends _$GuildReadState {
   Map<String, ReadState> _readStateSnapshot = <String, ReadState>{};
   Map<String, Channel> _channelSnapshot = <String, Channel>{};
   bool _seeded = false;
+  bool _isInitialSeedComplete = false;
+  int _recomputeGeneration = 0;
   Future<void>? _pendingRecompute;
   final Set<String> _queuedGuildIds = <String>{};
   final Map<String, StreamSubscription<List<Message>>> _messageSubs =
@@ -168,6 +171,8 @@ class GuildReadState extends _$GuildReadState {
     _readStateSnapshot = {for (final r in allReadStates) r.channelId: r};
     _syncMessageSubscriptions(db, currentUserId);
     await _recomputeGuilds(guilds.map((g) => g.id).toSet(), db, currentUserId);
+    _isInitialSeedComplete = true;
+    ref.read(guildReadStateReadyProvider.notifier).markReady();
   }
 
   void _syncMessageSubscriptions(
@@ -199,6 +204,9 @@ class GuildReadState extends _$GuildReadState {
     FluxerDatabase db,
     String? currentUserId,
   ) {
+    if (!_isInitialSeedComplete) {
+      return;
+    }
     final guildIds = <String>{};
     for (final channelId in channelIds) {
       final channel = _channelSnapshot[channelId];
@@ -216,7 +224,7 @@ class GuildReadState extends _$GuildReadState {
     FluxerDatabase db,
     String? currentUserId,
   ) {
-    if (guildIds.isEmpty) {
+    if (!_isInitialSeedComplete || guildIds.isEmpty) {
       return;
     }
     _queuedGuildIds.addAll(guildIds);
@@ -236,13 +244,26 @@ class GuildReadState extends _$GuildReadState {
     if (guildIds.isEmpty) {
       return;
     }
+    final generation = ++_recomputeGeneration;
+    final computedEntries = <String, GuildReadStateEntry>{};
+    for (final guildId in guildIds) {
+      computedEntries[guildId] = await _computeGuildEntry(
+        guildId,
+        db,
+        currentUserId,
+      );
+    }
+    if (generation != _recomputeGeneration) {
+      return;
+    }
     final next = Map<String, GuildReadStateEntry>.from(state);
     var mutated = false;
-    for (final guildId in guildIds) {
-      final entry = await _computeGuildEntry(guildId, db, currentUserId);
-      final existing = next[guildId];
-      if (existing == null || !entry.hasSameFields(existing)) {
-        next[guildId] = entry.copyWith(sentinel: (existing?.sentinel ?? 0) + 1);
+    for (final entry in computedEntries.entries) {
+      final existing = next[entry.key];
+      if (existing == null || !entry.value.hasSameFields(existing)) {
+        next[entry.key] = entry.value.copyWith(
+          sentinel: (existing?.sentinel ?? 0) + 1,
+        );
         mutated = true;
       }
     }
@@ -275,20 +296,25 @@ class GuildReadState extends _$GuildReadState {
     String? firstUnreadChannelId;
     final mentionChannels = <String>{};
 
-    for (final channel in channels) {
-      if (channel.type == _categoryType) {
-        continue;
-      }
+    final eligibleChannels = channels
+        .where((channel) => channel.type != _categoryType)
+        .toList();
+    final contributions = await Future.wait(
+      eligibleChannels.map(
+        (channel) => _computeChannelContribution(
+          channel: channel,
+          readState: _readStateSnapshot[channel.id],
+          guildSettings: guildSettings,
+          now: now,
+          db: db,
+          currentUserId: currentUserId,
+        ),
+      ),
+    );
 
-      final readState = _readStateSnapshot[channel.id];
-      final contribution = await _computeChannelContribution(
-        channel: channel,
-        readState: readState,
-        guildSettings: guildSettings,
-        now: now,
-        db: db,
-        currentUserId: currentUserId,
-      );
+    for (var i = 0; i < eligibleChannels.length; i++) {
+      final channel = eligibleChannels[i];
+      final contribution = contributions[i];
 
       if (contribution.mentions > 0) {
         mentionChannels.add(channel.id);

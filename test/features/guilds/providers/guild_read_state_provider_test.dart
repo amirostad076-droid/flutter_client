@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_read_state_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_read_state_ready_provider.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 
 String _snowflakeForUtc(DateTime utc) {
@@ -371,6 +372,153 @@ void main() {
       final entry = container.read(guildReadStateProvider)['guild-1'];
       expect(entry?.hasUnread, isTrue);
       expect(entry?.hasPlainUnread, isTrue);
+    },
+  );
+
+  test('guildReadStateReadyProvider is false until initial seed completes', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    final lastMessageId = _recentSnowflake();
+    await _seedGuild(
+      db,
+      'guild-1',
+      channels: [
+        (
+          id: 'channel-1',
+          name: 'general',
+          type: 0,
+          lastMessageId: lastMessageId,
+        ),
+      ],
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(snowflakeAtPreviousMillisecond(lastMessageId)),
+      ),
+    );
+
+    final container = _container(db);
+    addTearDown(container.dispose);
+
+    expect(container.read(guildReadStateReadyProvider), isFalse);
+
+    container.read(gatewayReadyProvider.notifier).setReady();
+    final sub = container.listen(
+      guildReadStateProvider,
+      (_, _) {},
+      fireImmediately: true,
+    );
+    addTearDown(sub.close);
+    await _waitForGuildState(container, 'guild-1');
+
+    expect(container.read(guildReadStateReadyProvider), isTrue);
+  });
+
+  test(
+    'initial seed publishes unread once without stream-driven pre-seed recompute',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+
+      final lastMessageId = _recentSnowflake();
+      await _seedGuild(
+        db,
+        'guild-1',
+        channels: [
+          (
+            id: 'channel-1',
+            name: 'general',
+            type: 0,
+            lastMessageId: lastMessageId,
+          ),
+        ],
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(snowflakeAtPreviousMillisecond(lastMessageId)),
+        ),
+      );
+
+      final container = _container(db);
+      addTearDown(container.dispose);
+
+      final unreadSnapshots = <bool?>[];
+      container.listen(
+        guildReadStateProvider,
+        (previous, next) {
+          unreadSnapshots.add(next['guild-1']?.hasUnread);
+        },
+        fireImmediately: true,
+      );
+
+      container.read(gatewayReadyProvider.notifier).setReady();
+      await _waitFor(() => container.read(guildReadStateReadyProvider));
+
+      expect(unreadSnapshots.where((hasUnread) => hasUnread == true).length, 1);
+      expect(
+        container.read(guildReadStateProvider)['guild-1']?.hasUnread,
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'settings stream update after seed keeps stable unread state',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+
+      final lastMessageId = _recentSnowflake();
+      await _seedGuild(
+        db,
+        'guild-1',
+        channels: [
+          (
+            id: 'channel-1',
+            name: 'general',
+            type: 0,
+            lastMessageId: lastMessageId,
+          ),
+        ],
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(snowflakeAtPreviousMillisecond(lastMessageId)),
+        ),
+      );
+
+      final container = _container(db);
+      addTearDown(container.dispose);
+      container.read(gatewayReadyProvider.notifier).setReady();
+      final sub = container.listen(
+        guildReadStateProvider,
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(sub.close);
+      await _waitForGuildState(container, 'guild-1');
+
+      expect(
+        container.read(guildReadStateProvider)['guild-1']?.hasUnread,
+        isTrue,
+      );
+
+      await db.userGuildSettingsDao.upsert(
+        UserGuildSettingsTableCompanion.insert(
+          guildId: 'guild-1',
+          data: '{"message_notifications":0}',
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(
+        container.read(guildReadStateProvider)['guild-1']?.hasUnread,
+        isTrue,
+      );
     },
   );
 }

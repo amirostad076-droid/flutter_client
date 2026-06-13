@@ -54,6 +54,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart'
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_read_state_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_read_state_ready_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -664,6 +665,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         final unread = ref.watch(
           guildReadStateProvider.select((s) => s[guild.id]),
         );
+        final guildUnreadReady = ref.watch(guildReadStateReadyProvider);
         final muteState = ref.watch(guildMuteProvider(guild.id)).value;
         final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
         final voiceRows = ref
@@ -696,6 +698,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           voiceRows: voiceRows ?? const [],
           hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
           mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
+          guildUnreadReady: guildUnreadReady,
           invitesPaused: invitesPaused,
           developerMode: developerMode,
           onTap: () {
@@ -946,14 +949,17 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
     var anyUnread = false;
     var totalMentions = 0;
     var folderVoiceActivity = VoiceActivityType.none;
+    final guildUnreadReady = ref.watch(guildReadStateReadyProvider);
     for (final guild in folder.guilds) {
       final unread = ref.watch(
         guildReadStateProvider.select((s) => s[guild.id]),
       );
-      if (!guild.isUnavailable && (unread?.hasUnread ?? false)) {
+      if (guildUnreadReady &&
+          !guild.isUnavailable &&
+          (unread?.hasUnread ?? false)) {
         anyUnread = true;
       }
-      if (!guild.isUnavailable) {
+      if (guildUnreadReady && !guild.isUnavailable) {
         totalMentions += unread?.mentionCount ?? 0;
       }
       final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
@@ -1008,6 +1014,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                 totalMentions: totalMentions,
                 folderVoiceActivity: folderVoiceActivity,
                 isExpanded: isExpanded,
+                guildUnreadReady: guildUnreadReady,
               ),
               // Animated expand/collapse of guild items.
               AnimatedSize(
@@ -1042,13 +1049,16 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
     required int totalMentions,
     required VoiceActivityType folderVoiceActivity,
     required bool isExpanded,
+    required bool guildUnreadReady,
   }) {
     final folder = widget.folder;
     return Row(
       children: [
         if (!isExpanded)
           AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: guildUnreadReady
+                ? const Duration(milliseconds: 200)
+                : Duration.zero,
             curve: const Cubic(0.25, 0.1, 0.25, 1),
             width: 6,
             height: _isHovered
@@ -1191,6 +1201,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
         final unread = ref.watch(
           guildReadStateProvider.select((s) => s[guild.id]),
         );
+        final guildUnreadReady = ref.watch(guildReadStateReadyProvider);
         final muteState = ref.watch(guildMuteProvider(guild.id)).value;
         final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
         final voiceRows = ref
@@ -1225,6 +1236,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             voiceRows: voiceRows ?? const [],
             hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
             mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
+            guildUnreadReady: guildUnreadReady,
             invitesPaused: invitesPaused,
             developerMode: developerMode,
             onTap: () {
@@ -1968,6 +1980,7 @@ class _GuildListItem extends StatefulWidget {
   final String? iconUrl;
   final bool hasUnread;
   final int mentionCount;
+  final bool guildUnreadReady;
   final bool invitesPaused;
   final bool developerMode;
   final VoidCallback? onMarkAsRead;
@@ -2048,6 +2061,7 @@ class _GuildListItem extends StatefulWidget {
     this.onMenuOpened,
     this.hasUnread = false,
     this.mentionCount = 0,
+    this.guildUnreadReady = true,
     this.invitesPaused = false,
     this.developerMode = false,
     this.onMarkAsRead,
@@ -2077,9 +2091,42 @@ class _GuildListItem extends StatefulWidget {
 class _GuildListItemState extends State<_GuildListItem>
     with AutomaticKeepAliveClientMixin {
   var _isHovered = false;
+  var _animateUnreadIndicator = false;
 
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _animateUnreadIndicator = widget.guildUnreadReady;
+  }
+
+  @override
+  void didUpdateWidget(_GuildListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.guildUnreadReady && widget.guildUnreadReady) {
+      _animateUnreadIndicator = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() => _animateUnreadIndicator = true);
+        }
+      });
+    }
+  }
+
+  bool get _displayHasUnread =>
+      widget.guildUnreadReady && widget.hasUnread;
+
+  int get _displayMentionCount =>
+      widget.guildUnreadReady ? widget.mentionCount : 0;
+
+  Duration get _unreadIndicatorDuration {
+    if (!widget.guildUnreadReady || !_animateUnreadIndicator) {
+      return Duration.zero;
+    }
+    return const Duration(milliseconds: 200);
+  }
 
   Widget _buildBackupIcon(BuildContext context, {required bool isActive}) {
     final iconColor = isActive
@@ -2125,14 +2172,14 @@ class _GuildListItemState extends State<_GuildListItem>
       child: Row(
         children: [
           AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: _unreadIndicatorDuration,
             curve: const Cubic(0.25, 0.1, 0.25, 1),
             width: 6,
             height: widget.isSelected
                 ? 40
                 : _isHovered
                 ? 20
-                : widget.hasUnread
+                : _displayHasUnread
                 ? 8
                 : 0,
             decoration: BoxDecoration(
@@ -2246,12 +2293,12 @@ class _GuildListItemState extends State<_GuildListItem>
               ),
               if (!widget.isUnavailable &&
                   !widget.isSelected &&
-                  widget.mentionCount > 0)
+                  _displayMentionCount > 0)
                 Positioned(
                   bottom: -2,
                   right: -2,
                   child: FluxerBadge.count(
-                    count: widget.mentionCount,
+                    count: _displayMentionCount,
                     cutoutColor: context.colors.backgroundSecondary,
                   ),
                 ),
@@ -2265,7 +2312,7 @@ class _GuildListItemState extends State<_GuildListItem>
               if (!widget.isUnavailable &&
                   !widget.isSelected &&
                   widget.invitesPaused &&
-                  widget.mentionCount == 0 &&
+                  _displayMentionCount == 0 &&
                   widget.voiceActivity == VoiceActivityType.none)
                 const Positioned(bottom: -4, right: -4, child: _PauseBadge()),
             ],
