@@ -856,10 +856,11 @@ class ChatViewModel extends _$ChatViewModel {
     if (stickyUnreadId != null && stickyUnreadId.isNotEmpty) {
       return true;
     }
-    final lastCachedMessage = await database.messageDao.getLastMessage(
+    final latestMessageId = await resolveLatestMessageIdForChannel(
+      database,
       channelId,
+      channelLastMessageId: channel?.lastMessageId,
     );
-    final latestMessageId = channel?.lastMessageId ?? lastCachedMessage?.id;
     final rawMentionCount = readState?.mentionCount ?? 0;
     final visibleMentionCount =
         canShowMentionCount(

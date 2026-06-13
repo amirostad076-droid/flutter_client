@@ -15,6 +15,24 @@ String _snowflakeForUtc(DateTime utc) {
   return internal.toString();
 }
 
+DateTime _timestampFromSnowflake(String id) {
+  return DateTime.fromMillisecondsSinceEpoch(
+    snowflakeTimestampMs(id),
+    isUtc: true,
+  );
+}
+
+MessagesCompanion _cachedMessage({
+  required String id,
+  required String channelId,
+}) => MessagesCompanion.insert(
+  id: id,
+  channelId: channelId,
+  authorId: 'other',
+  content: 'message $id',
+  timestamp: _timestampFromSnowflake(id),
+);
+
 String _recentSnowflake({Duration ago = const Duration(hours: 1)}) {
   return _snowflakeForUtc(DateTime.now().toUtc().subtract(ago));
 }
@@ -49,6 +67,11 @@ Future<void> _seedGuild(
         lastMessageId: Value(c.lastMessageId),
       ),
     );
+    if (c.lastMessageId != null) {
+      await db.messageDao.upsertMessage(
+        _cachedMessage(id: c.lastMessageId!, channelId: c.id),
+      );
+    }
   }
 }
 

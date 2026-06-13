@@ -1,3 +1,4 @@
+import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 
 const Duration oldMessageUnreadThreshold = Duration(days: 7);
@@ -25,6 +26,40 @@ String snowflakeAtPreviousMillisecond(String id) {
     return '0';
   }
   return (BigInt.from(timestampMs - kSnowflakeEpochMs - 1) << 22).toString();
+}
+
+String? resolveLatestMessageId({
+  required String? channelLastMessageId,
+  required String? cachedLastMessageId,
+  required bool channelLastMessageExistsInCache,
+}) {
+  if (cachedLastMessageId != null && cachedLastMessageId.isNotEmpty) {
+    return cachedLastMessageId;
+  }
+  if (channelLastMessageId != null &&
+      channelLastMessageId.isNotEmpty &&
+      channelLastMessageExistsInCache) {
+    return channelLastMessageId;
+  }
+  return null;
+}
+
+Future<String?> resolveLatestMessageIdForChannel(
+  FluxerDatabase db,
+  String channelId, {
+  String? channelLastMessageId,
+}) async {
+  final lastCachedMessage = await db.messageDao.getLastMessage(channelId);
+  var channelLastExists = false;
+  if (channelLastMessageId != null && channelLastMessageId.isNotEmpty) {
+    channelLastExists =
+        await db.messageDao.getMessage(channelLastMessageId) != null;
+  }
+  return resolveLatestMessageId(
+    channelLastMessageId: channelLastMessageId,
+    cachedLastMessageId: lastCachedMessage?.id,
+    channelLastMessageExistsInCache: channelLastExists,
+  );
 }
 
 bool hasUnreadByReadState({

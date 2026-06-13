@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
@@ -638,6 +639,91 @@ void main() {
     final dm = await db.dmChannelDao.getDmChannelById('dm-1');
     expect(readState?.mentionCount, 1);
     expect(dm?.unreadCount, 1);
+  });
+
+  test('guild plain unread clears when only message is deleted', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final messageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+      ),
+    );
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(
+      MessageCreateEvent(
+        message: _message(
+          id: messageId,
+          channelId: 'channel-1',
+          authorId: 'other',
+        ),
+      ),
+    );
+
+    final channelAfterCreate = await db.channelDao.getChannelById('channel-1');
+    expect(channelAfterCreate?.lastMessageId, messageId);
+    expect(
+      hasUnreadByReadState(
+        channelLastMessageId: messageId,
+        ackLastMessageId: ackId,
+        fallbackAckMs: 0,
+        mentionCount: 0,
+      ),
+      isTrue,
+    );
+
+    await handler.handle(
+      MessageDeleteEvent(channelId: 'channel-1', messageId: messageId),
+    );
+    await pumpEventQueue();
+
+    final channelAfterDelete = await db.channelDao.getChannelById('channel-1');
+    expect(channelAfterDelete?.lastMessageId, isNull);
+    expect(
+      hasUnreadByReadState(
+        channelLastMessageId: channelAfterDelete?.lastMessageId,
+        ackLastMessageId: ackId,
+        fallbackAckMs: 0,
+        mentionCount: 0,
+      ),
+      isFalse,
+    );
+  });
+
+  test('dm unread clears when only message is deleted', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final messageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.dmChannelDao.upsertDmChannels([
+      DmChannelsCompanion.insert(
+        id: 'dm-1',
+        recipientId: 'other',
+        recipientIds: const Value('["other"]'),
+      ),
+    ]);
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(
+      MessageCreateEvent(
+        message: _message(id: messageId, channelId: 'dm-1', authorId: 'other'),
+      ),
+    );
+
+    await handler.handle(
+      MessageDeleteEvent(channelId: 'dm-1', messageId: messageId),
+    );
+    await pumpEventQueue();
+
+    final dm = await db.dmChannelDao.getDmChannelById('dm-1');
+    final readState = await db.readStateDao.getReadState('dm-1');
+    expect(dm?.lastMessageId, isNull);
+    expect(dm?.unreadCount, 0);
+    expect(readState?.mentionCount, 0);
   });
 
   test(

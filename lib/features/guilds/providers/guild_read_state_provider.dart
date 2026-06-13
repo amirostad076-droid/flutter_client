@@ -289,10 +289,15 @@ class GuildReadState extends _$GuildReadState {
     required String? currentUserId,
   }) async {
     final isVoice = channel.type == _voiceType;
+    final latestMessageId = await resolveLatestMessageIdForChannel(
+      db,
+      channel.id,
+      channelLastMessageId: channel.lastMessageId,
+    );
     final rawMentions = readState?.mentionCount ?? 0;
     final visibleMentions =
         canShowMentionCount(
-          channelLastMessageId: channel.lastMessageId,
+          channelLastMessageId: latestMessageId,
           isGuildChannel: true,
           now: now,
         )
@@ -328,7 +333,7 @@ class GuildReadState extends _$GuildReadState {
       currentUserId: currentUserId,
     );
     final staleSuppressed = shouldSuppressStaleUnread(
-      channelLastMessageId: channel.lastMessageId,
+      channelLastMessageId: latestMessageId,
       ackLastMessageId: readState?.lastMessageId,
       fallbackAckMs: fallbackAckMs,
       mentionCount: mentions,
@@ -343,7 +348,7 @@ class GuildReadState extends _$GuildReadState {
     }
 
     final hasUnreadMessage = hasUnreadByReadState(
-      channelLastMessageId: channel.lastMessageId,
+      channelLastMessageId: latestMessageId,
       ackLastMessageId: readState?.lastMessageId,
       fallbackAckMs: fallbackAckMs,
       mentionCount: 0,

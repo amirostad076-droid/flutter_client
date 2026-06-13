@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/database/tables/channels.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 
 part 'channel_dao.g.dart';
 
@@ -52,8 +53,17 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
   Stream<Channel?> watchChannelById(String id) =>
       (select(channels)..where((c) => c.id.equals(id))).watchSingleOrNull();
 
-  Future<void> upsertChannel(ChannelsCompanion channel) =>
-      into(channels).insertOnConflictUpdate(channel);
+  Future<void> upsertChannel(ChannelsCompanion channel) async {
+    final channelId = channel.id.value;
+    if (channel.lastMessageId.present) {
+      final merged = await mergeLastMessageIdForUpsert(
+        channelId,
+        channel.lastMessageId.value,
+      );
+      channel = channel.copyWith(lastMessageId: Value(merged));
+    }
+    await into(channels).insertOnConflictUpdate(channel);
+  }
 
   Future<void> upsertChannels(List<ChannelsCompanion> channelList) async {
     await batch((b) {
@@ -70,6 +80,31 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
       (update(channels)..where((c) => c.id.equals(channelId))).write(
         ChannelsCompanion(lastMessageId: Value(messageId)),
       );
+
+  Future<String?> mergeLastMessageIdForUpsert(
+    String channelId,
+    String? incomingLastMessageId,
+  ) async {
+    final existing = (await getChannelById(channelId))?.lastMessageId;
+    if (incomingLastMessageId == null || incomingLastMessageId.isEmpty) {
+      return existing;
+    }
+    final cached = await attachedDatabase.messageDao.getLastMessage(channelId);
+    if (cached == null) {
+      final incomingExists = await attachedDatabase.messageDao.getMessage(
+        incomingLastMessageId,
+      );
+      if (incomingExists == null) {
+        return existing;
+      }
+    }
+    if (existing == null || existing.isEmpty) {
+      return incomingLastMessageId;
+    }
+    return compareSnowflakeIds(incomingLastMessageId, existing) >= 0
+        ? incomingLastMessageId
+        : existing;
+  }
 
   Future<void> updateLastPinTimestamp(String channelId, String? timestamp) =>
       (update(channels)..where((c) => c.id.equals(channelId))).write(

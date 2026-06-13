@@ -233,23 +233,13 @@ class ReadStateRepository {
 
   Future<String?> latestAckableMessageId(String channelId) async {
     final channel = await _db.channelDao.getChannelById(channelId);
-    final channelLastMessageId = channel?.lastMessageId;
-    final cachedLastMessageId = (await _db.messageDao.getLastMessage(
+    final resolved = await resolveLatestMessageIdForChannel(
+      _db,
       channelId,
-    ))?.id;
-
-    if (channelLastMessageId != null && channelLastMessageId.isNotEmpty) {
-      if (cachedLastMessageId != null && cachedLastMessageId.isNotEmpty) {
-        return compareSnowflakeIds(cachedLastMessageId, channelLastMessageId) >
-                0
-            ? cachedLastMessageId
-            : channelLastMessageId;
-      }
-      return channelLastMessageId;
-    }
-
-    if (cachedLastMessageId != null && cachedLastMessageId.isNotEmpty) {
-      return cachedLastMessageId;
+      channelLastMessageId: channel?.lastMessageId,
+    );
+    if (resolved != null && resolved.isNotEmpty) {
+      return resolved;
     }
 
     return (await _db.readStateDao.getReadState(channelId))?.lastMessageId;

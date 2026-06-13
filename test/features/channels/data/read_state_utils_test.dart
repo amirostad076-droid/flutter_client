@@ -92,4 +92,34 @@ void main() {
       );
     },
   );
+
+  test('resolveLatestMessageId prefers cached message over channel pointer', () {
+    final cachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+
+    expect(
+      resolveLatestMessageId(
+        channelLastMessageId: channelId,
+        cachedLastMessageId: cachedId,
+        channelLastMessageExistsInCache: true,
+      ),
+      cachedId,
+    );
+  });
+
+  test(
+    'resolveLatestMessageId returns null for orphaned channel pointer',
+    () {
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+
+      expect(
+        resolveLatestMessageId(
+          channelLastMessageId: channelId,
+          cachedLastMessageId: null,
+          channelLastMessageExistsInCache: false,
+        ),
+        isNull,
+      );
+    },
+  );
 }

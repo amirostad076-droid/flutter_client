@@ -1172,23 +1172,20 @@ class GatewayEventHandler {
         await database.notificationDao.deleteMentionRow(messageId);
       }
       await database.messageDao.deleteMessages(messageIds);
-      await _refreshLastMessageAfterDelete(channelId, messageIds.toSet());
+      await _refreshLastMessageAfterDelete(channelId);
       await _recalculateReadStateFromCachedMessages(channelId);
     });
   }
 
-  Future<void> _refreshLastMessageAfterDelete(
-    String channelId,
-    Set<String> deletedIds,
-  ) async {
+  Future<void> _refreshLastMessageAfterDelete(String channelId) async {
     final latest = await database.messageDao.getLastMessage(channelId);
     final channel = await database.channelDao.getChannelById(channelId);
-    if (channel != null && deletedIds.contains(channel.lastMessageId)) {
+    if (channel != null) {
       await database.channelDao.setLastMessageId(channelId, latest?.id);
     }
 
     final dm = await database.dmChannelDao.getDmChannelById(channelId);
-    if (dm != null && deletedIds.contains(dm.lastMessageId)) {
+    if (dm != null) {
       await database.dmChannelDao.replaceLastMessageFromCache(
         channelId,
         latest,
