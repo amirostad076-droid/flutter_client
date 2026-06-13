@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
+import 'package:fluxer_app/features/profile/domain/presence_status_labels.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -154,7 +155,8 @@ class _FriendRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final String statusLabel = _statusLabel(friend.status);
+    final l10n = FluxerLocalizations.of(context);
+    final String statusLabel = _statusLabel(friend.status, l10n);
     return Material(
       color: colors.backgroundSecondaryAlt,
       borderRadius: context.layout.radiusLg,
@@ -220,11 +222,11 @@ class _FriendRow extends StatelessWidget {
     );
   }
 
-  String _statusLabel(String status) {
+  String _statusLabel(String status, FluxerLocalizations l10n) {
     if (status.isEmpty || status == 'offline') {
       return '';
     }
-    return status[0].toUpperCase() + status.substring(1);
+    return presenceStatusLabel(status, l10n);
   }
 }
 
