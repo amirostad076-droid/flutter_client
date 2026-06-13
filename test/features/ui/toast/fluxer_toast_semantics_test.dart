@@ -52,7 +52,7 @@ void main() {
       final SemanticsNode node = tester.getSemantics(
         find.bySemanticsLabel('Settings saved'),
       );
-      expect(node.hasFlag(SemanticsFlag.isLiveRegion), isTrue);
+      expect(node.flagsCollection.isLiveRegion, isTrue);
     });
   });
 }

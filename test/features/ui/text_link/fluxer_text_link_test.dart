@@ -68,8 +68,8 @@ void main() {
       );
 
       final SemanticsNode node = tester.getSemantics(find.text('A link'));
-      expect(node.hasFlag(SemanticsFlag.isLink), isTrue);
-      expect(node.hasFlag(SemanticsFlag.isButton), isFalse);
+      expect(node.flagsCollection.isLink, isTrue);
+      expect(node.flagsCollection.isButton, isFalse);
     });
   });
 }
