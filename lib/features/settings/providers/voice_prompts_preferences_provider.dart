@@ -1,0 +1,45 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'voice_prompts_preferences_provider.g.dart';
+
+class VoicePromptsPreferencesState {
+  const VoicePromptsPreferencesState({
+    this.skipHideOwnCameraConfirm = false,
+    this.skipHideOwnScreenshareConfirm = false,
+  });
+
+  final bool skipHideOwnCameraConfirm;
+  final bool skipHideOwnScreenshareConfirm;
+
+  VoicePromptsPreferencesState copyWith({
+    bool? skipHideOwnCameraConfirm,
+    bool? skipHideOwnScreenshareConfirm,
+  }) {
+    return VoicePromptsPreferencesState(
+      skipHideOwnCameraConfirm:
+          skipHideOwnCameraConfirm ?? this.skipHideOwnCameraConfirm,
+      skipHideOwnScreenshareConfirm:
+          skipHideOwnScreenshareConfirm ?? this.skipHideOwnScreenshareConfirm,
+    );
+  }
+}
+
+@Riverpod(keepAlive: true)
+class VoicePromptsPreferences extends _$VoicePromptsPreferences {
+  @override
+  VoicePromptsPreferencesState build() {
+    return const VoicePromptsPreferencesState();
+  }
+
+  Future<void> applySynced(VoicePromptsPreferencesState value) async {
+    state = value;
+  }
+
+  Future<void> setSkipHideOwnCameraConfirm({required bool value}) async {
+    state = state.copyWith(skipHideOwnCameraConfirm: value);
+  }
+
+  Future<void> setSkipHideOwnScreenshareConfirm({required bool value}) async {
+    state = state.copyWith(skipHideOwnScreenshareConfirm: value);
+  }
+}

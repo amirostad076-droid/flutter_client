@@ -155,7 +155,6 @@ Future<QuickSwitcherUnreadChannel?> _guildUnreadFromReadState({
     guildId: row.guildId,
     mentionCount: mentionCount,
     lastMessageId: row.lastMessageId,
-    hasUnread: true,
   );
 }
 

@@ -37,11 +37,9 @@ import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/favorites/domain/favorite_guild_id.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
-import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
 import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/presentation/widgets/guild_members_tab_content.dart';
-import 'package:fluxer_app/features/members/data/member_repository.dart';
 import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.dart';
 import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
@@ -1530,7 +1528,6 @@ class _DmMemberGroups extends ConsumerWidget {
               id: member.id,
               name: member.name,
               avatar: member.avatar,
-              isCurrentUser: false,
             )
       else if (!dm.isPersonalNotes)
         _DmParticipant(
@@ -1539,7 +1536,6 @@ class _DmMemberGroups extends ConsumerWidget {
           avatar: dm.recipientAvatar,
           isBot: dm.isBot,
           isSystem: dm.isSystem,
-          isCurrentUser: false,
         ),
     ];
     final List<GroupDmMemberGroup<_DmParticipant>> groups =

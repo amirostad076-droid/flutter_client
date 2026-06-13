@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
@@ -93,7 +95,17 @@ class ChannelListViewModel extends _$ChannelListViewModel {
   }
 
   void toggleMemberList() {
-    state = state.copyWith(isMemberListVisible: !state.isMemberListVisible);
+    setMemberListVisible(!state.isMemberListVisible);
+  }
+
+  void setMemberListVisible(bool isVisible) {
+    if (state.isMemberListVisible == isVisible) {
+      return;
+    }
+    state = state.copyWith(isMemberListVisible: isVisible);
+    ref.read(syncedPreferencesStoreProvider).markDirty(
+      SyncedPreferenceField.memberList,
+    );
   }
 
   void toggleCategory(String categoryId) {

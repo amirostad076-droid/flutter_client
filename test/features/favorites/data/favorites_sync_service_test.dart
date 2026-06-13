@@ -8,13 +8,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_wire_codec.dart'
+    as engine;
 import 'package:fluxer_app/core/synced_preferences/favorites_state_codec.dart';
+import 'package:fluxer_app/core/synced_preferences/generated/fluxer/user/preferences/v1/accessibility.pb.dart'
+    as accessibility_pb;
+import 'package:fluxer_app/core/synced_preferences/generated/fluxer/user/preferences/v1/preferences.pb.dart'
+    as pb;
 import 'package:fluxer_app/core/synced_preferences/synced_preferences_wire_codec.dart';
-import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
 import 'package:fluxer_dart/export.dart';
 
 class _FakeUsersApi implements UsersApi {
-  _FakeUsersApi({this.pushError});
+  _FakeUsersApi() : pushError = null;
 
   Object? pushError;
   UserSettingsUpdateRequest? lastPushBody;
@@ -112,17 +119,17 @@ Future<void> _waitForDebounce() async {
 }
 
 void main() {
-  group('FavoritesSyncService', () {
+  group('SyncedPreferencesStore favorites', () {
     late db.FluxerDatabase database;
     late _FakeUsersApi usersApi;
     late ProviderContainer container;
-    late FavoritesSyncService syncService;
+    late SyncedPreferencesStore syncStore;
 
     setUp(() {
       database = db.FluxerDatabase.forTesting(NativeDatabase.memory());
       usersApi = _FakeUsersApi();
       container = _createContainer(database: database, usersApi: usersApi);
-      syncService = container.read(favoritesSyncServiceProvider);
+      syncStore = container.read(syncedPreferencesStoreProvider);
     });
 
     tearDown(() async {
@@ -135,12 +142,12 @@ void main() {
         channelId: 'channel-1',
         guildId: 'guild-1',
       );
-      await syncService.applyAfterLocalMutation();
+      syncStore.markDirty(SyncedPreferenceField.favorites);
       await _waitForDebounce();
 
       expect(usersApi.pushCount, 0);
 
-      await syncService.hydrateFromUserSettings(
+      await syncStore.hydrateFromUserSettings(
         _settingsFor(const FavoritesLocalState(
           channels: [],
           categories: [],
@@ -178,12 +185,12 @@ void main() {
         muted: false,
       );
 
-      await syncService.hydrateFromUserSettings(_settingsFor(server));
+      await syncStore.hydrateFromUserSettings(_settingsFor(server));
       await database.favoriteChannelsDao.addChannel(
         channelId: 'android-1',
         guildId: '@me',
       );
-      await syncService.applyAfterLocalMutation();
+      syncStore.markDirty(SyncedPreferenceField.favorites);
       await _waitForDebounce();
 
       expect(usersApi.pushCount, 1);
@@ -216,9 +223,9 @@ void main() {
         muted: false,
       );
 
-      await syncService.hydrateFromUserSettings(_settingsFor(server));
+      await syncStore.hydrateFromUserSettings(_settingsFor(server));
       await database.favoriteChannelsDao.removeChannel('remove-me');
-      await syncService.applyAfterLocalMutation();
+      syncStore.markDirty(SyncedPreferenceField.favorites);
       await _waitForDebounce();
 
       final pushed = FavoritesStateCodec.decodeFavoritesFromWire(
@@ -242,7 +249,7 @@ void main() {
         muted: false,
       );
 
-      await syncService.hydrateFromUserSettings(_settingsFor(server));
+      await syncStore.hydrateFromUserSettings(_settingsFor(server));
 
       final channel = await database.favoriteChannelsDao.getChannel('remote-1');
       expect(channel, isNotNull);
@@ -270,16 +277,16 @@ void main() {
         muted: false,
       );
 
-      await syncService.hydrateFromUserSettings(_settingsFor(initial));
+      await syncStore.hydrateFromUserSettings(_settingsFor(initial));
       await database.favoriteChannelsDao.addChannel(
         channelId: 'local-2',
         guildId: 'guild-1',
       );
-      await syncService.applyAfterLocalMutation();
+      syncStore.markDirty(SyncedPreferenceField.favorites);
       await _waitForDebounce();
       expect(usersApi.pushCount, 1);
 
-      await syncService.hydrateFromUserSettings(_settingsFor(remoteShrink));
+      await syncStore.hydrateFromUserSettings(_settingsFor(remoteShrink));
 
       final channels = await database.favoriteChannelsDao.watchChannels().first;
       expect(
@@ -303,18 +310,18 @@ void main() {
         muted: false,
       );
 
-      await syncService.hydrateFromUserSettings(_settingsFor(server));
-      syncService.reset();
+      await syncStore.hydrateFromUserSettings(_settingsFor(server));
+      syncStore.reset();
 
       await database.favoriteChannelsDao.addChannel(
         channelId: 'local-only',
         guildId: 'guild-2',
       );
-      await syncService.applyAfterLocalMutation();
+      syncStore.markDirty(SyncedPreferenceField.favorites);
       await _waitForDebounce();
       expect(usersApi.pushCount, 0);
 
-      await syncService.hydrateFromUserSettings(_settingsFor(server));
+      await syncStore.hydrateFromUserSettings(_settingsFor(server));
       await _waitForDebounce();
       expect(usersApi.pushCount, 1);
     });
@@ -343,9 +350,9 @@ void main() {
         channelId: 'android-1',
         guildId: '@me',
       );
-      await syncService.applyAfterLocalMutation();
+      syncStore.markDirty(SyncedPreferenceField.favorites);
 
-      await syncService.hydrateFromUserSettings(_settingsFor(server));
+      await syncStore.hydrateFromUserSettings(_settingsFor(server));
       await _waitForDebounce();
 
       final channels = await database.favoriteChannelsDao.watchChannels().first;
@@ -361,6 +368,56 @@ void main() {
         pushed.channels.map((channel) => channel.channelId),
         containsAll(['android-1', 'desktop-1', 'desktop-2']),
       );
+    });
+
+    test('hydrate applies remote reorder after gateway reconnect', () async {
+      const localOrder = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(
+            channelId: 'channel-a',
+            guildId: 'guild-1',
+            position: 0,
+          ),
+          db.FavoriteChannel(
+            channelId: 'channel-b',
+            guildId: 'guild-1',
+            position: 1,
+          ),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+      const remoteOrder = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(
+            channelId: 'channel-b',
+            guildId: 'guild-1',
+            position: 0,
+          ),
+          db.FavoriteChannel(
+            channelId: 'channel-a',
+            guildId: 'guild-1',
+            position: 1,
+          ),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+
+      await syncStore.hydrateFromUserSettings(_settingsFor(localOrder));
+      syncStore.markSessionChanging();
+      await syncStore.hydrateFromUserSettings(_settingsFor(remoteOrder));
+
+      final channels = await database.favoriteChannelsDao.watchChannels().first;
+      final sorted = [...channels]..sort((a, b) => a.position.compareTo(b.position));
+      expect(sorted.map((channel) => channel.channelId), [
+        'channel-b',
+        'channel-a',
+      ]);
     });
 
     test('hydrate merges remote additions while dirty', () async {
@@ -396,16 +453,16 @@ void main() {
         muted: false,
       );
 
-      await syncService.hydrateFromUserSettings(_settingsFor(initial));
+      await syncStore.hydrateFromUserSettings(_settingsFor(initial));
       await database.favoriteChannelsDao.addChannel(
         channelId: 'local-2',
         guildId: 'guild-1',
       );
-      await syncService.applyAfterLocalMutation();
+      syncStore.markDirty(SyncedPreferenceField.favorites);
       await _waitForDebounce();
       expect(usersApi.pushCount, 1);
 
-      await syncService.hydrateFromUserSettings(_settingsFor(expanded));
+      await syncStore.hydrateFromUserSettings(_settingsFor(expanded));
 
       final channels = await database.favoriteChannelsDao.watchChannels().first;
       expect(
@@ -423,7 +480,7 @@ void main() {
         ),
       );
 
-      await syncService.hydrateFromUserSettings(
+      await syncStore.hydrateFromUserSettings(
         _settingsFor(const FavoritesLocalState(
           channels: [],
           categories: [],
@@ -436,7 +493,7 @@ void main() {
         channelId: 'retry-1',
         guildId: 'guild-1',
       );
-      await syncService.applyAfterLocalMutation();
+      syncStore.markDirty(SyncedPreferenceField.favorites);
       await _waitForDebounce();
       expect(usersApi.pushCount, 1);
 
@@ -494,7 +551,15 @@ void main() {
           local: initial,
         ),
       );
-      final preservedField = _encodeStringField(1, 'other-field-data');
+      final preservedField = base64Decode(
+        engine.SyncedPreferencesWireCodec.encodeFieldIntoWire(
+          currentWire: null,
+          fieldNumber: 1,
+          fieldMessageBytes: accessibility_pb.AccessibilitySettings(
+            hideKeyboardHints: true,
+          ).writeToBuffer(),
+        ),
+      );
       final combined = Uint8List.fromList([...preservedField, ...favoritesWire]);
       final currentWire = base64Encode(combined);
 
@@ -516,7 +581,8 @@ void main() {
       );
 
       final updatedBytes = base64Decode(updated);
-      expect(_readStringField(updatedBytes, 1), 'other-field-data');
+      final synced = pb.SyncedPreferences.fromBuffer(updatedBytes);
+      expect(synced.accessibility.hideKeyboardHints, isTrue);
       final decoded = FavoritesStateCodec.decodeFavoritesFromWire(updated);
       expect(decoded.channels.single.channelId, 'updated');
     });

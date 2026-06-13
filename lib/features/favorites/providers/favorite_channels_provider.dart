@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
 import 'package:fluxer_app/features/favorites/data/favorite_channels_repository.dart';
-import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'favorite_channels_provider.g.dart';
@@ -11,7 +11,7 @@ part 'favorite_channels_provider.g.dart';
 FavoriteChannelsRepository favoriteChannelsRepository(Ref ref) {
   return FavoriteChannelsRepository(
     ref.watch(fluxerDatabaseProvider),
-    ref.watch(favoritesSyncServiceProvider),
+    ref.watch(syncedPreferencesStoreProvider),
   );
 }
 

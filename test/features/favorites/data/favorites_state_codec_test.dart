@@ -39,6 +39,55 @@ void main() {
       expect(decoded.hideMutedChannels, isTrue);
     });
 
+    test('mergeForMigration prefers server order for shared channels', () {
+      const local = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(
+            channelId: 'channel-a',
+            guildId: 'guild-1',
+            position: 0,
+          ),
+          db.FavoriteChannel(
+            channelId: 'channel-b',
+            guildId: 'guild-1',
+            position: 1,
+          ),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+      const server = FavoritesLocalState(
+        channels: [
+          db.FavoriteChannel(
+            channelId: 'channel-b',
+            guildId: 'guild-1',
+            position: 0,
+          ),
+          db.FavoriteChannel(
+            channelId: 'channel-a',
+            guildId: 'guild-1',
+            position: 1,
+          ),
+        ],
+        categories: [],
+        collapsedCategoryIds: [],
+        hideMutedChannels: false,
+        muted: false,
+      );
+
+      final merged = FavoritesStateCodec.mergeForMigration(
+        local: local,
+        server: server,
+      );
+
+      expect(merged.channels.map((channel) => channel.channelId), [
+        'channel-b',
+        'channel-a',
+      ]);
+    });
+
     test('mergeForMigration deduplicates channels and categories', () {
       const local = FavoritesLocalState(
         channels: [
@@ -89,10 +138,10 @@ void main() {
 
       expect(merged.channels.map((c) => c.channelId), [
         'channel-1',
-        'channel-2',
         'channel-3',
+        'channel-2',
       ]);
-      expect(merged.categories.map((c) => c.id), ['cat-1', 'cat-2']);
+      expect(merged.categories.map((c) => c.id), ['cat-2', 'cat-1']);
       expect(merged.collapsedCategoryIds, containsAll(['cat-1', 'cat-2']));
       expect(merged.hideMutedChannels, isTrue);
       expect(merged.muted, isFalse);

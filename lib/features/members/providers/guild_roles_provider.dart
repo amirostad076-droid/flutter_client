@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/members/data/member_repository.dart';
+import 'package:riverpod/src/providers/stream_provider.dart';
 
 final Set<String> _guildRolesPrefetchCompleted = <String>{};
 final Set<String> _guildRolesPrefetchInFlight = <String>{};
@@ -46,7 +47,7 @@ void prefetchGuildRolesIfMissing({
   );
 }
 
-final guildRolesByIdProvider = StreamProvider.family<Map<String, db.Role>, String>(
+final StreamProviderFamily<Map<String, db.Role>, String> guildRolesByIdProvider = StreamProvider.family<Map<String, db.Role>, String>(
   (Ref ref, String guildId) {
     if (guildId.isEmpty) {
       return Stream<Map<String, db.Role>>.value(<String, db.Role>{});

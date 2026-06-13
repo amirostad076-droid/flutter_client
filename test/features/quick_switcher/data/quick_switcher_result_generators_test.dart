@@ -37,7 +37,7 @@ void main() {
     late FluxerLocalizations l10n;
 
     setUp(() {
-      l10n = FluxerLocalizationsEn('en');
+      l10n = FluxerLocalizationsEn();
     });
 
     test('groups matching users under a people header', () {
@@ -152,7 +152,7 @@ void main() {
     late FluxerLocalizations l10n;
 
     setUp(() {
-      l10n = FluxerLocalizationsEn('en');
+      l10n = FluxerLocalizationsEn();
     });
 
     test('filters text channels for hash prefix mode', () {
@@ -160,7 +160,7 @@ void main() {
         users: const <QuickSwitcherUserCandidate>[],
         groupDms: const <QuickSwitcherGroupDmCandidate>[],
         textChannels: <QuickSwitcherChannelCandidate>[
-          QuickSwitcherChannelCandidate(
+          const QuickSwitcherChannelCandidate(
             id: '10',
             title: 'general',
             subtitle: 'Guild',
@@ -197,7 +197,7 @@ void main() {
 
   group('generateQuickSwitcherDefaultResults', () {
     test('includes recent DM visits from channel id', () {
-      final FluxerLocalizations l10n = FluxerLocalizationsEn('en');
+      final FluxerLocalizations l10n = FluxerLocalizationsEn();
       final DateTime recent = DateTime(2026, 4, 2, 12);
 
       final List<QuickSwitcherResult> results =
@@ -233,7 +233,7 @@ void main() {
     });
 
     test('includes recent guild text and voice channels from visits', () {
-      final FluxerLocalizations l10n = FluxerLocalizationsEn('en');
+      final FluxerLocalizations l10n = FluxerLocalizationsEn();
       final DateTime visitedAt = DateTime(2026, 4, 2, 12);
 
       final List<QuickSwitcherResult> results =
@@ -246,7 +246,6 @@ void main() {
                     id: '10',
                     guildId: 'g1',
                     name: 'general',
-                    type: ChannelType.text,
                   ),
                   const Channel(
                     id: '20',
@@ -282,7 +281,7 @@ void main() {
     });
 
     test('appends unread channels after recent visits without duplicates', () {
-      final FluxerLocalizations l10n = FluxerLocalizationsEn('en');
+      final FluxerLocalizations l10n = FluxerLocalizationsEn();
 
       final List<QuickSwitcherResult> results =
           generateQuickSwitcherDefaultResults(
@@ -294,7 +293,6 @@ void main() {
                     id: '10',
                     guildId: 'g1',
                     name: 'general',
-                    type: ChannelType.text,
                   ),
                 ],
                 conversations: <DmConversation>[
@@ -331,7 +329,7 @@ void main() {
 
   group('buildQuickSwitcherCandidateSets', () {
     test('includes home and guild candidates', () {
-      final FluxerLocalizations l10n = FluxerLocalizationsEn('en');
+      final FluxerLocalizations l10n = FluxerLocalizationsEn();
       final QuickSwitcherCandidateSets sets = buildQuickSwitcherCandidateSets(
         QuickSwitcherBuildInput(
           l10n: l10n,

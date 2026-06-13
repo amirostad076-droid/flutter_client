@@ -10,8 +10,8 @@ export 'package:fluxer_app/features/ui/avatar/fluxer_avatar_stack.dart';
 export 'package:fluxer_app/features/ui/avatar/fluxer_guild_icon_avatar.dart';
 export 'package:fluxer_app/features/ui/badge/fluxer_badge.dart';
 export 'package:fluxer_app/features/ui/badge/fluxer_bot_badge.dart';
-export 'package:fluxer_app/features/ui/badge/fluxer_user_tag.dart';
 export 'package:fluxer_app/features/ui/badge/fluxer_guild_badge.dart';
+export 'package:fluxer_app/features/ui/badge/fluxer_user_tag.dart';
 export 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 export 'package:fluxer_app/features/ui/bottom_sheet/fluxer_sheet_identity_header.dart';
 // Buttons

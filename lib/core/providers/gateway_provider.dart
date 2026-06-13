@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/auth/providers/current_auth_session_provider.dart';
@@ -15,17 +16,16 @@ import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_provider.dart';
-import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_availability_provider.dart';
-import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.dart';
-import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
-import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/members/data/member_cache_evictor.dart';
 import 'package:fluxer_app/features/members/data/member_list_drift_sync.dart';
 import 'package:fluxer_app/features/members/domain/member_list_range_utils.dart';
-import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
+import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.dart';
+import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
+import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
 import 'package:fluxer_app/features/settings/providers/connections_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_dart/gateway.dart';
@@ -203,7 +203,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
           .setConnections(connections);
     },
     onSessionChanging: () {
-      ref.read(favoritesSyncServiceProvider).markSessionChanging();
+      ref.read(syncedPreferencesStoreProvider).markSessionChanging();
     },
     onUserSettingsHydrate: (settings) {
       unawaited(
@@ -213,7 +213,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       );
       unawaited(
         ref
-            .read(favoritesSyncServiceProvider)
+            .read(syncedPreferencesStoreProvider)
             .hydrateFromUserSettings(settings),
       );
     },

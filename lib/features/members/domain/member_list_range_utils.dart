@@ -199,7 +199,7 @@ void _pushRangeBySpan(List<MemberListRange> ranges, int start, int end) {
   int chunkStart = start;
   while (chunkStart <= end) {
     final int chunkEnd = chunkStart + kMemberListRangeMaxSpan;
-    ranges.add(<int>[chunkStart, chunkEnd < end ? chunkEnd : end]);
+    ranges.add(<int>[chunkStart, if (chunkEnd < end) chunkEnd else end]);
     chunkStart = chunkEnd + 1;
   }
 }

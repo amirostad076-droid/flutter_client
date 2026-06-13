@@ -6,6 +6,8 @@ import 'package:fluxer_app/core/database/fluxer_database.dart' as drift_db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/notifications/data/notifications_repository.dart';
 import 'package:fluxer_app/features/notifications/data/unread_inbox_card_meta.dart';
@@ -96,6 +98,9 @@ class _UnreadChannelInboxCardState
     await db.notificationDao.upsertUnreadCollapsed(
       channelId: widget.entry.channelId,
       isCollapsed: nextCollapsed,
+    );
+    ref.read(syncedPreferencesStoreProvider).markDirty(
+      SyncedPreferenceField.unreadChannels,
     );
     if (nextCollapsed || !mounted) {
       return;

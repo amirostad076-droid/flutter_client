@@ -1,11 +1,12 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
-import 'package:fluxer_app/features/favorites/data/favorites_sync_service.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
 
 class FavoriteChannelsRepository {
-  FavoriteChannelsRepository(this._database, this._syncService);
+  FavoriteChannelsRepository(this._database, this._store);
 
   final db.FluxerDatabase _database;
-  final FavoritesSyncService _syncService;
+  final SyncedPreferencesStore _store;
 
   Stream<List<db.FavoriteChannel>> watchChannels() =>
       _database.favoriteChannelsDao.watchChannels();
@@ -35,7 +36,7 @@ class FavoriteChannelsRepository {
       nickname: nickname,
     );
     if (added) {
-      await _syncService.applyAfterLocalMutation();
+      _store.markDirty(SyncedPreferenceField.favorites);
     }
     return added;
   }
@@ -45,7 +46,7 @@ class FavoriteChannelsRepository {
       channelId,
     );
     if (removed) {
-      await _syncService.applyAfterLocalMutation();
+      _store.markDirty(SyncedPreferenceField.favorites);
     }
     return removed;
   }
@@ -60,7 +61,7 @@ class FavoriteChannelsRepository {
       position: position,
       parentId: parentId,
     );
-    await _syncService.applyAfterLocalMutation();
+    _store.markDirty(SyncedPreferenceField.favorites);
   }
 
   Future<bool> addCategory({required String id, required String name}) async {
@@ -69,7 +70,7 @@ class FavoriteChannelsRepository {
       name: name,
     );
     if (added) {
-      await _syncService.applyAfterLocalMutation();
+      _store.markDirty(SyncedPreferenceField.favorites);
     }
     return added;
   }
@@ -77,7 +78,7 @@ class FavoriteChannelsRepository {
   Future<bool> removeCategory(String id) async {
     final removed = await _database.favoriteChannelsDao.removeCategory(id);
     if (removed) {
-      await _syncService.applyAfterLocalMutation();
+      _store.markDirty(SyncedPreferenceField.favorites);
     }
     return removed;
   }
@@ -91,7 +92,7 @@ class FavoriteChannelsRepository {
       name: name,
     );
     if (renamed) {
-      await _syncService.applyAfterLocalMutation();
+      _store.markDirty(SyncedPreferenceField.favorites);
     }
     return renamed;
   }
@@ -101,7 +102,7 @@ class FavoriteChannelsRepository {
       id: id,
       position: position,
     );
-    await _syncService.applyAfterLocalMutation();
+    _store.markDirty(SyncedPreferenceField.favorites);
   }
 
   Future<bool> setChannelNickname({
@@ -113,23 +114,23 @@ class FavoriteChannelsRepository {
       nickname: nickname,
     );
     if (updated) {
-      await _syncService.applyAfterLocalMutation();
+      _store.markDirty(SyncedPreferenceField.favorites);
     }
     return updated;
   }
 
   Future<void> setCollapsedCategoryIds(List<String> categoryIds) async {
     await _database.favoriteChannelsDao.setCollapsedCategoryIds(categoryIds);
-    await _syncService.applyAfterLocalMutation();
+    _store.markDirty(SyncedPreferenceField.favorites);
   }
 
   Future<void> setHideMuted({required bool value}) async {
     await _database.favoriteChannelsDao.setHideMuted(value: value);
-    await _syncService.applyAfterLocalMutation();
+    _store.markDirty(SyncedPreferenceField.favorites);
   }
 
   Future<void> setMuted({required bool value}) async {
     await _database.favoriteChannelsDao.setMuted(value: value);
-    await _syncService.applyAfterLocalMutation();
+    _store.markDirty(SyncedPreferenceField.favorites);
   }
 }

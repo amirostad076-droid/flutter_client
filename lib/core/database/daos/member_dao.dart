@@ -120,7 +120,7 @@ class MemberDao extends DatabaseAccessor<FluxerDatabase> with _$MemberDaoMixin {
     final List<Variable> variables = <Variable>[Variable<String>(guildId)];
     if (protected.isNotEmpty) {
       sql.write('AND m.user_id NOT IN (${List.filled(protected.length, '?').join(', ')}) ');
-      variables.addAll(protected.map((String id) => Variable<String>(id)));
+      variables.addAll(protected.map(Variable<String>.new));
     }
     sql.write('ORDER BY a.last_accessed_at IS NULL, a.last_accessed_at ASC LIMIT ?');
     variables.add(Variable<int>(excess));

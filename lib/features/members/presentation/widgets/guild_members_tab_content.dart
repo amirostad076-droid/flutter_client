@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
 import 'package:fluxer_app/features/members/domain/member_list_group_names.dart';
 import 'package:fluxer_app/features/members/domain/member_list_layout.dart';
@@ -8,12 +9,11 @@ import 'package:fluxer_app/features/members/domain/member_list_range_utils.dart'
 import 'package:fluxer_app/features/members/domain/member_list_viewport_state.dart';
 import 'package:fluxer_app/features/members/presentation/widgets/member_list_member_row.dart';
 import 'package:fluxer_app/features/members/presentation/widgets/member_list_shared_widgets.dart';
-import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/members/providers/guild_roles_provider.dart';
-import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_list_subscription_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
+import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_dart/gateway.dart';
 
 class GuildMembersTabContent extends ConsumerStatefulWidget {

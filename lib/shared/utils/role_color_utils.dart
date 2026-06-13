@@ -1,3 +1,5 @@
+import 'package:image/image.dart' show Color;
+
 /// Guild role colors from the API are 24-bit RGB values. Flutter [Color]
 /// expects ARGB, so raw values render with zero alpha unless the high byte
 /// is set.

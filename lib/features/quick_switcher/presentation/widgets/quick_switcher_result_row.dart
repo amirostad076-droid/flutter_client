@@ -108,7 +108,6 @@ class QuickSwitcherResultRow extends StatelessWidget {
                     ),
                   )
                   .toList(),
-              size: _kLeadingSlotSize,
             ),
           QuickSwitcherTextChannelResult() => ChannelIcon(
             type: ChannelType.text,

@@ -53,8 +53,7 @@ class QuickSwitcherUserResult extends QuickSwitcherResult {
   const QuickSwitcherUserResult({
     required this.id,
     required this.title,
-    this.subtitle,
-    required this.userId,
+    required this.userId, this.subtitle,
     this.dmChannelId,
     this.avatar,
     this.avatarColor,
@@ -77,8 +76,7 @@ class QuickSwitcherGroupDmResult extends QuickSwitcherResult {
   const QuickSwitcherGroupDmResult({
     required this.id,
     required this.title,
-    this.subtitle,
-    required this.channelId,
+    required this.channelId, this.subtitle,
     this.icon,
     this.groupStatus,
     this.groupMembers = const <GroupMemberInfo>[],
@@ -99,9 +97,7 @@ class QuickSwitcherTextChannelResult extends QuickSwitcherResult {
   const QuickSwitcherTextChannelResult({
     required this.id,
     required this.title,
-    this.subtitle,
-    required this.channelId,
-    required this.guildId,
+    required this.channelId, required this.guildId, this.subtitle,
     this.guildName,
     this.guildIcon,
   });
@@ -121,9 +117,7 @@ class QuickSwitcherVoiceChannelResult extends QuickSwitcherResult {
   const QuickSwitcherVoiceChannelResult({
     required this.id,
     required this.title,
-    this.subtitle,
-    required this.channelId,
-    required this.guildId,
+    required this.channelId, required this.guildId, this.subtitle,
     this.guildName,
     this.guildIcon,
   });
@@ -143,8 +137,7 @@ class QuickSwitcherGuildResult extends QuickSwitcherResult {
   const QuickSwitcherGuildResult({
     required this.id,
     required this.title,
-    this.subtitle,
-    required this.guild,
+    required this.guild, this.subtitle,
   });
 
   final String id;
@@ -159,8 +152,7 @@ class QuickSwitcherVirtualGuildResult extends QuickSwitcherResult {
   const QuickSwitcherVirtualGuildResult({
     required this.id,
     required this.title,
-    this.subtitle,
-    required this.virtualGuildType,
+    required this.virtualGuildType, this.subtitle,
   });
 
   final String id;
@@ -175,8 +167,7 @@ class QuickSwitcherSettingsResult extends QuickSwitcherResult {
   const QuickSwitcherSettingsResult({
     required this.id,
     required this.title,
-    this.subtitle,
-    required this.target,
+    required this.target, this.subtitle,
   });
 
   final String id;
@@ -191,8 +182,7 @@ class QuickSwitcherLinkResult extends QuickSwitcherResult {
   const QuickSwitcherLinkResult({
     required this.id,
     required this.title,
-    this.subtitle,
-    required this.path,
+    required this.path, this.subtitle,
   });
 
   final String id;

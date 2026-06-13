@@ -24,8 +24,6 @@ class QuickSwitcherBottomSheet {
     return FluxerBottomSheet.showScrollable<void>(
       context,
       useRootNavigator: true,
-      showDragHandle: true,
-      initialChildSize: 0.9,
       minChildSize: 0.5,
       maxChildSize: 0.92,
       builder: (sheetContext, scrollController, close) {
@@ -171,7 +169,6 @@ class _QuickSwitcherSheetBodyState
         PickerSearchInput(
           controller: _searchController,
           hintText: l10n.quickSwitcherSearchPlaceholder,
-          horizontalPadding: 12,
           topPadding: 0,
           bottomPadding: 0,
           onSubmitted: (_) => _confirmSelection(state),
@@ -195,7 +192,6 @@ class _QuickSwitcherSheetBodyState
         PickerSearchInput(
           controller: _friendsSearchController,
           hintText: l10n.quickSwitcherSearchFriends,
-          horizontalPadding: 12,
           topPadding: 0,
           bottomPadding: 0,
           onSubmitted: (_) {},

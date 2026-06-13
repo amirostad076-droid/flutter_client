@@ -1,6 +1,11 @@
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
+import 'package:fluxer_app/core/synced_preferences/fields/accessibility_synced_field.dart';
+import 'package:fluxer_app/core/synced_preferences/fields/privacy_synced_field.dart';
+import 'package:fluxer_app/core/synced_preferences/fields/sidebar_synced_field.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'appearance_preferences_provider.g.dart';
@@ -58,6 +63,7 @@ class AppearancePreferencesState {
 @Riverpod(keepAlive: true)
 class AppearancePreferences extends _$AppearancePreferences {
   String? _userId;
+  bool _isApplyingRemote = false;
 
   @override
   AppearancePreferencesState build() => const AppearancePreferencesState();
@@ -85,11 +91,49 @@ class AppearancePreferences extends _$AppearancePreferences {
     }
   }
 
+  Future<void> applySyncedAccessibility(AccessibilityLocalState value) async {
+    _isApplyingRemote = true;
+    try {
+      state = state.copyWith(
+        hideKeyboardHints: value.hideKeyboardHints,
+        channelTypingIndicatorMode: value.channelTypingIndicatorMode,
+        showSelectedChannelTypingIndicator:
+            value.showSelectedChannelTypingIndicator,
+        showFadedUnreadOnMutedChannels: value.showFadedUnreadOnMutedChannels,
+        showFavorites: value.showFavorites,
+      );
+      await _persist();
+    } finally {
+      _isApplyingRemote = false;
+    }
+  }
+
+  Future<void> applySyncedSidebar(SidebarLocalState value) async {
+    _isApplyingRemote = true;
+    try {
+      state = state.copyWith(collapseDMs: value.inlineDmsCollapsed);
+      await _persist();
+    } finally {
+      _isApplyingRemote = false;
+    }
+  }
+
+  Future<void> applySyncedPrivacy(PrivacyLocalState value) async {
+    _isApplyingRemote = true;
+    try {
+      state = state.copyWith(showActiveNow: value.showActiveNow);
+      await _persist();
+    } finally {
+      _isApplyingRemote = false;
+    }
+  }
+
   Future<void> setChannelTypingIndicatorMode(
     ChannelTypingIndicatorMode mode,
   ) async {
     state = state.copyWith(channelTypingIndicatorMode: mode);
     await _persist();
+    _markAccessibilityDirty();
   }
 
   Future<void> setShowSelectedChannelTypingIndicator({
@@ -97,11 +141,13 @@ class AppearancePreferences extends _$AppearancePreferences {
   }) async {
     state = state.copyWith(showSelectedChannelTypingIndicator: value);
     await _persist();
+    _markAccessibilityDirty();
   }
 
   Future<void> setCollapseDMs({required bool value}) async {
     state = state.copyWith(collapseDMs: value);
     await _persist();
+    _markSidebarDirty();
   }
 
   Future<void> setShowNeko({required bool value}) async {
@@ -112,21 +158,52 @@ class AppearancePreferences extends _$AppearancePreferences {
   Future<void> setShowFadedUnreadOnMutedChannels({required bool value}) async {
     state = state.copyWith(showFadedUnreadOnMutedChannels: value);
     await _persist();
+    _markAccessibilityDirty();
   }
 
   Future<void> setShowActiveNow({required bool value}) async {
     state = state.copyWith(showActiveNow: value);
     await _persist();
+    _markPrivacyDirty();
   }
 
   Future<void> setShowFavorites({required bool value}) async {
     state = state.copyWith(showFavorites: value);
     await _persist();
+    _markAccessibilityDirty();
   }
 
   Future<void> setHideKeyboardHints({required bool value}) async {
     state = state.copyWith(hideKeyboardHints: value);
     await _persist();
+    _markAccessibilityDirty();
+  }
+
+  void _markAccessibilityDirty() {
+    if (_isApplyingRemote) {
+      return;
+    }
+    ref.read(syncedPreferencesStoreProvider).markDirty(
+      SyncedPreferenceField.accessibility,
+    );
+  }
+
+  void _markSidebarDirty() {
+    if (_isApplyingRemote) {
+      return;
+    }
+    ref.read(syncedPreferencesStoreProvider).markDirty(
+      SyncedPreferenceField.sidebar,
+    );
+  }
+
+  void _markPrivacyDirty() {
+    if (_isApplyingRemote) {
+      return;
+    }
+    ref.read(syncedPreferencesStoreProvider).markDirty(
+      SyncedPreferenceField.privacy,
+    );
   }
 
   Future<void> _persist() async {

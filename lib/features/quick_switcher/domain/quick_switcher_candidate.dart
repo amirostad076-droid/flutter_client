@@ -37,8 +37,7 @@ class QuickSwitcherUserCandidate extends QuickSwitcherCandidate {
     required super.title,
     required super.searchValues,
     required super.sortWeight,
-    super.subtitle,
-    required this.userId,
+    required this.userId, super.subtitle,
     this.dmChannelId,
     this.avatar,
     this.avatarColor,
@@ -62,8 +61,7 @@ class QuickSwitcherGroupDmCandidate extends QuickSwitcherCandidate {
     required super.title,
     required super.searchValues,
     required super.sortWeight,
-    super.subtitle,
-    required this.channelId,
+    required this.channelId, super.subtitle,
     this.icon,
     this.groupStatus,
     this.groupMembers = const <GroupMemberInfo>[],
@@ -85,10 +83,7 @@ class QuickSwitcherChannelCandidate extends QuickSwitcherCandidate {
     required super.title,
     required super.searchValues,
     required super.sortWeight,
-    super.subtitle,
-    required this.channelId,
-    required this.guildId,
-    required this.isVoice,
+    required this.channelId, required this.guildId, required this.isVoice, super.subtitle,
     this.guildName,
     this.guildIcon,
   });
@@ -111,8 +106,7 @@ class QuickSwitcherGuildCandidate extends QuickSwitcherCandidate {
     required super.title,
     required super.searchValues,
     required super.sortWeight,
-    super.subtitle,
-    required this.guild,
+    required this.guild, super.subtitle,
   });
 
   final Guild guild;
@@ -128,8 +122,7 @@ class QuickSwitcherVirtualGuildCandidate extends QuickSwitcherCandidate {
     required super.title,
     required super.searchValues,
     required super.sortWeight,
-    super.subtitle,
-    required this.virtualGuildType,
+    required this.virtualGuildType, super.subtitle,
   });
 
   final QuickSwitcherVirtualGuildType virtualGuildType;
@@ -145,8 +138,7 @@ class QuickSwitcherSettingsCandidate extends QuickSwitcherCandidate {
     required super.title,
     required super.searchValues,
     required super.sortWeight,
-    super.subtitle,
-    required this.target,
+    required this.target, super.subtitle,
   });
 
   final QuickSwitcherSettingsTarget target;

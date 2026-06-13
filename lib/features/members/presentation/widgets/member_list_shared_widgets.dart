@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 
-const double kMemberListRowHeight = 42.0;
-const double kMemberListGroupHeaderHeight = 28.0;
-const double kMemberListDetailsGroupHeaderHeight = 36.0;
-const double kMemberListDetailsMemberRowHeight = 56.0;
+const double kMemberListRowHeight = 42;
+const double kMemberListGroupHeaderHeight = 28;
+const double kMemberListDetailsGroupHeaderHeight = 36;
+const double kMemberListDetailsMemberRowHeight = 56;
 
 enum MemberListSkeletonStyle { sidebar, details }
 
@@ -333,7 +333,7 @@ class MemberListDetailsMemberShell extends StatelessWidget {
           border: isFirstInGroup
               ? null
               : Border(
-                  top: BorderSide(color: dividerColor, width: 1),
+                  top: BorderSide(color: dividerColor),
                 ),
         ),
         child: child,

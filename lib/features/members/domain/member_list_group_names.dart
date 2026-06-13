@@ -1,8 +1,7 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/features/members/domain/member_list_layout.dart';
 import 'package:fluxer_app/shared/utils/role_color_utils.dart';
 import 'package:fluxer_dart/gateway.dart';
-
-import 'package:fluxer_app/features/members/domain/member_list_layout.dart';
 
 class MemberListGroupHeaderData {
   const MemberListGroupHeaderData({

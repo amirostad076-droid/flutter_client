@@ -26,7 +26,7 @@ void main() {
     test('returns role name when role is cached', () {
       const String roleId = '1473045383154057326';
       final Map<String, db.Role> rolesById = <String, db.Role>{
-        roleId: db.Role(
+        roleId: const db.Role(
           id: roleId,
           guildId: 'guild',
           name: 'Moderator',
@@ -46,7 +46,7 @@ void main() {
     test('returns opaque role color for group headers', () {
       const String roleId = '1473045383154057326';
       final Map<String, db.Role> rolesById = <String, db.Role>{
-        roleId: db.Role(
+        roleId: const db.Role(
           id: roleId,
           guildId: 'guild',
           name: 'Moderator',
@@ -76,7 +76,7 @@ void main() {
         ],
       );
       final Map<String, db.Role> rolesById = <String, db.Role>{
-        '1473045383154057326': db.Role(
+        '1473045383154057326': const db.Role(
           id: '1473045383154057326',
           guildId: 'guild',
           name: 'Admin',
