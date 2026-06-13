@@ -6192,5 +6192,49 @@
     "customStatusSave": "Save",
     "@customStatusSave": {
         "description": "Button to save custom status changes."
+    },
+    "uiClose": "Close",
+    "@uiClose": {
+        "description": "Accessible label for icon-only close buttons."
+    },
+    "uiConfirm": "Confirm",
+    "@uiConfirm": {
+        "description": "Generic confirm action label for modals and sheets."
+    },
+    "uiLoading": "Loading",
+    "@uiLoading": {
+        "description": "Accessible label announced while a control is loading."
+    },
+    "uiUnsavedChanges": "Unsaved changes",
+    "@uiUnsavedChanges": {
+        "description": "Status label shown when settings have unsaved edits."
+    },
+    "uiReset": "Reset",
+    "@uiReset": {
+        "description": "Reset action label for settings save bars."
+    },
+    "uiOpenColorPicker": "Open color picker",
+    "@uiOpenColorPicker": {
+        "description": "Accessible label for the color picker trigger button."
+    },
+    "uiSelectPlaceholder": "Select",
+    "@uiSelectPlaceholder": {
+        "description": "Fallback accessible label for select fields without a label."
+    },
+    "uiSearchPlaceholder": "Search",
+    "@uiSearchPlaceholder": {
+        "description": "Placeholder and accessible label for search fields in select sheets."
+    },
+    "uiNoOptionsFound": "No options found",
+    "@uiNoOptionsFound": {
+        "description": "Empty state shown when a select search returns no matches."
+    },
+    "uiDismissNotification": "Dismiss notification",
+    "@uiDismissNotification": {
+        "description": "Accessible label for dismissing a toast notification."
+    },
+    "uiColorPickerTitle": "Color picker",
+    "@uiColorPickerTitle": {
+        "description": "Title for the mobile color picker sheet."
     }
 }
