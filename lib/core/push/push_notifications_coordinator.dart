@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
@@ -97,10 +96,6 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
           }
           // APNs + NotificationService extension already show rich notifications.
           if (PushProviderGuard.isApple) {
-            return;
-          }
-          // FCM Android uses the system notification from the server payload.
-          if (PushProviderGuard.isFirebaseMessaging && Platform.isAndroid) {
             return;
           }
           unawaited(_localPush.showPushMessage(message));

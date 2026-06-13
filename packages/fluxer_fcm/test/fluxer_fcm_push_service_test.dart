@@ -85,5 +85,16 @@ void main() {
 
       expect(actualPayloads, <Map<String, String>>[secondPayload]);
     });
+
+    test('clears subscriptions on reset', () {
+      service.resetForTesting();
+      service.dispatchTapPayloadForTesting(<String, String>{'id': 'abc'});
+      service.resetForTesting();
+      final List<Map<String, String>> actualPayloads = <Map<String, String>>[];
+      service.setNotificationTapCallback((Map<String, String> payload) {
+        actualPayloads.add(payload);
+      });
+      expect(actualPayloads, isEmpty);
+    });
   });
 }

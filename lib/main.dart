@@ -28,7 +28,7 @@ void _configureImagePicker() {
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   assertPushProviderBuildConfig();
-  bootstrapFcmIfNeeded();
+  await bootstrapFcmIfNeeded();
   _configureImagePicker();
   final bool isUnifiedPushBackground =
       args.contains('--unifiedpush-bg') &&

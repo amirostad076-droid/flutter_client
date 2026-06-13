@@ -22,6 +22,9 @@ class FluxerFcmPushService {
   bool _initialized = false;
   void Function(Map<String, String> payload)? _onNotificationTap;
   Map<String, String>? _pendingNotificationTapPayload;
+  StreamSubscription<RemoteMessage>? _onMessageSubscription;
+  StreamSubscription<RemoteMessage>? _onMessageOpenedAppSubscription;
+  StreamSubscription<String>? _onTokenRefreshSubscription;
 
   Stream<String> get tokenRefreshStream => _tokenRefresh.stream;
 
@@ -65,16 +68,25 @@ class FluxerFcmPushService {
           badge: true,
           sound: true,
         );
-    FirebaseMessaging.onMessage.listen(_onForegroundMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenedApp);
-    FirebaseMessaging.instance.onTokenRefresh.listen((String token) {
-      if (token.isNotEmpty) {
-        _tokenRefresh.add(token);
-      }
-    });
+    _onMessageSubscription =
+        FirebaseMessaging.onMessage.listen(_onForegroundMessage);
+    _onMessageOpenedAppSubscription =
+        FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenedApp);
+    _onTokenRefreshSubscription =
+        FirebaseMessaging.instance.onTokenRefresh.listen((String token) {
+          if (token.isNotEmpty) {
+            _tokenRefresh.add(token);
+          }
+        });
     final RemoteMessage? initialMessage = await FirebaseMessaging.instance
         .getInitialMessage();
     if (initialMessage != null) {
+      if (kDebugMode) {
+        debugPrint(
+          '[FluxerFcmPushService] getInitialMessage '
+          'id=${initialMessage.messageId} data=${initialMessage.data}',
+        );
+      }
       _dispatchTap(initialMessage);
     }
     _initialized = true;
@@ -98,11 +110,20 @@ class FluxerFcmPushService {
   }
 
   void _onMessageOpenedApp(RemoteMessage message) {
+    if (kDebugMode) {
+      debugPrint(
+        '[FluxerFcmPushService] onMessageOpenedApp '
+        'id=${message.messageId} data=${message.data}',
+      );
+    }
     _dispatchTap(message);
   }
 
   void _dispatchTap(RemoteMessage message) {
     final FcmPushMessage mapped = mapRemoteMessage(message);
+    if (kDebugMode) {
+      debugPrint('[FluxerFcmPushService] tap payload=${mapped.payload}');
+    }
     _dispatchTapPayload(mapped.payload);
   }
 
@@ -126,5 +147,11 @@ class FluxerFcmPushService {
     _initialized = false;
     _onNotificationTap = null;
     _pendingNotificationTapPayload = null;
+    unawaited(_onMessageSubscription?.cancel());
+    unawaited(_onMessageOpenedAppSubscription?.cancel());
+    unawaited(_onTokenRefreshSubscription?.cancel());
+    _onMessageSubscription = null;
+    _onMessageOpenedAppSubscription = null;
+    _onTokenRefreshSubscription = null;
   }
 }

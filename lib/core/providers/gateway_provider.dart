@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.da
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
+import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
@@ -75,6 +76,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       talker.info('[Gateway] Setting gatewayReady = true');
       unawaited(ref.read(channelPermissionCacheProvider.notifier).rebuildAll());
       ref.read(gatewayReadyProvider.notifier).setReady();
+      ref.read(pendingPushNotificationPathProvider.notifier).flushIfReady();
       ref.read(guildSyncProvider.notifier).clearAll();
       ref.read(memberListViewportProvider.notifier).clearSession();
       ref.read(memberListDesiredRangesProvider.notifier).clearAll();
