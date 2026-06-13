@@ -24,6 +24,16 @@ class UserSettingsSyncService {
       rethrow;
     }
   }
+
+  Future<UserSettingsResponse> fetchCurrentSettings() async {
+    final client = _ref.read(fluxerClientProvider);
+    try {
+      return await client.users.getCurrentUserSettings();
+    } on Object catch (e, st) {
+      talker.error('[UserSettingsSync] Fetch failed', e, st);
+      rethrow;
+    }
+  }
 }
 
 @Riverpod(keepAlive: true)

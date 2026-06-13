@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/api/session_authorization_header.dart';
@@ -13,6 +15,8 @@ import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'account_manager_provider.g.dart';
+
+const Duration _kPostSwitchStartupTimeout = Duration(seconds: 20);
 
 class AccountManagerState {
   final List<StoredAccount> accounts;
@@ -87,6 +91,9 @@ class AccountManager extends _$AccountManager {
 
       // Trigger full app restart with new session.
       ref.invalidate(appStartupProvider);
+      await ref
+          .read(appStartupProvider.future)
+          .timeout(_kPostSwitchStartupTimeout);
 
       state = state.copyWith(isSwitching: false);
     } on SessionExpiredFailure {

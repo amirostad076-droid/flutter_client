@@ -101,6 +101,23 @@ class ThemePreference extends _$ThemePreference {
         chatFontSize: prefs.chatFontSize,
         syncAcrossDevices: prefs.syncAcrossDevices,
       );
+    } else {
+      state = ThemePreferenceState();
+    }
+    await _hydrateThemeFromApiIfNeeded();
+  }
+
+  Future<void> _hydrateThemeFromApiIfNeeded() async {
+    if (!state.syncAcrossDevices || state.mode == FluxerThemeMode.system) {
+      return;
+    }
+    try {
+      final UserSettingsResponse settings = await ref
+          .read(userSettingsSyncProvider)
+          .fetchCurrentSettings();
+      await applyServerSettings(settings);
+    } on Object catch (e, st) {
+      talker.warning('[ThemePreference] Server theme fetch failed', e, st);
     }
   }
 
