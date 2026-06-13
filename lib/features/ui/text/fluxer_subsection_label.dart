@@ -12,13 +12,16 @@ class FluxerSubsectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Text(
-      text.toUpperCase(),
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: colors.textTertiaryMuted,
-        letterSpacing: 0.6,
+    return Semantics(
+      header: true,
+      child: Text(
+        text.toUpperCase(),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: colors.textTertiaryMuted,
+          letterSpacing: 0.6,
+        ),
       ),
     );
   }

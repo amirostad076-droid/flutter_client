@@ -101,10 +101,18 @@ class FluxerListRow extends StatelessWidget {
       ),
     );
 
+    final Widget content = onTap != null || onLongPress != null
+        ? Semantics(
+            button: true,
+            label: hasSubtitle ? '$title, $subtitle' : title,
+            child: ExcludeSemantics(child: row),
+          )
+        : row;
+
     if (!dimmed) {
-      return row;
+      return content;
     }
-    return Opacity(opacity: 0.45, child: row);
+    return Opacity(opacity: 0.45, child: content);
   }
 }
 

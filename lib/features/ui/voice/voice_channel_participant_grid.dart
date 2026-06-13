@@ -537,13 +537,18 @@ class _VoiceParticipantCard extends StatelessWidget {
         tileSource == VoiceParticipantTileSource.screenShare &&
         localConnectionId != null &&
         v.connectionId == localConnectionId;
-    return Material(
-      color: cardColor,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: ClipRRect(
+    return Semantics(
+      button: true,
+      label: display,
+      onTap: onTap,
+      child: ExcludeSemantics(
+        child: Material(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Stack(
             clipBehavior: Clip.none,
@@ -601,6 +606,8 @@ class _VoiceParticipantCard extends StatelessWidget {
           ),
         ),
       ),
+    ),
+  ),
     );
   }
 }

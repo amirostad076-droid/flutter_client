@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 class FluxerLoadingSpinner extends StatefulWidget {
   const FluxerLoadingSpinner({super.key, this.color, this.inverted = false});
@@ -41,41 +42,47 @@ class _FluxerLoadingSpinnerState extends State<FluxerLoadingSpinner>
   Widget build(BuildContext context) {
     final dotColor =
         widget.color ?? (widget.inverted ? Colors.black : Colors.white);
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
 
-    return SizedBox(
-      width: 28,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(_kDotCount, (index) {
-          return Padding(
-            padding: EdgeInsets.only(
-              right: index < _kDotCount - 1 ? _kDotSpacing : 0,
-            ),
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                final phase = (_controller.value - _kDelays[index]) % 1.0;
-                final wave = (math.cos(phase * 2 * math.pi) + 1) / 2;
-                final opacity = 0.3 + 0.7 * wave;
-                final scale = 0.8 + 0.2 * wave;
-
-                return Transform.scale(
-                  scale: scale,
-                  child: Opacity(opacity: opacity, child: child),
-                );
-              },
-              child: Container(
-                width: _kDotSize,
-                height: _kDotSize,
-                decoration: BoxDecoration(
-                  color: dotColor,
-                  borderRadius: BorderRadius.circular(4),
+    return Semantics(
+      label: l10n.uiLoading,
+      child: ExcludeSemantics(
+        child: SizedBox(
+          width: 28,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(_kDotCount, (index) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  right: index < _kDotCount - 1 ? _kDotSpacing : 0,
                 ),
-              ),
-            ),
-          );
-        }),
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    final phase = (_controller.value - _kDelays[index]) % 1.0;
+                    final wave = (math.cos(phase * 2 * math.pi) + 1) / 2;
+                    final opacity = 0.3 + 0.7 * wave;
+                    final scale = 0.8 + 0.2 * wave;
+
+                    return Transform.scale(
+                      scale: scale,
+                      child: Opacity(opacity: opacity, child: child),
+                    );
+                  },
+                  child: Container(
+                    width: _kDotSize,
+                    height: _kDotSize,
+                    decoration: BoxDecoration(
+                      color: dotColor,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
       ),
     );
   }

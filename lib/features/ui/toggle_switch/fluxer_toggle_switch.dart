@@ -27,6 +27,16 @@ class FluxerToggleSwitch extends StatelessWidget {
   final IconData? icon;
   final bool enabled;
 
+  String? _semanticsLabel() {
+    if (label == null) {
+      return description;
+    }
+    if (description == null) {
+      return label;
+    }
+    return '$label. $description';
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -79,32 +89,25 @@ class FluxerToggleSwitch extends StatelessWidget {
       );
     }
 
-    return MergeSemantics(
-      child: Semantics(
-        container: true,
-        toggled: value,
-        enabled: enabled,
-        button: true,
-        label: label,
-        child: FluxerTappable(
-          enabled: enabled,
-          minSize: Size(layout.touchTargetMin, layout.touchTargetMin),
-          onTap: () => onChanged(!value),
-          semanticLabel: label,
-          builder: (context, states) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (hasContent) ...[
-                  Expanded(child: buildLabelContent(context, states)),
-                  SizedBox(width: layout.s4),
-                ],
-                FluxerSwitchControl(value: value, enabled: enabled),
-              ],
-            );
-          },
-        ),
-      ),
+    return FluxerTappable(
+      enabled: enabled,
+      minSize: Size(layout.touchTargetMin, layout.touchTargetMin),
+      onTap: () => onChanged(!value),
+      semanticLabel: _semanticsLabel(),
+      toggled: value,
+      excludeChildSemantics: _semanticsLabel() != null,
+      builder: (context, states) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (hasContent) ...[
+              Expanded(child: buildLabelContent(context, states)),
+              SizedBox(width: layout.s4),
+            ],
+            FluxerSwitchControl(value: value, enabled: enabled),
+          ],
+        );
+      },
     );
   }
 }

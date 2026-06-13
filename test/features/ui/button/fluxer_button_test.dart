@@ -9,9 +9,13 @@ import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();
   return MaterialApp(
+    localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+    supportedLocales: FluxerLocalizations.supportedLocales,
     theme: buildFluxerTheme(
       colorTheme: colorTheme,
       textTheme: FluxerTextTheme.fromColors(colorTheme),
@@ -148,15 +152,34 @@ void main() {
       expect(constraints.minWidth, constraints.minHeight);
     });
 
-    testWidgets('does not call onPressed when onPressed is null', (
+    testWidgets('icon-only button is findable with semanticLabel', (
       tester,
     ) async {
       await tester.pumpWidget(
-        buildTestApp(const FluxerButton.primary(label: 'Disabled')),
+        buildTestApp(
+          FluxerButton.circle(
+            onPressed: () {},
+            icon: PhosphorIconsBold.plus,
+            semanticLabel: 'Add item',
+          ),
+        ),
       );
 
-      await tester.tap(find.byType(FluxerButton));
-      // No exception means the tap was safely ignored.
+      expect(find.bySemanticsLabel('Add item'), findsOneWidget);
+    });
+
+    testWidgets('loading button announces loading state', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          FluxerButton.primary(
+            onPressed: () {},
+            label: 'Submit',
+            isLoading: true,
+          ),
+        ),
+      );
+
+      expect(find.bySemanticsLabel('Submit, Loading'), findsOneWidget);
     });
   });
 }

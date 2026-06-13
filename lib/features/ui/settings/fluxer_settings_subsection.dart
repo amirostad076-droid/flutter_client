@@ -25,12 +25,15 @@ class FluxerSettingsSubsection extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (title != null) ...[
-          Text(
-            title!,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
+          Semantics(
+            header: true,
+            child: Text(
+              title!,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
             ),
           ),
           if (description != null) ...[

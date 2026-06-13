@@ -3,6 +3,7 @@ import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // ---------------------------------------------------------------------------
@@ -295,9 +296,11 @@ class FluxerBottomSheetHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final layout = context.layout;
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final Widget? effectiveLeading = onBack != null
         ? IconButton(
             onPressed: onBack,
+            tooltip: l10n.back,
             icon: PhosphorIcon(
               PhosphorIconsBold.caretLeft,
               size: 20,
@@ -572,6 +575,9 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
     return FluxerTappable(
       enabled: enabled,
       onTap: onTap,
+      selected: isSelected,
+      semanticLabel: hint != null ? '$label. $hint' : label,
+      excludeChildSemantics: true,
       builder: (context, states) {
         final isPressed = states.contains(WidgetState.pressed);
 
@@ -715,6 +721,9 @@ class FluxerBottomSheetCheckboxItem extends StatelessWidget {
 
     return FluxerTappable(
       onTap: onTap,
+      semanticLabel: label,
+      checked: isChecked,
+      excludeChildSemantics: true,
       builder: (context, states) {
         return ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 56),

@@ -13,8 +13,17 @@ class FluxerTappable extends StatefulWidget {
     this.onLongPress,
     this.enabled = true,
     this.selected = false,
+    this.toggled,
+    this.checked,
+    this.expanded,
+    this.header = false,
+    this.link = false,
+    this.linkUrl,
+    this.container = false,
+    this.button,
     this.minSize,
     this.semanticLabel,
+    this.excludeChildSemantics = false,
     this.hitTestBehavior = HitTestBehavior.opaque,
     super.key,
   });
@@ -24,8 +33,17 @@ class FluxerTappable extends StatefulWidget {
   final VoidCallback? onLongPress;
   final bool enabled;
   final bool selected;
+  final bool? toggled;
+  final bool? checked;
+  final bool? expanded;
+  final bool header;
+  final bool link;
+  final Uri? linkUrl;
+  final bool container;
+  final bool? button;
   final Size? minSize;
   final String? semanticLabel;
+  final bool excludeChildSemantics;
   final HitTestBehavior hitTestBehavior;
 
   @override
@@ -74,12 +92,24 @@ class _FluxerTappableState extends State<FluxerTappable> {
             child: content,
           );
 
+    final isInteractive = widget.onTap != null || widget.onLongPress != null;
+    final semanticsChild = widget.excludeChildSemantics
+        ? ExcludeSemantics(child: constrainedContent)
+        : constrainedContent;
+
     return Semantics(
       label: widget.semanticLabel,
-      button: widget.onTap != null || widget.onLongPress != null,
+      button: widget.button ?? (isInteractive && !widget.link),
+      link: widget.link,
+      linkUrl: widget.linkUrl,
       enabled: widget.enabled,
-      focusable: widget.enabled,
+      focusable: widget.enabled && isInteractive,
       selected: widget.selected,
+      toggled: widget.toggled,
+      checked: widget.checked,
+      expanded: widget.expanded,
+      header: widget.header,
+      container: widget.container,
       child: MouseRegion(
         cursor: widget.enabled
             ? SystemMouseCursors.click
@@ -107,7 +137,7 @@ class _FluxerTappableState extends State<FluxerTappable> {
                   ? Duration(milliseconds: motion.fast.inMilliseconds ~/ 2)
                   : motion.fast,
               curve: motion.curve,
-              child: constrainedContent,
+              child: semanticsChild,
             ),
           ),
         ),

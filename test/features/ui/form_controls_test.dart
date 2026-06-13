@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
@@ -9,9 +10,13 @@ import 'package:fluxer_app/features/ui/radio_group/fluxer_radio_group.dart';
 import 'package:fluxer_app/features/ui/toggle_switch/fluxer_switch_control.dart';
 import 'package:fluxer_app/features/ui/toggle_switch/fluxer_toggle_switch.dart';
 
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();
   return MaterialApp(
+    localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+    supportedLocales: FluxerLocalizations.supportedLocales,
     theme: buildFluxerTheme(
       colorTheme: colorTheme,
       textTheme: FluxerTextTheme.fromColors(colorTheme),
@@ -202,5 +207,62 @@ void main() {
         expect(toggled, isTrue);
       },
     );
+  });
+
+  group('semantics', () {
+    testWidgets('checkbox exposes checked state', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          FluxerCheckbox(
+            value: true,
+            onChanged: (_) {},
+            label: 'Accept terms',
+          ),
+        ),
+      );
+
+      expect(find.bySemanticsLabel('Accept terms'), findsOneWidget);
+      final SemanticsNode node = tester.getSemantics(
+        find.bySemanticsLabel('Accept terms'),
+      );
+      expect(node.hasFlag(SemanticsFlag.isChecked), isTrue);
+    });
+
+    testWidgets('radio group exposes selected option', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          FluxerRadioGroup<String>(
+            value: 'b',
+            items: const [
+              FluxerRadioItem(value: 'a', label: 'Alpha'),
+              FluxerRadioItem(value: 'b', label: 'Beta'),
+            ],
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      final SemanticsNode beta = tester.getSemantics(find.text('Beta'));
+      expect(beta.hasFlag(SemanticsFlag.isChecked), isTrue);
+    });
+
+    testWidgets('toggle switch exposes toggled state', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          FluxerToggleSwitch(
+            value: true,
+            onChanged: (_) {},
+            label: 'Enable notifications',
+          ),
+        ),
+      );
+
+      expect(find.bySemanticsLabel('Enable notifications'), findsOneWidget);
+      final SemanticsNode node = tester.getSemantics(
+        find.bySemanticsLabel('Enable notifications'),
+      );
+      expect(node.hasFlag(SemanticsFlag.hasToggledState), isTrue);
+      expect(node.hasFlag(SemanticsFlag.isToggled), isTrue);
+    });
   });
 }

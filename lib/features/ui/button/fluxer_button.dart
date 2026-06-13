@@ -9,6 +9,7 @@ import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_variant.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class FluxerButton extends StatefulWidget {
@@ -24,6 +25,7 @@ class FluxerButton extends StatefulWidget {
     this.fitContent = false,
     this.recording = false,
     this.child,
+    this.semanticLabel,
     super.key,
   }) : _variant = FluxerButtonVariant.primary,
        _isCircle = false,
@@ -47,6 +49,7 @@ class FluxerButton extends StatefulWidget {
     this.fitContent = false,
     this.recording = false,
     this.child,
+    this.semanticLabel,
     super.key,
   }) : _variant = FluxerButtonVariant.secondary,
        _isCircle = false,
@@ -70,6 +73,7 @@ class FluxerButton extends StatefulWidget {
     this.fitContent = false,
     this.recording = false,
     this.child,
+    this.semanticLabel,
     super.key,
   }) : _variant = FluxerButtonVariant.dangerPrimary,
        _isCircle = false,
@@ -93,6 +97,7 @@ class FluxerButton extends StatefulWidget {
     this.fitContent = false,
     this.recording = false,
     this.child,
+    this.semanticLabel,
     super.key,
   }) : _variant = FluxerButtonVariant.dangerSecondary,
        _isCircle = false,
@@ -116,6 +121,7 @@ class FluxerButton extends StatefulWidget {
     this.fitContent = false,
     this.recording = false,
     this.child,
+    this.semanticLabel,
     super.key,
   }) : _variant = FluxerButtonVariant.inverted,
        _isCircle = false,
@@ -139,6 +145,7 @@ class FluxerButton extends StatefulWidget {
     this.fitContent = false,
     this.recording = false,
     this.child,
+    this.semanticLabel,
     super.key,
   }) : _variant = FluxerButtonVariant.invertedOutline,
        _isCircle = false,
@@ -162,6 +169,7 @@ class FluxerButton extends StatefulWidget {
     this.fitContent = false,
     this.recording = false,
     this.child,
+    this.semanticLabel,
     super.key,
   }) : _variant = FluxerButtonVariant.ghost,
        _isCircle = false,
@@ -185,6 +193,7 @@ class FluxerButton extends StatefulWidget {
     this.fitContent = false,
     this.recording = false,
     this.child,
+    this.semanticLabel,
     super.key,
   }) : _variant = FluxerButtonVariant.secondary,
        _isCircle = false,
@@ -205,6 +214,7 @@ class FluxerButton extends StatefulWidget {
     double? iconSize,
     this.isLoading = false,
     this.recording = false,
+    this.semanticLabel,
     super.key,
   }) : _variant = variant,
        _isCircle = true,
@@ -229,6 +239,7 @@ class FluxerButton extends StatefulWidget {
     double? iconSize = 20,
     this.isLoading = false,
     this.recording = false,
+    this.semanticLabel,
     super.key,
   }) : _variant = FluxerButtonVariant.secondary,
        _isCircle = true,
@@ -261,6 +272,7 @@ class FluxerButton extends StatefulWidget {
   final bool fitContent;
   final bool recording;
   final Widget? child;
+  final String? semanticLabel;
 
   @override
   State<FluxerButton> createState() => _FluxerButtonState();
@@ -301,6 +313,18 @@ class _FluxerButtonState extends State<FluxerButton> {
     }
   }
 
+  String? _resolveSemanticsLabel(BuildContext context) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final String? base = widget.semanticLabel ?? widget.label;
+    if (!_effectiveLoading) {
+      return base;
+    }
+    if (base == null) {
+      return l10n.uiLoading;
+    }
+    return '$base, ${l10n.uiLoading}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -312,7 +336,8 @@ class _FluxerButtonState extends State<FluxerButton> {
     return FluxerTappable(
       onTap: _enabled ? _handleTap : null,
       enabled: _enabled,
-      semanticLabel: widget.label,
+      semanticLabel: _resolveSemanticsLabel(context),
+      excludeChildSemantics: _effectiveLoading,
       builder: (context, states) {
         final isHovered = states.contains(WidgetState.hovered);
         final fill = widget.recording
@@ -390,7 +415,11 @@ class _FluxerButtonState extends State<FluxerButton> {
     final effectiveIconSize = widget._iconSizeOverride ?? widget.size.iconSize;
 
     if (_effectiveLoading) {
-      return Center(child: FluxerLoadingSpinner(color: foreground));
+      return Center(
+        child: ExcludeSemantics(
+          child: FluxerLoadingSpinner(color: foreground),
+        ),
+      );
     }
 
     final contentWidgets = <Widget>[];

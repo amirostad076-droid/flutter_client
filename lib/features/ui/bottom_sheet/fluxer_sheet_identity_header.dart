@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_variant.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Identity header for sheets: avatar, title, optional subtitle, close button.
@@ -115,12 +116,14 @@ class FluxerSheetCloseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     return FluxerButton.circle(
       icon: PhosphorIconsBold.x,
       variant: FluxerButtonVariant.ghost,
       size: FluxerButtonSize.small,
       iconSize: 18,
       onPressed: onTap,
+      semanticLabel: l10n.uiClose,
     );
   }
 }

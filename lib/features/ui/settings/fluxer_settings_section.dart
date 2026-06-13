@@ -44,9 +44,12 @@ class FluxerSettingsSection extends StatelessWidget {
           Divider(color: colors.borderColor),
           SizedBox(height: layout.s8),
         ],
-        Text(
-          title,
-          style: textStyles.heading.copyWith(color: colors.textPrimary),
+        Semantics(
+          header: true,
+          child: Text(
+            title,
+            style: textStyles.heading.copyWith(color: colors.textPrimary),
+          ),
         ),
         if (description != null) ...[
           SizedBox(height: layout.s1),

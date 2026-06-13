@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 
 /// A themed checkbox with an optional tappable label.
 ///
@@ -22,42 +23,58 @@ class FluxerCheckbox extends StatelessWidget {
   final Widget? child;
   final bool enabled;
 
+  String? get _semanticsLabel {
+    if (label != null) {
+      return label;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final textStyles = context.textStyles;
 
-    return GestureDetector(
-      onTap: enabled ? () => onChanged(!value) : null,
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 24,
-            height: 24,
-            child: Checkbox(
-              value: value,
-              onChanged: enabled ? onChanged : null,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
+    return FluxerTappable(
+      enabled: enabled,
+      onTap: () => onChanged(!value),
+      semanticLabel: _semanticsLabel,
+      checked: value,
+      excludeChildSemantics: _semanticsLabel != null,
+      builder: (context, states) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: ExcludeSemantics(
+                child: Checkbox(
+                  value: value,
+                  onChanged: enabled ? onChanged : null,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
             ),
-          ),
-          if (child != null || label != null) ...[
-            const SizedBox(width: 8),
-            Flexible(
-              child:
-                  child ??
-                  Text(
-                    label!,
-                    style: textStyles.bodySmall.copyWith(
-                      color: enabled ? colors.textPrimary : colors.textTertiary,
+            if (child != null || label != null) ...[
+              const SizedBox(width: 8),
+              Flexible(
+                child:
+                    child ??
+                    Text(
+                      label!,
+                      style: textStyles.bodySmall.copyWith(
+                        color: enabled
+                            ? colors.textPrimary
+                            : colors.textTertiary,
+                      ),
                     ),
-                  ),
-            ),
+              ),
+            ],
           ],
-        ],
-      ),
+        );
+      },
     );
   }
 }

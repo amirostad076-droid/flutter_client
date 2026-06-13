@@ -10,11 +10,14 @@ class FluxerFieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: context.textStyles.bodySmall.copyWith(
-        color: context.colors.textPrimary,
-        fontWeight: FontWeight.bold,
+    return Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: context.textStyles.bodySmall.copyWith(
+          color: context.colors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

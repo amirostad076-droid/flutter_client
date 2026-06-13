@@ -37,41 +37,51 @@ class FluxerWarningAlert extends StatelessWidget {
         icon = PhosphorIconsBold.warningCircle;
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.backgroundSecondaryAlt,
-        border: Border(left: BorderSide(color: borderColor, width: 4)),
-        borderRadius: layout.radiusSm,
-      ),
-      padding: EdgeInsets.symmetric(horizontal: layout.s3, vertical: layout.s2),
-      child: Row(
-        children: [
-          Icon(icon, color: borderColor, size: 20),
-          SizedBox(width: layout.s2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (title != null) ...[
-                  Text(
-                    title!,
-                    style: context.textStyles.bodySmall.copyWith(
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: layout.s1),
-                ],
-                Text(
-                  message,
-                  style: context.textStyles.bodySmall.copyWith(
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ],
+    final String alertLabel = title != null ? '$title. $message' : message;
+
+    return Semantics(
+      liveRegion: true,
+      label: alertLabel,
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.backgroundSecondaryAlt,
+          border: Border(left: BorderSide(color: borderColor, width: 4)),
+          borderRadius: layout.radiusSm,
+        ),
+        padding: EdgeInsets.symmetric(horizontal: layout.s3, vertical: layout.s2),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: Icon(icon, color: borderColor, size: 20),
             ),
-          ),
-        ],
+            SizedBox(width: layout.s2),
+            Expanded(
+              child: ExcludeSemantics(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (title != null) ...[
+                      Text(
+                        title!,
+                        style: context.textStyles.bodySmall.copyWith(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: layout.s1),
+                    ],
+                    Text(
+                      message,
+                      style: context.textStyles.bodySmall.copyWith(
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

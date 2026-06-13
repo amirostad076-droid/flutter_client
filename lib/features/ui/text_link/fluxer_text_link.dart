@@ -41,27 +41,28 @@ class FluxerTextLink extends StatelessWidget {
       color: color ?? colors.textLink,
     );
 
-    return Semantics(
+    return FluxerTappable(
+      onTap: () => _handleTap(context),
       link: true,
       linkUrl: url != null ? Uri.tryParse(url!) : null,
-      child: FluxerTappable(
-        onTap: () => _handleTap(context),
-        builder: (context, states) {
-          final isHovered = states.contains(WidgetState.hovered);
-          final linkStyle = baseStyle.copyWith(
-            decoration: isHovered
-                ? TextDecoration.underline
-                : TextDecoration.none,
-            decorationColor: baseStyle.color,
-          );
+      button: false,
+      semanticLabel: text,
+      excludeChildSemantics: !selectable,
+      builder: (context, states) {
+        final isHovered = states.contains(WidgetState.hovered);
+        final linkStyle = baseStyle.copyWith(
+          decoration: isHovered
+              ? TextDecoration.underline
+              : TextDecoration.none,
+          decorationColor: baseStyle.color,
+        );
 
-          if (selectable) {
-            return SelectableText(text, style: linkStyle);
-          }
+        if (selectable) {
+          return SelectableText(text, style: linkStyle);
+        }
 
-          return Text(text, style: linkStyle);
-        },
-      ),
+        return Text(text, style: linkStyle);
+      },
     );
   }
 }

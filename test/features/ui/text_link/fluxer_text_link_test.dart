@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
@@ -6,9 +7,13 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
 
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();
   return MaterialApp(
+    localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+    supportedLocales: FluxerLocalizations.supportedLocales,
     theme: buildFluxerTheme(
       colorTheme: colorTheme,
       textTheme: FluxerTextTheme.fromColors(colorTheme),
@@ -53,14 +58,18 @@ void main() {
       expect(find.text('Selectable link'), findsOneWidget);
     });
 
-    testWidgets('has link semantics', (tester) async {
+    testWidgets('has link semantics without duplicate button role', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         buildTestApp(
           const FluxerTextLink(text: 'A link', url: 'https://example.com'),
         ),
       );
 
-      expect(find.bySemanticsLabel('A link'), findsWidgets);
+      final SemanticsNode node = tester.getSemantics(find.text('A link'));
+      expect(node.hasFlag(SemanticsFlag.isLink), isTrue);
+      expect(node.hasFlag(SemanticsFlag.isButton), isFalse);
     });
   });
 }

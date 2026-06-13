@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 class FluxerSaveBar extends StatelessWidget {
   const FluxerSaveBar({
@@ -27,6 +28,7 @@ class FluxerSaveBar extends StatelessWidget {
     final layout = context.layout;
     final motion = context.motion;
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
 
     return AnimatedSlide(
       duration: motion.normal,
@@ -52,7 +54,7 @@ class FluxerSaveBar extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    label ?? 'Unsaved changes',
+                    label ?? l10n.uiUnsavedChanges,
                     style: context.textStyles.bodyMedium.copyWith(
                       color: colors.textSecondary,
                       fontWeight: FontWeight.w500,
@@ -62,14 +64,14 @@ class FluxerSaveBar extends StatelessWidget {
                 SizedBox(width: layout.s2),
                 FluxerButton.secondary(
                   onPressed: isSaving ? null : onReset,
-                  label: 'Reset',
+                  label: l10n.uiReset,
                   size: FluxerButtonSize.small,
                   fitContent: true,
                 ),
                 SizedBox(width: layout.s2),
                 FluxerButton.primary(
                   onPressed: isSaving ? null : onSave,
-                  label: 'Save',
+                  label: l10n.save,
                   size: FluxerButtonSize.small,
                   isLoading: isSaving,
                   fitContent: true,

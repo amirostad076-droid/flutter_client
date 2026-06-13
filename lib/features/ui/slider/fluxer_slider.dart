@@ -25,6 +25,7 @@ class FluxerSlider extends StatefulWidget {
     this.onMarkerRender,
     this.asValueChanges,
     this.step,
+    this.semanticLabel,
     super.key,
   });
 
@@ -44,6 +45,7 @@ class FluxerSlider extends StatefulWidget {
   final Widget Function(double value)? onMarkerRender;
   final ValueChanged<double>? asValueChanges;
   final double? step;
+  final String? semanticLabel;
 
   @override
   State<FluxerSlider> createState() => _FluxerSliderState();
@@ -435,6 +437,7 @@ class _FluxerSliderState extends State<FluxerSlider> {
       overlayChildBuilder: _buildTooltipOverlay,
       child: Semantics(
         slider: true,
+        label: widget.semanticLabel,
         value: _effectiveValue.toStringAsFixed(1),
         enabled: !widget.disabled,
         child: Opacity(

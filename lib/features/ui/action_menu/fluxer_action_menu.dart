@@ -337,12 +337,15 @@ class FluxerMenuItem extends StatelessWidget {
     final layout = context.layout;
 
     final foreground = isDanger ? colors.statusDanger : colors.textPrimary;
+    final String semanticsLabel = hint != null ? '$label. $hint' : label;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: layout.s1),
       child: FluxerTappable(
         enabled: enabled,
         onTap: onPressed,
+        semanticLabel: semanticsLabel,
+        excludeChildSemantics: true,
         builder: (context, states) {
           final isHovered = states.contains(WidgetState.hovered);
 

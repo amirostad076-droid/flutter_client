@@ -60,7 +60,9 @@ class FluxerSwitchGroupItem extends StatelessWidget {
     return FluxerTappable(
       enabled: enabled,
       onTap: () => onChanged(!value),
-      semanticLabel: label,
+      semanticLabel: description != null ? '$label. $description' : label,
+      toggled: value,
+      excludeChildSemantics: true,
       builder: (context, states) {
         final isPressed = states.contains(WidgetState.pressed);
 
@@ -153,39 +155,34 @@ class FluxerSwitchGroupCustomItem extends StatelessWidget {
           horizontal: layout.s4,
           vertical: layout.s3,
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: FluxerTappable(
-                enabled: tapEnabled,
-                onTap: onTap,
-                semanticLabel: label,
-                builder: (context, states) {
-                  return Text(
+        child: FluxerTappable(
+          enabled: enabled,
+          onTap: onTap ?? () => onChanged(!value),
+          semanticLabel: label,
+          toggled: value,
+          excludeChildSemantics: true,
+          builder: (context, states) {
+            return Row(
+              children: [
+                Expanded(
+                  child: Text(
                     label,
                     style: textStyles.bodyMedium.copyWith(
                       color: tapEnabled
                           ? colors.textPrimary
                           : colors.textTertiary,
                     ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(width: layout.s4),
-            if (extraContent != null) ...[
-              extraContent!,
-              SizedBox(width: layout.s2),
-            ],
-            FluxerTappable(
-              enabled: enabled,
-              minSize: Size(layout.touchTargetMin, layout.touchTargetMin),
-              onTap: () => onChanged(!value),
-              semanticLabel: label,
-              builder: (context, states) =>
-                  FluxerSwitchControl(value: value, enabled: enabled),
-            ),
-          ],
+                  ),
+                ),
+                SizedBox(width: layout.s4),
+                if (extraContent != null) ...[
+                  extraContent!,
+                  SizedBox(width: layout.s2),
+                ],
+                FluxerSwitchControl(value: value, enabled: enabled),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -249,7 +246,9 @@ class FluxerSettingsSwitchItem extends StatelessWidget {
       enabled: enabled,
       minSize: Size(layout.touchTargetMin, minHeight),
       onTap: () => onChanged(!value),
-      semanticLabel: label,
+      semanticLabel: description != null ? '$label. $description' : label,
+      toggled: value,
+      excludeChildSemantics: true,
       builder: (context, states) {
         final isPressed = states.contains(WidgetState.pressed);
 

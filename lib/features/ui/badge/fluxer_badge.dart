@@ -38,12 +38,14 @@ class FluxerBadge extends StatelessWidget {
     return _buildPill(context);
   }
 
-  Widget _buildDot(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      color: context.colors.textPrimary,
-      shape: BoxShape.circle,
+  Widget _buildDot(BuildContext context) => ExcludeSemantics(
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.colors.textPrimary,
+        shape: BoxShape.circle,
+      ),
+      child: SizedBox(width: size, height: size),
     ),
-    child: SizedBox(width: size, height: size),
   );
 
   Widget _buildPill(BuildContext context) {

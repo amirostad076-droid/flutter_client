@@ -79,6 +79,7 @@ class _FluxerTabItem extends StatelessWidget {
       onTap: onTap,
       selected: isSelected,
       semanticLabel: tab.label,
+      excludeChildSemantics: true,
       minSize: const Size(44, 44),
       builder: (context, states) {
         final isVertical = direction == Axis.vertical;

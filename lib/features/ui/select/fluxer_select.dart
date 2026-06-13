@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// An item in a [FluxerSelect] dropdown.
@@ -29,7 +30,7 @@ class FluxerSelectItem<T> {
 
 /// A dropdown select that uses a filled input-style trigger and opens
 /// options in a [FluxerBottomSheet].
-class FluxerSelect<T> extends StatelessWidget {
+class FluxerSelect<T> extends StatefulWidget {
   FluxerSelect({
     required this.items,
     required ValueChanged<T> onChanged,
@@ -66,10 +67,32 @@ class FluxerSelect<T> extends StatelessWidget {
   final bool scrollableSheet;
 
   @override
+  State<FluxerSelect<T>> createState() => _FluxerSelectState<T>();
+}
+
+class _FluxerSelectState<T> extends State<FluxerSelect<T>> {
+  bool _isOpen = false;
+
+  List<FluxerSelectItem<T>> get items => widget.items;
+  ValueChanged<Object?> get _onChanged => widget._onChanged;
+  T? get value => widget.value;
+  String? get label => widget.label;
+  String? get hint => widget.hint;
+  String? get description => widget.description;
+  String? get errorText => widget.errorText;
+  String? get searchHint => widget.searchHint;
+  String? get emptyLabel => widget.emptyLabel;
+  bool get enableSearch => widget.enableSearch;
+  bool get enabled => widget.enabled;
+  bool get stretch => widget.stretch;
+  bool get scrollableSheet => widget.scrollableSheet;
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final textStyles = context.textStyles;
     final layout = context.layout;
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
 
     final selectedItem = value != null
         ? items.cast<FluxerSelectItem<T>?>().firstWhere(
@@ -77,6 +100,8 @@ class FluxerSelect<T> extends StatelessWidget {
             orElse: () => null,
           )
         : null;
+
+    final String? triggerLabel = label ?? hint ?? l10n.uiSelectPlaceholder;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +121,8 @@ class FluxerSelect<T> extends StatelessWidget {
         FluxerTappable(
           enabled: enabled,
           onTap: () => _showOptions(context),
-          semanticLabel: label ?? hint ?? 'Select',
+          semanticLabel: triggerLabel,
+          expanded: _isOpen,
           builder: (context, states) => Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
@@ -188,6 +214,7 @@ class FluxerSelect<T> extends StatelessWidget {
   }
 
   Future<void> _showOptions(BuildContext context) async {
+    setState(() => _isOpen = true);
     late final Future<T?> sheetFuture;
     if (enableSearch || scrollableSheet) {
       sheetFuture = FluxerBottomSheet.showScrollable<T>(
@@ -216,6 +243,10 @@ class FluxerSelect<T> extends StatelessWidget {
     }
 
     final T? result = await sheetFuture;
+
+    if (mounted) {
+      setState(() => _isOpen = false);
+    }
 
     if (result != null) {
       _onChanged(result);
@@ -261,6 +292,7 @@ class _FluxerSelectSheetState<T> extends State<_FluxerSelectSheet<T>> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final layout = context.layout;
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final filteredItems = widget.items.where(_matchesQuery).toList();
 
     return Column(
@@ -270,7 +302,7 @@ class _FluxerSelectSheetState<T> extends State<_FluxerSelectSheet<T>> {
           FluxerBottomSheetSection(
             child: FluxerInput(
               controller: _searchController,
-              hint: widget.searchHint ?? 'Search',
+              hint: widget.searchHint ?? l10n.uiSearchPlaceholder,
               autofocus: true,
               prefixIcon: Padding(
                 padding: const EdgeInsets.all(12),
@@ -290,7 +322,7 @@ class _FluxerSelectSheetState<T> extends State<_FluxerSelectSheet<T>> {
                   scrollable: false,
                   child: Center(
                     child: Text(
-                      widget.emptyLabel ?? 'No options found',
+                      widget.emptyLabel ?? l10n.uiNoOptionsFound,
                       style: context.textStyles.bodySmall.copyWith(
                         color: colors.textSecondary,
                       ),

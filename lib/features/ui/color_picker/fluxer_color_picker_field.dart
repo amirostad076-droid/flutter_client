@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 import 'package:fluxer_app/features/ui/popout/fluxer_popout.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const double _kSwatchWidth = 48;
@@ -236,11 +237,12 @@ class _FluxerColorPickerFieldState extends State<FluxerColorPickerField> {
   }
 
   Widget _buildDesktopSwatch(Color displayColor, Color iconColor) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     return FluxerPopout(
       anchorBuilder: (context, toggle) => FluxerTappable(
         enabled: !widget.disabled,
         onTap: toggle,
-        semanticLabel: 'Open color picker',
+        semanticLabel: l10n.uiOpenColorPicker,
         builder: (context, states) =>
             _buildSwatchContent(displayColor, iconColor),
       ),
@@ -252,19 +254,21 @@ class _FluxerColorPickerFieldState extends State<FluxerColorPickerField> {
   }
 
   Widget _buildMobileSwatch(Color displayColor, Color iconColor) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     return FluxerTappable(
       enabled: !widget.disabled,
       onTap: _showMobileColorPicker,
-      semanticLabel: 'Open color picker',
+      semanticLabel: l10n.uiOpenColorPicker,
       builder: (context, states) =>
           _buildSwatchContent(displayColor, iconColor),
     );
   }
 
   Future<void> _showMobileColorPicker() {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     return FluxerBottomSheet.show<void>(
       context,
-      title: widget.label ?? 'Color Picker',
+      title: widget.label ?? l10n.uiColorPickerTitle,
       builder: (context, close) => Padding(
         padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
         child: _buildPickerContent(onClose: close),

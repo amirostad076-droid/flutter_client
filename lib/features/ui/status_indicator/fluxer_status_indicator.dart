@@ -24,16 +24,18 @@ class FluxerStatusIndicator extends StatelessWidget {
     final border = borderColor ?? colors.backgroundSecondary;
     final borderWidth = size * 0.05;
 
-    return SizedBox(
-      width: size,
-      height: size,
-      child: DecoratedBox(
+    return ExcludeSemantics(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: DecoratedBox(
         decoration: BoxDecoration(
           color: _statusColor(context),
           shape: BoxShape.circle,
           border: Border.all(color: border, width: borderWidth),
         ),
         child: _buildInner(context),
+        ),
       ),
     );
   }

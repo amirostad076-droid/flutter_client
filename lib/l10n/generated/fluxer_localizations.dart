@@ -8633,6 +8633,72 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Saved'**
   String get quickSwitcherSearchAliasSaved;
+
+  /// Accessible label for icon-only close buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get uiClose;
+
+  /// Generic confirm action label for modals and sheets.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get uiConfirm;
+
+  /// Accessible label announced while a control is loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get uiLoading;
+
+  /// Status label shown when settings have unsaved edits.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get uiUnsavedChanges;
+
+  /// Reset action label for settings save bars.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get uiReset;
+
+  /// Accessible label for the color picker trigger button.
+  ///
+  /// In en, this message translates to:
+  /// **'Open color picker'**
+  String get uiOpenColorPicker;
+
+  /// Fallback accessible label for select fields without a label.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get uiSelectPlaceholder;
+
+  /// Placeholder and accessible label for search fields in select sheets.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get uiSearchPlaceholder;
+
+  /// Empty state shown when a select search returns no matches.
+  ///
+  /// In en, this message translates to:
+  /// **'No options found'**
+  String get uiNoOptionsFound;
+
+  /// Accessible label for dismissing a toast notification.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss notification'**
+  String get uiDismissNotification;
+
+  /// Title for the mobile color picker sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Color picker'**
+  String get uiColorPickerTitle;
 }
 
 class _FluxerLocalizationsDelegate

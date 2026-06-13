@@ -7,9 +7,11 @@ class FluxerBlueskyIcon extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) => SvgPicture.asset(
-    'assets/images/connections/bluesky.svg',
-    width: size,
-    height: size,
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: SvgPicture.asset(
+      'assets/images/connections/bluesky.svg',
+      width: size,
+      height: size,
+    ),
   );
 }

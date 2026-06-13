@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 
 class FluxerSheetSectionItem {
   const FluxerSheetSectionItem({required this.id, required this.label});
@@ -121,29 +122,36 @@ class _SheetSectionPill extends StatelessWidget {
     final textStyles = context.textStyles;
     final motion = context.motion;
 
-    return GestureDetector(
+    return FluxerTappable(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: motion.fast,
-        curve: motion.curve,
-        padding: EdgeInsets.symmetric(
-          horizontal: layout.s3,
-          vertical: layout.s2,
-        ),
-        decoration: BoxDecoration(
-          color: isActive ? colors.brandPrimary : colors.backgroundSecondaryAlt,
-          borderRadius: layout.radiusFull,
-        ),
-        child: AnimatedDefaultTextStyle(
+      selected: isActive,
+      semanticLabel: section.label,
+      excludeChildSemantics: true,
+      builder: (context, states) {
+        return AnimatedContainer(
           duration: motion.fast,
           curve: motion.curve,
-          style: textStyles.bodySmall.copyWith(
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: isActive ? colors.textOnBrandPrimary : colors.textSecondary,
+          padding: EdgeInsets.symmetric(
+            horizontal: layout.s3,
+            vertical: layout.s2,
           ),
-          child: Text(section.label),
-        ),
-      ),
+          decoration: BoxDecoration(
+            color: isActive
+                ? colors.brandPrimary
+                : colors.backgroundSecondaryAlt,
+            borderRadius: layout.radiusFull,
+          ),
+          child: AnimatedDefaultTextStyle(
+            duration: motion.fast,
+            curve: motion.curve,
+            style: textStyles.bodySmall.copyWith(
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              color: isActive ? colors.textOnBrandPrimary : colors.textSecondary,
+            ),
+            child: Text(section.label),
+          ),
+        );
+      },
     );
   }
 }

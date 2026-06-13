@@ -65,6 +65,9 @@ class _FluxerSegmentedTabItem extends StatelessWidget {
 
     return FluxerTappable(
       onTap: onTap,
+      selected: isSelected,
+      semanticLabel: tab.label,
+      excludeChildSemantics: true,
       builder: (context, states) {
         return AnimatedContainer(
           duration: motion.normal,

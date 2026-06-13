@@ -54,10 +54,13 @@ class FluxerListSection extends StatelessWidget {
               left: context.layout.s4,
               right: context.layout.s4,
             ),
-            child: Text(
-              header!,
-              style: context.textStyles.categoryName.copyWith(
-                color: headerColor ?? colors.textPrimaryMuted,
+            child: Semantics(
+              header: true,
+              child: Text(
+                header!,
+                style: context.textStyles.categoryName.copyWith(
+                  color: headerColor ?? colors.textPrimaryMuted,
+                ),
               ),
             ),
           ),

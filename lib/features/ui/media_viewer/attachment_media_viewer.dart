@@ -617,28 +617,38 @@ class _MediaViewerThumbnailStrip extends StatelessWidget {
           final AttachmentMediaViewerItem item = items[index];
           final bool hideMatureThumbnail =
               item.isMatureMedia && channelId != null;
-          return GestureDetector(
-            onTap: () => onSelectIndex(index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              width: 56,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isSelected
-                      ? context.colors.brandPrimary
-                      : context.colors.backgroundModifierAccent,
-                  width: isSelected ? 2 : 1,
+          return Semantics(
+            button: true,
+            selected: isSelected,
+            label: 'Attachment ${index + 1}',
+            child: ExcludeSemantics(
+              child: GestureDetector(
+                onTap: () => onSelectIndex(index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  width: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected
+                          ? context.colors.brandPrimary
+                          : context.colors.backgroundModifierAccent,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(7),
+                    child: hideMatureThumbnail
+                        ? ColoredBox(
+                            color: context.colors.spoilerBackground,
+                            child: const SizedBox.expand(),
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: item.url,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
                 ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(7),
-                child: hideMatureThumbnail
-                    ? ColoredBox(
-                        color: context.colors.spoilerBackground,
-                        child: const SizedBox.expand(),
-                      )
-                    : CachedNetworkImage(imageUrl: item.url, fit: BoxFit.cover),
               ),
             ),
           );

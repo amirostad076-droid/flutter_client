@@ -77,6 +77,8 @@ class _FluxerAccordionState extends State<FluxerAccordion>
         FluxerTappable(
           onTap: _toggle,
           semanticLabel: widget.title,
+          expanded: _isExpanded,
+          excludeChildSemantics: true,
           builder: (context, states) {
             return Row(
               children: [

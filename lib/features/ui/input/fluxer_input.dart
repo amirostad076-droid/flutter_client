@@ -15,6 +15,7 @@ class FluxerInput extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.onSuffixTap,
+    this.suffixSemanticLabel,
     this.trailing,
     this.obscureText = false,
     this.enabled = true,
@@ -47,6 +48,7 @@ class FluxerInput extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.onSuffixTap,
+    this.suffixSemanticLabel,
     this.trailing,
     this.obscureText = false,
     this.enabled = true,
@@ -78,6 +80,7 @@ class FluxerInput extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final VoidCallback? onSuffixTap;
+  final String? suffixSemanticLabel;
 
   /// Widget placed to the right of the text field inside the same border,
   /// separated by a vertical divider (e.g. a color swatch).
@@ -119,7 +122,11 @@ class FluxerInput extends StatelessWidget {
     final layout = context.layout;
 
     final Widget? effectiveSuffix = suffixIcon != null && onSuffixTap != null
-        ? GestureDetector(onTap: onSuffixTap, child: suffixIcon)
+        ? Semantics(
+            button: true,
+            label: suffixSemanticLabel,
+            child: GestureDetector(onTap: onSuffixTap, child: suffixIcon),
+          )
         : suffixIcon;
 
     if (_isMultiline) {

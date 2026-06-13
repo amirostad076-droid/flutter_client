@@ -4946,6 +4946,39 @@ class FluxerLocalizationsDe extends FluxerLocalizations {
 
   @override
   String get quickSwitcherSearchAliasSaved => 'Saved';
+
+  @override
+  String get uiClose => 'Close';
+
+  @override
+  String get uiConfirm => 'Confirm';
+
+  @override
+  String get uiLoading => 'Loading';
+
+  @override
+  String get uiUnsavedChanges => 'Unsaved changes';
+
+  @override
+  String get uiReset => 'Reset';
+
+  @override
+  String get uiOpenColorPicker => 'Open color picker';
+
+  @override
+  String get uiSelectPlaceholder => 'Select';
+
+  @override
+  String get uiSearchPlaceholder => 'Search';
+
+  @override
+  String get uiNoOptionsFound => 'No options found';
+
+  @override
+  String get uiDismissNotification => 'Dismiss notification';
+
+  @override
+  String get uiColorPickerTitle => 'Color picker';
 }
 
 /// The translations for German, as used in Switzerland (`de_CH`).

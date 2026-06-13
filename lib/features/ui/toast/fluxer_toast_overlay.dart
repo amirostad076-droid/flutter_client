@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class FluxerToastOverlay extends ConsumerWidget {
@@ -138,6 +139,8 @@ class _ToastItemState extends State<_ToastItem>
     final colors = context.colors;
     final layout = context.layout;
     final textStyles = context.textStyles;
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final String message = widget.entry.toast.message;
 
     return SlideTransition(
       position: _slideAnimation,
@@ -145,53 +148,64 @@ class _ToastItemState extends State<_ToastItem>
         opacity: _fadeAnimation,
         child: IgnorePointer(
           ignoring: !widget.entry.isVisible,
-          child: GestureDetector(
+          child: Semantics(
+            liveRegion: true,
+            label: message,
+            button: true,
             onTap: widget.onDismiss,
-            child: Material(
-              type: MaterialType.transparency,
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 400),
-                padding: EdgeInsets.symmetric(
-                  horizontal: layout.s4,
-                  vertical: layout.s3,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.backgroundPrimary,
-                  borderRadius: layout.radiusFull,
-                  border: Border.all(color: colors.backgroundModifierAccent),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 15,
-                      offset: const Offset(0, 10),
+            hint: l10n.uiDismissNotification,
+            child: ExcludeSemantics(
+              child: GestureDetector(
+                onTap: widget.onDismiss,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: layout.s4,
+                      vertical: layout.s3,
                     ),
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 6,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (widget.icon != null) ...[
-                      PhosphorIcon(
-                        widget.icon!,
-                        size: 20,
-                        color: widget.iconColor,
+                    decoration: BoxDecoration(
+                      color: colors.backgroundPrimary,
+                      borderRadius: layout.radiusFull,
+                      border: Border.all(
+                        color: colors.backgroundModifierAccent,
                       ),
-                      SizedBox(width: layout.s3),
-                    ],
-                    Flexible(
-                      child: Text(
-                        widget.entry.toast.message,
-                        style: textStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 15,
+                          offset: const Offset(0, 10),
                         ),
-                      ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 6,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.icon != null) ...[
+                          PhosphorIcon(
+                            widget.icon!,
+                            size: 20,
+                            color: widget.iconColor,
+                          ),
+                          SizedBox(width: layout.s3),
+                        ],
+                        Flexible(
+                          child: Text(
+                            message,
+                            style: textStyles.bodyMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

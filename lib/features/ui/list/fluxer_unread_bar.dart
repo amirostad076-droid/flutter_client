@@ -98,20 +98,22 @@ class FluxerUnreadBar extends StatelessWidget {
     final width = _isHorizontal ? targetLength : thickness;
     final height = _isHorizontal ? thickness : targetLength;
 
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: Align(
-          alignment: _alignment,
-          child: Transform.translate(
-            offset: _bleedOffset,
-            child: AnimatedContainer(
-              duration: duration,
-              curve: Curves.easeOutCubic,
-              width: width,
-              height: height,
-              decoration: BoxDecoration(
-                color: resolvedColor,
-                borderRadius: _borderRadius(),
+    return ExcludeSemantics(
+      child: Positioned.fill(
+        child: IgnorePointer(
+          child: Align(
+            alignment: _alignment,
+            child: Transform.translate(
+              offset: _bleedOffset,
+              child: AnimatedContainer(
+                duration: duration,
+                curve: Curves.easeOutCubic,
+                width: width,
+                height: height,
+                decoration: BoxDecoration(
+                  color: resolvedColor,
+                  borderRadius: _borderRadius(),
+                ),
               ),
             ),
           ),

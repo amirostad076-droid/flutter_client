@@ -53,7 +53,11 @@ class FluxerRadioGroup<T> extends StatelessWidget {
       children: [
         FluxerFieldLabel(label!),
         SizedBox(height: layout.s2),
-        group,
+        Semantics(
+          container: true,
+          label: label,
+          child: group,
+        ),
       ],
     );
   }
@@ -61,23 +65,31 @@ class FluxerRadioGroup<T> extends StatelessWidget {
   Widget _buildOption(BuildContext context, FluxerRadioItem<T> item) {
     final isSelected = value == item.value;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return Semantics(
+      checked: isSelected,
+      inMutuallyExclusiveGroup: true,
+      label: item.label,
       onTap: () => onChanged(item.value),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: _RadioIndicator(isSelected: isSelected),
+      child: ExcludeSemantics(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onChanged(item.value),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: _RadioIndicator(isSelected: isSelected),
+              ),
+              const SizedBox(width: 8),
+              if (direction == Axis.vertical)
+                Expanded(child: _buildLabel(context, item, isSelected))
+              else
+                _buildLabel(context, item, isSelected),
+            ],
           ),
-          const SizedBox(width: 8),
-          if (direction == Axis.vertical)
-            Expanded(child: _buildLabel(context, item, isSelected))
-          else
-            _buildLabel(context, item, isSelected),
-        ],
+        ),
       ),
     );
   }

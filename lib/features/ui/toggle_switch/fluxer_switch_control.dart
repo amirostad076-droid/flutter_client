@@ -28,14 +28,15 @@ class FluxerSwitchControl extends StatelessWidget {
         : thumbInset;
     final trackColor = value ? colors.brandPrimary : colors.switchTrackInactive;
 
-    return AnimatedOpacity(
-      duration: motion.fast,
-      curve: motion.curve,
-      opacity: enabled ? 1 : 0.5,
-      child: SizedBox(
-        width: trackWidth,
-        height: trackHeight,
-        child: AnimatedContainer(
+    return ExcludeSemantics(
+      child: AnimatedOpacity(
+        duration: motion.fast,
+        curve: motion.curve,
+        opacity: enabled ? 1 : 0.5,
+        child: SizedBox(
+          width: trackWidth,
+          height: trackHeight,
+          child: AnimatedContainer(
           duration: motion.fast,
           curve: motion.curve,
           decoration: BoxDecoration(
@@ -90,6 +91,7 @@ class FluxerSwitchControl extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

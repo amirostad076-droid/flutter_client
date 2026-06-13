@@ -21,17 +21,20 @@ class FluxerAltTextTooltip extends StatelessWidget {
     final textStyles = context.textStyles;
     final colors = context.colors;
 
-    return FluxerTooltip(
-      position: position,
-      richMessage: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 320),
-        child: Text(
-          altText,
-          style: textStyles.bodySmall.copyWith(color: colors.textPrimary),
-          softWrap: true,
+    return Semantics(
+      label: altText,
+      child: FluxerTooltip(
+        position: position,
+        richMessage: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 320),
+          child: Text(
+            altText,
+            style: textStyles.bodySmall.copyWith(color: colors.textPrimary),
+            softWrap: true,
+          ),
         ),
+        child: child,
       ),
-      child: child,
     );
   }
 }

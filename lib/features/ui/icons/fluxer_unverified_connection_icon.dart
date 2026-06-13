@@ -8,12 +8,14 @@ class FluxerUnverifiedConnectionIcon extends StatelessWidget {
   final Color? color;
 
   @override
-  Widget build(BuildContext context) => SvgPicture.asset(
-    'assets/images/connections/unverified-connection.svg',
-    width: size,
-    height: size,
-    colorFilter: color == null
-        ? null
-        : ColorFilter.mode(color!, BlendMode.srcIn),
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: SvgPicture.asset(
+      'assets/images/connections/unverified-connection.svg',
+      width: size,
+      height: size,
+      colorFilter: color == null
+          ? null
+          : ColorFilter.mode(color!, BlendMode.srcIn),
+    ),
   );
 }

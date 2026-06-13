@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // ---------------------------------------------------------------------------
@@ -67,12 +68,14 @@ class FluxerModal {
                   height: 1.4,
                 ),
               );
+        final FluxerLocalizations l10n = FluxerLocalizations.of(dialogContext);
         final closeButton = Opacity(
           opacity: 0.7,
           child: FluxerButton.ghost(
             onPressed: close,
             icon: PhosphorIconsBold.x,
             isSquare: true,
+            semanticLabel: l10n.uiClose,
           ),
         );
 
@@ -193,9 +196,11 @@ class FluxerConfirmModal {
     required String title,
     required String description,
     required VoidCallback onConfirm,
-    String confirmLabel = 'Confirm',
+    String? confirmLabel,
     bool isDanger = false,
   }) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final String resolvedConfirmLabel = confirmLabel ?? l10n.uiConfirm;
     return FluxerModal.show<bool>(
       context,
       title: title,
@@ -215,7 +220,7 @@ class FluxerConfirmModal {
               onConfirm();
               pop(true);
             },
-            label: confirmLabel,
+            label: resolvedConfirmLabel,
           )
         else
           FluxerButton.primary(
@@ -223,10 +228,13 @@ class FluxerConfirmModal {
               onConfirm();
               pop(true);
             },
-            label: confirmLabel,
+            label: resolvedConfirmLabel,
           ),
         const SizedBox(height: 8),
-        FluxerButton.secondary(onPressed: () => pop(false), label: 'Cancel'),
+        FluxerButton.secondary(
+          onPressed: () => pop(false),
+          label: l10n.cancel,
+        ),
       ],
     );
   }

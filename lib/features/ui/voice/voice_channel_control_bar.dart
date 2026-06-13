@@ -96,6 +96,7 @@ class VoiceChannelControlBar extends ConsumerWidget {
                     icon: isMuted
                         ? PhosphorIconsFill.microphoneSlash
                         : PhosphorIconsFill.microphone,
+                    toggled: isMuted,
                     onPressed: () {
                       unawaited(
                         ref
@@ -115,6 +116,7 @@ class VoiceChannelControlBar extends ConsumerWidget {
                     icon: isDeafened
                         ? PhosphorIconsFill.speakerSlash
                         : PhosphorIconsFill.speakerHigh,
+                    toggled: isDeafened,
                     onPressed: () {
                       unawaited(
                         ref
@@ -130,6 +132,7 @@ class VoiceChannelControlBar extends ConsumerWidget {
                         : context.colors.backgroundTertiary,
                     tooltip: l10n.voiceControlVideo,
                     icon: PhosphorIconsFill.videoCamera,
+                    toggled: isVideoOn,
                     onPressed: session.isConnected
                         ? () {
                             unawaited(
@@ -148,6 +151,7 @@ class VoiceChannelControlBar extends ConsumerWidget {
                           : context.colors.backgroundTertiary,
                       tooltip: l10n.voiceControlScreenShare,
                       icon: PhosphorIconsFill.monitor,
+                      toggled: isScreenSharing,
                       onPressed: session.isConnected
                           ? () {
                               unawaited(
@@ -225,6 +229,7 @@ class _VoiceControlCircle extends StatelessWidget {
     required this.tooltip,
     required this.icon,
     required this.onPressed,
+    this.toggled = false,
   });
 
   final double size;
@@ -232,6 +237,7 @@ class _VoiceControlCircle extends StatelessWidget {
   final String tooltip;
   final PhosphorIconData icon;
   final VoidCallback? onPressed;
+  final bool toggled;
 
   @override
   Widget build(BuildContext context) {
@@ -244,16 +250,24 @@ class _VoiceControlCircle extends StatelessWidget {
         child: SizedBox(
           width: size,
           height: size,
-          child: PhosphorIcon(
-            icon,
-            size: 24,
-            color: context.colors.textPrimary.withValues(
-              alpha: onPressed == null ? 0.45 : 1,
+          child: ExcludeSemantics(
+            child: PhosphorIcon(
+              icon,
+              size: 24,
+              color: context.colors.textPrimary.withValues(
+                alpha: onPressed == null ? 0.45 : 1,
+              ),
             ),
           ),
         ),
       ),
     );
-    return Tooltip(message: tooltip, child: child);
+    return Semantics(
+      button: true,
+      label: tooltip,
+      toggled: toggled,
+      enabled: onPressed != null,
+      child: Tooltip(message: tooltip, child: child),
+    );
   }
 }
