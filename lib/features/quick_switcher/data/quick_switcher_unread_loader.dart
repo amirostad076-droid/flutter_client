@@ -112,21 +112,17 @@ Future<QuickSwitcherUnreadChannel?> _guildUnreadFromReadState({
   )) {
     return null;
   }
-  final ResolvedUnreadSettings unreadSettings = resolveUnreadSettings(
+  final UserGuildSettingsResponse? guildSettings =
+      guildSettingsByGuild[row.guildId];
+  final ResolvedUnreadSettings unreadSettings = resolveChannelUnreadSettings(
     channel: row,
-    guildSettings: guildSettingsByGuild[row.guildId],
+    guildSettings: guildSettings,
     now: now,
   );
-  if (unreadSettings.isMuted) {
-    return null;
-  }
   final int rawMentions = readState.mentionCount;
   final int mentionCount = unreadSettings.allowsMentionUnread
       ? rawMentions
       : 0;
-  if (!unreadSettings.allowsGuildMessageUnread && mentionCount == 0) {
-    return null;
-  }
   final String? latestMessageId = await resolveLatestMessageIdForUnreadDisplay(
     db,
     row.id,
@@ -148,13 +144,20 @@ Future<QuickSwitcherUnreadChannel?> _guildUnreadFromReadState({
   )) {
     return null;
   }
-  final bool hasUnread = isQuickSwitcherChannelUnread(
+  final bool hasUnreadMessage = isQuickSwitcherChannelUnread(
     channelLastMessageId: latestMessageId,
     ackLastMessageId: readState.lastMessageId,
-    mentionCount: mentionCount,
+    mentionCount: 0,
     fallbackAckMs: fallbackAckMs,
   );
-  if (!hasUnread) {
+  final bool hasMentions = mentionCount > 0;
+  if (!shouldShowChannelInUnreadInbox(
+    channel: row,
+    guildSettings: guildSettings,
+    hasUnread: hasUnreadMessage,
+    hasMentions: hasMentions,
+    now: now,
+  )) {
     return null;
   }
   return QuickSwitcherUnreadChannel(

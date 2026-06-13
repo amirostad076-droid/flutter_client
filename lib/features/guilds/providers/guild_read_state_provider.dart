@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
+import 'package:fluxer_app/features/guilds/domain/guild_read_state_contribution.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -339,26 +340,20 @@ class GuildReadState extends _$GuildReadState {
         ? rawMentions
         : 0;
 
-    final unreadSettings = resolveUnreadSettings(
+    final channelUnreadSettings = resolveChannelUnreadSettings(
       channel: channel,
       guildSettings: guildSettings,
       now: now,
     );
-    final mentions = unreadSettings.allowsMentionUnread ? visibleMentions : 0;
+    final mentions = channelUnreadSettings.allowsMentionUnread
+        ? visibleMentions
+        : 0;
 
     if (isVoice) {
       return _Contribution(
-        unreadEligible: false,
+        unreadEligible: mentions > 0,
         hasPlainUnread: false,
         mentions: mentions,
-      );
-    }
-
-    if (!unreadSettings.allowsGuildMessageUnread && mentions == 0) {
-      return const _Contribution(
-        unreadEligible: false,
-        hasPlainUnread: false,
-        mentions: 0,
       );
     }
 
@@ -376,7 +371,7 @@ class GuildReadState extends _$GuildReadState {
     );
     if (staleSuppressed) {
       return _Contribution(
-        unreadEligible: false,
+        unreadEligible: mentions > 0,
         hasPlainUnread: false,
         mentions: mentions,
       );
@@ -388,16 +383,27 @@ class GuildReadState extends _$GuildReadState {
       fallbackAckMs: fallbackAckMs,
       mentionCount: 0,
     );
-    final bool hasPlainUnread =
-        mentions == 0 &&
-        unreadSettings.allowsGuildMessageUnread &&
-        hasUnreadMessage;
-    final eligible = mentions > 0 || hasPlainUnread;
+    final contribution = resolveGuildReadStateContribution(
+      isEligibleTextChannel: true,
+      isPrivate: false,
+      unreadBadgesLevel: resolveGuildUnreadBadgesLevel(
+        channel: channel,
+        guildSettings: guildSettings,
+      ),
+      isMutedForUnread: isGuildOrCategoryOrChannelMuted(
+        channel: channel,
+        guildSettings: guildSettings,
+        now: now,
+      ),
+      hasUnread: hasUnreadMessage,
+      mentionCount: mentions,
+    );
+    final hasPlainUnread = contribution.unreadAllowed && mentions == 0;
 
     return _Contribution(
-      unreadEligible: eligible,
+      unreadEligible: contribution.mentionAllowed || contribution.unreadAllowed,
       hasPlainUnread: hasPlainUnread,
-      mentions: mentions,
+      mentions: contribution.mentionAllowed ? mentions : 0,
     );
   }
 }

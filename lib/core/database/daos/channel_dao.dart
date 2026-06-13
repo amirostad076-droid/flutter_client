@@ -95,7 +95,12 @@ class ChannelDao extends DatabaseAccessor<FluxerDatabase>
         incomingLastMessageId,
       );
       if (incomingExists == null) {
-        return existing;
+        if (existing == null || existing.isEmpty) {
+          return incomingLastMessageId;
+        }
+        return compareSnowflakeIds(incomingLastMessageId, existing) >= 0
+            ? incomingLastMessageId
+            : existing;
       }
     }
     if (existing == null || existing.isEmpty) {

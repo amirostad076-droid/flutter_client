@@ -50,7 +50,7 @@ void main() {
       expect(state.shouldShowUnreadIndicator, isFalse);
     });
 
-    test('no messages badge level suppresses everything', () {
+    test('no messages badge level suppresses visible surfaces', () {
       final state = getChannelUnreadState(
         unreadCount: 3,
         mentionCount: 2,
@@ -58,12 +58,28 @@ void main() {
         showFadedUnreadOnMutedChannels: true,
         unreadBadgesLevel: UserNotificationSettings.noMessages,
       );
+      expect(state.hasUnreadMessages, isTrue);
       expect(state.shouldShowUnreadIndicator, isFalse);
+      expect(state.hasMentions, isFalse);
+      expect(state.isHighlight, isFalse);
+      expect(state.hasVisibleUnread, isFalse);
+    });
+
+    test('only mentions badge level shows faded dot for plain unread', () {
+      final state = getChannelUnreadState(
+        unreadCount: 3,
+        mentionCount: 0,
+        isMuted: false,
+        showFadedUnreadOnMutedChannels: false,
+        unreadBadgesLevel: UserNotificationSettings.onlyMentions,
+      );
+      expect(state.shouldShowUnreadIndicator, isTrue);
+      expect(state.isUnreadIndicatorMuted, isTrue);
       expect(state.hasMentions, isFalse);
       expect(state.isHighlight, isFalse);
     });
 
-    test('only mentions badge level shows mention highlight only', () {
+    test('only mentions badge level shows mention highlight', () {
       final state = getChannelUnreadState(
         unreadCount: 3,
         mentionCount: 1,
@@ -71,7 +87,7 @@ void main() {
         showFadedUnreadOnMutedChannels: false,
         unreadBadgesLevel: UserNotificationSettings.onlyMentions,
       );
-      expect(state.shouldShowUnreadIndicator, isFalse);
+      expect(state.shouldShowUnreadIndicator, isTrue);
       expect(state.hasMentions, isTrue);
       expect(state.isHighlight, isTrue);
     });

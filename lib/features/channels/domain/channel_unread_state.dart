@@ -6,6 +6,7 @@ class ChannelUnreadState {
     required this.hasMentions,
     required this.isHighlight,
     required this.shouldShowUnreadIndicator,
+    required this.isUnreadIndicatorMuted,
     required this.hasVisibleUnread,
   });
 
@@ -13,6 +14,7 @@ class ChannelUnreadState {
   final bool hasMentions;
   final bool isHighlight;
   final bool shouldShowUnreadIndicator;
+  final bool isUnreadIndicatorMuted;
   final bool hasVisibleUnread;
 }
 
@@ -25,32 +27,44 @@ ChannelUnreadState getChannelUnreadState({
 }) {
   final bool hasUnreadMessages = unreadCount > 0;
   final bool rawHasMentions = mentionCount > 0;
-  final bool shouldShowUnreadIndicator;
-  final bool isHighlight;
-  final bool mentionsVisible;
   if (unreadBadgesLevel == UserNotificationSettings.noMessages) {
-    shouldShowUnreadIndicator = false;
-    mentionsVisible = false;
-    isHighlight = false;
-  } else if (unreadBadgesLevel == UserNotificationSettings.onlyMentions) {
-    shouldShowUnreadIndicator = false;
-    mentionsVisible = rawHasMentions;
-    isHighlight = rawHasMentions;
-  } else if (unreadBadgesLevel == UserNotificationSettings.allMessages) {
-    shouldShowUnreadIndicator = hasUnreadMessages;
-    mentionsVisible = rawHasMentions;
-    isHighlight = rawHasMentions || hasUnreadMessages;
-  } else {
-    shouldShowUnreadIndicator =
-        hasUnreadMessages && (!isMuted || showFadedUnreadOnMutedChannels);
-    mentionsVisible = rawHasMentions;
-    isHighlight = rawHasMentions || (hasUnreadMessages && !isMuted);
+    return ChannelUnreadState(
+      hasUnreadMessages: hasUnreadMessages,
+      hasMentions: false,
+      isHighlight: false,
+      shouldShowUnreadIndicator: false,
+      isUnreadIndicatorMuted: false,
+      hasVisibleUnread: false,
+    );
   }
+  if (unreadBadgesLevel == UserNotificationSettings.onlyMentions) {
+    return ChannelUnreadState(
+      hasUnreadMessages: hasUnreadMessages,
+      hasMentions: rawHasMentions,
+      isHighlight: rawHasMentions,
+      shouldShowUnreadIndicator: hasUnreadMessages,
+      isUnreadIndicatorMuted: hasUnreadMessages,
+      hasVisibleUnread: rawHasMentions || hasUnreadMessages,
+    );
+  }
+  if (unreadBadgesLevel == UserNotificationSettings.allMessages) {
+    return ChannelUnreadState(
+      hasUnreadMessages: hasUnreadMessages,
+      hasMentions: rawHasMentions,
+      isHighlight: rawHasMentions || hasUnreadMessages,
+      shouldShowUnreadIndicator: hasUnreadMessages,
+      isUnreadIndicatorMuted: false,
+      hasVisibleUnread: rawHasMentions || hasUnreadMessages,
+    );
+  }
+  final bool shouldShowUnreadIndicator =
+      hasUnreadMessages && (!isMuted || showFadedUnreadOnMutedChannels);
   return ChannelUnreadState(
     hasUnreadMessages: hasUnreadMessages,
-    hasMentions: mentionsVisible,
-    isHighlight: isHighlight,
+    hasMentions: rawHasMentions,
+    isHighlight: rawHasMentions || (hasUnreadMessages && !isMuted),
     shouldShowUnreadIndicator: shouldShowUnreadIndicator,
-    hasVisibleUnread: mentionsVisible || shouldShowUnreadIndicator,
+    isUnreadIndicatorMuted: shouldShowUnreadIndicator && isMuted,
+    hasVisibleUnread: rawHasMentions || shouldShowUnreadIndicator,
   );
 }

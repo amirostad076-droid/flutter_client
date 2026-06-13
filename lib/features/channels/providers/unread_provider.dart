@@ -100,7 +100,7 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
           );
     final unreadBadgesLevel = channel == null
         ? null
-        : resolveExplicitUnreadBadgeLevel(
+        : resolveUnreadBadgesLevel(
             channel: channel,
             guildSettings: decodedGuildSettings,
           );

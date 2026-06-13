@@ -383,7 +383,9 @@ class GuildSidebar extends ConsumerWidget {
             top: 0,
             bottom: 0,
             child: Center(
-              child: ChannelUnreadIndicator(faded: isChannelDirectlyMuted),
+              child: ChannelUnreadIndicator(
+                faded: channelUnreadState.isUnreadIndicatorMuted,
+              ),
             ),
           ),
         Opacity(
