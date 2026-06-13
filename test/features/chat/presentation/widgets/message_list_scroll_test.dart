@@ -547,4 +547,35 @@ void main() {
     final double offsetAfter = harnessKey.currentState!.scrollOffset!;
     expect(offsetAfter, closeTo(offsetBefore, 1));
   });
+
+  testWidgets('pre-center append at bottom keeps minScrollExtent', (
+    tester,
+  ) async {
+    final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
+        GlobalKey<CenterSliverScrollHarnessState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 400,
+            child: CenterSliverScrollHarness(
+              key: harnessKey,
+              initialCount: 50,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    harnessKey.currentState!.scrollToBottom();
+    await tester.pumpAndSettle();
+    final double offsetBefore = harnessKey.currentState!.scrollOffset!;
+    final double minExtentBefore = harnessKey.currentState!.minScrollExtent!;
+    expect(offsetBefore, closeTo(minExtentBefore, 1));
+    harnessKey.currentState!.appendPreCenterNewestItem();
+    await tester.pumpAndSettle();
+    final double offsetAfter = harnessKey.currentState!.scrollOffset!;
+    final double minExtentAfter = harnessKey.currentState!.minScrollExtent!;
+    expect(offsetAfter, closeTo(minExtentAfter, 1));
+  });
 }

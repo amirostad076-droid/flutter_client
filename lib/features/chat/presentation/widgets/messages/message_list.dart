@@ -94,6 +94,9 @@ class _MessageListState extends ConsumerState<MessageList> {
   bool _initialUnreadPivotReleased = false;
   bool _awaitingInitialUnreadScroll = false;
   bool _pinnedLiveNearBottom = false;
+  bool _needsInitialBottomPin = false;
+  bool _initialBottomPinDeferScheduled = false;
+  int _bottomPinGeneration = 0;
 
   @override
   void initState() {
@@ -184,6 +187,8 @@ class _MessageListState extends ConsumerState<MessageList> {
       _initialUnreadPivotReleased = false;
       _awaitingInitialUnreadScroll = false;
       _pinnedLiveNearBottom = false;
+      _needsInitialBottomPin = true;
+      _initialBottomPinDeferScheduled = false;
       _paginationGuard.resetScrollIntent();
     }
     if (_awaitingInitialUnreadScroll) {
@@ -258,7 +263,11 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (_awaitingInitialUnreadScroll) {
       return true;
     }
-    return ref.read(chatViewModelProvider).highlightedMessageId != null;
+    final ChatViewState chatState = ref.read(chatViewModelProvider);
+    if (chatState.scrollToMessageSignal != null) {
+      return true;
+    }
+    return chatState.highlightedMessageId != null;
   }
 
   void _onMessagesAppended({
@@ -268,8 +277,18 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (_hasActiveJumpTarget()) {
       return;
     }
-    if (previousMessages.isEmpty ||
-        nextMessages.length <= previousMessages.length ||
+    if (nextMessages.isEmpty) {
+      return;
+    }
+    final ChatViewState state = ref.read(chatViewModelProvider);
+    if (_isInUnreadReview(state)) {
+      return;
+    }
+    if (previousMessages.isEmpty) {
+      _requestInitialBottomPin();
+      return;
+    }
+    if (nextMessages.length <= previousMessages.length ||
         !_scrollController.hasClients) {
       return;
     }
@@ -281,11 +300,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     final bool isStartPrepend =
         previousMessages.first.id != nextMessages.first.id;
-    final ChatViewState state = ref.read(chatViewModelProvider);
     if (isStartPrepend) {
-      return;
-    }
-    if (_isInUnreadReview(state)) {
       return;
     }
     final ScrollPosition position = _scrollController.position;
@@ -295,17 +310,159 @@ class _MessageListState extends ConsumerState<MessageList> {
       minScrollExtent: position.minScrollExtent,
     );
     if (liveNearBottom && !state.hasMoreNewerMessages) {
+      _scrollAnchoredPivotMessageId = null;
       _pinnedLiveNearBottom = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.position.minScrollExtent);
-          _pinnedLiveNearBottom = false;
-        }
-      });
+      final int generation = ++_bottomPinGeneration;
+      _pinToBottomAfterLayout(generation: generation);
       return;
     }
     _scrollAnchoredPivotMessageId ??= previousMessages.last.id;
     _restoreScrollOffset(savedOffset);
+  }
+
+  drift_db.ReadState? _readStateForChannel(String channelId) {
+    if (channelId.isEmpty) {
+      return null;
+    }
+    return ref
+        .read(_messageListReadStateProvider(channelId))
+        .asData
+        ?.value;
+  }
+
+  bool _shouldPinToBottomOnLoad({
+    required ChatViewState state,
+    required List<Message> messages,
+    required drift_db.ReadState? readState,
+    required String? currentUserId,
+  }) {
+    if (widget.targetMessageId != null || _pendingScrollTarget != null) {
+      return false;
+    }
+    if (state.scrollToMessageSignal != null) {
+      return false;
+    }
+    if (state.highlightedMessageId != null) {
+      return false;
+    }
+    if (state.stickyUnreadMessageId != null) {
+      return false;
+    }
+    if (readState?.manual ?? false) {
+      return false;
+    }
+    final String? dbStickyUnreadId = readState?.stickyUnreadMessageId;
+    if (dbStickyUnreadId != null && dbStickyUnreadId.isNotEmpty) {
+      return false;
+    }
+    if (_isInUnreadReview(state)) {
+      return false;
+    }
+    if (state.hasMoreNewerMessages) {
+      return false;
+    }
+    if (messages.isEmpty) {
+      return false;
+    }
+    final ChatUnreadSummary unreadSummary = computeChatUnreadSummary(
+      messages: messages.map(
+        (Message message) =>
+            ChatUnreadMessageRef(id: message.id, authorId: message.authorId),
+      ),
+      ackLastMessageId: readState?.lastMessageId,
+      mentionCount: readState?.mentionCount ?? 0,
+      currentUserId: currentUserId,
+    );
+    if (unreadSummary.hasUnread) {
+      return false;
+    }
+    return true;
+  }
+
+  void _requestInitialBottomPin() {
+    if (_initialBottomPinDeferScheduled) {
+      return;
+    }
+    _initialBottomPinDeferScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _attemptInitialBottomPin(attempt: 0);
+    });
+  }
+
+  void _attemptInitialBottomPin({required int attempt}) {
+    if (!mounted) {
+      _initialBottomPinDeferScheduled = false;
+      return;
+    }
+    final ChatViewState state = ref.read(chatViewModelProvider);
+    final List<Message> messages = state.messages;
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    final drift_db.ReadState? readState = _readStateForChannel(state.channelId);
+    if (state.scrollToMessageSignal != null || state.stickyUnreadMessageId != null) {
+      _cancelInitialBottomPin();
+      return;
+    }
+    if (_shouldPinToBottomOnLoad(
+      state: state,
+      messages: messages,
+      readState: readState,
+      currentUserId: currentUserId,
+    )) {
+      _cancelInitialBottomPin();
+      _schedulePinToBottom();
+      return;
+    }
+    if (attempt < 3) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _attemptInitialBottomPin(attempt: attempt + 1);
+      });
+      return;
+    }
+    _cancelInitialBottomPin();
+  }
+
+  void _cancelInitialBottomPin() {
+    _needsInitialBottomPin = false;
+    _initialBottomPinDeferScheduled = false;
+    _bottomPinGeneration++;
+    _pinnedLiveNearBottom = false;
+  }
+
+  void _schedulePinToBottom() {
+    if (_hasActiveJumpTarget()) {
+      return;
+    }
+    _scrollAnchoredPivotMessageId = null;
+    _pinnedLiveNearBottom = true;
+    final int generation = ++_bottomPinGeneration;
+    _pinToBottomAfterLayout(generation: generation);
+  }
+
+  void _pinToBottomAfterLayout({int attempt = 0, required int generation}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || generation != _bottomPinGeneration) {
+        return;
+      }
+      if (!_scrollController.hasClients) {
+        if (attempt < 5) {
+          _pinToBottomAfterLayout(attempt: attempt + 1, generation: generation);
+        } else {
+          _pinnedLiveNearBottom = false;
+        }
+        return;
+      }
+      _jumpToMinScrollExtent();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted ||
+            !_scrollController.hasClients ||
+            generation != _bottomPinGeneration) {
+          _pinnedLiveNearBottom = false;
+          return;
+        }
+        _jumpToMinScrollExtent();
+        _pinnedLiveNearBottom = false;
+      });
+    });
   }
 
   void _restoreScrollOffset(double offset) {
@@ -321,6 +478,11 @@ class _MessageListState extends ConsumerState<MessageList> {
         _jumpToClampedOffset(offset);
       });
     });
+  }
+
+  void _jumpToMinScrollExtent() {
+    final ScrollPosition position = _scrollController.position;
+    position.jumpTo(position.minScrollExtent);
   }
 
   void _jumpToClampedOffset(double offset) {
@@ -390,9 +552,11 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
+        final double target =
+            _scrollController.position.minScrollExtent;
         unawaited(
           _scrollController.animateTo(
-            0,
+            target,
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
           ),
@@ -818,7 +982,18 @@ class _MessageListState extends ConsumerState<MessageList> {
         ),
         ((String, int)? previous, (String, int)? next) {
           if (next != null && next != previous) {
+            _cancelInitialBottomPin();
             _onScrollToMessage(next.$1);
+          }
+        },
+      )
+      ..listen<String?>(
+        chatViewModelProvider.select(
+          (ChatViewState s) => s.stickyUnreadMessageId,
+        ),
+        (String? previous, String? next) {
+          if (next != null && next != previous) {
+            _cancelInitialBottomPin();
           }
         },
       )
@@ -967,6 +1142,12 @@ class _MessageListState extends ConsumerState<MessageList> {
         _pendingScrollTarget = null;
         unawaited(_scrollToTarget(target));
       }
+    }
+
+    if (_needsInitialBottomPin &&
+        !state.isLoading &&
+        messages.isNotEmpty) {
+      _requestInitialBottomPin();
     }
 
     final MessageListPivotSplit split = splitMessagesForCenterSliver(
