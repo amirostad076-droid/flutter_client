@@ -8,14 +8,11 @@ import 'package:fluxer_app/core/constants/assets.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
-import 'package:fluxer_app/features/auth/presentation/mfa_screen.dart';
 import 'package:fluxer_app/features/auth/presentation/widgets/account_selector.dart';
+import 'package:fluxer_app/features/auth/presentation/widgets/auth_flow_content.dart';
 import 'package:fluxer_app/features/auth/presentation/widgets/forgot_password_screen.dart';
-import 'package:fluxer_app/features/auth/presentation/widgets/ip_authorization_screen.dart';
-import 'package:fluxer_app/features/auth/presentation/widgets/login_form.dart';
 import 'package:fluxer_app/features/auth/presentation/widgets/register_screen.dart';
 import 'package:fluxer_app/features/auth/presentation/widgets/reset_password_screen.dart';
-import 'package:fluxer_app/features/auth/presentation/widgets/suspended_account_screen.dart';
 import 'package:fluxer_app/features/auth/providers/account_manager_provider.dart';
 import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -31,26 +28,6 @@ class LoginScreen extends ConsumerWidget {
   }) {
     final vm = ref.watch(loginViewModelProvider);
     final notifier = ref.read(loginViewModelProvider.notifier);
-
-    if (vm.mfaChallenge != null) {
-      return MfaScreen(
-        challenge: vm.mfaChallenge!,
-        onAuthorized: () => unawaited(notifier.completeMfa()),
-        onBack: notifier.clearMfaChallenge,
-      );
-    }
-
-    if (vm.ipAuthChallenge != null) {
-      return IpAuthorizationScreen(
-        challenge: vm.ipAuthChallenge!,
-        onAuthorized: () => unawaited(notifier.completeIpAuth()),
-        onBack: notifier.clearIpAuthChallenge,
-      );
-    }
-
-    if (vm.banViewInfo != null) {
-      return SuspendedAccountScreen(onBack: notifier.clearBanView);
-    }
 
     if (vm.resetToken != null) {
       return ResetPasswordScreen(
@@ -102,7 +79,7 @@ class LoginScreen extends ConsumerWidget {
       );
     }
 
-    return LoginForm(showBrowserLogin: showBrowserLogin);
+    return AuthFlowContent(showBrowserLogin: showBrowserLogin);
   }
 
   @override

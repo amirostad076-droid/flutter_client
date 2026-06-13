@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/api/captcha_dialog.dart';
 import 'package:fluxer_app/core/api/captcha_interceptor.dart';
 import 'package:fluxer_app/core/api/fluxer_client_properties.dart';
 import 'package:fluxer_app/core/api/retry_interceptor.dart';
+import 'package:fluxer_app/core/api/skip_auth_interceptor.dart';
 import 'package:fluxer_app/core/api/session_authorization_header.dart';
 import 'package:fluxer_app/core/api/sudo_dialog.dart';
 import 'package:fluxer_app/core/api/sudo_interceptor.dart';
@@ -77,6 +78,7 @@ Dio fluxerDio(Ref ref) {
     );
   }
 
+  dio.interceptors.add(SkipAuthInterceptor());
   dio.interceptors.add(RetryInterceptor(dio: dio));
   dio.interceptors.add(
     CaptchaInterceptor(

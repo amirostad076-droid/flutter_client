@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/auth/presentation/widgets/login_form.dart';
+import 'package:fluxer_app/features/auth/presentation/widgets/auth_flow_content.dart';
 import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -68,7 +68,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
             constraints: BoxConstraints(maxWidth: isMobileLayout(context) ? double.infinity : 420),
             child: Padding(
               padding: EdgeInsets.all(layout.s5),
-              child: LoginForm(
+              child: AuthFlowContent(
                 showBrowserLogin: false,
                 heading: l10n.accountAdd,
               ),
