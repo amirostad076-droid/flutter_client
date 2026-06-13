@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
 import 'package:fluxer_app/features/guilds/data/guild_order_repository.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
@@ -298,8 +300,19 @@ class OrganizedGuildList extends _$OrganizedGuildList {
 
 @Riverpod(keepAlive: true)
 class FolderExpandedState extends _$FolderExpandedState {
+  bool _isApplyingRemote = false;
+
   @override
   Set<int> build() => {};
+
+  Future<void> applySynced(Set<int> value) async {
+    _isApplyingRemote = true;
+    try {
+      state = Set<int>.from(value);
+    } finally {
+      _isApplyingRemote = false;
+    }
+  }
 
   void toggle(int folderId) {
     if (state.contains(folderId)) {
@@ -307,5 +320,15 @@ class FolderExpandedState extends _$FolderExpandedState {
     } else {
       state = {...state, folderId};
     }
+    _markDirtyIfNeeded();
+  }
+
+  void _markDirtyIfNeeded() {
+    if (_isApplyingRemote) {
+      return;
+    }
+    ref.read(syncedPreferencesStoreProvider).markDirty(
+      SyncedPreferenceField.guildFolders,
+    );
   }
 }

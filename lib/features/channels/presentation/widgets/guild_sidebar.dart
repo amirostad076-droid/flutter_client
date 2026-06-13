@@ -19,10 +19,12 @@ import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread
 import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_participants.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
+import 'package:fluxer_app/features/channels/providers/guild_collapsed_categories_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -44,7 +46,10 @@ class GuildSidebar extends ConsumerWidget {
     final guild = state.guild;
     final categories = state.categories;
     final selectedId = ref.watch(activeChannelIdProvider);
-    final collapsed = state.collapsedCategories;
+    final collapsed = guild == null
+        ? const <String>{}
+        : ref.watch(guildCollapsedCategoriesProvider(guild.id)).value ??
+              const <String>{};
 
     return Container(
       width: 240,
@@ -238,9 +243,20 @@ class GuildSidebar extends ConsumerWidget {
   ) {
     final hasMarkReadAction = category.channels.any(_canMarkChannelRead);
     return InkWell(
-      onTap: () => ref
-          .read(channelListViewModelProvider.notifier)
-          .toggleCategory(category.id),
+      onTap: () {
+        final guildId = ref.read(activeGuildIdProvider);
+        if (guildId == null) {
+          return;
+        }
+        unawaited(
+          ref
+              .read(guildUserSettingsRepositoryProvider)
+              .toggleCategoryCollapsed(
+                guildId: guildId,
+                categoryId: category.id,
+              ),
+        );
+      },
       onSecondaryTapUp: hasMarkReadAction
           ? (details) => unawaited(
               _showCategoryActions(
