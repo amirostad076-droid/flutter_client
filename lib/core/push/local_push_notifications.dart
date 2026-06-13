@@ -192,6 +192,19 @@ final class LocalPushNotifications {
     }
   }
 
+  Future<void> cancelAll() async {
+    if (kIsWeb || !_initialized) {
+      return;
+    }
+    try {
+      await _plugin.cancelAll();
+    } on Object catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('[LocalPushNotifications] cancelAll failed: $e\n$st');
+      }
+    }
+  }
+
   Future<void> cancelForPayload(Map<String, String> payload) async {
     if (kIsWeb || !_initialized) {
       return;

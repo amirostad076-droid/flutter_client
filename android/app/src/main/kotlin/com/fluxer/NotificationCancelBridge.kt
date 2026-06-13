@@ -25,9 +25,19 @@ class NotificationCancelBridge(
                     val cancelled = cancelForChannel(channelId)
                     result.success(cancelled)
                 }
+                METHOD_CANCEL_ALL -> {
+                    cancelAll()
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }
+    }
+
+    private fun cancelAll() {
+        val manager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.cancelAll()
     }
 
     private fun cancelForChannel(channelId: String): Int {
@@ -137,6 +147,7 @@ class NotificationCancelBridge(
     companion object {
         const val CHANNEL_NAME = "fluxer_app/android_notifications"
         const val METHOD_CANCEL_FOR_CHANNEL = "cancelForChannel"
+        const val METHOD_CANCEL_ALL = "cancelAll"
         const val ARG_CHANNEL_ID = "channelId"
         private const val EXTRA_CHANNEL_ID = "channel_id"
         private const val EXTRA_TAG = "tag"

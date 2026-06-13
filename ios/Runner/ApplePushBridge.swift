@@ -109,6 +109,10 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     )
   }
 
+  func removeAllDeliveredNotifications() {
+    UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+  }
+
   func removeDeliveredNotificationsForChannel(channelId: String) {
     guard !channelId.isEmpty else {
       return
@@ -434,6 +438,9 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
         return
       }
       self.removeDeliveredNotificationsForChannel(channelId: channelId)
+      result(nil)
+    case "removeAllDeliveredNotifications":
+      self.removeAllDeliveredNotifications()
       result(nil)
     default:
       result(FlutterMethodNotImplemented)

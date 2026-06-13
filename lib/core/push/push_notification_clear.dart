@@ -42,6 +42,49 @@ final class PushNotificationClear {
     }
   }
 
+  static Future<void> clearAllDelivered() async {
+    if (kIsWeb) {
+      return;
+    }
+    await LocalPushNotifications().cancelAll();
+    if (Platform.isAndroid) {
+      await _cancelAllAndroidSystemNotifications();
+    }
+    if (Platform.isIOS) {
+      await _removeAllIosDeliveredNotifications();
+    }
+  }
+
+  static Future<void> _cancelAllAndroidSystemNotifications() async {
+    try {
+      await _androidChannel.invokeMethod<Object?>('cancelAll');
+    } on MissingPluginException {
+      return;
+    } on PlatformException catch (e, st) {
+      if (kDebugMode) {
+        debugPrint(
+          '[PushNotificationClear] Android cancelAll failed: $e\n$st',
+        );
+      }
+    }
+  }
+
+  static Future<void> _removeAllIosDeliveredNotifications() async {
+    try {
+      await _appleChannel.invokeMethod<Object?>(
+        'removeAllDeliveredNotifications',
+      );
+    } on MissingPluginException {
+      return;
+    } on PlatformException catch (e, st) {
+      if (kDebugMode) {
+        debugPrint(
+          '[PushNotificationClear] iOS removeAllDelivered failed: $e\n$st',
+        );
+      }
+    }
+  }
+
   static Future<void> cancelForPayload(Map<String, String> payload) async {
     final String? channelId = resolvePushChannelId(payload);
     if (channelId != null) {

@@ -1,13 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/api/session_authorization_header.dart';
-import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
-import 'package:fluxer_app/core/push/fcm/fcm_mobile_device_registration.dart';
-import 'package:fluxer_app/core/push/services/unified_push_service.dart';
-import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
+import 'package:fluxer_app/core/push/push_account_lifecycle.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
 import 'package:fluxer_app/core/talker.dart';
@@ -82,16 +78,10 @@ class AccountManager extends _$AccountManager {
       // Update lastActive to make this the active session.
       await db.authSessionDao.touchSession(userId);
 
-      if (PushProviderGuard.isApple) {
-        await ref
-            .read(apnsMobileDeviceRegistrationProvider.notifier)
-            .unregisterCurrentToken();
-      }
-      if (PushProviderGuard.isFirebaseMessaging) {
-        await ref
-            .read(fcmMobileDeviceRegistrationProvider.notifier)
-            .unregisterCurrentToken();
-      }
+      await PushAccountLifecycle.leaveActiveAccount(
+        ref,
+        mode: LeavePushAccountMode.switchAccount,
+      );
 
       ref.read(syncedPreferencesStoreProvider).reset();
 
@@ -137,22 +127,10 @@ class AccountManager extends _$AccountManager {
   Future<void> signOut(String userId) async {
     final repo = ref.read(authRepositoryProvider);
 
-    if (PushProviderGuard.isApple) {
-      await ref
-          .read(apnsMobileDeviceRegistrationProvider.notifier)
-          .unregisterCurrentToken();
-    }
-    if (PushProviderGuard.isFirebaseMessaging) {
-      await ref
-          .read(fcmMobileDeviceRegistrationProvider.notifier)
-          .unregisterCurrentToken();
-    }
-    if (PushProviderGuard.isUnifiedPush) {
-      await ref
-          .read(unifiedPushMobileDeviceRegistrationProvider.notifier)
-          .unregisterCurrentEndpoint();
-      await UnifiedPushService.instance.unregisterFromDistributor();
-    }
+    await PushAccountLifecycle.leaveActiveAccount(
+      ref,
+      mode: LeavePushAccountMode.signOut,
+    );
     await repo.logout(userId);
     ref.read(syncedPreferencesStoreProvider).reset();
     await loadAccounts();

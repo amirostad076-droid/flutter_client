@@ -31,6 +31,11 @@ class AppIconBadgeCoordinator extends _$AppIconBadgeCoordinator {
       String? previous,
       String? next,
     ) {
+      if (previous != null &&
+          next != null &&
+          previous != next) {
+        unawaited(AppIconBadgeService.clear());
+      }
       if (next == null && previous != null) {
         unawaited(AppIconBadgeService.clear());
       }

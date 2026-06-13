@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/push/push_account_lifecycle.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/auth/data/webauthn_service.dart';
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
@@ -528,6 +530,15 @@ class LoginViewModel extends _$LoginViewModel {
   }
 
   Future<bool> _completeLoginSuccess(AuthSession session) async {
+    final String? previousUserId = ref.read(currentUserIdProvider);
+    if (previousUserId != null &&
+        previousUserId != session.userId &&
+        ref.read(authStateProvider)) {
+      await PushAccountLifecycle.leaveActiveAccount(
+        ref,
+        mode: LeavePushAccountMode.switchAccount,
+      );
+    }
     ref.read(fluxerAuthTokenProvider.notifier).setToken(session.token);
     final restored = await _restoreAuthenticatedSession();
     if (!restored) {
