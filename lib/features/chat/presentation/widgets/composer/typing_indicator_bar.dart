@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/utils/typing_indicator_text.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/providers/blocked_users_view_model.dart';
@@ -19,9 +20,7 @@ import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 
 const double _kAvatarSize = 12;
 const int _kMaxVisibleAvatars = 5;
-const int _kMaxNamedUsers = 3;
 const Duration _kRefreshInterval = Duration(milliseconds: 500);
-const String _kNameSentinel = '\uFFFC';
 
 /// Floating pill shown over the chat area when other users are typing.
 class TypingIndicatorBar extends ConsumerStatefulWidget {
@@ -90,29 +89,58 @@ class _TypingPill extends ConsumerWidget {
 
   final List<String> userIds;
 
+  GuildUserDisplay _resolveTypingUserDisplay({
+    required WidgetRef ref,
+    required String userId,
+    required String? guildId,
+  }) {
+    final user = ref.watch(userPresenceProvider(userId)).value;
+    if (guildId != null) {
+      final GuildUserDisplay? guildDisplay = ref
+          .watch(guildUserDisplayProvider((userId, guildId)))
+          .value;
+      if (guildDisplay != null) {
+        return guildDisplay;
+      }
+      if (user != null) {
+        return resolveGuildUserDisplayFromRows(
+          user: user,
+          member: null,
+          guildId: guildId,
+        );
+      }
+      return fallbackTypingUserDisplay(userId);
+    }
+    final GuildUserDisplay? dbDisplay = ref
+        .watch(guildUserDisplayFromDbProvider((userId, null)))
+        .value;
+    if (dbDisplay != null) {
+      return dbDisplay;
+    }
+    if (user != null) {
+      return resolveGuildUserDisplayFromRows(
+        user: user,
+        member: null,
+        guildId: null,
+      );
+    }
+    return fallbackTypingUserDisplay(userId);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final guildId = ref.watch(activeGuildIdProvider);
     final resolvedUsers = <({String userId, GuildUserDisplay display})>[];
     for (final id in userIds) {
-      final user = ref.watch(userPresenceProvider(id)).value;
-      if (user == null) {
-        continue;
-      }
-      final GuildUserDisplay display = guildId == null
-          ? resolveGuildUserDisplayFromRows(
-              user: user,
-              member: null,
-              guildId: null,
-            )
-          : ref.watch(guildUserDisplayProvider((id, guildId))).value ??
-                resolveGuildUserDisplayFromRows(
-                  user: user,
-                  member: null,
-                  guildId: guildId,
-                );
-      resolvedUsers.add((userId: id, display: display));
+      resolvedUsers.add((
+        userId: id,
+        display: _resolveTypingUserDisplay(
+          ref: ref,
+          userId: id,
+          guildId: guildId,
+        ),
+      ));
     }
     final total = userIds.length;
     return Container(
@@ -133,24 +161,22 @@ class _TypingPill extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           FluxerLoadingSpinner(color: colors.textSecondary),
-          if (resolvedUsers.isNotEmpty) ...[
-            const SizedBox(width: 8),
-            FluxerAvatarStack(
-              size: _kAvatarSize,
-              maxVisible: _kMaxVisibleAvatars,
-              avatars: [
-                for (final user in resolvedUsers)
-                  FluxerAvatar.user(
-                    userId: user.userId,
-                    imageUrl: user.display.avatarUrl,
-                    fallbackText: user.display.displayName,
-                    avatarColor: user.display.avatarColor,
-                    size: _kAvatarSize,
-                    showStatus: false,
-                  ),
-              ],
-            ),
-          ],
+          const SizedBox(width: 8),
+          FluxerAvatarStack(
+            size: _kAvatarSize,
+            maxVisible: _kMaxVisibleAvatars,
+            avatars: [
+              for (final user in resolvedUsers)
+                FluxerAvatar.user(
+                  userId: user.userId,
+                  imageUrl: user.display.avatarUrl,
+                  fallbackText: user.display.displayName,
+                  avatarColor: user.display.avatarColor,
+                  size: _kAvatarSize,
+                  showStatus: false,
+                ),
+            ],
+          ),
           const SizedBox(width: 8),
           Flexible(
             child: _buildText(context, ref, total, resolvedUsers, guildId),
@@ -174,20 +200,18 @@ class _TypingPill extends ConsumerWidget {
       fontSize: 12,
       fontWeight: FontWeight.w600,
     );
-    final fallback = _bulkDescriptor(l10n, total);
-    final haveEnoughNames = resolved.length >= total;
-    if (fallback != null || total > _kMaxNamedUsers || !haveEnoughNames) {
-      final text = fallback ?? l10n.typingIndicatorMultiple;
+    final bulkText = resolveTypingIndicatorBulkText(l10n, total);
+    if (bulkText != null) {
       return Text(
-        text,
+        bulkText,
         style: baseStyle,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       );
     }
     final names = resolved.take(total).toList();
-    final raw = _namedTemplate(l10n, total);
-    final parts = raw.split(_kNameSentinel);
+    final raw = typingIndicatorNamedTemplate(l10n, total);
+    final parts = raw.split(kTypingIndicatorNamePlaceholder);
     final spans = <InlineSpan>[];
     for (int i = 0; i < parts.length; i++) {
       if (parts[i].isNotEmpty) {
@@ -214,39 +238,5 @@ class _TypingPill extends ConsumerWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
-  }
-
-  String? _bulkDescriptor(FluxerLocalizations l10n, int total) {
-    if (total == 4) {
-      return l10n.typingIndicatorMultiple;
-    }
-    if (total >= 5 && total <= 9) {
-      return l10n.typingIndicatorHandful;
-    }
-    if (total >= 10 && total <= 14) {
-      return l10n.typingIndicatorSymphony;
-    }
-    if (total >= 15 && total <= 19) {
-      return l10n.typingIndicatorFiesta;
-    }
-    if (total >= 20) {
-      return l10n.typingIndicatorApocalypse;
-    }
-    return null;
-  }
-
-  String _namedTemplate(FluxerLocalizations l10n, int total) {
-    switch (total) {
-      case 1:
-        return l10n.typingIndicatorOne(_kNameSentinel);
-      case 2:
-        return l10n.typingIndicatorTwo(_kNameSentinel, _kNameSentinel);
-      default:
-        return l10n.typingIndicatorThree(
-          _kNameSentinel,
-          _kNameSentinel,
-          _kNameSentinel,
-        );
-    }
   }
 }
