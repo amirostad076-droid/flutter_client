@@ -22,9 +22,8 @@ import 'package:fluxer_app/features/guilds/presentation/widgets/guild_navbar.dar
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
-import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
-import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/features/shell/presentation/app_bottom_nav_bar.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/sidebar_drawer.dart';
 import 'package:fluxer_app/features/shell/presentation/swipe_constants.dart';
@@ -32,10 +31,8 @@ import 'package:fluxer_app/features/shell/presentation/user_area.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/shell/providers/shell_blocks_horizontal_gestures_provider.dart';
 import 'package:fluxer_app/features/shell/utils/mobile_scaffold_resize_policy.dart';
-import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/voice_call_bar.dart';
 import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // Left sidebars width is computed from layout theme in _buildDesktopBody.
 
@@ -472,33 +469,8 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     return true;
   }
 
-  Widget _buildProfileTabIcon({
-    required UserSettingsViewState user,
-    required int currentIndex,
-    String? presenceStatus,
-  }) {
-    final isSelected = currentIndex == BottomNavBranch.you.index;
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
-      opacity: isSelected ? 1 : 0.5,
-      child: FluxerAvatar.user(
-        fallbackText: user.displayName,
-        userId: user.userId,
-        imageUrl: user.avatarUrl,
-        avatarColor: user.avatarColor,
-        status: presenceStatus,
-        size: 24,
-      ),
-    );
-  }
-
   Widget _buildBottomNav(BuildContext context) {
-    final user = ref.watch(userSettingsViewModelProvider);
     final currentIndex = widget.navigationShell.currentIndex;
-    final String? selfUserId = user.userId.isEmpty ? null : user.userId;
-    final String? presenceStatus = selfUserId == null
-        ? null
-        : ref.watch(userPresenceProvider(selfUserId)).value?.status;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -506,37 +478,11 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         // TODO(montys): Replace with a more final design.
         const VoiceCallBar(),
         Divider(height: 1, color: context.colors.borderColor),
-        Theme(
-          data: Theme.of(context).copyWith(
-            splashFactory: NoSplash.splashFactory,
-            highlightColor: Colors.transparent,
-          ),
-          child: BottomNavigationBar(
-            currentIndex: currentIndex,
-            onTap: (index) => widget.navigationShell.goBranch(
-              index,
-              initialLocation: index == currentIndex,
-            ),
-            selectedItemColor: context.colors.textChat,
-            unselectedItemColor: context.colors.textPrimaryMuted,
-            items: [
-              const BottomNavigationBarItem(
-                icon: PhosphorIcon(PhosphorIconsFill.house),
-                label: 'Home',
-              ),
-              const BottomNavigationBarItem(
-                icon: PhosphorIcon(PhosphorIconsFill.bell),
-                label: 'Notifications',
-              ),
-              BottomNavigationBarItem(
-                icon: _buildProfileTabIcon(
-                  user: user,
-                  currentIndex: currentIndex,
-                  presenceStatus: presenceStatus,
-                ),
-                label: 'You',
-              ),
-            ],
+        AppBottomNavBar(
+          currentIndex: currentIndex,
+          onBranchSelected: (index) => widget.navigationShell.goBranch(
+            index,
+            initialLocation: index == currentIndex,
           ),
         ),
       ],

@@ -197,6 +197,100 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   }
 
   @override
+  String get accountManageTitle => 'Manage accounts';
+
+  @override
+  String get accountSwitchFailed => 'Couldn\'t switch accounts. Try again.';
+
+  @override
+  String get profileTabMenuSwitchAccounts => 'Switch accounts';
+
+  @override
+  String get statusChangeSheetTitle => 'Set status';
+
+  @override
+  String get statusOnlineStatusSection => 'Online status';
+
+  @override
+  String get statusOnline => 'Online';
+
+  @override
+  String get statusIdle => 'Idle';
+
+  @override
+  String get statusDnd => 'Do not disturb';
+
+  @override
+  String get statusInvisible => 'Invisible';
+
+  @override
+  String get statusOffline => 'Offline';
+
+  @override
+  String get statusUntilIChangeIt => 'Until I change it';
+
+  @override
+  String get statusDontClear => 'Don\'t clear';
+
+  @override
+  String get statusFor10Seconds => 'For 10 seconds';
+
+  @override
+  String get statusClearAfter10Seconds => '10 seconds';
+
+  @override
+  String get statusClearAfter15Minutes => '15 minutes';
+
+  @override
+  String get statusClearAfter30Minutes => '30 minutes';
+
+  @override
+  String get statusClearAfter1Hour => '1 hour';
+
+  @override
+  String get statusClearAfter3Hours => '3 hours';
+
+  @override
+  String get statusClearAfter4Hours => '4 hours';
+
+  @override
+  String get statusClearAfter8Hours => '8 hours';
+
+  @override
+  String get statusClearAfter24Hours => '24 hours';
+
+  @override
+  String get statusClearAfter3Days => '3 days';
+
+  @override
+  String get statusDndDescription =>
+      'You won\'t receive notifications on desktop';
+
+  @override
+  String get statusInvisibleDescription => 'You\'ll appear offline';
+
+  @override
+  String get customStatusSetTitle => 'Set custom status';
+
+  @override
+  String get customStatusCurrentHint => 'Custom status';
+
+  @override
+  String get customStatusClear => 'Clear custom status';
+
+  @override
+  String get customStatusPlaceholder => 'What\'s happening?';
+
+  @override
+  String get customStatusChooseEmoji => 'Choose an emoji';
+
+  @override
+  String get customStatusClearAfter => 'Clear after';
+
+  @override
+  String get customStatusSave => 'Save';
+
+  @override
   String get accountActive => 'Active account';
 
   @override

@@ -13,9 +13,14 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
-  final bool showBrowserLogin;
+  const LoginForm({
+    required this.showBrowserLogin,
+    this.heading,
+    super.key,
+  });
 
-  const LoginForm({required this.showBrowserLogin, super.key});
+  final bool showBrowserLogin;
+  final String? heading;
 
   @override
   ConsumerState<LoginForm> createState() => _LoginFormState();
@@ -58,7 +63,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             children: [
               Center(
                 child: Text(
-                  strings.welcomeBack,
+                  widget.heading ?? strings.welcomeBack,
                   style: context.textStyles.heading,
                 ),
               ),

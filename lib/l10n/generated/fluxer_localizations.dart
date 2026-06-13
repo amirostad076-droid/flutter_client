@@ -440,6 +440,192 @@ abstract class FluxerLocalizations {
   /// **'Session expired for {identifier}. Please log in again.'**
   String accountSessionExpired(String identifier);
 
+  /// Title for the in-app account switcher sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage accounts'**
+  String get accountManageTitle;
+
+  /// Error when switching accounts from the account switcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t switch accounts. Try again.'**
+  String get accountSwitchFailed;
+
+  /// Menu item to open the account switcher from the profile tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch accounts'**
+  String get profileTabMenuSwitchAccounts;
+
+  /// Title for the status change bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set status'**
+  String get statusChangeSheetTitle;
+
+  /// Section header for presence status options.
+  ///
+  /// In en, this message translates to:
+  /// **'Online status'**
+  String get statusOnlineStatusSection;
+
+  /// Online presence status label.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get statusOnline;
+
+  /// Idle presence status label.
+  ///
+  /// In en, this message translates to:
+  /// **'Idle'**
+  String get statusIdle;
+
+  /// Do not disturb presence status label.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not disturb'**
+  String get statusDnd;
+
+  /// Invisible presence status label.
+  ///
+  /// In en, this message translates to:
+  /// **'Invisible'**
+  String get statusInvisible;
+
+  /// Offline presence status label.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get statusOffline;
+
+  /// Presence status expiry option for a permanent status.
+  ///
+  /// In en, this message translates to:
+  /// **'Until I change it'**
+  String get statusUntilIChangeIt;
+
+  /// Custom status expiry option to never auto-clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t clear'**
+  String get statusDontClear;
+
+  /// Presence status expiry option for 10 seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'For 10 seconds'**
+  String get statusFor10Seconds;
+
+  /// Custom status clear-after option for 10 seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'10 seconds'**
+  String get statusClearAfter10Seconds;
+
+  /// Custom status clear-after option for 15 minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes'**
+  String get statusClearAfter15Minutes;
+
+  /// Custom status clear-after option for 30 minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'30 minutes'**
+  String get statusClearAfter30Minutes;
+
+  /// Custom status clear-after option for 1 hour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour'**
+  String get statusClearAfter1Hour;
+
+  /// Custom status clear-after option for 3 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'3 hours'**
+  String get statusClearAfter3Hours;
+
+  /// Custom status clear-after option for 4 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'4 hours'**
+  String get statusClearAfter4Hours;
+
+  /// Custom status clear-after option for 8 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'8 hours'**
+  String get statusClearAfter8Hours;
+
+  /// Custom status clear-after option for 24 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'24 hours'**
+  String get statusClearAfter24Hours;
+
+  /// Custom status clear-after option for 3 days.
+  ///
+  /// In en, this message translates to:
+  /// **'3 days'**
+  String get statusClearAfter3Days;
+
+  /// Description shown for the do not disturb status option.
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t receive notifications on desktop'**
+  String get statusDndDescription;
+
+  /// Description shown for the invisible status option.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll appear offline'**
+  String get statusInvisibleDescription;
+
+  /// Title for the custom status editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Set custom status'**
+  String get customStatusSetTitle;
+
+  /// Hint label for the current custom status row.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom status'**
+  String get customStatusCurrentHint;
+
+  /// Action to remove the current custom status.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear custom status'**
+  String get customStatusClear;
+
+  /// Placeholder for the custom status text field.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s happening?'**
+  String get customStatusPlaceholder;
+
+  /// Button to pick an emoji for custom status.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an emoji'**
+  String get customStatusChooseEmoji;
+
+  /// Label for the custom status expiry picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear after'**
+  String get customStatusClearAfter;
+
+  /// Button to save custom status changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get customStatusSave;
+
   /// Badge shown on the currently active account.
   ///
   /// In en, this message translates to:

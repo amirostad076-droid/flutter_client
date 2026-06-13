@@ -249,6 +249,130 @@
       "identifier": { "type": "String" }
     }
   },
+  "accountManageTitle": "Manage accounts",
+  "@accountManageTitle": {
+    "description": "Title for the in-app account switcher sheet."
+  },
+  "accountSwitchFailed": "Couldn't switch accounts. Try again.",
+  "@accountSwitchFailed": {
+    "description": "Error when switching accounts from the account switcher."
+  },
+  "profileTabMenuSwitchAccounts": "Switch accounts",
+  "@profileTabMenuSwitchAccounts": {
+    "description": "Menu item to open the account switcher from the profile tab."
+  },
+  "statusChangeSheetTitle": "Set status",
+  "@statusChangeSheetTitle": {
+    "description": "Title for the status change bottom sheet."
+  },
+  "statusOnlineStatusSection": "Online status",
+  "@statusOnlineStatusSection": {
+    "description": "Section header for presence status options."
+  },
+  "statusOnline": "Online",
+  "@statusOnline": {
+    "description": "Online presence status label."
+  },
+  "statusIdle": "Idle",
+  "@statusIdle": {
+    "description": "Idle presence status label."
+  },
+  "statusDnd": "Do not disturb",
+  "@statusDnd": {
+    "description": "Do not disturb presence status label."
+  },
+  "statusInvisible": "Invisible",
+  "@statusInvisible": {
+    "description": "Invisible presence status label."
+  },
+  "statusOffline": "Offline",
+  "@statusOffline": {
+    "description": "Offline presence status label."
+  },
+  "statusUntilIChangeIt": "Until I change it",
+  "@statusUntilIChangeIt": {
+    "description": "Presence status expiry option for a permanent status."
+  },
+  "statusDontClear": "Don't clear",
+  "@statusDontClear": {
+    "description": "Custom status expiry option to never auto-clear."
+  },
+  "statusFor10Seconds": "For 10 seconds",
+  "@statusFor10Seconds": {
+    "description": "Presence status expiry option for 10 seconds."
+  },
+  "statusClearAfter10Seconds": "10 seconds",
+  "@statusClearAfter10Seconds": {
+    "description": "Custom status clear-after option for 10 seconds."
+  },
+  "statusClearAfter15Minutes": "15 minutes",
+  "@statusClearAfter15Minutes": {
+    "description": "Custom status clear-after option for 15 minutes."
+  },
+  "statusClearAfter30Minutes": "30 minutes",
+  "@statusClearAfter30Minutes": {
+    "description": "Custom status clear-after option for 30 minutes."
+  },
+  "statusClearAfter1Hour": "1 hour",
+  "@statusClearAfter1Hour": {
+    "description": "Custom status clear-after option for 1 hour."
+  },
+  "statusClearAfter3Hours": "3 hours",
+  "@statusClearAfter3Hours": {
+    "description": "Custom status clear-after option for 3 hours."
+  },
+  "statusClearAfter4Hours": "4 hours",
+  "@statusClearAfter4Hours": {
+    "description": "Custom status clear-after option for 4 hours."
+  },
+  "statusClearAfter8Hours": "8 hours",
+  "@statusClearAfter8Hours": {
+    "description": "Custom status clear-after option for 8 hours."
+  },
+  "statusClearAfter24Hours": "24 hours",
+  "@statusClearAfter24Hours": {
+    "description": "Custom status clear-after option for 24 hours."
+  },
+  "statusClearAfter3Days": "3 days",
+  "@statusClearAfter3Days": {
+    "description": "Custom status clear-after option for 3 days."
+  },
+  "statusDndDescription": "You won't receive notifications on desktop",
+  "@statusDndDescription": {
+    "description": "Description shown for the do not disturb status option."
+  },
+  "statusInvisibleDescription": "You'll appear offline",
+  "@statusInvisibleDescription": {
+    "description": "Description shown for the invisible status option."
+  },
+  "customStatusSetTitle": "Set custom status",
+  "@customStatusSetTitle": {
+    "description": "Title for the custom status editor."
+  },
+  "customStatusCurrentHint": "Custom status",
+  "@customStatusCurrentHint": {
+    "description": "Hint label for the current custom status row."
+  },
+  "customStatusClear": "Clear custom status",
+  "@customStatusClear": {
+    "description": "Action to remove the current custom status."
+  },
+  "customStatusPlaceholder": "What's happening?",
+  "@customStatusPlaceholder": {
+    "description": "Placeholder for the custom status text field."
+  },
+  "customStatusChooseEmoji": "Choose an emoji",
+  "@customStatusChooseEmoji": {
+    "description": "Button to pick an emoji for custom status."
+  },
+  "customStatusClearAfter": "Clear after",
+  "@customStatusClearAfter": {
+    "description": "Label for the custom status expiry picker."
+  },
+  "customStatusSave": "Save",
+  "@customStatusSave": {
+    "description": "Button to save custom status changes."
+  },
   "accountActive": "Active account",
   "@accountActive": {
     "description": "Badge shown on the currently active account."
