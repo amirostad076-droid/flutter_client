@@ -50,5 +50,17 @@ void main() {
       expect(message.payload['url'], '/channels/@me/2/1');
       expect(message.payload.containsKey('data'), isFalse);
     });
+
+    test('maps navigate field to url', () {
+      final RemoteMessage input = RemoteMessage(
+        data: <String, String>{
+          'navigate': '/channels/@me/dm-5/msg-7',
+          'channel_id': 'dm-5',
+          'message_id': 'msg-7',
+        },
+      );
+      final FcmPushMessage message = mapRemoteMessage(input);
+      expect(message.payload['url'], '/channels/@me/dm-5/msg-7');
+    });
   });
 }

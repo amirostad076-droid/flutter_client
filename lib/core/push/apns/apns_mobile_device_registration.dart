@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/push/apns/apns_registration_logic.dart';
 import 'package:fluxer_app/core/push/push_notification_permission.dart';
 import 'package:fluxer_app/core/push/push_service.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -93,33 +94,39 @@ class ApnsMobileDeviceRegistration extends _$ApnsMobileDeviceRegistration {
   Future<void> _syncImpl() async {
     final String? bearer = ref.read(fluxerAuthTokenProvider);
     if (bearer == null || bearer.isEmpty) {
+      _logApnsWarning('sync skipped: missing auth token');
       return;
     }
     if (!ref.read(authStateProvider)) {
+      _logApnsWarning('sync skipped: not authenticated');
       return;
     }
     final String? userId = ref.read(currentUserIdProvider);
     if (userId == null || userId.isEmpty) {
+      _logApnsWarning('sync skipped: missing user id');
       return;
     }
+    _logApnsInfo('sync started for user $userId');
     final bool granted = await requestPushNotificationPermission();
     if (!granted) {
-      if (kDebugMode) {
-        debugPrint('[ApnsMobileDeviceRegistration] notifications not granted');
-      }
+      _logApnsWarning('sync aborted: notification permission not granted');
       return;
     }
     final PushService push = ref.read(pushServiceProvider);
     try {
       await push.initialize();
     } on Object catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('[ApnsMobileDeviceRegistration] initialize failed: $e\n$st');
-      }
+      talker.handle(
+        e,
+        st,
+        '[ApnsMobileDeviceRegistration] sync aborted: push initialize failed',
+      );
       return;
     }
     String? hex;
+    var tokenPollAttempts = 0;
     for (var attempt = 0; attempt < _tokenPollAttempts; attempt++) {
+      tokenPollAttempts = attempt + 1;
       hex = await push.getToken();
       if (hex != null && hex.isNotEmpty) {
         break;
@@ -127,21 +134,33 @@ class ApnsMobileDeviceRegistration extends _$ApnsMobileDeviceRegistration {
       await Future<void>.delayed(_tokenPollDelay);
     }
     if (hex == null || hex.isEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          '[ApnsMobileDeviceRegistration] No APNs token after polling',
-        );
-      }
+      _logApnsWarning(
+        'sync aborted: no APNs device token after $tokenPollAttempts poll(s)',
+      );
       return;
     }
+    _logApnsInfo(
+      'APNs device token acquired after $tokenPollAttempts poll(s): '
+      '${_maskApnsToken(hex)}',
+    );
     if (shouldSkipApnsRegistration(
       currentUserId: userId,
       tokenHex: hex,
       lastRegisteredUserId: _lastRegisteredUserId,
       lastRegisteredTokenHex: _lastRegisteredTokenHex,
     )) {
+      _logApnsInfo(
+        'submit skipped: token already registered for user $userId '
+        '(${_maskApnsToken(hex)})',
+      );
       return;
     }
+    final String appId = AppBuildConfig.mobilePushAppId;
+    final MobilePushProviderEnvironmentSchema environment = _providerEnvironment;
+    _logApnsInfo(
+      'submitting APNs registration userId=$userId appId=$appId '
+      'environment=${environment.json ?? environment.toString()} token=${_maskApnsToken(hex)}',
+    );
     try {
       await ref
           .read(fluxerClientProvider)
@@ -151,22 +170,45 @@ class ApnsMobileDeviceRegistration extends _$ApnsMobileDeviceRegistration {
               platform: RegisterMobileDeviceRequestPlatformPlatform.iosApns,
               token: hex,
               userAgent: ref.read(fluxerClientPropertiesProvider).userAgent,
-              appId: AppBuildConfig.mobilePushAppId,
-              providerEnvironment: _providerEnvironment,
+              appId: appId,
+              providerEnvironment: environment,
             ),
           );
       _lastRegisteredUserId = userId;
       _lastRegisteredTokenHex = hex;
-      if (kDebugMode) {
-        debugPrint(
-          '[ApnsMobileDeviceRegistration] registered token for user $userId',
-        );
-      }
+      _logApnsInfo(
+        'APNs registration succeeded for user $userId '
+        'appId=$appId environment=${environment.json ?? environment.toString()} '
+        'token=${_maskApnsToken(hex)}',
+      );
     } on DioException catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('[ApnsMobileDeviceRegistration] register failed: $e\n$st');
-      }
+      final int? statusCode = e.response?.statusCode;
+      final Object? responseData = e.response?.data;
+      talker.handle(
+        e,
+        st,
+        '[ApnsMobileDeviceRegistration] APNs registration failed '
+        'userId=$userId appId=$appId '
+        'environment=${environment.json ?? environment.toString()} '
+        'status=$statusCode token=${_maskApnsToken(hex)} '
+        'response=$responseData',
+      );
     }
+  }
+
+  void _logApnsInfo(String message) {
+    talker.info('[ApnsMobileDeviceRegistration] $message');
+  }
+
+  void _logApnsWarning(String message) {
+    talker.warning('[ApnsMobileDeviceRegistration] $message');
+  }
+
+  String _maskApnsToken(String token) {
+    if (token.length <= 12) {
+      return '***';
+    }
+    return '${token.substring(0, 8)}...${token.substring(token.length - 4)}';
   }
 
   Future<void> unregisterCurrentToken() async {
@@ -185,6 +227,7 @@ class ApnsMobileDeviceRegistration extends _$ApnsMobileDeviceRegistration {
       return;
     }
     try {
+      _logApnsInfo('unregistering APNs token ${_maskApnsToken(hex)}');
       await ref
           .read(fluxerClientProvider)
           .users
@@ -198,10 +241,16 @@ class ApnsMobileDeviceRegistration extends _$ApnsMobileDeviceRegistration {
           );
       _lastRegisteredUserId = null;
       _lastRegisteredTokenHex = null;
+      _logApnsInfo('APNs unregister succeeded token=${_maskApnsToken(hex)}');
     } on DioException catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('[ApnsMobileDeviceRegistration] unregister failed: $e\n$st');
-      }
+      final int? statusCode = e.response?.statusCode;
+      final Object? responseData = e.response?.data;
+      talker.handle(
+        e,
+        st,
+        '[ApnsMobileDeviceRegistration] APNs unregister failed '
+        'status=$statusCode token=${_maskApnsToken(hex)} response=$responseData',
+      );
     }
   }
 }

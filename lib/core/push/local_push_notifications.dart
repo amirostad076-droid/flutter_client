@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/push/push_notification_ids.dart'
         kLocalNotificationMessageIdKey,
         pushMessageNotificationId,
         pushNotificationCancelIds;
+import 'package:fluxer_app/core/push/push_notification_payload.dart';
 import 'package:fluxer_app/core/push/push_notification_permission.dart';
 
 final class LocalPushNotifications {
@@ -128,11 +129,15 @@ final class LocalPushNotifications {
         : 'New message';
     final int id = pushMessageNotificationId(message.id);
     final int? badgeCount = parsePushBadgeCount(message.payload);
+    final Map<String, String> enrichedPayload = enrichPushPayload(
+      message.payload,
+    );
     final NotificationDetails details = _notificationDetailsForPlatform(
       badgeCount: badgeCount,
+      payload: enrichedPayload,
     );
     final Map<String, String> payloadWithMessageId = Map<String, String>.from(
-      message.payload,
+      enrichedPayload,
     );
     payloadWithMessageId[kLocalNotificationMessageIdKey] = message.id;
     try {
@@ -151,13 +156,50 @@ final class LocalPushNotifications {
     }
   }
 
+  Future<void> cancelForChannel(String channelId) async {
+    if (kIsWeb || !_initialized || channelId.isEmpty) {
+      return;
+    }
+    final String channelTag = buildChannelTag(channelId);
+    final AndroidFlutterLocalNotificationsPlugin? android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (android != null) {
+      try {
+        await android.cancel(tag: channelTag, id: 0);
+      } on Object catch (e, st) {
+        if (kDebugMode) {
+          debugPrint(
+            '[LocalPushNotifications] cancel channel tag failed: $e\n$st',
+          );
+        }
+      }
+    }
+    for (final int id in pushNotificationCancelIds(<String, String>{
+      'channel_id': channelId,
+      'tag': channelTag,
+    })) {
+      try {
+        await _plugin.cancel(id: id, tag: channelTag);
+      } on Object catch (e, st) {
+        if (kDebugMode) {
+          debugPrint(
+            '[LocalPushNotifications] cancel channel id=$id failed: $e\n$st',
+          );
+        }
+      }
+    }
+  }
+
   Future<void> cancelForPayload(Map<String, String> payload) async {
     if (kIsWeb || !_initialized) {
       return;
     }
+    final String? messageTag = resolvePushMessageTag(payload);
     for (final int id in pushNotificationCancelIds(payload)) {
       try {
-        await _plugin.cancel(id: id);
+        await _plugin.cancel(id: id, tag: messageTag);
       } on Object catch (e, st) {
         if (kDebugMode) {
           debugPrint('[LocalPushNotifications] cancel failed id=$id: $e\n$st');
@@ -166,7 +208,12 @@ final class LocalPushNotifications {
     }
   }
 
-  NotificationDetails _notificationDetailsForPlatform({int? badgeCount}) {
+  NotificationDetails _notificationDetailsForPlatform({
+    int? badgeCount,
+    Map<String, String> payload = const <String, String>{},
+  }) {
+    final String? groupKey = resolvePushGroupTag(payload);
+    final String? messageTag = resolvePushDisplayTag(payload);
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return NotificationDetails(
@@ -178,6 +225,8 @@ final class LocalPushNotifications {
             priority: Priority.high,
             icon: _androidNotificationIcon,
             number: badgeCount,
+            groupKey: groupKey,
+            tag: messageTag,
           ),
         );
       case TargetPlatform.iOS:

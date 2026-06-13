@@ -93,6 +93,51 @@ class RunnerTests: XCTestCase {
     XCTAssertNotEqual(threadId, notificationId)
   }
 
+  func testIsClearPayloadDetectsRootAndNestedFields() {
+    let rootClear: [AnyHashable: Any] = [
+      "type": "notification_clear",
+      "channel_id": "456",
+    ]
+    let nestedClear: [AnyHashable: Any] = [
+      "data": ["action": "clear_channel", "channel_id": "456"],
+    ]
+    XCTAssertTrue(PushNotificationPayload.isClearPayload(from: rootClear))
+    XCTAssertTrue(PushNotificationPayload.isClearPayload(from: nestedClear))
+    XCTAssertFalse(PushNotificationPayload.isClearPayload(from: ["channel_id": "456"]))
+  }
+
+  func testResolveChannelIdFromClearPayload() {
+    let userInfo: [AnyHashable: Any] = [
+      "type": "notification_clear",
+      "channel_id": "456",
+    ]
+    XCTAssertEqual(PushNotificationPayload.resolveChannelId(from: userInfo), "456")
+  }
+
+  func testResolveChannelIdFromDmPayload() {
+    let userInfo: [AnyHashable: Any] = [
+      "channel_id": "dm-99",
+      "guild_id": "null",
+      "message_id": "msg-1",
+    ]
+    XCTAssertEqual(PushNotificationPayload.resolveChannelId(from: userInfo), "dm-99")
+  }
+
+  func testResolveChannelIdFromUrlWhenChannelIdMissing() {
+    let userInfo: [AnyHashable: Any] = [
+      "url": "/channels/@me/dm-42/msg-7",
+      "message_id": "msg-7",
+    ]
+    XCTAssertEqual(PushNotificationPayload.resolveChannelId(from: userInfo), "dm-42")
+  }
+
+  func testResolveChannelIdFromGuildNavigateUrl() {
+    let userInfo: [AnyHashable: Any] = [
+      "navigate": "/channels/guild-9/chan-3/msg-1",
+    ]
+    XCTAssertEqual(PushNotificationPayload.resolveChannelId(from: userInfo), "chan-3")
+  }
+
   func testCustomEmojiImageUrlIsStaticWebpWithoutAnimatedParam() {
     let url = NotificationEmojiDecoder.customEmojiImageUrl(id: "99")
     XCTAssertEqual(url?.absoluteString, "https://fluxerusercontent.com/emojis/99.webp?size=96")

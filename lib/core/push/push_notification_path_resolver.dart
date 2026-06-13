@@ -1,3 +1,4 @@
+import 'package:fluxer_app/core/push/push_notification_payload.dart';
 import 'package:fluxer_app/core/router/route_kind.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 
@@ -37,8 +38,7 @@ String? _pathFromIds(Map<String, String> payload) {
     return null;
   }
   final String? messageId = _nonEmpty(payload['message_id']);
-  final String? guildId = _nonEmpty(payload['guild_id']);
-  final bool isDm = guildId == null || guildId == '@me';
+  final bool isDm = isDmPushPayload(payload);
   if (isDm) {
     if (messageId != null) {
       return RoutePaths.dmChannelMessage(channelId, messageId);
@@ -46,9 +46,13 @@ String? _pathFromIds(Map<String, String> payload) {
     return RoutePaths.dmChannel(channelId);
   }
   if (messageId != null) {
-    return RoutePaths.guildChannelMessage(guildId, channelId, messageId);
+    return RoutePaths.guildChannelMessage(
+      _nonEmpty(payload['guild_id'])!,
+      channelId,
+      messageId,
+    );
   }
-  return RoutePaths.guildChannel(guildId, channelId);
+  return RoutePaths.guildChannel(_nonEmpty(payload['guild_id'])!, channelId);
 }
 
 bool _isNavigableChannelPath(String path) {

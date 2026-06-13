@@ -52,6 +52,7 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
 
   func setDeviceToken(_ deviceToken: Data) {
     let hex = deviceToken.map { String(format: "%02x", $0) }.joined()
+    Self.logApns("device token received length=\(hex.count) token=\(Self.maskToken(hex))")
     if Thread.isMainThread {
       deviceTokenHex = hex
     } else {
@@ -62,6 +63,7 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
   }
 
   func clearDeviceTokenOnFailure() {
+    Self.logApns("device token registration failed; clearing cached token")
     if Thread.isMainThread {
       deviceTokenHex = nil
     } else {
@@ -75,6 +77,12 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     userInfo: [AnyHashable: Any],
     applicationState: UIApplication.State
   ) {
+    if PushNotificationPayload.isClearPayload(from: userInfo) {
+      return
+    }
+    guard Self.hasApsAlert(userInfo) else {
+      return
+    }
     emitPushMessage(userInfo: userInfo, messageId: nil)
     if applicationState != .active {
       presentLocalNotificationReplacingRemoteDuplicate(userInfo: userInfo)
@@ -86,6 +94,10 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
   ) {
     let userInfo = notification.request.content.userInfo
+    if PushNotificationPayload.isClearPayload(from: userInfo) {
+      completionHandler([])
+      return
+    }
     emitPushMessage(
       userInfo: userInfo,
       messageId: PushNotificationPayload.resolveNotificationIdentifier(from: userInfo)
@@ -95,6 +107,25 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
       userInfo: userInfo,
       sourceContent: notification.request.content
     )
+  }
+
+  func removeDeliveredNotificationsForChannel(channelId: String) {
+    guard !channelId.isEmpty else {
+      return
+    }
+    UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
+      let identifiers = notifications.compactMap { notification -> String? in
+        guard PushNotificationPayload.notificationMatchesChannel(notification, channelId: channelId)
+        else {
+          return nil
+        }
+        return notification.request.identifier
+      }
+      guard !identifiers.isEmpty else {
+        return
+      }
+      UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: identifiers)
+    }
   }
 
   func emitNotificationTap(userInfo: [AnyHashable: Any]) {
@@ -373,6 +404,7 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
     switch call.method {
     case "registerRemoteNotifications":
       DispatchQueue.main.async {
+        Self.logApns("registerRemoteNotifications requested")
         Self.requestAuthorizationIfNeeded {
           UIApplication.shared.registerForRemoteNotifications()
           result(nil)
@@ -380,8 +412,29 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
       }
     case "getDeviceToken":
       DispatchQueue.main.async {
+        if let token = self.deviceTokenHex, !token.isEmpty {
+          Self.logApns("getDeviceToken hit cache token=\(Self.maskToken(token))")
+        } else {
+          Self.logApns("getDeviceToken cache miss")
+        }
         result(self.deviceTokenHex)
       }
+    case "removeDeliveredNotificationsForChannel":
+      guard let args = call.arguments as? [String: Any],
+        let channelId = args["channelId"] as? String,
+        !channelId.isEmpty
+      else {
+        result(
+          FlutterError(
+            code: "invalid_args",
+            message: "channelId is required",
+            details: nil
+          )
+        )
+        return
+      }
+      self.removeDeliveredNotificationsForChannel(channelId: channelId)
+      result(nil)
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -394,6 +447,12 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
         continue
       }
       let keyString = String(describing: key)
+      if keyString == "data", let dataDict = value as? [String: Any] {
+        for (dataKey, dataValue) in dataDict {
+          out[String(describing: dataKey)] = "\(dataValue)"
+        }
+        continue
+      }
       if let dict = value as? [String: Any] {
         if let data = try? JSONSerialization.data(withJSONObject: dict),
           let string = String(data: data, encoding: .utf8)
@@ -414,6 +473,11 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
         out[keyString] = "\(value)"
       }
     }
+    if out["url"] == nil || out["url"]?.isEmpty == true,
+      let navigate = out["navigate"], !navigate.isEmpty
+    {
+      out["url"] = navigate
+    }
     return out
   }
 
@@ -428,6 +492,21 @@ final class ApplePushBridge: NSObject, FlutterStreamHandler {
   func onCancel(withArguments arguments: Any?) -> FlutterError? {
     eventSink = nil
     return nil
+  }
+
+  private static func logApns(_ message: String) {
+    #if DEBUG
+      print("[ApplePushBridge] \(message)")
+    #endif
+  }
+
+  private static func maskToken(_ token: String) -> String {
+    guard token.count > 12 else {
+      return "***"
+    }
+    let prefix = token.prefix(8)
+    let suffix = token.suffix(4)
+    return "\(prefix)...\(suffix)"
   }
 }
 

@@ -62,6 +62,7 @@ String? extractGuildId(String location) {
 }
 
 final _dmChannelIdPattern = RegExp(r'^/channels/@me/([^/]+)$');
+final _dmChannelMessageIdPattern = RegExp(r'^/channels/@me/([^/]+)/');
 final _favoritesChannelIdPattern = RegExp(r'^/channels/@favorites/([^/]+)$');
 final _guildChannelIdPattern = RegExp('^/channels/[^@/][^/]*/([^/]+)');
 
@@ -69,13 +70,16 @@ final _guildChannelIdPattern = RegExp('^/channels/[^@/][^/]*/([^/]+)');
 /// that have no channel segment (root channels, members, non-channels).
 ///
 /// Semantics preserve the existing extractor in `route_state_providers.dart`:
-/// DM/favorites match only their exact two-segment form; guild channels
-/// match anywhere a `/channels/:guildId/:channelId(/...)` shape exists
-/// (so message-jump routes still resolve a channel ID).
+/// DM/favorites match their channel segment; guild channels match anywhere a
+/// `/channels/:guildId/:channelId(/...)` shape exists (message-jump included).
 String? extractChannelId(String location) {
   final dmMatch = _dmChannelIdPattern.firstMatch(location);
   if (dmMatch != null) {
     return dmMatch.group(1);
+  }
+  final dmMessageMatch = _dmChannelMessageIdPattern.firstMatch(location);
+  if (dmMessageMatch != null) {
+    return dmMessageMatch.group(1);
   }
   final favMatch = _favoritesChannelIdPattern.firstMatch(location);
   if (favMatch != null) {

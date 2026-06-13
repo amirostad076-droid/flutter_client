@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/push/push_notification_clear.dart';
 import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
@@ -54,6 +57,7 @@ class ReadStateRepository {
       messageId: messageId,
       mentionCount: 0,
     );
+    unawaited(PushNotificationClear.cancelForChannel(channelId));
     return messageId;
   }
 
@@ -97,6 +101,7 @@ class ReadStateRepository {
         messageId: entry.messageId,
         mentionCount: 0,
       );
+      unawaited(PushNotificationClear.cancelForChannel(entry.channelId));
     }
 
     await _client.readStates.ackBulkMessages(

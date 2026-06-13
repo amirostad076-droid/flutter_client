@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_handler.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
-import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
+import 'package:fluxer_app/core/push/push_notification_clear.dart';
+import 'package:fluxer_app/core/push/push_notification_payload.dart';
 import 'package:fluxer_app/core/push/push_notification_path_resolver.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
@@ -41,12 +41,13 @@ class PushNotificationTapHandler extends _$PushNotificationTapHandler {
   }
 
   void handlePayload(Map<String, String> payload) {
-    if (!PushProviderGuard.isFirebaseMessaging) {
-      unawaited(LocalPushNotifications().cancelForPayload(payload));
-    }
-    final String? path = resolvePushNotificationPath(payload);
+    final Map<String, String> normalized = normalizePushTapPayload(payload);
+    unawaited(PushNotificationClear.cancelForPayload(normalized));
+    final String? path = resolvePushNotificationPath(normalized);
     if (path == null) {
-      talker.warning('[PushNotificationTap] no navigable path in $payload');
+      talker.warning(
+        '[PushNotificationTap] no navigable path in $normalized',
+      );
       return;
     }
     _navigateToPath(path);

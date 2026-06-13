@@ -40,10 +40,15 @@ Map<String, String> _buildNavigationPayload(Map<String, dynamic> source) {
   for (final MapEntry<String, String> entry in nested.entries) {
     payload.putIfAbsent(entry.key, () => entry.value);
   }
-  final String? url = nested['url'];
+  final String? url =
+      nested['url'] ??
+      nested['navigate'] ??
+      payload['url'] ??
+      payload['navigate'];
   if (url != null && url.isNotEmpty) {
     payload['url'] = url;
   }
+  payload.remove('navigate');
   payload.remove('data');
   return payload;
 }

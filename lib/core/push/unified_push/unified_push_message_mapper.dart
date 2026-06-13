@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
+import 'package:fluxer_app/core/push/push_notification_payload.dart';
 import 'package:unifiedpush/unifiedpush.dart' as up;
 
 const String kUnifiedPushDefaultTitle = 'Fluxer';
@@ -45,17 +46,29 @@ Object? _tryJsonDecode(String raw) {
 
 PushMessage _mapJsonPayload(Map<String, Object?> json, String fallbackId) {
   final Map<String, Object?> data = _readObjectMap(json['data']);
-  final String? title = _readString(json, 'title');
-  final String? body = _readString(json, 'body');
+  final Map<String, Object?> notification = _readObjectMap(json['notification']);
+  final Map<String, Object?> notificationData = _readObjectMap(
+    notification['data'],
+  );
+  final String? title =
+      _readString(json, 'title') ?? _readString(notification, 'title');
+  final String? body =
+      _readString(json, 'body') ?? _readString(notification, 'body');
   final String id =
       _readString(json, 'id') ??
       _readString(json, 'message_id') ??
       _readStringFromMap(data, 'message_id') ??
+      _readStringFromMap(notificationData, 'message_id') ??
       fallbackId;
   final Map<String, String> payload = <String, String>{};
   _mergeIntoPayload(payload, json);
+  _mergeIntoPayload(payload, notification);
   _mergeIntoPayload(payload, data);
-  final String? url = _readStringFromMap(data, 'url');
+  _mergeIntoPayload(payload, notificationData);
+  final String? url =
+      _readStringFromMap(data, 'url') ??
+      _readStringFromMap(notificationData, 'url') ??
+      _readString(notification, 'navigate');
   if (url != null) {
     payload['url'] = url;
   }
@@ -63,7 +76,7 @@ PushMessage _mapJsonPayload(Map<String, Object?> json, String fallbackId) {
     id: id,
     title: title ?? kUnifiedPushDefaultTitle,
     body: body ?? 'New message',
-    payload: payload,
+    payload: enrichPushPayload(payload),
   );
 }
 

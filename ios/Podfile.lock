@@ -13,8 +13,6 @@ PODS:
     - Flutter
   - media_kit_video (0.0.1):
     - Flutter
-  - permission_handler_apple (9.3.0):
-    - Flutter
   - super_native_extensions (0.0.1):
     - Flutter
   - WebRTC-SDK (144.7559.01)
@@ -26,7 +24,6 @@ DEPENDENCIES:
   - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
-  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - super_native_extensions (from `.symlinks/plugins/super_native_extensions/ios`)
 
 SPEC REPOS:
@@ -46,8 +43,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/media_kit_libs_ios_video/ios"
   media_kit_video:
     :path: ".symlinks/plugins/media_kit_video/ios"
-  permission_handler_apple:
-    :path: ".symlinks/plugins/permission_handler_apple/ios"
   super_native_extensions:
     :path: ".symlinks/plugins/super_native_extensions/ios"
 
@@ -58,7 +53,6 @@ SPEC CHECKSUMS:
   livekit_client: 549b62f57d4bae9385f541922b621e7ce84aae4b
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
-  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   super_native_extensions: b763c02dc3a8fd078389f410bf15149179020cb4
   WebRTC-SDK: ab9b5319e458c2bfebdc92b3600740da35d5630d
 
