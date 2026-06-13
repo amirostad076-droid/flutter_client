@@ -14,14 +14,12 @@ class ChannelListState {
   final Guild? guild;
   final List<ChannelCategory> categories;
   final String? selectedChannelId;
-  final Set<String> collapsedCategories;
   final bool isMemberListVisible;
 
   const ChannelListState({
     required this.guild,
     required this.categories,
     required this.selectedChannelId,
-    required this.collapsedCategories,
     this.isMemberListVisible = true,
   });
 
@@ -29,14 +27,12 @@ class ChannelListState {
     Guild? guild,
     List<ChannelCategory>? categories,
     String? selectedChannelId,
-    Set<String>? collapsedCategories,
     bool? isMemberListVisible,
   }) {
     return ChannelListState(
       guild: guild ?? this.guild,
       categories: categories ?? this.categories,
       selectedChannelId: selectedChannelId ?? this.selectedChannelId,
-      collapsedCategories: collapsedCategories ?? this.collapsedCategories,
       isMemberListVisible: isMemberListVisible ?? this.isMemberListVisible,
     );
   }
@@ -54,7 +50,6 @@ class ChannelListViewModel extends _$ChannelListViewModel {
       guild: null,
       categories: [],
       selectedChannelId: null,
-      collapsedCategories: {},
     );
   }
 
@@ -66,10 +61,7 @@ class ChannelListViewModel extends _$ChannelListViewModel {
       return;
     }
     _currentGuildId = guildId;
-    state = state.copyWith(
-      guild: guild ?? state.guild,
-      collapsedCategories: {},
-    );
+    state = state.copyWith(guild: guild ?? state.guild);
 
     final repo = ref.read(channelRepositoryProvider);
     unawaited(_subscription?.cancel());
@@ -106,15 +98,5 @@ class ChannelListViewModel extends _$ChannelListViewModel {
     ref.read(syncedPreferencesStoreProvider).markDirty(
       SyncedPreferenceField.memberList,
     );
-  }
-
-  void toggleCategory(String categoryId) {
-    final collapsed = <String>{...state.collapsedCategories};
-    if (collapsed.contains(categoryId)) {
-      collapsed.remove(categoryId);
-    } else {
-      collapsed.add(categoryId);
-    }
-    state = state.copyWith(collapsedCategories: collapsed);
   }
 }
