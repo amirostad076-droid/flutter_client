@@ -10,7 +10,7 @@ class BetaBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Banner(
       location: BannerLocation.topEnd,
-      message: 'ALPHA',
+      message: 'BETA',
       color: Theme.of(context).colorScheme.primary,
       textStyle: Theme.of(context).textTheme.displayLarge!.copyWith(
         fontSize: 10,
