@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,10 +13,15 @@ import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.d
 import 'package:fluxer_dart/export.dart';
 
 class _FakeUsersApi implements UsersApi {
-  _FakeUsersApi();
+  _FakeUsersApi({this.onPatch, this.shouldThrow = false});
 
   UserGuildSettingsUpdateRequest? lastRequest;
   int patchCount = 0;
+  final UserGuildSettingsResponse Function(
+    String guildId,
+    UserGuildSettingsUpdateRequest body,
+  )? onPatch;
+  final bool shouldThrow;
 
   @override
   Future<UserGuildSettingsResponse> updateGuildSettingsForUser({
@@ -24,6 +30,12 @@ class _FakeUsersApi implements UsersApi {
   }) async {
     patchCount++;
     lastRequest = body;
+    if (shouldThrow) {
+      throw Exception('patch failed');
+    }
+    if (onPatch != null) {
+      return onPatch!(guildId, body);
+    }
     return UserGuildSettingsResponse(
       guildId: guildId,
       messageNotifications: UserNotificationSettings.inherit,
@@ -35,6 +47,16 @@ class _FakeUsersApi implements UsersApi {
       hideMutedChannels: false,
       channelOverrides: body.channelOverrides,
       version: 1,
+    );
+  }
+
+  @override
+  Future<UserGuildSettingsResponse> updateDmNotificationSettings({
+    required UserGuildSettingsUpdateRequest body,
+  }) async {
+    return updateGuildSettingsForUser(
+      guildId: '@me',
+      body: body,
     );
   }
 
@@ -60,6 +82,34 @@ ProviderContainer _createContainer({
       fluxerDatabaseProvider.overrideWithValue(database),
       fluxerClientProvider.overrideWithValue(_FakeClient(usersApi)),
     ],
+  );
+}
+
+Future<void> _seedGuildSettings({
+  required db.FluxerDatabase database,
+  required String guildId,
+  required Map<String, ChannelOverrides> channelOverrides,
+}) {
+  return database.userGuildSettingsDao.upsert(
+    db.UserGuildSettingsTableCompanion(
+      guildId: Value(guildId),
+      data: Value(
+        jsonEncode(
+          UserGuildSettingsResponse(
+            guildId: guildId,
+            messageNotifications: UserNotificationSettings.inherit,
+            muted: false,
+            muteConfig: null,
+            mobilePush: true,
+            suppressEveryone: false,
+            suppressRoles: false,
+            hideMutedChannels: false,
+            channelOverrides: channelOverrides,
+            version: 1,
+          ).toJson(),
+        ),
+      ),
+    ),
   );
 }
 
@@ -139,6 +189,136 @@ void main() {
       addTearDown(subscription.close);
       await pumpEventQueue();
       expect(subscription.read().requireValue, isEmpty);
+    });
+
+    test(
+      'toggleCategoryCollapsed preserves existing muted channel overrides in PATCH',
+      () async {
+        const guildId = 'guild-1';
+        const categoryId = 'category-1';
+        const mutedChannelId = 'channel-muted';
+        await _seedGuildSettings(
+          database: database,
+          guildId: guildId,
+          channelOverrides: {
+            mutedChannelId: const ChannelOverrides(
+              collapsed: false,
+              messageNotifications: UserNotificationSettings.inherit,
+              muted: true,
+              muteConfig: null,
+            ),
+          },
+        );
+        final repo = container.read(guildUserSettingsRepositoryProvider);
+
+        await repo.toggleCategoryCollapsed(
+          guildId: guildId,
+          categoryId: categoryId,
+        );
+
+        expect(usersApi.patchCount, 1);
+        final overrides = usersApi.lastRequest?.channelOverrides;
+        expect(overrides, isNotNull);
+        expect(overrides!.keys, containsAll([categoryId, mutedChannelId]));
+        expect(overrides[mutedChannelId]?.muted, isTrue);
+        expect(overrides[categoryId]?.collapsed, isTrue);
+      },
+    );
+
+    test('updateChannelOverride mute preserves unrelated overrides in PATCH', () async {
+      const guildId = 'guild-1';
+      const categoryId = 'category-1';
+      const channelId = 'channel-1';
+      await _seedGuildSettings(
+        database: database,
+        guildId: guildId,
+        channelOverrides: {
+          categoryId: const ChannelOverrides(
+            collapsed: true,
+            messageNotifications: UserNotificationSettings.inherit,
+            muted: false,
+            muteConfig: null,
+          ),
+        },
+      );
+      final repo = container.read(guildUserSettingsRepositoryProvider);
+
+      await repo.updateChannelOverride(
+        guildId: guildId,
+        channelId: channelId,
+        muted: true,
+      );
+
+      final overrides = usersApi.lastRequest?.channelOverrides;
+      expect(overrides!.keys, containsAll([categoryId, channelId]));
+      expect(overrides[categoryId]?.collapsed, isTrue);
+      expect(overrides[channelId]?.muted, isTrue);
+    });
+
+    test('persists drift from API response not pre-merge state', () async {
+      const guildId = 'guild-1';
+      const channelId = 'channel-1';
+      usersApi = _FakeUsersApi(
+        onPatch: (guildId, body) {
+          return UserGuildSettingsResponse(
+            guildId: guildId,
+            messageNotifications: UserNotificationSettings.inherit,
+            muted: false,
+            muteConfig: null,
+            mobilePush: true,
+            suppressEveryone: false,
+            suppressRoles: false,
+            hideMutedChannels: false,
+            channelOverrides: {
+              channelId: const ChannelOverrides(
+                collapsed: false,
+                messageNotifications: UserNotificationSettings.inherit,
+                muted: true,
+                muteConfig: null,
+              ),
+            },
+            version: 42,
+          );
+        },
+      );
+      container.dispose();
+      container = _createContainer(database: database, usersApi: usersApi);
+      final repo = container.read(guildUserSettingsRepositoryProvider);
+
+      await repo.updateChannelOverride(
+        guildId: guildId,
+        channelId: channelId,
+        muted: true,
+        durationSeconds: 900,
+      );
+
+      final row = await database.userGuildSettingsDao.getByGuildId(guildId);
+      final stored = UserGuildSettingsResponse.fromJson(
+        jsonDecode(row!.data) as Map<String, dynamic>,
+      );
+      expect(stored.version, 42);
+      expect(stored.channelOverrides?[channelId]?.muteConfig, isNull);
+    });
+
+    test('does not write drift when PATCH fails', () async {
+      const guildId = 'guild-1';
+      const channelId = 'channel-1';
+      usersApi = _FakeUsersApi(shouldThrow: true);
+      container.dispose();
+      container = _createContainer(database: database, usersApi: usersApi);
+      final repo = container.read(guildUserSettingsRepositoryProvider);
+
+      await expectLater(
+        repo.updateChannelOverride(
+          guildId: guildId,
+          channelId: channelId,
+          muted: true,
+        ),
+        throwsException,
+      );
+
+      final row = await database.userGuildSettingsDao.getByGuildId(guildId);
+      expect(row, isNull);
     });
   });
 }

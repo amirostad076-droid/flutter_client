@@ -629,6 +629,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get notificationMuteChannel => 'Mute Channel';
 
   @override
+  String get notificationUnmuteChannel => 'Unmute Channel';
+
+  @override
   String get notificationNoCategory => 'No Category';
 
   @override
@@ -10581,6 +10584,9 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
 
   @override
   String get notificationMuteChannel => 'Mute Channel';
+
+  @override
+  String get notificationUnmuteChannel => 'Unmute Channel';
 
   @override
   String get notificationNoCategory => 'No Category';

@@ -3,11 +3,35 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/dm/data/dm_repository.dart';
+import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
+
+ProviderContainer _createDmTestContainer(FluxerDatabase db) {
+  return ProviderContainer(
+    overrides: [
+      fluxerDatabaseProvider.overrideWithValue(db),
+      fluxerClientProvider.overrideWithValue(
+        FluxerClient(Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))),
+      ),
+    ],
+  );
+}
+
+DmRepository _createDmRepository(FluxerDatabase db) {
+  final container = _createDmTestContainer(db);
+  return DmRepository(
+    container.read(fluxerClientProvider),
+    db,
+    container.read(guildUserSettingsRepositoryProvider),
+  );
+}
 
 String _snowflakeForUtc(DateTime utc) {
   final int internal = (utc.millisecondsSinceEpoch - kSnowflakeEpochMs) << 22;
@@ -37,10 +61,7 @@ void main() {
         ),
       );
 
-      final repo = DmRepository(
-        FluxerClient(Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))),
-        db,
-      );
+      final repo = _createDmRepository(db);
 
       final conversations = await repo.watchDmChannels().first;
 
@@ -82,10 +103,7 @@ void main() {
         ),
       );
 
-      final repo = DmRepository(
-        FluxerClient(Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))),
-        db,
-      );
+      final repo = _createDmRepository(db);
 
       final conversations = await repo.watchDmChannels().first;
 
@@ -111,10 +129,7 @@ void main() {
       ),
     ]);
 
-    final repo = DmRepository(
-      FluxerClient(Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))),
-      db,
-    );
+    final repo = _createDmRepository(db);
 
     final conversations = await repo.watchDmChannels().first;
 
@@ -147,10 +162,7 @@ void main() {
         ),
       );
 
-      final repo = DmRepository(
-        FluxerClient(Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))),
-        db,
-      );
+      final repo = _createDmRepository(db);
 
       final conversations = await repo.watchDmChannels().first;
 
@@ -184,10 +196,7 @@ void main() {
         ),
       );
 
-      final repo = DmRepository(
-        FluxerClient(Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))),
-        db,
-      );
+      final repo = _createDmRepository(db);
 
       final conversations = await repo.watchDmChannels().first;
 
@@ -209,10 +218,7 @@ void main() {
       ),
     ]);
 
-    final repo = DmRepository(
-      FluxerClient(Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))),
-      db,
-    );
+    final repo = _createDmRepository(db);
     final iterator = StreamIterator(repo.watchDmChannels());
     addTearDown(iterator.cancel);
 

@@ -7,17 +7,20 @@ import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_dart/export.dart';
 
 class DmRepository {
   final FluxerClient _client;
   final db.FluxerDatabase _db;
+  final GuildUserSettingsRepository _guildUserSettingsRepository;
   final ReadStateRepository? _readStateRepository;
 
   const DmRepository(
     this._client,
-    this._db, {
+    this._db,
+    this._guildUserSettingsRepository, {
     ReadStateRepository? readStateRepository,
   }) : _readStateRepository = readStateRepository;
 
@@ -244,45 +247,20 @@ class DmRepository {
     await _client.users.unpinDirectMessageChannel(channelId: channelId);
   }
 
-  Future<void> muteDm(String channelId, {int? durationSeconds}) async {
-    String? endTime;
-    final selectedTimeWindow = durationSeconds ?? -1;
-    if (durationSeconds != null) {
-      endTime = DateTime.now()
-          .add(Duration(seconds: durationSeconds))
-          .toUtc()
-          .toIso8601String();
-    }
-
-    await _client.users.updateDmNotificationSettings(
-      body: UserGuildSettingsUpdateRequest(
-        channelOverrides: {
-          channelId: ChannelOverrides(
-            collapsed: false,
-            messageNotifications: UserNotificationSettings.inherit,
-            muted: true,
-            muteConfig: ChannelOverridesMuteConfig(
-              endTime: endTime,
-              selectedTimeWindow: selectedTimeWindow,
-            ),
-          ),
-        },
-      ),
+  Future<void> muteDm(String channelId, {int? durationSeconds}) {
+    return _guildUserSettingsRepository.updateChannelOverride(
+      guildId: '@me',
+      channelId: channelId,
+      muted: true,
+      durationSeconds: durationSeconds,
     );
   }
 
-  Future<void> unmuteDm(String channelId) async {
-    await _client.users.updateDmNotificationSettings(
-      body: UserGuildSettingsUpdateRequest(
-        channelOverrides: {
-          channelId: const ChannelOverrides(
-            collapsed: false,
-            messageNotifications: UserNotificationSettings.inherit,
-            muted: false,
-            muteConfig: null,
-          ),
-        },
-      ),
+  Future<void> unmuteDm(String channelId) {
+    return _guildUserSettingsRepository.updateChannelOverride(
+      guildId: '@me',
+      channelId: channelId,
+      muted: false,
     );
   }
 }

@@ -164,11 +164,13 @@ Future<MuteSelection?> showMuteDurationSheet(
   ChannelOverridesMuteConfig? muteConfig,
   String? muteTitle,
   String? unmuteTitle,
+  bool useRootNavigator = false,
 }) {
   return FluxerBottomSheet.show<MuteSelection>(
     context,
     title: isMuted ? (unmuteTitle ?? 'Unmute') : (muteTitle ?? 'Mute'),
     variant: FluxerBottomSheetVariant.menu,
+    useRootNavigator: useRootNavigator,
     builder: (sheetContext, _) => FluxerBottomSheetContent(
       child: MuteDurationSheetBody(
         isMuted: isMuted,

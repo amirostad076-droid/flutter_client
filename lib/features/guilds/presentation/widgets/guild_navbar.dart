@@ -36,6 +36,7 @@ import 'package:fluxer_app/features/favorites/providers/favorites_unread_provide
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
+import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/modals/add_guild_modal.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
@@ -887,24 +888,26 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           onUpdateChannelOverride:
               (channelId, messageNotifications, {required muted}) {
                 unawaited(
-                  _updateChannelOverride(
-                    db: ref.read(fluxerDatabaseProvider),
-                    client: ref.read(fluxerClientProvider),
-                    guildId: guild.id,
-                    channelId: channelId,
-                    messageNotifications: messageNotifications,
-                    muted: muted,
-                  ),
+                  ref
+                      .read(guildUserSettingsRepositoryProvider)
+                      .updateChannelOverride(
+                        guildId: guild.id,
+                        channelId: channelId,
+                        messageNotifications: UserNotificationSettings.fromJson(
+                          messageNotifications,
+                        ),
+                        muted: muted,
+                      ),
                 );
               },
           onRemoveChannelOverride: (channelId) {
             unawaited(
-              _removeChannelOverride(
-                db: ref.read(fluxerDatabaseProvider),
-                client: ref.read(fluxerClientProvider),
-                guildId: guild.id,
-                channelId: channelId,
-              ),
+              ref
+                  .read(guildUserSettingsRepositoryProvider)
+                  .removeChannelOverride(
+                    guildId: guild.id,
+                    channelId: channelId,
+                  ),
             );
           },
         );
@@ -1418,24 +1421,27 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             onUpdateChannelOverride:
                 (channelId, messageNotifications, {required muted}) {
                   unawaited(
-                    _updateChannelOverride(
-                      db: ref.read(fluxerDatabaseProvider),
-                      client: ref.read(fluxerClientProvider),
-                      guildId: guild.id,
-                      channelId: channelId,
-                      messageNotifications: messageNotifications,
-                      muted: muted,
-                    ),
+                    ref
+                        .read(guildUserSettingsRepositoryProvider)
+                        .updateChannelOverride(
+                          guildId: guild.id,
+                          channelId: channelId,
+                          messageNotifications:
+                              UserNotificationSettings.fromJson(
+                            messageNotifications,
+                          ),
+                          muted: muted,
+                        ),
                   );
                 },
             onRemoveChannelOverride: (channelId) {
               unawaited(
-                _removeChannelOverride(
-                  db: ref.read(fluxerDatabaseProvider),
-                  client: ref.read(fluxerClientProvider),
-                  guildId: guild.id,
-                  channelId: channelId,
-                ),
+                ref
+                    .read(guildUserSettingsRepositoryProvider)
+                    .removeChannelOverride(
+                      guildId: guild.id,
+                      channelId: channelId,
+                    ),
               );
             },
           ),
@@ -1694,97 +1700,6 @@ _getGuildChannels({required FluxerDatabase db, required String guildId}) async {
         ),
       )
       .toList();
-}
-
-Future<void> _updateChannelOverride({
-  required FluxerDatabase db,
-  required FluxerClient client,
-  required String guildId,
-  required String channelId,
-  required int messageNotifications,
-  required bool muted,
-}) async {
-  try {
-    final existing = await db.userGuildSettingsDao.getByGuildId(guildId);
-    final data = existing != null
-        ? jsonDecode(existing.data) as Map<String, dynamic>
-        : <String, dynamic>{};
-
-    final settings = UserGuildSettingsResponse.fromJson(data);
-    final existingOverride = settings.channelOverrides?[channelId];
-
-    final newOverride = ChannelOverrides(
-      collapsed: existingOverride?.collapsed ?? false,
-      messageNotifications: UserNotificationSettings.fromJson(
-        messageNotifications,
-      ),
-      muted: muted,
-      muteConfig: null,
-    );
-
-    final overridesMap =
-        (data['channel_overrides'] as Map<String, dynamic>?) ??
-        <String, dynamic>{};
-    overridesMap[channelId] = newOverride.toJson();
-    data['channel_overrides'] = overridesMap;
-
-    await db.userGuildSettingsDao.upsert(
-      UserGuildSettingsTableCompanion(
-        guildId: Value(guildId),
-        data: Value(jsonEncode(data)),
-      ),
-    );
-
-    unawaited(
-      client.users.updateGuildSettingsForUser(
-        guildId: guildId,
-        body: UserGuildSettingsUpdateRequest(
-          channelOverrides: {channelId: newOverride},
-        ),
-      ),
-    );
-  } on Exception catch (e) {
-    talker.error('[GuildNavbar] Failed to update channel override: $e');
-  }
-}
-
-Future<void> _removeChannelOverride({
-  required FluxerDatabase db,
-  required FluxerClient client,
-  required String guildId,
-  required String channelId,
-}) async {
-  try {
-    final existing = await db.userGuildSettingsDao.getByGuildId(guildId);
-    final data = existing != null
-        ? jsonDecode(existing.data) as Map<String, dynamic>
-        : <String, dynamic>{};
-
-    final overridesRaw =
-        data['channel_overrides'] as Map<String, dynamic>? ??
-              <String, dynamic>{}
-          ..remove(channelId);
-    data['channel_overrides'] = overridesRaw;
-
-    await db.userGuildSettingsDao.upsert(
-      UserGuildSettingsTableCompanion(
-        guildId: Value(guildId),
-        data: Value(jsonEncode(data)),
-      ),
-    );
-
-    final settings = UserGuildSettingsResponse.fromJson(data);
-    unawaited(
-      client.users.updateGuildSettingsForUser(
-        guildId: guildId,
-        body: UserGuildSettingsUpdateRequest(
-          channelOverrides: settings.channelOverrides ?? {},
-        ),
-      ),
-    );
-  } on Exception catch (e) {
-    talker.error('[GuildNavbar] Failed to remove channel override: $e');
-  }
 }
 
 final _notifSettingTimers = <String, Timer>{};

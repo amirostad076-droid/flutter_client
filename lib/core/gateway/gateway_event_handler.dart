@@ -837,17 +837,22 @@ class GatewayEventHandler {
     required Map<String, dynamic>? existing,
     required Map<String, dynamic> updates,
   }) {
+    final updatesWithoutOverrides = Map<String, dynamic>.from(updates);
+    final Object? channelOverridesUpdate = updates.containsKey(
+      'channel_overrides',
+    )
+        ? updatesWithoutOverrides.remove('channel_overrides')
+        : null;
     final merged = <String, dynamic>{
       ..._defaultUserGuildSettingsData(guildId),
       ...?existing,
-      ...updates,
+      ...updatesWithoutOverrides,
     };
-    final mergedOverrides = _mergeChannelOverrides(
-      existing?['channel_overrides'],
-      updates['channel_overrides'],
-    );
-    if (mergedOverrides != null) {
-      merged['channel_overrides'] = mergedOverrides;
+    if (updates.containsKey('channel_overrides')) {
+      merged['channel_overrides'] = _mergeChannelOverrides(
+        existing?['channel_overrides'],
+        channelOverridesUpdate,
+      );
     }
     merged['guild_id'] = guildId == '@me' ? null : guildId;
     return merged;

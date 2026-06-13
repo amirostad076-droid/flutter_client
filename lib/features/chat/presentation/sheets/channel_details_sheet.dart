@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,6 +34,7 @@ import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/features/favorites/domain/favorite_guild_id.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
@@ -329,8 +329,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
       return;
     }
     if (channel != null) {
-      await _updateGuildChannelOverride(
-        ref,
+      await ref.read(guildUserSettingsRepositoryProvider).updateChannelOverride(
         guildId: channel.guildId,
         channelId: channel.id,
         muted: isMuted,
@@ -345,8 +344,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
     if (channel == null) {
       return;
     }
-    await _updateGuildChannelOverride(
-      ref,
+    await ref.read(guildUserSettingsRepositoryProvider).updateChannelOverride(
       guildId: channel.guildId,
       channelId: channel.id,
       messageNotifications: setting,
@@ -3378,93 +3376,6 @@ Future<ChannelOverridesMuteConfig?> _readChannelOverrideMuteConfig(
   } on Object {
     return null;
   }
-}
-
-Future<void> _updateGuildChannelOverride(
-  WidgetRef ref, {
-  required String guildId,
-  required String channelId,
-  bool? muted,
-  int? durationSeconds,
-  UserNotificationSettings? messageNotifications,
-}) async {
-  final database = ref.read(fluxerDatabaseProvider);
-  final client = ref.read(fluxerClientProvider);
-  final existing = await database.userGuildSettingsDao.getByGuildId(guildId);
-  final data = <String, dynamic>{
-    ..._defaultUserGuildSettingsData(guildId),
-    if (existing != null) ...jsonDecode(existing.data) as Map<String, dynamic>,
-  };
-
-  ChannelOverrides? previous;
-  try {
-    previous = UserGuildSettingsResponse.fromJson(
-      data,
-    ).channelOverrides?[channelId];
-  } on Object {
-    previous = null;
-  }
-
-  final isExplicitUnmute = !(muted ?? true);
-  final isExplicitMute = muted ?? false;
-  final muteConfig = isExplicitUnmute
-      ? null
-      : isExplicitMute
-      ? ChannelOverridesMuteConfig(
-          endTime: durationSeconds == null
-              ? null
-              : DateTime.now()
-                    .add(Duration(seconds: durationSeconds))
-                    .toUtc()
-                    .toIso8601String(),
-          selectedTimeWindow: durationSeconds ?? -1,
-        )
-      : previous?.muteConfig;
-  final override = ChannelOverrides(
-    collapsed: previous?.collapsed ?? false,
-    messageNotifications:
-        messageNotifications ??
-        previous?.messageNotifications ??
-        UserNotificationSettings.inherit,
-    muted: muted ?? previous?.muted ?? false,
-    muteConfig: muteConfig,
-  );
-
-  final overrides =
-      (data['channel_overrides'] as Map<String, dynamic>?) ??
-      <String, dynamic>{};
-  overrides[channelId] = override.toJson();
-  data['channel_overrides'] = overrides;
-
-  await database.userGuildSettingsDao.upsert(
-    db.UserGuildSettingsTableCompanion(
-      guildId: Value(guildId),
-      data: Value(jsonEncode(data)),
-    ),
-  );
-  await client.users.updateGuildSettingsForUser(
-    guildId: guildId,
-    body: UserGuildSettingsUpdateRequest(
-      channelOverrides: {channelId: override},
-    ),
-  );
-}
-
-Map<String, dynamic> _defaultUserGuildSettingsData(String guildId) {
-  return UserGuildSettingsResponse(
-    guildId: guildId == '@me' ? null : guildId,
-    messageNotifications: guildId == '@me'
-        ? UserNotificationSettings.allMessages
-        : UserNotificationSettings.inherit,
-    muted: false,
-    muteConfig: null,
-    mobilePush: true,
-    suppressEveryone: false,
-    suppressRoles: false,
-    hideMutedChannels: false,
-    channelOverrides: null,
-    version: -1,
-  ).toJson();
 }
 
 String? _detailsSubtitle({

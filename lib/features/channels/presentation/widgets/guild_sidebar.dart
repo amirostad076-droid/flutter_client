@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/domain/channel_unread_state.dart';
 import 'package:fluxer_app/features/channels/domain/hide_muted_channels_filter.dart';
+import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_participants.dart';
@@ -31,6 +33,8 @@ import 'package:fluxer_app/features/settings/providers/appearance_preferences_pr
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_e2ee_display.dart';
 import 'package:fluxer_dart/gateway.dart';
@@ -393,7 +397,7 @@ class GuildSidebar extends ConsumerWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onSecondaryTapUp: _canMarkChannelRead(channel)
+              onSecondaryTapUp: _canShowChannelActions(channel)
                   ? (details) => unawaited(
                       _showChannelActions(
                         context,
@@ -404,8 +408,8 @@ class GuildSidebar extends ConsumerWidget {
                       ),
                     )
                   : null,
-              onLongPress:
-                  _canMarkChannelRead(channel) && isMobileLayout(context)
+              onLongPress: _canShowChannelActions(channel) &&
+                      isMobileLayout(context)
                   ? () => unawaited(
                       _showChannelActions(
                         context,
@@ -485,6 +489,8 @@ class GuildSidebar extends ConsumerWidget {
     required bool hasUnread,
     required Offset position,
   }) async {
+    final l10n = FluxerLocalizations.of(context);
+    final guildId = ref.read(activeGuildIdProvider);
     final showFavorites = ref.read(
       appearancePreferencesProvider.select((s) => s.showFavorites),
     );
@@ -493,13 +499,22 @@ class GuildSidebar extends ConsumerWidget {
         await ref
             .read(favoriteChannelsRepositoryProvider)
             .isFavorite(channel.id);
+    final canMute = _canMuteChannel(channel);
+    final mutedIds = guildId == null
+        ? const <String>{}
+        : ref.read(mutedChannelIdsProvider(guildId)).value ?? const {};
+    final isMuted = mutedIds.contains(channel.id);
+    final muteConfig = guildId == null
+        ? null
+        : await _loadChannelMuteConfig(ref, guildId, channel.id);
+    final mutedHint = isMuted ? formatMutedHintText(muteConfig) : null;
     if (!context.mounted) {
       return;
     }
     return FluxerActionMenu.show(
       context,
       position: position,
-      builder: (context, close) => [
+      builder: (menuContext, close) => [
         if (showFavorites)
           FluxerMenuItem(
             label: isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
@@ -511,17 +526,97 @@ class GuildSidebar extends ConsumerWidget {
               );
             },
           ),
-        FluxerMenuItem(
-          label: 'Mark as Read',
-          icon: PhosphorIconsRegular.envelopeOpen,
-          enabled: hasUnread,
-          onPressed: () {
-            close();
-            unawaited(_readStateRepository(ref).ackLatest(channel.id));
-          },
-        ),
+        if (canMute)
+          FluxerMenuItem(
+            label: isMuted
+                ? l10n.notificationUnmuteChannel
+                : l10n.notificationMuteChannel,
+            icon: isMuted
+                ? PhosphorIconsRegular.bell
+                : PhosphorIconsRegular.bellSlash,
+            hint: mutedHint,
+            onPressed: () {
+              unawaited(
+                _openChannelMuteSheet(
+                  menuContext,
+                  ref,
+                  close: close,
+                  channel: channel,
+                  guildId: guildId,
+                  isMuted: isMuted,
+                  muteConfig: muteConfig,
+                ),
+              );
+            },
+          ),
+        if (_canMarkChannelRead(channel))
+          FluxerMenuItem(
+            label: 'Mark as Read',
+            icon: PhosphorIconsRegular.envelopeOpen,
+            enabled: hasUnread,
+            onPressed: () {
+              close();
+              unawaited(_readStateRepository(ref).ackLatest(channel.id));
+            },
+          ),
       ],
     );
+  }
+
+  Future<void> _openChannelMuteSheet(
+    BuildContext context,
+    WidgetRef ref, {
+    required VoidCallback close,
+    required Channel channel,
+    required String? guildId,
+    required bool isMuted,
+    required ChannelOverridesMuteConfig? muteConfig,
+  }) async {
+    final l10n = FluxerLocalizations.of(context);
+    final selection = await showMuteDurationSheet(
+      context,
+      isMuted: isMuted,
+      muteConfig: muteConfig,
+      muteTitle: l10n.notificationMuteChannel,
+      unmuteTitle: l10n.notificationUnmuteChannel,
+      useRootNavigator: isMobileLayout(context),
+    );
+    if (selection == null) {
+      return;
+    }
+    close();
+    final resolvedGuildId = guildId ?? channel.guildId;
+    if (resolvedGuildId.isEmpty) {
+      return;
+    }
+    await ref.read(guildUserSettingsRepositoryProvider).updateChannelOverride(
+      guildId: resolvedGuildId,
+      channelId: channel.id,
+      muted: selection.muted,
+      durationSeconds: selection.durationSeconds,
+    );
+  }
+
+  Future<ChannelOverridesMuteConfig?> _loadChannelMuteConfig(
+    WidgetRef ref,
+    String guildId,
+    String channelId,
+  ) async {
+    final row = await ref
+        .read(fluxerDatabaseProvider)
+        .userGuildSettingsDao
+        .getByGuildId(guildId);
+    if (row == null) {
+      return null;
+    }
+    try {
+      final settings = UserGuildSettingsResponse.fromJson(
+        jsonDecode(row.data) as Map<String, dynamic>,
+      );
+      return settings.channelOverrides?[channelId]?.muteConfig;
+    } on Object {
+      return null;
+    }
   }
 
   Future<void> _toggleFavorite(
@@ -580,3 +675,9 @@ bool _isChannelDirectlyMuted(Channel channel, Set<String> mutedSet) {
 
 bool _canMarkChannelRead(Channel channel) =>
     channel.type != ChannelType.category && channel.type != ChannelType.link;
+
+bool _canMuteChannel(Channel channel) =>
+    channel.type == ChannelType.text || channel.type == ChannelType.voice;
+
+bool _canShowChannelActions(Channel channel) =>
+    _canMarkChannelRead(channel) || _canMuteChannel(channel);

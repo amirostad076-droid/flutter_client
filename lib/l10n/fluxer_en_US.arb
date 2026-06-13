@@ -681,6 +681,10 @@
     "@notificationMuteChannel": {
         "description": "Switch label for muting a channel override."
     },
+    "notificationUnmuteChannel": "Unmute Channel",
+    "@notificationUnmuteChannel": {
+        "description": "Action label for unmuting a channel from the context menu."
+    },
     "notificationNoCategory": "No Category",
     "@notificationNoCategory": {
         "description": "Fallback category name for channels without a parent category."

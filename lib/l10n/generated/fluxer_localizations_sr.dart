@@ -629,6 +629,9 @@ class FluxerLocalizationsSr extends FluxerLocalizations {
   String get notificationMuteChannel => 'Mute Channel';
 
   @override
+  String get notificationUnmuteChannel => 'Unmute Channel';
+
+  @override
   String get notificationNoCategory => 'No Category';
 
   @override

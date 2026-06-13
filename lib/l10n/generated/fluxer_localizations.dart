@@ -1305,6 +1305,12 @@ abstract class FluxerLocalizations {
   /// **'Mute Channel'**
   String get notificationMuteChannel;
 
+  /// Action label for unmuting a channel from the context menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute Channel'**
+  String get notificationUnmuteChannel;
+
   /// Fallback category name for channels without a parent category.
   ///
   /// In en, this message translates to:
