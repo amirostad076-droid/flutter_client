@@ -148,7 +148,6 @@ class _GuildMembersTabContentState extends ConsumerState<GuildMembersTabContent>
           return MemberListDetailsGroupHeader(
             groupName: header.name,
             count: header.count,
-            roleColor: header.roleColor,
           );
         }
         final MemberListViewportRow? row = listState.rows[rowIndex];
@@ -178,6 +177,7 @@ class _GuildMembersTabContentState extends ConsumerState<GuildMembersTabContent>
               guildId: widget.guildId,
               listMember: listMember,
               userId: userId,
+              rolesById: rolesById,
               dimmed: dimmed,
               isOwner: guildOwnerId != null && userId == guildOwnerId,
             ),

@@ -157,6 +157,7 @@ class MemberListDetailsMemberRow extends ConsumerWidget {
     required this.guildId,
     required this.listMember,
     required this.userId,
+    required this.rolesById,
     required this.dimmed,
     this.isOwner = false,
     super.key,
@@ -165,6 +166,7 @@ class MemberListDetailsMemberRow extends ConsumerWidget {
   final String guildId;
   final MemberListMember listMember;
   final String userId;
+  final Map<String, db.Role> rolesById;
   final bool dimmed;
   final bool isOwner;
 
@@ -181,6 +183,10 @@ class MemberListDetailsMemberRow extends ConsumerWidget {
     final String? customStatus =
         ref.watch(userPresenceProvider(userId)).value?.customStatus ??
         listMember.customStatus;
+    final int? roleColor = resolveMemberHighestRoleColor(
+      roleIds: member.roles,
+      rolesById: rolesById,
+    );
     final Widget row = Material(
       color: Colors.transparent,
       child: InkWell(
@@ -203,6 +209,7 @@ class MemberListDetailsMemberRow extends ConsumerWidget {
                   hash: avatar,
                 ),
                 avatarColor: member.user.avatarColor,
+                roleColor: roleColor,
                 status: status,
                 size: 32,
               ),
@@ -218,7 +225,9 @@ class MemberListDetailsMemberRow extends ConsumerWidget {
                           child: Text(
                             displayName,
                             style: context.textStyles.username.copyWith(
-                              color: context.colors.textPrimary,
+                              color: roleColor != null
+                                  ? Color(roleColor)
+                                  : context.colors.textPrimary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),

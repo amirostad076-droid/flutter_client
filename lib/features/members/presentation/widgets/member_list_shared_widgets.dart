@@ -232,13 +232,11 @@ class MemberListSidebarGroupHeader extends StatelessWidget {
   const MemberListSidebarGroupHeader({
     required this.groupName,
     required this.count,
-    this.roleColor,
     super.key,
   });
 
   final String groupName;
   final int count;
-  final int? roleColor;
 
   @override
   Widget build(BuildContext context) {
@@ -253,9 +251,7 @@ class MemberListSidebarGroupHeader extends StatelessWidget {
       child: Text(
         '$groupName — $count',
         style: context.textStyles.categoryName.copyWith(
-          color: roleColor != null
-              ? Color(roleColor!)
-              : context.colors.textPrimaryMuted,
+          color: context.colors.textPrimaryMuted,
         ),
       ),
     );
@@ -266,13 +262,11 @@ class MemberListDetailsGroupHeader extends StatelessWidget {
   const MemberListDetailsGroupHeader({
     required this.groupName,
     required this.count,
-    this.roleColor,
     super.key,
   });
 
   final String groupName;
   final int count;
-  final int? roleColor;
 
   @override
   Widget build(BuildContext context) {
@@ -290,9 +284,7 @@ class MemberListDetailsGroupHeader extends StatelessWidget {
           child: Text(
             '$groupName — $count',
             style: context.textStyles.categoryName.copyWith(
-              color: roleColor != null
-                  ? Color(roleColor!)
-                  : context.colors.textPrimaryMuted,
+              color: context.colors.textPrimaryMuted,
             ),
           ),
         ),
@@ -346,20 +338,17 @@ class MemberListGroupHeader extends StatelessWidget {
   const MemberListGroupHeader({
     required this.groupName,
     required this.count,
-    this.roleColor,
     super.key,
   });
 
   final String groupName;
   final int count;
-  final int? roleColor;
 
   @override
   Widget build(BuildContext context) {
     return MemberListSidebarGroupHeader(
       groupName: groupName,
       count: count,
-      roleColor: roleColor,
     );
   }
 }

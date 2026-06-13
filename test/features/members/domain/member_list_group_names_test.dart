@@ -42,24 +42,97 @@ void main() {
         'Moderator',
       );
     });
+  });
 
-    test('returns opaque role color for group headers', () {
-      const String roleId = '1473045383154057326';
+  group('resolveMemberHighestRoleColor', () {
+    test('returns highest-position role with a non-zero color', () {
+      const String lowRoleId = 'role-low';
+      const String highRoleId = 'role-high';
       final Map<String, db.Role> rolesById = <String, db.Role>{
-        roleId: const db.Role(
-          id: roleId,
+        lowRoleId: const db.Role(
+          id: lowRoleId,
           guildId: 'guild',
-          name: 'Moderator',
-          color: 0x3498DB,
+          name: 'Member',
+          color: 0xFF111111,
           position: 1,
+          hoist: false,
+          mentionable: false,
+          permissions: '0',
+        ),
+        highRoleId: const db.Role(
+          id: highRoleId,
+          guildId: 'guild',
+          name: 'Admin',
+          color: 0x3498DB,
+          position: 10,
           hoist: true,
+          mentionable: true,
+          permissions: '0',
+        ),
+      };
+      expect(
+        resolveMemberHighestRoleColor(
+          roleIds: <String>[lowRoleId, highRoleId],
+          rolesById: rolesById,
+        ),
+        0xFF3498DB,
+      );
+    });
+
+    test('skips higher roles with zero color', () {
+      const String highRoleId = 'role-high';
+      const String lowRoleId = 'role-low';
+      final Map<String, db.Role> rolesById = <String, db.Role>{
+        highRoleId: const db.Role(
+          id: highRoleId,
+          guildId: 'guild',
+          name: 'Admin',
+          color: 0,
+          position: 10,
+          hoist: true,
+          mentionable: true,
+          permissions: '0',
+        ),
+        lowRoleId: const db.Role(
+          id: lowRoleId,
+          guildId: 'guild',
+          name: 'Member',
+          color: 0xFFABCDEF,
+          position: 1,
+          hoist: false,
           mentionable: false,
           permissions: '0',
         ),
       };
       expect(
-        resolveMemberListGroupColor(groupId: roleId, rolesById: rolesById),
-        0xFF3498DB,
+        resolveMemberHighestRoleColor(
+          roleIds: <String>[highRoleId, lowRoleId],
+          rolesById: rolesById,
+        ),
+        0xFFABCDEF,
+      );
+    });
+
+    test('returns null when no colored roles exist', () {
+      const String roleId = 'role-id';
+      final Map<String, db.Role> rolesById = <String, db.Role>{
+        roleId: const db.Role(
+          id: roleId,
+          guildId: 'guild',
+          name: 'Member',
+          color: 0,
+          position: 1,
+          hoist: false,
+          mentionable: false,
+          permissions: '0',
+        ),
+      };
+      expect(
+        resolveMemberHighestRoleColor(
+          roleIds: <String>[roleId],
+          rolesById: rolesById,
+        ),
+        isNull,
       );
     });
   });
@@ -96,7 +169,6 @@ void main() {
       expect(header, isNotNull);
       expect(header!.name, 'Admin');
       expect(header.count, 2);
-      expect(header.roleColor, 0xFFABCDEF);
     });
   });
 }

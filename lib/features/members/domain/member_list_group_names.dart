@@ -8,13 +8,11 @@ class MemberListGroupHeaderData {
     required this.groupId,
     required this.count,
     required this.name,
-    this.roleColor,
   });
 
   final String groupId;
   final int count;
   final String name;
-  final int? roleColor;
 }
 
 String resolveMemberListGroupName({
@@ -34,16 +32,6 @@ String resolveMemberListGroupName({
     return roleName;
   }
   return groupId;
-}
-
-int? resolveMemberListGroupColor({
-  required String groupId,
-  required Map<String, db.Role> rolesById,
-}) {
-  if (groupId == 'online' || groupId == 'offline') {
-    return null;
-  }
-  return opaqueRoleColorInt(rolesById[groupId]?.color);
 }
 
 int? resolveMemberHighestRoleColor({
@@ -96,10 +84,6 @@ MemberListGroupHeaderData? resolveMemberListGroupHeader({
       rolesById: rolesById,
       onlineLabel: onlineLabel,
       offlineLabel: offlineLabel,
-    ),
-    roleColor: resolveMemberListGroupColor(
-      groupId: groupId,
-      rolesById: rolesById,
     ),
   );
 }

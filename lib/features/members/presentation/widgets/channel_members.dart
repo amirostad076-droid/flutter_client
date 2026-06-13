@@ -148,7 +148,6 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
             return MemberListSidebarGroupHeader(
               groupName: header.name,
               count: header.count,
-              roleColor: header.roleColor,
             );
           }
           final MemberListViewportRow? row = listState.rows[rowIndex];
