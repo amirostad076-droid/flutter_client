@@ -26,6 +26,12 @@ class FluxerFcmPushService {
   StreamSubscription<RemoteMessage>? _onMessageOpenedAppSubscription;
   StreamSubscription<String>? _onTokenRefreshSubscription;
 
+  /// Optional hook to restore navigation fields stripped from hybrid FCM taps.
+  Future<Map<String, String>> Function(
+    RemoteMessage message,
+    Map<String, String> mappedPayload,
+  )? tapPayloadEnricher;
+
   Stream<String> get tokenRefreshStream => _tokenRefresh.stream;
 
   void setNotificationTapCallback(
@@ -87,7 +93,7 @@ class FluxerFcmPushService {
           'id=${initialMessage.messageId} data=${initialMessage.data}',
         );
       }
-      _dispatchTap(initialMessage);
+      await _dispatchTap(initialMessage);
     }
     _initialized = true;
     if (kDebugMode) {
@@ -116,15 +122,23 @@ class FluxerFcmPushService {
         'id=${message.messageId} data=${message.data}',
       );
     }
-    _dispatchTap(message);
+    unawaited(_dispatchTap(message));
   }
 
-  void _dispatchTap(RemoteMessage message) {
+  Future<void> _dispatchTap(RemoteMessage message) async {
     final FcmPushMessage mapped = mapRemoteMessage(message);
-    if (kDebugMode) {
-      debugPrint('[FluxerFcmPushService] tap payload=${mapped.payload}');
+    Map<String, String> payload = mapped.payload;
+    final Future<Map<String, String>> Function(
+      RemoteMessage message,
+      Map<String, String> mappedPayload,
+    )? enricher = tapPayloadEnricher;
+    if (enricher != null) {
+      payload = await enricher(message, payload);
     }
-    _dispatchTapPayload(mapped.payload);
+    if (kDebugMode) {
+      debugPrint('[FluxerFcmPushService] tap payload=$payload');
+    }
+    _dispatchTapPayload(payload);
   }
 
   void _dispatchTapPayload(Map<String, String> payload) {
@@ -153,5 +167,6 @@ class FluxerFcmPushService {
     _onMessageSubscription = null;
     _onMessageOpenedAppSubscription = null;
     _onTokenRefreshSubscription = null;
+    tapPayloadEnricher = null;
   }
 }

@@ -14,6 +14,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'push_notification_tap_handler.g.dart';
 
+enum PushNotificationTapSource {
+  local,
+  fcm,
+}
+
 @Riverpod(keepAlive: true)
 class PushNotificationTapHandler extends _$PushNotificationTapHandler {
   @override
@@ -32,7 +37,7 @@ class PushNotificationTapHandler extends _$PushNotificationTapHandler {
         (String key, dynamic value) =>
             MapEntry<String, String>(key, value?.toString() ?? ''),
       );
-      handlePayload(payload);
+      handlePayload(payload, source: PushNotificationTapSource.local);
     } on Object catch (e, st) {
       if (kDebugMode) {
         debugPrint('[PushNotificationTap] payload parse failed: $e\n$st');
@@ -40,13 +45,17 @@ class PushNotificationTapHandler extends _$PushNotificationTapHandler {
     }
   }
 
-  void handlePayload(Map<String, String> payload) {
+  void handlePayload(
+    Map<String, String> payload, {
+    PushNotificationTapSource source = PushNotificationTapSource.fcm,
+  }) {
     final Map<String, String> normalized = normalizePushTapPayload(payload);
     unawaited(PushNotificationClear.cancelForPayload(normalized));
     final String? path = resolvePushNotificationPath(normalized);
     if (path == null) {
       talker.warning(
-        '[PushNotificationTap] no navigable path in $normalized',
+        '[PushNotificationTap] no navigable path '
+        '(source=${source.name}) in $normalized',
       );
       return;
     }
