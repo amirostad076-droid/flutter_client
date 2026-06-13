@@ -4,9 +4,9 @@ import 'fluxer_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for English (`en`).
-class FluxerLocalizationsEn extends FluxerLocalizations {
-  FluxerLocalizationsEn([String locale = 'en']) : super(locale);
+/// The translations for Norwegian Bokmål (`nb`).
+class FluxerLocalizationsNb extends FluxerLocalizations {
+  FluxerLocalizationsNb([String locale = 'nb']) : super(locale);
 
   @override
   String get reconnectingTitle => 'We fluxed up!';
@@ -4948,9 +4948,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get quickSwitcherSearchAliasSaved => 'Saved';
 }
 
-/// The translations for English, as used in the United States (`en_US`).
-class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
-  FluxerLocalizationsEnUs() : super('en_US');
+/// The translations for Norwegian Bokmål, as used in Norway (`nb_NO`).
+class FluxerLocalizationsNbNo extends FluxerLocalizationsNb {
+  FluxerLocalizationsNbNo() : super('nb_NO');
 
   @override
   String get reconnectingTitle => 'We fluxed up!';

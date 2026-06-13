@@ -4,9 +4,9 @@ import 'fluxer_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for English (`en`).
-class FluxerLocalizationsEn extends FluxerLocalizations {
-  FluxerLocalizationsEn([String locale = 'en']) : super(locale);
+/// The translations for French (`fr`).
+class FluxerLocalizationsFr extends FluxerLocalizations {
+  FluxerLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
   String get reconnectingTitle => 'We fluxed up!';
@@ -4867,7 +4867,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get quickSwitcherEmptyHint =>
-      'Try a different name or use @ / # / ! / * prefixes to filter results.';
+      'Try a different name or use @ / # / ! / * prefixes to filter results.';
 
   @override
   String get quickSwitcherSectionPeople => 'People';
@@ -4948,9 +4948,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get quickSwitcherSearchAliasSaved => 'Saved';
 }
 
-/// The translations for English, as used in the United States (`en_US`).
-class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
-  FluxerLocalizationsEnUs() : super('en_US');
+/// The translations for French, as used in Canada (`fr_CA`).
+class FluxerLocalizationsFrCa extends FluxerLocalizationsFr {
+  FluxerLocalizationsFrCa() : super('fr_CA');
 
   @override
   String get reconnectingTitle => 'We fluxed up!';

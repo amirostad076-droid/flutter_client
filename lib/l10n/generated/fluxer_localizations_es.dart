@@ -4,9 +4,9 @@ import 'fluxer_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for English (`en`).
-class FluxerLocalizationsEn extends FluxerLocalizations {
-  FluxerLocalizationsEn([String locale = 'en']) : super(locale);
+/// The translations for Spanish Castilian (`es`).
+class FluxerLocalizationsEs extends FluxerLocalizations {
+  FluxerLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
   String get reconnectingTitle => 'We fluxed up!';
@@ -4948,9 +4948,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get quickSwitcherSearchAliasSaved => 'Saved';
 }
 
-/// The translations for English, as used in the United States (`en_US`).
-class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
-  FluxerLocalizationsEnUs() : super('en_US');
+/// The translations for Spanish Castilian, as used in Latin America and the Caribbean (`es_419`).
+class FluxerLocalizationsEs419 extends FluxerLocalizationsEs {
+  FluxerLocalizationsEs419() : super('es_419');
 
   @override
   String get reconnectingTitle => 'We fluxed up!';
