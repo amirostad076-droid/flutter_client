@@ -351,6 +351,9 @@ class GuildSidebar extends ConsumerWidget {
     final int? effectivePermissionBits = ref
         .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
         .value;
+    final int? canConnectBits = ref
+        .watch(channelLocalGuildChannelPermissionBitsProvider(channel.id))
+        .value;
     final VoiceSessionState voiceSession = ref.watch(voiceSessionProvider);
     final Map<String, VoiceState> voiceStates = ref.watch(
       voiceStatesMapProvider,
@@ -408,8 +411,8 @@ class GuildSidebar extends ConsumerWidget {
                       ),
                     )
                   : null,
-              onLongPress: _canShowChannelActions(channel) &&
-                      isMobileLayout(context)
+              onLongPress:
+                  _canShowChannelActions(channel) && isMobileLayout(context)
                   ? () => unawaited(
                       _showChannelActions(
                         context,
@@ -448,6 +451,7 @@ class GuildSidebar extends ConsumerWidget {
                       type: channel.type,
                       channel: channel,
                       effectivePermissionBits: effectivePermissionBits,
+                      canConnectPermissionBits: canConnectBits,
                       color: textColor,
                       e2eeEncrypted: showE2eeVoiceIcon,
                     ),
@@ -589,12 +593,14 @@ class GuildSidebar extends ConsumerWidget {
     if (resolvedGuildId.isEmpty) {
       return;
     }
-    await ref.read(guildUserSettingsRepositoryProvider).updateChannelOverride(
-      guildId: resolvedGuildId,
-      channelId: channel.id,
-      muted: selection.muted,
-      durationSeconds: selection.durationSeconds,
-    );
+    await ref
+        .read(guildUserSettingsRepositoryProvider)
+        .updateChannelOverride(
+          guildId: resolvedGuildId,
+          channelId: channel.id,
+          muted: selection.muted,
+          durationSeconds: selection.durationSeconds,
+        );
   }
 
   Future<ChannelOverridesMuteConfig?> _loadChannelMuteConfig(

@@ -27,6 +27,7 @@ enum ChannelIconAccessOverlay { none, nsfw, lock, noConnect }
 ChannelIconAccessOverlay resolveChannelIconAccessOverlay({
   required Channel channel,
   int? effectivePermissionBits,
+  int? canConnectPermissionBits,
 }) {
   if (channel.isCategory) {
     return ChannelIconAccessOverlay.none;
@@ -36,9 +37,10 @@ ChannelIconAccessOverlay resolveChannelIconAccessOverlay({
   }
   final bool isVoiceLike =
       channel.type == ChannelType.voice || channel.type == ChannelType.stage;
+  final int? connectBits = canConnectPermissionBits ?? effectivePermissionBits;
   if (isVoiceLike &&
-      effectivePermissionBits != null &&
-      !hasPermission(effectivePermissionBits, Permission.connect)) {
+      connectBits != null &&
+      !hasPermission(connectBits, Permission.connect)) {
     return ChannelIconAccessOverlay.noConnect;
   }
   if (isChannelEveryonePrivateForIcon(
@@ -97,6 +99,7 @@ class ChannelIcon extends StatelessWidget {
   final ChannelType type;
   final Channel? channel;
   final int? effectivePermissionBits;
+  final int? canConnectPermissionBits;
   final double size;
   final Color? color;
   final bool e2eeEncrypted;
@@ -105,6 +108,7 @@ class ChannelIcon extends StatelessWidget {
     required this.type,
     this.channel,
     this.effectivePermissionBits,
+    this.canConnectPermissionBits,
     this.size = 20,
     this.color,
     this.e2eeEncrypted = false,
@@ -120,6 +124,7 @@ class ChannelIcon extends StatelessWidget {
         : resolveChannelIconAccessOverlay(
             channel: channel!,
             effectivePermissionBits: effectivePermissionBits,
+            canConnectPermissionBits: canConnectPermissionBits,
           );
     final String? asset = _svgAssetForChannelVisual(
       type: displayType,

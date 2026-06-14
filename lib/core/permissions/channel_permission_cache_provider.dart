@@ -14,15 +14,22 @@ class ChannelPermissionCache extends _$ChannelPermissionCache {
   /// Cached bits for [channelId], or `null` when not resolved yet.
   int? getChannelBits(String channelId) => state[channelId];
 
-  Future<void> rebuildChannel(String channelId) async {
+  Future<void> rebuildChannel(
+    String channelId, {
+    bool localOnly = false,
+  }) async {
     if (channelId.isEmpty) {
       return;
     }
-    final ChannelPermissionBitsOutcome outcome =
-        await computeEffectiveGuildChannelPermissionBitsOutcome(
-          ref: ref,
-          channelId: channelId,
-        );
+    final ChannelPermissionBitsOutcome outcome = localOnly
+        ? await computeChannelLocalGuildChannelPermissionBitsOutcome(
+            ref: ref,
+            channelId: channelId,
+          )
+        : await computeEffectiveGuildChannelPermissionBitsOutcome(
+            ref: ref,
+            channelId: channelId,
+          );
     if (!outcome.shouldCache) {
       evictChannel(channelId);
       return;
@@ -30,6 +37,15 @@ class ChannelPermissionCache extends _$ChannelPermissionCache {
     final Map<String, int> next = Map<String, int>.from(state);
     next[channelId] = outcome.value;
     state = next;
+  }
+
+  /// Rebuild cached bits using channel-local computation (ignores category
+  /// overwrites).
+  Future<void> rebuildChannelLocal(String channelId) async {
+    if (channelId.isEmpty) {
+      return;
+    }
+    await rebuildChannel(channelId, localOnly: true);
   }
 
   Future<void> rebuildGuild(String guildId) async {

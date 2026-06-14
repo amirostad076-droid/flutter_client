@@ -48,9 +48,15 @@ Future<VoiceJoinEligibility> voiceJoinEligibility(
   if (channelRow.guildId.isEmpty) {
     return const VoiceJoinEligibility(canJoin: true);
   }
-  final int permissionBits = await ref.watch(
-    effectiveGuildChannelPermissionBitsProvider(channelId).future,
-  );
+  final bool isVoiceLike =
+      channelType == ChannelType.voice || channelType == ChannelType.stage;
+  final int permissionBits = isVoiceLike
+      ? await ref.watch(
+          channelLocalGuildChannelPermissionBitsProvider(channelId).future,
+        )
+      : await ref.watch(
+          effectiveGuildChannelPermissionBitsProvider(channelId).future,
+        );
   final bool canJoin = canJoinGuildVoiceChannelFromBits(
     guildId: channelRow.guildId,
     channelType: channelType,

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
+import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
@@ -84,13 +85,13 @@ class VoiceSession extends _$VoiceSession {
 
   @override
   VoiceSessionState build() {
-    ref.onDispose(() {
+    ref..onDispose(() {
       _cancelConnectWatchdog();
       _cancelDeferredServerDisconnect();
       _detachLocalParticipantListener();
       unawaited(_disconnectRoomOnly());
-    });
-    ref.listen<Map<String, int>>(channelPermissionCacheProvider, (
+    })
+    ..listen<Map<String, int>>(channelPermissionCacheProvider, (
       Map<String, int>? _,
       Map<String, int> _,
     ) {
@@ -181,8 +182,14 @@ class VoiceSession extends _$VoiceSession {
             .read(channelPermissionCacheProvider.notifier)
             .getChannelBits(channelId);
       }
-      if (permissionBits != null &&
-          !hasPermission(permissionBits, Permission.connect)) {
+      final int? localConnectBits = await ref.read(
+        channelLocalGuildChannelPermissionBitsProvider(channelId).future,
+      );
+      if ((localConnectBits ?? permissionBits) != null &&
+          !hasPermission(
+            localConnectBits ?? permissionBits!,
+            Permission.connect,
+          )) {
         state = state.copyWith(
           errorMessage: kVoiceSessionErrorNoConnectPermission,
         );

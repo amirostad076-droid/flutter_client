@@ -161,6 +161,12 @@ Future<void> openGuildChannelContent({
   final int? permissionBits =
       effectivePermissionBits ??
       ref.read(effectiveGuildChannelPermissionBitsProvider(channel.id)).value;
+  final int? localConnectBits =
+      channel.type == ChannelType.voice || channel.type == ChannelType.stage
+      ? ref
+            .read(channelLocalGuildChannelPermissionBitsProvider(channel.id))
+            .value
+      : null;
   final VoiceSessionState voiceSession = ref.read(voiceSessionProvider);
   final bool isInCurrentVoiceChannel =
       channel.type == ChannelType.voice &&
@@ -230,7 +236,7 @@ Future<void> openGuildChannelContent({
     final bool canJoinVoice = canJoinGuildVoiceChannelFromBits(
       guildId: guildId,
       channelType: channel.type,
-      permissionBits: permissionBits,
+      permissionBits: localConnectBits ?? permissionBits,
     );
     if (canJoinVoice) {
       unawaited(

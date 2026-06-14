@@ -291,7 +291,7 @@ void main() {
 
     test('uses message display for bot when author name differs', () {
       final Message message = _message(
-        authorName: 'Discord User',
+        authorName: 'Fluxer User',
         authorAvatar: 'bot_avatar',
         authorIsBot: true,
       );
@@ -300,7 +300,7 @@ void main() {
         guildId: guildId,
         guildDisplay: botGuildDisplay,
       );
-      expect(actual.displayName, 'Discord User');
+      expect(actual.displayName, 'Fluxer User');
       expect(actual.avatarUrl, contains('/avatars/99/bot_avatar.webp'));
     });
 
