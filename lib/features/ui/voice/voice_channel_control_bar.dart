@@ -6,7 +6,6 @@ import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/favorites/utils/favorites_shell_navigation.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
@@ -18,7 +17,6 @@ import 'package:fluxer_app/features/voice/providers/voice_channel_text_chat_prov
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -37,7 +35,6 @@ class VoiceChannelControlBar extends ConsumerWidget {
     if (!session.isInVoice) {
       return const SizedBox.shrink();
     }
-    final String? resolvedChannelId = channelId ?? session.channelId;
     final String? connectionId = session.activeConnectionId;
     final VoiceState? selfVs = connectionId == null
         ? null
@@ -49,25 +46,7 @@ class VoiceChannelControlBar extends ConsumerWidget {
     final bool canScreenShare = ref
         .watch(screenShareCapabilityProvider)
         .maybeWhen(data: (bool value) => value, orElse: () => false);
-    final bool showChatButton =
-        resolvedChannelId != null &&
-        (ref
-                .watch(voiceChannelTextChatSupportedProvider(resolvedChannelId))
-                .value ??
-            false);
-    final UnreadState? unread = resolvedChannelId == null
-        ? null
-        : ref.watch(channelUnreadProvider(resolvedChannelId)).value;
-    final String chatSemanticsLabel = voiceChatAccessibilityLabel(
-      l10n: l10n,
-      unread: unread,
-    );
-    final String? chatChannelName = resolvedChannelId == null
-        ? null
-        : findChannelById(
-            ref.watch(channelListViewModelProvider),
-            resolvedChannelId,
-          )?.name;
+
     return Material(
       color: context.colors.backgroundSecondary,
       child: SafeArea(
@@ -165,28 +144,7 @@ class VoiceChannelControlBar extends ConsumerWidget {
                             }
                           : null,
                     ),
-                  if (showChatButton)
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: <Widget>[
-                        _VoiceControlCircle(
-                          size: _kControlSize,
-                          color: context.colors.backgroundTertiary,
-                          tooltip: chatSemanticsLabel,
-                          icon: PhosphorIconsFill.chatTeardrop,
-                          onPressed: () {
-                            unawaited(
-                              showVoiceChannelChatSheet(
-                                context,
-                                channelId: resolvedChannelId,
-                                channelName: chatChannelName,
-                              ),
-                            );
-                          },
-                        ),
-                        VoiceChatUnreadBadge(channelId: resolvedChannelId),
-                      ],
-                    ),
+
                   _VoiceControlCircle(
                     size: _kControlSize,
                     color: context.colors.statusDanger,
@@ -268,6 +226,76 @@ class _VoiceControlCircle extends StatelessWidget {
       toggled: toggled,
       enabled: onPressed != null,
       child: Tooltip(message: tooltip, child: child),
+    );
+  }
+}
+
+class ChatButton extends ConsumerWidget {
+  const ChatButton({required this.channelId, required this.channelName});
+
+  final String channelId;
+  final String? channelName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final bool textChatSupported =
+        ref.watch(voiceChannelTextChatSupportedProvider(channelId)).value ??
+        false;
+    if (!textChatSupported) {
+      return const SizedBox.shrink();
+    }
+    final UnreadState? unread = ref
+        .watch(channelUnreadProvider(channelId))
+        .value;
+    final String semanticsLabel = voiceChatAccessibilityLabel(
+      l10n: l10n,
+      unread: unread,
+    );
+    return GestureDetector(
+      onTap: () {
+        unawaited(
+          showVoiceChannelChatSheet(
+            context,
+            channelId: channelId,
+            channelName: channelName,
+          ),
+        );
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: <Widget>[
+          Semantics(
+            button: true,
+            label: semanticsLabel,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: context.colors.backgroundFloating.withValues(
+                  alpha: 0.85,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: PhosphorIcon(
+                  PhosphorIconsFill.chatTeardrop,
+                  size: 20,
+                  color: context.colors.textPrimary,
+                ),
+              ),
+            ),
+          ),
+          VoiceChatUnreadBadge(channelId: channelId),
+        ],
+      ),
     );
   }
 }

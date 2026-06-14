@@ -223,22 +223,40 @@ class _VoiceChannelPageViewState extends ConsumerState<VoiceChannelPageView> {
     required VoiceSessionState voice,
     required int participantCount,
   }) {
-    return _LocalCameraOrientationSync(
-      child: ColoredBox(
-        color: context.colors.chatBackground,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Expanded(
-              child: VoiceChannelParticipantGrid(
-                guildId: widget.guildId,
-                channelId: widget.channelId,
-              ),
+    final bool showChatButton =
+        ref
+            .watch(voiceChannelTextChatSupportedProvider(widget.channelId))
+            .value ??
+        false;
+    return Stack(
+      children: <Widget>[
+        _LocalCameraOrientationSync(
+          child: ColoredBox(
+            color: context.colors.chatBackground,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Expanded(
+                  child: VoiceChannelParticipantGrid(
+                    guildId: widget.guildId,
+                    channelId: widget.channelId,
+                  ),
+                ),
+                VoiceChannelControlBar(channelId: widget.channelId),
+              ],
             ),
-            VoiceChannelControlBar(channelId: widget.channelId),
-          ],
+          ),
         ),
-      ),
+        if (showChatButton)
+          Positioned(
+            bottom: 80,
+            left: 16,
+            child: ChatButton(
+              channelId: widget.channelId,
+              channelName: channelName.isNotEmpty ? channelName : null,
+            ),
+          ),
+      ],
     );
   }
 }

@@ -441,11 +441,14 @@ class _VoiceChannelParticipantGridState
                                     onTap: () => _toggleTile(tileItem),
                                     onStartWatching: () =>
                                         _startWatchingScreenShare(tileItem),
-                                    onStopWatching: () =>
-                                        _stopWatchingScreenShare(tileItem),
+                                    onStopWatching: () {
+                                      _stopWatchingScreenShare(tileItem);
+                                      setState(() => focusedTileId = null);
+                                    },
                                     showOverlay:
                                         focusedTileId != tileItem.tileId ||
                                         isFocusedTileOverlayVisible,
+                                    activeWatchTileId: activeWatchTileId,
                                   ),
                                 ),
                               )
@@ -499,6 +502,7 @@ class _VoiceParticipantCard extends StatelessWidget {
     required this.onStartWatching,
     required this.onStopWatching,
     required this.showOverlay,
+    required this.activeWatchTileId,
   });
 
   final VoiceChannelParticipantData data;
@@ -513,6 +517,7 @@ class _VoiceParticipantCard extends StatelessWidget {
   final VoidCallback onStartWatching;
   final VoidCallback onStopWatching;
   final bool showOverlay;
+  final String? activeWatchTileId;
 
   @override
   Widget build(BuildContext context) {
@@ -540,7 +545,15 @@ class _VoiceParticipantCard extends StatelessWidget {
     return Semantics(
       button: true,
       label: display,
-      onTap: onTap,
+      onTap: () {
+        if (tileSource == VoiceParticipantTileSource.screenShare &&
+            isActiveScreenShare &&
+            showOverlay) {
+          onStopWatching();
+          return;
+        }
+        onTap();
+      },
       child: ExcludeSemantics(
         child: Material(
           color: cardColor,
@@ -549,65 +562,77 @@ class _VoiceParticipantCard extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
             child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: <Widget>[
-              VoiceParticipantMediaTile(
-                room: room,
-                userId: data.userId,
-                currentUserId: currentUserId,
-                localConnectionId: localConnectionId,
-                voice: v,
-                display: display,
-                backgroundColor: cardColor,
-                user: user,
-                tileSource: tileSource,
-                isActiveScreenShare: isActiveScreenShare,
-                streamPreviewUrl: streamPreviewUrl,
-                authToken: authToken,
-              ),
-              if (tileSource == VoiceParticipantTileSource.screenShare &&
-                  !isOwnScreenShareTile &&
-                  !isActiveScreenShare)
-                Positioned.fill(
-                  child: _WatchStreamOverlay(onWatch: onStartWatching),
-                ),
-              if (tileSource == VoiceParticipantTileSource.screenShare &&
-                  !isOwnScreenShareTile &&
-                  isActiveScreenShare &&
-                  showOverlay)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: _StopWatchingButton(onStopWatching: onStopWatching),
-                ),
-              if (tileSource == VoiceParticipantTileSource.screenShare)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: _StreamStatusBadge(
-                    l10n: l10n,
-                    participant: participant,
-                  ),
-                ),
-              if (showOverlay)
-                Positioned(
-                  left: 8,
-                  right: 8,
-                  bottom: 8,
-                  child: _VoiceParticipantNameplate(
-                    l10n: l10n,
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: <Widget>[
+                  VoiceParticipantMediaTile(
+                    room: room,
+                    userId: data.userId,
+                    currentUserId: currentUserId,
+                    localConnectionId: localConnectionId,
                     voice: v,
                     display: display,
+                    backgroundColor: cardColor,
+                    user: user,
+                    tileSource: tileSource,
+                    isActiveScreenShare: isActiveScreenShare,
+                    streamPreviewUrl: streamPreviewUrl,
+                    authToken: authToken,
                   ),
-                ),
-            ],
+                  if (tileSource == VoiceParticipantTileSource.screenShare &&
+                      !isOwnScreenShareTile &&
+                      !isActiveScreenShare)
+                    Positioned.fill(
+                      child: _WatchStreamOverlay(onWatch: onStartWatching),
+                    ),
+                  if (tileSource == VoiceParticipantTileSource.screenShare &&
+                      !isOwnScreenShareTile &&
+                      isActiveScreenShare &&
+                      showOverlay)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: _StopWatchingButton(
+                        onStopWatching: onStopWatching,
+                      ),
+                    ),
+                  if (tileSource == VoiceParticipantTileSource.screenShare)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: _StreamStatusBadge(
+                        l10n: l10n,
+                        participant: participant,
+                      ),
+                    ),
+                  if (showOverlay)
+                    Positioned(
+                      left: 8,
+                      right: 8,
+                      bottom: 8,
+                      child: _VoiceParticipantNameplate(
+                        l10n: l10n,
+                        voice: v,
+                        display: display,
+                        onTap: () {
+                          if (tileSource ==
+                                  VoiceParticipantTileSource.screenShare &&
+                              isActiveScreenShare &&
+                              showOverlay) {
+                            onStopWatching();
+                            return;
+                          }
+                          onTap();
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
-    ),
-  ),
     );
   }
 }
@@ -861,43 +886,92 @@ class _StopWatchingButton extends StatelessWidget {
   }
 }
 
-class _VoiceParticipantNameplate extends StatelessWidget {
+class _VoiceParticipantNameplate extends StatefulWidget {
   const _VoiceParticipantNameplate({
     required this.l10n,
     required this.voice,
     required this.display,
+    this.onTap,
   });
 
   final FluxerLocalizations l10n;
   final VoiceState voice;
   final String display;
+  final VoidCallback? onTap;
+
+  @override
+  State<_VoiceParticipantNameplate> createState() =>
+      _VoiceParticipantNameplateState();
+}
+
+class _VoiceParticipantNameplateState extends State<_VoiceParticipantNameplate>
+    with SingleTickerProviderStateMixin {
+  bool _visible = true;
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+  Timer? _hideTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    _visible = true;
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant _VoiceParticipantNameplate oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.onTap != oldWidget.onTap) {
+      setState(() => _visible = true);
+      _controller.forward();
+      _hideTimer?.cancel();
+      _hideTimer = Timer(const Duration(seconds: 3), () {
+        if (!mounted || !_visible) return;
+        setState(() => _visible = false);
+        _controller.reverse();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bool showMute = voice.selfMute || voice.mute || voice.suppress;
-    final bool showDeaf = voice.selfDeaf || voice.deaf;
-    final bool hasCommunityMic = voice.mute || voice.suppress;
+    final bool showMute =
+        widget.voice.selfMute || widget.voice.mute || widget.voice.suppress;
+    final bool showDeaf = widget.voice.selfDeaf || widget.voice.deaf;
+    final bool hasCommunityMic = widget.voice.mute || widget.voice.suppress;
     final Color micColor = hasCommunityMic
         ? context.colors.statusDanger
         : const Color(0xFFFFFFFF);
-    final Color deafColor = voice.deaf
+    final Color deafColor = widget.voice.deaf
         ? context.colors.statusDanger
         : const Color(0xFFFFFFFF);
-    final String? connectionId = voice.connectionId;
-    final StringBuffer semantics = StringBuffer(display);
+    final String? connectionId = widget.voice.connectionId;
+    final StringBuffer semantics = StringBuffer(widget.display);
     if (connectionId != null && connectionId.isNotEmpty) {
-      semantics.write(' $connectionId');
+      semantics.write(' ${widget.display} $connectionId');
     }
     if (showMute) {
       final String muteSem = hasCommunityMic
-          ? l10n.voiceParticipantTooltipCommunityMuted
-          : l10n.voiceParticipantTooltipMuted;
+          ? widget.l10n.voiceParticipantTooltipCommunityMuted
+          : widget.l10n.voiceParticipantTooltipMuted;
       semantics.write(' $muteSem');
     }
     if (showDeaf) {
-      final String deafSem = voice.deaf
-          ? l10n.voiceParticipantTooltipCommunityDeafened
-          : l10n.voiceParticipantTooltipDeafened;
+      final String deafSem = widget.voice.deaf
+          ? widget.l10n.voiceParticipantTooltipCommunityDeafened
+          : widget.l10n.voiceParticipantTooltipDeafened;
       semantics.write(' $deafSem');
     }
     return Semantics(
@@ -908,91 +982,101 @@ class _VoiceParticipantNameplate extends StatelessWidget {
             alignment: Alignment.bottomLeft,
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: constraints.maxWidth),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: context.colors.backgroundSecondary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
+              child: AnimatedOpacity(
+                opacity: _animation.value,
+                duration: const Duration(milliseconds: 300),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: context.colors.backgroundSecondary,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      if (showMute) ...<Widget>[
-                        Tooltip(
-                          message: hasCommunityMic
-                              ? l10n.voiceParticipantTooltipCommunityMuted
-                              : l10n.voiceParticipantTooltipMuted,
-                          child: PhosphorIcon(
-                            PhosphorIconsFill.microphoneSlash,
-                            size: 14,
-                            color: micColor,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                      ],
-                      if (showDeaf) ...<Widget>[
-                        Tooltip(
-                          message: voice.deaf
-                              ? l10n.voiceParticipantTooltipCommunityDeafened
-                              : l10n.voiceParticipantTooltipDeafened,
-                          child: PhosphorIcon(
-                            PhosphorIconsFill.speakerSlash,
-                            size: 14,
-                            color: deafColor,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                      ],
-                      Tooltip(
-                        message: voice.isMobile
-                            ? l10n.voiceParticipantTooltipMobileDevice
-                            : l10n.voiceParticipantTooltipDesktopDevice,
-                        child: PhosphorIcon(
-                          voice.isMobile
-                              ? PhosphorIconsFill.deviceMobile
-                              : PhosphorIconsFill.desktop,
-                          size: 14,
-                          color: const Color(0xFFFFFFFF),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Tooltip(
-                          message:
-                              connectionId != null && connectionId.isNotEmpty
-                              ? l10n.voiceParticipantTooltipConnection(
-                                  connectionId,
-                                )
-                              : display,
-                          child: Text.rich(
-                            TextSpan(
-                              style: context.textStyles.bodySmall.copyWith(
-                                color: context.colors.textPrimary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              children: <InlineSpan>[
-                                TextSpan(text: display),
-                                if (connectionId != null &&
-                                    connectionId.isNotEmpty)
-                                  TextSpan(
-                                    text: ' ($connectionId)',
-                                    style: context.textStyles.bodySmall
-                                        .copyWith(
-                                          color: context.colors.textSecondary,
-                                        ),
-                                  ),
-                              ],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        if (showMute) ...<Widget>[
+                          Tooltip(
+                            message: hasCommunityMic
+                                ? widget
+                                      .l10n
+                                      .voiceParticipantTooltipCommunityMuted
+                                : widget.l10n.voiceParticipantTooltipMuted,
+                            child: PhosphorIcon(
+                              PhosphorIconsFill.microphoneSlash,
+                              size: 14,
+                              color: micColor,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        if (showDeaf) ...<Widget>[
+                          Tooltip(
+                            message: widget.voice.deaf
+                                ? widget
+                                      .l10n
+                                      .voiceParticipantTooltipCommunityDeafened
+                                : widget.l10n.voiceParticipantTooltipDeafened,
+                            child: PhosphorIcon(
+                              PhosphorIconsFill.speakerSlash,
+                              size: 14,
+                              color: deafColor,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        Tooltip(
+                          message: widget.voice.isMobile
+                              ? widget.l10n.voiceParticipantTooltipMobileDevice
+                              : widget
+                                    .l10n
+                                    .voiceParticipantTooltipDesktopDevice,
+                          child: PhosphorIcon(
+                            widget.voice.isMobile
+                                ? PhosphorIconsFill.deviceMobile
+                                : PhosphorIconsFill.desktop,
+                            size: 14,
+                            color: const Color(0xFFFFFFFF),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Tooltip(
+                            message:
+                                connectionId != null && connectionId.isNotEmpty
+                                ? widget.l10n.voiceParticipantTooltipConnection(
+                                    connectionId,
+                                  )
+                                : widget.display,
+                            child: Text.rich(
+                              TextSpan(
+                                style: context.textStyles.bodySmall.copyWith(
+                                  color: context.colors.textPrimary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                children: <InlineSpan>[
+                                  TextSpan(text: widget.display),
+                                  if (connectionId != null &&
+                                      connectionId.isNotEmpty)
+                                    TextSpan(
+                                      text: ' ($connectionId)',
+                                      style: context.textStyles.bodySmall
+                                          .copyWith(
+                                            color: context.colors.textSecondary,
+                                          ),
+                                    ),
+                                ],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
