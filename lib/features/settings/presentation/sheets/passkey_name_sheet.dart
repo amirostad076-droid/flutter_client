@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/auth/data/webauthn_service.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart';
+import 'package:passkeys/authenticator.dart';
+import 'package:passkeys/exceptions.dart';
 
 class PasskeyNameSheet extends ConsumerStatefulWidget {
   const PasskeyNameSheet({
@@ -98,25 +101,41 @@ class _PasskeyNameSheetState extends ConsumerState<PasskeyNameSheet> {
           body: WebAuthnCredentialUpdateRequest(name: name),
         );
       } else {
-        await client.users.getWebauthnRegistrationOptions(
-          body: const SudoVerificationSchema(),
+        final dio = ref.read(fluxerDioProvider);
+        final optionsRes = await dio.post<Map<String, dynamic>>(
+          '/users/@me/mfa/webauthn/credentials/registration-options',
+          data: <String, dynamic>{},
         );
-
-        // TODO: Integrate with WebAuthnService to perform the platform
-        // registration ceremony using options.challenge, then call
-        // registerWebauthnCredential with the response.
-        // For now we just close since the WebAuthn bridge needs platform work.
-        if (mounted) {
-          Navigator.of(context).pop();
-          widget.onSubmitted?.call();
-          return;
-        }
+        final options = optionsRes.data!;
+        final ceremony = await WebAuthnService(
+          PasskeyAuthenticator(),
+        ).register(options);
+        await client.users.registerWebauthnCredential(
+          body: WebAuthnRegisterRequest(
+            response: ceremony,
+            challenge: options['challenge'] as String,
+            name: name,
+          ),
+        );
       }
 
       if (mounted) {
         Navigator.of(context).pop();
         widget.onSubmitted?.call();
       }
+    } on PasskeyAuthCancelledException {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    } on AuthenticatorException catch (e) {
+      final l10n = FluxerLocalizations.of(context);
+      final message = e is UnhandledAuthenticatorException && e.message != null
+          ? e.message!
+          : l10n.genericError;
+      setState(() {
+        _loading = false;
+        _error = message;
+      });
     } on DioException catch (e) {
       final l10n = FluxerLocalizations.of(context);
       final data = e.response?.data;

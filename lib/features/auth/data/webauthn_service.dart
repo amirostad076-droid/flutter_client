@@ -24,4 +24,12 @@ class WebAuthnService {
     final response = await _authenticator.authenticate(request);
     return response.toJson();
   }
+
+  /// Registers a new passkey with the given server options.
+  /// Returns the registration response as a JSON map.
+  Future<Map<String, dynamic>> register(Map<String, dynamic> options) async {
+    final request = RegisterRequestType.fromJson(options);
+    final response = await _authenticator.register(request);
+    return response.toJson();
+  }
 }
