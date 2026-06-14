@@ -1,1 +1,1 @@
-void bootstrapFcmIfNeeded() {}
+Future<void> bootstrapFcmIfNeeded() async {}
