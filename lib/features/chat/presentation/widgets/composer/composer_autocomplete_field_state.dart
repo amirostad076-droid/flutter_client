@@ -485,6 +485,7 @@ class ComposerAutocompleteFieldState
     ComposerAutocompleteTrigger trigger,
     int generation,
   ) async {
+    await EmojiRegistry.ensureLoaded();
     final bool hasChannel = _channelId.isNotEmpty;
     final String activeGuildId = ref.read(activeGuildIdProvider) ?? '';
     // No channel context (e.g. bio) offers every accessible custom emoji; a

@@ -13,6 +13,7 @@ import 'package:fluxer_app/features/settings/providers/chat_preferences_provider
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
+import 'package:fluxer_app/shared/utils/media_kit_bootstrap.dart';
 import 'package:fluxer_app/shared/widgets/shared_video_controls.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
@@ -91,6 +92,7 @@ class _ChatInlineVideoPlayerState extends State<ChatInlineVideoPlayer> {
       _isLoading = true;
     });
     try {
+      await MediaKitBootstrap.ensureInitialized();
       final Player player = _ensurePlayer();
       if (_hasLoadedMedia) {
         await player.play();

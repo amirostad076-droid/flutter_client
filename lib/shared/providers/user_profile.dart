@@ -52,6 +52,19 @@ Future<UserProfileFullResponse?> userProfile(
     return null;
   }
 
+  final FluxerDatabase database = ref.read(fluxerDatabaseProvider);
+  final User? cachedUser = await database.userDao.getUserById(resolvedId);
+  unawaited(
+    _refreshUserProfileFromNetwork(
+      ref,
+      userId: resolvedId,
+      guildId: guildId,
+    ),
+  );
+  if (cachedUser != null) {
+    return _userProfileFromCachedUser(cachedUser);
+  }
+
   final FluxerClient client = ref.read(fluxerClientProvider);
   try {
     return await client.users.getUserProfile(
@@ -62,6 +75,66 @@ Future<UserProfileFullResponse?> userProfile(
     );
   } on Object {
     return null;
+  }
+}
+
+UserProfileFullResponse _userProfileFromCachedUser(User user) {
+  return UserProfileFullResponse(
+    user: UserProfileFullResponseUser(
+      id: user.id,
+      username: user.username,
+      discriminator: user.discriminator,
+      globalName: user.globalName,
+      avatar: user.avatar,
+      avatarColor: user.avatarColor,
+      flags: 0,
+    ),
+    userProfile: UserProfileFullResponseUserProfile(
+      bio: user.bio,
+      pronouns: user.pronouns,
+      banner: user.banner,
+      bannerColor: null,
+      accentColor: user.accentColor,
+    ),
+    guildMember: null,
+    guildMemberProfile: null,
+    timezoneOffset: null,
+  );
+}
+
+Future<void> _refreshUserProfileFromNetwork(
+  Ref ref, {
+  required String userId,
+  String? guildId,
+}) async {
+  final FluxerClient client = ref.read(fluxerClientProvider);
+  final FluxerDatabase database = ref.read(fluxerDatabaseProvider);
+  try {
+    final UserProfileFullResponse profile = await client.users.getUserProfile(
+      targetId: userId,
+      guildId: guildId,
+      withMutualFriends: 'true',
+      withMutualGuilds: 'true',
+    );
+    await database.userDao.upsertUser(
+      UsersCompanion(
+        id: Value(profile.user.id),
+        username: Value(profile.user.username),
+        discriminator: Value(profile.user.discriminator),
+        globalName: Value(profile.user.globalName),
+        avatar: Value(profile.user.avatar),
+        avatarColor: Value(profile.user.avatarColor),
+        bio: Value(profile.userProfile.bio),
+        pronouns: Value(profile.userProfile.pronouns),
+        accentColor: Value(profile.userProfile.accentColor),
+        banner: Value(profile.userProfile.banner),
+      ),
+    );
+    ref.invalidate(
+      userProfileProvider(userId: userId, guildId: guildId),
+    );
+  } on Object {
+    return;
   }
 }
 

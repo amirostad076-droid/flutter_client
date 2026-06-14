@@ -4,8 +4,8 @@ import 'package:fluxer_app/core/api/captcha_dialog.dart';
 import 'package:fluxer_app/core/api/captcha_interceptor.dart';
 import 'package:fluxer_app/core/api/fluxer_client_properties.dart';
 import 'package:fluxer_app/core/api/retry_interceptor.dart';
+import 'package:fluxer_app/core/api/session_auth_interceptor.dart';
 import 'package:fluxer_app/core/api/skip_auth_interceptor.dart';
-import 'package:fluxer_app/core/api/session_authorization_header.dart';
 import 'package:fluxer_app/core/api/sudo_dialog.dart';
 import 'package:fluxer_app/core/api/sudo_interceptor.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
@@ -54,12 +54,11 @@ String fluxerClientPropertiesHeader(Ref ref) {
 @Riverpod(keepAlive: true)
 Dio fluxerDio(Ref ref) {
   final baseUrl = ref.watch(fluxerBaseUrlProvider);
-  final token = ref.watch(fluxerAuthTokenProvider);
   final userAgent = ref.watch(fluxerClientPropertiesProvider).userAgent;
   final clientPropertiesHeader = ref.watch(
     fluxerClientPropertiesHeaderProvider,
   );
-  final dio = Dio(
+  final Dio dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
       contentType: 'application/json',
@@ -72,12 +71,9 @@ Dio fluxerDio(Ref ref) {
     ),
   );
 
-  if (token != null && token.isNotEmpty) {
-    dio.options.headers['Authorization'] = formatSessionAuthorizationHeader(
-      token,
-    );
-  }
-
+  dio.interceptors.add(
+    SessionAuthInterceptor(readToken: () => ref.read(fluxerAuthTokenProvider)),
+  );
   dio.interceptors.add(SkipAuthInterceptor());
   dio.interceptors.add(RetryInterceptor(dio: dio));
   dio.interceptors.add(

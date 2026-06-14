@@ -87,6 +87,34 @@ const _ScrollIndicatorView _hiddenIndicator = (
   targetId: null,
 );
 
+enum _NavbarListEntryKind {
+  directMessages,
+  favorites,
+  allowlistedDm,
+  regularDm,
+  divider,
+  unavailableGuilds,
+  organizedGuild,
+  organizedFolder,
+  exploreServers,
+  addServer,
+  help,
+}
+
+class _NavbarListEntry {
+  const _NavbarListEntry({
+    required this.kind,
+    this.dm,
+    this.organizedItem,
+    this.unavailableCount,
+  });
+
+  final _NavbarListEntryKind kind;
+  final DmChannel? dm;
+  final GuildNavbarItem? organizedItem;
+  final int? unavailableCount;
+}
+
 class GuildNavbar extends ConsumerStatefulWidget {
   const GuildNavbar({super.key});
 
@@ -109,6 +137,93 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
   void initState() {
     super.initState();
     _scrollController.addListener(_scheduleScrollIndicatorUpdate);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _prefetchGuildPermissions(ref.read(organizedGuildListProvider));
+    });
+  }
+
+  void _prefetchGuildPermissions(List<GuildNavbarItem> items) {
+    final GuildPermissions permissionsNotifier = ref.read(
+      guildPermissionsProvider.notifier,
+    );
+    for (final GuildNavbarItem item in items) {
+      switch (item) {
+        case GuildNavbarGuild(:final Guild guild):
+          unawaited(permissionsNotifier.getPermissions(guild.id));
+        case GuildNavbarFolder(:final List<Guild> guilds):
+          for (final Guild guild in guilds) {
+            unawaited(permissionsNotifier.getPermissions(guild.id));
+          }
+      }
+    }
+  }
+
+  List<_NavbarListEntry> _buildNavbarEntries({
+    required bool showFavorites,
+    required List<DmChannel> allowlistedDms,
+    required List<DmChannel> regularDms,
+    required bool dmItemsVisible,
+    required int pendingUnavailableCount,
+    required List<GuildNavbarItem> organizedItems,
+  }) {
+    final List<_NavbarListEntry> entries = <_NavbarListEntry>[
+      const _NavbarListEntry(kind: _NavbarListEntryKind.directMessages),
+    ];
+    if (showFavorites) {
+      entries.add(
+        const _NavbarListEntry(kind: _NavbarListEntryKind.favorites),
+      );
+    }
+    for (final DmChannel dm in allowlistedDms) {
+      entries.add(
+        _NavbarListEntry(kind: _NavbarListEntryKind.allowlistedDm, dm: dm),
+      );
+    }
+    if (dmItemsVisible) {
+      for (final DmChannel dm in regularDms) {
+        entries.add(
+          _NavbarListEntry(kind: _NavbarListEntryKind.regularDm, dm: dm),
+        );
+      }
+    }
+    entries.add(const _NavbarListEntry(kind: _NavbarListEntryKind.divider));
+    if (pendingUnavailableCount > 0) {
+      entries.add(
+        _NavbarListEntry(
+          kind: _NavbarListEntryKind.unavailableGuilds,
+          unavailableCount: pendingUnavailableCount,
+        ),
+      );
+    }
+    for (final GuildNavbarItem item in organizedItems) {
+      switch (item) {
+        case GuildNavbarGuild():
+          entries.add(
+            _NavbarListEntry(
+              kind: _NavbarListEntryKind.organizedGuild,
+              organizedItem: item,
+            ),
+          );
+        case GuildNavbarFolder():
+          entries.add(
+            _NavbarListEntry(
+              kind: _NavbarListEntryKind.organizedFolder,
+              organizedItem: item,
+            ),
+          );
+      }
+    }
+    entries
+      ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.divider))
+      ..add(
+        const _NavbarListEntry(kind: _NavbarListEntryKind.exploreServers),
+      )
+      ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.addServer))
+      ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.help));
+    return entries;
   }
 
   @override
@@ -307,155 +422,49 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       hasCollapsedDmUnread = false;
     }
 
-    final permissionsNotifier = ref.read(guildPermissionsProvider.notifier);
-    for (final item in organizedItems) {
-      switch (item) {
-        case GuildNavbarGuild(:final guild):
-          unawaited(permissionsNotifier.getPermissions(guild.id));
-        case GuildNavbarFolder(:final guilds):
-          for (final guild in guilds) {
-            unawaited(permissionsNotifier.getPermissions(guild.id));
-          }
+    ref.listen<List<GuildNavbarItem>>(organizedGuildListProvider, (
+      List<GuildNavbarItem>? previous,
+      List<GuildNavbarItem> next,
+    ) {
+      if (previous != next) {
+        _prefetchGuildPermissions(next);
       }
-    }
+    });
 
     _scheduleScrollIndicatorUpdate();
 
-    final topPadding = max<double>(MediaQuery.of(context).padding.top, 4);
-    final guildListView = ListView(
+    final double topPadding = max<double>(MediaQuery.of(context).padding.top, 4);
+    final List<_NavbarListEntry> navbarEntries = _buildNavbarEntries(
+      showFavorites: showFavorites,
+      allowlistedDms: allowlistedDms,
+      regularDms: regularDms,
+      dmItemsVisible: dmItemsVisible,
+      pendingUnavailableCount: pendingUnavailableCount,
+      organizedItems: organizedItems,
+    );
+    final guildListView = ListView.builder(
       controller: _scrollController,
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.only(top: topPadding, bottom: 8),
-      children: [
-        _GuildListItem(
-          label: 'Direct Messages',
-          isSelected: isDm,
-          svgAsset: Assets.fluxerSymbol,
-          mentionCount: pendingFriendCount + dmMentionCount,
-          hasUnread: hasCollapsedDmUnread,
-          onTap: () {
-            if (dmFolderState.collapseDMs && isDm) {
-              ref.read(dmFolderProvider.notifier).toggleExpanded();
-              return;
-            }
-            context.go(RoutePaths.me);
-          },
-        ),
-        if (showFavorites)
-          _GuildListItem(
-            label: 'Favorites',
-            isSelected: isFavorites,
-            icon: PhosphorIconsFill.star,
-            mentionCount: favoritesUnread.mentionCount,
-            hasUnread: favoritesUnread.hasUnread,
-            onTap: () {
-              context.go(RoutePaths.favoritesBase);
-            },
-          ),
-        for (final dm in allowlistedDms)
-          DmNavbarItem(
-            key: ValueKey('dm-${dm.id}'),
-            channelId: dm.id,
-            recipientId: dm.recipientId,
-            displayName: dm.name ?? 'Direct Message',
-            mentionCount: dm.unreadCount,
-            hasUnread: unreadDmState.hasUnread(dm.id),
-            isPendingRemoval: unreadDmState.isPendingRemoval(dm.id),
-            type: dm.type,
-            isSelected: activeChannelId == dm.id,
-            onContextMenu: (position) => _handleDmContextMenu(
-              context,
-              position: position,
-              dm: dm,
-              isCollapsed: dmFolderState.collapseDMs,
-              isAllowlisted: true,
-            ),
-          ),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          alignment: Alignment.topCenter,
-          child: dmItemsVisible && regularDms.isNotEmpty
-              ? AnimatedOpacity(
-                  opacity: dmItemsVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final dm in regularDms)
-                        DmNavbarItem(
-                          key: ValueKey('dm-${dm.id}'),
-                          channelId: dm.id,
-                          recipientId: dm.recipientId,
-                          displayName: dm.name ?? 'Direct Message',
-                          mentionCount: dm.unreadCount,
-                          hasUnread: unreadDmState.hasUnread(dm.id),
-                          isPendingRemoval: unreadDmState.isPendingRemoval(
-                            dm.id,
-                          ),
-                          type: dm.type,
-                          isSelected: activeChannelId == dm.id,
-                          onContextMenu: (position) => _handleDmContextMenu(
-                            context,
-                            position: position,
-                            dm: dm,
-                            isCollapsed: dmFolderState.collapseDMs,
-                            isAllowlisted: false,
-                          ),
-                        ),
-                    ],
-                  ),
-                )
-              : const SizedBox.shrink(),
-        ),
-        _SidebarDivider(color: context.colors.backgroundModifierHover),
-        if (pendingUnavailableCount > 0)
-          _UnavailableGuildsIndicator(count: pendingUnavailableCount),
-        for (final item in organizedItems)
-          switch (item) {
-            GuildNavbarGuild(:final guild) => GuildDragWrapper(
-              itemId: guild.id,
-              isFolder: false,
-              enabled: !guild.isUnavailable,
-              child: _buildGuildItem(
-                context,
-                guild: guild,
-                activeGuildId: activeGuildId,
-                unavailableCount: unavailableCount,
-              ),
-            ),
-            GuildNavbarFolder(:final id) => GuildDragWrapper(
-              itemId: id.toString(),
-              isFolder: true,
-              child: _GuildFolderWidget(
-                folder: item,
-                activeGuildId: activeGuildId,
-                unavailableCount: unavailableCount,
-              ),
-            ),
-          },
-        _SidebarDivider(color: context.colors.backgroundModifierHover),
-        _DashedGuildIcon(
-          label: 'Explore Discoverable Servers',
-          icon: PhosphorIconsRegular.compass,
-          onTap: () {
-            ref
-                .read(toastProvider.notifier)
-                .show(const FluxerToast(message: 'Coming soon'));
-          },
-        ),
-        _DashedGuildIcon(
-          label: 'Add a Server',
-          icon: PhosphorIconsRegular.plus,
-          onTap: () => unawaited(showAddGuildModal(context)),
-        ),
-        _DashedGuildIcon(
-          label: 'Help',
-          icon: PhosphorIconsRegular.question,
-          onTap: () =>
-              handleExternalLinkTap(context, 'https://help.fluxer.app'),
-        ),
-      ],
+      cacheExtent: 600,
+      itemCount: navbarEntries.length,
+      itemBuilder: (BuildContext context, int index) {
+        return _buildNavbarListItem(
+          context,
+          entry: navbarEntries[index],
+          isDm: isDm,
+          isFavorites: isFavorites,
+          pendingFriendCount: pendingFriendCount,
+          dmMentionCount: dmMentionCount,
+          hasCollapsedDmUnread: hasCollapsedDmUnread,
+          dmFolderState: dmFolderState,
+          favoritesUnread: favoritesUnread,
+          unreadDmState: unreadDmState,
+          activeChannelId: activeChannelId,
+          activeGuildId: activeGuildId,
+          unavailableCount: unavailableCount,
+        );
+      },
     );
 
     return Container(
@@ -525,6 +534,147 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         ),
       ),
     );
+  }
+
+  Widget _buildNavbarListItem(
+    BuildContext context, {
+    required _NavbarListEntry entry,
+    required bool isDm,
+    required bool isFavorites,
+    required int pendingFriendCount,
+    required int dmMentionCount,
+    required bool hasCollapsedDmUnread,
+    required DmFolderViewState dmFolderState,
+    required FavoritesUnreadSummary favoritesUnread,
+    required UnreadDmState unreadDmState,
+    required String? activeChannelId,
+    required String? activeGuildId,
+    required int unavailableCount,
+  }) {
+    switch (entry.kind) {
+      case _NavbarListEntryKind.directMessages:
+        return _GuildListItem(
+          label: 'Direct Messages',
+          isSelected: isDm,
+          svgAsset: Assets.fluxerSymbol,
+          mentionCount: pendingFriendCount + dmMentionCount,
+          hasUnread: hasCollapsedDmUnread,
+          onTap: () {
+            if (dmFolderState.collapseDMs && isDm) {
+              ref.read(dmFolderProvider.notifier).toggleExpanded();
+              return;
+            }
+            context.go(RoutePaths.me);
+          },
+        );
+      case _NavbarListEntryKind.favorites:
+        return _GuildListItem(
+          label: 'Favorites',
+          isSelected: isFavorites,
+          icon: PhosphorIconsFill.star,
+          mentionCount: favoritesUnread.mentionCount,
+          hasUnread: favoritesUnread.hasUnread,
+          onTap: () {
+            context.go(RoutePaths.favoritesBase);
+          },
+        );
+      case _NavbarListEntryKind.allowlistedDm:
+        final DmChannel dm = entry.dm!;
+        return DmNavbarItem(
+          key: ValueKey('dm-${dm.id}'),
+          channelId: dm.id,
+          recipientId: dm.recipientId,
+          displayName: dm.name ?? 'Direct Message',
+          mentionCount: dm.unreadCount,
+          hasUnread: unreadDmState.hasUnread(dm.id),
+          isPendingRemoval: unreadDmState.isPendingRemoval(dm.id),
+          type: dm.type,
+          isSelected: activeChannelId == dm.id,
+          onContextMenu: (Offset position) => _handleDmContextMenu(
+            context,
+            position: position,
+            dm: dm,
+            isCollapsed: dmFolderState.collapseDMs,
+            isAllowlisted: true,
+          ),
+        );
+      case _NavbarListEntryKind.regularDm:
+        final DmChannel dm = entry.dm!;
+        return DmNavbarItem(
+          key: ValueKey('dm-${dm.id}'),
+          channelId: dm.id,
+          recipientId: dm.recipientId,
+          displayName: dm.name ?? 'Direct Message',
+          mentionCount: dm.unreadCount,
+          hasUnread: unreadDmState.hasUnread(dm.id),
+          isPendingRemoval: unreadDmState.isPendingRemoval(dm.id),
+          type: dm.type,
+          isSelected: activeChannelId == dm.id,
+          onContextMenu: (Offset position) => _handleDmContextMenu(
+            context,
+            position: position,
+            dm: dm,
+            isCollapsed: dmFolderState.collapseDMs,
+            isAllowlisted: false,
+          ),
+        );
+      case _NavbarListEntryKind.divider:
+        return _SidebarDivider(color: context.colors.backgroundModifierHover);
+      case _NavbarListEntryKind.unavailableGuilds:
+        return _UnavailableGuildsIndicator(
+          count: entry.unavailableCount ?? 0,
+        );
+      case _NavbarListEntryKind.organizedGuild:
+        final GuildNavbarGuild guildItem =
+            entry.organizedItem! as GuildNavbarGuild;
+        final Guild guild = guildItem.guild;
+        return GuildDragWrapper(
+          itemId: guild.id,
+          isFolder: false,
+          enabled: !guild.isUnavailable,
+          child: _buildGuildItem(
+            context,
+            guild: guild,
+            activeGuildId: activeGuildId,
+            unavailableCount: unavailableCount,
+          ),
+        );
+      case _NavbarListEntryKind.organizedFolder:
+        final GuildNavbarFolder folderItem =
+            entry.organizedItem! as GuildNavbarFolder;
+        return GuildDragWrapper(
+          itemId: folderItem.id.toString(),
+          isFolder: true,
+          child: _GuildFolderWidget(
+            folder: folderItem,
+            activeGuildId: activeGuildId,
+            unavailableCount: unavailableCount,
+          ),
+        );
+      case _NavbarListEntryKind.exploreServers:
+        return _DashedGuildIcon(
+          label: 'Explore Discoverable Servers',
+          icon: PhosphorIconsRegular.compass,
+          onTap: () {
+            ref
+                .read(toastProvider.notifier)
+                .show(const FluxerToast(message: 'Coming soon'));
+          },
+        );
+      case _NavbarListEntryKind.addServer:
+        return _DashedGuildIcon(
+          label: 'Add a Server',
+          icon: PhosphorIconsRegular.plus,
+          onTap: () => unawaited(showAddGuildModal(context)),
+        );
+      case _NavbarListEntryKind.help:
+        return _DashedGuildIcon(
+          label: 'Help',
+          icon: PhosphorIconsRegular.question,
+          onTap: () =>
+              handleExternalLinkTap(context, 'https://help.fluxer.app'),
+        );
+    }
   }
 
   Future<void> _handleDmContextMenu(

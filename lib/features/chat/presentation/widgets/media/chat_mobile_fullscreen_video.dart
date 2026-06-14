@@ -7,6 +7,7 @@ import 'package:fluxer_app/features/chat/utils/chat_video_playback_utils.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
+import 'package:fluxer_app/shared/utils/media_kit_bootstrap.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -61,6 +62,14 @@ class _ChatMobileFullscreenVideoPageState
   @override
   void initState() {
     super.initState();
+    unawaited(_initPlayer());
+  }
+
+  Future<void> _initPlayer() async {
+    await MediaKitBootstrap.ensureInitialized();
+    if (!mounted) {
+      return;
+    }
     final Player player = Player();
     _player = player;
     unawaited(player.setVolume(_kUnmutedVolume));

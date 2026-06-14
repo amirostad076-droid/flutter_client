@@ -179,9 +179,13 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  void _syncChannelPivot(ChatViewState state) {
-    if (state.channelId != _lastChannelId) {
-      _lastChannelId = state.channelId;
+  void _syncChannelPivot({
+    required String channelId,
+    required List<Message> messages,
+    required bool hasMoreNewerMessages,
+  }) {
+    if (channelId != _lastChannelId) {
+      _lastChannelId = channelId;
       _explicitPivotMessageId = widget.targetMessageId;
       _scrollAnchoredPivotMessageId = null;
       _initialUnreadPivotReleased = false;
@@ -195,11 +199,11 @@ class _MessageListState extends ConsumerState<MessageList> {
       return;
     }
     if (widget.targetMessageId != null &&
-        state.messages.any((Message m) => m.id == widget.targetMessageId)) {
+        messages.any((Message m) => m.id == widget.targetMessageId)) {
       _explicitPivotMessageId = widget.targetMessageId;
       return;
     }
-    if (!state.hasMoreNewerMessages) {
+    if (!hasMoreNewerMessages) {
       _explicitPivotMessageId = null;
     }
   }
@@ -496,12 +500,15 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
   }
 
-  String? _resolvedPivotMessageId(ChatViewState state) {
+  String? _resolvedPivotMessageId({
+    required bool hasMoreNewerMessages,
+    required List<Message> messages,
+  }) {
     return resolvePivotMessageId(
-      hasMoreNewerMessages: state.hasMoreNewerMessages,
+      hasMoreNewerMessages: hasMoreNewerMessages,
       explicitPivotMessageId: _explicitPivotMessageId,
       scrollAnchoredPivotMessageId: _scrollAnchoredPivotMessageId,
-      messages: state.messages,
+      messages: messages,
     );
   }
 
@@ -720,65 +727,67 @@ class _MessageListState extends ConsumerState<MessageList> {
       message: message,
       isNewDay: isNewDay,
       visualUnreadId: visualUnreadId,
-      child: MessageItem(
-        key: itemKey,
-        message: message,
-        isGrouped: isGrouped,
-        isJumpHighlighted: message.id == highlightedMessageId,
-        currentUserId: currentUserId,
-        canDelete: canDelete,
-        canAddReactions: channelCanAddReactions,
-        canPinMessage: channelCanPinMessage,
-        canManageMessages: channelCanManageMessages,
-        canSendMessages: channelCanSendMessages,
-        isDmChannel: isDmChannel,
-        onReply: () =>
-            ref.read(chatViewModelProvider.notifier).startReply(message),
-        onForward: () =>
-            unawaited(showForwardMessageSheet(context, message: message)),
-        onEdit: () =>
-            ref.read(chatViewModelProvider.notifier).startEdit(message),
-        onRemoveAllReactions: () => unawaited(
-          showRemoveAllReactionsConfirmSheet(
-            context,
-            ref,
-            messageId: message.id,
+      child: RepaintBoundary(
+        child: MessageItem(
+          key: itemKey,
+          message: message,
+          isGrouped: isGrouped,
+          isJumpHighlighted: message.id == highlightedMessageId,
+          currentUserId: currentUserId,
+          canDelete: canDelete,
+          canAddReactions: channelCanAddReactions,
+          canPinMessage: channelCanPinMessage,
+          canManageMessages: channelCanManageMessages,
+          canSendMessages: channelCanSendMessages,
+          isDmChannel: isDmChannel,
+          onReply: () =>
+              ref.read(chatViewModelProvider.notifier).startReply(message),
+          onForward: () =>
+              unawaited(showForwardMessageSheet(context, message: message)),
+          onEdit: () =>
+              ref.read(chatViewModelProvider.notifier).startEdit(message),
+          onRemoveAllReactions: () => unawaited(
+            showRemoveAllReactionsConfirmSheet(
+              context,
+              ref,
+              messageId: message.id,
+            ),
           ),
-        ),
-        onDelete: () => unawaited(
-          showDeleteMessageConfirmSheet(
-            context,
-            ref,
-            message: message,
-            guildId: guildId,
+          onDelete: () => unawaited(
+            showDeleteMessageConfirmSheet(
+              context,
+              ref,
+              message: message,
+              guildId: guildId,
+            ),
           ),
-        ),
-        onRetry: () => ref
-            .read(chatViewModelProvider.notifier)
-            .retryMessageSend(message.id),
-        onDeleteFailed: () => ref
-            .read(chatViewModelProvider.notifier)
-            .deleteFailedMessage(message.id),
-        onMarkAsUnread: () => ref
-            .read(chatViewModelProvider.notifier)
-            .markMessageUnread(message.id),
-        onViewReactions: () =>
-            unawaited(showMessageReactionsSheet(context, message: message)),
-        onReport: () => unawaited(
-          showSimpleIarReportSheet(
-            context,
-            iarContext: IarMessageContext(message: message, guildId: guildId),
+          onRetry: () => ref
+              .read(chatViewModelProvider.notifier)
+              .retryMessageSend(message.id),
+          onDeleteFailed: () => ref
+              .read(chatViewModelProvider.notifier)
+              .deleteFailedMessage(message.id),
+          onMarkAsUnread: () => ref
+              .read(chatViewModelProvider.notifier)
+              .markMessageUnread(message.id),
+          onViewReactions: () =>
+              unawaited(showMessageReactionsSheet(context, message: message)),
+          onReport: () => unawaited(
+            showSimpleIarReportSheet(
+              context,
+              iarContext: IarMessageContext(message: message, guildId: guildId),
+            ),
           ),
+          onReaction: (String emoji, {String? emojiId, bool animated = false}) =>
+              ref
+                  .read(chatViewModelProvider.notifier)
+                  .toggleReaction(
+                    message.id,
+                    emoji,
+                    emojiId: emojiId,
+                    animated: animated,
+                  ),
         ),
-        onReaction: (String emoji, {String? emojiId, bool animated = false}) =>
-            ref
-                .read(chatViewModelProvider.notifier)
-                .toggleReaction(
-                  message.id,
-                  emoji,
-                  emojiId: emojiId,
-                  animated: animated,
-                ),
       ),
     );
   }
@@ -897,6 +906,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             controller: _scrollController,
             reverse: true,
             center: _centerKey,
+            cacheExtent: 800,
             slivers: [
               SliverPadding(
                 padding: const EdgeInsets.only(bottom: 33),
@@ -1024,10 +1034,35 @@ class _MessageListState extends ConsumerState<MessageList> {
       );
 
     final String? currentUserId = ref.watch(currentUserIdProvider);
-    final ChatViewState state = ref.watch(chatViewModelProvider);
-    final List<Message> messages = state.messages;
-    _syncChannelPivot(state);
-    final String channelId = state.channelId;
+    final List<Message> messages = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.messages),
+    );
+    final String channelId = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.channelId),
+    );
+    final String? stickyUnreadId = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.stickyUnreadMessageId),
+    );
+    final String? highlightedMessageId = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.highlightedMessageId),
+    );
+    final bool hasMoreNewerMessages = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.hasMoreNewerMessages),
+    );
+    final bool isLoading = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.isLoading),
+    );
+    final bool isLoadingMore = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.isLoadingMore),
+    );
+    final bool isLoadingNewer = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.isLoadingNewer),
+    );
+    _syncChannelPivot(
+      channelId: channelId,
+      messages: messages,
+      hasMoreNewerMessages: hasMoreNewerMessages,
+    );
     final bool isDmChannel =
         channelId.isNotEmpty &&
         ref.watch(
@@ -1053,16 +1088,15 @@ class _MessageListState extends ConsumerState<MessageList> {
             ref.watch(channelListViewModelProvider),
             channelId,
           )?.guildId;
-    ref.watch(channelPermissionCacheProvider);
     final int? channelPermissionBits = channelId.isEmpty
         ? null
         : ref
               .read(channelPermissionCacheProvider.notifier)
               .getChannelBits(channelId);
-    final drift_db.ReadState? readState = state.channelId.isEmpty
+    final drift_db.ReadState? readState = channelId.isEmpty
         ? null
         : ref
-              .watch(_messageListReadStateProvider(state.channelId))
+              .watch(_messageListReadStateProvider(channelId))
               .asData
               ?.value;
     final ChatUnreadSummary unreadSummary = computeChatUnreadSummary(
@@ -1075,8 +1109,6 @@ class _MessageListState extends ConsumerState<MessageList> {
       currentUserId: currentUserId,
     );
     final String? oldestUnreadId = unreadSummary.oldestUnreadMessageId;
-    final String? stickyUnreadId = state.stickyUnreadMessageId;
-    final String? highlightedMessageId = state.highlightedMessageId;
     final String? visualUnreadId = _visualUnreadId(
       messages: messages,
       stickyUnreadId: stickyUnreadId,
@@ -1087,9 +1119,12 @@ class _MessageListState extends ConsumerState<MessageList> {
     final bool showUnreadIndicators = shouldShowUnreadIndicators(
       hasUnread: unreadCount > 0,
       liveNearBottom: _effectiveLiveNearBottom(),
-      hasMoreNewerMessages: state.hasMoreNewerMessages,
+      hasMoreNewerMessages: hasMoreNewerMessages,
       isManualReadState: readState?.manual ?? false,
-      inUnreadReview: _isInUnreadReview(state),
+      inUnreadReview: isInUnreadReview(
+        stickyUnreadMessageId: stickyUnreadId,
+        initialUnreadPivotReleased: _initialUnreadPivotReleased,
+      ),
       stickyUnreadMessageId: stickyUnreadId,
     );
     final String? effectiveVisualUnreadId = showUnreadIndicators
@@ -1136,7 +1171,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       _itemKeys.clear();
     }
 
-    if (!state.isLoading && _pendingScrollTarget != null) {
+    if (!isLoading && _pendingScrollTarget != null) {
       final String target = _pendingScrollTarget!;
       if (messages.any((Message m) => m.id == target)) {
         _pendingScrollTarget = null;
@@ -1144,19 +1179,20 @@ class _MessageListState extends ConsumerState<MessageList> {
       }
     }
 
-    if (_needsInitialBottomPin &&
-        !state.isLoading &&
-        messages.isNotEmpty) {
+    if (_needsInitialBottomPin && !isLoading && messages.isNotEmpty) {
       _requestInitialBottomPin();
     }
 
     final MessageListPivotSplit split = splitMessagesForCenterSliver(
       messages: messages,
-      pivotMessageId: _resolvedPivotMessageId(state),
+      pivotMessageId: _resolvedPivotMessageId(
+        hasMoreNewerMessages: hasMoreNewerMessages,
+        messages: messages,
+      ),
     );
 
     final Widget body;
-    if (state.isLoading && messages.isEmpty) {
+    if (isLoading && messages.isEmpty) {
       body = Center(
         child: FluxerLoadingSpinner(color: context.colors.brandPrimary),
       );
@@ -1205,8 +1241,8 @@ class _MessageListState extends ConsumerState<MessageList> {
         channelCanAddReactions: channelCanAddReactions,
         channelCanPinMessage: channelCanPinMessage,
         channelCanManageMessages: channelCanManageMessages,
-        isLoadingMore: state.isLoadingMore,
-        isLoadingNewer: state.isLoadingNewer,
+        isLoadingMore: isLoadingMore,
+        isLoadingNewer: isLoadingNewer,
       );
     }
 
@@ -1217,7 +1253,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
 
     final bool showUnreadBar =
-        !state.isLoading && messages.isNotEmpty && showUnreadIndicators;
+        !isLoading && messages.isNotEmpty && showUnreadIndicators;
     final Widget scaledBody = Stack(
       fit: StackFit.expand,
       children: [

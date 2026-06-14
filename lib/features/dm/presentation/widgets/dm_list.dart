@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/dm/providers/dm_list_presence_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
@@ -27,7 +28,6 @@ import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
-import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/quick_switcher/presentation/sheets/quick_switcher_bottom_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -149,8 +149,11 @@ class _DMListState extends ConsumerState<DMList> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = ref.watch(dmViewModelProvider);
-    final convos = vm.conversations;
+    final List<DmConversation> convos = ref.watch(
+      dmViewModelProvider.select((DmViewState state) => state.conversations),
+    );
+    final Map<String, String> presenceByUserId =
+        ref.watch(dmListPresenceMapProvider).value ?? const <String, String>{};
     final location = ref.watch(currentLocationProvider);
     const mePrefix = '${RoutePaths.me}/';
     final selectedId = location.startsWith(mePrefix)
@@ -248,6 +251,7 @@ class _DMListState extends ConsumerState<DMList> {
                   isMobile: isMobile,
                   pinnedIds: pinnedIds,
                   mutedIds: mutedIds,
+                  presenceByUserId: presenceByUserId,
                 ),
               ),
             ],
@@ -510,6 +514,7 @@ class _DMListState extends ConsumerState<DMList> {
     required bool isMobile,
     required Set<String> pinnedIds,
     required Set<String> mutedIds,
+    required Map<String, String> presenceByUserId,
   }) {
     final userId = ref.watch(currentUserIdProvider);
     final listPadding = isMobile
@@ -518,6 +523,8 @@ class _DMListState extends ConsumerState<DMList> {
 
     return ListView.builder(
       padding: listPadding,
+      cacheExtent: 600,
+      itemExtent: isMobile ? 52 : 42,
       itemCount: convos.length + (isMobile ? 1 : 0),
       itemBuilder: (context, index) {
         if (isMobile && index == 0) {
@@ -539,6 +546,7 @@ class _DMListState extends ConsumerState<DMList> {
           isMobile: isMobile,
           isPinned: pinnedIds.contains(convo.id),
           isMuted: mutedIds.contains(convo.id),
+          presenceByUserId: presenceByUserId,
         );
       },
     );
@@ -648,6 +656,7 @@ class _DMListState extends ConsumerState<DMList> {
     IconData? leadingIcon,
     String? leadingLabel,
     VoidCallback? onCustomTap,
+    Map<String, String> presenceByUserId = const <String, String>{},
   }) {
     final avatarSize = isMobile ? 40.0 : 32.0;
     final tileHeight = isMobile ? 52.0 : 42.0;
@@ -740,8 +749,7 @@ class _DMListState extends ConsumerState<DMList> {
                     status: groupDmAggregateStatus(
                       participantIds: c.remoteRecipientIds,
                       resolveStatus: (String id) =>
-                          ref.watch(userPresenceProvider(id)).value?.status ??
-                          'offline',
+                          presenceByUserId[id] ?? 'offline',
                     ),
                     members: _clusterMembers(c),
                     size: avatarSize,
@@ -756,13 +764,7 @@ class _DMListState extends ConsumerState<DMList> {
                       animated: isSelected,
                     ),
                     status: shouldShowDmRecipientPresence(c)
-                        ? ref
-                                  .watch(
-                                    userPresenceProvider(c.recipientId),
-                                  )
-                                  .value
-                                  ?.status ??
-                              'offline'
+                        ? presenceByUserId[c.recipientId] ?? 'offline'
                         : null,
                     showStatus: shouldShowDmRecipientPresence(c),
                     size: avatarSize,
@@ -1651,6 +1653,8 @@ class _DmBottomSheet extends ConsumerWidget {
       initialChildSize: convo.isGroup ? 0.45 : 0.7,
       maxChildSize: 0.85,
       builder: (context, scrollController) {
+        final Map<String, String> presenceMap =
+            ref.watch(dmListPresenceMapProvider).value ?? const {};
         return SafeArea(
           bottom: Platform.isAndroid,
           child: Column(
@@ -1679,15 +1683,7 @@ class _DmBottomSheet extends ConsumerWidget {
                           hash: convo.recipientAvatar,
                         ),
                         status: shouldShowDmRecipientPresence(convo)
-                            ? ref
-                                      .watch(
-                                        userPresenceProvider(
-                                          convo.recipientId,
-                                        ),
-                                      )
-                                      .value
-                                      ?.status ??
-                                  'offline'
+                            ? presenceMap[convo.recipientId] ?? 'offline'
                             : null,
                         showStatus: shouldShowDmRecipientPresence(convo),
                         size: 48,

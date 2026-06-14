@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/chat/domain/cloud_composer_attachments.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_attachment_area.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_composer_barrier.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
@@ -369,10 +370,16 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       return ChannelComposerBarrier(access: composerAccess);
     }
 
-    final vm = ref.watch(chatViewModelProvider);
     final chatNotifier = ref.read(chatViewModelProvider.notifier);
-    final replyTo = vm.replyingTo;
-    final editingMessage = vm.editingMessage;
+    final Message? replyTo = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.replyingTo),
+    );
+    final Message? editingMessage = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.editingMessage),
+    );
+    final bool replyMentioning = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.replyMentioning),
+    );
     final ChannelMessagePermissions perms =
         channelMessagePermissionsForComposer(
           ref.watch(channelMessagePermissionsProvider(channelId)),
@@ -391,7 +398,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           ReplyInputBar(
             replyTo: replyTo,
             guildId: guildId,
-            shouldReplyMention: vm.replyMentioning,
+            shouldReplyMention: replyMentioning,
             onToggleMention: chatNotifier.setReplyMentioning,
             onCancel: chatNotifier.cancelReply,
           ),

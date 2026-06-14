@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_dart/gateway.dart';
@@ -9,8 +10,8 @@ part 'gateway_connection_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 GatewayConnection gatewayConnection(Ref ref) {
-  final dio = ref.watch(fluxerDioProvider);
-  final token = ref.watch(fluxerAuthTokenProvider);
+  final Dio dio = ref.read(fluxerDioProvider);
+  final String? token = ref.watch(fluxerAuthTokenProvider);
 
   if (token == null || token.isEmpty) {
     throw StateError('Cannot create gateway connection without auth token');

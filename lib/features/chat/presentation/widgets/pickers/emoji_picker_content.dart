@@ -172,6 +172,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   void initState() {
     super.initState();
     _upsellPreviewSeed = Random().nextInt(0x7fffffff);
+    unawaited(EmojiRegistry.ensureLoaded());
     _preloadSkinToneSpriteSheet();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {

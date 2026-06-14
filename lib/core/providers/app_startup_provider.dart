@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
+import 'package:fluxer_app/core/push/fcm/fcm_entrypoint.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_notification_tap_binding.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
@@ -53,12 +54,12 @@ class AppStartup extends _$AppStartup {
   }
 
   Future<void> _validateAndRestore() async {
-    await Future.wait<void>([
-      EmojiRegistry.preload(),
-      ref.read(appRuntimeInfoProvider.future),
-      ref.read(wellKnownProvider.future),
-    ]);
+    final Stopwatch startupStopwatch = Stopwatch()..start();
+    await ref.read(appRuntimeInfoProvider.future);
+    unawaited(EmojiRegistry.preload());
+    unawaited(ref.read(wellKnownProvider.future));
     unawaited(EmojiSpriteSheet.preload());
+    unawaited(bootstrapFcmAfterRunApp());
     final database = ref.read(fluxerDatabaseProvider);
     final authRepository = ref.read(authRepositoryProvider);
     debugPrint('[AppStartup] Database obtained, migrating legacy tokens…');
@@ -114,9 +115,11 @@ class AppStartup extends _$AppStartup {
 
     ref.read(authStateProvider.notifier).setAuthenticated(value: true);
     ref.read(currentUserIdProvider.notifier).set(session.userId);
-    await ref.read(themePreferenceProvider.notifier).load(session.userId);
-    await ref.read(appearancePreferencesProvider.notifier).load(session.userId);
-    await ref.read(chatPreferencesProvider.notifier).load(session.userId);
+    await Future.wait<void>([
+      ref.read(themePreferenceProvider.notifier).load(session.userId),
+      ref.read(appearancePreferencesProvider.notifier).load(session.userId),
+      ref.read(chatPreferencesProvider.notifier).load(session.userId),
+    ]);
     unawaited(ref.read(sensitiveContentProvider.notifier).load());
     unawaited(ref.read(matureContentAgreementsProvider.notifier).reload());
 
@@ -134,6 +137,10 @@ class AppStartup extends _$AppStartup {
 
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
     ref.read(pendingPushNotificationPathProvider.notifier).flushIfReady();
+
+    debugPrint(
+      '[AppStartup] Completed in ${startupStopwatch.elapsedMilliseconds}ms',
+    );
 
     if (PushProviderGuard.isFirebaseMessaging && Platform.isAndroid) {
       ref

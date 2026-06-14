@@ -72,6 +72,8 @@ class EmojiRegistry {
   static EmojiEntry? entryBySurrogates(String surrogates) =>
       _surrogateToEntry?[surrogates];
 
+  static Future<void> ensureLoaded() => preload();
+
   static Future<void> preload() async {
     if (_categories != null && _unicodeEmojiRegex != null) {
       return;

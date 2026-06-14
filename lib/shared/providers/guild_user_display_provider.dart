@@ -15,6 +15,8 @@ import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:riverpod/src/providers/future_provider.dart';
 
+final Set<String> _pendingGuildMemberFetches = <String>{};
+
 Future<GuildUserDisplay?> _loadGuildUserDisplayFromDatabase({
   required db.FluxerDatabase database,
   required String userId,
@@ -169,14 +171,18 @@ guildUserDisplayProvider = FutureProvider.autoDispose
         guildId,
       );
       if (user == null || member == null) {
-        unawaited(
-          _fetchAndCacheGuildMember(
-            ref: ref,
-            database: database,
-            userId: userId,
-            guildId: guildId,
-          ),
-        );
+        final String fetchKey = '$guildId:$userId';
+        if (!_pendingGuildMemberFetches.contains(fetchKey)) {
+          _pendingGuildMemberFetches.add(fetchKey);
+          unawaited(
+            _fetchAndCacheGuildMember(
+              ref: ref,
+              database: database,
+              userId: userId,
+              guildId: guildId,
+            ).whenComplete(() => _pendingGuildMemberFetches.remove(fetchKey)),
+          );
+        }
       }
       return display;
     });

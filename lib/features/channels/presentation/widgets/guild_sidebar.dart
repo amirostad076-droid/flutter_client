@@ -41,6 +41,24 @@ import 'package:fluxer_dart/gateway.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+enum _GuildSidebarEntryKind { categoryHeader, channel, voiceParticipants }
+
+class _GuildSidebarEntry {
+  const _GuildSidebarEntry({
+    required this.kind,
+    this.category,
+    this.isCategoryCollapsed = false,
+    this.channel,
+    this.guildId,
+  });
+
+  final _GuildSidebarEntryKind kind;
+  final ChannelCategory? category;
+  final bool isCategoryCollapsed;
+  final Channel? channel;
+  final String? guildId;
+}
+
 class GuildSidebar extends ConsumerWidget {
   const GuildSidebar({super.key});
 
@@ -207,36 +225,80 @@ class GuildSidebar extends ConsumerWidget {
               .toList()
         : categories;
 
+    final List<_GuildSidebarEntry> sidebarEntries = _flattenSidebarEntries(
+      visibleCategories: visibleCategories,
+      collapsed: collapsed,
+      guildId: guildId,
+    );
     return ListView.builder(
       padding: const EdgeInsets.only(top: 12),
-      itemCount: visibleCategories.length,
-      itemBuilder: (context, index) {
-        final category = visibleCategories[index];
-        final isCollapsed = collapsed.contains(category.id);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCategoryHeader(context, ref, category, isCollapsed),
-            if (!isCollapsed) ...<Widget>[
-              for (final Channel channel in category.channels) ...<Widget>[
-                _buildChannelTile(
-                  context,
-                  ref,
-                  channel,
-                  channel.id == selectedId,
-                  mutedSet: mutedSet,
-                ),
-                if (guildId != null && channel.type == ChannelType.voice)
-                  VoiceChannelParticipantsList(
-                    guildId: guildId,
-                    channelId: channel.id,
-                  ),
-              ],
-            ],
-          ],
-        );
+      cacheExtent: 600,
+      itemCount: sidebarEntries.length,
+      itemBuilder: (BuildContext context, int index) {
+        final _GuildSidebarEntry entry = sidebarEntries[index];
+        switch (entry.kind) {
+          case _GuildSidebarEntryKind.categoryHeader:
+            return _buildCategoryHeader(
+              context,
+              ref,
+              entry.category!,
+              entry.isCategoryCollapsed,
+            );
+          case _GuildSidebarEntryKind.channel:
+            return _buildChannelTile(
+              context,
+              ref,
+              entry.channel!,
+              entry.channel!.id == selectedId,
+              mutedSet: mutedSet,
+            );
+          case _GuildSidebarEntryKind.voiceParticipants:
+            return VoiceChannelParticipantsList(
+              guildId: entry.guildId!,
+              channelId: entry.channel!.id,
+            );
+        }
       },
     );
+  }
+
+  List<_GuildSidebarEntry> _flattenSidebarEntries({
+    required List<ChannelCategory> visibleCategories,
+    required Set<String> collapsed,
+    required String? guildId,
+  }) {
+    final List<_GuildSidebarEntry> entries = <_GuildSidebarEntry>[];
+    for (final ChannelCategory category in visibleCategories) {
+      final bool isCollapsed = collapsed.contains(category.id);
+      entries.add(
+        _GuildSidebarEntry(
+          kind: _GuildSidebarEntryKind.categoryHeader,
+          category: category,
+          isCategoryCollapsed: isCollapsed,
+        ),
+      );
+      if (isCollapsed) {
+        continue;
+      }
+      for (final Channel channel in category.channels) {
+        entries.add(
+          _GuildSidebarEntry(
+            kind: _GuildSidebarEntryKind.channel,
+            channel: channel,
+          ),
+        );
+        if (guildId != null && channel.type == ChannelType.voice) {
+          entries.add(
+            _GuildSidebarEntry(
+              kind: _GuildSidebarEntryKind.voiceParticipants,
+              channel: channel,
+              guildId: guildId,
+            ),
+          );
+        }
+      }
+    }
+    return entries;
   }
 
   Widget _buildCategoryHeader(

@@ -21,6 +21,12 @@ Future<void> bootstrapFcmIfNeeded() async {
   }
   FirebaseMessaging.onBackgroundMessage(fcmBackgroundMessageHandler);
   FluxerFcmPushService.instance.tapPayloadEnricher = _enrichTapPayload;
+}
+
+Future<void> bootstrapFcmAfterRunApp() async {
+  if (!PushProviderGuard.isFirebaseMessaging || !Platform.isAndroid) {
+    return;
+  }
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

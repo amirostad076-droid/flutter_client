@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/gateway/gateway_ready_guild_parser.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
@@ -141,6 +142,8 @@ class GatewayEventHandler {
   final GuildMemberListUpdateCallback? onMemberListUpdate;
 
   String? _currentUserId;
+  String? _lastReadyUserId;
+  bool _hasCommittedReady = false;
 
   Future<void> handle(GatewayEvent event) async {
     switch (event) {
@@ -148,6 +151,7 @@ class GatewayEventHandler {
         await _handleReady(event);
       case ResumedEvent():
         talker.info('[Gateway] RESUMED');
+        onReady?.call();
       case MessageCreateEvent():
         talker.debug('[Gateway] MESSAGE_CREATE: ${event.message.channelId}');
         await _handleMessageCreate(event);
@@ -416,7 +420,15 @@ class GatewayEventHandler {
   }
 
   Future<void> _handleReady(ReadyEvent event) async {
-    onSessionChanging?.call();
+    final Stopwatch readyStopwatch = Stopwatch()..start();
+    final bool isSameUserReconnect =
+        _hasCommittedReady &&
+        _lastReadyUserId != null &&
+        _lastReadyUserId == event.user.id;
+    final bool shouldFullWipe = !isSameUserReconnect;
+    if (shouldFullWipe) {
+      onSessionChanging?.call();
+    }
     talker.info(
       '[Gateway] READY received (session: ${event.sessionId})'
       ' — guilds: ${event.guilds.length}'
@@ -424,7 +436,8 @@ class GatewayEventHandler {
       ', relationships: ${event.relationships.length}'
       ', presences: ${event.presences.length}'
       ', readStates: ${event.readStates.length}'
-      ', user: ${event.user.id}',
+      ', user: ${event.user.id}'
+      ', mode: ${shouldFullWipe ? 'full' : 'incremental'}',
     );
 
     _currentUserId = event.user.id;
@@ -439,22 +452,24 @@ class GatewayEventHandler {
     );
 
     await database.transaction(() async {
-      await database.userDao.clearAll();
-      await database.guildDao.clearAll();
-      await database.channelDao.clearAll();
-      await database.dmChannelDao.clearAll();
-      await database.memberDao.clearAll();
-      await database.roleDao.clearAll();
-      await database.relationshipDao.clearAll();
-      await database.readStateDao.clearAll();
-      await database.userSettingsDao.clearAll();
-      await database.userGuildSettingsDao.clearAll();
-      await database.userNotesDao.clearAll();
-      await database.pinnedDmsDao.clearAll();
-      await database.favoriteMemesDao.clearAll();
-      await database.rtcRegionsDao.clearAll();
-      await database.guildEmojiDao.clearAll();
-      await database.guildStickerDao.clearAll();
+      if (shouldFullWipe) {
+        await database.userDao.clearAll();
+        await database.guildDao.clearAll();
+        await database.channelDao.clearAll();
+        await database.dmChannelDao.clearAll();
+        await database.memberDao.clearAll();
+        await database.roleDao.clearAll();
+        await database.relationshipDao.clearAll();
+        await database.readStateDao.clearAll();
+        await database.userSettingsDao.clearAll();
+        await database.userGuildSettingsDao.clearAll();
+        await database.userNotesDao.clearAll();
+        await database.pinnedDmsDao.clearAll();
+        await database.favoriteMemesDao.clearAll();
+        await database.rtcRegionsDao.clearAll();
+        await database.guildEmojiDao.clearAll();
+        await database.guildStickerDao.clearAll();
+      }
 
       // Gateway never echoes the current user's own presence back.
       final selfStatus = event.userSettings?.status ?? 'online';
@@ -512,37 +527,27 @@ class GatewayEventHandler {
       }
 
       if (event.rawGuilds.isNotEmpty) {
-        final guildCompanions = <db.ServersCompanion>[];
-        final processedGuilds = <GuildCreateData>[];
-        var fallbackPosition = guildPositions.length;
-        for (final rawGuild in event.rawGuilds) {
-          final unavailable = rawGuild['unavailable'] as bool? ?? false;
-          if (unavailable) {
-            continue;
-          }
-          final guildData = GuildCreateData.fromJson(rawGuild);
-          final guildId = guildData.guild.id;
-          final position = guildPositions[guildId] ?? fallbackPosition++;
-          final int? memberCount =
-              (rawGuild['member_count'] as num?)?.toInt();
-          final int? onlineCount =
-              (rawGuild['online_count'] as num?)?.toInt();
-          guildCompanions.add(
-            guildFromSdk(
-              guildData.guild,
-              position: position,
-              memberCount: memberCount,
-              onlineCount: onlineCount,
-            ),
-          );
-          processedGuilds.add(guildData);
-        }
+        final List<ParsedReadyGuild> processedGuilds = await parseReadyGuilds(
+          rawGuilds: event.rawGuilds,
+          guildPositions: guildPositions,
+        );
+        final List<db.ServersCompanion> guildCompanions = processedGuilds
+            .map(
+              (ParsedReadyGuild parsed) => guildFromSdk(
+                parsed.guildData.guild,
+                position: parsed.position,
+                memberCount: parsed.memberCount,
+                onlineCount: parsed.onlineCount,
+              ),
+            )
+            .toList();
         if (guildCompanions.isNotEmpty) {
           await database.guildDao.upsertServers(guildCompanions);
         }
 
-        for (final guildData in processedGuilds) {
-          final guildId = guildData.guild.id;
+        for (final ParsedReadyGuild parsed in processedGuilds) {
+          final GuildCreateData guildData = parsed.guildData;
+          final String guildId = guildData.guild.id;
 
           for (final channel in guildData.channels) {
             await database.channelDao.upsertChannel(
@@ -759,7 +764,12 @@ class GatewayEventHandler {
       }
     });
 
-    talker.info('[Gateway] READY transaction committed successfully');
+    talker.info(
+      '[Gateway] READY transaction committed successfully in '
+      '${readyStopwatch.elapsedMilliseconds}ms',
+    );
+    _lastReadyUserId = event.user.id;
+    _hasCommittedReady = true;
     final hydratedSettings = event.userSettings;
     if (hydratedSettings != null) {
       onUserSettingsHydrate?.call(hydratedSettings);

@@ -57,6 +57,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'chat_view_model.g.dart';
 
 const _kPageSize = 30;
+const Duration _kChannelNetworkRefreshTtl = Duration(seconds: 30);
 const _kReadAckMinInterval = Duration(seconds: 1);
 const _kDraftSaveDebounce = Duration(milliseconds: 400);
 const _kJumpHighlightDuration = Duration(milliseconds: 2000);
@@ -184,6 +185,7 @@ class ChatViewModel extends _$ChatViewModel {
   bool _readViewportNearBottom = true;
   final Map<String, Future<void>> _pendingDeleteFutures =
       <String, Future<void>>{};
+  final Map<String, DateTime> _lastNetworkRefreshByChannel = <String, DateTime>{};
 
   @override
   ChatViewState build() {
@@ -607,6 +609,8 @@ class ChatViewModel extends _$ChatViewModel {
     String? targetMessageId,
     bool loadMessages = true,
   }) async {
+    final Stopwatch switchStopwatch = Stopwatch()..start();
+    try {
     if (state.channelId != channelId) {
       _readViewportNearBottom = false;
     }
@@ -724,7 +728,10 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreNewerMessages: false,
       );
       _notifyMessageReferencesLoaded(channelId: channelId, messages: cached);
-      unawaited(_refreshMessagesFromNetwork(channelId));
+      if (_shouldRefreshChannelFromNetwork(channelId)) {
+        _markChannelNetworkRefresh(channelId);
+        unawaited(_refreshMessagesFromNetwork(channelId));
+      }
       return;
     }
     state = _switchedChannelState(
@@ -751,6 +758,12 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     await _refreshMessagesFromNetwork(channelId, showLoadingSpinner: true);
+    } finally {
+      debugPrint(
+        '[ChatViewModel] switchChannel($channelId) completed in '
+        '${switchStopwatch.elapsedMilliseconds}ms',
+      );
+    }
   }
 
   Future<void> _loadMessages(
@@ -2532,5 +2545,17 @@ class ChatViewModel extends _$ChatViewModel {
       return i;
     }
     return -1;
+  }
+
+  bool _shouldRefreshChannelFromNetwork(String channelId) {
+    final DateTime? lastRefresh = _lastNetworkRefreshByChannel[channelId];
+    if (lastRefresh == null) {
+      return true;
+    }
+    return DateTime.now().difference(lastRefresh) > _kChannelNetworkRefreshTtl;
+  }
+
+  void _markChannelNetworkRefresh(String channelId) {
+    _lastNetworkRefreshByChannel[channelId] = DateTime.now();
   }
 }

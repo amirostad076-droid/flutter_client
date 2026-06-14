@@ -12,7 +12,6 @@ import 'package:fluxer_app/core/push/fcm/fcm_entrypoint.dart';
 import 'package:fluxer_app/core/push/services/unified_push_service.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 void _configureImagePicker() {
@@ -28,7 +27,7 @@ void _configureImagePicker() {
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   assertPushProviderBuildConfig();
-  await bootstrapFcmIfNeeded();
+  bootstrapFcmIfNeeded();
   _configureImagePicker();
   final bool isUnifiedPushBackground =
       args.contains('--unifiedpush-bg') &&
@@ -38,7 +37,6 @@ Future<void> main(List<String> args) async {
     await UnifiedPushService.ensureBackgroundInitialized();
     return;
   }
-  MediaKit.ensureInitialized();
 
   if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
     await windowManager.ensureInitialized();
