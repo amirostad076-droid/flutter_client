@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/router/shell_navigator_keys.dart';
 import 'package:fluxer_app/core/router/shell_popup_route_observer.dart';
+import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +30,58 @@ void main() {
       await tester.pumpAndSettle();
       expect(states.last, isFalse);
     });
+
+    testWidgets(
+      'defers provider mutation when navigator updates during build',
+      (tester) async {
+        final ProviderContainer container = ProviderContainer();
+        addTearDown(container.dispose);
+        final ShellPopupRouteObserver observer = ShellPopupRouteObserver(
+          ({required bool hasOverlay}) => container
+              .read(shellHasPopupOverlayProvider.notifier)
+              .setHasOverlay(value: hasOverlay),
+        );
+        final ValueNotifier<List<Page<void>>> pages =
+            ValueNotifier<List<Page<void>>>(<Page<void>>[
+              const MaterialPage<void>(child: SizedBox.shrink()),
+            ]);
+        addTearDown(pages.dispose);
+        final List<NavigatorObserver> observers = <NavigatorObserver>[observer];
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              home: ValueListenableBuilder<List<Page<void>>>(
+                valueListenable: pages,
+                builder: (_, value, _) => Navigator(
+                  observers: observers,
+                  pages: value,
+                  onDidRemovePage: (_) {},
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Simulate an open popup (e.g. the settings modal the user logs out
+        // from) so the build-phase reconcile below actually changes state.
+        container
+            .read(shellHasPopupOverlayProvider.notifier)
+            .setHasOverlay(value: true);
+
+        // Declarative page push: didPush fires while the navigator is
+        // rebuilding, i.e. during the build phase.
+        pages.value = <Page<void>>[
+          ...pages.value,
+          const MaterialPage<void>(child: SizedBox.shrink()),
+        ];
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+        await tester.pumpAndSettle();
+        expect(container.read(shellHasPopupOverlayProvider), isFalse);
+      },
+    );
 
     testWidgets('remove decrements popup tracking', (tester) async {
       final List<bool> states = <bool>[];

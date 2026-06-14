@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:fluxer_app/core/router/shell_popup_overlay_sync.dart';
 
 typedef ShellPopupOverlayChanged = void Function({required bool hasOverlay});
@@ -9,7 +10,29 @@ class ShellPopupRouteObserver extends NavigatorObserver {
 
   final ShellPopupOverlayChanged _onOverlayChanged;
 
+  bool _reconcileScheduled = false;
+
+  /// The navigator flushes observer notifications synchronously, which can
+  /// happen mid-build (e.g. a router redirect on logout). Mutating providers
+  /// there is forbidden, so defer to a post-frame callback and re-read the
+  /// navigator stacks once the frame settles.
   void reconcile() {
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      if (_reconcileScheduled) {
+        return;
+      }
+      _reconcileScheduled = true;
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        _reconcileScheduled = false;
+        _reconcileNow();
+      });
+      return;
+    }
+    _reconcileNow();
+  }
+
+  void _reconcileNow() {
     final bool hasOverlay =
         navigatorShowsPopupOverlay(navigator) ||
         shellNavigatorsHavePopupOverlay();
