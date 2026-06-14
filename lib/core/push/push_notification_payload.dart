@@ -153,7 +153,7 @@ void _mergeNestedDataPayload(Map<String, String> payload) {
     if (value == null) {
       continue;
     }
-    payload.putIfAbsent(key, () => value.toString());
+    payload.putIfAbsent(key, value.toString);
   }
 }
 

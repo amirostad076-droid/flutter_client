@@ -71,9 +71,9 @@ void main() {
       tester,
     ) async {
       final router = _buildRouter(
-        home: Column(
+        home: const Column(
           mainAxisSize: MainAxisSize.min,
-          children: const [
+          children: [
             DmNavbarItem(
               key: ValueKey('dm-first'),
               channelId: '1000000000000000005',

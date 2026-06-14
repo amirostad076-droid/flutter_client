@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
@@ -405,7 +406,11 @@ class _DMListState extends ConsumerState<DMList> {
         shape: BoxShape.circle,
       ),
       alignment: Alignment.center,
-      child: PhosphorIcon(icon, size: iconSize, color: context.colors.textPrimary),
+      child: PhosphorIcon(
+        icon,
+        size: iconSize,
+        color: context.colors.textPrimary,
+      ),
     ),
   );
 
@@ -522,8 +527,8 @@ class _DMListState extends ConsumerState<DMList> {
         : EdgeInsets.zero;
 
     return ListView.builder(
+      scrollCacheExtent: const ScrollCacheExtent.pixels(600),
       padding: listPadding,
-      cacheExtent: 600,
       itemExtent: isMobile ? 52 : 42,
       itemCount: convos.length + (isMobile ? 1 : 0),
       itemBuilder: (context, index) {

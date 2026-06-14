@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 
 void main() {
   group('resolveChannelIconAccessOverlay', () {
-    Channel _makeVoiceChannel({
+    Channel makeVoiceChannel({
       String? permissionOverwritesJson,
       bool nsfw = false,
     }) {
@@ -21,7 +21,7 @@ void main() {
 
     test('returns none for channel without overwrites and no connect bits', () {
       final overlay = resolveChannelIconAccessOverlay(
-        channel: _makeVoiceChannel(),
+        channel: makeVoiceChannel(),
       );
       expect(overlay, equals(ChannelIconAccessOverlay.none));
     });
@@ -29,7 +29,7 @@ void main() {
     test(
       'returns noConnect for voice channel when channel-local deny CONNECT',
       () {
-        final channel = _makeVoiceChannel();
+        final channel = makeVoiceChannel();
         final int deniedBits = Permission.viewChannel.value; // no connect bit
 
         final overlay = resolveChannelIconAccessOverlay(
@@ -43,7 +43,7 @@ void main() {
     test(
       'returns none for voice channel when channel-local allows CONNECT',
       () {
-        final channel = _makeVoiceChannel();
+        final channel = makeVoiceChannel();
         final int allowedBits =
             Permission.viewChannel.value | Permission.connect.value;
 
@@ -106,7 +106,7 @@ void main() {
     );
 
     test('category returns none regardless of permission bits', () {
-      final channel = Channel(
+      const channel = Channel(
         id: 'cat-1',
         guildId: 'guild-1',
         name: 'Category',
@@ -123,7 +123,7 @@ void main() {
     test(
       'falls back to effectivePermissionBits when canConnectPermissionBits is null',
       () {
-        final channel = _makeVoiceChannel();
+        final channel = makeVoiceChannel();
         // Deny via effective bits (backward compat path)
         final int deniedBits = Permission.viewChannel.value;
 
@@ -139,7 +139,7 @@ void main() {
     test(
       'voice noConnect only triggers on voice/stage with denied connect bits',
       () {
-        final channel = _makeVoiceChannel();
+        final channel = makeVoiceChannel();
         final int deniedBits = Permission.viewChannel.value;
 
         final overlay = resolveChannelIconAccessOverlay(

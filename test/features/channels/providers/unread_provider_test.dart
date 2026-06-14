@@ -140,7 +140,6 @@ ProviderContainer _container({
             id: guildId,
             name: 'Guild',
             ownerId: 'owner',
-            features: const [],
           ),
         ]),
       ),

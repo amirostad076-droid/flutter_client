@@ -231,7 +231,7 @@ class _VoiceControlCircle extends StatelessWidget {
 }
 
 class ChatButton extends ConsumerWidget {
-  const ChatButton({required this.channelId, required this.channelName});
+  const ChatButton({required this.channelId, required this.channelName, super.key});
 
   final String channelId;
   final String? channelName;

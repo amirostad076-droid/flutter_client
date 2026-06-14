@@ -23,7 +23,7 @@ class StatusExpiryScheduler {
     );
     _ref.listen<String?>(
       currentUserIdProvider,
-      (_, __) => _scheduleFromSettings(_ref.read(userSettingsStatusProvider)),
+      (_, _) => _scheduleFromSettings(_ref.read(userSettingsStatusProvider)),
     );
     _ref.onDispose(_cancelTimer);
   }

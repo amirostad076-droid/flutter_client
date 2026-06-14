@@ -62,7 +62,7 @@ String? extractGuildId(String location) {
 }
 
 final _dmChannelIdPattern = RegExp(r'^/channels/@me/([^/]+)$');
-final _dmChannelMessageIdPattern = RegExp(r'^/channels/@me/([^/]+)/');
+final _dmChannelMessageIdPattern = RegExp('^/channels/@me/([^/]+)/');
 final _favoritesChannelIdPattern = RegExp(r'^/channels/@favorites/([^/]+)$');
 final _guildChannelIdPattern = RegExp('^/channels/[^@/][^/]*/([^/]+)');
 

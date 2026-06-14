@@ -34,9 +34,9 @@ import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
-import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/features/favorites/domain/favorite_guild_id.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
+import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/presentation/widgets/guild_members_tab_content.dart';
@@ -1609,12 +1609,8 @@ class _SimpleMemberRow extends StatelessWidget {
     this.isBot = false,
     this.isSystem = false,
     this.isCurrentUser = false,
-    this.isOwner = false,
-    this.customStatus,
-    this.dimmed = false,
     this.onTap,
-    this.onLongPress,
-  });
+  }) : isOwner = false : customStatus : dimmed = false : onLongPress;
 
   final String userId;
   final String name;

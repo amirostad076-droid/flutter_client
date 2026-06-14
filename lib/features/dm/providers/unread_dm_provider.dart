@@ -129,7 +129,7 @@ class UnreadDmChannels extends _$UnreadDmChannels {
         .toList();
     final unreadIds = unreadChannels.map((c) => c.id).toSet();
     final currentIds = state.channels.map((c) => c.id).toSet();
-    var pendingRemovalIds = {...state.pendingRemovalIds};
+    final pendingRemovalIds = {...state.pendingRemovalIds};
 
     for (final id in currentIds) {
       if (!unreadIds.contains(id)) {

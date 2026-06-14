@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as drift_db;
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
@@ -328,10 +329,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (channelId.isEmpty) {
       return null;
     }
-    return ref
-        .read(_messageListReadStateProvider(channelId))
-        .asData
-        ?.value;
+    return ref.read(_messageListReadStateProvider(channelId)).asData?.value;
   }
 
   bool _shouldPinToBottomOnLoad({
@@ -402,7 +400,8 @@ class _MessageListState extends ConsumerState<MessageList> {
     final List<Message> messages = state.messages;
     final String? currentUserId = ref.read(currentUserIdProvider);
     final drift_db.ReadState? readState = _readStateForChannel(state.channelId);
-    if (state.scrollToMessageSignal != null || state.stickyUnreadMessageId != null) {
+    if (state.scrollToMessageSignal != null ||
+        state.stickyUnreadMessageId != null) {
       _cancelInitialBottomPin();
       return;
     }
@@ -442,7 +441,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _pinToBottomAfterLayout(generation: generation);
   }
 
-  void _pinToBottomAfterLayout({int attempt = 0, required int generation}) {
+  void _pinToBottomAfterLayout({required int generation, int attempt = 0}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || generation != _bottomPinGeneration) {
         return;
@@ -559,8 +558,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        final double target =
-            _scrollController.position.minScrollExtent;
+        final double target = _scrollController.position.minScrollExtent;
         unawaited(
           _scrollController.animateTo(
             target,
@@ -778,8 +776,8 @@ class _MessageListState extends ConsumerState<MessageList> {
               iarContext: IarMessageContext(message: message, guildId: guildId),
             ),
           ),
-          onReaction: (String emoji, {String? emojiId, bool animated = false}) =>
-              ref
+          onReaction:
+              (String emoji, {String? emojiId, bool animated = false}) => ref
                   .read(chatViewModelProvider.notifier)
                   .toggleReaction(
                     message.id,
@@ -903,10 +901,10 @@ class _MessageListState extends ConsumerState<MessageList> {
         NotificationListener<ScrollNotification>(
           onNotification: _onScrollNotification,
           child: CustomScrollView(
+            scrollCacheExtent: const ScrollCacheExtent.pixels(800),
             controller: _scrollController,
             reverse: true,
             center: _centerKey,
-            cacheExtent: 800,
             slivers: [
               SliverPadding(
                 padding: const EdgeInsets.only(bottom: 33),
@@ -1041,7 +1039,9 @@ class _MessageListState extends ConsumerState<MessageList> {
       chatViewModelProvider.select((ChatViewState s) => s.channelId),
     );
     final String? stickyUnreadId = ref.watch(
-      chatViewModelProvider.select((ChatViewState s) => s.stickyUnreadMessageId),
+      chatViewModelProvider.select(
+        (ChatViewState s) => s.stickyUnreadMessageId,
+      ),
     );
     final String? highlightedMessageId = ref.watch(
       chatViewModelProvider.select((ChatViewState s) => s.highlightedMessageId),
@@ -1095,10 +1095,7 @@ class _MessageListState extends ConsumerState<MessageList> {
               .getChannelBits(channelId);
     final drift_db.ReadState? readState = channelId.isEmpty
         ? null
-        : ref
-              .watch(_messageListReadStateProvider(channelId))
-              .asData
-              ?.value;
+        : ref.watch(_messageListReadStateProvider(channelId)).asData?.value;
     final ChatUnreadSummary unreadSummary = computeChatUnreadSummary(
       messages: messages.map(
         (Message message) =>

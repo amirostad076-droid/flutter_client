@@ -248,7 +248,6 @@ class _ExpandableStatusMenuItem extends StatelessWidget {
             duration: context.motion.normal,
             curve: context.motion.curve,
             alignment: Alignment.topCenter,
-            clipBehavior: Clip.hardEdge,
             child: isExpanded
                 ? Column(
                     mainAxisSize: MainAxisSize.min,

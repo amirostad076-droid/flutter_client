@@ -19,11 +19,11 @@ List<ParsedReadyGuild> parseReadyGuildsOnIsolate(
   Map<String, Object?> input,
 ) {
   final List<Map<String, dynamic>> rawGuilds =
-      (input['rawGuilds'] as List<Object?>)
+      (input['rawGuilds']! as List<Object?>)
           .map((Object? guild) => Map<String, dynamic>.from(guild! as Map))
           .toList();
   final Map<String, int> guildPositions = Map<String, int>.from(
-    input['guildPositions'] as Map,
+    input['guildPositions']! as Map,
   );
   final List<ParsedReadyGuild> parsed = <ParsedReadyGuild>[];
   var fallbackPosition = guildPositions.length;

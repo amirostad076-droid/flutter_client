@@ -25,11 +25,9 @@ class AccountSwitcherSheet {
     await FluxerBottomSheet.show<void>(
       context,
       title: FluxerLocalizations.of(context).accountManageTitle,
-      variant: FluxerBottomSheetVariant.content,
       useRootNavigator: true,
       builder: (sheetContext, close) {
         return FluxerBottomSheetContent(
-          scrollable: true,
           child: AccountSwitcherSheetBody(onClose: close),
         );
       },

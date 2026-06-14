@@ -100,7 +100,7 @@ void main() {
       DmChannelsCompanion.insert(
         id: 'dm-older',
         recipientId: 'other-a',
-        lastMessageTime: Value(DateTime.utc(2026, 1, 1)),
+        lastMessageTime: Value(DateTime.utc(2026)),
         unreadCount: const Value(0),
       ),
       DmChannelsCompanion.insert(

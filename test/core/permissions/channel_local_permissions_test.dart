@@ -167,11 +167,10 @@ void main() {
             currentUserId: userId,
             everyonePermissions: Permission.viewChannel.value,
             memberRoles: [
-              MemberRole(
+              const MemberRole(
                 id: roleAId,
                 name: 'Moderator',
                 color: 0,
-                permissions: 0,
               ),
             ],
             memberRecordPresent: true,
@@ -218,11 +217,10 @@ void main() {
             currentUserId: userId,
             everyonePermissions: Permission.viewChannel.value,
             memberRoles: [
-              MemberRole(
+              const MemberRole(
                 id: roleAId,
                 name: 'Moderator',
                 color: 0,
-                permissions: 0,
               ),
             ],
             memberRecordPresent: true,

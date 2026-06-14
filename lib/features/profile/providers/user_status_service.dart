@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:drift/drift.dart';
+import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -53,8 +53,6 @@ class UserStatusService {
     }
     final UserSettingsUpdateRequest request = UserSettingsUpdateRequest(
       status: fallbackStatus,
-      statusResetsAt: null,
-      statusResetsTo: null,
     );
     await _patchSettings(
       userId: userId,
@@ -111,7 +109,6 @@ class UserStatusService {
       await database.userDao.updateUserPresence(
         userId,
         status: previousSettings.status,
-        customStatus: null,
       );
     }
     try {

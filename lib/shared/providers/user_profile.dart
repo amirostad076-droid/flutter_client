@@ -93,11 +93,8 @@ UserProfileFullResponse _userProfileFromCachedUser(User user) {
       bio: user.bio,
       pronouns: user.pronouns,
       banner: user.banner,
-      bannerColor: null,
       accentColor: user.accentColor,
     ),
-    guildMember: null,
-    guildMemberProfile: null,
     timezoneOffset: null,
   );
 }

@@ -29,7 +29,6 @@ class CustomStatusSheet {
     return FluxerBottomSheet.show<void>(
       context,
       title: l10n.customStatusSetTitle,
-      variant: FluxerBottomSheetVariant.content,
       useRootNavigator: true,
       builder: (sheetContext, close) {
         return FluxerBottomSheetContent(
@@ -231,7 +230,6 @@ class _CustomStatusSheetBodyState extends ConsumerState<CustomStatusSheetBody> {
               FluxerButton.primary(
                 onPressed: _save,
                 label: l10n.customStatusSave,
-                fitContent: false,
               ),
           ],
         ),

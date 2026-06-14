@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -173,9 +174,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       const _NavbarListEntry(kind: _NavbarListEntryKind.directMessages),
     ];
     if (showFavorites) {
-      entries.add(
-        const _NavbarListEntry(kind: _NavbarListEntryKind.favorites),
-      );
+      entries.add(const _NavbarListEntry(kind: _NavbarListEntryKind.favorites));
     }
     for (final DmChannel dm in allowlistedDms) {
       entries.add(
@@ -218,9 +217,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     }
     entries
       ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.divider))
-      ..add(
-        const _NavbarListEntry(kind: _NavbarListEntryKind.exploreServers),
-      )
+      ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.exploreServers))
       ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.addServer))
       ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.help));
     return entries;
@@ -433,7 +430,10 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
 
     _scheduleScrollIndicatorUpdate();
 
-    final double topPadding = max<double>(MediaQuery.of(context).padding.top, 4);
+    final double topPadding = max<double>(
+      MediaQuery.of(context).padding.top,
+      4,
+    );
     final List<_NavbarListEntry> navbarEntries = _buildNavbarEntries(
       showFavorites: showFavorites,
       allowlistedDms: allowlistedDms,
@@ -443,10 +443,10 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       organizedItems: organizedItems,
     );
     final guildListView = ListView.builder(
+      scrollCacheExtent: const ScrollCacheExtent.pixels(600),
       controller: _scrollController,
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.only(top: topPadding, bottom: 8),
-      cacheExtent: 600,
       itemCount: navbarEntries.length,
       itemBuilder: (BuildContext context, int index) {
         return _buildNavbarListItem(
@@ -621,9 +621,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       case _NavbarListEntryKind.divider:
         return _SidebarDivider(color: context.colors.backgroundModifierHover);
       case _NavbarListEntryKind.unavailableGuilds:
-        return _UnavailableGuildsIndicator(
-          count: entry.unavailableCount ?? 0,
-        );
+        return _UnavailableGuildsIndicator(count: entry.unavailableCount ?? 0);
       case _NavbarListEntryKind.organizedGuild:
         final GuildNavbarGuild guildItem =
             entry.organizedItem! as GuildNavbarGuild;
@@ -1590,8 +1588,8 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                           channelId: channelId,
                           messageNotifications:
                               UserNotificationSettings.fromJson(
-                            messageNotifications,
-                          ),
+                                messageNotifications,
+                              ),
                           muted: muted,
                         ),
                   );
@@ -2265,8 +2263,7 @@ class _GuildListItemState extends State<_GuildListItem>
     }
   }
 
-  bool get _displayHasUnread =>
-      widget.guildUnreadReady && widget.hasUnread;
+  bool get _displayHasUnread => widget.guildUnreadReady && widget.hasUnread;
 
   int get _displayMentionCount =>
       widget.guildUnreadReady ? widget.mentionCount : 0;

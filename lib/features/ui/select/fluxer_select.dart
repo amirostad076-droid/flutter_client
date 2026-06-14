@@ -101,7 +101,7 @@ class _FluxerSelectState<T> extends State<FluxerSelect<T>> {
           )
         : null;
 
-    final String? triggerLabel = label ?? hint ?? l10n.uiSelectPlaceholder;
+    final String triggerLabel = label ?? hint ?? l10n.uiSelectPlaceholder;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

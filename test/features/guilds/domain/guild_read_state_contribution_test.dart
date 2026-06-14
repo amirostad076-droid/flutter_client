@@ -60,7 +60,7 @@ void main() {
       expect(muted.unreadAllowed, isFalse);
 
       final GuildReadStateContribution unmuted = _contribution(
-        isMutedForUnread: false,
+        
       );
       expect(unmuted.mentionAllowed, isTrue);
       expect(unmuted.unreadAllowed, isTrue);

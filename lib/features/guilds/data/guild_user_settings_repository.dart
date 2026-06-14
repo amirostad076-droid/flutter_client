@@ -6,7 +6,6 @@ import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_dart/export.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'guild_user_settings_repository.g.dart';
@@ -150,7 +149,7 @@ ChannelOverrides _mergeChannelOverride({
 }) {
   final bool? resolvedMuted = muted ?? previous?.muted;
   final isExplicitUnmute = muted == false;
-  final isExplicitMute = muted == true;
+  final isExplicitMute = muted ?? false;
   final ChannelOverridesMuteConfig? muteConfig = isExplicitUnmute
       ? null
       : isExplicitMute

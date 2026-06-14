@@ -78,7 +78,6 @@ void main() {
         channelId: channelId,
         userId: userId,
         includeMember: false,
-        everyonePermissions: 0,
       );
 
       final outcome = await evaluateChannelUnreadPermission(
@@ -113,8 +112,6 @@ void main() {
         guildId: guildId,
         channelId: channelId,
         userId: userId,
-        everyonePermissions: 0,
-        memberRoleIds: const [],
       );
 
       final outcome = await evaluateChannelUnreadPermission(
@@ -141,7 +138,6 @@ void main() {
         guildId: guildId,
         channelId: channelId,
         userId: userId,
-        everyonePermissions: 0,
         memberRoleIds: const ['role-view'],
       );
 

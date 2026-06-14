@@ -7,7 +7,7 @@ void main() {
     test('returns null for expired status', () {
       final CustomStatusResponse expired = CustomStatusResponse(
         text: 'Away',
-        expiresAt: DateTime.utc(2020, 1, 1),
+        expiresAt: DateTime.utc(2020),
         emojiAnimated: false,
       );
       expect(normalizeCustomStatus(expired), isNull);
@@ -16,7 +16,7 @@ void main() {
     test('returns active status with text', () {
       final CustomStatusResponse active = CustomStatusResponse(
         text: 'Coffee',
-        expiresAt: DateTime.utc(2099, 1, 1),
+        expiresAt: DateTime.utc(2099),
         emojiAnimated: false,
       );
       expect(normalizeCustomStatus(active)?.text, 'Coffee');

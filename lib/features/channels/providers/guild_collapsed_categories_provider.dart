@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild_collapsed_categories.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

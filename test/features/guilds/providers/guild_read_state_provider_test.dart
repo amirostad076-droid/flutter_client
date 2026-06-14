@@ -457,7 +457,7 @@ void main() {
       container.read(gatewayReadyProvider.notifier).setReady();
       await _waitFor(() => container.read(guildReadStateReadyProvider));
 
-      expect(unreadSnapshots.where((hasUnread) => hasUnread == true).length, 1);
+      expect(unreadSnapshots.where((hasUnread) => hasUnread ?? false).length, 1);
       expect(
         container.read(guildReadStateProvider)['guild-1']?.hasUnread,
         isTrue,

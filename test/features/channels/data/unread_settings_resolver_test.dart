@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
@@ -72,7 +72,6 @@ void main() {
         channel: channel,
         guildSettings: _settings(
           muted: true,
-          messageNotifications: UserNotificationSettings.allMessages,
         ),
         unreadBadgeCustomizationEnabled: true,
       );
@@ -84,7 +83,7 @@ void main() {
       final UserNotificationSettings? level = resolveGuildUnreadBadgesLevel(
         channel: channel,
         guildSettings: _settings(
-          messageNotifications: UserNotificationSettings.allMessages,
+          
         ),
         unreadBadgeCustomizationEnabled: true,
       );
@@ -131,7 +130,6 @@ void main() {
             ),
           },
         ),
-        unreadBadgeCustomizationEnabled: false,
       );
       expect(level, isNull);
     });
@@ -141,7 +139,6 @@ void main() {
       final UserNotificationSettings? level = resolveUnreadBadgesLevel(
         channel: channel,
         guildSettings: _settings(
-          messageNotifications: UserNotificationSettings.allMessages,
           channelOverrides: <String, ChannelOverrides>{
             _channelId: _override(
               unreadBadges: UserNotificationSettings.noMessages,
@@ -175,7 +172,6 @@ void main() {
     test('uses explicit badge level before notification fallback', () async {
       final Channel channel = await _channel();
       final UserGuildSettingsResponse settings = _settings(
-        messageNotifications: UserNotificationSettings.allMessages,
         channelOverrides: <String, ChannelOverrides>{
           _channelId: _override(
             unreadBadges: UserNotificationSettings.onlyMentions,
