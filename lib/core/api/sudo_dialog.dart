@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/auth/data/webauthn_service.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
@@ -11,6 +12,8 @@ import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/ui/tabs/fluxer_segmented_tabs.dart';
 import 'package:fluxer_app/features/ui/tabs/fluxer_tabs.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:passkeys/authenticator.dart';
+import 'package:passkeys/exceptions.dart';
 
 /// Shows a sudo verification bottom sheet that collects either a password
 /// or TOTP code from the user.
@@ -66,6 +69,7 @@ class _SudoVerificationSheetContentState
   bool _isLoading = true;
   bool _hasPassword = true;
   bool _hasTotp = false;
+  bool _hasWebauthn = false;
   _SudoMethod _selectedMethod = _SudoMethod.password;
   String? _error;
 
@@ -96,11 +100,13 @@ class _SudoVerificationSheetContentState
       }
       final hasMfa = data['has_mfa'] as bool? ?? false;
       final totp = data['totp'] as bool? ?? false;
+      final webauthn = data['webauthn'] as bool? ?? false;
       setState(() {
         // When MFA is enabled, password-only is not available (matches
         // web app behavior in SudoPrompt.tsx).
         _hasPassword = !hasMfa;
         _hasTotp = totp;
+        _hasWebauthn = webauthn;
         _isLoading = false;
         if (hasMfa && totp) {
           _selectedMethod = _SudoMethod.totp;
@@ -135,6 +141,33 @@ class _SudoVerificationSheetContentState
         return;
       }
       widget.onVerified({'mfa_method': 'totp', 'mfa_code': code});
+    }
+  }
+
+  Future<void> _verifyWithPasskey() async {
+    setState(() => _error = null);
+    try {
+      final res = await widget.dio.post<Map<String, dynamic>>(
+        '/users/@me/sudo/webauthn/authentication-options',
+      );
+      final options = res.data!;
+      final response = await WebAuthnService(
+        PasskeyAuthenticator(),
+      ).authenticate(options);
+      widget.onVerified(<String, dynamic>{
+        'mfa_method': 'webauthn',
+        'webauthn_challenge': options['challenge'],
+        'webauthn_response': response,
+      });
+    } on PasskeyAuthCancelledException {
+      // User dismissed the OS passkey prompt; leave the sheet open.
+    } on Exception catch (e) {
+      talker.warning('[SudoDialog] Passkey verification failed: $e');
+      if (mounted) {
+        setState(
+          () => _error = FluxerLocalizations.of(context).sudoVerificationFailed,
+        );
+      }
     }
   }
 
@@ -191,25 +224,43 @@ class _SudoVerificationSheetContentState
             ),
             SizedBox(height: layout.s3),
           ],
-          if (_selectedMethod == _SudoMethod.password)
-            FluxerInput(
-              controller: _passwordController,
-              label: l10n.password,
-              obscureText: true,
-              autofocus: true,
-              onSubmitted: (_) => _submit(),
-            )
-          else
-            FluxerInput(
-              controller: _totpController,
-              label: l10n.sudoAuthenticatorCode,
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              onSubmitted: (_) => _submit(),
+          if (_hasPassword || _hasTotp) ...[
+            if (_selectedMethod == _SudoMethod.password)
+              FluxerInput(
+                controller: _passwordController,
+                label: l10n.password,
+                obscureText: true,
+                autofocus: true,
+                onSubmitted: (_) => _submit(),
+              )
+            else
+              FluxerInput(
+                controller: _totpController,
+                label: l10n.sudoAuthenticatorCode,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                onSubmitted: (_) => _submit(),
+              ),
+            SizedBox(height: layout.s4),
+            FluxerButton.primary(
+              onPressed: _submit,
+              label: l10n.continueAction,
             ),
-          SizedBox(height: layout.s4),
-          FluxerButton.primary(onPressed: _submit, label: l10n.continueAction),
-          SizedBox(height: layout.s2),
+            SizedBox(height: layout.s2),
+          ],
+          if (_hasWebauthn) ...[
+            if (_hasPassword || _hasTotp)
+              FluxerButton.secondary(
+                onPressedAsync: _verifyWithPasskey,
+                label: l10n.mfaMethodWebauthn,
+              )
+            else
+              FluxerButton.primary(
+                onPressedAsync: _verifyWithPasskey,
+                label: l10n.mfaMethodWebauthn,
+              ),
+            SizedBox(height: layout.s2),
+          ],
         ],
       ),
     );
