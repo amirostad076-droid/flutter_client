@@ -316,7 +316,7 @@ class _MarkdownBlockRenderer {
             padding: EdgeInsets.only(bottom: i == items.length - 1 ? 0 : 4),
             child: _buildListItem(
               items[i],
-              marker: ordered ? '${i + 1}.' : '\u2022',
+            marker: ordered ? '${i + (int.tryParse(node.attributes['start'] ?? '1') ?? 1)}.' : '\u2022',
             ),
           ),
       ],
