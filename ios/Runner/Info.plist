@@ -51,6 +51,8 @@
 	<string>group.com.fluxer</string>
 	<key>RTCScreenSharingExtension</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER).BroadcastExtension</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Required by a 3rd Party package but never requested or used.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
