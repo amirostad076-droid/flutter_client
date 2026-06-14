@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/members/data/member_repository.dart';
-import 'package:riverpod/src/providers/stream_provider.dart';
+import 'package:riverpod/misc.dart';
 
 final Set<String> _guildRolesPrefetchCompleted = <String>{};
 final Set<String> _guildRolesPrefetchInFlight = <String>{};
@@ -47,14 +47,16 @@ void prefetchGuildRolesIfMissing({
   );
 }
 
-final StreamProviderFamily<Map<String, db.Role>, String> guildRolesByIdProvider = StreamProvider.family<Map<String, db.Role>, String>(
-  (Ref ref, String guildId) {
-    if (guildId.isEmpty) {
-      return Stream<Map<String, db.Role>>.value(<String, db.Role>{});
-    }
-    final database = ref.watch(fluxerDatabaseProvider);
-    return database.roleDao.watchRoles(guildId).map((List<db.Role> roles) {
-      return <String, db.Role>{for (final db.Role role in roles) role.id: role};
-    });
-  },
-);
+final StreamProviderFamily<Map<String, db.Role>, String>
+guildRolesByIdProvider = StreamProvider.family<Map<String, db.Role>, String>((
+  Ref ref,
+  String guildId,
+) {
+  if (guildId.isEmpty) {
+    return Stream<Map<String, db.Role>>.value(<String, db.Role>{});
+  }
+  final database = ref.watch(fluxerDatabaseProvider);
+  return database.roleDao.watchRoles(guildId).map((List<db.Role> roles) {
+    return <String, db.Role>{for (final db.Role role in roles) role.id: role};
+  });
+});

@@ -40,7 +40,8 @@ class MobilePushRegistrationDao extends DatabaseAccessor<FluxerDatabase>
     mobilePushRegistrations,
   )..where((t) => t.userId.equals(userId))).go();
 
-  /// Last known VAPID key from any logged-in user (for the UP background isolate).
+  /// Last known VAPID key from any logged-in user
+  /// (for the UP background isolate).
   Future<void> saveVapidForUser({
     required String userId,
     required String vapidPublicKey,

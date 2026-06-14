@@ -140,7 +140,9 @@ class QuickSwitcher extends _$QuickSwitcher {
   }
 
   void setQuery(String query) {
-    final QuickSwitcherQueryMode? queryMode = parseQuickSwitcherQueryMode(query);
+    final QuickSwitcherQueryMode? queryMode = parseQuickSwitcherQueryMode(
+      query,
+    );
     state = state.copyWith(
       query: query,
       queryMode: queryMode,
@@ -191,7 +193,9 @@ class QuickSwitcher extends _$QuickSwitcher {
     }
     _unreadChannels = unreadChannels;
     _conversations = dmState.conversations;
-    _guildChannels = await ref.read(quickSwitcherRepositoryProvider).getGuildChannels();
+    _guildChannels = await ref
+        .read(quickSwitcherRepositoryProvider)
+        .getGuildChannels();
     final Map<String, QuickSwitcherUnreadChannel> unreadByChannelId =
         <String, QuickSwitcherUnreadChannel>{
           for (final QuickSwitcherUnreadChannel entry in unreadChannels)
@@ -254,7 +258,9 @@ class QuickSwitcher extends _$QuickSwitcher {
       return;
     }
     final String? currentChannelId = ref.read(activeChannelIdProvider);
-    final Set<String> excludedChannelIds = _excludedChannelIds(currentChannelId);
+    final Set<String> excludedChannelIds = _excludedChannelIds(
+      currentChannelId,
+    );
     final List<QuickSwitcherResult> results;
     final String trimmed = state.query.trim();
     if (trimmed.isEmpty) {
@@ -267,7 +273,8 @@ class QuickSwitcher extends _$QuickSwitcher {
               for (final Channel channel in _guildChannels) channel.id: channel,
             },
             conversationsById: <String, DmConversation>{
-              for (final DmConversation convo in _conversations) convo.id: convo,
+              for (final DmConversation convo in _conversations)
+                convo.id: convo,
             },
             guildsById: <String, Guild>{
               for (final Guild guild in guilds) guild.id: guild,
@@ -375,7 +382,9 @@ class QuickSwitcher extends _$QuickSwitcher {
     } on Object {
       results = const <Member>[];
     }
-    _memberSearchResults = results.take(kQuickSwitcherMemberSearchLimit).toList();
+    _memberSearchResults = results
+        .take(kQuickSwitcherMemberSearchLimit)
+        .toList();
     if (state.isOpen) {
       state = state.copyWith(isLoadingMembers: false);
       _recomputeResults();

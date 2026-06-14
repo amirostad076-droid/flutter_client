@@ -116,8 +116,9 @@ _InlineLineGroup _parseInlineLineGroup(
     if (_isBlockStart(trimmedNext, features) || nextLine.trim().isEmpty) {
       break;
     }
-    buffer.write('\n');
-    buffer.write(nextLine);
+    buffer
+      ..write('\n')
+      ..write(nextLine);
     consumed++;
   }
   if (startIndex + consumed < lines.length) {

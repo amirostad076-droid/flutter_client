@@ -16,16 +16,17 @@ class StatusExpiryScheduler {
   Timer? _timer;
 
   void bind() {
-    _ref.listen<UserSettingsResponse?>(
-      userSettingsStatusProvider,
-      (_, UserSettingsResponse? settings) => _scheduleFromSettings(settings),
-      fireImmediately: true,
-    );
-    _ref.listen<String?>(
-      currentUserIdProvider,
-      (_, _) => _scheduleFromSettings(_ref.read(userSettingsStatusProvider)),
-    );
-    _ref.onDispose(_cancelTimer);
+    _ref
+      ..listen<UserSettingsResponse?>(
+        userSettingsStatusProvider,
+        (_, UserSettingsResponse? settings) => _scheduleFromSettings(settings),
+        fireImmediately: true,
+      )
+      ..listen<String?>(
+        currentUserIdProvider,
+        (_, _) => _scheduleFromSettings(_ref.read(userSettingsStatusProvider)),
+      )
+      ..onDispose(_cancelTimer);
   }
 
   void _scheduleFromSettings(UserSettingsResponse? settings) {
@@ -71,8 +72,7 @@ class StatusExpiryScheduler {
 
 @Riverpod(keepAlive: true)
 StatusExpiryScheduler statusExpiryScheduler(Ref ref) {
-  final StatusExpiryScheduler scheduler = StatusExpiryScheduler(ref);
-  scheduler.bind();
+  final StatusExpiryScheduler scheduler = StatusExpiryScheduler(ref)..bind();
   return scheduler;
 }
 

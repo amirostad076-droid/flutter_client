@@ -313,4 +313,3 @@ List<String> _mentionsSearchValues(FluxerLocalizations l10n) {
     '@',
   ];
 }
-

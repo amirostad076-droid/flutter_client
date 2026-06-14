@@ -78,20 +78,21 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
   @override
   Widget build(BuildContext context) {
     final FluxerLocalizations strings = FluxerLocalizations.of(context);
-    ref.listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
-      if (previous == false && next) {
-        unawaited(_retryConnection());
-      }
-    });
-    ref.listen<GatewayConnection>(gatewayConnectionProvider, (
-      GatewayConnection? _,
-      GatewayConnection next,
-    ) {
-      if (next.state == GatewayState.connected) {
-        ref.read(gatewayConnectionFailedProvider.notifier).reset();
-        ref.read(serverReachableProvider.notifier).setReachable(value: true);
-      }
-    });
+    ref
+      ..listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
+        if (previous == false && next) {
+          unawaited(_retryConnection());
+        }
+      })
+      ..listen<GatewayConnection>(gatewayConnectionProvider, (
+        GatewayConnection? _,
+        GatewayConnection next,
+      ) {
+        if (next.state == GatewayState.connected) {
+          ref.read(gatewayConnectionFailedProvider.notifier).reset();
+          ref.read(serverReachableProvider.notifier).setReachable(value: true);
+        }
+      });
     return Scaffold(
       backgroundColor: context.colors.backgroundPrimary,
       body: Center(

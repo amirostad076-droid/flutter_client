@@ -30,8 +30,7 @@ const int _kRateLimitMaxAttempts = 6;
 
 @Riverpod(keepAlive: true)
 SyncedPreferencesStore syncedPreferencesStore(Ref ref) {
-  final store = SyncedPreferencesStore(ref);
-  store.registerDefaultAdapters();
+  final store = SyncedPreferencesStore(ref)..registerDefaultAdapters();
   return store;
 }
 
@@ -167,14 +166,19 @@ class SyncedPreferencesStore {
       if (isProtected && !wasFirstHydrate) {
         if (remote != null &&
             adapter.hasInboundUpdatesWhileProtected(local, remote)) {
-          final target = adapter.mergeForMigration(local: local, remote: remote);
+          final target = adapter.mergeForMigration(
+            local: local,
+            remote: remote,
+          );
           if (!_statesEqual(adapter, local, target)) {
             await _applyAdapterRemote(adapter, target);
           }
         }
         continue;
       }
-      if (wasFirstHydrate && hasLocal && hasRemote &&
+      if (wasFirstHydrate &&
+          hasLocal &&
+          hasRemote &&
           !_statesEqual(adapter, local, remote)) {
         final target = adapter.mergeForMigration(local: local, remote: remote);
         if (!_statesEqual(adapter, local, target)) {
@@ -226,7 +230,9 @@ class SyncedPreferencesStore {
 
   Future<void> _attemptBoundedRepair(String encoded) async {
     if (_lastKnownGoodWire.isEmpty) {
-      final foreignCount = SyncedPreferencesWireCodec.countForeignFields(encoded);
+      final foreignCount = SyncedPreferencesWireCodec.countForeignFields(
+        encoded,
+      );
       if (foreignCount == 0) {
         talker.warning(
           '[SyncedPreferences] Decode failed with no foreign fields; skipping repair',
@@ -264,7 +270,11 @@ class SyncedPreferencesStore {
       _lastKnownGoodWire = repairWire;
       talker.info('[SyncedPreferences] Repaired favorites field on wire');
     } on Object catch (error, stackTrace) {
-      talker.error('[SyncedPreferences] Bounded repair failed', error, stackTrace);
+      talker.error(
+        '[SyncedPreferences] Bounded repair failed',
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -329,7 +339,8 @@ class SyncedPreferencesStore {
       talker.debug(
         '[SyncedPreferences] Pushed ${fieldsInRequest.length} field(s) '
         '(${encoded.length} bytes, '
-        '${SyncedPreferencesWireCodec.countForeignFields(encoded)} foreign fields)',
+        '${SyncedPreferencesWireCodec.countForeignFields(encoded)}'
+        'foreign fields)',
       );
     } on SyncedPreferencesWireEncodeException catch (error, stackTrace) {
       talker.error('[SyncedPreferences] Wire encode failed', error, stackTrace);
@@ -388,8 +399,9 @@ class SyncedPreferencesStore {
     for (final entry in _adapters.entries) {
       final adapter = entry.value;
       final local = await adapter.readLocalValue();
-      fieldMessages[adapter.fieldNumber] =
-          adapter.toProtoMessage(local).writeToBuffer();
+      fieldMessages[adapter.fieldNumber] = adapter
+          .toProtoMessage(local)
+          .writeToBuffer();
     }
     return SyncedPreferencesWireCodec.encodeSnapshotIntoWire(
       currentWire: _wireBlob.isEmpty ? null : _wireBlob,
@@ -443,11 +455,7 @@ class SyncedPreferencesStore {
     }
   }
 
-  bool _statesEqual(
-    SyncedFieldAdapter<Object?> adapter,
-    Object? a,
-    Object? b,
-  ) {
+  bool _statesEqual(SyncedFieldAdapter<Object?> adapter, Object? a, Object? b) {
     return adapter.statesEqual(a, b);
   }
 
@@ -512,7 +520,10 @@ class SyncedPreferencesStore {
     _pendingPush = true;
     _pushTimer?.cancel();
     _rateLimitTimer?.cancel();
-    _rateLimitAttempts = (_rateLimitAttempts + 1).clamp(1, _kRateLimitMaxAttempts);
+    _rateLimitAttempts = (_rateLimitAttempts + 1).clamp(
+      1,
+      _kRateLimitMaxAttempts,
+    );
     final delay = Duration(
       milliseconds:
           _kRateLimitBaseDelay.inMilliseconds *

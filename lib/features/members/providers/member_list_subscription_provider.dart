@@ -84,8 +84,9 @@ void memberListSubscription(Ref ref) {
     final List<MemberListRange> desiredRanges =
         ref.read(memberListDesiredRangesProvider)[rangesKey] ??
         kMemberListInitialSubscriptionRanges;
-    final List<MemberListRange> normalized =
-        normalizeMemberListRanges(desiredRanges);
+    final List<MemberListRange> normalized = normalizeMemberListRanges(
+      desiredRanges,
+    );
     if (subscribedGuildId == guildId &&
         subscribedChannelId == channelId &&
         areMemberListRangesEqual(lastSentRanges, normalized)) {
@@ -129,29 +130,30 @@ void memberListSubscription(Ref ref) {
     lastSentRanges = normalized;
   }
 
-  ref.listen<Map<String, List<MemberListRange>>>(
-    memberListDesiredRangesProvider,
-    (_, _) => _scheduleMemberListSync(ref, syncSubscription),
-  );
-  ref.listen<String?>(
-    activeGuildIdProvider,
-    (_, _) => _scheduleMemberListSync(ref, syncSubscription),
-  );
-  ref.listen<String?>(
-    activeChannelIdProvider,
-    (_, _) => _scheduleMemberListSync(ref, syncSubscription),
-  );
-  ref.listen<bool>(
-    channelListViewModelProvider.select(
-      (ChannelListState s) => s.isMemberListVisible,
-    ),
-    (_, _) => _scheduleMemberListSync(ref, syncSubscription),
-  );
-  ref.listen<GatewayState>(
-    gatewayConnectionProvider.select((GatewayConnection c) => c.state),
-    (_, _) => _scheduleMemberListSync(ref, syncSubscription),
-  );
-  ref.onDispose(unsubscribe);
+  ref
+    ..listen<Map<String, List<MemberListRange>>>(
+      memberListDesiredRangesProvider,
+      (_, _) => _scheduleMemberListSync(ref, syncSubscription),
+    )
+    ..listen<String?>(
+      activeGuildIdProvider,
+      (_, _) => _scheduleMemberListSync(ref, syncSubscription),
+    )
+    ..listen<String?>(
+      activeChannelIdProvider,
+      (_, _) => _scheduleMemberListSync(ref, syncSubscription),
+    )
+    ..listen<bool>(
+      channelListViewModelProvider.select(
+        (ChannelListState s) => s.isMemberListVisible,
+      ),
+      (_, _) => _scheduleMemberListSync(ref, syncSubscription),
+    )
+    ..listen<GatewayState>(
+      gatewayConnectionProvider.select((GatewayConnection c) => c.state),
+      (_, _) => _scheduleMemberListSync(ref, syncSubscription),
+    )
+    ..onDispose(unsubscribe);
   _scheduleMemberListSync(ref, syncSubscription);
 }
 
@@ -206,8 +208,9 @@ void memberListDetailsSubscription(
     final List<MemberListRange> desiredRanges =
         ref.read(memberListDesiredRangesProvider)[rangesKey] ??
         kMemberListInitialSubscriptionRanges;
-    final List<MemberListRange> normalized =
-        normalizeMemberListRanges(desiredRanges);
+    final List<MemberListRange> normalized = normalizeMemberListRanges(
+      desiredRanges,
+    );
     if (subscribedGuildId == guildId &&
         subscribedChannelId == channelId &&
         areMemberListRangesEqual(lastSentRanges, normalized)) {
@@ -249,16 +252,17 @@ void memberListDetailsSubscription(
     lastSentRanges = normalized;
   }
 
-  ref.listen<Map<String, List<MemberListRange>>>(
-    memberListDesiredRangesProvider,
-    (_, _) => _scheduleMemberListSync(ref, syncSubscription),
-  );
-  ref.listen<bool>(
-    gatewayConnectionProvider.select(
-      (GatewayConnection c) => c.state == GatewayState.connected,
-    ),
-    (_, _) => _scheduleMemberListSync(ref, syncSubscription),
-  );
-  ref.onDispose(unsubscribe);
+  ref
+    ..listen<Map<String, List<MemberListRange>>>(
+      memberListDesiredRangesProvider,
+      (_, _) => _scheduleMemberListSync(ref, syncSubscription),
+    )
+    ..listen<bool>(
+      gatewayConnectionProvider.select(
+        (GatewayConnection c) => c.state == GatewayState.connected,
+      ),
+      (_, _) => _scheduleMemberListSync(ref, syncSubscription),
+    )
+    ..onDispose(unsubscribe);
   _scheduleMemberListSync(ref, syncSubscription);
 }

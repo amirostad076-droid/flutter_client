@@ -25,9 +25,10 @@ class GuildMemberChunkWaiter {
     List<String> userIds = const <String>[],
   }) {
     if (userIds.isNotEmpty) {
-      final List<String> existing =
-          _lastChunkUserIds.putIfAbsent(guildId, () => <String>[]);
-      existing.addAll(userIds);
+      _lastChunkUserIds.putIfAbsent(
+        guildId,
+        () => <String>[],
+      ).addAll(userIds);
     }
     if (chunkCount > 0) {
       _expectedChunkCount[guildId] = chunkCount;

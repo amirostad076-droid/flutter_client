@@ -75,8 +75,9 @@ Future<void> prefetchGuildMembersForMessages({
     }
   }
   for (final String userId in fetchedUserIds) {
-    ref.invalidate(guildUserDisplayProvider((userId, guildId)));
-    ref.invalidate(guildUserDisplayFromDbProvider((userId, guildId)));
-    ref.invalidate(memberRoleColorProvider((userId, guildId)));
+    ref
+      ..invalidate(guildUserDisplayProvider((userId, guildId)))
+      ..invalidate(guildUserDisplayFromDbProvider((userId, guildId)))
+      ..invalidate(memberRoleColorProvider((userId, guildId)));
   }
 }

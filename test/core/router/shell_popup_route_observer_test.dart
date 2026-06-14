@@ -79,41 +79,6 @@ void main() {
   });
 }
 
-class _FakePageRoute<T> extends Route<T> {
-  @override
-  bool get opaque => true;
-
-  @override
-  bool get barrierDismissible => false;
-
-  @override
-  Color? get barrierColor => null;
-
-  @override
-  String? get barrierLabel => null;
-
-  @override
-  bool get maintainState => true;
-
-  @override
-  Duration get transitionDuration => Duration.zero;
-
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) => const SizedBox.shrink();
-
-  @override
-  Widget buildTransitions(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) => child;
-}
-
 class _FakePopupRoute<T> extends PopupRoute<T> {
   @override
   Color? get barrierColor => Colors.black54;

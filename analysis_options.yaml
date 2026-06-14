@@ -4,6 +4,8 @@ plugins:
   riverpod_lint: 3.1.3
 
 analyzer:
+  errors:
+    lines_longer_than_80_chars: ignore
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
@@ -16,7 +18,7 @@ analyzer:
     - "*.pbjson.dart"
     - "*.pb.dart"
     - "*.pbenum.dart"
-    - "lib/core/synced_preferances/generated/*"
+    - "lib/core/synced_preferances/generated/**"
 
 language:
   strict-casts: true

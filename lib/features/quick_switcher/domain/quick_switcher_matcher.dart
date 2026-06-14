@@ -12,9 +12,27 @@ List<T> matchQuickSwitcherCandidates<T extends QuickSwitcherCandidate>(
     return _sortCandidatesByWeight(candidates).take(limit).toList();
   }
   final String query = search.toLowerCase();
-  final List<T> matches = candidates
-      .where((QuickSwitcherCandidate candidate) => _matchesCandidate(candidate, query))
-      .toList()
+  final List<T> matches =
+      candidates
+          .where(
+            (QuickSwitcherCandidate candidate) =>
+                _matchesCandidate(candidate, query),
+          )
+          .toList()
+        ..sort((T a, T b) {
+          final int weightCompare = b.sortWeight.compareTo(a.sortWeight);
+          if (weightCompare != 0) {
+            return weightCompare;
+          }
+          return a.title.toLowerCase().compareTo(b.title.toLowerCase());
+        });
+  return matches.take(limit).toList();
+}
+
+List<T> _sortCandidatesByWeight<T extends QuickSwitcherCandidate>(
+  List<T> candidates,
+) {
+  final List<T> sorted = List<T>.from(candidates)
     ..sort((T a, T b) {
       final int weightCompare = b.sortWeight.compareTo(a.sortWeight);
       if (weightCompare != 0) {
@@ -22,20 +40,6 @@ List<T> matchQuickSwitcherCandidates<T extends QuickSwitcherCandidate>(
       }
       return a.title.toLowerCase().compareTo(b.title.toLowerCase());
     });
-  return matches.take(limit).toList();
-}
-
-List<T> _sortCandidatesByWeight<T extends QuickSwitcherCandidate>(
-  List<T> candidates,
-) {
-  final List<T> sorted = List<T>.from(candidates);
-  sorted.sort((T a, T b) {
-    final int weightCompare = b.sortWeight.compareTo(a.sortWeight);
-    if (weightCompare != 0) {
-      return weightCompare;
-    }
-    return a.title.toLowerCase().compareTo(b.title.toLowerCase());
-  });
   return sorted;
 }
 

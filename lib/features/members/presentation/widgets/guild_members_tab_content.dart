@@ -33,7 +33,8 @@ class GuildMembersTabContent extends ConsumerStatefulWidget {
       _GuildMembersTabContentState();
 }
 
-class _GuildMembersTabContentState extends ConsumerState<GuildMembersTabContent> {
+class _GuildMembersTabContentState
+    extends ConsumerState<GuildMembersTabContent> {
   @override
   void initState() {
     super.initState();
@@ -61,17 +62,16 @@ class _GuildMembersTabContentState extends ConsumerState<GuildMembersTabContent>
   void _updateDesiredRanges() {
     final MemberListViewportListState? listState = ref
         .read(memberListViewportProvider.notifier)
-        .getList(
-          guildId: widget.guildId,
-          channelId: widget.channelId,
-        );
+        .getList(guildId: widget.guildId, channelId: widget.channelId);
     final int totalRows = listState?.totalRows ?? 0;
     if (!widget.scrollController.hasClients) {
-      ref.read(memberListDesiredRangesProvider.notifier).setRanges(
-        guildId: widget.guildId,
-        channelId: widget.channelId,
-        ranges: kMemberListInitialSubscriptionRanges,
-      );
+      ref
+          .read(memberListDesiredRangesProvider.notifier)
+          .setRanges(
+            guildId: widget.guildId,
+            channelId: widget.channelId,
+            ranges: kMemberListInitialSubscriptionRanges,
+          );
       return;
     }
     final List<MemberListGroupLayout> layouts = listState != null
@@ -85,35 +85,40 @@ class _GuildMembersTabContentState extends ConsumerState<GuildMembersTabContent>
       layouts: layouts.isNotEmpty ? layouts : null,
       groupHeaderHeight: kMemberListDetailsGroupHeaderHeight,
     );
-    ref.read(memberListDesiredRangesProvider.notifier).setRanges(
-      guildId: widget.guildId,
-      channelId: widget.channelId,
-      ranges: ranges.isEmpty ? kMemberListInitialSubscriptionRanges : ranges,
-    );
+    ref
+        .read(memberListDesiredRangesProvider.notifier)
+        .setRanges(
+          guildId: widget.guildId,
+          channelId: widget.channelId,
+          ranges: ranges.isEmpty
+              ? kMemberListInitialSubscriptionRanges
+              : ranges,
+        );
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(
-      memberListDetailsSubscriptionProvider(
-        widget.guildId,
-        widget.channelId,
-        true,
-      ),
-      (_, _) {},
-    );
-    ref.watch(memberListViewportProvider);
+    ref
+      ..listen(
+        memberListDetailsSubscriptionProvider(
+          widget.guildId,
+          widget.channelId,
+          true,
+        ),
+        (_, _) {},
+      )
+      ..watch(memberListViewportProvider);
     final MemberListViewportListState? listState = ref
         .read(memberListViewportProvider.notifier)
-        .getList(
-          guildId: widget.guildId,
-          channelId: widget.channelId,
-        );
+        .getList(guildId: widget.guildId, channelId: widget.channelId);
     final Map<String, db.Role> rolesById =
         ref.watch(guildRolesByIdProvider(widget.guildId)).value ??
-            <String, db.Role>{};
-    final String? guildOwnerId =
-        ref.watch(guildByIdProvider(widget.guildId)).asData?.value?.ownerId;
+        <String, db.Role>{};
+    final String? guildOwnerId = ref
+        .watch(guildByIdProvider(widget.guildId))
+        .asData
+        ?.value
+        ?.ownerId;
     if (listState == null || !listState.hasReceivedInitialPayload) {
       return ListView.builder(
         controller: widget.scrollController,
@@ -127,8 +132,9 @@ class _GuildMembersTabContentState extends ConsumerState<GuildMembersTabContent>
         },
       );
     }
-    final List<MemberListGroupLayout> layouts =
-        buildMemberListLayout(listState.groups);
+    final List<MemberListGroupLayout> layouts = buildMemberListLayout(
+      listState.groups,
+    );
     final int totalRows = listState.totalRows > 0
         ? listState.totalRows
         : getTotalRowsFromLayout(layouts);

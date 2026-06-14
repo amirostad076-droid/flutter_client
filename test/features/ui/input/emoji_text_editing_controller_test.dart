@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:fluxer_app/features/ui/input/emoji_text_editing_controller.dart';
 
 void main() {
@@ -25,99 +24,99 @@ void main() {
       });
 
       test('inserts emoji at cursor position', () {
-        controller.value = const TextEditingValue(
-          text: 'hello world',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        controller.insertEmoji('wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: 'hello world',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          ..insertEmoji('wave', '\u{1F44B}');
 
         expect(controller.actualText, 'hello :wave: world');
       });
 
       test('adds leading space when previous char is not whitespace', () {
-        controller.value = const TextEditingValue(
-          text: 'hello',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        controller.insertEmoji('wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: 'hello',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          ..insertEmoji('wave', '\u{1F44B}');
 
         expect(controller.actualText, 'hello :wave:');
       });
 
       test('does not add leading space when previous char is whitespace', () {
-        controller.value = const TextEditingValue(
-          text: 'hello ',
-          selection: TextSelection.collapsed(offset: 6),
-        );
-
-        controller.insertEmoji('wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: 'hello ',
+            selection: TextSelection.collapsed(offset: 6),
+          )
+          ..insertEmoji('wave', '\u{1F44B}');
 
         expect(controller.actualText, 'hello :wave:');
       });
 
       test('adds trailing space when next char is not whitespace', () {
-        controller.value = const TextEditingValue(
-          text: 'hello world',
-          selection: TextSelection.collapsed(offset: 6),
-        );
-
-        controller.insertEmoji('wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: 'hello world',
+            selection: TextSelection.collapsed(offset: 6),
+          )
+          ..insertEmoji('wave', '\u{1F44B}');
 
         expect(controller.actualText, 'hello :wave: world');
       });
 
       test('does not add trailing space when next char is whitespace', () {
-        controller.value = const TextEditingValue(
-          text: 'hello  world',
-          selection: TextSelection.collapsed(offset: 6),
-        );
-
-        controller.insertEmoji('wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: 'hello  world',
+            selection: TextSelection.collapsed(offset: 6),
+          )
+          ..insertEmoji('wave', '\u{1F44B}');
 
         expect(controller.actualText, 'hello :wave: world');
       });
 
       test('inserts at end when selection is invalid', () {
-        controller.text = 'hello';
-
-        controller.insertEmoji('wave', '\u{1F44B}');
+        controller
+          ..text = 'hello'
+          ..insertEmoji('wave', '\u{1F44B}');
 
         expect(controller.actualText, 'hello :wave:');
       });
 
       test('respects maxActualLength and blocks insertion', () {
-        controller.value = const TextEditingValue(
-          text: 'abcde',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        controller.insertEmoji('wave', '\u{1F44B}', maxActualLength: 10);
+        controller
+          ..value = const TextEditingValue(
+            text: 'abcde',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          ..insertEmoji('wave', '\u{1F44B}', maxActualLength: 10);
 
         expect(controller.actualText, 'abcde');
       });
 
       test('allows insertion when within maxActualLength', () {
-        controller.value = const TextEditingValue(
-          text: 'ab',
-          selection: TextSelection.collapsed(offset: 2),
-        );
-
-        controller.insertEmoji('wave', '\u{1F44B}', maxActualLength: 20);
+        controller
+          ..value = const TextEditingValue(
+            text: 'ab',
+            selection: TextSelection.collapsed(offset: 2),
+          )
+          ..insertEmoji('wave', '\u{1F44B}', maxActualLength: 20);
 
         expect(controller.actualText, 'ab :wave:');
       });
 
       test('accounts for leading/trailing spaces in maxActualLength', () {
-        controller.value = const TextEditingValue(
-          text: 'abcdefghij',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        // actualText would be "abcde :wave: fghij" = 18 chars
-        // but maxActualLength is 17 → should be blocked
-        controller.insertEmoji('wave', '\u{1F44B}', maxActualLength: 17);
+        controller
+          ..value = const TextEditingValue(
+            text: 'abcdefghij',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          // actualText would be "abcde :wave: fghij" = 18 chars
+          // but maxActualLength is 17 → should be blocked
+          ..insertEmoji('wave', '\u{1F44B}', maxActualLength: 17);
 
         expect(controller.actualText, 'abcdefghij');
       });
@@ -135,8 +134,9 @@ void main() {
       });
 
       test('inserts consecutive emojis with spacing', () {
-        controller.insertEmoji('wave', '\u{1F44B}');
-        controller.insertEmoji('smile', '\u{1F604}');
+        controller
+          ..insertEmoji('wave', '\u{1F44B}')
+          ..insertEmoji('smile', '\u{1F604}');
 
         expect(controller.actualText, ':wave: :smile:');
       });
@@ -144,12 +144,12 @@ void main() {
 
     group('replaceRangeWithEmoji', () {
       test('replaces colon-prefixed query with emoji', () {
-        controller.value = const TextEditingValue(
-          text: ':wave',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        controller.replaceRangeWithEmoji(0, 5, 'wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: ':wave',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          ..replaceRangeWithEmoji(0, 5, 'wave', '\u{1F44B}');
 
         expect(controller.actualText, ':wave:');
         expect(controller.text.length, 1);
@@ -162,17 +162,17 @@ void main() {
         expect(sentinelText.length, 1);
 
         // Now append ":wave" by setting the value directly
-        controller.value = TextEditingValue(
-          text: '$sentinelText:wave',
-          selection: TextSelection.collapsed(offset: sentinelText.length + 5),
-        );
-
-        controller.replaceRangeWithEmoji(
-          sentinelText.length,
-          sentinelText.length + 5,
-          'wave',
-          '\u{1F44B}',
-        );
+        controller
+          ..value = TextEditingValue(
+            text: '$sentinelText:wave',
+            selection: TextSelection.collapsed(offset: sentinelText.length + 5),
+          )
+          ..replaceRangeWithEmoji(
+            sentinelText.length,
+            sentinelText.length + 5,
+            'wave',
+            '\u{1F44B}',
+          );
 
         expect(controller.actualText, ':smile::wave:');
         expect(controller.text.length, 2);
@@ -182,111 +182,111 @@ void main() {
         controller.insertEmoji('smile', '\u{1F604}');
         final sentinelText = controller.text;
 
-        controller.value = TextEditingValue(
-          text: '$sentinelText :wave',
-          selection: TextSelection.collapsed(offset: sentinelText.length + 6),
-        );
-
-        controller.replaceRangeWithEmoji(
-          sentinelText.length + 1,
-          sentinelText.length + 6,
-          'wave',
-          '\u{1F44B}',
-        );
+        controller
+          ..value = TextEditingValue(
+            text: '$sentinelText :wave',
+            selection: TextSelection.collapsed(offset: sentinelText.length + 6),
+          )
+          ..replaceRangeWithEmoji(
+            sentinelText.length + 1,
+            sentinelText.length + 6,
+            'wave',
+            '\u{1F44B}',
+          );
 
         expect(controller.actualText, ':smile: :wave:');
       });
 
       test('adds trailing space when followed by non-whitespace', () {
-        controller.value = const TextEditingValue(
-          text: ':wave hello',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        controller.replaceRangeWithEmoji(0, 5, 'wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: ':wave hello',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          ..replaceRangeWithEmoji(0, 5, 'wave', '\u{1F44B}');
 
         expect(controller.actualText, ':wave: hello');
       });
 
       test('does not add trailing space when followed by whitespace', () {
-        controller.value = const TextEditingValue(
-          text: ':wave  hello',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        controller.replaceRangeWithEmoji(0, 5, 'wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: ':wave  hello',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          ..replaceRangeWithEmoji(0, 5, 'wave', '\u{1F44B}');
 
         // Existing double space is preserved (no extra space added)
         expect(controller.actualText, ':wave:  hello');
       });
 
       test('does not add trailing space at end of text', () {
-        controller.value = const TextEditingValue(
-          text: ':wave',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        controller.replaceRangeWithEmoji(0, 5, 'wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: ':wave',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          ..replaceRangeWithEmoji(0, 5, 'wave', '\u{1F44B}');
 
         expect(controller.actualText, ':wave:');
       });
 
       test('respects maxActualLength and blocks replacement', () {
-        controller.value = const TextEditingValue(
-          text: 'aaaaaaaaaa:wave',
-          selection: TextSelection.collapsed(offset: 15),
-        );
-
-        // actualTextLength = 15 (all plain text)
-        // removedLength = 5 (":wave")
-        // token = ":wave:" = 6
-        // new = 15 - 5 + 6 = 16 → if maxActualLength = 15, should block
-        controller.replaceRangeWithEmoji(
-          10,
-          15,
-          'wave',
-          '\u{1F44B}',
-          maxActualLength: 15,
-        );
+        controller
+          ..value = const TextEditingValue(
+            text: 'aaaaaaaaaa:wave',
+            selection: TextSelection.collapsed(offset: 15),
+          )
+          // actualTextLength = 15 (all plain text)
+          // removedLength = 5 (":wave")
+          // token = ":wave:" = 6
+          // new = 15 - 5 + 6 = 16 → if maxActualLength = 15, should block
+          ..replaceRangeWithEmoji(
+            10,
+            15,
+            'wave',
+            '\u{1F44B}',
+            maxActualLength: 15,
+          );
 
         expect(controller.actualText, 'aaaaaaaaaa:wave');
       });
 
       test('allows replacement within maxActualLength', () {
-        controller.value = const TextEditingValue(
-          text: ':wave',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        controller.replaceRangeWithEmoji(
-          0,
-          5,
-          'wave',
-          '\u{1F44B}',
-          maxActualLength: 320,
-        );
+        controller
+          ..value = const TextEditingValue(
+            text: ':wave',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          ..replaceRangeWithEmoji(
+            0,
+            5,
+            'wave',
+            '\u{1F44B}',
+            maxActualLength: 320,
+          );
 
         expect(controller.actualText, ':wave:');
       });
 
       test('handles custom emoji replacement', () {
-        controller.value = const TextEditingValue(
-          text: ':cool',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        controller.replaceRangeWithEmoji(0, 5, 'cool', '<:cool:12345>');
+        controller
+          ..value = const TextEditingValue(
+            text: ':cool',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          ..replaceRangeWithEmoji(0, 5, 'cool', '<:cool:12345>');
 
         expect(controller.actualText, '<:cool:12345>');
       });
 
       test('places cursor after inserted emoji', () {
-        controller.value = const TextEditingValue(
-          text: ':wave rest',
-          selection: TextSelection.collapsed(offset: 5),
-        );
-
-        controller.replaceRangeWithEmoji(0, 5, 'wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: ':wave rest',
+            selection: TextSelection.collapsed(offset: 5),
+          )
+          ..replaceRangeWithEmoji(0, 5, 'wave', '\u{1F44B}');
 
         // No trailing space added since after starts with ' '
         expect(controller.selection.baseOffset, 1);
@@ -540,8 +540,9 @@ void main() {
 
     group('sentinel allocation', () {
       test('allocates unique sentinels for each emoji', () {
-        controller.insertEmoji('wave', '\u{1F44B}');
-        controller.insertEmoji('smile', '\u{1F604}');
+        controller
+          ..insertEmoji('wave', '\u{1F44B}')
+          ..insertEmoji('smile', '\u{1F604}');
 
         // Two distinct sentinels in the text
         final runes = controller.text.runes.toList();
@@ -571,31 +572,32 @@ void main() {
 
     group('edge cases', () {
       test('handles inserting emoji with selection range', () {
-        controller.value = const TextEditingValue(
-          text: 'hello world',
-          selection: TextSelection(baseOffset: 5, extentOffset: 11),
-        );
-
-        // Non-collapsed selection should use baseOffset
-        controller.insertEmoji('wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: 'hello world',
+            selection: TextSelection(baseOffset: 5, extentOffset: 11),
+          )
+          // Non-collapsed selection should use baseOffset
+          ..insertEmoji('wave', '\u{1F44B}');
 
         expect(controller.actualText, 'hello :wave: world');
       });
 
       test('replaceRange handles mid-text replacement', () {
-        controller.value = const TextEditingValue(
-          text: 'start :wav middle',
-          selection: TextSelection.collapsed(offset: 10),
-        );
-
-        controller.replaceRangeWithEmoji(6, 10, 'wave', '\u{1F44B}');
+        controller
+          ..value = const TextEditingValue(
+            text: 'start :wav middle',
+            selection: TextSelection.collapsed(offset: 10),
+          )
+          ..replaceRangeWithEmoji(6, 10, 'wave', '\u{1F44B}');
 
         expect(controller.actualText, 'start :wave: middle');
       });
 
       test('multiple loadWithTokens calls do not leak segments', () {
-        controller.loadWithTokens(':a::b::c:');
-        controller.loadWithTokens(':x:');
+        controller
+          ..loadWithTokens(':a::b::c:')
+          ..loadWithTokens(':x:');
 
         expect(controller.actualText, ':x:');
         expect(controller.text.length, 1);

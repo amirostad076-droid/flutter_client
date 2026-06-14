@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
-import 'package:riverpod/src/providers/future_provider.dart';
 
 int? _opaqueRoleColorValue(int? color) {
   if (color == null || color == 0) {

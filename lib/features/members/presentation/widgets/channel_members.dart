@@ -47,8 +47,9 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
 
   @override
   void dispose() {
-    _scrollController.removeListener(_handleScroll);
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
     super.dispose();
   }
 
@@ -67,11 +68,13 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
         .getList(guildId: guildId, channelId: channelId);
     final int totalRows = listState?.totalRows ?? 0;
     if (!_scrollController.hasClients) {
-      ref.read(memberListDesiredRangesProvider.notifier).setRanges(
-        guildId: guildId,
-        channelId: channelId,
-        ranges: kMemberListInitialSubscriptionRanges,
-      );
+      ref
+          .read(memberListDesiredRangesProvider.notifier)
+          .setRanges(
+            guildId: guildId,
+            channelId: channelId,
+            ranges: kMemberListInitialSubscriptionRanges,
+          );
       return;
     }
     final List<MemberListGroupLayout> layouts = listState != null
@@ -84,11 +87,15 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
       totalRows: totalRows > 0 ? totalRows : null,
       layouts: layouts.isNotEmpty ? layouts : null,
     );
-    ref.read(memberListDesiredRangesProvider.notifier).setRanges(
-      guildId: guildId,
-      channelId: channelId,
-      ranges: ranges.isEmpty ? kMemberListInitialSubscriptionRanges : ranges,
-    );
+    ref
+        .read(memberListDesiredRangesProvider.notifier)
+        .setRanges(
+          guildId: guildId,
+          channelId: channelId,
+          ranges: ranges.isEmpty
+              ? kMemberListInitialSubscriptionRanges
+              : ranges,
+        );
   }
 
   @override
@@ -121,8 +128,9 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
         ),
       );
     }
-    final List<MemberListGroupLayout> layouts =
-        buildMemberListLayout(listState.groups);
+    final List<MemberListGroupLayout> layouts = buildMemberListLayout(
+      listState.groups,
+    );
     final int totalRows = listState.totalRows > 0
         ? listState.totalRows
         : getTotalRowsFromLayout(layouts);
@@ -138,12 +146,13 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
         ),
         itemCount: totalRows,
         itemBuilder: (BuildContext context, int rowIndex) {
-          final MemberListGroupHeaderData? header = resolveMemberListGroupHeader(
-            groups: listState.groups,
-            layouts: layouts,
-            rowIndex: rowIndex,
-            rolesById: rolesById,
-          );
+          final MemberListGroupHeaderData? header =
+              resolveMemberListGroupHeader(
+                groups: listState.groups,
+                layouts: layouts,
+                rowIndex: rowIndex,
+                rolesById: rolesById,
+              );
           if (header != null) {
             return MemberListSidebarGroupHeader(
               groupName: header.name,

@@ -24,7 +24,9 @@ class VoicePromptsSyncedField
 
   @override
   Future<void> applyRemote(VoicePromptsLocalState value) async {
-    await _ref.read(voicePromptsPreferencesProvider.notifier).applySynced(value);
+    await _ref
+        .read(voicePromptsPreferencesProvider.notifier)
+        .applySynced(value);
   }
 
   @override
@@ -64,7 +66,9 @@ class VoicePromptsSyncedField
   @override
   bool verifyRoundtrip(VoicePromptsLocalState candidate) {
     final proto = toProtoMessage(candidate) as pb.VoicePromptsState;
-    final roundtripped = readFromProto(pb.SyncedPreferences(voicePrompts: proto));
+    final roundtripped = readFromProto(
+      pb.SyncedPreferences(voicePrompts: proto),
+    );
     return roundtripped != null && statesEqual(candidate, roundtripped);
   }
 }

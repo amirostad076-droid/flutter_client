@@ -66,7 +66,7 @@ class FavoritesSyncedField extends SyncedFieldAdapter<FavoritesLocalState> {
   }
 
   @override
-  Future<FavoritesLocalState> readLocalValue() async {
+  Future<FavoritesLocalState> readLocalValue() {
     final dao = _ref.read(fluxerDatabaseProvider).favoriteChannelsDao;
     return FavoritesStateHelpers.readFromDatabase(dao);
   }
@@ -111,7 +111,10 @@ class FavoritesSyncedField extends SyncedFieldAdapter<FavoritesLocalState> {
     required FavoritesLocalState local,
     required FavoritesLocalState remote,
   }) {
-    return FavoritesStateHelpers.mergeForMigration(local: local, server: remote);
+    return FavoritesStateHelpers.mergeForMigration(
+      local: local,
+      server: remote,
+    );
   }
 
   @override
@@ -130,10 +133,14 @@ class FavoritesSyncedField extends SyncedFieldAdapter<FavoritesLocalState> {
   }
 
   @override
-  bool hasRemoteAdditions(FavoritesLocalState local, FavoritesLocalState remote) {
+  bool hasRemoteAdditions(
+    FavoritesLocalState local,
+    FavoritesLocalState remote,
+  ) {
     final localIds = local.channels.map((channel) => channel.channelId).toSet();
-    final remoteIds =
-        remote.channels.map((channel) => channel.channelId).toSet();
+    final remoteIds = remote.channels
+        .map((channel) => channel.channelId)
+        .toSet();
     return remoteIds.difference(localIds).isNotEmpty;
   }
 
@@ -175,7 +182,6 @@ class FavoritesSyncedField extends SyncedFieldAdapter<FavoritesLocalState> {
       );
     }
   }
-
 }
 
 class FavoritesStateHelpers {
@@ -236,7 +242,10 @@ class FavoritesStateHelpers {
         left.muted != right.muted) {
       return false;
     }
-    if (!_stringSetsEqual(left.collapsedCategoryIds, right.collapsedCategoryIds)) {
+    if (!_stringSetsEqual(
+      left.collapsedCategoryIds,
+      right.collapsedCategoryIds,
+    )) {
       return false;
     }
     if (left.channels.length != right.channels.length ||
@@ -311,8 +320,9 @@ class FavoritesStateHelpers {
         ),
       );
     }
-    final serverCategoryIds =
-        normalizedServer.categories.map((category) => category.id).toSet();
+    final serverCategoryIds = normalizedServer.categories
+        .map((category) => category.id)
+        .toSet();
     final categories = <db.FavoriteCategory>[];
     var categoryPosition = 0;
     for (final category in normalizedServer.categories) {
@@ -356,8 +366,9 @@ class FavoritesStateHelpers {
     required FavoritesLocalState remote,
   }) {
     final localIds = local.channels.map((channel) => channel.channelId).toSet();
-    final remoteIds =
-        remote.channels.map((channel) => channel.channelId).toSet();
+    final remoteIds = remote.channels
+        .map((channel) => channel.channelId)
+        .toSet();
     return remoteIds.length < localIds.length &&
         !remoteIds.containsAll(localIds);
   }
@@ -429,9 +440,7 @@ class FavoritesStateHelpers {
 
   static String _normalizeGuildIdForCompare(String? guildId) {
     final trimmed = guildId?.trim();
-    if (trimmed == null ||
-        trimmed.isEmpty ||
-        trimmed == favoriteDmGuildId) {
+    if (trimmed == null || trimmed.isEmpty || trimmed == favoriteDmGuildId) {
       return favoriteDmGuildId;
     }
     return trimmed;

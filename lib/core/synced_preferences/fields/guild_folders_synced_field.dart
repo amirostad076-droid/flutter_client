@@ -9,7 +9,8 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 typedef GuildFoldersLocalState = Set<int>;
 
-class GuildFoldersSyncedField extends SyncedFieldAdapter<GuildFoldersLocalState> {
+class GuildFoldersSyncedField
+    extends SyncedFieldAdapter<GuildFoldersLocalState> {
   GuildFoldersSyncedField(this._ref);
 
   final Ref _ref;
@@ -69,12 +70,16 @@ class GuildFoldersSyncedField extends SyncedFieldAdapter<GuildFoldersLocalState>
 
   @override
   bool hasRemoteData(GuildFoldersLocalState remote) {
-    // Empty set is valid remote state when field 105 is present in the wire blob.
+    /// Empty set is valid remote state when field 105
+    /// is present in the wire blob.
     return true;
   }
 
   @override
-  bool hasRemoteAdditions(GuildFoldersLocalState local, GuildFoldersLocalState remote) {
+  bool hasRemoteAdditions(
+    GuildFoldersLocalState local,
+    GuildFoldersLocalState remote,
+  ) {
     return remote.difference(local).isNotEmpty;
   }
 
@@ -96,9 +101,7 @@ class GuildFoldersSyncedField extends SyncedFieldAdapter<GuildFoldersLocalState>
   static pb.GuildFolderExpandedState toProto(GuildFoldersLocalState local) {
     final sorted = local.toList()..sort();
     return pb.GuildFolderExpandedState(
-      expandedFolderIds: [
-        for (final id in sorted) Int64(id),
-      ],
+      expandedFolderIds: [for (final id in sorted) Int64(id)],
     );
   }
 

@@ -54,11 +54,7 @@ Future<Channel> _seedGuildChannel({
     );
   }
   await db.channelDao.upsertChannel(
-    ChannelsCompanion.insert(
-      id: channelId,
-      guildId: guildId,
-      name: 'general',
-    ),
+    ChannelsCompanion.insert(id: channelId, guildId: guildId, name: 'general'),
   );
   return (await db.channelDao.getChannelById(channelId))!;
 }

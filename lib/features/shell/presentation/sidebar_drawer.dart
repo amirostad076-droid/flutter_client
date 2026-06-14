@@ -223,32 +223,33 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
     final bool blocksHorizontalGestures = ref.watch(
       shellBlocksHorizontalGesturesProvider,
     );
-    ref.listen<RevealSide>(currentRevealSideProvider, (
-      RevealSide? prev,
-      RevealSide next,
-    ) {
-      if (next != _currentSide) {
-        unawaited(_moveToState(next, writeBack: false));
-      }
-    });
-    ref.listen<bool>(shellBlocksHorizontalGesturesProvider, (
-      bool? prev,
-      bool next,
-    ) {
-      if (next) {
-        _animationController.stop();
-        return;
-      }
-      if (prev ?? false) {
+    ref
+      ..listen<RevealSide>(currentRevealSideProvider, (
+        RevealSide? prev,
+        RevealSide next,
+      ) {
+        if (next != _currentSide) {
+          unawaited(_moveToState(next, writeBack: false));
+        }
+      })
+      ..listen<bool>(shellBlocksHorizontalGesturesProvider, (
+        bool? prev,
+        bool next,
+      ) {
+        if (next) {
+          _animationController.stop();
+          return;
+        }
+        if (prev ?? false) {
+          unawaited(_syncTranslateToRevealSide(writeBack: false));
+        }
+      })
+      ..listen<int>(drawerRevealSyncTriggerProvider, (int? prev, int next) {
+        if (ref.read(shellBlocksHorizontalGesturesProvider)) {
+          return;
+        }
         unawaited(_syncTranslateToRevealSide(writeBack: false));
-      }
-    });
-    ref.listen<int>(drawerRevealSyncTriggerProvider, (int? prev, int next) {
-      if (ref.read(shellBlocksHorizontalGesturesProvider)) {
-        return;
-      }
-      unawaited(_syncTranslateToRevealSide(writeBack: false));
-    });
+      });
     final Map<Type, GestureRecognizerFactory> drawerGestures =
         blocksHorizontalGestures
         ? <Type, GestureRecognizerFactory>{}

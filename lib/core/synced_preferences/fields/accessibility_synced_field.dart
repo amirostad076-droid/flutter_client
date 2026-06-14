@@ -41,8 +41,7 @@ class AccessibilitySyncedField
       channelTypingIndicatorMode: appearance.channelTypingIndicatorMode,
       showSelectedChannelTypingIndicator:
           appearance.showSelectedChannelTypingIndicator,
-      showFadedUnreadOnMutedChannels:
-          appearance.showFadedUnreadOnMutedChannels,
+      showFadedUnreadOnMutedChannels: appearance.showFadedUnreadOnMutedChannels,
       showFavorites: appearance.showFavorites,
     );
   }
@@ -104,11 +103,12 @@ class AccessibilitySyncedField
         proto.channelTypingIndicatorMode,
       ),
       showSelectedChannelTypingIndicator:
-          proto.hasShowSelectedChannelTypingIndicator() && proto.showSelectedChannelTypingIndicator,
+          proto.hasShowSelectedChannelTypingIndicator() &&
+          proto.showSelectedChannelTypingIndicator,
       showFadedUnreadOnMutedChannels:
-          proto.hasShowFadedUnreadOnMutedChannels() && proto.showFadedUnreadOnMutedChannels,
-      showFavorites:
-          !proto.hasShowFavorites() || proto.showFavorites,
+          proto.hasShowFadedUnreadOnMutedChannels() &&
+          proto.showFadedUnreadOnMutedChannels,
+      showFavorites: !proto.hasShowFavorites() || proto.showFavorites,
     );
   }
 
@@ -131,7 +131,8 @@ class AccessibilitySyncedField
     return switch (mode) {
       pb.ChannelTypingIndicatorMode.CHANNEL_TYPING_INDICATOR_MODE_HIDDEN =>
         ChannelTypingIndicatorMode.hidden,
-      pb.ChannelTypingIndicatorMode
+      pb
+          .ChannelTypingIndicatorMode
           .CHANNEL_TYPING_INDICATOR_MODE_INDICATOR_ONLY =>
         ChannelTypingIndicatorMode.indicatorOnly,
       _ => ChannelTypingIndicatorMode.avatars,
@@ -144,9 +145,10 @@ class AccessibilitySyncedField
     return switch (mode) {
       ChannelTypingIndicatorMode.hidden =>
         pb.ChannelTypingIndicatorMode.CHANNEL_TYPING_INDICATOR_MODE_HIDDEN,
-      ChannelTypingIndicatorMode.indicatorOnly => pb
-          .ChannelTypingIndicatorMode
-          .CHANNEL_TYPING_INDICATOR_MODE_INDICATOR_ONLY,
+      ChannelTypingIndicatorMode.indicatorOnly =>
+        pb
+            .ChannelTypingIndicatorMode
+            .CHANNEL_TYPING_INDICATOR_MODE_INDICATOR_ONLY,
       ChannelTypingIndicatorMode.avatars =>
         pb.ChannelTypingIndicatorMode.CHANNEL_TYPING_INDICATOR_MODE_AVATARS,
     };

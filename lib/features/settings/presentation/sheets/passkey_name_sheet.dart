@@ -80,7 +80,9 @@ class _PasskeyNameSheetState extends ConsumerState<PasskeyNameSheet> {
 
   Future<void> _handleSubmit() async {
     final name = _nameController.text.trim();
-    if (name.isEmpty) return;
+    if (name.isEmpty) {
+      return;
+    }
 
     setState(() {
       _loading = true;

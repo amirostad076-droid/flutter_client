@@ -89,8 +89,9 @@ class _AppLayoutState extends ConsumerState<AppLayout>
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(pushNotificationsCoordinatorProvider);
-    ref.watch(appIconBadgeCoordinatorProvider);
+    ref
+      ..watch(pushNotificationsCoordinatorProvider)
+      ..watch(appIconBadgeCoordinatorProvider);
     if (PushProviderGuard.isUnifiedPush) {
       ref.listen(unifiedPushDistributorSetupProvider, (
         bool? previous,
@@ -108,7 +109,10 @@ class _AppLayoutState extends ConsumerState<AppLayout>
       });
     }
     ref
-      ..listen<String?>(activeGuildIdProvider, (String? previous, String? next) {
+      ..listen<String?>(activeGuildIdProvider, (
+        String? previous,
+        String? next,
+      ) {
         if (next != null) {
           final guilds = ref.read(guildListViewModelProvider).guilds;
           final guild = guilds.where((g) => g.id == next).firstOrNull;

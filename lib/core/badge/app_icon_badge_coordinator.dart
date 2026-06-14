@@ -21,13 +21,13 @@ class AppIconBadgeCoordinator extends _$AppIconBadgeCoordinator {
 
   @override
   void build() {
-    ref.listen(appIconBadgeProvider, (AppIconBadgeValue? previous, next) {
+    ref..listen(appIconBadgeProvider, (AppIconBadgeValue? previous, next) {
       if (previous?.count == next.count) {
         return;
       }
       unawaited(AppIconBadgeService.update(next.count));
-    });
-    ref.listen<String?>(currentUserIdProvider, (
+    })
+    ..listen<String?>(currentUserIdProvider, (
       String? previous,
       String? next,
     ) {

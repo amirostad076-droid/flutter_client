@@ -58,7 +58,9 @@ class _ClaimAccountSheetState extends ConsumerState<ClaimAccountSheet>
     final data = e.response?.data;
     if (data is Map<String, dynamic>) {
       final message = data['message'] as String?;
-      if (message != null && message.isNotEmpty) return message;
+      if (message != null && message.isNotEmpty) {
+        return message;
+      }
     }
     return e.message ?? 'An error occurred';
   }
@@ -66,7 +68,9 @@ class _ClaimAccountSheetState extends ConsumerState<ClaimAccountSheet>
   Future<void> _handleSendCode() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-    if (email.isEmpty || password.isEmpty) return;
+    if (email.isEmpty || password.isEmpty) {
+      return;
+    }
 
     setState(() {
       _loading = true;
@@ -110,7 +114,9 @@ class _ClaimAccountSheetState extends ConsumerState<ClaimAccountSheet>
   Future<void> _handleClaim() async {
     final code = _codeController.text.trim();
     final password = _passwordController.text;
-    if (code.isEmpty || _ticket == null || _originalProof == null) return;
+    if (code.isEmpty || _ticket == null || _originalProof == null) {
+      return;
+    }
 
     setState(() {
       _loading = true;
@@ -158,7 +164,9 @@ class _ClaimAccountSheetState extends ConsumerState<ClaimAccountSheet>
   }
 
   Future<void> _handleResend() async {
-    if (resendCountdown > 0 || _ticket == null) return;
+    if (resendCountdown > 0 || _ticket == null) {
+      return;
+    }
 
     try {
       final client = ref.read(fluxerClientProvider);

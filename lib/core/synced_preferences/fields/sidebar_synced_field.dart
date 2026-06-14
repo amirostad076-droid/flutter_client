@@ -64,7 +64,9 @@ class SidebarSyncedField extends SyncedFieldAdapter<SidebarLocalState> {
   @override
   bool verifyRoundtrip(SidebarLocalState candidate) {
     final roundtripped = readFromProto(
-      pb.SyncedPreferences(sidebar: toProtoMessage(candidate) as pb.SidebarPreferences),
+      pb.SyncedPreferences(
+        sidebar: toProtoMessage(candidate) as pb.SidebarPreferences,
+      ),
     );
     return roundtripped != null && statesEqual(candidate, roundtripped);
   }

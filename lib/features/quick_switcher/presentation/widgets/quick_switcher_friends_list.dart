@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
@@ -84,7 +86,9 @@ class QuickSwitcherFriendsList extends ConsumerWidget {
                   if (!context.mounted) {
                     return;
                   }
-                  FluxerUserProfileSheet.show(context, userId: friend.id);
+                  unawaited(
+                    FluxerUserProfileSheet.show(context, userId: friend.id),
+                  );
                 },
               ),
             ),
@@ -101,9 +105,7 @@ class QuickSwitcherFriendsList extends ConsumerWidget {
       friend.username,
       if (friend.nickname != null) friend.nickname!,
     ];
-    return haystacks.any(
-      (String value) => value.toLowerCase().contains(query),
-    );
+    return haystacks.any((String value) => value.toLowerCase().contains(query));
   }
 
   Widget _buildScrollableEmpty(
@@ -134,9 +136,8 @@ class QuickSwitcherFriendsList extends ConsumerWidget {
     }
     for (final List<Friend> group in groups.values) {
       group.sort(
-        (Friend a, Friend b) => a.displayName.toLowerCase().compareTo(
-          b.displayName.toLowerCase(),
-        ),
+        (Friend a, Friend b) =>
+            a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()),
       );
     }
     return groups;
@@ -144,10 +145,7 @@ class QuickSwitcherFriendsList extends ConsumerWidget {
 }
 
 class _FriendRow extends StatelessWidget {
-  const _FriendRow({
-    required this.friend,
-    required this.onTap,
-  });
+  const _FriendRow({required this.friend, required this.onTap});
 
   final Friend friend;
   final VoidCallback onTap;

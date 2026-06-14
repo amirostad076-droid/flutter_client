@@ -18,20 +18,21 @@ class CurrentRevealSide extends _$CurrentRevealSide {
     // Logout invalidates the sync guard. Without this, a stale path string
     // from a previous session could match the new initial location string
     // and skip the legitimate post-login sync.
-    ref.listen<bool>(authStateProvider, (_, next) {
-      if (!next) {
-        _lastAppliedFor = null;
-        _resyncAfterReconnect = false;
-      }
-    });
-    ref.listen<bool>(gatewayConnectionFailedProvider, (
-      bool? previous,
-      bool next,
-    ) {
-      if (next) {
-        _resyncAfterReconnect = true;
-      }
-    });
+    ref
+      ..listen<bool>(authStateProvider, (_, next) {
+        if (!next) {
+          _lastAppliedFor = null;
+          _resyncAfterReconnect = false;
+        }
+      })
+      ..listen<bool>(gatewayConnectionFailedProvider, (
+        bool? previous,
+        bool next,
+      ) {
+        if (next) {
+          _resyncAfterReconnect = true;
+        }
+      });
 
     final router = ref.read(fluxerRouterProvider);
     final config = router.routerDelegate.currentConfiguration;

@@ -35,6 +35,7 @@ abstract final class RouteNames {
 }
 
 /// Path builders mirroring web app's Routes object.
+// ignore: avoid_classes_with_only_static_members
 abstract final class RoutePaths {
   static const me = '/channels/@me';
   static String dmChannel(String channelId) => '/channels/@me/$channelId';

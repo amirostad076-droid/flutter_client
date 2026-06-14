@@ -42,7 +42,9 @@ class _PhoneAddSheetState extends ConsumerState<PhoneAddSheet> {
 
   String get _e164Phone {
     final digits = _phoneController.text.replaceAll(RegExp(r'[^\d+]'), '');
-    if (digits.startsWith('+')) return digits;
+    if (digits.startsWith('+')) {
+      return digits;
+    }
     return '+$digits';
   }
 

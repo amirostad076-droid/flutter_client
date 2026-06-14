@@ -329,12 +329,14 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
       return;
     }
     if (channel != null) {
-      await ref.read(guildUserSettingsRepositoryProvider).updateChannelOverride(
-        guildId: channel.guildId,
-        channelId: channel.id,
-        muted: isMuted,
-        durationSeconds: durationSeconds,
-      );
+      await ref
+          .read(guildUserSettingsRepositoryProvider)
+          .updateChannelOverride(
+            guildId: channel.guildId,
+            channelId: channel.id,
+            muted: isMuted,
+            durationSeconds: durationSeconds,
+          );
       _toast(isMuted ? 'Muted channel' : 'Unmuted channel');
     }
   }
@@ -344,11 +346,13 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
     if (channel == null) {
       return;
     }
-    await ref.read(guildUserSettingsRepositoryProvider).updateChannelOverride(
-      guildId: channel.guildId,
-      channelId: channel.id,
-      messageNotifications: setting,
-    );
+    await ref
+        .read(guildUserSettingsRepositoryProvider)
+        .updateChannelOverride(
+          guildId: channel.guildId,
+          channelId: channel.id,
+          messageNotifications: setting,
+        );
     _toast('Notification settings updated');
   }
 
@@ -556,8 +560,7 @@ class _DetailsIdentityHeader extends ConsumerWidget {
       dm: dm,
     );
     final topic = channelEntity?.topic?.trim();
-    final bool showUserTag =
-        dm != null && isBotOrSystemDmRecipient(dm!);
+    final bool showUserTag = dm != null && isBotOrSystemDmRecipient(dm!);
     final hasTopic = topic != null && topic.isNotEmpty;
     final int? effectivePermissionBits = channelEntity != null
         ? ref
@@ -582,9 +585,7 @@ class _DetailsIdentityHeader extends ConsumerWidget {
           color: context.colors.textPrimary,
         ),
       },
-      titleAdornments: [
-        if (showUserTag) FluxerUserTag(isSystem: dm!.isSystem),
-      ],
+      titleAdornments: [if (showUserTag) FluxerUserTag(isSystem: dm!.isSystem)],
       body: hasTopic
           ? _TopicCard(
               topic: topic,
@@ -1254,29 +1255,29 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
     }
     final List<_PickerUser>? selected =
         await FluxerBottomSheet.showScrollable<List<_PickerUser>>(
-      context,
-      title: 'Filter by user',
-      initialChildSize: 0.85,
-      minChildSize: 0.5,
-      builder: (sheetContext, scrollController, close) {
-        if (guildId != null) {
-          return _GuildUserSearchFilterSheet(
-            guildId: guildId,
-            initialSelectedIds: _selectedAuthorIds,
-            scrollController: scrollController,
-            onDone: (List<_PickerUser> chosen) =>
-                Navigator.of(sheetContext).pop(chosen),
-          );
-        }
-        return _DmUserFilterSheetLoader(
-          channelId: widget.channelId,
-          initialSelectedIds: _selectedAuthorIds,
-          scrollController: scrollController,
-          onDone: (List<_PickerUser> chosen) =>
-              Navigator.of(sheetContext).pop(chosen),
+          context,
+          title: 'Filter by user',
+          initialChildSize: 0.85,
+          minChildSize: 0.5,
+          builder: (sheetContext, scrollController, close) {
+            if (guildId != null) {
+              return _GuildUserSearchFilterSheet(
+                guildId: guildId,
+                initialSelectedIds: _selectedAuthorIds,
+                scrollController: scrollController,
+                onDone: (List<_PickerUser> chosen) =>
+                    Navigator.of(sheetContext).pop(chosen),
+              );
+            }
+            return _DmUserFilterSheetLoader(
+              channelId: widget.channelId,
+              initialSelectedIds: _selectedAuthorIds,
+              scrollController: scrollController,
+              onDone: (List<_PickerUser> chosen) =>
+                  Navigator.of(sheetContext).pop(chosen),
+            );
+          },
         );
-      },
-    );
     if (selected != null) {
       _setAuthorSelection(selected);
     }
@@ -1527,14 +1528,14 @@ class _DmMemberGroups extends ConsumerWidget {
               name: member.name,
               avatar: member.avatar,
             )
-      else if (!dm.isPersonalNotes)
-        _DmParticipant(
-          id: dm.recipientId,
-          name: dm.recipientName,
-          avatar: dm.recipientAvatar,
-          isBot: dm.isBot,
-          isSystem: dm.isSystem,
-        ),
+          else if (!dm.isPersonalNotes)
+            _DmParticipant(
+              id: dm.recipientId,
+              name: dm.recipientName,
+              avatar: dm.recipientAvatar,
+              isBot: dm.isBot,
+              isSystem: dm.isSystem,
+            ),
     ];
     final List<GroupDmMemberGroup<_DmParticipant>> groups =
         groupDmMembersByPresence<_DmParticipant>(
@@ -1610,7 +1611,11 @@ class _SimpleMemberRow extends StatelessWidget {
     this.isSystem = false,
     this.isCurrentUser = false,
     this.onTap,
-  }) : isOwner = false : customStatus : dimmed = false : onLongPress;
+    this.isOwner = false,
+    this.customStatus,
+    this.dimmed = false,
+    this.onLongPress,
+  });
 
   final String userId;
   final String name;
@@ -2028,12 +2033,13 @@ class _DmUserFilterSheetLoaderState
       ids.toList(),
     );
     final List<_PickerUser> pickers =
-        <_PickerUser>[for (final db.User user in users) _PickerUser.fromUserRow(user)]
-          ..sort(
-            (a, b) => a.displayName.toLowerCase().compareTo(
-              b.displayName.toLowerCase(),
-            ),
-          );
+        <_PickerUser>[
+          for (final db.User user in users) _PickerUser.fromUserRow(user),
+        ]..sort(
+          (a, b) => a.displayName.toLowerCase().compareTo(
+            b.displayName.toLowerCase(),
+          ),
+        );
     return pickers;
   }
 
@@ -2126,13 +2132,16 @@ class _GuildUserSearchFilterSheetState
     }
     List<_PickerUser> pickers = <_PickerUser>[];
     try {
-      final connection = ref.read(gatewayConnectionProvider);
-      connection.requestGuildMembers(
-        guildId: widget.guildId,
-        query: query,
-        limit: _kUserFilterSearchLimit,
-      );
-      await ref.read(guildMemberChunkWaiterProvider).waitForChunk(widget.guildId);
+      ref
+          .read(gatewayConnectionProvider)
+          .requestGuildMembers(
+            guildId: widget.guildId,
+            query: query,
+            limit: _kUserFilterSearchLimit,
+          );
+      await ref
+          .read(guildMemberChunkWaiterProvider)
+          .waitForChunk(widget.guildId);
       final List<String> scopeUserIds = ref
           .read(guildMemberChunkWaiterProvider)
           .lastChunkUserIds(widget.guildId);
@@ -2224,7 +2233,9 @@ class _GuildUserSearchFilterSheetState
                     separatorBuilder: (_, _) => const SizedBox(height: 4),
                     itemBuilder: (BuildContext context, int index) {
                       final _PickerUser user = _results[index];
-                      final bool isSelected = _selectedById.containsKey(user.id);
+                      final bool isSelected = _selectedById.containsKey(
+                        user.id,
+                      );
                       return _UserFilterRow(
                         user: user,
                         isSelected: isSelected,
