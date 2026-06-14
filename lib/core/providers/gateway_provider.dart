@@ -28,6 +28,7 @@ import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.
 import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
 import 'package:fluxer_app/features/settings/providers/connections_view_model.dart';
+import 'package:fluxer_app/features/settings/providers/webauthn_credentials_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -204,6 +205,11 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
           .read(connectionsViewModelProvider.notifier)
           .setConnections(connections);
     },
+    onWebauthnCredentialsUpdate: (credentials) {
+      ref
+          .read(webauthnCredentialsViewModelProvider.notifier)
+          .setCredentials(credentials);
+    },
     onSessionChanging: () {
       ref.read(syncedPreferencesStoreProvider).markSessionChanging();
     },
@@ -240,13 +246,15 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
           .read(guildMemberChunkWaiterProvider)
           .notifyChunk(guildId, userIds: userIds);
       unawaited(
-        ref.read(memberCacheEvictorProvider).evictIfNeeded(
-          guildId: guildId,
-          protectedUserIds: collectProtectedMemberUserIds(
-            ref: ref,
-            guildId: guildId,
-          ),
-        ),
+        ref
+            .read(memberCacheEvictorProvider)
+            .evictIfNeeded(
+              guildId: guildId,
+              protectedUserIds: collectProtectedMemberUserIds(
+                ref: ref,
+                guildId: guildId,
+              ),
+            ),
       );
     },
     onMembersChunkProgress: (guildId, chunkIndex, chunkCount, userIds) {
@@ -262,21 +270,24 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     onMemberListUpdate: (event) {
       ref.read(memberListViewportProvider.notifier).applyListUpdate(event);
       unawaited(() async {
-        await MemberListDriftSync(ref.read(fluxerDatabaseProvider))
-            .syncFromListUpdate(
+        await MemberListDriftSync(
+          ref.read(fluxerDatabaseProvider),
+        ).syncFromListUpdate(
           guildId: event.guildId,
           memberCount: event.memberCount,
           onlineCount: event.onlineCount,
           ops: event.ops,
           isValidRange: isValidMemberListRange,
         );
-        await ref.read(memberCacheEvictorProvider).evictIfNeeded(
-          guildId: event.guildId,
-          protectedUserIds: collectProtectedMemberUserIds(
-            ref: ref,
-            guildId: event.guildId,
-          ),
-        );
+        await ref
+            .read(memberCacheEvictorProvider)
+            .evictIfNeeded(
+              guildId: event.guildId,
+              protectedUserIds: collectProtectedMemberUserIds(
+                ref: ref,
+                guildId: event.guildId,
+              ),
+            );
       }());
     },
   );
@@ -291,4 +302,3 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
   ref.onDispose(subscription.cancel);
   return subscription;
 }
-

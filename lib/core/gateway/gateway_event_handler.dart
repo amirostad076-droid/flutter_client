@@ -33,6 +33,8 @@ typedef MessageReactionChangeCallback =
     void Function(String channelId, String messageId);
 typedef ConnectionsUpdateCallback =
     void Function(List<ConnectionResponse> connections);
+typedef WebauthnCredentialsUpdateCallback =
+    void Function(List<WebAuthnCredentialResponse> credentials);
 typedef UserSettingsHydrateCallback =
     void Function(UserSettingsResponse settings);
 typedef SessionChangingCallback = void Function();
@@ -47,12 +49,13 @@ typedef GuildAvailabilityChangedCallback =
 typedef GuildAvailableCallback = void Function(String guildId);
 typedef GuildMembersChunkCallback =
     void Function(String guildId, List<String> userIds);
-typedef GuildMembersChunkProgressCallback = void Function(
-  String guildId,
-  int chunkIndex,
-  int chunkCount,
-  List<String> userIds,
-);
+typedef GuildMembersChunkProgressCallback =
+    void Function(
+      String guildId,
+      int chunkIndex,
+      int chunkCount,
+      List<String> userIds,
+    );
 typedef GuildMemberListUpdateCallback =
     void Function(GuildMemberListUpdateEvent event);
 typedef VoiceServerUpdateCallback = void Function(VoiceServerUpdateEvent event);
@@ -94,6 +97,7 @@ class GatewayEventHandler {
     this.onMessageAcked,
     this.onAuthSessionIdHashChanged,
     this.onConnectionsUpdate,
+    this.onWebauthnCredentialsUpdate,
     this.onUserSettingsHydrate,
     this.onSessionChanging,
     this.onUnavailableGuildsReady,
@@ -132,6 +136,7 @@ class GatewayEventHandler {
   final void Function(String channelId, {required bool manual})? onMessageAcked;
   final void Function(String? idHash)? onAuthSessionIdHashChanged;
   final ConnectionsUpdateCallback? onConnectionsUpdate;
+  final WebauthnCredentialsUpdateCallback? onWebauthnCredentialsUpdate;
   final UserSettingsHydrateCallback? onUserSettingsHydrate;
   final SessionChangingCallback? onSessionChanging;
   final UnavailableGuildsReadyCallback? onUnavailableGuildsReady;
@@ -271,10 +276,7 @@ class GatewayEventHandler {
         talker.debug('[Gateway] CHANNEL_RECIPIENT_ADD: ${event.channelId}');
         unawaited(database.userDao.upsertUser(userFromPartialSdk(event.user)));
         unawaited(
-          database.dmChannelDao.addRecipientId(
-            event.channelId,
-            event.user.id,
-          ),
+          database.dmChannelDao.addRecipientId(event.channelId, event.user.id),
         );
       case ChannelRecipientRemoveEvent():
         talker.debug('[Gateway] CHANNEL_RECIPIENT_REMOVE: ${event.channelId}');
@@ -374,6 +376,9 @@ class GatewayEventHandler {
       case UserConnectionsUpdateEvent():
         talker.debug('[Gateway] USER_CONNECTIONS_UPDATE');
         _handleUserConnectionsUpdate(event);
+      case WebauthnCredentialsUpdateEvent():
+        talker.debug('[Gateway] WEBAUTHN_CREDENTIALS_UPDATE');
+        onWebauthnCredentialsUpdate?.call(event.credentials);
       case AuthSessionChangeEvent():
         talker.debug('[Gateway] AUTH_SESSION_CHANGE');
         onAuthSessionIdHashChanged?.call(event.newAuthSessionIdHash);
@@ -848,9 +853,8 @@ class GatewayEventHandler {
     required Map<String, dynamic> updates,
   }) {
     final updatesWithoutOverrides = Map<String, dynamic>.from(updates);
-    final Object? channelOverridesUpdate = updates.containsKey(
-      'channel_overrides',
-    )
+    final Object? channelOverridesUpdate =
+        updates.containsKey('channel_overrides')
         ? updatesWithoutOverrides.remove('channel_overrides')
         : null;
     final merged = <String, dynamic>{
@@ -1016,9 +1020,7 @@ class GatewayEventHandler {
       unawaited(
         database.userDao.upsertUser(userFromPartialSdk(event.message.author)),
       );
-      unawaited(
-        upsertMentionUsersFromSdk(database, event.message.mentions),
-      );
+      unawaited(upsertMentionUsersFromSdk(database, event.message.mentions));
     }
 
     await database.messageDao.upsertMessage(msg.toCompanion());
@@ -1148,9 +1150,7 @@ class GatewayEventHandler {
       unawaited(
         database.userDao.upsertUser(userFromPartialSdk(event.message.author)),
       );
-      unawaited(
-        upsertMentionUsersFromSdk(database, event.message.mentions),
-      );
+      unawaited(upsertMentionUsersFromSdk(database, event.message.mentions));
     }
     await database.messageDao.upsertMessage(msg.toCompanion());
     final dm = await database.dmChannelDao.getDmChannelById(msg.channelId);
@@ -1381,8 +1381,8 @@ class GatewayEventHandler {
     }
     final List<Map<String, dynamic>>? presences = event.presences;
     if (presences != null && presences.isNotEmpty) {
-      final List<({String userId, String status, String? customStatus})> updates =
-          <({String userId, String status, String? customStatus})>[];
+      final List<({String userId, String status, String? customStatus})>
+      updates = <({String userId, String status, String? customStatus})>[];
       for (final Map<String, dynamic> presence in presences) {
         final String? userId =
             (presence['user'] as Map<String, dynamic>?)?['id'] as String?;

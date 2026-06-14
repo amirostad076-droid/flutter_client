@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/settings/presentation/sheets/password_change
 import 'package:fluxer_app/features/settings/presentation/sheets/totp_disable_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/sheets/totp_enable_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/features/settings/providers/webauthn_credentials_view_model.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
@@ -22,6 +23,8 @@ import 'package:fluxer_app/features/ui/settings/fluxer_settings_section.dart';
 import 'package:fluxer_app/features/ui/settings/fluxer_settings_subsection.dart';
 import 'package:fluxer_app/features/ui/text/fluxer_field_label.dart';
 import 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
+import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
+import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/relative_time.dart';
@@ -45,32 +48,6 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
   bool _emailRevealed = false;
   // TODO: Switch phone-number flows to WhatsApp.
   // bool _phoneRevealed = false;
-  List<WebAuthnCredentialResponse>? _passkeys;
-  bool _loadingPasskeys = false;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_loadPasskeys());
-  }
-
-  Future<void> _loadPasskeys() async {
-    setState(() => _loadingPasskeys = true);
-    try {
-      final client = ref.read(fluxerClientProvider);
-      final result = await client.users.listWebauthnCredentials();
-      if (mounted) {
-        setState(() {
-          _passkeys = result;
-          _loadingPasskeys = false;
-        });
-      }
-    } on Exception {
-      if (mounted) {
-        setState(() => _loadingPasskeys = false);
-      }
-    }
-  }
 
   String _maskEmail(String email) {
     final atIndex = email.indexOf('@');
@@ -91,6 +68,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(userSettingsViewModelProvider);
+    final passkeyState = ref.watch(webauthnCredentialsViewModelProvider);
     final colors = context.colors;
     final layout = context.layout;
     final l10n = FluxerLocalizations.of(context);
@@ -113,7 +91,9 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
           FluxerSettingsSection(
             title: l10n.securitySectionTitle,
             description: l10n.securitySectionDescription,
-            children: [_buildSecuritySection(state, colors, l10n)],
+            children: [
+              _buildSecuritySection(state, passkeyState, colors, l10n),
+            ],
           ),
           _buildDangerZone(state, colors, l10n),
         ],
@@ -228,6 +208,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
 
   Widget _buildSecuritySection(
     UserSettingsViewState s,
+    WebauthnCredentialsViewState passkeyState,
     FluxerColorTheme colors,
     FluxerLocalizations l10n,
   ) {
@@ -262,7 +243,7 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       children: [
         _buildTfaSubsection(s, colors, l10n),
         SizedBox(height: layout.s8),
-        _buildPasskeysSubsection(s, colors, l10n),
+        _buildPasskeysSubsection(s, passkeyState, colors, l10n),
         // TODO: Switch phone-number flows to WhatsApp.
         // if (s.mfaEnabled) ...[
         //   SizedBox(height: layout.s8),
@@ -324,10 +305,11 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
 
   Widget _buildPasskeysSubsection(
     UserSettingsViewState s,
+    WebauthnCredentialsViewState passkeyState,
     FluxerColorTheme colors,
     FluxerLocalizations l10n,
   ) {
-    final count = _passkeys?.length ?? 0;
+    final count = passkeyState.credentials.length;
 
     return FluxerSettingsSubsection(
       title: l10n.securityPasskeysSectionTitle,
@@ -342,15 +324,17 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
             style: TextStyle(fontSize: 14, color: colors.textPrimaryMuted),
           ),
           button: FluxerButton.primary(
-            onPressedAsync: _loadingPasskeys || count >= _kMaxPasskeys
+            onPressedAsync: passkeyState.isLoading || count >= _kMaxPasskeys
                 ? null
                 : _handleAddPasskey,
             label: l10n.securityPasskeysAdd,
             size: FluxerButtonSize.small,
           ),
         ),
-        if (_passkeys != null && _passkeys!.isNotEmpty)
-          ..._passkeys!.map((pk) => _buildPasskeyItem(pk, colors, l10n)),
+        if (passkeyState.credentials.isNotEmpty)
+          ...passkeyState.credentials.map(
+            (pk) => _buildPasskeyItem(pk, colors, l10n),
+          ),
       ],
     );
   }
@@ -423,7 +407,11 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
     await PasskeyNameSheet.showForCreate(
       context,
       ref,
-      onCreated: _loadPasskeys,
+      onCreated: () => unawaited(
+        ref
+            .read(webauthnCredentialsViewModelProvider.notifier)
+            .load(silent: true),
+      ),
     );
   }
 
@@ -433,7 +421,11 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
       ref,
       credentialId: pk.id,
       currentName: pk.name,
-      onRenamed: _loadPasskeys,
+      onRenamed: () => unawaited(
+        ref
+            .read(webauthnCredentialsViewModelProvider.notifier)
+            .load(silent: true),
+      ),
     );
   }
 
@@ -459,9 +451,21 @@ class _UserSecurityLoginState extends ConsumerState<UserSecurityLogin> {
         credentialId: pk.id,
         body: const SudoVerificationSchema(),
       );
-      await _loadPasskeys();
+      await ref
+          .read(webauthnCredentialsViewModelProvider.notifier)
+          .load(silent: true);
     } on Exception {
-      // TODO: show error toast
+      if (!mounted) {
+        return;
+      }
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.genericError,
+              variant: FluxerToastVariant.danger,
+            ),
+          );
     }
   }
 
