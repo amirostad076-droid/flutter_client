@@ -10,7 +10,7 @@ permissions:
 jobs:
   check-actor:
     name: Check allowed user
-    runs-on: self-hosted
+    runs-on: macos26
     steps:
       - name: Check actor against allowlist
         id: check
