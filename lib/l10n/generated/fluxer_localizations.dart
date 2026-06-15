@@ -7915,6 +7915,12 @@ abstract class FluxerLocalizations {
   /// **'Original message failed to load'**
   String get chatReplyOriginalFailedToLoad;
 
+  /// Shown in the chat message list when the initial message history request fails. The user can retry from the same screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load messages.'**
+  String get chatMessagesLoadError;
+
   /// Title of the confirmation alert shown when toggling reply mention against the recipient preference.
   ///
   /// In en, this message translates to:

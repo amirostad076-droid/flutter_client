@@ -4563,6 +4563,9 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get chatReplyOriginalFailedToLoad => 'Original message failed to load';
 
   @override
+  String get chatMessagesLoadError => 'Couldn\'t load messages.';
+
+  @override
   String get chatReplyMentionOverrideTitle => 'Override mention preference?';
 
   @override

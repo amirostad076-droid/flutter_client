@@ -91,6 +91,7 @@ class ChatViewState {
   final bool hasMoreMessages;
   final bool hasMoreNewerMessages;
   final String? errorMessage;
+  final bool messageLoadFailed;
 
   const ChatViewState({
     required this.channelId,
@@ -107,6 +108,7 @@ class ChatViewState {
     required this.hasMoreMessages,
     required this.hasMoreNewerMessages,
     required this.errorMessage,
+    this.messageLoadFailed = false,
     this.scrollToMessageSignal,
     this.stickyUnreadMessageId,
     this.highlightedMessageId,
@@ -134,6 +136,7 @@ class ChatViewState {
     bool? hasMoreMessages,
     bool? hasMoreNewerMessages,
     Object? errorMessage = _unset,
+    bool? messageLoadFailed,
   }) {
     return ChatViewState(
       channelId: channelId ?? this.channelId,
@@ -167,6 +170,7 @@ class ChatViewState {
       errorMessage: errorMessage == _unset
           ? this.errorMessage
           : errorMessage as String?,
+      messageLoadFailed: messageLoadFailed ?? this.messageLoadFailed,
     );
   }
 }
@@ -831,6 +835,7 @@ class ChatViewModel extends _$ChatViewModel {
         isLoading: true,
         isSyncingMessages: false,
         errorMessage: null,
+        messageLoadFailed: false,
       );
     }
     try {
@@ -860,6 +865,7 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreMessages: page.messages.length >= _kPageSize,
         hasMoreNewerMessages: hasMoreNewer,
         errorMessage: null,
+        messageLoadFailed: false,
       );
       _notifyMessageReferencesLoaded(
         channelId: channelId,
@@ -878,7 +884,7 @@ class ChatViewModel extends _$ChatViewModel {
       state = state.copyWith(
         isLoading: false,
         isSyncingMessages: false,
-        errorMessage: state.messages.isEmpty ? 'Failed to load messages' : null,
+        messageLoadFailed: state.messages.isEmpty,
       );
     }
   }
@@ -2193,6 +2199,14 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     state = state.copyWith(errorMessage: null);
+  }
+
+  Future<void> retryLoadMessages() async {
+    final String channelId = state.channelId;
+    if (channelId.isEmpty) {
+      return;
+    }
+    await _refreshMessagesFromNetwork(channelId, showLoadingSpinner: true);
   }
 
   void updateMessageText(String text) {

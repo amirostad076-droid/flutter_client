@@ -5558,6 +5558,10 @@
   "@chatReplyOriginalFailedToLoad": {
     "description": "Placeholder in the inline reply preview when the parent message could not be loaded."
   },
+  "chatMessagesLoadError": "Couldn't load messages.",
+  "@chatMessagesLoadError": {
+    "description": "Shown in the chat message list when the initial message history request fails. The user can retry from the same screen."
+  },
   "chatReplyMentionOverrideTitle": "Override mention preference?",
   "@chatReplyMentionOverrideTitle": {
     "description": "Title of the confirmation alert shown when toggling reply mention against the recipient preference."

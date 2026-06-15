@@ -39,7 +39,9 @@ import 'package:fluxer_app/features/dm/presentation/widgets/personal_notes_welco
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart';
+import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -1052,6 +1054,9 @@ class _MessageListState extends ConsumerState<MessageList> {
     final bool isLoading = ref.watch(
       chatViewModelProvider.select((ChatViewState s) => s.isLoading),
     );
+    final bool messageLoadFailed = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.messageLoadFailed),
+    );
     final bool isLoadingMore = ref.watch(
       chatViewModelProvider.select((ChatViewState s) => s.isLoadingMore),
     );
@@ -1192,6 +1197,39 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (isLoading && messages.isEmpty) {
       body = Center(
         child: FluxerLoadingSpinner(color: context.colors.brandPrimary),
+      );
+    } else if (messageLoadFailed && messages.isEmpty) {
+      final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+      body = Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              PhosphorIcon(
+                PhosphorIconsFill.warningCircle,
+                size: 48,
+                color: context.colors.textPrimaryMuted,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.chatMessagesLoadError,
+                style: context.textStyles.bodySmall.copyWith(
+                  color: context.colors.textPrimaryMuted,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              FluxerButton.primary(
+                label: l10n.retry,
+                onPressed: () => unawaited(
+                  ref.read(chatViewModelProvider.notifier).retryLoadMessages(),
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     } else if (messages.isEmpty) {
       body = isPersonalNotesChannel
