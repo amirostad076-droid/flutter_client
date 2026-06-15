@@ -5,19 +5,21 @@ const double _kDefaultSfxVolume = 0.4;
 final AudioContext _kOneShotSfxContext = AudioContext(
   android: const AudioContextAndroid(
     contentType: AndroidContentType.sonification,
-    usageType: AndroidUsageType.assistanceSonification,
+    usageType: AndroidUsageType.notificationRingtone,
     audioFocus: AndroidAudioFocus.none,
   ),
   iOS: AudioContextIOS(
-    options: const <AVAudioSessionOptions>{AVAudioSessionOptions.mixWithOthers},
+    category: AVAudioSessionCategory.ambient,
   ),
 );
 final AudioContext _kInterruptingIncomingRingContext = AudioContext(
   android: const AudioContextAndroid(
-    audioMode: AndroidAudioMode.ringtone,
     contentType: AndroidContentType.sonification,
     usageType: AndroidUsageType.notificationRingtone,
     audioFocus: AndroidAudioFocus.gainTransient,
+  ),
+  iOS: AudioContextIOS(
+    category: AVAudioSessionCategory.ambient,
   ),
 );
 
