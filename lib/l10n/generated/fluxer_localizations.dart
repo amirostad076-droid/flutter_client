@@ -6813,6 +6813,18 @@ abstract class FluxerLocalizations {
   /// **'Stop watching the current stream'**
   String get voiceStopWatchingCurrentStreamTooltip;
 
+  /// Title on the participant's own screen-share tile when they are sharing their screen.
+  ///
+  /// In en, this message translates to:
+  /// **'You are broadcasting'**
+  String get voiceOwnScreenShareTitle;
+
+  /// Subtitle on the participant's own screen-share tile confirming the stream is live.
+  ///
+  /// In en, this message translates to:
+  /// **'Your stream is live for participants.'**
+  String get voiceOwnScreenShareSubtitle;
+
   /// Compact LIVE indicator on a screen-share tile (shown uppercase).
   ///
   /// In en, this message translates to:

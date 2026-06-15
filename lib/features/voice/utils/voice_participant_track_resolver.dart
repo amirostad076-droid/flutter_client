@@ -161,6 +161,24 @@ TrackPublication? resolveCameraPublication(Participant participant) {
   return null;
 }
 
+TrackPublication? resolveCameraPublicationAllowingNoTrack(
+  Participant participant,
+) {
+  for (final Object publication in participant.videoTrackPublications) {
+    if (publication is! TrackPublication) {
+      continue;
+    }
+    if (publication.isScreenShare) {
+      continue;
+    }
+    if (publication.muted) {
+      continue;
+    }
+    return publication;
+  }
+  return null;
+}
+
 TrackPublication? resolveScreenShareVideoPublication({
   required Participant participant,
   required bool requireTrack,

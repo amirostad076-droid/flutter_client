@@ -4783,6 +4783,14 @@
   "@voiceStopWatchingCurrentStreamTooltip": {
     "description": "Tooltip for the Stop Watching control in the voice bar."
   },
+  "voiceOwnScreenShareTitle": "You are broadcasting",
+  "@voiceOwnScreenShareTitle": {
+    "description": "Title on the participant's own screen-share tile when they are sharing their screen."
+  },
+  "voiceOwnScreenShareSubtitle": "Your stream is live for participants.",
+  "@voiceOwnScreenShareSubtitle": {
+    "description": "Subtitle on the participant's own screen-share tile confirming the stream is live."
+  },
   "voiceLiveBadge": "Live",
   "@voiceLiveBadge": {
     "description": "Compact LIVE indicator on a screen-share tile (shown uppercase)."

@@ -3941,6 +3941,13 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
       'Stop watching the current stream';
 
   @override
+  String get voiceOwnScreenShareTitle => 'You are broadcasting';
+
+  @override
+  String get voiceOwnScreenShareSubtitle =>
+      'Your stream is live for participants.';
+
+  @override
   String get voiceLiveBadge => 'Live';
 
   @override

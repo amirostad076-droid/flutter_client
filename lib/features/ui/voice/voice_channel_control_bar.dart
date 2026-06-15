@@ -20,8 +20,8 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-const double _kControlSize = 56;
-const double _kControlGap = 12;
+const double _kControlSize = 52;
+const double _kControlGap = 10;
 
 class VoiceChannelControlBar extends ConsumerWidget {
   const VoiceChannelControlBar({this.channelId, super.key});
@@ -47,130 +47,142 @@ class VoiceChannelControlBar extends ConsumerWidget {
         .watch(screenShareCapabilityProvider)
         .maybeWhen(data: (bool value) => value, orElse: () => false);
 
-    return Material(
-      color: context.colors.backgroundSecondary,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        child: Center(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: MediaQuery.sizeOf(context).width - 16,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: context.colors.backgroundFloating,
+                borderRadius: BorderRadius.circular(36),
+                border: Border.all(
+                  color: const Color(0x14FFFFFF),
+                ),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.22),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                spacing: _kControlGap,
-                children: <Widget>[
-                  _VoiceControlCircle(
-                    size: _kControlSize,
-                    color: isMuted
-                        ? context.colors.statusDanger
-                        : context.colors.backgroundTertiary,
-                    tooltip: isMuted
-                        ? l10n.voiceControlUnmute
-                        : l10n.voiceControlMute,
-                    icon: isMuted
-                        ? PhosphorIconsFill.microphoneSlash
-                        : PhosphorIconsFill.microphone,
-                    toggled: isMuted,
-                    onPressed: () {
-                      unawaited(
-                        ref
-                            .read(voiceSessionProvider.notifier)
-                            .toggleSelfMute(),
-                      );
-                    },
-                  ),
-                  _VoiceControlCircle(
-                    size: _kControlSize,
-                    color: isDeafened
-                        ? context.colors.statusDanger
-                        : context.colors.backgroundTertiary,
-                    tooltip: isDeafened
-                        ? l10n.voiceControlUndeafen
-                        : l10n.voiceControlDeafen,
-                    icon: isDeafened
-                        ? PhosphorIconsFill.speakerSlash
-                        : PhosphorIconsFill.speakerHigh,
-                    toggled: isDeafened,
-                    onPressed: () {
-                      unawaited(
-                        ref
-                            .read(voiceSessionProvider.notifier)
-                            .toggleSelfDeafen(),
-                      );
-                    },
-                  ),
-                  _VoiceControlCircle(
-                    size: _kControlSize,
-                    color: isVideoOn
-                        ? context.colors.brandPrimary
-                        : context.colors.backgroundTertiary,
-                    tooltip: l10n.voiceControlVideo,
-                    icon: PhosphorIconsFill.videoCamera,
-                    toggled: isVideoOn,
-                    onPressed: session.isConnected
-                        ? () {
-                            unawaited(
-                              ref
-                                  .read(voiceSessionProvider.notifier)
-                                  .toggleSelfVideo(),
-                            );
-                          }
-                        : null,
-                  ),
-                  if (canScreenShare)
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: _kControlGap,
+                  children: <Widget>[
                     _VoiceControlCircle(
                       size: _kControlSize,
-                      color: isScreenSharing
-                          ? context.colors.brandPrimary
+                      color: isMuted
+                          ? context.colors.statusDanger
                           : context.colors.backgroundTertiary,
-                      tooltip: l10n.voiceControlScreenShare,
-                      icon: PhosphorIconsFill.monitor,
-                      toggled: isScreenSharing,
+                      tooltip: isMuted
+                          ? l10n.voiceControlUnmute
+                          : l10n.voiceControlMute,
+                      icon: isMuted
+                          ? PhosphorIconsFill.microphoneSlash
+                          : PhosphorIconsFill.microphone,
+                      toggled: isMuted,
+                      onPressed: () {
+                        unawaited(
+                          ref
+                              .read(voiceSessionProvider.notifier)
+                              .toggleSelfMute(),
+                        );
+                      },
+                    ),
+                    _VoiceControlCircle(
+                      size: _kControlSize,
+                      color: isDeafened
+                          ? context.colors.statusDanger
+                          : context.colors.backgroundTertiary,
+                      tooltip: isDeafened
+                          ? l10n.voiceControlUndeafen
+                          : l10n.voiceControlDeafen,
+                      icon: isDeafened
+                          ? PhosphorIconsFill.speakerSlash
+                          : PhosphorIconsFill.speakerHigh,
+                      toggled: isDeafened,
+                      onPressed: () {
+                        unawaited(
+                          ref
+                              .read(voiceSessionProvider.notifier)
+                              .toggleSelfDeafen(),
+                        );
+                      },
+                    ),
+                    _VoiceControlCircle(
+                      size: _kControlSize,
+                      color: isVideoOn
+                          ? context.colors.statusOnline
+                          : context.colors.backgroundTertiary,
+                      tooltip: l10n.voiceControlVideo,
+                      icon: PhosphorIconsFill.videoCamera,
+                      toggled: isVideoOn,
                       onPressed: session.isConnected
                           ? () {
                               unawaited(
                                 ref
                                     .read(voiceSessionProvider.notifier)
-                                    .toggleSelfStream(
-                                      screenShareNotificationText:
-                                          l10n.voiceScreenShareNotificationText,
-                                    ),
+                                    .toggleSelfVideo(),
                               );
                             }
                           : null,
                     ),
-
-                  _VoiceControlCircle(
-                    size: _kControlSize,
-                    color: context.colors.statusDanger,
-                    tooltip: l10n.voiceControlDisconnect,
-                    icon: PhosphorIconsFill.phoneDisconnect,
-                    onPressed: () {
-                      final String? guildId = session.guildId;
-                      if (context.mounted && isMobileLayout(context)) {
-                        final String location = ref.read(
-                          currentLocationProvider,
-                        );
-                        if (isFavoritesChannelRoute(location)) {
-                          returnToFavoritesList(ref);
-                        } else if (guildId != null && guildId.isNotEmpty) {
-                          navigateToContent(
-                            context,
-                            '${RoutePaths.guild(guildId)}?view=list',
+                    if (canScreenShare)
+                      _VoiceControlCircle(
+                        size: _kControlSize,
+                        color: isScreenSharing
+                            ? context.colors.statusOnline
+                            : context.colors.backgroundTertiary,
+                        tooltip: l10n.voiceControlScreenShare,
+                        icon: PhosphorIconsFill.monitor,
+                        toggled: isScreenSharing,
+                        onPressed: session.isConnected
+                            ? () {
+                                unawaited(
+                                  ref
+                                      .read(voiceSessionProvider.notifier)
+                                      .toggleSelfStream(
+                                        screenShareNotificationText: l10n
+                                            .voiceScreenShareNotificationText,
+                                      ),
+                                );
+                              }
+                            : null,
+                      ),
+                    _VoiceControlCircle(
+                      size: _kControlSize,
+                      color: context.colors.statusDanger,
+                      tooltip: l10n.voiceControlDisconnect,
+                      icon: PhosphorIconsFill.phoneDisconnect,
+                      onPressed: () {
+                        final String? guildId = session.guildId;
+                        if (context.mounted && isMobileLayout(context)) {
+                          final String location = ref.read(
+                            currentLocationProvider,
                           );
+                          if (isFavoritesChannelRoute(location)) {
+                            returnToFavoritesList(ref);
+                          } else if (guildId != null && guildId.isNotEmpty) {
+                            navigateToContent(
+                              context,
+                              '${RoutePaths.guild(guildId)}?view=list',
+                            );
+                          }
                         }
-                      }
-                      unawaited(
-                        ref.read(voiceSessionProvider.notifier).leaveVoice(),
-                      );
-                    },
-                  ),
-                ],
+                        unawaited(
+                          ref.read(voiceSessionProvider.notifier).leaveVoice(),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -180,7 +192,7 @@ class VoiceChannelControlBar extends ConsumerWidget {
   }
 }
 
-class _VoiceControlCircle extends StatelessWidget {
+class _VoiceControlCircle extends StatefulWidget {
   const _VoiceControlCircle({
     required this.size,
     required this.color,
@@ -198,22 +210,42 @@ class _VoiceControlCircle extends StatelessWidget {
   final bool toggled;
 
   @override
+  State<_VoiceControlCircle> createState() => _VoiceControlCircleState();
+}
+
+class _VoiceControlCircleState extends State<_VoiceControlCircle> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (widget.onPressed == null || _pressed == value) {
+      return;
+    }
+    setState(() => _pressed = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final Widget child = Material(
-      color: color,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onPressed,
-        child: SizedBox(
-          width: size,
-          height: size,
+    final bool enabled = widget.onPressed != null;
+    final Widget circle = AnimatedScale(
+      scale: _pressed ? 0.9 : 1,
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOut,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        width: widget.size,
+        height: widget.size,
+        decoration: BoxDecoration(
+          color: widget.color,
+          shape: BoxShape.circle,
+        ),
+        child: Center(
           child: ExcludeSemantics(
             child: PhosphorIcon(
-              icon,
+              widget.icon,
               size: 24,
               color: context.colors.textPrimary.withValues(
-                alpha: onPressed == null ? 0.45 : 1,
+                alpha: enabled ? 1 : 0.45,
               ),
             ),
           ),
@@ -222,10 +254,20 @@ class _VoiceControlCircle extends StatelessWidget {
     );
     return Semantics(
       button: true,
-      label: tooltip,
-      toggled: toggled,
-      enabled: onPressed != null,
-      child: Tooltip(message: tooltip, child: child),
+      label: widget.tooltip,
+      toggled: widget.toggled,
+      enabled: enabled,
+      child: Tooltip(
+        message: widget.tooltip,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => _setPressed(true),
+          onTapUp: (_) => _setPressed(false),
+          onTapCancel: () => _setPressed(false),
+          onTap: widget.onPressed,
+          child: circle,
+        ),
+      ),
     );
   }
 }

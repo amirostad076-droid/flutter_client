@@ -14,6 +14,7 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_call_layout_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_screen_share_watch_tile_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/android_screen_share_background.dart';
@@ -827,6 +828,7 @@ class VoiceSession extends _$VoiceSession {
       ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.voiceDisconnect),
     );
     ref.read(voiceScreenShareWatchTileProvider.notifier).setActiveTileId(null);
+    ref.read(voiceCallLayoutProvider.notifier).reset();
     await disableAndroidScreenShareBackground();
     final String? channelId = state.channelId;
     final String? guildId = state.guildId;
@@ -876,6 +878,11 @@ class VoiceSession extends _$VoiceSession {
     } on Object catch (e) {
       talker.warning('[Voice] failed to disconnect: $e');
     } finally {
+      try {
+        await roomToDisconnect.dispose();
+      } on Object catch (e) {
+        talker.warning('[Voice] failed to dispose room: $e');
+      }
       _intentionalLiveKitTeardown = false;
     }
   }
@@ -1208,6 +1215,12 @@ class VoiceSession extends _$VoiceSession {
         talker.error('[Voice] setMicrophoneEnabled: $e');
       }
     }
+    unawaited(
+      _reconcileRemoteAudioSubscriptions(
+        deaf: audio.effectiveDeaf,
+        reason: 'self_voice_state',
+      ),
+    );
   }
 
   Future<void> _applySelfStreamState({required bool selfStream}) async {
@@ -1438,6 +1451,37 @@ class VoiceSession extends _$VoiceSession {
       await publication.subscribe();
     } on Object catch (e) {
       talker.warning('[Voice] Failed to subscribe remote track: $e');
+    }
+  }
+
+  Future<void> _reconcileRemoteAudioSubscriptions({
+    required bool deaf,
+    required String reason,
+  }) async {
+    final Room? room = state.liveKitRoom;
+    if (room == null || !state.isConnected) {
+      return;
+    }
+    for (final RemoteParticipant participant
+        in room.remoteParticipants.values) {
+      for (final RemoteTrackPublication publication
+          in participant.audioTrackPublications) {
+        if (publication.source != TrackSource.microphone) {
+          continue;
+        }
+        try {
+          if (deaf && publication.subscribed) {
+            await publication.unsubscribe();
+          } else if (!deaf && !publication.subscribed) {
+            await publication.subscribe();
+          }
+        } on Object catch (e) {
+          talker.warning(
+            '[Voice] Failed to reconcile remote audio ($reason, '
+            'participant=${participant.identity}): $e',
+          );
+        }
+      }
     }
   }
 

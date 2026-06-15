@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart' as database;
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/voice/utils/voice_participant_track_resolver.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:livekit_client/livekit_client.dart';
 
@@ -45,6 +46,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
     required this.isActiveScreenShare,
     required this.streamPreviewUrl,
     required this.authToken,
+    this.isFilmstrip = false,
     this.user,
     super.key,
   });
@@ -58,6 +60,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
   final Color backgroundColor;
   final VoiceParticipantTileSource tileSource;
   final bool isActiveScreenShare;
+  final bool isFilmstrip;
   final String? streamPreviewUrl;
   final String? authToken;
   final database.User? user;
@@ -84,7 +87,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
         isScreenShareTile &&
         _screenShareVideoPublication(participant, false) != null;
     if (isOwnScreenShareTile && hasOwnScreenSharePublication) {
-      return _buildOwnScreenShareBroadcastingTile(backgroundColor);
+      return _buildOwnScreenShareBroadcastingTile(context, backgroundColor);
     }
     return OrientationBuilder(
       builder: (BuildContext context, Orientation deviceOrientation) {
@@ -105,6 +108,13 @@ class VoiceParticipantMediaTile extends StatelessWidget {
               if (!isActiveScreenShare && publication.subscribed) {
                 unawaited(publication.unsubscribe());
               }
+            }
+            // Remote cameras are not auto-subscribed (autoSubscribe is off), so
+            // subscribe here whenever the tile is displayed.
+            if (!isScreenShareTile &&
+                publication is RemoteTrackPublication &&
+                !publication.subscribed) {
+              unawaited(publication.subscribe());
             }
             TrackPublication? audioPublication;
             AudioTrack? audioTrack;
@@ -182,13 +192,18 @@ class VoiceParticipantMediaTile extends StatelessWidget {
                 ],
               );
             }
-            final Widget fallbackWidget = _avatarStack(
+            Widget fallbackWidget = _avatarStack(
               context,
               showVideoPending: isScreenShareTile
                   ? voice.selfStream
                   : voice.selfVideo,
               backgroundColor: backgroundColor,
             );
+            // In the filmstrip a not-watched screen-share shows its preview
+            // image (falling back to the avatar) instead of a watch button.
+            if (isScreenShareTile && !isActiveScreenShare && isFilmstrip) {
+              fallbackWidget = _nonWatchingPreviewLayer(fallbackWidget);
+            }
             if (!isScreenShareTile ||
                 !isActiveScreenShare ||
                 audioTrack == null) {
@@ -224,7 +239,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
   }
 
   static TrackPublication? _cameraPublication(Participant participant) {
-    return resolveCameraPublication(participant);
+    return resolveCameraPublicationAllowingNoTrack(participant);
   }
 
   static TrackPublication? _screenShareVideoPublication(
@@ -314,7 +329,11 @@ class VoiceParticipantMediaTile extends StatelessWidget {
     );
   }
 
-  Widget _buildOwnScreenShareBroadcastingTile(Color backgroundColor) {
+  Widget _buildOwnScreenShareBroadcastingTile(
+    BuildContext context,
+    Color backgroundColor,
+  ) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: AspectRatio(
@@ -323,32 +342,32 @@ class VoiceParticipantMediaTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: backgroundColor.withValues(alpha: 0.88),
           ),
-          child: const Center(
+          child: Center(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Icon(
+                  const Icon(
                     Icons.screen_share_rounded,
                     color: Color(0xFFFFFFFF),
                     size: 30,
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
-                    'You are broadcasting',
+                    l10n.voiceOwnScreenShareTitle,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Color(0xFFFFFFFF),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Your stream is live for participants.',
+                    l10n.voiceOwnScreenShareSubtitle,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Color(0xCCFFFFFF),
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
