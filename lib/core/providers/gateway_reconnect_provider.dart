@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
@@ -9,22 +9,36 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
-import 'package:fluxer_app/l10n/generated/fluxer_localizations_en.dart';
+import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gateway_reconnect_provider.g.dart';
 
 const Duration kGatewayReconnectFailureTimeout = Duration(seconds: 30);
+const Duration kGatewayResumeReconnectFailureTimeout = Duration(seconds: 60);
 const Duration kForegroundStaleReconnectThreshold = Duration(seconds: 30);
 const Duration kResumeReconnectDelay = Duration(milliseconds: 500);
+const Duration kConnectivityReconnectDebounce = Duration(milliseconds: 500);
 
-final FluxerLocalizationsEn _gatewayL10n = FluxerLocalizationsEn();
+/// True while a foreground resume reconnect nudge is in flight.
+@Riverpod(keepAlive: true)
+class GatewayResumeReconnectInFlight extends _$GatewayResumeReconnectInFlight {
+  @override
+  bool build() => false;
+
+  void setInFlight({required bool value}) {
+    state = value;
+  }
+}
 
 /// Waits for the network stack after resume, then nudges the gateway socket.
 Future<void> nudgeGatewayReconnectAfterResume(
-  GatewayConnection connection,
-) async {
+  GatewayConnection connection, {
+  void Function({required bool inFlight})? onResumeReconnectInFlight,
+}) async {
+  onResumeReconnectInFlight?.call(inFlight: true);
   await Future<void>.delayed(kResumeReconnectDelay);
   final List<ConnectivityResult> results = await Connectivity()
       .checkConnectivity();
@@ -33,6 +47,7 @@ Future<void> nudgeGatewayReconnectAfterResume(
   );
   if (!hasConnection) {
     talker.warning('[Gateway] Resume reconnect skipped: no connectivity');
+    onResumeReconnectInFlight?.call(inFlight: false);
     return;
   }
   talker.info('[Gateway] Resume reconnect starting');
@@ -57,6 +72,7 @@ class GatewayConnectionFailed extends _$GatewayConnectionFailed {
 Raw<StreamSubscription<GatewayState>?> gatewayStateListener(Ref ref) {
   final connection = ref.watch(gatewayConnectionProvider);
   Timer? failureTimer;
+  GatewayState? reconnectingState;
 
   void clearFailureTimer() {
     failureTimer?.cancel();
@@ -65,20 +81,43 @@ Raw<StreamSubscription<GatewayState>?> gatewayStateListener(Ref ref) {
 
   void markOnline() {
     clearFailureTimer();
+    reconnectingState = null;
+    ref.read(gatewayResumeReconnectInFlightProvider.notifier).setInFlight(
+      value: false,
+    );
     ref.read(serverReachableProvider.notifier).setReachable(value: true);
     ref.read(gatewayConnectionFailedProvider.notifier).reset();
   }
 
   void markFailed() {
     clearFailureTimer();
+    reconnectingState = null;
+    ref.read(gatewayResumeReconnectInFlightProvider.notifier).setInFlight(
+      value: false,
+    );
     ref.read(serverReachableProvider.notifier).setReachable(value: false);
     ref.read(gatewayConnectionFailedProvider.notifier).setFailed(value: true);
     ref.read(guildSyncProvider.notifier).clearAll();
   }
 
+  Duration failureTimeoutForCurrentReconnect() {
+    if (ref.read(gatewayResumeReconnectInFlightProvider)) {
+      return kGatewayResumeReconnectFailureTimeout;
+    }
+    return kGatewayReconnectFailureTimeout;
+  }
+
   void scheduleFailureTimeout() {
+    if (!ref.read(appUiForegroundProvider)) {
+      clearFailureTimer();
+      return;
+    }
     clearFailureTimer();
-    failureTimer = Timer(kGatewayReconnectFailureTimeout, () {
+    final Duration timeout = failureTimeoutForCurrentReconnect();
+    failureTimer = Timer(timeout, () {
+      if (!ref.read(appUiForegroundProvider)) {
+        return;
+      }
       if (connection.state != GatewayState.connected) {
         talker.warning('[Gateway] Reconnect failure timeout reached');
         markFailed();
@@ -86,22 +125,42 @@ Raw<StreamSubscription<GatewayState>?> gatewayStateListener(Ref ref) {
     });
   }
 
+  void handleReconnectingState(GatewayState state) {
+    reconnectingState = state;
+    ref.read(serverReachableProvider.notifier).setReachable(value: true);
+    final bool onFailureScreen = ref.read(gatewayConnectionFailedProvider);
+    if (onFailureScreen) {
+      clearFailureTimer();
+    } else {
+      ref.read(gatewayConnectionFailedProvider.notifier).reset();
+      scheduleFailureTimeout();
+    }
+  }
+
+  ref.listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
+    if ((previous ?? false) && !next) {
+      clearFailureTimer();
+      return;
+    }
+    if ((previous ?? false) || !next) {
+      return;
+    }
+    final GatewayState? pending = reconnectingState;
+    if (pending == GatewayState.connecting ||
+        pending == GatewayState.reconnecting) {
+      scheduleFailureTimeout();
+    }
+  });
+
   final subscription = connection.stateChanges.listen((GatewayState state) {
     switch (state) {
       case GatewayState.connected:
         markOnline();
       case GatewayState.connecting:
       case GatewayState.reconnecting:
-        ref.read(serverReachableProvider.notifier).setReachable(value: true);
-        final bool onFailureScreen = ref.read(gatewayConnectionFailedProvider);
-        if (onFailureScreen) {
-          clearFailureTimer();
-        } else {
-          ref.read(gatewayConnectionFailedProvider.notifier).reset();
-          scheduleFailureTimeout();
-        }
+        handleReconnectingState(state);
       case GatewayState.disconnected:
-        break;
+        reconnectingState = null;
       case GatewayState.failed:
         talker.error('[Gateway] Fatal gateway close');
         markFailed();
@@ -130,15 +189,18 @@ void gatewayForegroundListener(Ref ref) {
         connection.state == GatewayState.connected &&
         backgroundDuration != null &&
         backgroundDuration > kForegroundStaleReconnectThreshold;
-    final bool forceAndroidReconnect =
-        Platform.isAndroid &&
-        (backgroundDuration == null ||
-            backgroundDuration > const Duration(seconds: 5));
-    if (forceAndroidReconnect ||
-        connection.state != GatewayState.connected ||
-        isStaleConnected) {
+    if (connection.state != GatewayState.connected || isStaleConnected) {
       talker.info('[Gateway] App resumed, scheduling reconnect');
-      unawaited(nudgeGatewayReconnectAfterResume(connection));
+      unawaited(
+        nudgeGatewayReconnectAfterResume(
+          connection,
+          onResumeReconnectInFlight: ({required bool inFlight}) {
+            ref
+                .read(gatewayResumeReconnectInFlightProvider.notifier)
+                .setInFlight(value: inFlight);
+          },
+        ),
+      );
     }
   });
 }
@@ -162,13 +224,16 @@ void gatewayReconnectToastListener(Ref ref) {
     final bool isReconnecting =
         state == GatewayState.connecting || state == GatewayState.reconnecting;
     final bool isConnected = state == GatewayState.connected;
+    final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
+      PlatformDispatcher.instance.locale,
+    );
     if (wasConnected && isReconnecting && !reconnectToastShown) {
       reconnectToastShown = true;
       ref
           .read(toastProvider.notifier)
           .show(
             FluxerToast(
-              message: _gatewayL10n.gatewayReconnectingToast,
+              message: l10n.gatewayReconnectingToast,
               duration: const Duration(seconds: 5),
             ),
           );
@@ -182,7 +247,7 @@ void gatewayReconnectToastListener(Ref ref) {
           .read(toastProvider.notifier)
           .show(
             FluxerToast(
-              message: _gatewayL10n.gatewayConnectedToast,
+              message: l10n.gatewayConnectedToast,
               variant: FluxerToastVariant.success,
             ),
           );
@@ -200,6 +265,12 @@ Raw<StreamSubscription<List<ConnectivityResult>>?> connectivityListener(
   Ref ref,
 ) {
   final connection = ref.watch(gatewayConnectionProvider);
+  Timer? debounceTimer;
+
+  void clearDebounce() {
+    debounceTimer?.cancel();
+    debounceTimer = null;
+  }
 
   final subscription = Connectivity().onConnectivityChanged.listen((
     List<ConnectivityResult> results,
@@ -207,12 +278,26 @@ Raw<StreamSubscription<List<ConnectivityResult>>?> connectivityListener(
     final bool hasConnection = results.any(
       (ConnectivityResult r) => r != ConnectivityResult.none,
     );
-    if (hasConnection && connection.state != GatewayState.connected) {
-      talker.info('[Gateway] Network restored, reconnecting immediately');
-      unawaited(connection.reconnectNow());
+    if (!hasConnection || connection.state == GatewayState.connected) {
+      clearDebounce();
+      return;
     }
+    if (ref.read(gatewayConnectionFailedProvider)) {
+      return;
+    }
+    clearDebounce();
+    debounceTimer = Timer(kConnectivityReconnectDebounce, () {
+      debounceTimer = null;
+      if (connection.state != GatewayState.connected) {
+        talker.info('[Gateway] Network restored, reconnecting');
+        unawaited(connection.reconnectNow());
+      }
+    });
   });
 
-  ref.onDispose(subscription.cancel);
+  ref.onDispose(() {
+    clearDebounce();
+    subscription.cancel();
+  });
   return subscription;
 }

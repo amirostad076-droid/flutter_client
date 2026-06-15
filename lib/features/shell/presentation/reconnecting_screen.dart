@@ -3,15 +3,11 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
-import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
-import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:fluxer_dart/gateway.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const Duration _kRetryDelay = Duration(seconds: 3);
@@ -60,7 +56,6 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
         return;
       }
       await ref.read(gatewayConnectionProvider).reconnectNow();
-      await ref.read(appStartupProvider.notifier).retry();
     } finally {
       _retryInFlight = false;
     }
@@ -78,21 +73,11 @@ class _ReconnectingScreenState extends ConsumerState<ReconnectingScreen> {
   @override
   Widget build(BuildContext context) {
     final FluxerLocalizations strings = FluxerLocalizations.of(context);
-    ref
-      ..listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
-        if (previous == false && next) {
-          unawaited(_retryConnection());
-        }
-      })
-      ..listen<GatewayConnection>(gatewayConnectionProvider, (
-        GatewayConnection? _,
-        GatewayConnection next,
-      ) {
-        if (next.state == GatewayState.connected) {
-          ref.read(gatewayConnectionFailedProvider.notifier).reset();
-          ref.read(serverReachableProvider.notifier).setReachable(value: true);
-        }
-      });
+    ref.listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
+      if (previous == false && next) {
+        unawaited(_retryConnection());
+      }
+    });
     return Scaffold(
       backgroundColor: context.colors.backgroundPrimary,
       body: Center(

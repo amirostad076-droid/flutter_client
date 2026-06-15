@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -17,6 +18,11 @@ class FriendRelationshipsSync extends _$FriendRelationshipsSync {
   void build() {
     ref.listen<bool>(gatewayReadyProvider, (bool? previous, bool next) {
       if (!(previous ?? false) && next) {
+        unawaited(_sync());
+      }
+    });
+    ref.listen<int>(gatewaySessionRecoveryProvider, (int? previous, int next) {
+      if (next > 0 && previous != next) {
         unawaited(_sync());
       }
     });

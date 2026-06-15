@@ -194,7 +194,7 @@ GoRouter fluxerRouter(Ref ref) {
       }
 
       // Authenticated but gateway hasn't delivered READY yet — stay on splash.
-      if (isAuthenticated && !isGatewayReady) {
+      if (isAuthenticated && !isGatewayReady && !isOnReconnecting) {
         return isOnLoading ? null : '/loading';
       }
 

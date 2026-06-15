@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
+import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
+import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/talker.dart';
@@ -120,6 +123,16 @@ class DeepLinkHandler extends _$DeepLinkHandler {
   }
 
   void _processDeepLink(Uri uri) {
+    final bool ready = isPendingNavigationReady(
+      isAuthenticated: ref.read(authStateProvider),
+      isGatewayReady: ref.read(gatewayReadyProvider),
+      isConnectionFailed: ref.read(gatewayConnectionFailedProvider),
+    );
+    if (!ready) {
+      final String path = uri.hasQuery ? '${uri.path}?${uri.query}' : uri.path;
+      ref.read(pendingPushNotificationPathProvider.notifier).store(path);
+      return;
+    }
     final router = ref.read(fluxerRouterProvider);
     final segments = uri.pathSegments;
 

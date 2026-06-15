@@ -766,6 +766,32 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
+  /// Refreshes the open channel after gateway READY/RESUMED without navigation
+  Future<void> refreshAfterSessionRecovery() async {
+    final String channelId = state.channelId;
+    if (channelId.isEmpty) {
+      return;
+    }
+    if (state.isLoading || state.isSyncingMessages) {
+      return;
+    }
+    final bool hasUnread = await _channelHasNewUnreadMessages(channelId);
+    if (hasUnread) {
+      final String? aroundMessageId = await _unreadChannelLoadAnchor(channelId);
+      await _refreshMessagesFromNetwork(
+        channelId,
+        aroundMessageId: aroundMessageId,
+        runOnMessagesLoaded: true,
+      );
+      return;
+    }
+    state = state.copyWith(isSyncingMessages: true);
+    await _refreshMessagesFromNetwork(channelId);
+    if (state.channelId == channelId) {
+      state = state.copyWith(isSyncingMessages: false);
+    }
+  }
+
   Future<void> _loadMessages(
     String channelId, {
     String? targetMessageId,

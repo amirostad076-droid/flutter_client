@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
@@ -61,6 +62,12 @@ final class ChannelJumpAccessDenied extends ChannelJumpResolution {
   const ChannelJumpAccessDenied();
 }
 
+final class ChannelJumpPending extends ChannelJumpResolution {
+  const ChannelJumpPending({required this.path});
+
+  final String path;
+}
+
 final class ChannelJumpInPlace extends ChannelJumpResolution {
   const ChannelJumpInPlace({required this.channelId, required this.messageId});
 
@@ -91,7 +98,12 @@ Future<ChannelJumpResolution> resolveChannelJumpLink({
       link.channelId,
     );
     if (channel == null) {
-      return const ChannelJumpAccessDenied();
+      final String path = buildChannelJumpRoutePath(
+        channelId: link.channelId,
+        guildId: link.isDm ? null : link.scope,
+        messageId: messageId,
+      );
+      return ChannelJumpPending(path: path);
     }
     final String path = buildChannelJumpRoutePath(
       channelId: link.channelId,
@@ -149,6 +161,8 @@ Future<void> _applyChannelJumpResolution({
       if (sheetContext != null && sheetContext.mounted) {
         await showChannelAccessDeniedSheet(sheetContext);
       }
+    case ChannelJumpPending(:final path):
+      container.read(pendingPushNotificationPathProvider.notifier).store(path);
     case ChannelJumpInPlace(:final channelId, :final messageId):
       await container
           .read(chatViewModelProvider.notifier)

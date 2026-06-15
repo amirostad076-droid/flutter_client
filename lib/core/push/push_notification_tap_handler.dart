@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_handler.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
 import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
 import 'package:fluxer_app/core/push/push_notification_clear.dart';
 import 'package:fluxer_app/core/push/push_notification_path_resolver.dart';
@@ -63,7 +64,12 @@ class PushNotificationTapHandler extends _$PushNotificationTapHandler {
   }
 
   void _navigateToPath(String path) {
-    if (!ref.read(authStateProvider) || !ref.read(gatewayReadyProvider)) {
+    final bool ready = isPendingNavigationReady(
+      isAuthenticated: ref.read(authStateProvider),
+      isGatewayReady: ref.read(gatewayReadyProvider),
+      isConnectionFailed: ref.read(gatewayConnectionFailedProvider),
+    );
+    if (!ready) {
       ref.read(pendingPushNotificationPathProvider.notifier).store(path);
       return;
     }

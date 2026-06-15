@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
+import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 
 void main() {
@@ -29,5 +31,68 @@ void main() {
 
     expect(container.read(serverReachableProvider), isFalse);
     expect(container.read(gatewayConnectionFailedProvider), isTrue);
+  });
+
+  test('gatewayResumeReconnectInFlight tracks resume nudge state', () {
+    final ProviderContainer container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(gatewayResumeReconnectInFlightProvider), isFalse);
+    container
+        .read(gatewayResumeReconnectInFlightProvider.notifier)
+        .setInFlight(value: true);
+    expect(container.read(gatewayResumeReconnectInFlightProvider), isTrue);
+    container
+        .read(gatewayResumeReconnectInFlightProvider.notifier)
+        .setInFlight(value: false);
+    expect(container.read(gatewayResumeReconnectInFlightProvider), isFalse);
+  });
+
+  test('gatewaySessionRecovery increments on bump', () {
+    final ProviderContainer container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(gatewaySessionRecoveryProvider), 0);
+    container.read(gatewaySessionRecoveryProvider.notifier).bump();
+    expect(container.read(gatewaySessionRecoveryProvider), 1);
+    container.read(gatewaySessionRecoveryProvider.notifier).bump();
+    expect(container.read(gatewaySessionRecoveryProvider), 2);
+  });
+
+  group('isPendingNavigationReady', () {
+    test('requires auth, gateway ready, and no connection failure', () {
+      expect(
+        isPendingNavigationReady(
+          isAuthenticated: false,
+          isGatewayReady: true,
+          isConnectionFailed: false,
+        ),
+        isFalse,
+      );
+      expect(
+        isPendingNavigationReady(
+          isAuthenticated: true,
+          isGatewayReady: false,
+          isConnectionFailed: false,
+        ),
+        isFalse,
+      );
+      expect(
+        isPendingNavigationReady(
+          isAuthenticated: true,
+          isGatewayReady: true,
+          isConnectionFailed: true,
+        ),
+        isFalse,
+      );
+      expect(
+        isPendingNavigationReady(
+          isAuthenticated: true,
+          isGatewayReady: true,
+          isConnectionFailed: false,
+        ),
+        isTrue,
+      );
+    });
   });
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -96,6 +97,8 @@ class TypingIndicators extends _$TypingIndicators {
       state = updated;
     }
   }
+
+  void clearAll() => state = const [];
 }
 
 /// Tracks voice state per gateway [VoiceState.connectionId] (or a synthetic key
@@ -340,6 +343,20 @@ class OutgoingVoiceCallInitiator extends _$OutgoingVoiceCallInitiator {
   }
 
   void clearAll() => state = {};
+}
+
+/// Clears ephemeral gateway derived UI state after session recovery
+@Riverpod(keepAlive: true)
+void gatewayEphemeralStateRecoveryListener(Ref ref) {
+  ref.listen<int>(gatewaySessionRecoveryProvider, (int? previous, int next) {
+    if (next <= 0 || previous == next) {
+      return;
+    }
+    ref.read(typingIndicatorsProvider.notifier).clearAll();
+    ref.read(voiceStatesMapProvider.notifier).clear();
+    ref.read(activeCallsProvider.notifier).clear();
+    ref.read(outgoingVoiceCallInitiatorProvider.notifier).clearAll();
+  });
 }
 
 /// In-memory invite cache.

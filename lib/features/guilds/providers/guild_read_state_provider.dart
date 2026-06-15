@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
@@ -133,6 +134,13 @@ class GuildReadState extends _$GuildReadState {
 
     ref.listen<bool>(gatewayReadyProvider, (prev, next) {
       if (!(prev ?? false) && next) {
+        _seeded = false;
+        unawaited(_seedAll(db, currentUserId));
+      }
+    });
+
+    ref.listen<int>(gatewaySessionRecoveryProvider, (int? previous, int next) {
+      if (next > 0 && previous != next) {
         _seeded = false;
         unawaited(_seedAll(db, currentUserId));
       }

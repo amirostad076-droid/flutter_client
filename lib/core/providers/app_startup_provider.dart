@@ -23,7 +23,9 @@ import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_reg
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
+import 'package:fluxer_app/features/channels/providers/ack_batcher_gateway_listener_provider.dart';
 import 'package:fluxer_app/features/friends/providers/friend_relationships_sync_provider.dart';
+import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/mature_content/providers/mature_content_agreements_provider.dart';
 import 'package:fluxer_app/features/mature_content/providers/sensitive_content_provider.dart';
 import 'package:fluxer_app/features/profile/providers/status_expiry_scheduler.dart';
@@ -130,6 +132,8 @@ class AppStartup extends _$AppStartup {
       ..read(gatewayForegroundListenerProvider)
       ..read(gatewayReconnectToastListenerProvider)
       ..read(connectivityListenerProvider)
+      ..read(gatewayEphemeralStateRecoveryListenerProvider)
+      ..read(ackBatcherGatewayListenerProvider)
       ..read(fluxerSfxIncomingRingBindingProvider)
       ..read(fluxerMessageSfxBindingProvider)
       ..read(friendRelationshipsSyncProvider)

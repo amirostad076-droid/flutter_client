@@ -1312,6 +1312,19 @@ void main() {
       expect(container.read(chatViewModelProvider).highlightedMessageId, null);
     });
   });
+
+  test('refreshAfterSessionRecovery is no-op without open channel', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final adapter = _ChatAdapter();
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    await container.read(chatViewModelProvider.notifier).refreshAfterSessionRecovery();
+
+    expect(container.read(chatViewModelProvider).channelId, isEmpty);
+    expect(adapter.messageRequestUris, isEmpty);
+  });
 }
 
 ProviderContainer _container(
