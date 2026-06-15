@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/app.dart';
+import 'package:fluxer_app/core/bootstrap/flutter_error_ui.dart';
 import 'package:fluxer_app/core/build/push_provider_assert.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
@@ -26,6 +27,7 @@ void _configureImagePicker() {
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  configureFluxerErrorUi();
   assertPushProviderBuildConfig();
   bootstrapFcmIfNeeded();
   _configureImagePicker();
