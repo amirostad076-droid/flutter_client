@@ -6,7 +6,7 @@ on:
 jobs:
   check-actor:
     name: Check allowed user
-    runs-on: macos26
+    runs-on: ubuntu-latest
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}
     steps:

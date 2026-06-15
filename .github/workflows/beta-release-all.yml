@@ -10,7 +10,7 @@ permissions:
 jobs:
   check-actor:
     name: Check allowed user
-    runs-on: macos26
+    runs-on: ubuntu-latest
     steps:
       - name: Check actor against allowlist
         id: check
