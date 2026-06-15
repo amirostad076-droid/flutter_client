@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
+import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
@@ -77,6 +78,8 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     onReady: () {
       talker.info('[Gateway] Setting gatewayReady = true');
       unawaited(ref.read(channelPermissionCacheProvider.notifier).rebuildAll());
+      ref.invalidate(effectiveGuildChannelPermissionBitsProvider);
+      ref.invalidate(channelLocalGuildChannelPermissionBitsProvider);
       ref.read(gatewayReadyProvider.notifier).setReady();
       ref.read(guildSyncProvider.notifier).clearAll();
       ref.read(memberListViewportProvider.notifier).clearSession();
@@ -167,6 +170,8 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       unawaited(
         ref.read(channelPermissionCacheProvider.notifier).rebuildGuild(guildId),
       );
+      ref.invalidate(effectiveGuildChannelPermissionBitsProvider);
+      ref.invalidate(channelLocalGuildChannelPermissionBitsProvider);
     },
     onGuildPermissionsEvict: (guildId) {
       ref.read(guildPermissionsProvider.notifier).evict(guildId);
@@ -180,10 +185,14 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
             .read(channelPermissionCacheProvider.notifier)
             .rebuildChannel(channelId),
       );
+      ref.invalidate(effectiveGuildChannelPermissionBitsProvider(channelId));
+      ref.invalidate(channelLocalGuildChannelPermissionBitsProvider(channelId));
     },
     onPermissionsClearAll: () {
       ref.read(guildPermissionsProvider.notifier).clearAll();
       ref.read(channelPermissionCacheProvider.notifier).clearAll();
+      ref.invalidate(effectiveGuildChannelPermissionBitsProvider);
+      ref.invalidate(channelLocalGuildChannelPermissionBitsProvider);
     },
     onMessageCreate: (event) => messageBus.emit(MessageCreated(event)),
     onMessageUpdate: (event) => messageBus.emit(MessageUpdated(event)),

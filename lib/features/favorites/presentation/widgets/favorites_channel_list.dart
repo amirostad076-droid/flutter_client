@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/daos/favorite_channels_dao.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
-import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
+import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel_unread_state.dart';
 import 'package:fluxer_app/features/channels/domain/hide_muted_channels_filter.dart';
@@ -481,9 +481,9 @@ class _FavoriteLeadingIcon extends ConsumerWidget {
     final channel = entry.channel;
     final guild = entry.guild;
     if (channel != null && guild != null) {
-      final int? effectivePermissionBits = ref
-          .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
-          .value;
+      final int? cachedPermissionBits = ref.watch(
+        channelPermissionCacheProvider.select((m) => m[channel.id]),
+      );
       return SizedBox.square(
         dimension: _avatarSize,
         child: Stack(
@@ -511,7 +511,7 @@ class _FavoriteLeadingIcon extends ConsumerWidget {
                 child: ChannelIcon(
                   type: channel.type,
                   channel: channel,
-                  effectivePermissionBits: effectivePermissionBits,
+                  effectivePermissionBits: cachedPermissionBits,
                   size: _badgeIconSize,
                   color: isSelected
                       ? context.colors.surfaceInteractiveSelectedColor
@@ -524,16 +524,16 @@ class _FavoriteLeadingIcon extends ConsumerWidget {
       );
     }
     if (channel != null) {
-      final int? effectivePermissionBits = ref
-          .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
-          .value;
+      final int? cachedPermissionBits = ref.watch(
+        channelPermissionCacheProvider.select((m) => m[channel.id]),
+      );
       return SizedBox.square(
         dimension: _avatarSize,
         child: Center(
           child: ChannelIcon(
             type: channel.type,
             channel: channel,
-            effectivePermissionBits: effectivePermissionBits,
+            effectivePermissionBits: cachedPermissionBits,
             size: _avatarSize,
           ),
         ),

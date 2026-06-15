@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
+import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
@@ -412,11 +413,11 @@ class GuildSidebar extends ConsumerWidget {
         );
       }),
     );
+    final int? cachedPermissionBits = ref.watch(
+      channelPermissionCacheProvider.select((m) => m[channel.id]),
+    );
     final int? effectivePermissionBits = ref
         .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
-        .value;
-    final int? canConnectBits = ref
-        .watch(channelLocalGuildChannelPermissionBitsProvider(channel.id))
         .value;
     final VoiceSessionState voiceSession = ref.watch(voiceSessionProvider);
     final Map<String, VoiceState> voiceStates = ref.watch(
@@ -530,8 +531,8 @@ class GuildSidebar extends ConsumerWidget {
                     ChannelIcon(
                       type: channel.type,
                       channel: channel,
-                      effectivePermissionBits: effectivePermissionBits,
-                      canConnectPermissionBits: canConnectBits,
+                      effectivePermissionBits: cachedPermissionBits,
+                      canConnectPermissionBits: cachedPermissionBits,
                       color: textColor,
                       e2eeEncrypted: showE2eeVoiceIcon,
                     ),
