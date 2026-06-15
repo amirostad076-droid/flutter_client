@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
@@ -43,11 +42,16 @@ ChannelIconAccessOverlay resolveChannelIconAccessOverlay({
       !hasPermission(connectBits, Permission.connect)) {
     return ChannelIconAccessOverlay.noConnect;
   }
-  if (isChannelEveryonePrivateForIcon(
-    type: channel.type,
-    guildId: channel.guildId,
-    permissionOverwritesJson: channel.permissionOverwritesJson,
-  )) {
+  final bool skipEveryonePrivateLockForVoiceIcon =
+      isVoiceLike &&
+      (connectBits == null ||
+          hasPermission(connectBits, Permission.connect));
+  if (!skipEveryonePrivateLockForVoiceIcon &&
+      isChannelEveryonePrivateForIcon(
+        type: channel.type,
+        guildId: channel.guildId,
+        permissionOverwritesJson: channel.permissionOverwritesJson,
+      )) {
     return ChannelIconAccessOverlay.lock;
   }
   return ChannelIconAccessOverlay.none;

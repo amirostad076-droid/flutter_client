@@ -20,6 +20,7 @@ import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_s
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_participants.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_user_count.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/guild_collapsed_categories_provider.dart';
@@ -444,6 +445,22 @@ class GuildSidebar extends ConsumerWidget {
     final bool showUnreadIndicator =
         !isSelected && channelUnreadState.shouldShowUnreadIndicator;
 
+    final int voiceUserLimit = channel.userLimit ?? 0;
+    final bool showVoiceUserCount =
+        channel.type == ChannelType.voice &&
+        voiceUserLimit > 0 &&
+        !isSelected &&
+        mentionCount == 0;
+    final int voiceCurrentCount = showVoiceUserCount && guildId != null
+        ? voiceStates.values
+              .where(
+                (vs) => vs.channelId == channel.id && vs.guildId == guildId,
+              )
+              .map((vs) => vs.userId)
+              .toSet()
+              .length
+        : 0;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -538,6 +555,13 @@ class GuildSidebar extends ConsumerWidget {
                         channelUnreadState.hasMentions) ...[
                       const SizedBox(width: 4),
                       FluxerBadge.count(count: mentionCount),
+                    ],
+                    if (showVoiceUserCount) ...[
+                      const SizedBox(width: 4),
+                      VoiceChannelUserCount(
+                        currentUserCount: voiceCurrentCount,
+                        userLimit: voiceUserLimit,
+                      ),
                     ],
                   ],
                 ),

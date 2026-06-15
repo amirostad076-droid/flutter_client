@@ -60,6 +60,7 @@ class Channel {
   final int contentWarningLevel;
   final String? contentWarningText;
   final String? permissionOverwritesJson;
+  final int? userLimit;
 
   const Channel({
     required this.id,
@@ -76,6 +77,7 @@ class Channel {
     this.contentWarningLevel = 0,
     this.contentWarningText,
     this.permissionOverwritesJson,
+    this.userLimit,
   });
 
   factory Channel.fromRow(db.Channel row) {
@@ -94,6 +96,7 @@ class Channel {
       contentWarningLevel: row.contentWarningLevel,
       contentWarningText: row.contentWarningText,
       permissionOverwritesJson: row.permissionOverwritesJson,
+      userLimit: row.userLimit,
     );
   }
 
@@ -113,6 +116,7 @@ class Channel {
       contentWarningLevel: Value(contentWarningLevel),
       contentWarningText: Value(contentWarningText),
       permissionOverwritesJson: Value(permissionOverwritesJson),
+      userLimit: Value(userLimit),
     );
   }
 

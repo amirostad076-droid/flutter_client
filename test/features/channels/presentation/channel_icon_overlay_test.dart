@@ -131,8 +131,8 @@ void main() {
           channel: channel,
           effectivePermissionBits: deniedBits,
         );
-        // Should check CONNECT using effectivePermissionBits when canConnect is null
-        expect(overlay, equals(ChannelIconAccessOverlay.none));
+        // CONNECT is evaluated using effectivePermissionBits when canConnect is null
+        expect(overlay, equals(ChannelIconAccessOverlay.noConnect));
       },
     );
 

@@ -91,6 +91,7 @@ db.ChannelsCompanion channelFromSdk(ChannelResponse sdk, String guildId) {
     permissionOverwritesJson: Value(
       encodePermissionOverwritesJson(sdk.permissionOverwrites),
     ),
+    userLimit: Value(sdk.userLimit),
   );
 }
 

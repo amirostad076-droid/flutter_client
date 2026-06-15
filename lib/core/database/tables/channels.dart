@@ -19,6 +19,7 @@ class Channels extends Table {
       integer().withDefault(const Constant(0))();
   TextColumn get contentWarningText => text().nullable()();
   TextColumn get permissionOverwritesJson => text().nullable()();
+  IntColumn get userLimit => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

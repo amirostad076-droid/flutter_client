@@ -108,7 +108,7 @@ computeChannelLocalGuildChannelPermissionBitsOutcome({
   final db = ref.read(fluxerDatabaseProvider);
   final String currentUserId = ref.read(userSettingsViewModelProvider).userId;
   final channelRow = await db.channelDao.getChannelById(channelId);
-  if (channelRow == null || channelRow.permissionOverwritesJson == null) {
+  if (channelRow == null) {
     return (value: 0, shouldCache: false);
   }
   final String guildId = channelRow.guildId;
