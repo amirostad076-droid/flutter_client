@@ -26,6 +26,25 @@ void main() {
     },
   );
 
+  test(
+    'hasUnreadByReadState returns false for unknown guild read state',
+    () {
+      final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final fallbackAckMs = DateTime.utc(2026, 5, 6, 11).millisecondsSinceEpoch;
+
+      expect(
+        hasUnreadByReadState(
+          channelLastMessageId: lastMessageId,
+          ackLastMessageId: null,
+          fallbackAckMs: fallbackAckMs,
+          mentionCount: 0,
+          isGuildChannel: true,
+        ),
+        isFalse,
+      );
+    },
+  );
+
   test('hasUnreadByReadState treats matching ack and last message as read', () {
     final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
 
@@ -37,22 +56,6 @@ void main() {
         mentionCount: 0,
       ),
       isFalse,
-    );
-  });
-
-  test('shouldSuppressStaleUnread suppresses old unread channels', () {
-    final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 4, 20, 12));
-    final fallbackAckMs = DateTime.utc(2026, 4).millisecondsSinceEpoch;
-
-    expect(
-      shouldSuppressStaleUnread(
-        channelLastMessageId: lastMessageId,
-        ackLastMessageId: null,
-        fallbackAckMs: fallbackAckMs,
-        mentionCount: 0,
-        now: DateTime.utc(2026, 5, 6, 12),
-      ),
-      isTrue,
     );
   });
 

@@ -9,15 +9,13 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart' show isGuildTextBasedChannel;
 import 'package:fluxer_app/features/guilds/domain/guild_read_state_contribution.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_read_state_ready_provider.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'guild_read_state_provider.g.dart';
-
-const int _voiceType = 2;
-const int _categoryType = 4;
 
 @immutable
 class GuildReadStateEntry {
@@ -305,7 +303,7 @@ class GuildReadState extends _$GuildReadState {
     final mentionChannels = <String>{};
 
     final eligibleChannels = channels
-        .where((channel) => channel.type != _categoryType)
+        .where((channel) => isGuildTextBasedChannel(channel.type))
         .toList();
     final contributions = await Future.wait(
       eligibleChannels.map(
@@ -356,7 +354,6 @@ class GuildReadState extends _$GuildReadState {
     required FluxerDatabase db,
     required String? currentUserId,
   }) async {
-    final isVoice = channel.type == _voiceType;
     final rawMentions = readState?.mentionCount ?? 0;
     final latestMessageId = await resolveLatestMessageIdForUnreadDisplay(
       db,
@@ -365,60 +362,20 @@ class GuildReadState extends _$GuildReadState {
       ackLastMessageId: readState?.lastMessageId,
       mentionCount: rawMentions,
     );
-    final visibleMentions =
-        canShowMentionCount(
-          channelLastMessageId: latestMessageId,
-          isGuildChannel: true,
-          now: now,
-        )
-        ? rawMentions
-        : 0;
-
-    final channelUnreadSettings = resolveChannelUnreadSettings(
-      channel: channel,
-      guildSettings: guildSettings,
-      now: now,
-    );
-    final mentions = channelUnreadSettings.allowsMentionUnread
-        ? visibleMentions
-        : 0;
-
-    if (isVoice) {
-      return _Contribution(
-        unreadEligible: mentions > 0,
-        hasPlainUnread: false,
-        mentions: mentions,
-      );
-    }
-
     final fallbackAckMs = await guildChannelFallbackAckMs(
       database: db,
       channel: channel,
       currentUserId: currentUserId,
     );
-    final staleSuppressed = shouldSuppressStaleUnread(
-      channelLastMessageId: latestMessageId,
-      ackLastMessageId: readState?.lastMessageId,
-      fallbackAckMs: fallbackAckMs,
-      mentionCount: mentions,
-      now: now,
-    );
-    if (staleSuppressed) {
-      return _Contribution(
-        unreadEligible: mentions > 0,
-        hasPlainUnread: false,
-        mentions: mentions,
-      );
-    }
-
     final hasUnreadMessage = hasUnreadByReadState(
       channelLastMessageId: latestMessageId,
       ackLastMessageId: readState?.lastMessageId,
       fallbackAckMs: fallbackAckMs,
       mentionCount: 0,
+      isGuildChannel: true,
     );
     final contribution = resolveGuildReadStateContribution(
-      isEligibleTextChannel: true,
+      isEligibleTextChannel: isGuildTextBasedChannel(channel.type),
       isPrivate: false,
       unreadBadgesLevel: resolveGuildUnreadBadgesLevel(
         channel: channel,
@@ -430,14 +387,14 @@ class GuildReadState extends _$GuildReadState {
         now: now,
       ),
       hasUnread: hasUnreadMessage,
-      mentionCount: mentions,
+      mentionCount: rawMentions,
     );
-    final hasPlainUnread = contribution.unreadAllowed && mentions == 0;
+    final hasPlainUnread = contribution.unreadAllowed && rawMentions == 0;
 
     return _Contribution(
       unreadEligible: contribution.mentionAllowed || contribution.unreadAllowed,
       hasPlainUnread: hasPlainUnread,
-      mentions: contribution.mentionAllowed ? mentions : 0,
+      mentions: contribution.mentionAllowed ? rawMentions : 0,
     );
   }
 }

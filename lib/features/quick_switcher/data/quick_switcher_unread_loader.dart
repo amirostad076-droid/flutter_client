@@ -2,12 +2,11 @@ import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart' show isGuildTextBasedChannel;
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/quick_switcher/data/quick_switcher_unread_utils.dart';
 import 'package:fluxer_app/features/quick_switcher/domain/quick_switcher_unread_channel.dart';
 import 'package:fluxer_dart/export.dart';
-
-const int _categoryType = 4;
 
 Future<List<QuickSwitcherUnreadChannel>> loadQuickSwitcherUnreadChannels({
   required FluxerDatabase db,
@@ -102,7 +101,7 @@ Future<QuickSwitcherUnreadChannel?> _guildUnreadFromReadState({
   required Map<String, UserGuildSettingsResponse> guildSettingsByGuild,
   required DateTime now,
 }) async {
-  if (row.type == _categoryType) {
+  if (!isGuildTextBasedChannel(row.type)) {
     return null;
   }
   if (!await canReadChannelForUnread(
@@ -135,15 +134,6 @@ Future<QuickSwitcherUnreadChannel?> _guildUnreadFromReadState({
     channel: row,
     currentUserId: currentUserId,
   );
-  if (shouldSuppressStaleUnread(
-    channelLastMessageId: latestMessageId,
-    ackLastMessageId: readState.lastMessageId,
-    fallbackAckMs: fallbackAckMs,
-    mentionCount: mentionCount,
-    now: now,
-  )) {
-    return null;
-  }
   final bool hasUnreadMessage = isQuickSwitcherChannelUnread(
     channelLastMessageId: latestMessageId,
     ackLastMessageId: readState.lastMessageId,
@@ -183,6 +173,7 @@ Future<QuickSwitcherUnreadChannel?> _dmUnreadFromConversation({
         ackLastMessageId: readState?.lastMessageId,
         mentionCount: 0,
         fallbackAckMs: snowflakeTimestampMs(convo.id),
+        isGuildChannel: false,
       );
   if (!hasUnread) {
     return null;

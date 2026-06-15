@@ -4,7 +4,6 @@ import 'package:fluxer_app/core/badge/app_icon_badge.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
-import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_read_state_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -58,24 +57,10 @@ class AppIconBadge extends _$AppIconBadge {
       _syncState();
       return;
     }
-    final db = ref.read(fluxerDatabaseProvider);
-    final channelIds = _dmRows.map((r) => r.id).toList();
-    final lastMessages = await db.messageDao.getLastMessageForChannels(
-      channelIds,
-    );
-    final now = DateTime.now();
     var mentionTotal = 0;
     for (final dm in _dmRows) {
       final readState = _readStateByChannel[dm.id];
-      final latestMessageId = dm.lastMessageId ?? lastMessages[dm.id]?.id;
       final rawMentions = readState?.mentionCount ?? 0;
-      if (!canShowMentionCount(
-        channelLastMessageId: latestMessageId,
-        isGuildChannel: false,
-        now: now,
-      )) {
-        continue;
-      }
       mentionTotal += rawMentions;
     }
     _dmMentionCount = mentionTotal;

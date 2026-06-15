@@ -213,7 +213,7 @@ void main() {
   });
 
   test(
-    'voice channels do not contribute plain unread but do for mentions',
+    'voice channels contribute plain unread like text channels',
     () async {
       final db = FluxerDatabase.forTesting(NativeDatabase.memory());
       addTearDown(db.close);
@@ -242,16 +242,57 @@ void main() {
         fireImmediately: true,
       );
       addTearDown(sub.close);
-      await _waitFor(
-        () => container.read(guildReadStateProvider)['guild-1'] != null,
-      );
+      await _waitForGuildState(container, 'guild-1');
 
       final entry = container.read(guildReadStateProvider)['guild-1'];
-      expect(entry?.hasUnread ?? false, isFalse);
-      expect(entry?.hasPlainUnread ?? false, isFalse);
-      expect(entry?.mentionCount ?? 0, 0);
+      expect(entry?.hasUnread, isTrue);
+      expect(entry?.hasPlainUnread, isTrue);
+      expect(entry?.mentionCount, 0);
     },
   );
+
+  test('category channels do not contribute to guild unread', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    final lastMessageId = _recentSnowflake();
+    await _seedGuild(
+      db,
+      'guild-1',
+      channels: [
+        (
+          id: 'category-1',
+          name: 'category',
+          type: 4,
+          lastMessageId: lastMessageId,
+        ),
+      ],
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('category-1'),
+        lastMessageId: Value(snowflakeAtPreviousMillisecond(lastMessageId)),
+      ),
+    );
+
+    final container = _container(db);
+    addTearDown(container.dispose);
+    container.read(gatewayReadyProvider.notifier).setReady();
+    final sub = container.listen(
+      guildReadStateProvider,
+      (_, _) {},
+      fireImmediately: true,
+    );
+    addTearDown(sub.close);
+    await _waitFor(
+      () => container.read(guildReadStateProvider)['guild-1'] != null,
+    );
+
+    final entry = container.read(guildReadStateProvider)['guild-1'];
+    expect(entry?.hasUnread ?? false, isFalse);
+    expect(entry?.hasPlainUnread ?? false, isFalse);
+    expect(entry?.mentionCount ?? 0, 0);
+  });
 
   test(
     'recomputes guild unread when a newer cached message arrives',

@@ -5,11 +5,13 @@ bool isQuickSwitcherChannelUnread({
   required String? ackLastMessageId,
   required int mentionCount,
   int fallbackAckMs = 0,
+  bool isGuildChannel = true,
 }) {
   return hasUnreadByReadState(
     channelLastMessageId: channelLastMessageId,
     ackLastMessageId: ackLastMessageId,
     fallbackAckMs: fallbackAckMs,
     mentionCount: mentionCount,
+    isGuildChannel: isGuildChannel,
   );
 }

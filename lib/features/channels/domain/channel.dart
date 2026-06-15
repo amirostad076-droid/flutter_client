@@ -1,8 +1,13 @@
 import 'package:drift/drift.dart';
-
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 
 enum ChannelType { text, voice, announcement, stage, category, link }
+
+/// Guild channels that support text based unread tracking (text + voice).
+bool isGuildTextBasedChannel(int type) => type == 0 || type == 2;
+
+bool isGuildTextBasedChannelType(ChannelType type) =>
+    type == ChannelType.text || type == ChannelType.voice;
 
 ChannelType channelTypeFromInt(int type) {
   switch (type) {

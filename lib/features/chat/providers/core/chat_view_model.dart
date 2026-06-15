@@ -901,15 +901,7 @@ class ChatViewModel extends _$ChatViewModel {
       channelLastMessageId: channel?.lastMessageId,
     );
     final rawMentionCount = readState?.mentionCount ?? 0;
-    final visibleMentionCount =
-        canShowMentionCount(
-          channelLastMessageId: latestMessageId,
-          isGuildChannel: channel != null,
-          now: DateTime.now(),
-        )
-        ? rawMentionCount
-        : 0;
-    if (visibleMentionCount > 0) {
+    if (rawMentionCount > 0) {
       return true;
     }
     final fallbackAckMs = channel == null
@@ -919,22 +911,13 @@ class ChatViewModel extends _$ChatViewModel {
             channel: channel,
             currentUserId: currentUserId,
           );
-    final now = DateTime.now();
-    final staleSuppressed = shouldSuppressStaleUnread(
+    final hasUnreadMessage = hasUnreadByReadState(
       channelLastMessageId: latestMessageId,
       ackLastMessageId: readState?.lastMessageId,
       fallbackAckMs: fallbackAckMs,
-      mentionCount: visibleMentionCount,
-      now: now,
+      mentionCount: 0,
+      isGuildChannel: channel != null,
     );
-    final hasUnreadMessage =
-        !staleSuppressed &&
-        hasUnreadByReadState(
-          channelLastMessageId: latestMessageId,
-          ackLastMessageId: readState?.lastMessageId,
-          fallbackAckMs: fallbackAckMs,
-          mentionCount: 0,
-        );
     if (!hasUnreadMessage) {
       return false;
     }
@@ -949,7 +932,7 @@ class ChatViewModel extends _$ChatViewModel {
       guildSettings: guildSettings == null
           ? null
           : decodeUserGuildSettings(guildSettings.data),
-      now: now,
+      now: DateTime.now(),
     );
     return unreadSettings.allowsMessageUnread;
   }

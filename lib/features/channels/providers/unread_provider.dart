@@ -46,22 +46,14 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
 
     final channel = await db.channelDao.getChannelById(channelId);
     final readState = await db.readStateDao.getReadState(channelId);
-    final rawMentionCount = readState?.mentionCount ?? 0;
+    final mentionCount = readState?.mentionCount ?? 0;
     final latestMessageId = await resolveLatestMessageIdForUnreadDisplay(
       db,
       channelId,
       channelLastMessageId: channel?.lastMessageId,
       ackLastMessageId: readState?.lastMessageId,
-      mentionCount: rawMentionCount,
+      mentionCount: mentionCount,
     );
-    final visibleMentionCount =
-        canShowMentionCount(
-          channelLastMessageId: latestMessageId,
-          isGuildChannel: channel != null,
-          now: DateTime.now(),
-        )
-        ? rawMentionCount
-        : 0;
     if (channel != null) {
       final permissionOutcome = await evaluateChannelUnreadPermission(
         database: db,
@@ -91,22 +83,12 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
     final decodedGuildSettings = guildSettings == null
         ? null
         : decodeUserGuildSettings(guildSettings.data);
-    final unreadSettings = channel == null
-        ? null
-        : resolveUnreadSettings(
-            channel: channel,
-            guildSettings: decodedGuildSettings,
-            now: DateTime.now(),
-          );
     final unreadBadgesLevel = channel == null
         ? null
         : resolveUnreadBadgesLevel(
             channel: channel,
             guildSettings: decodedGuildSettings,
           );
-    final mentionCount = (unreadSettings?.allowsMentionUnread ?? true)
-        ? visibleMentionCount
-        : 0;
     final fallbackAckMs = channel == null
         ? snowflakeTimestampMs(channelId)
         : await guildChannelFallbackAckMs(
@@ -114,24 +96,14 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
             channel: channel,
             currentUserId: currentUserId,
           );
-    final staleSuppressed = shouldSuppressStaleUnread(
+    final hasUnreadMessage = hasUnreadByReadState(
       channelLastMessageId: latestMessageId,
       ackLastMessageId: readState?.lastMessageId,
       fallbackAckMs: fallbackAckMs,
-      mentionCount: mentionCount,
-      now: DateTime.now(),
+      mentionCount: 0,
+      isGuildChannel: channel != null,
     );
-    final hasUnreadMessage =
-        !staleSuppressed &&
-        hasUnreadByReadState(
-          channelLastMessageId: latestMessageId,
-          ackLastMessageId: readState?.lastMessageId,
-          fallbackAckMs: fallbackAckMs,
-          mentionCount: 0,
-        );
-    final hasUnread =
-        mentionCount > 0 ||
-        ((unreadSettings?.allowsMessageUnread ?? true) && hasUnreadMessage);
+    final hasUnread = mentionCount > 0 || hasUnreadMessage;
 
     final hasPinUnread = hasUnreadPins(
       channelLastPinTimestamp: channel?.lastPinTimestamp,

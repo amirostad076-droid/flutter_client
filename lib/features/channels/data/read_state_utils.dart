@@ -1,9 +1,6 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 
-const Duration oldMessageUnreadThreshold = Duration(days: 7);
-const Duration recentReadThreshold = Duration(days: 3);
-
 final BigInt _zeroSnowflake = BigInt.zero;
 
 int compareSnowflakeIds(String? a, String? b) {
@@ -110,6 +107,7 @@ bool hasUnreadByReadState({
   required String? ackLastMessageId,
   required int fallbackAckMs,
   required int mentionCount,
+  bool isGuildChannel = false,
 }) {
   if (mentionCount > 0) {
     return true;
@@ -121,6 +119,10 @@ bool hasUnreadByReadState({
 
   if (ackLastMessageId != null && ackLastMessageId.isNotEmpty) {
     return compareSnowflakeIds(ackLastMessageId, channelLastMessageId) < 0;
+  }
+
+  if (isGuildChannel) {
+    return false;
   }
 
   if (fallbackAckMs <= 0) {
@@ -189,48 +191,4 @@ String? oldestUnreadMessageId({
   }
 
   return null;
-}
-
-bool canShowMentionCount({
-  required String? channelLastMessageId,
-  required bool isGuildChannel,
-  required DateTime now,
-}) {
-  if (!isGuildChannel) {
-    return true;
-  }
-  final lastMessageMs = snowflakeTimestampMs(channelLastMessageId);
-  if (lastMessageMs <= 0) {
-    return true;
-  }
-  return lastMessageMs >=
-      now.millisecondsSinceEpoch - oldMessageUnreadThreshold.inMilliseconds;
-}
-
-bool shouldSuppressStaleUnread({
-  required String? channelLastMessageId,
-  required String? ackLastMessageId,
-  required int fallbackAckMs,
-  required int mentionCount,
-  required DateTime now,
-}) {
-  if (mentionCount > 0) {
-    return false;
-  }
-
-  final lastMessageMs = snowflakeTimestampMs(channelLastMessageId);
-  if (lastMessageMs <= 0) {
-    return false;
-  }
-
-  if (lastMessageMs >=
-      now.millisecondsSinceEpoch - oldMessageUnreadThreshold.inMilliseconds) {
-    return false;
-  }
-
-  final ackMs = ackLastMessageId != null && ackLastMessageId.isNotEmpty
-      ? snowflakeTimestampMs(ackLastMessageId)
-      : fallbackAckMs;
-  return ackMs <=
-      now.millisecondsSinceEpoch - recentReadThreshold.inMilliseconds;
 }
