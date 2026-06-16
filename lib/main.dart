@@ -29,7 +29,7 @@ Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   configureFluxerErrorUi();
   assertPushProviderBuildConfig();
-  bootstrapFcmIfNeeded();
+  await bootstrapFcmIfNeeded();
   _configureImagePicker();
   final bool isUnifiedPushBackground =
       args.contains('--unifiedpush-bg') &&
