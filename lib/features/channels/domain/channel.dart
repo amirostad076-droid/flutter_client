@@ -135,6 +135,9 @@ class ChannelCategory {
   });
 }
 
+/// Synthetic category id for channels that have no parent category.
+const String kUncategorizedCategoryId = '_uncategorized';
+
 /// Groups a flat list of channels into channel categories.
 ///
 /// Channels with type 4 (category) become group headers. Child channels
@@ -163,7 +166,7 @@ List<ChannelCategory> groupChannelsIntoCategories(List<Channel> channels) {
   if (uncategorized.isNotEmpty) {
     result.add(
       ChannelCategory(
-        id: '_uncategorized',
+        id: kUncategorizedCategoryId,
         name: 'Channels',
         channels: uncategorized,
       ),

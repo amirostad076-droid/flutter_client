@@ -64,5 +64,101 @@ void main() {
         isFalse,
       );
     });
+
+    test('shows muted channel that has visible unread', () {
+      expect(
+        shouldShowChannelWhenHidingMuted(
+          channelId: 'channel-1',
+          mutedChannelIds: const {'channel-1'},
+          hasVisibleUnread: true,
+        ),
+        isTrue,
+      );
+    });
+
+    test('shows muted channel the user is connected to', () {
+      expect(
+        shouldShowChannelWhenHidingMuted(
+          channelId: 'channel-1',
+          mutedChannelIds: const {'channel-1'},
+          connectedChannelId: 'channel-1',
+        ),
+        isTrue,
+      );
+    });
+
+    test('hides muted channel with no unread, not selected, not connected', () {
+      expect(
+        shouldShowChannelWhenHidingMuted(
+          channelId: 'channel-1',
+          mutedChannelIds: const {'channel-1'},
+          selectedChannelId: 'channel-2',
+          connectedChannelId: 'channel-3',
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('shouldShowChannelInCollapsedCategory', () {
+    test('shows the selected channel', () {
+      expect(
+        shouldShowChannelInCollapsedCategory(
+          isCategoryMuted: false,
+          isSelected: true,
+          isConnected: false,
+          hasVisibleUnread: false,
+        ),
+        isTrue,
+      );
+    });
+
+    test('shows the connected channel', () {
+      expect(
+        shouldShowChannelInCollapsedCategory(
+          isCategoryMuted: true,
+          isSelected: false,
+          isConnected: true,
+          hasVisibleUnread: false,
+        ),
+        isTrue,
+      );
+    });
+
+    test('shows an unread channel when the category is not muted', () {
+      expect(
+        shouldShowChannelInCollapsedCategory(
+          isCategoryMuted: false,
+          isSelected: false,
+          isConnected: false,
+          hasVisibleUnread: true,
+        ),
+        isTrue,
+      );
+    });
+
+    test('hides an unread channel when the category is muted', () {
+      expect(
+        shouldShowChannelInCollapsedCategory(
+          isCategoryMuted: true,
+          isSelected: false,
+          isConnected: false,
+          hasVisibleUnread: true,
+        ),
+        isFalse,
+      );
+    });
+
+    test('hides a read, unselected, disconnected channel', () {
+      expect(
+        shouldShowChannelInCollapsedCategory(
+          isCategoryMuted: false,
+          isSelected: false,
+          isConnected: false,
+          hasVisibleUnread: false,
+        ),
+        isFalse,
+      );
+    });
   });
 }
