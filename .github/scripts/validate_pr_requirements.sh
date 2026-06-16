@@ -9,6 +9,14 @@ PR_BODY="${PR_BODY:-}"
 owner="${GITHUB_REPOSITORY%%/*}"
 repo="${GITHUB_REPOSITORY##*/}"
 
+get_pr_body() {
+  if [[ -n "$PR_BODY" ]]; then
+    printf '%s' "$PR_BODY"
+    return
+  fi
+  gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.body // ""'
+}
+
 has_skip_label() {
   gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}" \
     --jq ".labels[].name" | grep -qx "${SKIP_LABEL}" || return 1
@@ -34,21 +42,23 @@ check_linked_reference() {
     return 0
   fi
 
-  if [[ -z "$PR_BODY" ]]; then
+  local body
+  body=$(get_pr_body)
+  if [[ -z "$body" ]]; then
     return 1
   fi
 
-  if echo "$PR_BODY" | grep -qE 'github\.com/orgs/fluxerapp/discussions/[0-9]+'; then
+  if echo "$body" | grep -qE 'github\.com/orgs/fluxerapp/discussions/[0-9]+'; then
     echo "GitHub Discussion URL found in PR body."
     return 0
   fi
 
-  if echo "$PR_BODY" | grep -qE 'github\.com/[^/[:space:]]+/[^/[:space:]]+/discussions/[0-9]+'; then
+  if echo "$body" | grep -qE 'github\.com/[^/[:space:]]+/[^/[:space:]]+/discussions/[0-9]+'; then
     echo "GitHub Discussion URL found in PR body."
     return 0
   fi
 
-  if echo "$PR_BODY" | grep -qiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+([a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+#[0-9]+|#[0-9]+)'; then
+  if echo "$body" | grep -qiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+([a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+#[0-9]+|#[0-9]+)'; then
     echo "Issue linking keyword found in PR body."
     return 0
   fi
