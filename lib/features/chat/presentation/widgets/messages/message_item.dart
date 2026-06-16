@@ -11,6 +11,7 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/domain/message_avatar.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/message_debug_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -1048,13 +1049,19 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             padding: const EdgeInsets.only(top: 2),
             child: FluxerAvatar.user(
               key: ValueKey<String>(
-                'msg-avatar-${msg.id}-${msg.authorAvatar ?? ''}',
+                messageAuthorAvatarKey(
+                  authorId: msg.authorId,
+                  avatarHash: msg.authorAvatar,
+                ),
               ),
               fallbackText: authorDisplay.displayName,
               userId: msg.authorId,
               imageUrl: authorDisplay.avatarUrl,
               avatarColor: authorDisplay.avatarColor,
-              cacheKey: 'msg-avatar-${msg.id}-${msg.authorAvatar ?? ''}',
+              cacheKey: messageAuthorAvatarKey(
+                authorId: msg.authorId,
+                avatarHash: msg.authorAvatar,
+              ),
             ),
           ),
         ),
