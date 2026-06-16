@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
@@ -187,6 +188,56 @@ void main() {
       expect(find.text('Danger zone'), findsOneWidget);
       expect(find.text('Quick action'), findsOneWidget);
       expect(find.byType(FluxerMenuGroup), findsNWidgets(2));
+    });
+
+    testWidgets('mobile bottom sheet dismisses on swipe-down over the body', (
+      tester,
+    ) async {
+      // iOS bouncing physics is where the inner list would otherwise always
+      // claim the vertical drag and swallow the sheet's drag-to-dismiss.
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      useMobileSurface(tester);
+
+      try {
+        await tester.pumpWidget(
+          buildTestApp(
+            Builder(
+              builder: (context) => TextButton(
+                onPressed: () {
+                  unawaited(
+                    FluxerActionMenu.show(
+                      context,
+                      position: const Offset(100, 100),
+                      builder: (context, close) => [
+                        FluxerMenuItem(label: 'Edit', onPressed: () {}),
+                        FluxerMenuItem(
+                          label: 'Delete',
+                          onPressed: () {},
+                          isDanger: true,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: const Text('Open Menu'),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open Menu'));
+        await tester.pumpAndSettle();
+        expect(find.text('Edit'), findsOneWidget);
+
+        // Swiping down on a menu item (the body, not the drag handle) must
+        // reach the sheet's drag-to-dismiss instead of being eaten by the list.
+        await tester.fling(find.text('Edit'), const Offset(0, 400), 1500);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Edit'), findsNothing);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     });
   });
 }

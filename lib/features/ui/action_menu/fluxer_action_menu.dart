@@ -57,6 +57,10 @@ class FluxerActionMenu {
 
         return ListView(
           shrinkWrap: true,
+          // Yield the vertical drag to the sheet's drag-to-dismiss when the
+          // menu fits; bouncing physics would always claim it and swallow the
+          // swipe-down dismiss.
+          physics: const ClampingScrollPhysics(),
           padding: EdgeInsets.only(bottom: sheetContext.layout.s2),
           children: [
             FluxerBottomSheetGroupColumn(
