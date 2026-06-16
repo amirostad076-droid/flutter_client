@@ -12,6 +12,8 @@ void main() {
       ackLastMessageId: '105',
       mentionCount: 0,
       currentUserId: 'me',
+      channelLastMessageId: '120',
+      hasMoreNewerMessages: false,
     );
 
     expect(summary.oldestUnreadMessageId, '110');
@@ -30,6 +32,8 @@ void main() {
       ackLastMessageId: '100',
       mentionCount: 0,
       currentUserId: 'me',
+      channelLastMessageId: '120',
+      hasMoreNewerMessages: false,
     );
 
     expect(summary.oldestUnreadMessageId, '110');
@@ -47,6 +51,8 @@ void main() {
       ackLastMessageId: '100',
       mentionCount: 0,
       currentUserId: 'me',
+      channelLastMessageId: '210',
+      hasMoreNewerMessages: false,
     );
 
     expect(summary.oldestUnreadMessageId, '200');
@@ -61,6 +67,8 @@ void main() {
       ackLastMessageId: '100',
       mentionCount: 5,
       currentUserId: 'me',
+      channelLastMessageId: '200',
+      hasMoreNewerMessages: false,
     );
 
     expect(summary.loadedUnreadCount, 1);
@@ -74,6 +82,8 @@ void main() {
       ackLastMessageId: null,
       mentionCount: 5,
       currentUserId: 'me',
+      channelLastMessageId: '200',
+      hasMoreNewerMessages: false,
     );
 
     expect(summary.oldestUnreadMessageId, isNull);
@@ -89,4 +99,24 @@ void main() {
     expect(unreadCountLabel(100, isEstimated: false), '99+');
     expect(unreadCountLabel(100, isEstimated: true), '99+');
   });
+
+  test(
+    'marks summary estimated when channel pointer is ahead of loaded tail',
+    () {
+      final summary = computeChatUnreadSummary(
+        messages: const [
+          ChatUnreadMessageRef(id: '100', authorId: 'other'),
+          ChatUnreadMessageRef(id: '110', authorId: 'other'),
+        ],
+        ackLastMessageId: '90',
+        mentionCount: 0,
+        currentUserId: 'me',
+        channelLastMessageId: '200',
+        hasMoreNewerMessages: false,
+      );
+
+      expect(summary.displayUnreadCount, 2);
+      expect(summary.isEstimated, isTrue);
+    },
+  );
 }

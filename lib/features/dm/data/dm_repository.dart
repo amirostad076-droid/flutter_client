@@ -88,6 +88,12 @@ class DmRepository {
     return rows.map((row) {
       final lastMsg = lastMessages[row.id];
       final readState = readStateMap[row.id];
+      final latestMessageId = resolveLatestMessageIdForUnread(
+        strictLatestMessageId: lastMsg?.id,
+        channelLastMessageId: row.lastMessageId,
+        ackLastMessageId: readState?.lastMessageId,
+        mentionCount: readState?.mentionCount ?? 0,
+      );
       final recipientIds = _parseRecipientIds(row.recipientIds);
       final isGroup = row.type == 3;
       final remoteRecipientIds = _buildRemoteRecipientIds(
@@ -107,7 +113,7 @@ class DmRepository {
             : const [],
         remoteRecipientIds: remoteRecipientIds,
         unreadCount: dmUnreadCountFromReadState(
-          latestMessageId: row.lastMessageId ?? lastMsg?.id,
+          latestMessageId: latestMessageId,
           ackLastMessageId: readState?.lastMessageId,
           fallbackAckMs: snowflakeTimestampMs(row.id),
           mentionCount: readState?.mentionCount ?? 0,

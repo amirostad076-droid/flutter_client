@@ -56,6 +56,16 @@ final _messageListReadStateProvider = StreamProvider.autoDispose
       return db.readStateDao.watchReadState(channelId);
     });
 
+// Riverpod does not export the concrete auto-dispose family type.
+// ignore: specify_nonobvious_property_types
+final _channelLastMessageIdProvider = StreamProvider.autoDispose
+    .family<String?, String>((ref, channelId) {
+      final db = ref.watch(fluxerDatabaseProvider);
+      return db.channelDao
+          .watchChannelById(channelId)
+          .map((drift_db.Channel? row) => row?.lastMessageId);
+    });
+
 const _kMonthNames = [
   'January',
   'February',
@@ -336,6 +346,13 @@ class _MessageListState extends ConsumerState<MessageList> {
     return ref.read(_messageListReadStateProvider(channelId)).asData?.value;
   }
 
+  String? _channelLastMessageIdFor(String channelId) {
+    if (channelId.isEmpty) {
+      return null;
+    }
+    return ref.read(_channelLastMessageIdProvider(channelId)).asData?.value;
+  }
+
   bool _shouldPinToBottomOnLoad({
     required ChatViewState state,
     required List<Message> messages,
@@ -375,6 +392,8 @@ class _MessageListState extends ConsumerState<MessageList> {
       ackLastMessageId: readState?.lastMessageId,
       mentionCount: readState?.mentionCount ?? 0,
       currentUserId: currentUserId,
+      channelLastMessageId: _channelLastMessageIdFor(state.channelId),
+      hasMoreNewerMessages: state.hasMoreNewerMessages,
     );
     if (unreadSummary.hasUnread) {
       return false;
@@ -387,12 +406,16 @@ class _MessageListState extends ConsumerState<MessageList> {
     required String? ackLastMessageId,
     required int mentionCount,
     required String? currentUserId,
+    required String? channelLastMessageId,
+    required bool hasMoreNewerMessages,
   }) {
     final Object key = (
       messages,
       ackLastMessageId,
       mentionCount,
       currentUserId,
+      channelLastMessageId,
+      hasMoreNewerMessages,
     );
     final ChatUnreadSummary? cached = _cachedUnreadSummary;
     if (cached != null && _unreadSummaryKey == key) {
@@ -406,6 +429,8 @@ class _MessageListState extends ConsumerState<MessageList> {
       ackLastMessageId: ackLastMessageId,
       mentionCount: mentionCount,
       currentUserId: currentUserId,
+      channelLastMessageId: channelLastMessageId,
+      hasMoreNewerMessages: hasMoreNewerMessages,
     );
     _unreadSummaryKey = key;
     _cachedUnreadSummary = summary;
@@ -1145,6 +1170,8 @@ class _MessageListState extends ConsumerState<MessageList> {
       ackLastMessageId: readState?.lastMessageId,
       mentionCount: readState?.mentionCount ?? 0,
       currentUserId: currentUserId,
+      channelLastMessageId: _channelLastMessageIdFor(channelId),
+      hasMoreNewerMessages: hasMoreNewerMessages,
     );
     final String? oldestUnreadId = unreadSummary.oldestUnreadMessageId;
     final String? visualUnreadId = _visualUnreadId(

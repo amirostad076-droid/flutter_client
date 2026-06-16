@@ -48,7 +48,6 @@ Map<String, Object?> _messageJson({
   'timestamp': dateTimeFromUserSnowflakeOrNull(id)!.toIso8601String(),
   'pinned': false,
   'mention_everyone': false,
-  'tts': false,
   'mentions': <Object?>[],
   'mention_roles': <Object?>[],
 };
@@ -304,6 +303,50 @@ void main() {
       }
     }
     fail('expected loading state for unread channel');
+  });
+
+  test('stale cache does not suppress unread channel load detection', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final cachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 10));
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 12));
+    await db.messageDao.upsertMessage(
+      _cachedMessage(id: cachedId, channelId: 'channel-1', authorId: 'other'),
+    );
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(cachedId),
+        mentionCount: const Value(0),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: cachedId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    )..holdMessageFetch = true;
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    final load = notifier.switchChannel('channel-1');
+    await _flushAsync();
+
+    final state = container.read(chatViewModelProvider);
+    expect(state.isLoading, isTrue);
+    expect(state.isSyncingMessages, isFalse);
+    expect(state.messages, isEmpty);
+    adapter.releaseMessageFetch();
+    await load;
   });
 
   test(
@@ -1320,7 +1363,9 @@ void main() {
     final container = _container(db, adapter);
     addTearDown(container.dispose);
 
-    await container.read(chatViewModelProvider.notifier).refreshAfterSessionRecovery();
+    await container
+        .read(chatViewModelProvider.notifier)
+        .refreshAfterSessionRecovery();
 
     expect(container.read(chatViewModelProvider).channelId, isEmpty);
     expect(adapter.messageRequestUris, isEmpty);

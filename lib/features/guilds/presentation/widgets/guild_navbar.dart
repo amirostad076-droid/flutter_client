@@ -1692,7 +1692,9 @@ Future<void> markGuildAsRead(
       continue;
     }
     final ackId = readStateMap[channel.id]?.lastMessageId;
-    if (ackId == lastMsgId) {
+    final mentionCount = readStateMap[channel.id]?.mentionCount ?? 0;
+    final isManual = readStateMap[channel.id]?.manual ?? false;
+    if (ackId == lastMsgId && mentionCount == 0 && !isManual) {
       continue;
     }
     ackEntries.add(

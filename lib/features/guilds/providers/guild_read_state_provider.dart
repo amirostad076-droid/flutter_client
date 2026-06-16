@@ -9,7 +9,8 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
-import 'package:fluxer_app/features/channels/domain/channel.dart' show isGuildTextBasedChannel;
+import 'package:fluxer_app/features/channels/domain/channel.dart'
+    show isGuildTextBasedChannel;
 import 'package:fluxer_app/features/guilds/domain/guild_read_state_contribution.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_read_state_ready_provider.dart';
 import 'package:fluxer_dart/export.dart';
@@ -93,6 +94,8 @@ class GuildReadState extends _$GuildReadState {
   int _recomputeGeneration = 0;
   Future<void>? _pendingRecompute;
   final Set<String> _queuedGuildIds = <String>{};
+  final Set<String> _pendingSeedGuildIds = <String>{};
+  final Set<String> _pendingSeedChannelIds = <String>{};
   final Map<String, StreamSubscription<List<Message>>> _messageSubs =
       <String, StreamSubscription<List<Message>>>{};
 
@@ -178,13 +181,18 @@ class GuildReadState extends _$GuildReadState {
     _syncMessageSubscriptions(db, currentUserId);
     await _recomputeGuilds(guilds.map((g) => g.id).toSet(), db, currentUserId);
     _isInitialSeedComplete = true;
+    if (_pendingSeedChannelIds.isNotEmpty) {
+      _queueChannelIds(_pendingSeedChannelIds.toSet(), db, currentUserId);
+      _pendingSeedChannelIds.clear();
+    }
+    if (_pendingSeedGuildIds.isNotEmpty) {
+      _queueGuildIds(_pendingSeedGuildIds.toSet(), db, currentUserId);
+      _pendingSeedGuildIds.clear();
+    }
     ref.read(guildReadStateReadyProvider.notifier).markReady();
   }
 
-  void _syncMessageSubscriptions(
-    FluxerDatabase db,
-    String? currentUserId,
-  ) {
+  void _syncMessageSubscriptions(FluxerDatabase db, String? currentUserId) {
     final watchedChannelIds = _channelSnapshot.keys
         .where((channelId) => _readStateSnapshot.containsKey(channelId))
         .toSet();
@@ -211,6 +219,7 @@ class GuildReadState extends _$GuildReadState {
     String? currentUserId,
   ) {
     if (!_isInitialSeedComplete) {
+      _pendingSeedChannelIds.addAll(channelIds);
       return;
     }
     final guildIds = <String>{};
@@ -230,7 +239,11 @@ class GuildReadState extends _$GuildReadState {
     FluxerDatabase db,
     String? currentUserId,
   ) {
-    if (!_isInitialSeedComplete || guildIds.isEmpty) {
+    if (guildIds.isEmpty) {
+      return;
+    }
+    if (!_isInitialSeedComplete) {
+      _pendingSeedGuildIds.addAll(guildIds);
       return;
     }
     _queuedGuildIds.addAll(guildIds);

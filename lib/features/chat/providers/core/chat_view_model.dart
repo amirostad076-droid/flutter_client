@@ -921,10 +921,12 @@ class ChatViewModel extends _$ChatViewModel {
     if (stickyUnreadId != null && stickyUnreadId.isNotEmpty) {
       return true;
     }
-    final latestMessageId = await resolveLatestMessageIdForChannel(
+    final latestMessageId = await resolveLatestMessageIdForUnreadDisplay(
       database,
       channelId,
       channelLastMessageId: channel?.lastMessageId,
+      ackLastMessageId: readState?.lastMessageId,
+      mentionCount: readState?.mentionCount ?? 0,
     );
     final rawMentionCount = readState?.mentionCount ?? 0;
     if (rawMentionCount > 0) {
@@ -975,6 +977,36 @@ class ChatViewModel extends _$ChatViewModel {
     final unreadId = _firstUnreadForCurrentMessages(readState: readState);
     if (unreadId != null) {
       _showInitialUnread(channelId, unreadId);
+      return;
+    }
+    final db.Channel? channel = await ref
+        .read(fluxerDatabaseProvider)
+        .channelDao
+        .getChannelById(channelId);
+    final String? latestMessageId =
+        await resolveLatestMessageIdForUnreadDisplay(
+          ref.read(fluxerDatabaseProvider),
+          channelId,
+          channelLastMessageId: channel?.lastMessageId,
+          ackLastMessageId: readState?.lastMessageId,
+          mentionCount: readState?.mentionCount ?? 0,
+        );
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    final int fallbackAckMs = channel == null
+        ? snowflakeTimestampMs(channelId)
+        : await guildChannelFallbackAckMs(
+            database: ref.read(fluxerDatabaseProvider),
+            channel: channel,
+            currentUserId: currentUserId,
+          );
+    final bool hasChannelLevelUnread = hasUnreadByReadState(
+      channelLastMessageId: latestMessageId,
+      ackLastMessageId: readState?.lastMessageId,
+      fallbackAckMs: fallbackAckMs,
+      mentionCount: readState?.mentionCount ?? 0,
+      isGuildChannel: channel != null,
+    );
+    if (hasChannelLevelUnread) {
       return;
     }
     unawaited(ackCurrentChannel());

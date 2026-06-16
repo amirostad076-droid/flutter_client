@@ -105,8 +105,12 @@ class UnreadDmChannels extends _$UnreadDmChannels {
     final readStateMap = {for (final rs in readStates) rs.channelId: rs};
     final allChannels = _latestRows.map((channel) {
       final readState = readStateMap[channel.id];
-      final latestMessageId =
-          channel.lastMessageId ?? lastMessages[channel.id]?.id;
+      final latestMessageId = resolveLatestMessageIdForUnread(
+        strictLatestMessageId: lastMessages[channel.id]?.id,
+        channelLastMessageId: channel.lastMessageId,
+        ackLastMessageId: readState?.lastMessageId,
+        mentionCount: readState?.mentionCount ?? 0,
+      );
       final hasUnreadMessages =
           (latestMessageId == null && channel.unreadCount > 0) ||
           hasUnreadByReadState(

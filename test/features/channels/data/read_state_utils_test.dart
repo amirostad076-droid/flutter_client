@@ -26,24 +26,21 @@ void main() {
     },
   );
 
-  test(
-    'hasUnreadByReadState returns false for unknown guild read state',
-    () {
-      final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
-      final fallbackAckMs = DateTime.utc(2026, 5, 6, 11).millisecondsSinceEpoch;
+  test('hasUnreadByReadState returns false for unknown guild read state', () {
+    final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final fallbackAckMs = DateTime.utc(2026, 5, 6, 11).millisecondsSinceEpoch;
 
-      expect(
-        hasUnreadByReadState(
-          channelLastMessageId: lastMessageId,
-          ackLastMessageId: null,
-          fallbackAckMs: fallbackAckMs,
-          mentionCount: 0,
-          isGuildChannel: true,
-        ),
-        isFalse,
-      );
-    },
-  );
+    expect(
+      hasUnreadByReadState(
+        channelLastMessageId: lastMessageId,
+        ackLastMessageId: null,
+        fallbackAckMs: fallbackAckMs,
+        mentionCount: 0,
+        isGuildChannel: true,
+      ),
+      isFalse,
+    );
+  });
 
   test('hasUnreadByReadState treats matching ack and last message as read', () {
     final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
@@ -96,35 +93,35 @@ void main() {
     },
   );
 
-  test('resolveLatestMessageId prefers cached message over channel pointer', () {
-    final cachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
-    final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
-
-    expect(
-      resolveLatestMessageId(
-        channelLastMessageId: channelId,
-        cachedLastMessageId: cachedId,
-        channelLastMessageExistsInCache: true,
-      ),
-      cachedId,
-    );
-  });
-
   test(
-    'resolveLatestMessageId returns null for orphaned channel pointer',
+    'resolveLatestMessageId prefers cached message over channel pointer',
     () {
-      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final cachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
 
       expect(
         resolveLatestMessageId(
           channelLastMessageId: channelId,
-          cachedLastMessageId: null,
-          channelLastMessageExistsInCache: false,
+          cachedLastMessageId: cachedId,
+          channelLastMessageExistsInCache: true,
         ),
-        isNull,
+        cachedId,
       );
     },
   );
+
+  test('resolveLatestMessageId returns null for orphaned channel pointer', () {
+    final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+
+    expect(
+      resolveLatestMessageId(
+        channelLastMessageId: channelId,
+        cachedLastMessageId: null,
+        channelLastMessageExistsInCache: false,
+      ),
+      isNull,
+    );
+  });
 
   test(
     'resolveLatestMessageIdForUnread falls back to channel pointer when ack is behind',
@@ -162,7 +159,7 @@ void main() {
   );
 
   test(
-    'resolveLatestMessageIdForUnread keeps strict resolver result when present',
+    'resolveLatestMessageIdForUnread prefers channel pointer when cache is stale',
     () {
       final cachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
       final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
@@ -173,6 +170,41 @@ void main() {
           strictLatestMessageId: cachedId,
           channelLastMessageId: channelId,
           ackLastMessageId: ackId,
+          mentionCount: 0,
+        ),
+        channelId,
+      );
+    },
+  );
+
+  test(
+    'resolveLatestMessageIdForUnread falls back to channel pointer without ack',
+    () {
+      final lastMessageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+
+      expect(
+        resolveLatestMessageIdForUnread(
+          strictLatestMessageId: null,
+          channelLastMessageId: lastMessageId,
+          ackLastMessageId: null,
+          mentionCount: 0,
+        ),
+        lastMessageId,
+      );
+    },
+  );
+
+  test(
+    'resolveLatestMessageIdForUnread keeps strict resolver when ack already caught up',
+    () {
+      final cachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final channelId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+
+      expect(
+        resolveLatestMessageIdForUnread(
+          strictLatestMessageId: cachedId,
+          channelLastMessageId: channelId,
+          ackLastMessageId: channelId,
           mentionCount: 0,
         ),
         cachedId,

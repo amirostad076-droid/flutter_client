@@ -35,6 +35,8 @@ ChatUnreadSummary computeChatUnreadSummary({
   required String? ackLastMessageId,
   required int mentionCount,
   required String? currentUserId,
+  required String? channelLastMessageId,
+  required bool hasMoreNewerMessages,
 }) {
   if (ackLastMessageId == null || ackLastMessageId.isEmpty) {
     return const ChatUnreadSummary(
@@ -48,8 +50,10 @@ ChatUnreadSummary computeChatUnreadSummary({
   String? oldestUnread;
   var loadedUnreadCount = 0;
   var hasLoadedAckBoundary = false;
+  String? newestLoadedMessageId;
 
   for (final message in messages) {
+    newestLoadedMessageId = message.id;
     final comparison = compareSnowflakeIds(message.id, ackLastMessageId);
     if (comparison <= 0) {
       hasLoadedAckBoundary = true;
@@ -67,11 +71,25 @@ ChatUnreadSummary computeChatUnreadSummary({
   final displayUnreadCount = loadedUnreadCount > mentionCount
       ? loadedUnreadCount
       : mentionCount;
+  final bool hasUnreadBeyondLoadedTail =
+      displayUnreadCount > 0 &&
+      channelLastMessageId != null &&
+      channelLastMessageId.isNotEmpty &&
+      newestLoadedMessageId != null &&
+      compareSnowflakeIds(ackLastMessageId, channelLastMessageId) < 0 &&
+      compareSnowflakeIds(newestLoadedMessageId, channelLastMessageId) < 0;
+  final bool hasEstimatedTailFromPagination =
+      displayUnreadCount > 0 && hasMoreNewerMessages;
+  final bool hasEstimatedFromMissingBoundary =
+      displayUnreadCount > 0 && !hasLoadedAckBoundary;
 
   return ChatUnreadSummary(
     oldestUnreadMessageId: oldestUnread,
     loadedUnreadCount: loadedUnreadCount,
     displayUnreadCount: displayUnreadCount,
-    isEstimated: displayUnreadCount > 0 && !hasLoadedAckBoundary,
+    isEstimated:
+        hasUnreadBeyondLoadedTail ||
+        hasEstimatedTailFromPagination ||
+        hasEstimatedFromMissingBoundary,
   );
 }

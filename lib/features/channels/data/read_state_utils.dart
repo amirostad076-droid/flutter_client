@@ -66,6 +66,14 @@ String? resolveLatestMessageIdForUnread({
   required int mentionCount,
 }) {
   if (strictLatestMessageId != null && strictLatestMessageId.isNotEmpty) {
+    if (channelLastMessageId != null &&
+        channelLastMessageId.isNotEmpty &&
+        compareSnowflakeIds(strictLatestMessageId, channelLastMessageId) < 0 &&
+        (ackLastMessageId == null ||
+            ackLastMessageId.isEmpty ||
+            compareSnowflakeIds(ackLastMessageId, channelLastMessageId) < 0)) {
+      return channelLastMessageId;
+    }
     return strictLatestMessageId;
   }
   if (channelLastMessageId == null || channelLastMessageId.isEmpty) {
@@ -74,9 +82,10 @@ String? resolveLatestMessageIdForUnread({
   if (mentionCount > 0) {
     return channelLastMessageId;
   }
-  if (ackLastMessageId != null &&
-      ackLastMessageId.isNotEmpty &&
-      compareSnowflakeIds(ackLastMessageId, channelLastMessageId) < 0) {
+  if (ackLastMessageId == null || ackLastMessageId.isEmpty) {
+    return channelLastMessageId;
+  }
+  if (compareSnowflakeIds(ackLastMessageId, channelLastMessageId) < 0) {
     return channelLastMessageId;
   }
   return null;
