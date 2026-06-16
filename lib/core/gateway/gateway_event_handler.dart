@@ -721,17 +721,15 @@ class GatewayEventHandler {
       }
 
       final pinnedDms = event.pinnedDms;
-      if (pinnedDms != null && pinnedDms.isNotEmpty) {
-        for (var i = 0; i < pinnedDms.length; i++) {
-          await database
-              .into(database.pinnedDmsTable)
-              .insert(
-                db.PinnedDmsTableCompanion(
-                  channelId: Value(pinnedDms[i]),
-                  position: Value(i),
-                ),
-              );
-        }
+      if (pinnedDms != null) {
+        final companions = <db.PinnedDmsTableCompanion>[
+          for (var i = 0; i < pinnedDms.length; i++)
+            db.PinnedDmsTableCompanion(
+              channelId: Value(pinnedDms[i]),
+              position: Value(i),
+            ),
+        ];
+        await database.pinnedDmsDao.replaceAll(companions);
       }
 
       final favoriteMemes = event.favoriteMemes;
