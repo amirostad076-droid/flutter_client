@@ -42,11 +42,62 @@ For updates, support, and discussion, [join the Fluxer Mobile community on Fluxe
 
 **Fdroid**: Coming when V1 is finished.
 
-**Android APK (FCM)**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/fluxerapp/flutter_client) for auto updates. Requires Google Play Services (Firebase Messaging for Notifications).
+**iOS Testflight**: Currently only available to Plutonium users.
 
-**Android APK OSS**: You can find both stable and beta builds in [Github releases](https://github.com/fluxerapp/flutter_client/releases), and you can use [Obtainium](http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/fluxerapp/flutter_client) for auto updates. Requires a [UnifiedPush](https://unifiedpush.org) provider for push notifications.
+### Android (APK)
 
-Stable, beta, and canary Android release builds on Github are signed with this SHA-256 certificate fingerprint:
+**Quick pick (most users):** download the **beta FCM** APK from [GitHub releases](https://github.com/fluxerapp/flutter_client/releases) — e.g. `app-arm64-v8a-betafcm-release.apk` on a phone from the last few years.
+
+#### 1. Pick a push variant
+
+| If your phone… | Install | Notifications use… |
+|---|---|---|
+| Has Google Play Services (typical Samsung/Pixel/etc.) | **FCM** build | Google Firebase Cloud Messaging |
+| Is degoogled / has no Google apps | **OSS** build | [UnifiedPush](https://unifiedpush.org) (you must install a distributor app such as ntfy) |
+
+Majority of users will use the **FCM** version.
+
+You cannot switch push variants in-app: FCM and OSS are separate APKs for the same release channel and will replace each other if installed.
+
+#### 2. Pick a release channel
+
+- **Beta** — recommended during the beta period; pre-release builds for testing.
+- **Stable** — production builds; will appear on GitHub releases when V1 launches (same timing as Play Store / F-Droid entries above).
+
+#### 3. Pick the APK file on GitHub
+
+On a release page, assets follow this naming pattern:
+
+- Per-CPU (smaller, preferred): `app-<abi>-<channel><variant>-release.apk`
+- Universal (works on all CPUs, larger): `app-<channel><variant>-release.apk`
+
+Where:
+
+- `<channel>` is `beta` (or `stable` when available)
+- `<variant>` is `fcm` or `oss`
+- `<abi>` is usually `arm64-v8a` for modern phones; use the universal APK if unsure
+
+**Examples for most users:**
+
+- `app-arm64-v8a-betafcm-release.apk`
+- `app-betafcm-release.apk` (universal fallback)
+
+**OSS example (degoogled phones):**
+
+- `app-arm64-v8a-betaoss-release.apk`
+
+#### Auto-updates with Obtainium
+
+[Obtainium](https://obtainium.imranr.dev/) can install and auto-update from GitHub. Beta releases are marked **pre-release** on GitHub, so the link must enable that option — the simple `obtainium://add/...` URL cannot do this.
+
+Use **one** of these one-click links (matching your push variant from step 1). Each enables pre-releases, filters to the correct APK (`betafcm` or `betaoss`), and picks the right CPU architecture automatically:
+
+- **Fluxer Beta (FCM):** [Add to Obtainium](https://apps.obtainium.imranr.dev/redirect.html?r=obtainium%3A%2F%2Fapp%2F%7B%22id%22%3A%22com.fluxer%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Ffluxerapp%2Fflutter_client%22%2C%22author%22%3A%22fluxerapp%22%2C%22name%22%3A%22Fluxer%20Beta%20%28FCM%29%22%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3Atrue%2C%5C%22fallbackToOlderReleases%5C%22%3Atrue%2C%5C%22apkFilterRegEx%5C%22%3A%5C%22betafcm%5C%22%2C%5C%22autoApkFilterByArch%5C%22%3Atrue%7D%22%7D)
+- **Fluxer Beta (OSS):** [Add to Obtainium](https://apps.obtainium.imranr.dev/redirect.html?r=obtainium%3A%2F%2Fapp%2F%7B%22id%22%3A%22com.fluxer%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Ffluxerapp%2Fflutter_client%22%2C%22author%22%3A%22fluxerapp%22%2C%22name%22%3A%22Fluxer%20Beta%20%28OSS%29%22%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3Atrue%2C%5C%22fallbackToOlderReleases%5C%22%3Atrue%2C%5C%22apkFilterRegEx%5C%22%3A%5C%22betaoss%5C%22%2C%5C%22autoApkFilterByArch%5C%22%3Atrue%7D%22%7D)
+
+#### Signing
+
+Stable, beta, and canary Android release builds on GitHub are signed with this SHA-256 certificate fingerprint:
 `91:E4:98:E1:B8:A6:C8:BA:99:41:5E:DB:29:78:29:6B:6C:58:BA:A5:E2:D2:A6:49:CE:C6:2D:A7:A8:29:C7:BC`
 
 ## Bug reporting
