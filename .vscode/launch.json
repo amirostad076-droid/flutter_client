@@ -61,6 +61,18 @@
                 "--dart-define=PUSH_PROVIDER=unifiedpush"
             ]
         },
+                {
+            "name": "Android Canary UnifiedPush (Profile)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "args": [
+                "--flavor",
+                "canaryUnifiedpush",
+                "--dart-define-from-file=tool/dart_defines/canary.json",
+                "--dart-define=PUSH_PROVIDER=unifiedpush"
+            ]
+        },
         {
             "name": "Android Beta UnifiedPush",
             "request": "launch",
