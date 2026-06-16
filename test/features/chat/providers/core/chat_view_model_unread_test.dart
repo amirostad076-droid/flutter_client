@@ -1370,6 +1370,103 @@ void main() {
     expect(container.read(chatViewModelProvider).channelId, isEmpty);
     expect(adapter.messageRequestUris, isEmpty);
   });
+
+  group('read-ack gate reorder', () {
+    test('rapid viewport ticks ack the latest message exactly once', () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      notifier.setReadViewportActive(isActive: true);
+      for (var i = 0; i < 10; i++) {
+        notifier.updateReadViewport(isNearBottom: true);
+      }
+      await _flushAsync();
+
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, latestId);
+      expect(adapter.ackedMessageIds, [latestId]);
+      expect(adapter.ackAttempts, 1);
+    });
+
+    test(
+      'manual read state is never auto-acked under rapid viewport ticks',
+      () async {
+        final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+        addTearDown(db.close);
+        final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+        final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+        await db.channelDao.upsertChannel(
+          ChannelsCompanion.insert(
+            id: 'channel-1',
+            guildId: 'guild-1',
+            name: 'general',
+            lastMessageId: Value(latestId),
+          ),
+        );
+        await db.readStateDao.upsertReadState(
+          ReadStatesCompanion(
+            channelId: const Value('channel-1'),
+            lastMessageId: Value(ackId),
+            mentionCount: const Value(0),
+            manual: const Value(true),
+          ),
+        );
+        final adapter = _ChatAdapter(
+          initialMessages: [
+            _messageJson(
+              id: latestId,
+              channelId: 'channel-1',
+              authorId: 'other',
+            ),
+            _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+          ],
+        );
+        final container = _container(db, adapter);
+        addTearDown(container.dispose);
+
+        final notifier = container.read(chatViewModelProvider.notifier);
+        await notifier.switchChannel('channel-1');
+        notifier.setReadViewportActive(isActive: true);
+        for (var i = 0; i < 10; i++) {
+          notifier.updateReadViewport(isNearBottom: true);
+        }
+        await _flushAsync();
+
+        final readState = await db.readStateDao.getReadState('channel-1');
+        expect(readState?.lastMessageId, ackId);
+        expect(readState?.manual, isTrue);
+        expect(adapter.ackedMessageIds, isEmpty);
+        expect(adapter.ackAttempts, 0);
+      },
+    );
+  });
 }
 
 ProviderContainer _container(

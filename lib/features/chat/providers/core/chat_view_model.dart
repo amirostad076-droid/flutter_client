@@ -1164,16 +1164,7 @@ class ChatViewModel extends _$ChatViewModel {
     final now = DateTime.now();
     final isReadViewportEligible =
         _readViewportActive && ref.read(chatAutoAckAllowedProvider);
-    final database = ref.read(fluxerDatabaseProvider);
-    final readState = await database.readStateDao.getReadState(channelId);
     if (force) {
-      _readAckGate.clearManualUnread(channelId);
-    } else if (readState?.manual ?? false) {
-      _readAckRetryTimer?.cancel();
-      _readAckGate.markManualUnread(channelId);
-      return;
-    }
-    if (!(readState?.manual ?? false)) {
       _readAckGate.clearManualUnread(channelId);
     }
     if (!_readAckGate.canAttemptAck(
@@ -1197,8 +1188,17 @@ class ChatViewModel extends _$ChatViewModel {
 
     _readAckRetryTimer?.cancel();
     _readAckGate.markAttemptStarted(channelId, now: now);
-    final hadMentions = (readState?.mentionCount ?? 0) > 0;
     try {
+      final database = ref.read(fluxerDatabaseProvider);
+      final readState = await database.readStateDao.getReadState(channelId);
+      if (!force && (readState?.manual ?? false)) {
+        _readAckGate.markManualUnread(channelId);
+        return;
+      }
+      if (!(readState?.manual ?? false)) {
+        _readAckGate.clearManualUnread(channelId);
+      }
+      final hadMentions = (readState?.mentionCount ?? 0) > 0;
       if (!force) {
         await _ensureUnreadBoundaryLoaded(channelId, readState: readState);
       }
