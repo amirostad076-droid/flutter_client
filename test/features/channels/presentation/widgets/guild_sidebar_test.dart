@@ -126,6 +126,14 @@ void main() {
       expect(find.text('Copy Link'), findsOneWidget);
       expect(find.text('Copy Channel ID'), findsOneWidget);
       expect(find.text('Notification Settings'), findsOneWidget);
+
+      // Order must mirror the web channel menu:
+      // Mark as Read -> Copy Link -> Mute -> Notification Settings -> Copy ID.
+      double dy(String label) => tester.getTopLeft(find.text(label)).dy;
+      expect(dy('Mark as Read'), lessThan(dy('Copy Link')));
+      expect(dy('Copy Link'), lessThan(dy('Mute Channel')));
+      expect(dy('Mute Channel'), lessThan(dy('Notification Settings')));
+      expect(dy('Notification Settings'), lessThan(dy('Copy Channel ID')));
     });
 
     testWidgets('category menu shows mute, copy id, and mark read actions', (
@@ -148,6 +156,11 @@ void main() {
       expect(find.text('Mute Category'), findsOneWidget);
       expect(find.text('Copy Category ID'), findsOneWidget);
       expect(find.text('Mark Category as Read'), findsOneWidget);
+
+      // Order must mirror the web category menu: Mark as Read -> Mute -> Copy ID.
+      double dy(String label) => tester.getTopLeft(find.text(label)).dy;
+      expect(dy('Mark Category as Read'), lessThan(dy('Mute Category')));
+      expect(dy('Mute Category'), lessThan(dy('Copy Category ID')));
     });
   });
 }

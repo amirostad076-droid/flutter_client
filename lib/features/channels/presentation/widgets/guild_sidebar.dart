@@ -648,6 +648,16 @@ class _ChannelTile extends ConsumerWidget {
       context,
       position: position,
       builder: (menuContext, close) => [
+        if (canMarkRead)
+          FluxerMenuItem(
+            label: 'Mark as Read',
+            icon: PhosphorIconsRegular.envelopeOpen,
+            enabled: hasUnread,
+            onPressed: () {
+              close();
+              unawaited(_readStateRepository(ref).ackLatest(channel.id));
+            },
+          ),
         if (showFavorites)
           FluxerMenuItem(
             label: isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
@@ -657,6 +667,16 @@ class _ChannelTile extends ConsumerWidget {
               unawaited(_toggleFavorite(ref, isFavorite: isFavorite));
             },
           ),
+        FluxerMenuItem(
+          label: 'Copy Link',
+          icon: PhosphorIconsRegular.link,
+          onPressed: () {
+            close();
+            unawaited(
+              _copyToClipboard(ref, channelLink(channel.id, channel.guildId)),
+            );
+          },
+        ),
         if (canMute)
           FluxerMenuItem(
             label: isMuted
@@ -678,34 +698,6 @@ class _ChannelTile extends ConsumerWidget {
               );
             },
           ),
-        if (canMarkRead)
-          FluxerMenuItem(
-            label: 'Mark as Read',
-            icon: PhosphorIconsRegular.envelopeOpen,
-            enabled: hasUnread,
-            onPressed: () {
-              close();
-              unawaited(_readStateRepository(ref).ackLatest(channel.id));
-            },
-          ),
-        FluxerMenuItem(
-          label: 'Copy Link',
-          icon: PhosphorIconsRegular.link,
-          onPressed: () {
-            close();
-            unawaited(
-              _copyToClipboard(ref, channelLink(channel.id, channel.guildId)),
-            );
-          },
-        ),
-        FluxerMenuItem(
-          label: 'Copy Channel ID',
-          icon: PhosphorIconsRegular.copy,
-          onPressed: () {
-            close();
-            unawaited(_copyToClipboard(ref, channel.id));
-          },
-        ),
         if (canMarkRead)
           FluxerMenuItem(
             label: 'Notification Settings',
@@ -737,6 +729,14 @@ class _ChannelTile extends ConsumerWidget {
               );
             },
           ),
+        FluxerMenuItem(
+          label: 'Copy Channel ID',
+          icon: PhosphorIconsRegular.copy,
+          onPressed: () {
+            close();
+            unawaited(_copyToClipboard(ref, channel.id));
+          },
+        ),
       ],
     );
   }
@@ -875,6 +875,15 @@ class _CategoryHeader extends ConsumerWidget {
       context,
       position: position,
       builder: (menuContext, close) => [
+        FluxerMenuItem(
+          label: 'Mark Category as Read',
+          icon: PhosphorIconsRegular.envelopeOpen,
+          enabled: channelIds.isNotEmpty,
+          onPressed: () {
+            close();
+            unawaited(_readStateRepository(ref).ackLatestBulk(channelIds));
+          },
+        ),
         if (!isSynthetic)
           FluxerMenuItem(
             label: isMuted ? 'Unmute Category' : 'Mute Category',
@@ -894,15 +903,6 @@ class _CategoryHeader extends ConsumerWidget {
               );
             },
           ),
-        FluxerMenuItem(
-          label: 'Mark Category as Read',
-          icon: PhosphorIconsRegular.envelopeOpen,
-          enabled: channelIds.isNotEmpty,
-          onPressed: () {
-            close();
-            unawaited(_readStateRepository(ref).ackLatestBulk(channelIds));
-          },
-        ),
         if (!isSynthetic)
           FluxerMenuItem(
             label: 'Copy Category ID',
