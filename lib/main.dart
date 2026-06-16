@@ -27,6 +27,7 @@ void _configureImagePicker() {
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 100 << 20; // 100 MiB
   configureFluxerErrorUi();
   assertPushProviderBuildConfig();
   await bootstrapFcmIfNeeded();

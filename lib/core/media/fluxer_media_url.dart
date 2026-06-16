@@ -61,6 +61,7 @@ abstract final class FluxerMediaUrl {
   static String? guildIcon({
     required String guildId,
     required String? hash,
+    int size = MediaProxySizes.iconDefault,
     bool animated = false,
   }) {
     if (hash == null || hash.isEmpty) {
@@ -69,16 +70,19 @@ abstract final class FluxerMediaUrl {
     if (animated && isAnimatedMediaHash(hash)) {
       return _url(
         path: 'icons/$guildId/$hash.gif',
-        query: <String, String>{'animated': 'true'},
+        query: <String, String>{'animated': 'true', 'size': '$size'},
       );
     }
     if (isAnimatedMediaHash(hash)) {
       return _url(
         path: 'icons/$guildId/$hash.webp',
-        query: <String, String>{'animated': 'false'},
+        query: <String, String>{'animated': 'false', 'size': '$size'},
       );
     }
-    return _url(path: 'icons/$guildId/$hash.png');
+    return _url(
+      path: 'icons/$guildId/$hash.png',
+      query: <String, String>{'size': '$size'},
+    );
   }
 
   static String? guildBanner({

@@ -193,6 +193,7 @@ class FluxerAvatar extends StatelessWidget {
     final resolvedUrl = _resolvedImageUrl;
     final hasStatus = showStatus && status != null;
     final iconData = icon;
+    final double dpr = MediaQuery.devicePixelRatioOf(context);
 
     Widget avatarContent;
     if (iconData != null) {
@@ -227,6 +228,8 @@ class FluxerAvatar extends StatelessWidget {
                   cacheKey: cacheKey,
                   width: size,
                   height: size,
+                  memCacheWidth: (size * dpr).round(),
+                  memCacheHeight: (size * dpr).round(),
                   fit: BoxFit.cover,
                   errorBuilder: (_, _, _) => _buildFallback(context),
                 )

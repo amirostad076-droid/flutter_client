@@ -186,6 +186,9 @@ class AttachmentImageGrid extends StatelessWidget {
   Widget _buildTile(BuildContext context, Attachment attachment, int index) {
     final bool canOpenViewer =
         attachment.url.isNotEmpty && (!attachment.isSpoiler || revealSpoilers);
+    final double dpr = MediaQuery.devicePixelRatioOf(context);
+    final int cap = (mediaDimensionsForSize(dimensionSize).maxWidth * dpr)
+        .round();
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SpoilerOverlay(
@@ -226,6 +229,7 @@ class AttachmentImageGrid extends StatelessWidget {
               decoration: const BoxDecoration(color: Colors.black),
               child: CachedNetworkImage(
                 imageUrl: attachment.url,
+                memCacheWidth: cap,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) =>
                     const ColoredBox(color: Colors.black),

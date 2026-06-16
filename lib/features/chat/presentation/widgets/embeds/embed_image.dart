@@ -53,6 +53,12 @@ class EmbedImage extends StatelessWidget {
       height: media.height,
     );
     final bool animate = embed.type == EmbedType.gifv || media.isAnimated;
+    final double dpr = MediaQuery.devicePixelRatioOf(context);
+    final int decodeWidth = ((displaySize?.width ?? dimensions.maxWidth) * dpr)
+        .round();
+    final int? decodeHeight = displaySize == null
+        ? null
+        : (displaySize.height * dpr).round();
 
     return Container(
       margin: const EdgeInsets.only(top: 4),
@@ -121,6 +127,8 @@ class EmbedImage extends StatelessWidget {
                       imageUrl: embedMediaEffectiveUrl(media),
                       width: displaySize?.width,
                       height: displaySize?.height,
+                      memCacheWidth: decodeWidth,
+                      memCacheHeight: decodeHeight,
                       fit: BoxFit.cover,
                       errorBuilder: (_, e, s) => Container(
                         width: displaySize?.width ?? dimensions.maxWidth,

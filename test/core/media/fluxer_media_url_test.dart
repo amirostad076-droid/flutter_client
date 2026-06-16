@@ -109,6 +109,25 @@ void main() {
       );
       expect(actual, contains('/icons/10/a_icon.gif?animated=true'));
     });
+
+    test('includes the default size for a static hash', () {
+      final String? actual = FluxerMediaUrl.guildIcon(
+        guildId: '10',
+        hash: 'icon_hash',
+      );
+      expect(actual, contains('size=${MediaProxySizes.iconDefault}'));
+    });
+
+    test('includes a custom size for an animated hash', () {
+      final String? actual = FluxerMediaUrl.guildIcon(
+        guildId: '10',
+        hash: 'a_icon',
+        animated: true,
+        size: 256,
+      );
+      expect(actual, contains('/icons/10/a_icon.gif'));
+      expect(actual, contains('size=256'));
+    });
   });
 
   group('FluxerMediaUrl.guildBanner', () {

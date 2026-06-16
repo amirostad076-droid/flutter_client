@@ -47,6 +47,17 @@ class AttachmentImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final dimensions = mediaDimensionsForSize(dimensionSize);
     final List<Attachment> gallery = _buildGallery();
+    final Size? display = constrainMediaSize(
+      dimensions: dimensions,
+      width: attachment.width,
+      height: attachment.height,
+    );
+    final double dpr = MediaQuery.devicePixelRatioOf(context);
+    final int decodeWidth = ((display?.width ?? dimensions.maxWidth) * dpr)
+        .round();
+    final int? decodeHeight = display == null
+        ? null
+        : (display.height * dpr).round();
     final image = Container(
       margin: const EdgeInsets.only(top: 4, bottom: 3),
       constraints: BoxConstraints(
@@ -80,6 +91,8 @@ class AttachmentImage extends StatelessWidget {
             aspectRatio: _resolveAspectRatio(),
             child: CachedNetworkImage(
               imageUrl: attachment.url,
+              memCacheWidth: decodeWidth,
+              memCacheHeight: decodeHeight,
               fit: BoxFit.contain,
               placeholder: (context, url) {
                 if (attachment.placeholder != null) {
