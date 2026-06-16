@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -37,13 +38,17 @@ import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.d
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_confirm_sheet.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/providers/voice_channel_member_count_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_channel_participants_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/utils/voice_e2ee_display.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/external_links/external_url_launcher.dart';
+import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:go_router/go_router.dart';
@@ -636,6 +641,19 @@ class _ChannelTile extends ConsumerWidget {
             .isFavorite(channel.id);
     final bool canMute = _canMuteChannel(channel);
     final bool canMarkRead = _canMarkChannelRead(channel);
+    final bool developerMode = ref
+        .read(userSettingsViewModelProvider)
+        .developerMode;
+    final bool canOpenLink =
+        channel.type == ChannelType.link && (channel.url?.isNotEmpty ?? false);
+    final int? permissionBits =
+        ref
+            .read(effectiveGuildChannelPermissionBitsProvider(channel.id))
+            .value ??
+        ref.read(channelPermissionCacheProvider)[channel.id];
+    final bool canManageChannel =
+        permissionBits != null &&
+        hasPermission(permissionBits, Permission.manageChannels);
     final Set<String> mutedIds =
         ref.read(mutedChannelIdsProvider(guildId)).value ?? const <String>{};
     final bool isMuted = mutedIds.contains(channel.id);
@@ -665,6 +683,25 @@ class _ChannelTile extends ConsumerWidget {
             onPressed: () {
               close();
               unawaited(_toggleFavorite(ref, isFavorite: isFavorite));
+            },
+          ),
+        if (canOpenLink)
+          FluxerMenuItem(
+            label: 'Open Link',
+            icon: PhosphorIconsRegular.arrowSquareOut,
+            onPressed: () {
+              close();
+              final uri = Uri.tryParse(channel.url ?? '');
+              if (uri != null) {
+                unawaited(
+                  openExternalUrl(
+                    uri,
+                    style: ExternalUrlBrowserStyle.fromColorTheme(
+                      menuContext.colors,
+                    ),
+                  ),
+                );
+              }
             },
           ),
         FluxerMenuItem(
@@ -729,6 +766,15 @@ class _ChannelTile extends ConsumerWidget {
               );
             },
           ),
+        if (developerMode)
+          FluxerMenuItem(
+            label: 'Debug Channel',
+            icon: PhosphorIconsRegular.bug,
+            onPressed: () {
+              close();
+              unawaited(_showDebugChannelSheet(menuContext, ref));
+            },
+          ),
         FluxerMenuItem(
           label: 'Copy Channel ID',
           icon: PhosphorIconsRegular.copy,
@@ -737,8 +783,90 @@ class _ChannelTile extends ConsumerWidget {
             unawaited(_copyToClipboard(ref, channel.id));
           },
         ),
+        if (canManageChannel)
+          FluxerMenuItem(
+            label: 'Delete Channel',
+            icon: PhosphorIconsRegular.trash,
+            isDanger: true,
+            onPressed: () {
+              close();
+              unawaited(_confirmDeleteChannel(menuContext, ref));
+            },
+          ),
       ],
     );
+  }
+
+  Future<void> _showDebugChannelSheet(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    try {
+      final channelResponse = await ref
+          .read(fluxerClientProvider)
+          .channels
+          .getChannel(channelId: channel.id);
+      if (!context.mounted) {
+        return;
+      }
+      await showDebugBottomSheet(
+        context,
+        title: FluxerLocalizations.of(context).dmDebugChannel,
+        data: channelResponse.toJson(),
+        onCopied: (message) => ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: message,
+                variant: FluxerToastVariant.success,
+              ),
+            ),
+      );
+    } on Exception catch (_) {
+      // Ignore — failed to fetch channel for debug view.
+    }
+  }
+
+  Future<void> _confirmDeleteChannel(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    await FluxerConfirmSheet.show(
+      context,
+      title: 'Delete Channel',
+      description:
+          'Are you sure you want to delete #${channel.name}? '
+          'This action cannot be undone.',
+      confirmLabel: 'Delete Channel',
+      isDanger: true,
+      onConfirm: () => unawaited(_deleteChannel(ref)),
+    );
+  }
+
+  Future<void> _deleteChannel(WidgetRef ref) async {
+    final toast = ref.read(toastProvider.notifier);
+    try {
+      await ref
+          .read(fluxerClientProvider)
+          .channels
+          .deleteChannel(
+            channelId: channel.id,
+            body: const SudoVerificationSchema(),
+          );
+      toast.show(
+        const FluxerToast(
+          message: 'Channel deleted',
+          variant: FluxerToastVariant.success,
+        ),
+      );
+    } on Object {
+      toast.show(
+        const FluxerToast(
+          message: 'Failed to delete channel',
+          variant: FluxerToastVariant.danger,
+        ),
+      );
+    }
   }
 
   Future<void> _openChannelMuteSheet(

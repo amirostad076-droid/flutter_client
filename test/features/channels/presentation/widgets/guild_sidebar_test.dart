@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart'
     show FluxerDatabase;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -21,6 +22,7 @@ import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -28,7 +30,6 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod/src/framework.dart' show Override;
 
 const String _guildId = 'g1';
-const List<String> _channelIds = ['c1', 'c2'];
 
 void main() {
   group('GuildSidebar collapsed category visibility', () {
@@ -126,6 +127,9 @@ void main() {
       expect(find.text('Copy Link'), findsOneWidget);
       expect(find.text('Copy Channel ID'), findsOneWidget);
       expect(find.text('Notification Settings'), findsOneWidget);
+      expect(find.text('Open Link'), findsNothing);
+      expect(find.text('Debug Channel'), findsNothing);
+      expect(find.text('Delete Channel'), findsNothing);
 
       // Order must mirror the web channel menu:
       // Mark as Read -> Copy Link -> Mute -> Notification Settings -> Copy ID.
@@ -162,6 +166,83 @@ void main() {
       expect(dy('Mark Category as Read'), lessThan(dy('Mute Category')));
       expect(dy('Mute Category'), lessThan(dy('Copy Category ID')));
     });
+
+    testWidgets('channel menu shows Delete Channel for managers', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _state(),
+            unread: const {'c1': UnreadState(), 'c2': UnreadState()},
+            permissionBits: {'c1': Permission.manageChannels.value},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('general'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete Channel'), findsOneWidget);
+      // Delete is the final, destructive entry (after Copy Channel ID).
+      double dy(String label) => tester.getTopLeft(find.text(label)).dy;
+      expect(dy('Copy Channel ID'), lessThan(dy('Delete Channel')));
+    });
+
+    testWidgets('channel menu shows Debug Channel in developer mode', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _state(),
+            unread: const {'c1': UnreadState(), 'c2': UnreadState()},
+            developerMode: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('general'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Debug Channel'), findsOneWidget);
+    });
+
+    testWidgets('link channel menu shows Open Link', (tester) async {
+      _setMobileSurface(tester);
+      final linkState = ChannelListState(
+        guild: const Guild(id: _guildId, name: 'Test Guild'),
+        categories: [
+          ChannelCategory(
+            id: 'cat1',
+            name: 'My Category',
+            channels: [
+              _linkChannel('c1', 'announcements', 'https://example.com'),
+            ],
+          ),
+        ],
+        selectedChannelId: null,
+      );
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: linkState,
+            unread: const {'c1': UnreadState()},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('announcements'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Open Link'), findsOneWidget);
+      expect(find.text('Copy Link'), findsOneWidget);
+    });
   });
 }
 
@@ -174,6 +255,15 @@ void _setMobileSurface(WidgetTester tester) {
 
 Channel _channel(String id, String name) =>
     Channel(id: id, guildId: _guildId, name: name, parentId: 'cat1');
+
+Channel _linkChannel(String id, String name, String url) => Channel(
+  id: id,
+  guildId: _guildId,
+  name: name,
+  url: url,
+  type: ChannelType.link,
+  parentId: 'cat1',
+);
 
 ChannelListState _state({String? selectedChannelId}) => ChannelListState(
   guild: const Guild(id: _guildId, name: 'Test Guild'),
@@ -194,6 +284,8 @@ List<Override> _buildOverrides({
   Set<String> muted = const {},
   bool hideMuted = false,
   Map<String, UnreadState> unread = const {},
+  Map<String, int> permissionBits = const {},
+  bool developerMode = false,
 }) {
   final db = FluxerDatabase.forTesting(NativeDatabase.memory());
   addTearDown(db.close);
@@ -207,6 +299,9 @@ List<Override> _buildOverrides({
     ),
     appearancePreferencesProvider.overrideWith(_FakeAppearancePreferences.new),
     voiceSessionProvider.overrideWith(_FakeVoiceSession.new),
+    userSettingsViewModelProvider.overrideWith(
+      () => _FakeUserSettings(developerMode: developerMode),
+    ),
     guildMuteProvider(_guildId).overrideWith(
       (ref) => Stream.value(GuildMuteState(hideMutedChannels: hideMuted)),
     ),
@@ -216,8 +311,12 @@ List<Override> _buildOverrides({
     guildCollapsedCategoriesProvider(
       _guildId,
     ).overrideWith((ref) => Stream.value(collapsed)),
-    for (final id in _channelIds)
-      effectiveGuildChannelPermissionBitsProvider(id).overrideWith((ref) => 0),
+    for (final channel in channelListState.categories.expand(
+      (category) => category.channels,
+    ))
+      effectiveGuildChannelPermissionBitsProvider(
+        channel.id,
+      ).overrideWith((ref) => permissionBits[channel.id] ?? 0),
     for (final entry in unread.entries)
       channelUnreadProvider(
         entry.key,
@@ -272,4 +371,25 @@ class _FakeAppearancePreferences extends AppearancePreferences {
 class _FakeVoiceSession extends VoiceSession {
   @override
   VoiceSessionState build() => const VoiceSessionState();
+}
+
+class _FakeUserSettings extends UserSettingsViewModel {
+  _FakeUserSettings({required this.developerMode});
+
+  final bool developerMode;
+
+  @override
+  UserSettingsViewState build() => UserSettingsViewState(
+    userId: 'me',
+    username: '',
+    displayName: '',
+    discriminator: '0',
+    avatar: null,
+    avatarColor: null,
+    memberSince: null,
+    status: 'offline',
+    messageDisplayCompact: false,
+    developerMode: developerMode,
+    trustedDomains: const [],
+  );
 }
