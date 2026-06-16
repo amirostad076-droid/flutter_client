@@ -37,7 +37,7 @@ jobs:
   build-and-upload:
     name: Build and upload to TestFlight
     needs: check-actor
-    runs-on: macos26
+    runs-on: macos-26
     env:
       LANG: en_US.UTF-8
       LC_ALL: en_US.UTF-8
