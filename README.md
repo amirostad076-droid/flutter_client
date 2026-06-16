@@ -33,6 +33,9 @@ For updates, support, and discussion, [join the Fluxer Mobile community on Fluxe
 
 ## Download
 
+> [!NOTE]
+> Unless you are using a degoogled operating system, you should use the FCM client. If you don't know if your OS is degoogled, it likely is not.
+
 **Apple App Store**: Coming when V1 is finished.
 
 **Google Play Store**: Coming when V1 is finished.
