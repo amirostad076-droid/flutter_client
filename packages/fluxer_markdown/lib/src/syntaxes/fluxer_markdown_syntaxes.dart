@@ -217,13 +217,22 @@ class FluxerTimestampSyntax extends md.InlineSyntax {
 
   static const tag = 'timestamp';
 
+  /// Maximum representable timestamp in seconds. The widget multiplies by 1000
+  /// before calling [DateTime.fromMillisecondsSinceEpoch], whose valid range is
+  /// ±8.64e15 ms, so seconds are capped at 8.64e12. Beyond this `value * 1000`
+  /// overflows a 64-bit int and throws a `RangeError` at build time. Mirrors the
+  /// canonical web parser, which rejects larger values.
+  static const _maxSeconds = 8640000000000;
+
   @override
   bool onMatch(md.InlineParser parser, Match match) {
-    final unix = match[1];
-    if (unix == null) {
-      return false;
+    final raw = match[1];
+    final unix = raw == null ? null : int.tryParse(raw);
+    if (raw == null || unix == null || unix <= 0 || unix > _maxSeconds) {
+      parser.addNode(md.Text(match[0]!));
+      return true;
     }
-    final el = md.Element.text(tag, unix)..attributes['flag'] = match[2] ?? 'f';
+    final el = md.Element.text(tag, raw)..attributes['flag'] = match[2] ?? 'f';
     parser.addNode(el);
     return true;
   }
