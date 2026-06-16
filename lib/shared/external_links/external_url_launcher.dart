@@ -48,8 +48,14 @@ ChromeSafariBrowserSettings _buildBrowserSettings(
   );
 }
 
+bool _shouldOpenInChromeSafariBrowser(Uri uri) {
+  return uri.scheme == 'http' || uri.scheme == 'https';
+}
+
 Future<bool> openExternalUrl(Uri uri, {ExternalUrlBrowserStyle? style}) async {
-  if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+  if (!kIsWeb &&
+      (Platform.isIOS || Platform.isAndroid) &&
+      _shouldOpenInChromeSafariBrowser(uri)) {
     try {
       await _chromeSafariBrowser.open(
         url: WebUri(uri.toString()),
