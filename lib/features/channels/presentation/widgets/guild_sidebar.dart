@@ -4,12 +4,12 @@ import 'dart:convert';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/domain/channel_unread_state.dart';
 import 'package:fluxer_app/features/channels/domain/hide_muted_channels_filter.dart';
+import 'package:fluxer_app/features/channels/presentation/sheets/channel_notification_settings_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
@@ -24,9 +25,12 @@ import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_
 import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_user_count.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
+import 'package:fluxer_app/features/channels/providers/channel_typing_provider.dart';
 import 'package:fluxer_app/features/channels/providers/guild_collapsed_categories_provider.dart';
+import 'package:fluxer_app/features/channels/providers/guild_sidebar_scroll_store_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
+import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
@@ -35,8 +39,9 @@ import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/features/voice/providers/voice_channel_member_count_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_channel_participants_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
-import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_e2ee_display.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart';
@@ -62,19 +67,70 @@ class _GuildSidebarEntry {
   final String? guildId;
 }
 
-class GuildSidebar extends ConsumerWidget {
+class GuildSidebar extends ConsumerStatefulWidget {
   const GuildSidebar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GuildSidebar> createState() => _GuildSidebarState();
+}
+
+class _GuildSidebarState extends ConsumerState<GuildSidebar> {
+  late final ScrollController _scrollController;
+  String? _restoredGuildId;
+  bool _restoring = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController()..addListener(_persistScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_persistScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _persistScroll() {
+    if (_restoring) {
+      return;
+    }
+    final String? guildId = ref.read(activeGuildIdProvider);
+    if (guildId != null && _scrollController.hasClients) {
+      ref
+          .read(guildSidebarScrollStoreProvider)
+          .setOffset(guildId, _scrollController.offset);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(channelListViewModelProvider);
-    final guild = state.guild;
-    final categories = state.categories;
-    final selectedId = ref.watch(activeChannelIdProvider);
-    final collapsed = guild == null
-        ? const <String>{}
-        : ref.watch(guildCollapsedCategoriesProvider(guild.id)).value ??
-              const <String>{};
+    final Guild? guild = state.guild;
+    final List<ChannelCategory> categories = state.categories;
+    final String? guildId = ref.watch(activeGuildIdProvider);
+
+    if (guildId == null) {
+      _restoredGuildId = null;
+    } else if (guildId != _restoredGuildId) {
+      _restoredGuildId = guildId;
+      _restoring = true;
+      final double saved =
+          ref.read(guildSidebarScrollStoreProvider).offsetFor(guildId) ?? 0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(
+            saved.clamp(0, _scrollController.position.maxScrollExtent),
+          );
+        }
+        _restoring = false;
+      });
+    }
 
     return Container(
       width: 240,
@@ -85,22 +141,16 @@ class GuildSidebar extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          _buildServerHeader(context, ref, guild),
+          _buildServerHeader(context, guild),
           Expanded(
-            child: _buildChannelList(
-              context,
-              ref,
-              categories,
-              selectedId,
-              collapsed,
-            ),
+            child: _buildChannelList(context, guild, categories, guildId),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildServerHeader(BuildContext context, WidgetRef ref, Guild? guild) {
+  Widget _buildServerHeader(BuildContext context, Guild? guild) {
     final bool hasImage = guild?.banner != null;
     const double headerHeight = 56;
     const double bannerAspectRatio = 16 / 9;
@@ -194,46 +244,45 @@ class GuildSidebar extends ConsumerWidget {
 
   Widget _buildChannelList(
     BuildContext context,
-    WidgetRef ref,
+    Guild? guild,
     List<ChannelCategory> categories,
-    String? selectedId,
-    Set<String> collapsed,
+    String? guildId,
   ) {
-    final guildId = ref.watch(activeGuildIdProvider);
-    final muteState = guildId != null
-        ? ref.watch(guildMuteProvider(guildId)).value
-        : null;
-    final hideMutedChannels = muteState?.hideMutedChannels ?? false;
-    final mutedSet = guildId != null
-        ? ref.watch(mutedChannelIdsProvider(guildId)).value ?? const <String>{}
-        : const <String>{};
-    final visibleCategories = hideMutedChannels
-        ? categories
-              .map(
-                (category) => ChannelCategory(
-                  id: category.id,
-                  name: category.name,
-                  channels: category.channels
-                      .where(
-                        (channel) => shouldShowChannelWhenHidingMuted(
-                          channelId: channel.id,
-                          mutedChannelIds: mutedSet,
-                          selectedChannelId: selectedId,
-                        ),
-                      )
-                      .toList(),
-                ),
-              )
-              .where((category) => category.channels.isNotEmpty)
-              .toList()
-        : categories;
+    final String? selectedId = ref.watch(activeChannelIdProvider);
+    final List<_GuildSidebarEntry> sidebarEntries;
+    if (guild == null || guildId == null) {
+      sidebarEntries = const <_GuildSidebarEntry>[];
+    } else {
+      final bool hideMutedChannels =
+          ref.watch(guildMuteProvider(guildId)).value?.hideMutedChannels ??
+          false;
+      final Set<String> mutedSet =
+          ref.watch(mutedChannelIdsProvider(guildId)).value ?? const <String>{};
+      final Set<String> collapsed =
+          ref.watch(guildCollapsedCategoriesProvider(guild.id)).value ??
+          const <String>{};
+      final String? connectedChannelId = ref.watch(
+        voiceSessionProvider.select((s) => s.channelId),
+      );
+      final bool showFadedUnread = ref.watch(
+        appearancePreferencesProvider.select(
+          (s) => s.showFadedUnreadOnMutedChannels,
+        ),
+      );
+      sidebarEntries = _flattenSidebarEntries(
+        categories: categories,
+        collapsed: collapsed,
+        mutedSet: mutedSet,
+        hideMuted: hideMutedChannels,
+        selectedId: selectedId,
+        connectedChannelId: connectedChannelId,
+        showFadedUnread: showFadedUnread,
+        guildId: guildId,
+      );
+    }
 
-    final List<_GuildSidebarEntry> sidebarEntries = _flattenSidebarEntries(
-      visibleCategories: visibleCategories,
-      collapsed: collapsed,
-      guildId: guildId,
-    );
     return ListView.builder(
+      controller: _scrollController,
       scrollCacheExtent: const ScrollCacheExtent.pixels(600),
       padding: const EdgeInsets.only(top: 12),
       itemCount: sidebarEntries.length,
@@ -241,22 +290,23 @@ class GuildSidebar extends ConsumerWidget {
         final _GuildSidebarEntry entry = sidebarEntries[index];
         switch (entry.kind) {
           case _GuildSidebarEntryKind.categoryHeader:
-            return _buildCategoryHeader(
-              context,
-              ref,
-              entry.category!,
-              entry.isCategoryCollapsed,
+            return _CategoryHeader(
+              key: ValueKey<String>('cat:${entry.category!.id}'),
+              category: entry.category!,
+              isCollapsed: entry.isCategoryCollapsed,
+              guildId: guildId!,
             );
           case _GuildSidebarEntryKind.channel:
-            return _buildChannelTile(
-              context,
-              ref,
-              entry.channel!,
-              entry.channel!.id == selectedId,
-              mutedSet: mutedSet,
+            return _ChannelTile(
+              key: ValueKey<String>(entry.channel!.id),
+              channel: entry.channel!,
+              isSelected: entry.channel!.id == selectedId,
+              guildId: guildId!,
+              guild: guild!,
             );
           case _GuildSidebarEntryKind.voiceParticipants:
             return VoiceChannelParticipantsList(
+              key: ValueKey<String>('vp:${entry.channel!.id}'),
               guildId: entry.guildId!,
               channelId: entry.channel!.id,
             );
@@ -266,13 +316,42 @@ class GuildSidebar extends ConsumerWidget {
   }
 
   List<_GuildSidebarEntry> _flattenSidebarEntries({
-    required List<ChannelCategory> visibleCategories,
+    required List<ChannelCategory> categories,
     required Set<String> collapsed,
-    required String? guildId,
+    required Set<String> mutedSet,
+    required bool hideMuted,
+    required String? selectedId,
+    required String? connectedChannelId,
+    required bool showFadedUnread,
+    required String guildId,
   }) {
     final List<_GuildSidebarEntry> entries = <_GuildSidebarEntry>[];
-    for (final ChannelCategory category in visibleCategories) {
+    for (final ChannelCategory category in categories) {
       final bool isCollapsed = collapsed.contains(category.id);
+      final bool isCategoryMuted = mutedSet.contains(category.id);
+
+      final List<Channel> base = <Channel>[];
+      for (final Channel channel in category.channels) {
+        if (hideMuted) {
+          final bool hasVisibleUnread =
+              mutedSet.contains(channel.id) &&
+              _hasVisibleUnread(channel, mutedSet, showFadedUnread);
+          if (!shouldShowChannelWhenHidingMuted(
+            channelId: channel.id,
+            mutedChannelIds: mutedSet,
+            selectedChannelId: selectedId,
+            connectedChannelId: connectedChannelId,
+            hasVisibleUnread: hasVisibleUnread,
+          )) {
+            continue;
+          }
+        }
+        base.add(channel);
+      }
+      if (hideMuted && base.isEmpty) {
+        continue;
+      }
+
       entries.add(
         _GuildSidebarEntry(
           kind: _GuildSidebarEntryKind.categoryHeader,
@@ -280,17 +359,38 @@ class GuildSidebar extends ConsumerWidget {
           isCategoryCollapsed: isCollapsed,
         ),
       );
+
       if (isCollapsed) {
+        for (final Channel channel in base) {
+          if (shouldShowChannelInCollapsedCategory(
+            isCategoryMuted: isCategoryMuted,
+            isSelected: channel.id == selectedId,
+            isConnected: channel.id == connectedChannelId,
+            hasVisibleUnread: _hasVisibleUnread(
+              channel,
+              mutedSet,
+              showFadedUnread,
+            ),
+          )) {
+            entries.add(
+              _GuildSidebarEntry(
+                kind: _GuildSidebarEntryKind.channel,
+                channel: channel,
+              ),
+            );
+          }
+        }
         continue;
       }
-      for (final Channel channel in category.channels) {
+
+      for (final Channel channel in base) {
         entries.add(
           _GuildSidebarEntry(
             kind: _GuildSidebarEntryKind.channel,
             channel: channel,
           ),
         );
-        if (guildId != null && channel.type == ChannelType.voice) {
+        if (channel.type == ChannelType.voice) {
           entries.add(
             _GuildSidebarEntry(
               kind: _GuildSidebarEntryKind.voiceParticipants,
@@ -304,93 +404,53 @@ class GuildSidebar extends ConsumerWidget {
     return entries;
   }
 
-  Widget _buildCategoryHeader(
-    BuildContext context,
-    WidgetRef ref,
-    ChannelCategory category,
-    bool isCollapsed,
-  ) {
-    final hasMarkReadAction = category.channels.any(_canMarkChannelRead);
-    return InkWell(
-      onTap: () {
-        final guildId = ref.read(activeGuildIdProvider);
-        if (guildId == null) {
-          return;
-        }
-        unawaited(
-          ref
-              .read(guildUserSettingsRepositoryProvider)
-              .toggleCategoryCollapsed(
-                guildId: guildId,
-                categoryId: category.id,
-              ),
-        );
-      },
-      onSecondaryTapUp: hasMarkReadAction
-          ? (details) => unawaited(
-              _showCategoryActions(
-                context,
-                ref,
-                category,
-                details.globalPosition,
-              ),
-            )
-          : null,
-      onLongPress: hasMarkReadAction && isMobileLayout(context)
-          ? () => unawaited(
-              _showCategoryActions(context, ref, category, Offset.zero),
-            )
-          : null,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 12, right: 8, top: 16, bottom: 4),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                category.name,
-                style: context.textStyles.categoryName,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 4),
-            PhosphorIcon(
-              isCollapsed
-                  ? PhosphorIconsRegular.caretRight
-                  : PhosphorIconsRegular.caretDown,
-              size: 12,
-              color: context.colors.textPrimaryMuted,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChannelTile(
-    BuildContext context,
-    WidgetRef ref,
+  bool _hasVisibleUnread(
     Channel channel,
-    bool isSelected, {
-    Set<String>? mutedSet,
-  }) {
-    final unreadAsync = ref.watch(channelUnreadProvider(channel.id));
-    final unread = unreadAsync.value;
-    final hasUnread = unread?.hasUnread ?? false;
-    final mentionCount = unread?.mentionCount ?? 0;
-    final hasUnreadMessages = unread?.hasUnreadMessages ?? false;
-    final currentUserId = ref.watch(currentUserIdProvider);
-    final guildId = ref.watch(activeGuildIdProvider);
-    final effectiveMutedSet =
-        mutedSet ??
-        (guildId != null
-            ? ref.watch(mutedChannelIdsProvider(guildId)).value ??
-                  const <String>{}
-            : const <String>{});
-    final isChannelDirectlyMuted = _isChannelDirectlyMuted(
-      channel,
-      effectiveMutedSet,
+    Set<String> mutedSet,
+    bool showFadedUnread,
+  ) {
+    final UnreadState? unread = ref
+        .watch(channelUnreadProvider(channel.id))
+        .value;
+    if (unread == null) {
+      return false;
+    }
+    return getChannelUnreadState(
+      unreadCount: unread.hasUnreadMessages ? 1 : 0,
+      mentionCount: unread.mentionCount,
+      isMuted: mutedSet.contains(channel.id),
+      showFadedUnreadOnMutedChannels: showFadedUnread,
+      unreadBadgesLevel: unread.unreadBadgesLevel,
+    ).hasVisibleUnread;
+  }
+}
+
+class _ChannelTile extends ConsumerWidget {
+  const _ChannelTile({
+    required this.channel,
+    required this.isSelected,
+    required this.guildId,
+    required this.guild,
+    super.key,
+  });
+
+  final Channel channel;
+  final bool isSelected;
+  final String guildId;
+  final Guild guild;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(channelUnreadProvider(channel.id)).value;
+    final bool hasUnread = unread?.hasUnread ?? false;
+    final int mentionCount = unread?.mentionCount ?? 0;
+    final bool hasUnreadMessages = unread?.hasUnreadMessages ?? false;
+    final bool isChannelDirectlyMuted = ref.watch(
+      mutedChannelIdsProvider(
+        guildId,
+      ).select((a) => (a.value ?? const <String>{}).contains(channel.id)),
     );
-    final showFadedUnread = ref.watch(
+    final bool showFadedUnread = ref.watch(
       appearancePreferencesProvider.select(
         (s) => s.showFadedUnreadOnMutedChannels,
       ),
@@ -402,40 +462,35 @@ class GuildSidebar extends ConsumerWidget {
       showFadedUnreadOnMutedChannels: showFadedUnread,
       unreadBadgesLevel: unread?.unreadBadgesLevel,
     );
-    final hasTyping = ref.watch(
-      typingIndicatorsProvider.select((entries) {
-        final now = DateTime.now();
-        return entries.any(
-          (t) =>
-              t.channelId == channel.id &&
-              t.userId != currentUserId &&
-              t.expiresAt.isAfter(now),
-        );
-      }),
-    );
+    final bool hasTyping = ref.watch(channelHasTypingProvider(channel.id));
     final int? cachedPermissionBits = ref.watch(
       channelPermissionCacheProvider.select((m) => m[channel.id]),
     );
     final int? effectivePermissionBits = ref
         .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
         .value;
-    final VoiceSessionState voiceSession = ref.watch(voiceSessionProvider);
-    final Map<String, VoiceState> voiceStates = ref.watch(
-      voiceStatesMapProvider,
-    );
-    final Guild? guild = ref.watch(channelListViewModelProvider).guild;
-    final bool showE2eeVoiceIcon =
-        channel.type == ChannelType.voice &&
-        guildId != null &&
-        guild != null &&
-        isVoiceChannelE2eeEncryptedForIcon(
-          voiceStates: voiceStates,
-          guildId: guildId,
-          channelId: channel.id,
-          connectedVoiceGuildId: voiceSession.guildId,
-          connectedVoiceChannelId: voiceSession.channelId,
-          guildHasVoiceE2ee: guild.hasVoiceE2ee,
-        );
+
+    final bool isVoice = channel.type == ChannelType.voice;
+    bool showE2eeVoiceIcon = false;
+    if (isVoice && guild.hasVoiceE2ee) {
+      final Map<String, VoiceState> voiceStates = ref.watch(
+        voiceStatesMapProvider,
+      );
+      final String? connectedVoiceGuildId = ref.watch(
+        voiceSessionProvider.select((s) => s.guildId),
+      );
+      final String? connectedVoiceChannelId = ref.watch(
+        voiceSessionProvider.select((s) => s.channelId),
+      );
+      showE2eeVoiceIcon = isVoiceChannelE2eeEncryptedForIcon(
+        voiceStates: voiceStates,
+        guildId: guildId,
+        channelId: channel.id,
+        connectedVoiceGuildId: connectedVoiceGuildId,
+        connectedVoiceChannelId: connectedVoiceChannelId,
+        guildHasVoiceE2ee: guild.hasVoiceE2ee,
+      );
+    }
 
     final Color textColor = isSelected
         ? context.colors.textPrimary
@@ -448,18 +503,13 @@ class GuildSidebar extends ConsumerWidget {
 
     final int voiceUserLimit = channel.userLimit ?? 0;
     final bool showVoiceUserCount =
-        channel.type == ChannelType.voice &&
-        voiceUserLimit > 0 &&
-        !isSelected &&
-        mentionCount == 0;
-    final int voiceCurrentCount = showVoiceUserCount && guildId != null
-        ? voiceStates.values
-              .where(
-                (vs) => vs.channelId == channel.id && vs.guildId == guildId,
-              )
-              .map((vs) => vs.userId)
-              .toSet()
-              .length
+        isVoice && voiceUserLimit > 0 && !isSelected && mentionCount == 0;
+    final int voiceCurrentCount = showVoiceUserCount
+        ? ref.watch(
+            voiceChannelMemberCountProvider(
+              voiceChannelParticipantsFamilyKey(guildId, channel.id),
+            ),
+          )
         : 0;
 
     return Stack(
@@ -481,34 +531,25 @@ class GuildSidebar extends ConsumerWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onSecondaryTapUp: _canShowChannelActions(channel)
-                  ? (details) => unawaited(
-                      _showChannelActions(
-                        context,
-                        ref,
-                        channel,
-                        hasUnread: hasUnread,
-                        position: details.globalPosition,
-                      ),
-                    )
-                  : null,
-              onLongPress:
-                  _canShowChannelActions(channel) && isMobileLayout(context)
+              onSecondaryTapUp: (details) => unawaited(
+                _showChannelActions(
+                  context,
+                  ref,
+                  hasUnread: hasUnread,
+                  position: details.globalPosition,
+                ),
+              ),
+              onLongPress: isMobileLayout(context)
                   ? () => unawaited(
                       _showChannelActions(
                         context,
                         ref,
-                        channel,
                         hasUnread: hasUnread,
                         position: Offset.zero,
                       ),
                     )
                   : null,
               onTap: () async {
-                final String? guildId = ref.read(activeGuildIdProvider);
-                if (guildId == null) {
-                  return;
-                }
                 await navigateToGuildChannelContent(
                   context: context,
                   ref: ref,
@@ -549,7 +590,11 @@ class GuildSidebar extends ConsumerWidget {
                     ),
                     if (hasTyping) ...[
                       const SizedBox(width: 4),
-                      FluxerLoadingSpinner(color: context.colors.textSecondary),
+                      RepaintBoundary(
+                        child: FluxerLoadingSpinner(
+                          color: context.colors.textSecondary,
+                        ),
+                      ),
                     ],
                     if (!isSelected &&
                         mentionCount > 0 &&
@@ -576,30 +621,26 @@ class GuildSidebar extends ConsumerWidget {
 
   Future<void> _showChannelActions(
     BuildContext context,
-    WidgetRef ref,
-    Channel channel, {
+    WidgetRef ref, {
     required bool hasUnread,
     required Offset position,
   }) async {
     final l10n = FluxerLocalizations.of(context);
-    final guildId = ref.read(activeGuildIdProvider);
-    final showFavorites = ref.read(
+    final bool showFavorites = ref.read(
       appearancePreferencesProvider.select((s) => s.showFavorites),
     );
-    final isFavorite =
+    final bool isFavorite =
         showFavorites &&
         await ref
             .read(favoriteChannelsRepositoryProvider)
             .isFavorite(channel.id);
-    final canMute = _canMuteChannel(channel);
-    final mutedIds = guildId == null
-        ? const <String>{}
-        : ref.read(mutedChannelIdsProvider(guildId)).value ?? const {};
-    final isMuted = mutedIds.contains(channel.id);
-    final muteConfig = guildId == null
-        ? null
-        : await _loadChannelMuteConfig(ref, guildId, channel.id);
-    final mutedHint = isMuted ? formatMutedHintText(muteConfig) : null;
+    final bool canMute = _canMuteChannel(channel);
+    final bool canMarkRead = _canMarkChannelRead(channel);
+    final Set<String> mutedIds =
+        ref.read(mutedChannelIdsProvider(guildId)).value ?? const <String>{};
+    final bool isMuted = mutedIds.contains(channel.id);
+    final muteConfig = await _loadChannelMuteConfig(ref, guildId, channel.id);
+    final String? mutedHint = isMuted ? formatMutedHintText(muteConfig) : null;
     if (!context.mounted) {
       return;
     }
@@ -613,9 +654,7 @@ class GuildSidebar extends ConsumerWidget {
             icon: isFavorite ? PhosphorIconsFill.star : PhosphorIconsBold.star,
             onPressed: () {
               close();
-              unawaited(
-                _toggleFavorite(ref, channel: channel, isFavorite: isFavorite),
-              );
+              unawaited(_toggleFavorite(ref, isFavorite: isFavorite));
             },
           ),
         if (canMute)
@@ -633,15 +672,13 @@ class GuildSidebar extends ConsumerWidget {
                   menuContext,
                   ref,
                   close: close,
-                  channel: channel,
-                  guildId: guildId,
                   isMuted: isMuted,
                   muteConfig: muteConfig,
                 ),
               );
             },
           ),
-        if (_canMarkChannelRead(channel))
+        if (canMarkRead)
           FluxerMenuItem(
             label: 'Mark as Read',
             icon: PhosphorIconsRegular.envelopeOpen,
@@ -649,6 +686,55 @@ class GuildSidebar extends ConsumerWidget {
             onPressed: () {
               close();
               unawaited(_readStateRepository(ref).ackLatest(channel.id));
+            },
+          ),
+        FluxerMenuItem(
+          label: 'Copy Link',
+          icon: PhosphorIconsRegular.link,
+          onPressed: () {
+            close();
+            unawaited(
+              _copyToClipboard(ref, channelLink(channel.id, channel.guildId)),
+            );
+          },
+        ),
+        FluxerMenuItem(
+          label: 'Copy Channel ID',
+          icon: PhosphorIconsRegular.copy,
+          onPressed: () {
+            close();
+            unawaited(_copyToClipboard(ref, channel.id));
+          },
+        ),
+        if (canMarkRead)
+          FluxerMenuItem(
+            label: 'Notification Settings',
+            icon: PhosphorIconsRegular.bell,
+            onPressed: () {
+              close();
+              unawaited(
+                showChannelNotificationSettingsSheet(
+                  menuContext,
+                  channel: channel,
+                  onSetNotification: (setting) async {
+                    await ref
+                        .read(guildUserSettingsRepositoryProvider)
+                        .updateChannelOverride(
+                          guildId: channel.guildId,
+                          channelId: channel.id,
+                          messageNotifications: setting,
+                        );
+                    ref
+                        .read(toastProvider.notifier)
+                        .show(
+                          const FluxerToast(
+                            message: 'Notification settings updated',
+                            variant: FluxerToastVariant.success,
+                          ),
+                        );
+                  },
+                ),
+              );
             },
           ),
       ],
@@ -659,8 +745,6 @@ class GuildSidebar extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref, {
     required VoidCallback close,
-    required Channel channel,
-    required String? guildId,
     required bool isMuted,
     required ChannelOverridesMuteConfig? muteConfig,
   }) async {
@@ -677,7 +761,9 @@ class GuildSidebar extends ConsumerWidget {
       return;
     }
     close();
-    final resolvedGuildId = guildId ?? channel.guildId;
+    final String resolvedGuildId = guildId.isNotEmpty
+        ? guildId
+        : channel.guildId;
     if (resolvedGuildId.isEmpty) {
       return;
     }
@@ -691,31 +777,8 @@ class GuildSidebar extends ConsumerWidget {
         );
   }
 
-  Future<ChannelOverridesMuteConfig?> _loadChannelMuteConfig(
-    WidgetRef ref,
-    String guildId,
-    String channelId,
-  ) async {
-    final row = await ref
-        .read(fluxerDatabaseProvider)
-        .userGuildSettingsDao
-        .getByGuildId(guildId);
-    if (row == null) {
-      return null;
-    }
-    try {
-      final settings = UserGuildSettingsResponse.fromJson(
-        jsonDecode(row.data) as Map<String, dynamic>,
-      );
-      return settings.channelOverrides?[channelId]?.muteConfig;
-    } on Object {
-      return null;
-    }
-  }
-
   Future<void> _toggleFavorite(
     WidgetRef ref, {
-    required Channel channel,
     required bool isFavorite,
   }) async {
     final repository = ref.read(favoriteChannelsRepositoryProvider);
@@ -729,42 +792,197 @@ class GuildSidebar extends ConsumerWidget {
       nickname: channel.name,
     );
   }
+}
+
+class _CategoryHeader extends ConsumerWidget {
+  const _CategoryHeader({
+    required this.category,
+    required this.isCollapsed,
+    required this.guildId,
+    super.key,
+  });
+
+  final ChannelCategory category;
+  final bool isCollapsed;
+  final String guildId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return InkWell(
+      onTap: () {
+        unawaited(
+          ref
+              .read(guildUserSettingsRepositoryProvider)
+              .toggleCategoryCollapsed(
+                guildId: guildId,
+                categoryId: category.id,
+              ),
+        );
+      },
+      onSecondaryTapUp: (details) =>
+          unawaited(_showCategoryActions(context, ref, details.globalPosition)),
+      onLongPress: isMobileLayout(context)
+          ? () => unawaited(_showCategoryActions(context, ref, Offset.zero))
+          : null,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 12, right: 8, top: 16, bottom: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                category.name,
+                style: context.textStyles.categoryName,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 4),
+            PhosphorIcon(
+              isCollapsed
+                  ? PhosphorIconsRegular.caretRight
+                  : PhosphorIconsRegular.caretDown,
+              size: 12,
+              color: context.colors.textPrimaryMuted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Future<void> _showCategoryActions(
     BuildContext context,
     WidgetRef ref,
-    ChannelCategory category,
     Offset position,
-  ) {
-    final channelIds = category.channels
+  ) async {
+    final List<String> channelIds = category.channels
         .where(_canMarkChannelRead)
         .map((channel) => channel.id)
         .toList();
+    final bool isSynthetic = category.id == kUncategorizedCategoryId;
+    final Set<String> mutedIds =
+        ref.read(mutedChannelIdsProvider(guildId)).value ?? const <String>{};
+    final bool isMuted = mutedIds.contains(category.id);
+    final muteConfig = isSynthetic
+        ? null
+        : await _loadChannelMuteConfig(ref, guildId, category.id);
+    final String? mutedHint = (!isSynthetic && isMuted)
+        ? formatMutedHintText(muteConfig)
+        : null;
+    if (!context.mounted) {
+      return;
+    }
     return FluxerActionMenu.show(
       context,
       position: position,
-      builder: (context, close) => [
+      builder: (menuContext, close) => [
+        if (!isSynthetic)
+          FluxerMenuItem(
+            label: isMuted ? 'Unmute Category' : 'Mute Category',
+            icon: isMuted
+                ? PhosphorIconsRegular.bell
+                : PhosphorIconsRegular.bellSlash,
+            hint: mutedHint,
+            onPressed: () {
+              unawaited(
+                _openCategoryMuteSheet(
+                  menuContext,
+                  ref,
+                  close: close,
+                  isMuted: isMuted,
+                  muteConfig: muteConfig,
+                ),
+              );
+            },
+          ),
         FluxerMenuItem(
           label: 'Mark Category as Read',
           icon: PhosphorIconsRegular.envelopeOpen,
+          enabled: channelIds.isNotEmpty,
           onPressed: () {
             close();
             unawaited(_readStateRepository(ref).ackLatestBulk(channelIds));
           },
         ),
+        if (!isSynthetic)
+          FluxerMenuItem(
+            label: 'Copy Category ID',
+            icon: PhosphorIconsRegular.copy,
+            onPressed: () {
+              close();
+              unawaited(_copyToClipboard(ref, category.id));
+            },
+          ),
       ],
     );
   }
 
-  ReadStateRepository _readStateRepository(WidgetRef ref) =>
-      ReadStateRepository(
-        ref.read(fluxerClientProvider),
-        ref.read(fluxerDatabaseProvider),
+  Future<void> _openCategoryMuteSheet(
+    BuildContext context,
+    WidgetRef ref, {
+    required VoidCallback close,
+    required bool isMuted,
+    required ChannelOverridesMuteConfig? muteConfig,
+  }) async {
+    final selection = await showMuteDurationSheet(
+      context,
+      isMuted: isMuted,
+      muteConfig: muteConfig,
+      muteTitle: 'Mute Category',
+      unmuteTitle: 'Unmute Category',
+      useRootNavigator: isMobileLayout(context),
+    );
+    if (selection == null) {
+      return;
+    }
+    close();
+    await ref
+        .read(guildUserSettingsRepositoryProvider)
+        .updateChannelOverride(
+          guildId: guildId,
+          channelId: category.id,
+          muted: selection.muted,
+          durationSeconds: selection.durationSeconds,
+        );
+  }
+}
+
+ReadStateRepository _readStateRepository(WidgetRef ref) => ReadStateRepository(
+  ref.read(fluxerClientProvider),
+  ref.read(fluxerDatabaseProvider),
+);
+
+Future<void> _copyToClipboard(WidgetRef ref, String value) async {
+  await Clipboard.setData(ClipboardData(text: value));
+  ref
+      .read(toastProvider.notifier)
+      .show(
+        const FluxerToast(
+          message: 'Copied to clipboard',
+          variant: FluxerToastVariant.success,
+        ),
       );
 }
 
-bool _isChannelDirectlyMuted(Channel channel, Set<String> mutedSet) {
-  return mutedSet.contains(channel.id);
+Future<ChannelOverridesMuteConfig?> _loadChannelMuteConfig(
+  WidgetRef ref,
+  String guildId,
+  String channelId,
+) async {
+  final row = await ref
+      .read(fluxerDatabaseProvider)
+      .userGuildSettingsDao
+      .getByGuildId(guildId);
+  if (row == null) {
+    return null;
+  }
+  try {
+    final settings = UserGuildSettingsResponse.fromJson(
+      jsonDecode(row.data) as Map<String, dynamic>,
+    );
+    return settings.channelOverrides?[channelId]?.muteConfig;
+  } on Object {
+    return null;
+  }
 }
 
 bool _canMarkChannelRead(Channel channel) =>
@@ -772,6 +990,3 @@ bool _canMarkChannelRead(Channel channel) =>
 
 bool _canMuteChannel(Channel channel) =>
     channel.type == ChannelType.text || channel.type == ChannelType.voice;
-
-bool _canShowChannelActions(Channel channel) =>
-    _canMarkChannelRead(channel) || _canMuteChannel(channel);
