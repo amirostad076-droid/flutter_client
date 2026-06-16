@@ -333,7 +333,6 @@ class GatewayEventHandler {
         );
         _handleMembersChunk(event);
       case GuildMemberListUpdateEvent():
-        talker.debug('[Gateway] GUILD_MEMBER_LIST_UPDATE: ${event.guildId}');
         unawaited(_handleMemberListUpdate(event));
       case PresenceUpdateBulkEvent():
         talker.debug(

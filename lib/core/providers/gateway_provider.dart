@@ -24,8 +24,7 @@ import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_availability_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/members/data/member_cache_evictor.dart';
-import 'package:fluxer_app/features/members/data/member_list_drift_sync.dart';
-import 'package:fluxer_app/features/members/domain/member_list_range_utils.dart';
+import 'package:fluxer_app/features/members/data/member_list_update_batcher.dart';
 import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.dart';
 import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
@@ -84,6 +83,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       ref.read(guildSyncProvider.notifier).clearAll();
       ref.read(memberListViewportProvider.notifier).clearSession();
       ref.read(memberListDesiredRangesProvider.notifier).clearAll();
+      ref.read(memberListUpdateBatcherProvider).clearAll();
       final String? activeGuildId = ref.read(activeGuildIdProvider);
       if (activeGuildId != null) {
         ref
@@ -282,27 +282,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
           );
     },
     onMemberListUpdate: (event) {
-      ref.read(memberListViewportProvider.notifier).applyListUpdate(event);
-      unawaited(() async {
-        await MemberListDriftSync(
-          ref.read(fluxerDatabaseProvider),
-        ).syncFromListUpdate(
-          guildId: event.guildId,
-          memberCount: event.memberCount,
-          onlineCount: event.onlineCount,
-          ops: event.ops,
-          isValidRange: isValidMemberListRange,
-        );
-        await ref
-            .read(memberCacheEvictorProvider)
-            .evictIfNeeded(
-              guildId: event.guildId,
-              protectedUserIds: collectProtectedMemberUserIds(
-                ref: ref,
-                guildId: event.guildId,
-              ),
-            );
-      }());
+      ref.read(memberListUpdateBatcherProvider).enqueue(event);
     },
   );
 
