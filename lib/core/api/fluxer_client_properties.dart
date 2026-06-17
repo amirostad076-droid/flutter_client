@@ -228,7 +228,9 @@ FluxerClientProperties buildFluxerClientProperties({
   final String releaseChannel = mapAppBuildEnvironmentToReleaseChannel(
     environment,
   );
-  final String? clientVersion = normalizeOptionalString(runtimeInfo?.version);
+  final String? clientVersion = normalizeOptionalString(
+    runtimeInfo?.releaseVersion,
+  );
   final String userAgent = buildFluxerClientUserAgent(
     clientPlatform: clientPlatform,
     clientVersion: clientVersion,

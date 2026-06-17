@@ -166,10 +166,10 @@ String formatAppDiagnosticClipboardText(AppRuntimeInfo info) {
 
   // Include the Github pre-release beta tag
   if (channel.toLowerCase().contains('beta') && betaNum != null) {
-    return 'Version ${info.version}, Beta $betaNum, Channel $channel, Build ${info.buildNumber}, $osPart'
+    return 'Version ${info.releaseVersion}, Beta $betaNum, Channel $channel, Build ${info.buildNumber}, $osPart'
         '$deviceSegment, Locale $locale, Push $push, Flutter $flutter, Dart $dart';
   }
 
-  return 'Version ${info.version}, Channel $channel, Build ${info.buildNumber}, $osPart'
+  return 'Version ${info.releaseVersion}, Channel $channel, Build ${info.buildNumber}, $osPart'
       '$deviceSegment, Locale $locale, Push $push, Flutter $flutter, Dart $dart';
 }

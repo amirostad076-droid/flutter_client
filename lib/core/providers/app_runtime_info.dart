@@ -24,4 +24,12 @@ class AppRuntimeInfo {
   final String osVersionLabel;
 
   String get deviceModelLabel => deviceModel ?? '';
+
+  String get releaseVersion {
+    final int dashIndex = version.indexOf('-');
+    if (dashIndex == -1) {
+      return version;
+    }
+    return version.substring(0, dashIndex);
+  }
 }
