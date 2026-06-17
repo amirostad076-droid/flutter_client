@@ -993,6 +993,10 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         return;
       }
     }
+    if (!isEditing && wireText.isNotEmpty) {
+      _controller.clear();
+      ref.read(chatViewModelProvider.notifier).updateMessageText('');
+    }
     unawaited(
       ref
           .read(chatViewModelProvider.notifier)

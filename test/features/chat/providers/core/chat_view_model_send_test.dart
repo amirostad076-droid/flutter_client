@@ -74,27 +74,35 @@ void main() {
     return (container, adapter, serverMessageId);
   }
 
-  test('own send scrolls once on optimistic insert, not again on delivery', () async {
-    final (container, _, serverMessageId) = await setUpChannel();
-    final notifier = container.read(chatViewModelProvider.notifier);
+  test(
+    'own send scrolls once on optimistic insert, not again on delivery',
+    () async {
+      final (container, _, serverMessageId) = await setUpChannel();
+      final notifier = container.read(chatViewModelProvider.notifier);
 
-    final int before = container.read(chatViewModelProvider).scrollToBottomSignal;
+      final int before = container
+          .read(chatViewModelProvider)
+          .scrollToBottomSignal;
 
-    await notifier.sendMessage(text: 'hi');
+      await notifier.sendMessage(text: 'hi');
 
-    // Optimistic message inserted, REST still in flight.
-    final ChatViewState afterSend = container.read(chatViewModelProvider);
-    expect(afterSend.messages.last.deliveryState, MessageDeliveryState.sending);
+      // Optimistic message inserted, REST still in flight.
+      final ChatViewState afterSend = container.read(chatViewModelProvider);
+      expect(
+        afterSend.messages.last.deliveryState,
+        MessageDeliveryState.sending,
+      );
 
-    await _flushAsync();
+      await _flushAsync();
 
-    final ChatViewState delivered = container.read(chatViewModelProvider);
-    expect(delivered.messages.last.id, serverMessageId);
-    expect(delivered.messages.last.content, 'hi');
-    expect(delivered.messages.last.deliveryState, MessageDeliveryState.sent);
-    // Exactly one bump: optimistic insert (+1); delivery no longer bumps.
-    expect(delivered.scrollToBottomSignal, before + 1);
-  });
+      final ChatViewState delivered = container.read(chatViewModelProvider);
+      expect(delivered.messages.last.id, serverMessageId);
+      expect(delivered.messages.last.content, 'hi');
+      expect(delivered.messages.last.deliveryState, MessageDeliveryState.sent);
+      // Exactly one bump: optimistic insert (+1); delivery no longer bumps.
+      expect(delivered.scrollToBottomSignal, before + 1);
+    },
+  );
 
   test('gateway echo for an already-delivered message is coalesced', () async {
     final (container, _, serverMessageId) = await setUpChannel();
@@ -109,26 +117,51 @@ void main() {
     expect(deliveredMessage.clientNonce, isNotNull);
     final List<Message> before = delivered.messages;
 
-    container.read(messageRealtimeBusProvider).emit(
-      MessageCreated(
-        MessageCreateEvent(
-          message: MessageResponseSchema.fromJson(
-            _messageJson(
-              id: serverMessageId,
-              channelId: 'channel-1',
-              authorId: 'me',
-              content: 'hi',
-              nonce: deliveredMessage.clientNonce,
+    container
+        .read(messageRealtimeBusProvider)
+        .emit(
+          MessageCreated(
+            MessageCreateEvent(
+              message: MessageResponseSchema.fromJson(
+                _messageJson(
+                  id: serverMessageId,
+                  channelId: 'channel-1',
+                  authorId: 'me',
+                  content: 'hi',
+                  nonce: deliveredMessage.clientNonce,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-    );
+        );
     await _flushAsync();
 
     final List<Message> after = container.read(chatViewModelProvider).messages;
     expect(identical(before, after), isTrue);
   });
+
+  test(
+    'rapid duplicate sends during async prep produce a single message',
+    () async {
+      final (container, adapter, _) = await setUpChannel();
+      final notifier = container.read(chatViewModelProvider.notifier);
+
+      // Fire twice back-to-back without awaiting the first: the second call
+      // re-enters _sendContent while the first is still mid-preparation, exactly
+      // as a repeated send-button tap does while the app lags.
+      final Future<void> first = notifier.sendMessage(text: 'hi');
+      final Future<void> second = notifier.sendMessage(text: 'hi');
+      await Future.wait(<Future<void>>[first, second]);
+      await _flushAsync();
+
+      final ChatViewState state = container.read(chatViewModelProvider);
+      final List<Message> sent = state.messages
+          .where((Message m) => m.content == 'hi')
+          .toList();
+      expect(sent, hasLength(1));
+      expect(adapter.messagePostCount, 1);
+    },
+  );
 }
 
 ProviderContainer _container(FluxerDatabase db, _SendAdapter adapter) {
@@ -164,6 +197,7 @@ class _SendAdapter implements HttpClientAdapter {
 
   final String serverMessageId;
   String? lastSentNonce;
+  int messagePostCount = 0;
 
   @override
   Future<ResponseBody> fetch(
@@ -179,6 +213,7 @@ class _SendAdapter implements HttpClientAdapter {
       return _json(const <Map<String, Object?>>[]);
     }
     if (options.method == 'POST' && isMessages) {
+      messagePostCount++;
       final String? raw = await _readRequestBody(requestStream, options.data);
       final Map<String, dynamic> body = raw == null || raw.isEmpty
           ? <String, dynamic>{}

@@ -188,6 +188,9 @@ class ChatViewModel extends _$ChatViewModel {
   final Set<String> _loadedUnreadBoundaryKeys = <String>{};
   bool _readViewportActive = false;
   bool _readViewportNearBottom = true;
+  // Guards against duplicate sends when send is triggered repeatedly before an
+  // in-flight send finishes its async preparation (e.g. while the app lags).
+  bool _isPreparingSend = false;
   final Map<String, Future<void>> _pendingDeleteFutures =
       <String, Future<void>>{};
   final Map<String, DateTime> _lastNetworkRefreshByChannel =
@@ -1487,6 +1490,10 @@ class ChatViewModel extends _$ChatViewModel {
     List<String> stickerIds = const [],
     String? favoriteMemeId,
   }) async {
+    if (_isPreparingSend) {
+      return;
+    }
+    _isPreparingSend = true;
     try {
       await _sendContentInner(
         text,
@@ -1497,6 +1504,8 @@ class ChatViewModel extends _$ChatViewModel {
     } on Object catch (error, st) {
       talker.error('[ChatViewModel] send failed unexpectedly', error, st);
       _showUnexpectedSendError();
+    } finally {
+      _isPreparingSend = false;
     }
   }
 
