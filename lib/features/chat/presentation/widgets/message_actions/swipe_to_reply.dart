@@ -21,13 +21,11 @@ const double _kMaxCornerRadius = 8;
 /// before the armed action escalates from reply to edit.
 const Duration _kEditHoldDelay = Duration(milliseconds: 400);
 
-/// Per-update drag delta above which the dwell timer restarts, so edit arms
-/// only once the swipe settles rather than during a continuous drag.
-const double _kHoldMovementSlop = 3;
-
-/// Diameter of the hold-progress ring drawn around the action pill.
-const double _kHoldRingSize = 48;
-const double _kHoldRingStroke = 3;
+/// Stroke width and inset (from the pill edge) of the hold-progress ring. The
+/// ring is drawn inside the action pill so it never overflows or gets clipped
+/// in short message rows.
+const double _kHoldRingStroke = 2.5;
+const double _kHoldRingInset = 4;
 
 /// Wraps [child] with a swipe-left gesture that shortcuts to reply, with an
 /// optional hold-to-edit escalation.
@@ -36,10 +34,10 @@ const double _kHoldRingStroke = 3;
 /// screen width, while an action icon fades and scales in from the right.
 /// Releasing past the trigger threshold invokes [onReply] with a haptic
 /// impulse. When [onEdit] is non-null (the message is editable by the current
-/// user), holding the swipe roughly still past the threshold for
-/// [_kEditHoldDelay] escalates the armed action to edit: a progress ring fills
-/// around the pill, the icon morphs from a reply arrow to a pencil, a heavier
-/// haptic fires, and releasing then invokes [onEdit] instead of [onReply].
+/// user), holding the swipe past the threshold for [_kEditHoldDelay] escalates
+/// the armed action to edit: a progress ring fills inside the pill, the icon
+/// morphs from a reply arrow to a pencil, a heavier haptic fires, and
+/// releasing then invokes [onEdit] instead of [onReply].
 /// Either way the child springs back to its original position.
 class SwipeToReply extends StatefulWidget {
   const SwipeToReply({
@@ -126,13 +124,6 @@ class _SwipeToReplyState extends State<SwipeToReply>
     } else if (_hasCrossedThreshold && !pastThreshold) {
       _hasCrossedThreshold = false;
       _cancelHold();
-    } else if (_hasCrossedThreshold &&
-        _canEdit &&
-        !_armedEdit &&
-        details.delta.dx.abs() > _kHoldMovementSlop) {
-      // Still dragging past the threshold -- restart the dwell timer so edit
-      // arms only once the swipe is held roughly still.
-      unawaited(_holdController.forward(from: 0));
     }
     setState(() {
       _dragOffset = next;
@@ -273,37 +264,33 @@ class _SwipeToReplyState extends State<SwipeToReply>
                       ? 1.0
                       : _holdController.value;
                   final bool showRing = _canEdit && holdProgress > 0;
-                  final Color ringColor = context.colors.brandPrimaryLight;
-                  return SizedBox(
-                    width: _kHoldRingSize,
-                    height: _kHoldRingSize,
+                  final Color ringColor = context.colors.textOnBrandPrimary;
+                  return Container(
+                    width: _kIconPillSize,
+                    height: _kIconPillSize,
+                    decoration: BoxDecoration(
+                      color: context.colors.brandPrimary,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
                         if (showRing)
                           CustomPaint(
-                            size: const Size.square(_kHoldRingSize),
+                            size: const Size.square(_kIconPillSize),
                             painter: _HoldRingPainter(
                               progress: holdProgress,
                               color: ringColor,
-                              trackColor: ringColor.withValues(alpha: 0.2),
+                              trackColor: ringColor.withValues(alpha: 0.25),
                             ),
                           ),
-                        Container(
-                          width: _kIconPillSize,
-                          height: _kIconPillSize,
-                          decoration: BoxDecoration(
-                            color: context.colors.brandPrimary,
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: PhosphorIcon(
-                            _armedEdit
-                                ? PhosphorIconsFill.pencilSimple
-                                : PhosphorIconsFill.arrowBendUpLeft,
-                            size: _kIconSize,
-                            color: context.colors.textOnBrandPrimary,
-                          ),
+                        PhosphorIcon(
+                          _armedEdit
+                              ? PhosphorIconsFill.pencilSimple
+                              : PhosphorIconsFill.arrowBendUpLeft,
+                          size: _kIconSize,
+                          color: context.colors.textOnBrandPrimary,
                         ),
                       ],
                     ),
@@ -318,9 +305,9 @@ class _SwipeToReplyState extends State<SwipeToReply>
   }
 }
 
-/// Paints the circular hold-progress affordance around the action pill: a
-/// faint full-circle track with a brand-colored arc that sweeps clockwise
-/// from the top as [progress] runs 0 -> 1.
+/// Paints the circular hold-progress affordance inside the action pill: a
+/// faint full-circle track with an arc that sweeps clockwise from the top as
+/// [progress] runs 0 -> 1, signalling the dwell toward edit.
 class _HoldRingPainter extends CustomPainter {
   const _HoldRingPainter({
     required this.progress,
@@ -335,7 +322,10 @@ class _HoldRingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Offset center = size.center(Offset.zero);
-    final double radius = (size.shortestSide - _kHoldRingStroke) / 2;
+    final double radius = size.shortestSide / 2 - _kHoldRingInset;
+    if (radius <= 0) {
+      return;
+    }
     final Paint track = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = _kHoldRingStroke
