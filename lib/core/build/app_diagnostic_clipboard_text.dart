@@ -4,6 +4,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxer_app/core/api/fluxer_client_properties.dart';
+import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/core/build/push_provider_kind.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info.dart';
 
@@ -161,6 +162,14 @@ String formatAppDiagnosticClipboardText(AppRuntimeInfo info) {
   final String push = formatPushProviderLabel(info.pushProvider);
   final String flutter = resolveFlutterVersionLabel();
   final String dart = resolveDartVersionLabel();
-  return '$channel ${info.buildNumber}, Version ${info.version}, $osPart'
+  final int? betaNum = AppBuildConfig.betaNumber;
+
+  // Include the Github pre-release beta tag
+  if (channel.toLowerCase().contains('beta') && betaNum != null) {
+    return 'Version ${info.version}, Beta $betaNum, Channel $channel, Build ${info.buildNumber}, $osPart'
+        '$deviceSegment, Locale $locale, Push $push, Flutter $flutter, Dart $dart';
+  }
+
+  return 'Version ${info.version}, Channel $channel, Build ${info.buildNumber}, $osPart'
       '$deviceSegment, Locale $locale, Push $push, Flutter $flutter, Dart $dart';
 }

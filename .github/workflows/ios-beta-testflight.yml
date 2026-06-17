@@ -51,6 +51,12 @@ jobs:
       - name: Sync submodules
         run: git submodule update --init --recursive
 
+      - name: Resolve beta version name
+        id: beta_version_name
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/resolve_beta_version_name.sh
+
       - name: Detect preinstalled Flutter
         id: detect_flutter
         run: |
@@ -227,6 +233,7 @@ jobs:
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          BETA_NUMBER: ${{ steps.beta_version_name.outputs.beta_number }}
         run: bundle exec fastlane ios testflight_beta
       - name: Cleanup temporary keychain
         if: always()

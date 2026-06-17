@@ -143,10 +143,10 @@ jobs:
           printf '%s\n' "$ANDROID_ADI_REGISTRATION_SNIPPET" > android/app/src/main/assets/adi-registration.properties
 
       - name: Build beta OSS split APKs
-        run: flutter build apk --release --split-per-abi --flavor betaUnifiedpush --build-name ${{ steps.beta_version_name.outputs.version_name }} --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/beta.json --dart-define=PUSH_PROVIDER=unifiedpush --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        run: flutter build apk --release --split-per-abi --flavor betaUnifiedpush --build-name ${{ steps.beta_version_name.outputs.version_name }} --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/beta.json --dart-define=PUSH_PROVIDER=unifiedpush --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ) --dart-define=BETA_NUMBER=${{ steps.beta_version_name.outputs.beta_number }}
 
       - name: Build beta OSS combined APK
-        run: flutter build apk --release --flavor betaUnifiedpush --build-name ${{ steps.beta_version_name.outputs.version_name }} --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/beta.json --dart-define=PUSH_PROVIDER=unifiedpush --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        run: flutter build apk --release --flavor betaUnifiedpush --build-name ${{ steps.beta_version_name.outputs.version_name }} --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/beta.json --dart-define=PUSH_PROVIDER=unifiedpush --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ) --dart-define=BETA_NUMBER=${{ steps.beta_version_name.outputs.beta_number }}
 
       - name: Rename beta OSS APK artifacts
         run: |

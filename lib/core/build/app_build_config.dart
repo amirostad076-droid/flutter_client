@@ -22,6 +22,10 @@ class AppBuildConfig {
   static const String _buildTimestampValue = String.fromEnvironment(
     'BUILD_TIMESTAMP',
   );
+  // ignore: do_not_use_environment -- compile-time build flavor config
+  static const String _betaNumberValue = String.fromEnvironment(
+    'BETA_NUMBER',
+  );
   static AppBuildEnvironment get environment {
     switch (_environmentValue) {
       case 'canary':
@@ -71,4 +75,12 @@ class AppBuildConfig {
       pushProvider == PushProviderKind.firebaseMessaging;
   static bool get isBlueskyEnabled => _blueskyEnabled;
   static String get buildTimestamp => _buildTimestampValue;
+
+  static int? get betaNumber {
+    final String trimmed = _betaNumberValue.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+    return int.tryParse(trimmed);
+  }
 }

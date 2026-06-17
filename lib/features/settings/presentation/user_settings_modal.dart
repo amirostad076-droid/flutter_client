@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/core/build/app_diagnostic_clipboard_text.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
@@ -41,9 +42,13 @@ import 'package:fluxer_app/shared/utils/relative_time.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 String _userSettingsFooterText(AppRuntimeInfo info, FluxerLocalizations l10n) {
+  final int? betaNumber = AppBuildConfig.betaNumber;
+  final String environmentLabel = AppBuildConfig.isBeta && betaNumber != null
+      ? 'beta $betaNumber'
+      : info.environment.name;
   final base =
       'v${info.version} (${info.buildNumber})'
-      ' • ${info.environment.name}'
+      ' • $environmentLabel'
       ' • ${formatPushProviderLabel(info.pushProvider)}';
   if (info.buildTimestamp.isEmpty) {
     return base;

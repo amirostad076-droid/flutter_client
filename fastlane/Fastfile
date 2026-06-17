@@ -73,7 +73,8 @@ platform :ios do
       flutter_build_number.to_s,
       "--dart-define-from-file=tool/dart_defines/beta.json",
       "--dart-define=PUSH_PROVIDER=apns",
-      "--dart-define=BUILD_TIMESTAMP=#{Time.now.utc.iso8601}"
+      "--dart-define=BUILD_TIMESTAMP=#{Time.now.utc.iso8601}",
+      "--dart-define=BETA_NUMBER=#{ENV["BETA_NUMBER"]}"
     )
     build_app(
       workspace: "ios/Runner.xcworkspace",

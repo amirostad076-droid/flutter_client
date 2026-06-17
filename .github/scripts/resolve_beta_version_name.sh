@@ -115,8 +115,13 @@ main() {
     echo "::error::Resolved version name is invalid: $version_name" >&2
     exit 1
   fi
+  local beta_number="${BASH_REMATCH[2]}"
+  if [ "$beta_number" -eq 0 ]; then
+    beta_number=1
+  fi
   {
     printf 'version_name=%s\n' "$version_name"
+    printf 'beta_number=%s\n' "$beta_number"
   } >> "$GITHUB_OUTPUT"
 }
 
