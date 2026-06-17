@@ -972,16 +972,16 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
         : SpriteEmoji(index: emoji.spriteIndex, size: _kEmojiSize);
 
     if (!usesHover) {
-      return GestureDetector(
+      return _PressableEmojiCell(
         onTap: () => _onEmojiSelected(emoji),
         onLongPress: () => _showUnicodeEmojiActions(emoji),
-        behavior: HitTestBehavior.opaque,
         child: Center(child: sprite),
       );
     }
 
-    return GestureDetector(
+    return _PressableEmojiCell(
       onTap: () => _onEmojiSelected(emoji),
+      onLongPress: () => _showUnicodeEmojiActions(emoji),
       child: MouseRegion(
         onEnter: (_) => _setHoveredEmoji(emoji.primaryName),
         onExit: (_) => _setHoveredEmoji(null),
@@ -1031,16 +1031,16 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     );
 
     if (!usesHover) {
-      return GestureDetector(
+      return _PressableEmojiCell(
         onTap: () => _onCustomEmojiSelected(emoji),
         onLongPress: () => _showCustomEmojiActions(emoji),
-        behavior: HitTestBehavior.opaque,
         child: Center(child: image),
       );
     }
 
-    return GestureDetector(
+    return _PressableEmojiCell(
       onTap: () => _onCustomEmojiSelected(emoji),
+      onLongPress: () => _showCustomEmojiActions(emoji),
       child: MouseRegion(
         onEnter: (_) => _setHoveredEmoji(emoji.name, customEmoji: emoji),
         onExit: (_) => _setHoveredEmoji(null),
@@ -1231,6 +1231,58 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
       ),
     );
   }
+
+class _PressableEmojiCell extends StatefulWidget {
+  const _PressableEmojiCell({
+    required this.child,
+    this.onTap,
+    this.onLongPress,
+    this.behavior = HitTestBehavior.opaque,
+    super.key,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final HitTestBehavior behavior;
+
+  @override
+  State<_PressableEmojiCell> createState() => _PressableEmojiCellState();
+}
+
+class _PressableEmojiCellState extends State<_PressableEmojiCell> {
+  bool _isPressed = false;
+
+  void _setPressed(bool value) {
+    if (_isPressed == value) {
+      return;
+    }
+    setState(() => _isPressed = value);
+  }
+
+  void _handleTapDown(TapDownDetails details) => _setPressed(true);
+
+  void _handleTapUp(TapUpDetails details) => _setPressed(false);
+
+  void _handleTapCancel() => _setPressed(false);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: widget.behavior,
+      onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      onTapCancel: _handleTapCancel,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 120),
+        opacity: _isPressed ? 0.6 : 1,
+        child: widget.child,
+      ),
+    );
+  }
+}
 }
 
 class _CategoryButton extends StatelessWidget {
