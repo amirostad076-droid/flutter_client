@@ -217,4 +217,50 @@ void main() {
       expect(state.hasUnread(dmId), isTrue);
     },
   );
+
+  test(
+    'dmNavbarMembershipToken ignores mention churn, tracks membership',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      await db.dmChannelDao.upsertDmChannels([
+        DmChannelsCompanion.insert(
+          id: 'dm-1',
+          recipientId: 'other-1',
+          unreadCount: const Value(0),
+        ),
+        DmChannelsCompanion.insert(
+          id: 'dm-2',
+          recipientId: 'other-2',
+          unreadCount: const Value(0),
+        ),
+      ]);
+      final rows = await db.dmChannelDao.getDmChannels();
+      final a = rows.firstWhere((row) => row.id == 'dm-1');
+      final b = rows.firstWhere((row) => row.id == 'dm-2');
+
+      final base = UnreadDmState(
+        channels: [a, b],
+        unreadChannelIds: const {'dm-1'},
+      );
+      final mentionChurn = UnreadDmState(
+        channels: [a.copyWith(unreadCount: 9), b],
+        unreadChannelIds: const {'dm-1', 'dm-2'},
+        pendingRemovalIds: const {'dm-2'},
+      );
+      final membershipChange = UnreadDmState(channels: [a]);
+
+      expect(
+        dmNavbarMembershipToken(base),
+        dmNavbarMembershipToken(mentionChurn),
+      );
+      expect(
+        dmNavbarMembershipToken(base),
+        isNot(dmNavbarMembershipToken(membershipChange)),
+      );
+      expect(base.mentionCountFor('dm-1'), a.unreadCount);
+      expect(mentionChurn.mentionCountFor('dm-1'), 9);
+      expect(base.mentionCountFor('absent'), 0);
+    },
+  );
 }

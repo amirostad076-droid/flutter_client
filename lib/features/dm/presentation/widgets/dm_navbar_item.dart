@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
 import 'package:fluxer_app/features/dm/domain/dm_unread_state.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
+import 'package:fluxer_app/features/dm/providers/unread_dm_provider.dart';
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -16,10 +18,6 @@ class DmNavbarItem extends ConsumerStatefulWidget {
   final String recipientId;
   final String displayName;
   final int type;
-  final int mentionCount;
-  final bool hasUnread;
-  final bool isSelected;
-  final bool isPendingRemoval;
   final void Function(Offset position)? onContextMenu;
 
   const DmNavbarItem({
@@ -27,10 +25,6 @@ class DmNavbarItem extends ConsumerStatefulWidget {
     required this.recipientId,
     required this.displayName,
     required this.type,
-    this.mentionCount = 0,
-    this.hasUnread = false,
-    this.isSelected = false,
-    this.isPendingRemoval = false,
     this.onContextMenu,
     super.key,
   });
@@ -57,6 +51,18 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final (int mentionCount, bool hasUnread, bool isPendingRemoval) = ref.watch(
+      unreadDmChannelsProvider.select(
+        (s) => (
+          s.mentionCountFor(widget.channelId),
+          s.hasUnread(widget.channelId),
+          s.isPendingRemoval(widget.channelId),
+        ),
+      ),
+    );
+    final bool isSelected = ref.watch(
+      activeChannelIdProvider.select((id) => id == widget.channelId),
+    );
     final colors = context.colors;
 
     final isMuted =
@@ -71,8 +77,8 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
       ),
     );
     final unreadState = computeDmUnreadIndicator(
-      unreadCount: widget.hasUnread ? 1 : 0,
-      mentionCount: widget.mentionCount,
+      unreadCount: hasUnread ? 1 : 0,
+      mentionCount: mentionCount,
       isMuted: isMuted,
       showFadedUnreadOnMutedChannels: showFadedOnMuted,
     );
@@ -89,7 +95,7 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
           );
     final avatarColor = recipient?.avatarColor;
 
-    final indicatorHeight = widget.isSelected
+    final indicatorHeight = isSelected
         ? 40.0
         : _isHovered
         ? 20.0
@@ -97,13 +103,13 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
         ? 8.0
         : 0.0;
     final indicatorColor = colors.textPrimary.withValues(
-      alpha: unreadState.faded && !widget.isSelected && !_isHovered ? 0.5 : 1.0,
+      alpha: unreadState.faded && !isSelected && !_isHovered ? 0.5 : 1.0,
     );
 
-    final borderRadius = (widget.isSelected || _isHovered) ? 13.0 : 22.0;
+    final borderRadius = (isSelected || _isHovered) ? 13.0 : 22.0;
 
     return AnimatedOpacity(
-      opacity: widget.isPendingRemoval ? 0.0 : 1.0,
+      opacity: isPendingRemoval ? 0.0 : 1.0,
       duration: const Duration(milliseconds: 750),
       curve: Curves.easeOut,
       child: Padding(
@@ -171,8 +177,8 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
                                     ),
                             ),
                           ),
-                          if (widget.mentionCount > 0 &&
-                              !widget.isSelected &&
+                          if (mentionCount > 0 &&
+                              !isSelected &&
                               unreadState.show)
                             Positioned(
                               bottom: -4,
@@ -180,7 +186,7 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
                               child: Opacity(
                                 opacity: unreadState.faded ? 0.5 : 1.0,
                                 child: FluxerBadge.count(
-                                  count: widget.mentionCount,
+                                  count: mentionCount,
                                   cutoutColor: colors.backgroundSecondary,
                                 ),
                               ),

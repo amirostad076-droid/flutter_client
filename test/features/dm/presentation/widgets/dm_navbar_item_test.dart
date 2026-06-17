@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_navbar_item.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
+import 'package:fluxer_app/features/dm/providers/unread_dm_provider.dart';
 import 'package:fluxer_app/features/mature_content/domain/mature_content_types.dart';
 import 'package:fluxer_app/features/mature_content/providers/mature_content_agreements_provider.dart';
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
@@ -29,7 +30,6 @@ void main() {
           recipientId: '1000000000000000002',
           displayName: 'Alpha',
           type: 1,
-          hasUnread: true,
         ),
       );
       addTearDown(router.dispose);
@@ -52,7 +52,6 @@ void main() {
           recipientId: '1000000000000000004',
           displayName: 'Beta',
           type: 1,
-          hasUnread: true,
         ),
       );
       addTearDown(router.dispose);
@@ -80,7 +79,6 @@ void main() {
               recipientId: '1000000000000000006',
               displayName: 'First',
               type: 1,
-              hasUnread: true,
             ),
             DmNavbarItem(
               key: ValueKey('dm-second'),
@@ -88,7 +86,6 @@ void main() {
               recipientId: '1000000000000000008',
               displayName: 'Second',
               type: 1,
-              hasUnread: true,
             ),
           ],
         ),
@@ -142,30 +139,42 @@ Widget _buildTestApp({required GoRouter router}) {
     mutedDmChannelIdsProvider.overrideWith(
       (ref) => Stream.value(const <String>{}),
     ),
-    userPresenceProvider('1000000000000000002').overrideWith(
-      (ref) => Stream.value(null),
-    ),
-    userPresenceProvider('1000000000000000004').overrideWith(
-      (ref) => Stream.value(null),
-    ),
-    userPresenceProvider('1000000000000000006').overrideWith(
-      (ref) => Stream.value(null),
-    ),
-    userPresenceProvider('1000000000000000008').overrideWith(
-      (ref) => Stream.value(null),
-    ),
+    userPresenceProvider(
+      '1000000000000000002',
+    ).overrideWith((ref) => Stream.value(null)),
+    userPresenceProvider(
+      '1000000000000000004',
+    ).overrideWith((ref) => Stream.value(null)),
+    userPresenceProvider(
+      '1000000000000000006',
+    ).overrideWith((ref) => Stream.value(null)),
+    userPresenceProvider(
+      '1000000000000000008',
+    ).overrideWith((ref) => Stream.value(null)),
     userSettingsViewModelProvider.overrideWith(_TestUserSettingsViewModel.new),
-    matureContentGateReasonProvider('1000000000000000001').overrideWith(
-      (ref) async => MatureContentGateReason.none,
-    ),
-    matureContentGateReasonProvider('1000000000000000003').overrideWith(
-      (ref) async => MatureContentGateReason.none,
-    ),
-    matureContentGateReasonProvider('1000000000000000005').overrideWith(
-      (ref) async => MatureContentGateReason.none,
-    ),
-    matureContentGateReasonProvider('1000000000000000007').overrideWith(
-      (ref) async => MatureContentGateReason.none,
+    matureContentGateReasonProvider(
+      '1000000000000000001',
+    ).overrideWith((ref) async => MatureContentGateReason.none),
+    matureContentGateReasonProvider(
+      '1000000000000000003',
+    ).overrideWith((ref) async => MatureContentGateReason.none),
+    matureContentGateReasonProvider(
+      '1000000000000000005',
+    ).overrideWith((ref) async => MatureContentGateReason.none),
+    matureContentGateReasonProvider(
+      '1000000000000000007',
+    ).overrideWith((ref) async => MatureContentGateReason.none),
+    unreadDmChannelsProvider.overrideWith(
+      () => _FakeUnreadDmChannels(
+        const UnreadDmState(
+          unreadChannelIds: {
+            '1000000000000000001',
+            '1000000000000000003',
+            '1000000000000000005',
+            '1000000000000000007',
+          },
+        ),
+      ),
     ),
   ];
 
@@ -203,4 +212,13 @@ class _TestUserSettingsViewModel extends UserSettingsViewModel {
       verified: true,
     );
   }
+}
+
+class _FakeUnreadDmChannels extends UnreadDmChannels {
+  _FakeUnreadDmChannels(this._state);
+
+  final UnreadDmState _state;
+
+  @override
+  UnreadDmState build() => _state;
 }

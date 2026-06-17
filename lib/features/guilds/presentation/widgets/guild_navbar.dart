@@ -373,22 +373,15 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       guildListViewModelProvider.select((s) => s.guilds),
     );
     final activeGuildId = ref.watch(activeGuildIdProvider);
-    final activeChannelId = ref.watch(activeChannelIdProvider);
-    final currentLocation = ref.watch(currentLocationProvider);
-    final isDm = currentLocation.startsWith('/channels/@me');
-    final isFavorites = currentLocation.startsWith('/channels/@favorites');
-    final pendingFriendCount =
-        ref.watch(pendingFriendRequestCountProvider).value ?? 0;
     final unavailableCount = guilds.where((g) => g.isUnavailable).length;
     final pendingUnavailableCount = ref.watch(guildAvailabilityProvider).length;
 
     final dmFolderState = ref.watch(dmFolderProvider);
-    final unreadDmState = ref.watch(unreadDmChannelsProvider);
-    final unreadDms = unreadDmState.channels;
+    ref.watch(unreadDmChannelsProvider.select(dmNavbarMembershipToken));
+    final unreadDms = ref.read(unreadDmChannelsProvider).channels;
     final showFavorites = ref.watch(
       appearancePreferencesProvider.select((s) => s.showFavorites),
     );
-    final favoritesUnread = ref.watch(favoritesUnreadSummaryProvider);
 
     final List<DmChannel> allowlistedDms;
     final List<DmChannel> regularDms;
@@ -406,18 +399,6 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     }
 
     final dmItemsVisible = !dmFolderState.collapseDMs || dmFolderState.expanded;
-
-    final int dmMentionCount;
-    final bool hasCollapsedDmUnread;
-    if (dmFolderState.collapseDMs && !dmFolderState.expanded) {
-      dmMentionCount = unreadDms.fold(0, (sum, dm) => sum + dm.unreadCount);
-      hasCollapsedDmUnread = unreadDms.any(
-        (dm) => unreadDmState.hasUnread(dm.id),
-      );
-    } else {
-      dmMentionCount = 0;
-      hasCollapsedDmUnread = false;
-    }
 
     ref
       ..listen<List<GuildNavbarItem>>(organizedGuildListProvider, (
@@ -453,15 +434,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         return _buildNavbarListItem(
           context,
           entry: navbarEntries[index],
-          isDm: isDm,
-          isFavorites: isFavorites,
-          pendingFriendCount: pendingFriendCount,
-          dmMentionCount: dmMentionCount,
-          hasCollapsedDmUnread: hasCollapsedDmUnread,
           dmFolderState: dmFolderState,
-          favoritesUnread: favoritesUnread,
-          unreadDmState: unreadDmState,
-          activeChannelId: activeChannelId,
           activeGuildId: activeGuildId,
           unavailableCount: unavailableCount,
         );
@@ -540,45 +513,15 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
   Widget _buildNavbarListItem(
     BuildContext context, {
     required _NavbarListEntry entry,
-    required bool isDm,
-    required bool isFavorites,
-    required int pendingFriendCount,
-    required int dmMentionCount,
-    required bool hasCollapsedDmUnread,
     required DmFolderViewState dmFolderState,
-    required FavoritesUnreadSummary favoritesUnread,
-    required UnreadDmState unreadDmState,
-    required String? activeChannelId,
     required String? activeGuildId,
     required int unavailableCount,
   }) {
     switch (entry.kind) {
       case _NavbarListEntryKind.directMessages:
-        return _GuildListItem(
-          label: 'Direct Messages',
-          isSelected: isDm,
-          svgAsset: Assets.fluxerSymbol,
-          mentionCount: pendingFriendCount + dmMentionCount,
-          hasUnread: hasCollapsedDmUnread,
-          onTap: () {
-            if (dmFolderState.collapseDMs && isDm) {
-              ref.read(dmFolderProvider.notifier).toggleExpanded();
-              return;
-            }
-            context.go(RoutePaths.me);
-          },
-        );
+        return const _HomeDmButton();
       case _NavbarListEntryKind.favorites:
-        return _GuildListItem(
-          label: 'Favorites',
-          isSelected: isFavorites,
-          icon: PhosphorIconsFill.star,
-          mentionCount: favoritesUnread.mentionCount,
-          hasUnread: favoritesUnread.hasUnread,
-          onTap: () {
-            context.go(RoutePaths.favoritesBase);
-          },
-        );
+        return const _FavoritesButton();
       case _NavbarListEntryKind.allowlistedDm:
         final DmChannel dm = entry.dm!;
         return DmNavbarItem(
@@ -586,11 +529,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           channelId: dm.id,
           recipientId: dm.recipientId,
           displayName: dm.name ?? 'Direct Message',
-          mentionCount: dm.unreadCount,
-          hasUnread: unreadDmState.hasUnread(dm.id),
-          isPendingRemoval: unreadDmState.isPendingRemoval(dm.id),
           type: dm.type,
-          isSelected: activeChannelId == dm.id,
           onContextMenu: (Offset position) => _handleDmContextMenu(
             context,
             position: position,
@@ -606,11 +545,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           channelId: dm.id,
           recipientId: dm.recipientId,
           displayName: dm.name ?? 'Direct Message',
-          mentionCount: dm.unreadCount,
-          hasUnread: unreadDmState.hasUnread(dm.id),
-          isPendingRemoval: unreadDmState.isPendingRemoval(dm.id),
           type: dm.type,
-          isSelected: activeChannelId == dm.id,
           onContextMenu: (Offset position) => _handleDmContextMenu(
             context,
             position: position,
@@ -3866,6 +3801,77 @@ class _GuildListItemState extends State<_GuildListItem>
       case GuildAction.debugCommunity:
         unawaited(_showDebugCommunitySheet(context));
     }
+  }
+}
+
+class _HomeDmButton extends ConsumerWidget {
+  const _HomeDmButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pendingFriendCount =
+        ref.watch(pendingFriendRequestCountProvider).value ?? 0;
+    final (bool collapseDMs, bool expanded) = ref.watch(
+      dmFolderProvider.select((s) => (s.collapseDMs, s.expanded)),
+    );
+    final isCollapsed = collapseDMs && !expanded;
+    final isDm = ref.watch(
+      currentLocationProvider.select((l) => l.startsWith('/channels/@me')),
+    );
+    var dmMentionCount = 0;
+    var hasCollapsedDmUnread = false;
+    if (isCollapsed) {
+      final (int mentions, bool anyUnread) = ref.watch(
+        unreadDmChannelsProvider.select(
+          (s) => (
+            s.channels.fold<int>(0, (sum, dm) => sum + dm.unreadCount),
+            s.channels.any((dm) => s.hasUnread(dm.id)),
+          ),
+        ),
+      );
+      dmMentionCount = mentions;
+      hasCollapsedDmUnread = anyUnread;
+    }
+    return _GuildListItem(
+      label: 'Direct Messages',
+      isSelected: isDm,
+      svgAsset: Assets.fluxerSymbol,
+      mentionCount: pendingFriendCount + dmMentionCount,
+      hasUnread: hasCollapsedDmUnread,
+      onTap: () {
+        if (collapseDMs && isDm) {
+          ref.read(dmFolderProvider.notifier).toggleExpanded();
+          return;
+        }
+        context.go(RoutePaths.me);
+      },
+    );
+  }
+}
+
+class _FavoritesButton extends ConsumerWidget {
+  const _FavoritesButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final (int mentionCount, bool hasUnread) = ref.watch(
+      favoritesUnreadSummaryProvider.select(
+        (s) => (s.mentionCount, s.hasUnread),
+      ),
+    );
+    final isFavorites = ref.watch(
+      currentLocationProvider.select(
+        (l) => l.startsWith('/channels/@favorites'),
+      ),
+    );
+    return _GuildListItem(
+      label: 'Favorites',
+      isSelected: isFavorites,
+      icon: PhosphorIconsFill.star,
+      mentionCount: mentionCount,
+      hasUnread: hasUnread,
+      onTap: () => context.go(RoutePaths.favoritesBase),
+    );
   }
 }
 

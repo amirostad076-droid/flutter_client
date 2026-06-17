@@ -24,6 +24,33 @@ class UnreadDmState {
 
   bool isPendingRemoval(String channelId) =>
       pendingRemovalIds.contains(channelId);
+
+  int mentionCountFor(String channelId) {
+    for (final channel in channels) {
+      if (channel.id == channelId) {
+        return channel.unreadCount;
+      }
+    }
+    return 0;
+  }
+}
+
+/// Value-equal token capturing only the navbar-rail DM membership and identity
+/// (id, type, name) of the unread-DM list — NOT mention/unread counts. The guild
+/// navbar watches this via `.select` so it rebuilds only when a DM enters/leaves
+/// the rail or its displayed identity changes, not on every read-state reconcile.
+String dmNavbarMembershipToken(UnreadDmState state) {
+  final buffer = StringBuffer();
+  for (final channel in state.channels) {
+    buffer
+      ..write(channel.id)
+      ..write(':')
+      ..write(channel.type)
+      ..write(':')
+      ..write(channel.name ?? '')
+      ..write('\u0001');
+  }
+  return buffer.toString();
 }
 
 @Riverpod(keepAlive: true)
