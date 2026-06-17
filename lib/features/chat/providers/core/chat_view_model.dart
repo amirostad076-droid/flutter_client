@@ -2146,6 +2146,13 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   Future<void> _startReply(Message message) async {
+    if (state.editingMessage != null) {
+      // Leaving an in-progress edit for a reply: drop the edited message's
+      // text and restore the pre-edit composer draft before applying the
+      // reply, mirroring cancelEdit().
+      state = state.copyWith(editingMessage: null, messageText: '');
+      await _restoreComposerDraftFromDb();
+    }
     final String channelId = state.channelId;
     final bool replyMentioning = await _defaultReplyMentionFor(
       message: message,
