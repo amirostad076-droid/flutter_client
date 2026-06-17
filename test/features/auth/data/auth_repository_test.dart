@@ -338,6 +338,81 @@ void main() {
         throwsA(isA<DioException>()),
       );
     });
+
+    test('login collapses a credential error into a single failure', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = const _JsonResponseAdapter(
+          expectedPath: '/v1/auth/login',
+          statusCode: 400,
+          statusMessage: 'Bad Request',
+          responseJson: <String, Object?>{
+            'code': 'INVALID_FORM_BODY',
+            'message': 'Invalid form body.',
+            'errors': <Map<String, Object?>>[
+              <String, Object?>{
+                'field': 'email',
+                'message': 'Invalid email or password.',
+                'code': 'INVALID_EMAIL_OR_PASSWORD',
+              },
+              <String, Object?>{
+                'field': 'password',
+                'message': 'Invalid email or password.',
+                'code': 'INVALID_EMAIL_OR_PASSWORD',
+              },
+            ],
+          },
+        );
+
+      final repo = AuthRepository(FluxerClient(dio), db, tokenStorage);
+
+      await expectLater(
+        repo.login(email: 'user@example.com', password: 'wrong'),
+        throwsA(
+          isA<AuthFailure>()
+              .having(
+                (AuthFailure e) => e.kind,
+                'kind',
+                AuthFailureKind.invalidCredentials,
+              )
+              .having((AuthFailure e) => e.fieldErrors, 'fieldErrors', isEmpty),
+        ),
+      );
+    });
+
+    test('login keeps field errors for non-credential validation', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = const _JsonResponseAdapter(
+          expectedPath: '/v1/auth/login',
+          statusCode: 400,
+          statusMessage: 'Bad Request',
+          responseJson: <String, Object?>{
+            'code': 'INVALID_FORM_BODY',
+            'message': 'Invalid form body.',
+            'errors': <Map<String, Object?>>[
+              <String, Object?>{
+                'field': 'email',
+                'message': 'Enter a valid email.',
+                'code': 'EMAIL_INVALID',
+              },
+            ],
+          },
+        );
+
+      final repo = AuthRepository(FluxerClient(dio), db, tokenStorage);
+
+      await expectLater(
+        repo.login(email: 'bad', password: 'pw'),
+        throwsA(
+          isA<AuthFailure>()
+              .having((AuthFailure e) => e.kind, 'kind', isNull)
+              .having(
+                (AuthFailure e) => e.fieldErrors['email'],
+                'email field error',
+                'Enter a valid email.',
+              ),
+        ),
+      );
+    });
   });
 }
 

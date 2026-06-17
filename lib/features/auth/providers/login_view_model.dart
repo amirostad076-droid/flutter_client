@@ -27,6 +27,7 @@ const Duration _kPostAuthStartupTimeout = Duration(seconds: 20);
 
 enum LoginError {
   invalidEmail,
+  invalidCredentials,
   unableToCreateAccount,
   unableToSignIn,
   unableToSendResetLink,
@@ -513,6 +514,14 @@ class LoginViewModel extends _$LoginViewModel {
           return false;
       }
     } on AuthFailure catch (error) {
+      if (error.kind == AuthFailureKind.invalidCredentials) {
+        state = state.copyWith(
+          errorType: LoginError.invalidCredentials,
+          fieldErrors: const {},
+          isLoggingIn: false,
+        );
+        return false;
+      }
       state = state.copyWith(
         errorMessage: error.fieldErrors.isEmpty ? error.message : null,
         fieldErrors: error.fieldErrors,

@@ -1,8 +1,11 @@
+enum AuthFailureKind { invalidCredentials }
+
 class AuthFailure implements Exception {
   final String message;
   final Map<String, String> fieldErrors;
+  final AuthFailureKind? kind;
 
-  const AuthFailure(this.message, {this.fieldErrors = const {}});
+  const AuthFailure(this.message, {this.fieldErrors = const {}, this.kind});
 
   @override
   String toString() => message;

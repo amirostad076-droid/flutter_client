@@ -640,6 +640,10 @@
   "@errorUnableToSignIn": {
     "description": "Generic fallback error when login fails unexpectedly."
   },
+  "errorInvalidEmailOrPassword": "Invalid email or password.",
+  "@errorInvalidEmailOrPassword": {
+    "description": "Error shown on the login screen when the email and password combination is incorrect."
+  },
   "errorUnableToSendResetLink": "Unable to send reset link. Please try again.",
   "@errorUnableToSendResetLink": {
     "description": "Generic fallback error when forgot password request fails."

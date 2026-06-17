@@ -505,6 +505,9 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
       'Unable to sign in right now. Please try again.';
 
   @override
+  String get errorInvalidEmailOrPassword => 'Invalid email or password.';
+
+  @override
   String get errorUnableToSendResetLink =>
       'Unable to send reset link. Please try again.';
 

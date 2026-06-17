@@ -1083,6 +1083,12 @@ abstract class FluxerLocalizations {
   /// **'Unable to sign in right now. Please try again.'**
   String get errorUnableToSignIn;
 
+  /// Error shown on the login screen when the email and password combination is incorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email or password.'**
+  String get errorInvalidEmailOrPassword;
+
   /// Generic fallback error when forgot password request fails.
   ///
   /// In en, this message translates to:

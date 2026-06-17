@@ -488,6 +488,15 @@ class AuthRepository {
         final validationErrors = apiError.errors;
 
         if (validationErrors != null && validationErrors.isNotEmpty) {
+          for (final e in validationErrors) {
+            if (e.code == 'INVALID_EMAIL_OR_PASSWORD') {
+              return AuthFailure(
+                e.message,
+                kind: AuthFailureKind.invalidCredentials,
+              );
+            }
+          }
+
           final fieldErrors = <String, String>{};
           for (final e in validationErrors) {
             fieldErrors.putIfAbsent(e.field, () => e.message);

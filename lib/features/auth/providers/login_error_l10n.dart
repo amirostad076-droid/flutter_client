@@ -5,6 +5,7 @@ extension LoginErrorL10n on LoginError {
   String resolve(FluxerLocalizations l10n) {
     return switch (this) {
       LoginError.invalidEmail => l10n.emailInvalid,
+      LoginError.invalidCredentials => l10n.errorInvalidEmailOrPassword,
       LoginError.unableToCreateAccount => l10n.errorUnableToCreateAccount,
       LoginError.unableToSignIn => l10n.errorUnableToSignIn,
       LoginError.unableToSendResetLink => l10n.errorUnableToSendResetLink,
