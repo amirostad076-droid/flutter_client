@@ -80,13 +80,23 @@ class _VoiceChannelJoinSheetContentState
   Widget build(BuildContext context) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final double horizontalPadding = context.layout.s4;
-    final VoiceSessionState session = ref.watch(voiceSessionProvider);
-    final bool inVoice = session.isInVoice && session.channelId != null;
-    final String? connectionId = session.activeConnectionId;
-    final Map<String, VoiceState> voiceMap = ref.watch(voiceStatesMapProvider);
+    final (
+      bool isInVoiceSession,
+      String? sessionChannelId,
+      String? connectionId
+    ) = ref.watch(
+      voiceSessionProvider.select(
+        (VoiceSessionState s) => (
+          s.isInVoice,
+          s.channelId,
+          s.activeConnectionId,
+        ),
+      ),
+    );
+    final bool inVoice = isInVoiceSession && sessionChannelId != null;
     final VoiceState? selfVs = connectionId == null
         ? null
-        : voiceMap[connectionId];
+        : ref.watch(voiceStateForConnectionProvider(connectionId));
     final bool isMuted = inVoice ? (selfVs?.selfMute ?? false) : _lobbyMute;
     final bool isDeafened = inVoice ? (selfVs?.selfDeaf ?? false) : _lobbyDeaf;
     final AsyncValue<bool> textChatSupportedAsync = ref.watch(

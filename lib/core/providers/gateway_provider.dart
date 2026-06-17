@@ -31,6 +31,7 @@ import 'package:fluxer_app/features/members/providers/member_list_viewport_provi
 import 'package:fluxer_app/features/settings/providers/connections_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/webauthn_credentials_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -104,10 +105,17 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
           .read(typingIndicatorsProvider.notifier)
           .removeTyping(channelId, userId);
     },
-    onVoiceStateUpdate: (state) {
-      ref.read(voiceStatesMapProvider.notifier).update(state);
-      ref.read(voiceSessionProvider.notifier).handleSelfVoiceStateUpdate(state);
-      ref.read(voiceSessionProvider.notifier).syncE2eeFromVoiceStates();
+    onVoiceStateUpdate: (voiceState) {
+      ref.read(voiceStatesMapProvider.notifier).update(voiceState);
+      ref.read(voiceSessionProvider.notifier).handleSelfVoiceStateUpdate(voiceState);
+      // Only sync E2EE if this update is for the current voice channel
+      final VoiceSessionState session = ref.read(voiceSessionProvider);
+      if (session.isConnected &&
+          session.channelId != null &&
+          voiceState.channelId == session.channelId &&
+          voiceState.guildId == session.guildId) {
+        ref.read(voiceSessionProvider.notifier).syncE2eeFromVoiceStates();
+      }
     },
     onVoiceStatesBulk: (states) {
       ref.read(voiceStatesMapProvider.notifier).updateBulk(states);
@@ -121,7 +129,17 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
           }
         }
       }
-      ref.read(voiceSessionProvider.notifier).syncE2eeFromVoiceStates();
+      // Only sync E2EE if any of the bulk updates are for the current voice channel
+      final VoiceSessionState session = ref.read(voiceSessionProvider);
+      if (session.isConnected && session.channelId != null) {
+        final bool hasRelevantUpdate = states.any(
+          (VoiceState vs) =>
+              vs.channelId == session.channelId && vs.guildId == session.guildId,
+        );
+        if (hasRelevantUpdate) {
+          ref.read(voiceSessionProvider.notifier).syncE2eeFromVoiceStates();
+        }
+      }
     },
     onGatewayError: (event) {
       ref.read(voiceSessionProvider.notifier).handleGatewayError(event);

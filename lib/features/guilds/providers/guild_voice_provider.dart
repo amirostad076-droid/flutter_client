@@ -7,11 +7,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'guild_voice_provider.g.dart';
 
 Map<String, List<VoiceState>> _groupVoiceByUserInGuild(
-  Map<String, VoiceState> voiceStates,
+  List<VoiceState> voiceStates,
   String guildId,
 ) {
   final Map<String, List<VoiceState>> byUser = <String, List<VoiceState>>{};
-  for (final VoiceState vs in voiceStates.values) {
+  for (final VoiceState vs in voiceStates) {
     if (vs.guildId != guildId || vs.channelId == null) {
       continue;
     }
@@ -34,7 +34,9 @@ class VoiceParticipantRow {
 
 @riverpod
 VoiceActivityType guildVoiceActivity(Ref ref, String guildId) {
-  final Map<String, VoiceState> voiceStates = ref.watch(voiceStatesMapProvider);
+  final List<VoiceState> voiceStates = ref.watch(
+    voiceStatesInGuildProvider(guildId),
+  );
   final Map<String, List<VoiceState>> byUser = _groupVoiceByUserInGuild(
     voiceStates,
     guildId,
@@ -58,7 +60,9 @@ Future<List<VoiceParticipantRow>> guildVoiceParticipants(
   Ref ref,
   String guildId,
 ) async {
-  final Map<String, VoiceState> voiceStates = ref.watch(voiceStatesMapProvider);
+  final List<VoiceState> voiceStates = ref.watch(
+    voiceStatesInGuildProvider(guildId),
+  );
   final db = ref.watch(fluxerDatabaseProvider);
 
   final List<String> voiceUserIds = <String>[];

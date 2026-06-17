@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
 import 'package:fluxer_dart/gateway.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gateway_event_providers.g.dart';
@@ -114,6 +115,9 @@ class VoiceStatesMap extends _$VoiceStatesMap {
     if (voiceState.channelId == null) {
       final String? connectionId = voiceState.connectionId;
       if (connectionId != null) {
+        if (!next.containsKey(connectionId)) {
+          return;
+        }
         next.remove(connectionId);
       } else {
         final List<String> keysToRemove = next.entries
@@ -123,6 +127,9 @@ class VoiceStatesMap extends _$VoiceStatesMap {
             )
             .map((MapEntry<String, VoiceState> e) => e.key)
             .toList();
+        if (keysToRemove.isEmpty) {
+          return;
+        }
         for (final String k in keysToRemove) {
           next.remove(k);
         }
@@ -131,16 +138,24 @@ class VoiceStatesMap extends _$VoiceStatesMap {
       return;
     }
     final String key = _voiceStateStorageKey(voiceState);
+    final VoiceState? existing = next[key];
+    if (existing == voiceState) {
+      return;
+    }
     next[key] = voiceState;
     state = next;
   }
 
   void updateBulk(List<VoiceState> voiceStates) {
     final Map<String, VoiceState> updated = Map<String, VoiceState>.of(state);
+    bool hasChanges = false;
     for (final VoiceState vs in voiceStates) {
       if (vs.channelId == null) {
         if (vs.connectionId != null) {
-          updated.remove(vs.connectionId);
+          if (updated.containsKey(vs.connectionId)) {
+            updated.remove(vs.connectionId);
+            hasChanges = true;
+          }
         } else {
           final List<String> keysToRemove = updated.entries
               .where(
@@ -148,16 +163,25 @@ class VoiceStatesMap extends _$VoiceStatesMap {
               )
               .map((MapEntry<String, VoiceState> e) => e.key)
               .toList();
-          for (final String k in keysToRemove) {
-            updated.remove(k);
+          if (keysToRemove.isNotEmpty) {
+            hasChanges = true;
+            for (final String k in keysToRemove) {
+              updated.remove(k);
+            }
           }
         }
       } else {
         final String key = _voiceStateStorageKey(vs);
-        updated[key] = vs;
+        final VoiceState? existing = updated[key];
+        if (existing != vs) {
+          updated[key] = vs;
+          hasChanges = true;
+        }
       }
     }
-    state = updated;
+    if (hasChanges) {
+      state = updated;
+    }
   }
 
   List<VoiceState> getForChannel(String channelId) =>
@@ -343,6 +367,87 @@ class OutgoingVoiceCallInitiator extends _$OutgoingVoiceCallInitiator {
   }
 
   void clearAll() => state = {};
+}
+
+/// Returns the [VoiceState] for a specific connection ID.
+/// Uses select to only rebuild when this connection's state changes.
+@riverpod
+VoiceState? voiceStateForConnection(Ref ref, String connectionId) {
+  return ref.watch(
+    voiceStatesMapProvider.select((Map<String, VoiceState> map) => map[connectionId]),
+  );
+}
+
+/// Returns voice states for a specific guild channel.
+/// Only emits when voice states for this specific channel change.
+@riverpod
+List<VoiceState> voiceStatesInChannel(
+  Ref ref,
+  String guildId,
+  String channelId,
+) {
+  final Map<String, VoiceState> map = ref.watch(voiceStatesMapProvider);
+  return map.values
+      .where(
+        (VoiceState vs) =>
+            vs.channelId == channelId && vs.guildId == guildId,
+      )
+      .toList();
+}
+
+/// Returns voice states for a specific DM/private channel.
+/// Only emits when voice states for this specific channel change.
+@riverpod
+List<VoiceState> voiceStatesInPrivateChannel(Ref ref, String channelId) {
+  final Map<String, VoiceState> map = ref.watch(voiceStatesMapProvider);
+  return map.values
+      .where(
+        (VoiceState vs) =>
+            vs.channelId == channelId &&
+            (vs.guildId == null || vs.guildId!.isEmpty),
+      )
+      .toList();
+}
+
+/// Returns voice states for a specific guild (all channels).
+/// Only emits when voice states for this guild change.
+@riverpod
+List<VoiceState> voiceStatesInGuild(Ref ref, String guildId) {
+  final Map<String, VoiceState> map = ref.watch(voiceStatesMapProvider);
+  return map.values.where((VoiceState vs) => vs.guildId == guildId).toList();
+}
+
+/// Returns the count of unique participants in a private DM channel.
+/// Uses select for minimal rebuilds.
+@riverpod
+int privateChannelVoiceParticipantCount(Ref ref, String channelId) {
+  final Map<String, VoiceState> map = ref.watch(voiceStatesMapProvider);
+  final Set<String> userIds = <String>{};
+  for (final VoiceState vs in map.values) {
+    if (vs.channelId == channelId &&
+        (vs.guildId == null || vs.guildId!.isEmpty)) {
+      userIds.add(vs.userId);
+    }
+  }
+  return userIds.length;
+}
+
+/// Returns the count of unique participants in a guild voice channel.
+/// Uses select for minimal rebuilds.
+@riverpod
+int guildChannelVoiceParticipantCount(
+  Ref ref,
+  String guildId,
+  String channelId,
+) {
+  final Map<String, VoiceState> map = ref.watch(voiceStatesMapProvider);
+  final Set<String> userIds = <String>{};
+  for (final VoiceState vs in map.values) {
+    if (vs.channelId == channelId && vs.guildId == guildId) {
+      userIds.add(vs.userId);
+    }
+  }
+  return userIds.length;
 }
 
 /// Clears ephemeral gateway derived UI state after session recovery

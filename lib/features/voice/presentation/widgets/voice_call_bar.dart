@@ -133,7 +133,7 @@ class VoiceCallBar extends ConsumerWidget {
       dmViewModelProvider.select((s) => s.conversations),
     );
     final ChannelListState channelState = ref.watch(
-      channelListViewModelProvider,
+      channelListViewModelProvider.select((s) => s),
     );
     final DmConversation? dm = isGuildVoice
         ? null
@@ -171,7 +171,7 @@ class VoiceCallBar extends ConsumerWidget {
     final String? connectionId = voice.activeConnectionId;
     final VoiceState? selfVoiceState = connectionId == null
         ? null
-        : ref.watch(voiceStatesMapProvider)[connectionId];
+        : ref.watch(voiceStateForConnectionProvider(connectionId));
     final bool isMuted = selfVoiceState?.selfMute ?? false;
     final bool isDeafened = selfVoiceState?.selfDeaf ?? false;
     return Column(

@@ -17,33 +17,6 @@ import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:go_router/go_router.dart';
 
-bool _isVoiceSessionOnPrivateDm(VoiceSessionState s, String channelId) {
-  if (!s.isInVoice) {
-    return false;
-  }
-  if (s.channelId != channelId) {
-    return false;
-  }
-  return s.guildId == null || s.guildId!.isEmpty;
-}
-
-int _countUniqueParticipantsPrivateChannel(
-  Map<String, VoiceState> map,
-  String channelId,
-) {
-  final Set<String> userIds = <String>{};
-  for (final VoiceState vs in map.values) {
-    if (vs.channelId != channelId) {
-      continue;
-    }
-    if (vs.guildId != null && vs.guildId!.isNotEmpty) {
-      continue;
-    }
-    userIds.add(vs.userId);
-  }
-  return userIds.length;
-}
-
 class DmVoiceCallFullscreenPage extends ConsumerStatefulWidget {
   const DmVoiceCallFullscreenPage({required this.channelId, super.key});
 
@@ -100,10 +73,13 @@ class _DmVoiceCallFullscreenPageState
   @override
   Widget build(BuildContext context) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final VoiceSessionState voice = ref.watch(voiceSessionProvider);
-    final bool inThisChannel = _isVoiceSessionOnPrivateDm(
-      voice,
-      widget.channelId,
+    final bool inThisChannel = ref.watch(
+      voiceSessionProvider.select(
+        (VoiceSessionState s) =>
+            s.isInVoice &&
+            s.channelId == widget.channelId &&
+            (s.guildId == null || s.guildId!.isEmpty),
+      ),
     );
     return Scaffold(
       backgroundColor: context.colors.chatBackground,
@@ -133,13 +109,39 @@ class _DmVoiceCallFullscreenPageState
             )
           : _DmVoiceEmptyPane(
               channelId: widget.channelId,
-              participantPreviewCount: _countUniqueParticipantsPrivateChannel(
-                ref.watch(voiceStatesMapProvider),
-                widget.channelId,
+              participantPreviewCount: ref.watch(
+                privateChannelVoiceParticipantCountProvider(widget.channelId),
               ),
             ),
     );
   }
+}
+
+bool _isVoiceSessionOnPrivateDm(VoiceSessionState s, String channelId) {
+  if (!s.isInVoice) {
+    return false;
+  }
+  if (s.channelId != channelId) {
+    return false;
+  }
+  return s.guildId == null || s.guildId!.isEmpty;
+}
+
+int _countUniqueParticipantsPrivateChannel(
+  Map<String, VoiceState> map,
+  String channelId,
+) {
+  final Set<String> userIds = <String>{};
+  for (final VoiceState vs in map.values) {
+    if (vs.channelId != channelId) {
+      continue;
+    }
+    if (vs.guildId != null && vs.guildId!.isNotEmpty) {
+      continue;
+    }
+    userIds.add(vs.userId);
+  }
+  return userIds.length;
 }
 
 class _DmVoiceEmptyPane extends ConsumerWidget {

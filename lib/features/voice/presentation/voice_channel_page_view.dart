@@ -28,20 +28,6 @@ import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-int _countUniqueParticipantsInGuildChannel(
-  Map<String, VoiceState> map,
-  String guildId,
-  String channelId,
-) {
-  final Set<String> userIds = <String>{};
-  for (final VoiceState vs in map.values) {
-    if (vs.channelId == channelId && vs.guildId == guildId) {
-      userIds.add(vs.userId);
-    }
-  }
-  return userIds.length;
-}
-
 bool _isVoiceSessionOnThisChannel(
   VoiceSessionState s,
   String guildId,
@@ -110,27 +96,31 @@ class _VoiceChannelPageViewState extends ConsumerState<VoiceChannelPageView> {
 
   @override
   Widget build(BuildContext context) {
-    final ChannelListState listState = ref.watch(channelListViewModelProvider);
+    final ChannelListState listState = ref.watch(
+      channelListViewModelProvider.select((s) => s),
+    );
     final Channel? channel =
         findChannelById(listState, widget.channelId) ??
         ref.watch(channelByIdProvider(widget.channelId)).value;
     final String name = channel?.name ?? '';
-    final VoiceSessionState voice = ref.watch(voiceSessionProvider);
-    final bool inThisChannel = _isVoiceSessionOnThisChannel(
-      voice,
-      widget.guildId,
-      widget.channelId,
+    final bool inThisChannel = ref.watch(
+      voiceSessionProvider.select(
+        (VoiceSessionState s) =>
+            s.isInVoice &&
+            s.channelId == widget.channelId &&
+            s.guildId == widget.guildId,
+      ),
     );
     final bool isMobile = isMobileLayout(context);
     final Widget content = inThisChannel
         ? _buildConnected(
             context,
             channelName: name,
-            voice: voice,
-            participantCount: _countUniqueParticipantsInGuildChannel(
-              ref.watch(voiceStatesMapProvider),
-              widget.guildId,
-              widget.channelId,
+            participantCount: ref.watch(
+              guildChannelVoiceParticipantCountProvider(
+                widget.guildId,
+                widget.channelId,
+              ),
             ),
             isMobile: isMobile,
           )
@@ -287,7 +277,6 @@ class _VoiceChannelPageViewState extends ConsumerState<VoiceChannelPageView> {
   Widget _buildConnected(
     BuildContext context, {
     required String channelName,
-    required VoiceSessionState voice,
     required int participantCount,
     required bool isMobile,
   }) {

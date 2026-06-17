@@ -12,6 +12,9 @@ part 'voice_active_speakers_provider.g.dart';
 /// used to keep them ordered near the top of the grid without flicker.
 const Duration _kRecentlySpokeHold = Duration(milliseconds: 4500);
 
+/// Debounce duration for batching rapid speaker updates.
+const Duration _kSpeakerDebounce = Duration(milliseconds: 100);
+
 /// Speaking state derived from LiveKit active speaker updates.
 class VoiceActiveSpeakersState {
   const VoiceActiveSpeakersState({
@@ -52,6 +55,8 @@ class VoiceActiveSpeakers extends _$VoiceActiveSpeakers {
   final Map<String, Timer> _holdTimers = <String, Timer>{};
   Set<String> _speakingKeys = <String>{};
   final Set<String> _recentlySpokeKeys = <String>{};
+  Timer? _debounceTimer;
+  bool _hasPendingEmit = false;
 
   @override
   VoiceActiveSpeakersState build() {
@@ -92,7 +97,22 @@ class VoiceActiveSpeakers extends _$VoiceActiveSpeakers {
       _recentlySpokeKeys.remove(key);
     }
     _speakingKeys = next;
+    _scheduleEmit();
+  }
+
+  void _scheduleEmit() {
+    if (_debounceTimer != null) {
+      _hasPendingEmit = true;
+      return;
+    }
     _emit();
+    _debounceTimer = Timer(_kSpeakerDebounce, () {
+      _debounceTimer = null;
+      if (_hasPendingEmit) {
+        _hasPendingEmit = false;
+        _emit();
+      }
+    });
   }
 
   void _startHold(String key) {
@@ -101,7 +121,7 @@ class VoiceActiveSpeakers extends _$VoiceActiveSpeakers {
     _holdTimers[key] = Timer(_kRecentlySpokeHold, () {
       _holdTimers.remove(key);
       _recentlySpokeKeys.remove(key);
-      _emit();
+      _scheduleEmit();
     });
   }
 
@@ -113,6 +133,9 @@ class VoiceActiveSpeakers extends _$VoiceActiveSpeakers {
   }
 
   void _detach() {
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+    _hasPendingEmit = false;
     for (final Timer timer in _holdTimers.values) {
       timer.cancel();
     }

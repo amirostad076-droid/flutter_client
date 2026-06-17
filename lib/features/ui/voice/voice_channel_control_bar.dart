@@ -31,14 +31,29 @@ class VoiceChannelControlBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final VoiceSessionState session = ref.watch(voiceSessionProvider);
-    if (!session.isInVoice) {
+    final (
+      bool isInVoice,
+      bool isConnected,
+      String? connectionId,
+      String? channelId,
+      String? guildId
+    ) = ref.watch(
+      voiceSessionProvider.select(
+        (VoiceSessionState s) => (
+          s.isInVoice,
+          s.isConnected,
+          s.activeConnectionId,
+          s.channelId,
+          s.guildId,
+        ),
+      ),
+    );
+    if (!isInVoice) {
       return const SizedBox.shrink();
     }
-    final String? connectionId = session.activeConnectionId;
     final VoiceState? selfVs = connectionId == null
         ? null
-        : ref.watch(voiceStatesMapProvider)[connectionId];
+        : ref.watch(voiceStateForConnectionProvider(connectionId));
     final bool isMuted = selfVs?.selfMute ?? false;
     final bool isDeafened = selfVs?.selfDeaf ?? false;
     final bool isVideoOn = selfVs?.selfVideo ?? false;
@@ -124,15 +139,15 @@ class VoiceChannelControlBar extends ConsumerWidget {
                       tooltip: l10n.voiceControlVideo,
                       icon: PhosphorIconsFill.videoCamera,
                       toggled: isVideoOn,
-                      onPressed: session.isConnected
-                          ? () {
-                              unawaited(
-                                ref
-                                    .read(voiceSessionProvider.notifier)
-                                    .toggleSelfVideo(),
-                              );
-                            }
-                          : null,
+                    onPressed: isConnected
+                        ? () {
+                            unawaited(
+                              ref
+                                  .read(voiceSessionProvider.notifier)
+                                  .toggleSelfVideo(),
+                            );
+                          }
+                        : null,
                     ),
                     if (canScreenShare)
                       _VoiceControlCircle(
@@ -143,18 +158,18 @@ class VoiceChannelControlBar extends ConsumerWidget {
                         tooltip: l10n.voiceControlScreenShare,
                         icon: PhosphorIconsFill.monitor,
                         toggled: isScreenSharing,
-                        onPressed: session.isConnected
-                            ? () {
-                                unawaited(
-                                  ref
-                                      .read(voiceSessionProvider.notifier)
-                                      .toggleSelfStream(
-                                        screenShareNotificationText: l10n
-                                            .voiceScreenShareNotificationText,
-                                      ),
-                                );
-                              }
-                            : null,
+                      onPressed: isConnected
+                          ? () {
+                              unawaited(
+                                ref
+                                    .read(voiceSessionProvider.notifier)
+                                    .toggleSelfStream(
+                                      screenShareNotificationText: l10n
+                                          .voiceScreenShareNotificationText,
+                                    ),
+                              );
+                            }
+                          : null,
                       ),
                     _VoiceControlCircle(
                       size: _kControlSize,
@@ -162,7 +177,6 @@ class VoiceChannelControlBar extends ConsumerWidget {
                       tooltip: l10n.voiceControlDisconnect,
                       icon: PhosphorIconsFill.phoneDisconnect,
                       onPressed: () {
-                        final String? guildId = session.guildId;
                         if (context.mounted && isMobileLayout(context)) {
                           final String location = ref.read(
                             currentLocationProvider,

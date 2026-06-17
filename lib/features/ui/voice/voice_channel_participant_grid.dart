@@ -276,14 +276,16 @@ class _VoiceChannelParticipantGridState
         (VoiceSessionState s) => s.activeConnectionId,
       ),
     );
-    final VoiceSessionState voiceForGrid = ref.watch(voiceSessionProvider);
-    final bool guildMatches = widget.guildId == null
-        ? voiceForGrid.guildId == null || voiceForGrid.guildId!.isEmpty
-        : voiceForGrid.guildId == widget.guildId;
-    final bool onThisChannel =
-        voiceForGrid.isInVoice &&
-        voiceForGrid.channelId == widget.channelId &&
-        guildMatches;
+    final bool onThisChannel = ref.watch(
+      voiceSessionProvider.select(
+        (VoiceSessionState s) =>
+            s.isInVoice &&
+            s.channelId == widget.channelId &&
+            (widget.guildId == null
+                ? s.guildId == null || s.guildId!.isEmpty
+                : s.guildId == widget.guildId),
+      ),
+    );
     final VoiceActiveSpeakersState speakers = ref.watch(
       voiceActiveSpeakersProvider,
     );
@@ -295,7 +297,10 @@ class _VoiceChannelParticipantGridState
     return async.when(
       data: (List<VoiceChannelParticipantData> list) {
         if (list.isEmpty) {
-          if (onThisChannel && voiceForGrid.isConnecting) {
+          final bool isConnecting = ref.read(
+            voiceSessionProvider.select((VoiceSessionState s) => s.isConnecting),
+          );
+          if (onThisChannel && isConnecting) {
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -515,19 +520,21 @@ class _VoiceChannelParticipantGridState
           top: y,
           width: tileW,
           height: tileH,
-          child: _TileEnterAnimation(
-            child: _buildCard(
-              context: context,
-              tile: tile,
-              speakers: speakers,
-              room: room,
-              me: me,
-              localConnectionId: localConnectionId,
-              authToken: authToken,
-              baseUrl: baseUrl,
-              l10n: l10n,
-              isFocusMain: false,
-              isActiveScreenShare: false,
+          child: RepaintBoundary(
+            child: _TileEnterAnimation(
+              child: _buildCard(
+                context: context,
+                tile: tile,
+                speakers: speakers,
+                room: room,
+                me: me,
+                localConnectionId: localConnectionId,
+                authToken: authToken,
+                baseUrl: baseUrl,
+                l10n: l10n,
+                isFocusMain: false,
+                isActiveScreenShare: false,
+              ),
             ),
           ),
         ),
@@ -570,18 +577,20 @@ class _VoiceChannelParticipantGridState
             child: Center(
               child: AspectRatio(
                 aspectRatio: voiceGridTileAspectRatio,
-                child: _buildCard(
-                  context: context,
-                  tile: mainTile,
-                  speakers: speakers,
-                  room: room,
-                  me: me,
-                  localConnectionId: localConnectionId,
-                  authToken: authToken,
-                  baseUrl: baseUrl,
-                  l10n: l10n,
-                  isFocusMain: true,
-                  isActiveScreenShare: isActiveScreenShareMain,
+                child: RepaintBoundary(
+                  child: _buildCard(
+                    context: context,
+                    tile: mainTile,
+                    speakers: speakers,
+                    room: room,
+                    me: me,
+                    localConnectionId: localConnectionId,
+                    authToken: authToken,
+                    baseUrl: baseUrl,
+                    l10n: l10n,
+                    isFocusMain: true,
+                    isActiveScreenShare: isActiveScreenShareMain,
+                  ),
                 ),
               ),
             ),
@@ -600,19 +609,21 @@ class _VoiceChannelParticipantGridState
                   final _VoiceGridTileItem tile = secondary[index];
                   return AspectRatio(
                     aspectRatio: voiceGridTileAspectRatio,
-                    child: _buildCard(
-                      context: context,
-                      tile: tile,
-                      speakers: speakers,
-                      room: room,
-                      me: me,
-                      localConnectionId: localConnectionId,
-                      authToken: authToken,
-                      baseUrl: baseUrl,
-                      l10n: l10n,
-                      isFocusMain: false,
-                      isActiveScreenShare: false,
-                      isFilmstrip: true,
+                    child: RepaintBoundary(
+                      child: _buildCard(
+                        context: context,
+                        tile: tile,
+                        speakers: speakers,
+                        room: room,
+                        me: me,
+                        localConnectionId: localConnectionId,
+                        authToken: authToken,
+                        baseUrl: baseUrl,
+                        l10n: l10n,
+                        isFocusMain: false,
+                        isActiveScreenShare: false,
+                        isFilmstrip: true,
+                      ),
                     ),
                   );
                 },
