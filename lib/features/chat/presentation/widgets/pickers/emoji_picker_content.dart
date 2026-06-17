@@ -1231,20 +1231,18 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
       ),
     );
   }
+}
 
 class _PressableEmojiCell extends StatefulWidget {
   const _PressableEmojiCell({
     required this.child,
     this.onTap,
     this.onLongPress,
-    this.behavior = HitTestBehavior.opaque,
-    super.key,
   });
 
   final Widget child;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
-  final HitTestBehavior behavior;
 
   @override
   State<_PressableEmojiCell> createState() => _PressableEmojiCellState();
@@ -1269,7 +1267,7 @@ class _PressableEmojiCellState extends State<_PressableEmojiCell> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      behavior: widget.behavior,
+      key: widget.key,
       onTap: widget.onTap,
       onLongPress: widget.onLongPress,
       onTapDown: _handleTapDown,
@@ -1282,7 +1280,6 @@ class _PressableEmojiCellState extends State<_PressableEmojiCell> {
       ),
     );
   }
-}
 }
 
 class _CategoryButton extends StatelessWidget {
