@@ -8724,6 +8724,36 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Color picker'**
   String get uiColorPickerTitle;
+
+  /// Title of the confirmation dialog shown before sending a message that mentions @everyone or @here in a large server.
+  ///
+  /// In en, this message translates to:
+  /// **'Mention everyone?'**
+  String get mentionConfirmTitle;
+
+  /// Body of the @everyone mention confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'This will notify {count} members. Continue?'**
+  String mentionConfirmEveryoneBody(int count);
+
+  /// Body of the @here mention confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'This will notify {count} online members. Continue?'**
+  String mentionConfirmHereBody(int count);
+
+  /// Confirm button label on the mention confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Mention'**
+  String get mentionConfirmButton;
+
+  /// Toast shown when a message contains a custom emoji the user cannot use in this channel.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t use that emoji here.'**
+  String get composerEmojiUnavailable;
 }
 
 class _FluxerLocalizationsDelegate

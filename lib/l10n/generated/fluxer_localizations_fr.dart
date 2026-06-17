@@ -4992,6 +4992,25 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
 
   @override
   String get uiColorPickerTitle => 'Color picker';
+
+  @override
+  String get mentionConfirmTitle => 'Mention everyone?';
+
+  @override
+  String mentionConfirmEveryoneBody(int count) {
+    return 'This will notify $count members. Continue?';
+  }
+
+  @override
+  String mentionConfirmHereBody(int count) {
+    return 'This will notify $count online members. Continue?';
+  }
+
+  @override
+  String get mentionConfirmButton => 'Mention';
+
+  @override
+  String get composerEmojiUnavailable => 'You can\'t use that emoji here.';
 }
 
 /// The translations for French, as used in Canada (`fr_CA`).

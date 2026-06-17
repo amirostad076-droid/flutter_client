@@ -37,6 +37,7 @@ import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_tracker.dar
 import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/features/chat/utils/client_nonce.dart';
+import 'package:fluxer_app/features/chat/utils/composer_command.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/chat/utils/guild_composer_barrier_l10n.dart';
 import 'package:fluxer_app/features/chat/utils/mention_reply_preference_utils.dart';
@@ -1438,10 +1439,11 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  Future<void> sendMessage({String? text}) async {
+  Future<void> sendMessage({String? text, bool tts = false}) async {
     await _sendContent(
       text ?? state.messageText.trim(),
       clearMessageText: true,
+      tts: tts,
     );
   }
 
@@ -1484,11 +1486,20 @@ class ChatViewModel extends _$ChatViewModel {
     return sanitizeUrlsInContent(text);
   }
 
+  ({String content, int flags}) _normalizeOutgoing(String text) {
+    final ({String content, int flags}) silent = stripSilentPrefix(text);
+    return (
+      content: _maybeSanitizeOutgoing(silent.content),
+      flags: silent.flags,
+    );
+  }
+
   Future<void> _sendContent(
     String text, {
     required bool clearMessageText,
     List<String> stickerIds = const [],
     String? favoriteMemeId,
+    bool tts = false,
   }) async {
     if (_isPreparingSend) {
       return;
@@ -1500,6 +1511,7 @@ class ChatViewModel extends _$ChatViewModel {
         clearMessageText: clearMessageText,
         stickerIds: stickerIds,
         favoriteMemeId: favoriteMemeId,
+        tts: tts,
       );
     } on Object catch (error, st) {
       talker.error('[ChatViewModel] send failed unexpectedly', error, st);
@@ -1617,6 +1629,7 @@ class ChatViewModel extends _$ChatViewModel {
     required bool clearMessageText,
     List<String> stickerIds = const [],
     String? favoriteMemeId,
+    bool tts = false,
   }) async {
     final String channelId = state.channelId;
     if (channelId.isEmpty) {
@@ -1650,7 +1663,9 @@ class ChatViewModel extends _$ChatViewModel {
       _notifySendBlocked(_SendBlockReason.empty);
       return;
     }
-    final String outgoingText = _maybeSanitizeOutgoing(text);
+    final ({String content, int flags}) normalized = _normalizeOutgoing(text);
+    final String outgoingText = normalized.content;
+    final int messageFlags = normalized.flags;
     final channelRow = await ref
         .read(fluxerDatabaseProvider)
         .channelDao
@@ -1749,6 +1764,7 @@ class ChatViewModel extends _$ChatViewModel {
       authorIsBot: currentUser?.bot ?? false,
       clientNonce: clientNonce,
       attachments: optimisticAttachments,
+      flags: messageFlags,
     );
 
     talker.debug('[ChatViewModel] send optimistic channelId=$channelId');
@@ -1783,6 +1799,8 @@ class ChatViewModel extends _$ChatViewModel {
           stickerIds: stickerIds,
           favoriteMemeId: favoriteMemeId,
           optimisticMessageId: optimisticMessage.id,
+          messageFlags: messageFlags,
+          tts: tts,
         ),
       );
       return;
@@ -1799,6 +1817,8 @@ class ChatViewModel extends _$ChatViewModel {
         favoriteMemeId: favoriteMemeId,
         optimisticMessageId: optimisticMessage.id,
         uploadNotifier: uploadNotifier,
+        messageFlags: messageFlags,
+        tts: tts,
       ),
     );
   }
@@ -1812,6 +1832,8 @@ class ChatViewModel extends _$ChatViewModel {
     required List<String> stickerIds,
     required String? favoriteMemeId,
     required String optimisticMessageId,
+    int? messageFlags,
+    bool tts = false,
   }) async {
     try {
       final Message sent = await ref
@@ -1824,6 +1846,8 @@ class ChatViewModel extends _$ChatViewModel {
             clientNonce: clientNonce,
             stickerIds: stickerIds,
             favoriteMemeId: favoriteMemeId,
+            messageFlags: messageFlags,
+            tts: tts,
           );
       if (state.channelId != channelId) {
         return;
@@ -1861,6 +1885,7 @@ class ChatViewModel extends _$ChatViewModel {
     required String optimisticMessageId,
     required CloudUploadController uploadNotifier,
     int? messageFlags,
+    bool tts = false,
   }) async {
     try {
       final prepared = await uploadNotifier.prepareSessionForSend(
@@ -1880,6 +1905,7 @@ class ChatViewModel extends _$ChatViewModel {
             attachmentMetadata: prepared.attachmentMetadata,
             attachmentFiles: prepared.attachmentFiles,
             messageFlags: messageFlags,
+            tts: tts,
           );
       uploadNotifier.removeMessageUpload(clientNonce);
       if (state.channelId != channelId) {
@@ -2379,6 +2405,67 @@ class ChatViewModel extends _$ChatViewModel {
       await _restoreComposerDraftFromDb();
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to edit message: $e');
+      state = state.copyWith(errorMessage: 'Failed to edit message');
+    }
+  }
+
+  Future<void> applyComposerReplace({
+    required String source,
+    required String replacement,
+    required bool global,
+  }) async {
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    if (currentUserId == null || currentUserId.isEmpty) {
+      return;
+    }
+    Message? target;
+    for (int i = state.messages.length - 1; i >= 0; i--) {
+      final Message candidate = state.messages[i];
+      if (candidate.authorId != currentUserId) {
+        continue;
+      }
+      if (candidate.deliveryState != MessageDeliveryState.sent) {
+        continue;
+      }
+      if (candidate.type != messageTypeDefault &&
+          candidate.type != messageTypeReply) {
+        continue;
+      }
+      target = candidate;
+      break;
+    }
+    if (target == null) {
+      return;
+    }
+    final String newContent = executeReplace(
+      target.content,
+      ComposerReplaceCommand(
+        source: source,
+        replacement: replacement,
+        global: global,
+      ),
+    );
+    if (newContent == target.content) {
+      return;
+    }
+    try {
+      final Message updatedMessage = await ref
+          .read(messageRepositoryProvider)
+          .editMessage(
+            channelId: target.channelId,
+            messageId: target.id,
+            content: newContent,
+          );
+      final List<Message>? nextMessages = _replaceById(
+        state.messages,
+        updatedMessage,
+      );
+      state = state.copyWith(
+        messages: nextMessages ?? state.messages,
+        errorMessage: null,
+      );
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to apply replace command: $e');
       state = state.copyWith(errorMessage: 'Failed to edit message');
     }
   }

@@ -162,6 +162,50 @@ void main() {
       expect(adapter.messagePostCount, 1);
     },
   );
+
+  test(
+    '@silent prefix strips the flag word and suppresses notifications',
+    () async {
+      final (container, adapter, _) = await setUpChannel();
+      final notifier = container.read(chatViewModelProvider.notifier);
+
+      await notifier.sendMessage(text: '@silent hi');
+      await _flushAsync();
+
+      expect(adapter.lastBody?['content'], 'hi');
+      final int flags = (adapter.lastBody?['flags'] as int?) ?? 0;
+      expect(flags & 4096, 4096);
+    },
+  );
+
+  test('tts send forwards tts:true in the request body', () async {
+    final (container, adapter, _) = await setUpChannel();
+    final notifier = container.read(chatViewModelProvider.notifier);
+
+    await notifier.sendMessage(text: 'hello', tts: true);
+    await _flushAsync();
+
+    expect(adapter.lastBody?['tts'], true);
+  });
+
+  test('replace command edits the last own message in place', () async {
+    final (container, adapter, _) = await setUpChannel();
+    final notifier = container.read(chatViewModelProvider.notifier);
+
+    await notifier.sendMessage(text: 'teh');
+    await _flushAsync();
+    expect(container.read(chatViewModelProvider).messages.last.content, 'teh');
+
+    await notifier.applyComposerReplace(
+      source: 'teh',
+      replacement: 'the',
+      global: false,
+    );
+    await _flushAsync();
+
+    expect(adapter.lastEditContent, 'the');
+    expect(container.read(chatViewModelProvider).messages.last.content, 'the');
+  });
 }
 
 ProviderContainer _container(FluxerDatabase db, _SendAdapter adapter) {
@@ -197,7 +241,9 @@ class _SendAdapter implements HttpClientAdapter {
 
   final String serverMessageId;
   String? lastSentNonce;
+  Map<String, dynamic>? lastBody;
   int messagePostCount = 0;
+  String? lastEditContent;
 
   @override
   Future<ResponseBody> fetch(
@@ -219,6 +265,7 @@ class _SendAdapter implements HttpClientAdapter {
           ? <String, dynamic>{}
           : jsonDecode(raw) as Map<String, dynamic>;
       lastSentNonce = body['nonce'] as String?;
+      lastBody = body;
       return _json(
         _messageJson(
           id: serverMessageId,
@@ -232,6 +279,28 @@ class _SendAdapter implements HttpClientAdapter {
     if (options.method == 'POST' &&
         (path.endsWith('/ack') || path.endsWith('/read-states/ack-bulk'))) {
       return ResponseBody.fromString('', 204, statusMessage: 'No Content');
+    }
+    if (options.method == 'PATCH') {
+      final RegExpMatch? editMatch = RegExp(
+        r'/channels/[^/]+/messages/([^/]+)$',
+      ).firstMatch(path);
+      if (editMatch != null) {
+        final String? raw = await _readRequestBody(requestStream, options.data);
+        final RegExpMatch? contentMatch = raw == null
+            ? null
+            : RegExp(
+                r'name="content"\r?\n\r?\n([\s\S]*?)\r?\n--',
+              ).firstMatch(raw);
+        lastEditContent = contentMatch?.group(1);
+        return _json(
+          _messageJson(
+            id: editMatch.group(1)!,
+            channelId: 'channel-1',
+            authorId: 'me',
+            content: lastEditContent ?? '',
+          ),
+        );
+      }
     }
     return ResponseBody.fromString('Not found', 404);
   }

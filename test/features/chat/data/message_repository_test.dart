@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/chat/data/message_repository.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
 
 void main() {
   test('buildMessageCreateBody sends favorite meme ids compactly', () {
@@ -41,5 +42,43 @@ void main() {
     expect(bodyEnabled['message_reference'], {'message_id': '123'});
     expect(bodyEnabled['allowed_mentions'], {'replied_user': true});
     expect(bodyDisabled['allowed_mentions'], {'replied_user': false});
+  });
+
+  test(
+    'buildMessageCreateBody merges favorite meme flag with explicit flags',
+    () {
+      final body = buildMessageCreateBody(
+        content: 'hi',
+        favoriteMemeId: 'meme-1',
+        messageFlags: messageFlagSuppressNotifications,
+      );
+
+      expect(body['favorite_meme_id'], 'meme-1');
+      final flags = body['flags'] as int;
+      expect(
+        flags & kMessageFlagCompactAttachments,
+        kMessageFlagCompactAttachments,
+      );
+      expect(
+        flags & messageFlagSuppressNotifications,
+        messageFlagSuppressNotifications,
+      );
+    },
+  );
+
+  test('buildMessageCreateBody passes explicit message flags through', () {
+    final body = buildMessageCreateBody(
+      content: 'hi',
+      messageFlags: messageFlagSuppressNotifications,
+    );
+
+    expect(body['flags'], messageFlagSuppressNotifications);
+    expect(body.containsKey('favorite_meme_id'), isFalse);
+  });
+
+  test('buildMessageCreateBody sets tts when requested', () {
+    final body = buildMessageCreateBody(content: 'hi', tts: true);
+
+    expect(body['tts'], true);
   });
 }

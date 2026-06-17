@@ -37,6 +37,7 @@ Map<String, dynamic> buildMessageCreateBody({
   String? favoriteMemeId,
   List<ApiAttachmentMetadata>? attachments,
   int? messageFlags,
+  bool tts = false,
 }) {
   final body = <String, dynamic>{};
   if (content.isNotEmpty) {
@@ -49,11 +50,16 @@ Map<String, dynamic> buildMessageCreateBody({
   if (stickerIds.isNotEmpty) {
     body['sticker_ids'] = stickerIds;
   }
-  if (messageFlags != null && messageFlags != 0) {
-    body['flags'] = messageFlags;
-  } else if (favoriteMemeId != null) {
+  var flags = messageFlags ?? 0;
+  if (favoriteMemeId != null) {
     body['favorite_meme_id'] = favoriteMemeId;
-    body['flags'] = kMessageFlagCompactAttachments;
+    flags |= kMessageFlagCompactAttachments;
+  }
+  if (flags != 0) {
+    body['flags'] = flags;
+  }
+  if (tts) {
+    body['tts'] = true;
   }
   if (attachments != null && attachments.isNotEmpty) {
     body['attachments'] = attachments
@@ -475,6 +481,7 @@ class MessageRepository {
     List<ApiAttachmentMetadata>? attachmentMetadata,
     List<XFile>? attachmentFiles,
     int? messageFlags,
+    bool tts = false,
   }) async {
     try {
       final Map<String, dynamic> body = buildMessageCreateBody(
@@ -486,6 +493,7 @@ class MessageRepository {
         favoriteMemeId: favoriteMemeId,
         attachments: attachmentMetadata,
         messageFlags: messageFlags,
+        tts: tts,
       );
 
       if (attachmentFiles != null && attachmentFiles.isNotEmpty) {

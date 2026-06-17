@@ -6122,5 +6122,31 @@
   "uiColorPickerTitle": "Color picker",
   "@uiColorPickerTitle": {
     "description": "Title for the mobile color picker sheet."
+  },
+  "mentionConfirmTitle": "Mention everyone?",
+  "@mentionConfirmTitle": {
+    "description": "Title of the confirmation dialog shown before sending a message that mentions @everyone or @here in a large server."
+  },
+  "mentionConfirmEveryoneBody": "This will notify {count} members. Continue?",
+  "@mentionConfirmEveryoneBody": {
+    "description": "Body of the @everyone mention confirmation dialog.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "mentionConfirmHereBody": "This will notify {count} online members. Continue?",
+  "@mentionConfirmHereBody": {
+    "description": "Body of the @here mention confirmation dialog.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "mentionConfirmButton": "Mention",
+  "@mentionConfirmButton": {
+    "description": "Confirm button label on the mention confirmation dialog."
+  },
+  "composerEmojiUnavailable": "You can't use that emoji here.",
+  "@composerEmojiUnavailable": {
+    "description": "Toast shown when a message contains a custom emoji the user cannot use in this channel."
   }
 }

@@ -6,7 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
+import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/domain/cloud_composer_attachments.dart';
@@ -26,6 +29,7 @@ import 'package:fluxer_app/features/chat/providers/channel/channel_message_permi
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/guild/guild_composer_access_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_length_limits_provider.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_blocked_provider.dart';
@@ -33,6 +37,8 @@ import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_indicator_s
 import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
 import 'package:fluxer_app/features/chat/utils/clipboard_attachment_reader.dart';
+import 'package:fluxer_app/features/chat/utils/composer_command.dart';
+import 'package:fluxer_app/features/chat/utils/composer_emoji_resolution.dart';
 import 'package:fluxer_app/features/chat/utils/composer_message_length_paste_formatter.dart';
 import 'package:fluxer_app/features/chat/utils/composer_sendable_content.dart';
 import 'package:fluxer_app/features/chat/utils/composer_voice_button_visibility.dart';
@@ -41,8 +47,11 @@ import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/chat/utils/paste_text_attachment.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_confirm_sheet.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
@@ -63,6 +72,8 @@ const double _kMobileComposerSuffixWidth =
 const double _kMobileComposerSuffixHeight =
     _kMobileComposerSuffixVerticalPadding * 2 +
     _kMobileComposerSuffixButtonExtent;
+
+final RegExp _customEmojiIdPattern = RegExp(r'<a?:[^:]+:(\d+)>');
 
 /// The chat input bar at the bottom of the chat area.
 class ChannelTextarea extends ConsumerStatefulWidget {
@@ -164,7 +175,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (_isOverCharacterLimit(ref)) {
       return KeyEventResult.ignored;
     }
-    _onSendPressed();
+    unawaited(_onSendPressed());
     return KeyEventResult.handled;
   }
 
@@ -971,7 +982,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         );
   }
 
-  void _onSendPressed() {
+  Future<void> _onSendPressed() async {
     final String channelId = ref.read(
       chatViewModelProvider.select((s) => s.channelId),
     );
@@ -982,10 +993,18 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (_isOverCharacterLimit(ref)) {
       return;
     }
+    final ChatViewModel vm = ref.read(chatViewModelProvider.notifier);
     final bool isEditing = ref.read(
       chatViewModelProvider.select((s) => s.editingMessage != null),
     );
-    if (!isEditing) {
+    if (isEditing) {
+      unawaited(vm.sendMessage(text: wireText.trim()));
+      return;
+    }
+
+    final ComposerCommand command = parseComposerCommand(wireText);
+
+    if (command is! ComposerReplaceCommand) {
       final bool isSlowmodeBlocked =
           ref.read(isSlowmodeBlockedProvider(channelId)).value ?? false;
       if (isSlowmodeBlocked) {
@@ -993,15 +1012,177 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         return;
       }
     }
-    if (!isEditing && wireText.isNotEmpty) {
+
+    if (command is ComposerReplaceCommand) {
       _controller.clear();
-      ref.read(chatViewModelProvider.notifier).updateMessageText('');
+      vm.updateMessageText('');
+      await vm.applyComposerReplace(
+        source: command.source,
+        replacement: command.replacement,
+        global: command.global,
+      );
+      return;
     }
-    unawaited(
-      ref
-          .read(chatViewModelProvider.notifier)
-          .sendMessage(text: wireText.trim()),
+
+    final String innerContent = switch (command) {
+      ComposerMeCommand(:final content) => content,
+      ComposerSpoilerCommand(:final content) => content,
+      ComposerTtsCommand(:final content) => content,
+      ComposerContentSend(:final content) => content,
+      ComposerReplaceCommand() => wireText,
+    };
+    final String resolved = resolveTypedCustomEmojiShortcodes(
+      innerContent,
+      _buildCustomEmojiLookup(channelId),
     );
+    final String baseContent = switch (command) {
+      ComposerMeCommand() => wrapMe(resolved),
+      ComposerSpoilerCommand() => wrapSpoiler(resolved),
+      ComposerTtsCommand() => resolved,
+      ComposerContentSend() => resolved,
+      ComposerReplaceCommand() => resolved,
+    };
+    final bool tts = command is ComposerTtsCommand;
+
+    if (_blocksOnUnusableEmoji(channelId, baseContent)) {
+      return;
+    }
+    final bool proceed = await _confirmMentionsIfNeeded(channelId, baseContent);
+    if (!proceed) {
+      return;
+    }
+
+    _controller.clear();
+    vm.updateMessageText('');
+    unawaited(vm.sendMessage(text: baseContent.trim(), tts: tts));
+  }
+
+  String? Function(String) _buildCustomEmojiLookup(String channelId) {
+    final List<GuildEmojiEntry> allEmojis =
+        ref.read(allGuildEmojisForPickerProvider).value ?? const [];
+    if (allEmojis.isEmpty) {
+      return (_) => null;
+    }
+    final String? activeGuildId = ref.read(activeGuildIdProvider);
+    final bool hasGlobalEmojiAccess =
+        ref.read(currentUserPremiumTypeProvider) > 0 &&
+        channelMessagePermissionsForComposer(
+          ref.read(channelMessagePermissionsProvider(channelId)),
+        ).canUseExternalEmojis;
+    final Map<String, String> byName = <String, String>{};
+    for (final GuildEmojiEntry emoji in allEmojis) {
+      if (hasGlobalEmojiAccess || emoji.guildId == activeGuildId) {
+        byName.putIfAbsent(emoji.nameLower, () => emoji.markdown);
+      }
+    }
+    return (String nameLower) => byName[nameLower];
+  }
+
+  bool _blocksOnUnusableEmoji(String channelId, String content) {
+    if (!content.contains('<')) {
+      return false;
+    }
+    final List<GuildEmojiEntry> allEmojis =
+        ref.read(allGuildEmojisForPickerProvider).value ?? const [];
+    if (allEmojis.isEmpty) {
+      return false;
+    }
+    final String? activeGuildId = ref.read(activeGuildIdProvider);
+    final bool hasGlobalEmojiAccess =
+        ref.read(currentUserPremiumTypeProvider) > 0 &&
+        channelMessagePermissionsForComposer(
+          ref.read(channelMessagePermissionsProvider(channelId)),
+        ).canUseExternalEmojis;
+    final Set<String> knownIds = <String>{};
+    final Set<String> usableIds = <String>{};
+    for (final GuildEmojiEntry emoji in allEmojis) {
+      knownIds.add(emoji.id);
+      if (hasGlobalEmojiAccess || emoji.guildId == activeGuildId) {
+        usableIds.add(emoji.id);
+      }
+    }
+    var blocked = false;
+    for (final RegExpMatch match in _customEmojiIdPattern.allMatches(content)) {
+      final String id = match.group(1)!;
+      if (knownIds.contains(id) && !usableIds.contains(id)) {
+        blocked = true;
+        break;
+      }
+    }
+    if (blocked) {
+      final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.composerEmojiUnavailable,
+              variant: FluxerToastVariant.warning,
+            ),
+          );
+    }
+    return blocked;
+  }
+
+  Future<bool> _confirmMentionsIfNeeded(
+    String channelId,
+    String content,
+  ) async {
+    final bool mentionsEveryone = content.contains('@everyone');
+    final bool mentionsHere = content.contains('@here');
+    if (!mentionsEveryone && !mentionsHere) {
+      return true;
+    }
+    final String? guildId = ref.read(activeGuildIdProvider);
+    if (guildId == null || guildId.isEmpty) {
+      return true;
+    }
+    Guild? guild;
+    for (final Guild candidate in ref.read(guildListViewModelProvider).guilds) {
+      if (candidate.id == guildId) {
+        guild = candidate;
+        break;
+      }
+    }
+    if (guild == null) {
+      return true;
+    }
+    final int bits = await ref.read(
+      effectiveGuildChannelPermissionBitsProvider(channelId).future,
+    );
+    if (!hasPermission(bits, Permission.mentionEveryone)) {
+      return true;
+    }
+    if (!mounted) {
+      return false;
+    }
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    String? description;
+    if (mentionsEveryone && guild.memberCount > kMentionConfirmThreshold) {
+      description = l10n.mentionConfirmEveryoneBody(guild.memberCount);
+    } else if (mentionsHere && guild.onlineCount > kMentionConfirmThreshold) {
+      description = l10n.mentionConfirmHereBody(guild.onlineCount);
+    }
+    if (description == null) {
+      return true;
+    }
+    final bool? confirmed = isMobileLayout(context)
+        ? await FluxerConfirmSheet.show(
+            context,
+            title: l10n.mentionConfirmTitle,
+            description: description,
+            confirmLabel: l10n.mentionConfirmButton,
+            isDanger: true,
+            onConfirm: () {},
+          )
+        : await FluxerConfirmModal.show(
+            context,
+            title: l10n.mentionConfirmTitle,
+            description: description,
+            confirmLabel: l10n.mentionConfirmButton,
+            isDanger: true,
+            onConfirm: () {},
+          );
+    return confirmed ?? false;
   }
 
   Widget _buildMobilePickerButton(
@@ -1057,7 +1238,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final VoidCallback? sendOnPressed = !hasSendable || isOverCharacterLimit
         ? null
         : perms.isComposerEnabled
-        ? _onSendPressed
+        ? () => unawaited(_onSendPressed())
         : _showNoSendPermissionToast;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
