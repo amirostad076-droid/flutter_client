@@ -1,13 +1,15 @@
 import 'dart:async';
 
+import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/auth/domain/auth_session.dart';
+import 'package:fluxer_app/features/auth/domain/ip_auth_poll_result.dart';
 import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ip_authorization_view_model.g.dart';
 
-enum IpAuthPollingState { polling, error }
+enum IpAuthPollingState { polling, error, expired }
 
 class IpAuthViewState {
   final IpAuthPollingState pollingState;
@@ -48,10 +50,16 @@ class IpAuthorizationViewModel extends _$IpAuthorizationViewModel {
 
   @override
   IpAuthViewState build(String ticket, int initialResendIn) {
-    ref.onDispose(() {
-      _pollTimer?.cancel();
-      _countdownTimer?.cancel();
-    });
+    ref
+      ..onDispose(() {
+        _pollTimer?.cancel();
+        _countdownTimer?.cancel();
+      })
+      ..listen(appUiForegroundProvider, (bool? previous, bool next) {
+        if (next && previous == false) {
+          _pollNow();
+        }
+      });
 
     _startPolling();
     _startCountdown(initialResendIn);
@@ -70,23 +78,33 @@ class IpAuthorizationViewModel extends _$IpAuthorizationViewModel {
     unawaited(_poll());
   }
 
+  void _pollNow() {
+    if (state.pollingState != IpAuthPollingState.polling ||
+        state.completedSession != null) {
+      return;
+    }
+    _pollTimer?.cancel();
+    unawaited(_poll());
+  }
+
   Future<void> _poll() async {
     try {
-      final session = await ref
+      final result = await ref
           .read(authRepositoryProvider)
           .pollIpAuthorization(ticket);
-
-      if (session != null) {
-        _pollTimer?.cancel();
-        state = state.copyWith(completedSession: session);
-        return;
+      switch (result) {
+        case IpAuthCompleted(:final session):
+          _pollTimer?.cancel();
+          state = state.copyWith(completedSession: session);
+        case IpAuthExpired():
+          _pollTimer?.cancel();
+          state = state.copyWith(pollingState: IpAuthPollingState.expired);
+        case IpAuthPending():
+          _consecutiveErrors = 0;
+          _pollTimer = Timer(_pollInterval, _poll);
       }
-
-      _consecutiveErrors = 0;
-      _pollTimer = Timer(_pollInterval, _poll);
     } on Exception catch (e) {
       _consecutiveErrors++;
-
       if (_consecutiveErrors >= _maxPollErrors) {
         _pollTimer?.cancel();
         talker.error(
@@ -125,6 +143,7 @@ class IpAuthorizationViewModel extends _$IpAuthorizationViewModel {
       _startCountdown(30);
     } on Exception catch (e) {
       talker.error('[IpAuth] Failed to resend email', e);
+      _startCountdown(30);
     }
   }
 

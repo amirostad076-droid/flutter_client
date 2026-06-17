@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/features/auth/data/auth_repository.dart';
 import 'package:fluxer_app/features/auth/data/auth_token_storage.dart';
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
+import 'package:fluxer_app/features/auth/domain/ip_auth_poll_result.dart';
 import 'package:fluxer_app/features/auth/domain/login_result.dart';
 import 'package:fluxer_dart/export.dart';
 
@@ -179,6 +180,164 @@ void main() {
       expect(sessionOne?.token, 'token-1');
       expect(sessionTwo?.token, 'token-2');
     });
+
+    test('login surfaces an IP authorization challenge', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = const _JsonResponseAdapter(
+          expectedPath: '/v1/auth/login',
+          statusCode: 403,
+          statusMessage: 'Forbidden',
+          responseJson: <String, Object?>{
+            'code': 'IP_AUTHORIZATION_REQUIRED',
+            'message': 'IP_AUTHORIZATION_REQUIRED',
+            'ip_authorization_required': true,
+            'ticket': 'ip-ticket',
+            'email': 'user@example.com',
+            'resend_available_in': 30,
+          },
+        );
+
+      final ipRepository = AuthRepository(FluxerClient(dio), db, tokenStorage);
+
+      await expectLater(
+        ipRepository.login(email: 'user@example.com', password: 'password'),
+        completion(
+          isA<LoginIpAuthRequired>()
+              .having(
+                (LoginIpAuthRequired result) => result.challenge.ticket,
+                'ticket',
+                'ip-ticket',
+              )
+              .having(
+                (LoginIpAuthRequired result) => result.challenge.email,
+                'email',
+                'user@example.com',
+              )
+              .having(
+                (LoginIpAuthRequired result) =>
+                    result.challenge.resendAvailableIn,
+                'resendAvailableIn',
+                30,
+              ),
+        ),
+      );
+    });
+
+    test('login defaults resendAvailableIn to 30 when omitted', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = const _JsonResponseAdapter(
+          expectedPath: '/v1/auth/login',
+          statusCode: 403,
+          statusMessage: 'Forbidden',
+          responseJson: <String, Object?>{
+            'code': 'IP_AUTHORIZATION_REQUIRED',
+            'ticket': 'ip-ticket',
+            'email': 'user@example.com',
+          },
+        );
+
+      final ipRepository = AuthRepository(FluxerClient(dio), db, tokenStorage);
+
+      final result = await ipRepository.login(
+        email: 'user@example.com',
+        password: 'password',
+      );
+
+      expect((result as LoginIpAuthRequired).challenge.resendAvailableIn, 30);
+    });
+
+    test('login coerces a non-integer resend_available_in', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = const _JsonResponseAdapter(
+          expectedPath: '/v1/auth/login',
+          statusCode: 403,
+          statusMessage: 'Forbidden',
+          responseJson: <String, Object?>{
+            'code': 'IP_AUTHORIZATION_REQUIRED',
+            'ticket': 'ip-ticket',
+            'email': 'user@example.com',
+            'resend_available_in': 30.0,
+          },
+        );
+
+      final ipRepository = AuthRepository(FluxerClient(dio), db, tokenStorage);
+
+      final result = await ipRepository.login(
+        email: 'user@example.com',
+        password: 'password',
+      );
+
+      expect((result as LoginIpAuthRequired).challenge.resendAvailableIn, 30);
+    });
+
+    test('pollIpAuthorization completes and stores the session', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = const _GetResponseAdapter(
+          expectedPath: '/v1/auth/ip-authorization/poll',
+          responseJson: <String, Object?>{
+            'completed': true,
+            'token': 'session-token',
+            'user_id': '123',
+          },
+        );
+
+      final ipRepository = AuthRepository(FluxerClient(dio), db, tokenStorage);
+
+      final result = await ipRepository.pollIpAuthorization('ip-ticket');
+
+      expect(result, isA<IpAuthCompleted>());
+      expect((result as IpAuthCompleted).session.token, 'session-token');
+      expect(await tokenStorage.readToken('123'), 'session-token');
+    });
+
+    test('pollIpAuthorization stays pending while not completed', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = const _GetResponseAdapter(
+          expectedPath: '/v1/auth/ip-authorization/poll',
+          responseJson: <String, Object?>{'completed': false},
+        );
+
+      final ipRepository = AuthRepository(FluxerClient(dio), db, tokenStorage);
+
+      expect(
+        await ipRepository.pollIpAuthorization('ip-ticket'),
+        isA<IpAuthPending>(),
+      );
+    });
+
+    test('pollIpAuthorization maps a 400 to expired', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = const _GetResponseAdapter(
+          expectedPath: '/v1/auth/ip-authorization/poll',
+          statusCode: 400,
+          statusMessage: 'Bad Request',
+          responseJson: <String, Object?>{'code': 'INVALID_FORM_BODY'},
+        );
+
+      final ipRepository = AuthRepository(FluxerClient(dio), db, tokenStorage);
+
+      expect(
+        await ipRepository.pollIpAuthorization('ip-ticket'),
+        isA<IpAuthExpired>(),
+      );
+    });
+
+    test('pollIpAuthorization rethrows non-400 errors', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = const _GetResponseAdapter(
+          expectedPath: '/v1/auth/ip-authorization/poll',
+          statusCode: 500,
+          statusMessage: 'Server Error',
+          responseJson: <String, Object?>{'code': 'INTERNAL'},
+        );
+
+      final ipRepository = AuthRepository(FluxerClient(dio), db, tokenStorage);
+
+      await expectLater(
+        ipRepository.pollIpAuthorization('ip-ticket'),
+        throwsA(isA<DioException>()),
+      );
+    });
   });
 }
 
@@ -202,6 +361,42 @@ class _JsonResponseAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     expect(options.method, 'POST');
+    expect(options.uri.path, expectedPath);
+
+    return ResponseBody.fromString(
+      jsonEncode(responseJson),
+      statusCode,
+      statusMessage: statusMessage,
+      headers: <String, List<String>>{
+        Headers.contentTypeHeader: <String>[Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _GetResponseAdapter implements HttpClientAdapter {
+  const _GetResponseAdapter({
+    required this.expectedPath,
+    required this.responseJson,
+    this.statusCode = 200,
+    this.statusMessage = 'OK',
+  });
+
+  final String expectedPath;
+  final Map<String, Object?> responseJson;
+  final int statusCode;
+  final String statusMessage;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    expect(options.method, 'GET');
     expect(options.uri.path, expectedPath);
 
     return ResponseBody.fromString(

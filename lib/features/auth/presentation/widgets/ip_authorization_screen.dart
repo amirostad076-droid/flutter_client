@@ -49,45 +49,60 @@ class IpAuthorizationScreen extends ConsumerWidget {
     final strings = FluxerLocalizations.of(context);
     final colors = context.colors;
     final layout = context.layout;
-    final isError = vm.pollingState == IpAuthPollingState.error;
+    final state = vm.pollingState;
+    final (IconData icon, String title, String description) = switch (state) {
+      IpAuthPollingState.polling => (
+        PhosphorIconsFill.envelopeSimple,
+        strings.ipAuthCheckEmail,
+        strings.ipAuthDescription(challenge.email),
+      ),
+      IpAuthPollingState.error => (
+        PhosphorIconsFill.warningCircle,
+        strings.ipAuthConnectionLost,
+        strings.ipAuthConnectionLostDescription,
+      ),
+      IpAuthPollingState.expired => (
+        PhosphorIconsFill.warningCircle,
+        strings.ipAuthLinkExpired,
+        strings.ipAuthLinkExpiredDescription,
+      ),
+    };
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
-          isError
-              ? PhosphorIconsFill.warningCircle
-              : PhosphorIconsFill.envelopeSimple,
+          icon,
           size: 48,
-          color: isError ? colors.textDanger : colors.textPrimary,
+          color: state == IpAuthPollingState.polling
+              ? colors.textPrimary
+              : colors.textDanger,
         ),
         SizedBox(height: layout.s4),
         Text(
-          isError ? strings.ipAuthConnectionLost : strings.ipAuthCheckEmail,
+          title,
           style: context.textStyles.heading,
           textAlign: TextAlign.center,
         ),
         SizedBox(height: layout.s2),
         Text(
-          isError
-              ? strings.ipAuthConnectionLostDescription
-              : strings.ipAuthDescription(challenge.email),
+          description,
           style: context.textStyles.bodySmall.copyWith(
             color: colors.textPrimaryMuted,
           ),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: layout.s6),
-        if (isError)
+        if (state == IpAuthPollingState.error)
           FluxerButton.primary(onPressed: notifier.retry, label: strings.retry)
-        else
+        else if (state == IpAuthPollingState.polling)
           FluxerButton.secondary(
             onPressed: vm.resendIn > 0 || vm.resendUsed
                 ? null
                 : notifier.resend,
             label: _resendLabel(strings, vm),
           ),
-        SizedBox(height: layout.s2),
+        if (state != IpAuthPollingState.expired) SizedBox(height: layout.s2),
         FluxerButton.secondary(onPressed: onBack, label: strings.back),
       ],
     );

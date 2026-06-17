@@ -4,6 +4,7 @@ import 'package:fluxer_app/features/auth/data/auth_token_storage.dart';
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
 import 'package:fluxer_app/features/auth/domain/auth_session.dart';
 import 'package:fluxer_app/features/auth/domain/ban_view.dart';
+import 'package:fluxer_app/features/auth/domain/ip_auth_poll_result.dart';
 import 'package:fluxer_app/features/auth/domain/ip_authorization_challenge.dart';
 import 'package:fluxer_app/features/auth/domain/login_result.dart';
 import 'package:fluxer_app/features/auth/domain/mfa_challenge.dart';
@@ -229,21 +230,26 @@ class AuthRepository {
     await _db.clearUserData();
   }
 
-  Future<AuthSession?> pollIpAuthorization(String ticket) async {
-    final response = await _client.auth.pollIpAuthorization(ticket: ticket);
-    if (response.completed &&
-        response.token != null &&
-        response.userId != null) {
-      final session = AuthSession(
-        token: response.token!,
-        userId: response.userId!,
-      );
-
-      await _saveSession(session);
-
-      return session;
+  Future<IpAuthPollResult> pollIpAuthorization(String ticket) async {
+    try {
+      final response = await _client.auth.pollIpAuthorization(ticket: ticket);
+      if (response.completed &&
+          response.token != null &&
+          response.userId != null) {
+        final session = AuthSession(
+          token: response.token!,
+          userId: response.userId!,
+        );
+        await _saveSession(session);
+        return IpAuthCompleted(session);
+      }
+      return const IpAuthPending();
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 400) {
+        return const IpAuthExpired();
+      }
+      rethrow;
     }
-    return null;
   }
 
   Future<void> resendIpAuthorization(String ticket) async {
@@ -460,7 +466,7 @@ class AuthRepository {
 
     final ticket = data['ticket'] as String?;
     final email = data['email'] as String?;
-    final resendIn = data['resend_available_in'] as int?;
+    final resendIn = (data['resend_available_in'] as num?)?.toInt();
 
     if (ticket == null || email == null) {
       return null;
@@ -469,7 +475,7 @@ class AuthRepository {
     return IpAuthorizationChallenge(
       ticket: ticket,
       email: email,
-      resendAvailableIn: resendIn ?? 0,
+      resendAvailableIn: resendIn ?? 30,
     );
   }
 

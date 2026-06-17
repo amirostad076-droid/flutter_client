@@ -369,6 +369,18 @@ abstract class FluxerLocalizations {
   /// **'We lost the connection while waiting for authorization. Please try again.'**
   String get ipAuthConnectionLostDescription;
 
+  /// Title shown when the IP authorization ticket has expired and the user must sign in again.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in link expired'**
+  String get ipAuthLinkExpired;
+
+  /// Body shown when the IP authorization ticket has expired.
+  ///
+  /// In en, this message translates to:
+  /// **'This authorization link expired. Please sign in again.'**
+  String get ipAuthLinkExpiredDescription;
+
   /// Button to resend the IP authorization email.
   ///
   /// In en, this message translates to:

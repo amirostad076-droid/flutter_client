@@ -115,6 +115,13 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
       'We lost the connection while waiting for authorization. Please try again.';
 
   @override
+  String get ipAuthLinkExpired => 'Sign-in link expired';
+
+  @override
+  String get ipAuthLinkExpiredDescription =>
+      'This authorization link expired. Please sign in again.';
+
+  @override
   String get ipAuthResendEmail => 'Resend email';
 
   @override
