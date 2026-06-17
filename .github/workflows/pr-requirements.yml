@@ -25,6 +25,6 @@ jobs:
 
       - name: Validate linked reference and commit signatures
         env:
-          GH_TOKEN: ${{ secrets.FLUXER_AUTOMATION_PAT }}
+          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: bash .github/scripts/validate_pr_requirements.sh
