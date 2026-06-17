@@ -7,8 +7,11 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_image.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/media/embed_animated_image.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/media/fluxer_animated_image.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 Widget _app(Widget child) {
   final colorTheme = buildDarkColorTheme();
@@ -25,6 +28,10 @@ Widget _app(Widget child) {
 }
 
 void main() {
+  setUpAll(() {
+    VisibilityDetectorController.instance.updateInterval = Duration.zero;
+  });
+
   testWidgets('caps decoded bitmap to display size times device pixel ratio', (
     tester,
   ) async {
@@ -52,5 +59,60 @@ void main() {
     );
     expect(image.memCacheWidth, 1600);
     expect(image.memCacheHeight, 1200);
+  });
+
+  testWidgets('gif attachment renders a visibility-gated animated image', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        const AttachmentImage(
+          attachment: Attachment(
+            id: 'gif-1',
+            filename: 'loop.gif',
+            url: 'https://cdn.example/loop.gif',
+            proxyUrl: 'https://proxy.example/loop.gif',
+            contentType: 'image/gif',
+            width: 400,
+            height: 300,
+          ),
+          channelId: 'c1',
+          messageId: 'm1',
+          wrapWithSpoiler: false,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(EmbedAnimatedImage), findsOneWidget);
+    final animated = tester.widget<FluxerAnimatedImage>(
+      find.byType(FluxerAnimatedImage),
+    );
+    expect(animated.animatedUrl, contains('format=webp'));
+    expect(animated.animatedUrl, contains('animated=true'));
+    expect(animated.staticUrl, contains('animated=false'));
+  });
+
+  testWidgets('static image attachment renders a cached network image', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        const AttachmentImage(
+          attachment: Attachment(
+            id: 'png-1',
+            filename: 'photo.png',
+            url: 'https://cdn.example/photo.png',
+            width: 400,
+            height: 300,
+          ),
+          wrapWithSpoiler: false,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(EmbedAnimatedImage), findsNothing);
+    expect(find.byType(CachedNetworkImage), findsOneWidget);
   });
 }

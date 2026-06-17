@@ -23,6 +23,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_link.
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_rich.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_theme.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_video.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/media/embed_animated_image.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_actions/message_bottom_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -1189,36 +1190,58 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     );
   }
 
-  Widget _buildSticker(MessageSticker sticker) => Semantics(
-    label: sticker.name,
-    image: true,
-    child: CachedNetworkImage(
-      imageUrl: sticker.urlForSize(_kMessageStickerRequestSize),
-      cacheKey: sticker.cacheKeyForSize(_kMessageStickerRequestSize),
-      width: _kMessageStickerSize,
-      height: _kMessageStickerSize,
-      memCacheWidth: _kMessageStickerSize.toInt(),
-      memCacheHeight: _kMessageStickerSize.toInt(),
-      fadeInDuration: Duration.zero,
-      fadeOutDuration: Duration.zero,
-      fit: BoxFit.contain,
-      placeholder: (_, _) => const SizedBox(
+  Widget _buildSticker(MessageSticker sticker) {
+    final Widget stickerImage;
+    if (sticker.animated) {
+      stickerImage = SizedBox(
         width: _kMessageStickerSize,
         height: _kMessageStickerSize,
-      ),
-      errorBuilder: (_, _, _) => SizedBox(
-        width: _kMessageStickerSize,
-        height: _kMessageStickerSize,
-        child: Center(
-          child: PhosphorIcon(
-            PhosphorIconsDuotone.sticker,
-            size: 48,
-            color: context.colors.textTertiaryMuted,
+        child: EmbedAnimatedImage(
+          animatedUrl: sticker.urlForSize(_kMessageStickerRequestSize),
+          staticUrl: FluxerMediaUrl.sticker(id: sticker.id),
+          visibilityKey:
+              '${widget.message.channelId}_${widget.message.id}_${sticker.id}',
+          fit: BoxFit.contain,
+          placeholder: const SizedBox(
+            width: _kMessageStickerSize,
+            height: _kMessageStickerSize,
           ),
         ),
-      ),
-    ),
-  );
+      );
+    } else {
+      stickerImage = CachedNetworkImage(
+        imageUrl: sticker.urlForSize(_kMessageStickerRequestSize),
+        cacheKey: sticker.cacheKeyForSize(_kMessageStickerRequestSize),
+        width: _kMessageStickerSize,
+        height: _kMessageStickerSize,
+        memCacheWidth: _kMessageStickerSize.toInt(),
+        memCacheHeight: _kMessageStickerSize.toInt(),
+        fadeInDuration: Duration.zero,
+        fadeOutDuration: Duration.zero,
+        fit: BoxFit.contain,
+        placeholder: (_, _) => const SizedBox(
+          width: _kMessageStickerSize,
+          height: _kMessageStickerSize,
+        ),
+        errorBuilder: (_, _, _) => SizedBox(
+          width: _kMessageStickerSize,
+          height: _kMessageStickerSize,
+          child: Center(
+            child: PhosphorIcon(
+              PhosphorIconsDuotone.sticker,
+              size: 48,
+              color: context.colors.textTertiaryMuted,
+            ),
+          ),
+        ),
+      );
+    }
+    return Semantics(
+      label: sticker.name,
+      image: true,
+      child: stickerImage,
+    );
+  }
 
   Color _reactionChipBackground(
     BuildContext context, {
