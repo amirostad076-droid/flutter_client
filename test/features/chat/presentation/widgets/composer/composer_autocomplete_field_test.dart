@@ -226,9 +226,6 @@ void main() {
 
     expect(_fieldState(tester).hasOpenMenu, isTrue);
 
-    // The panel matches the full 480px composer width (the autocomplete wraps
-    // the whole composer row), while the text input is narrower because the
-    // 48px leading/trailing buttons flank it.
     final double panelWidth = tester.getSize(find.byType(ListView)).width;
     final double inputWidth = tester.getSize(find.byType(TextField)).width;
     expect(panelWidth, moreOrLessEquals(480, epsilon: 0.5));

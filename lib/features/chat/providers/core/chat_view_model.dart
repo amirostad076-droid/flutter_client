@@ -2147,9 +2147,7 @@ class ChatViewModel extends _$ChatViewModel {
 
   Future<void> _startReply(Message message) async {
     if (state.editingMessage != null) {
-      // Leaving an in-progress edit for a reply: drop the edited message's
-      // text and restore the pre-edit composer draft before applying the
-      // reply, mirroring cancelEdit().
+      // Abandon the in-progress edit and restore the prior draft first.
       state = state.copyWith(editingMessage: null, messageText: '');
       await _restoreComposerDraftFromDb();
     }

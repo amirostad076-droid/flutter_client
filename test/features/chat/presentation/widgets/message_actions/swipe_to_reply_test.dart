@@ -228,8 +228,7 @@ void main() {
       viewport.localToGlobal(startLocal),
     );
     await gesture.moveBy(const Offset(-150, 0));
-    // Hold the swipe still, past the edit dwell delay. The first pump
-    // establishes the hold ticker's baseline; the second advances past it.
+    // First pump sets the hold ticker baseline; the second crosses the delay.
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     await gesture.up();

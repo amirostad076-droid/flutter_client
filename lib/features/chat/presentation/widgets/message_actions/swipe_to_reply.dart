@@ -17,28 +17,19 @@ const double _kIconMinScale = 0.6;
 const double _kIconRightPadding = 20;
 const double _kMaxCornerRadius = 8;
 
-/// How long the swipe must be held (roughly still) past the reply threshold
-/// before the armed action escalates from reply to edit.
 const Duration _kEditHoldDelay = Duration(milliseconds: 400);
-
-/// Stroke width and inset (from the pill edge) of the hold-progress ring. The
-/// ring is drawn inside the action pill so it never overflows or gets clipped
-/// in short message rows.
 const double _kHoldRingStroke = 2.5;
 const double _kHoldRingInset = 4;
 
-/// Wraps [child] with a swipe-left gesture that shortcuts to reply, with an
-/// optional hold-to-edit escalation.
+/// Wraps [child] with a swipe-left-to-reply gesture, plus optional
+/// hold-to-edit.
 ///
 /// The child follows the finger leftward, capped at [_kMaxDragFraction] of the
-/// screen width, while an action icon fades and scales in from the right.
-/// Releasing past the trigger threshold invokes [onReply] with a haptic
-/// impulse. When [onEdit] is non-null (the message is editable by the current
-/// user), holding the swipe past the threshold for [_kEditHoldDelay] escalates
-/// the armed action to edit: a progress ring fills inside the pill, the icon
-/// morphs from a reply arrow to a pencil, a heavier haptic fires, and
-/// releasing then invokes [onEdit] instead of [onReply].
-/// Either way the child springs back to its original position.
+/// screen width, while an action icon fades in from the right. Releasing past
+/// the trigger threshold invokes [onReply]. When [onEdit] is non-null, holding
+/// the swipe past the threshold for [_kEditHoldDelay] escalates to edit: a
+/// progress ring fills, the icon morphs to a pencil, and releasing invokes
+/// [onEdit] instead. Either way the child springs back.
 class SwipeToReply extends StatefulWidget {
   const SwipeToReply({
     required this.child,
@@ -50,10 +41,6 @@ class SwipeToReply extends StatefulWidget {
 
   final Widget child;
   final VoidCallback onReply;
-
-  /// Invoked when the swipe is held past the threshold long enough to escalate
-  /// to edit. Null when the message is not editable by the current user, which
-  /// also disables the hold-to-edit affordance entirely.
   final VoidCallback? onEdit;
   final bool enabled;
 
@@ -305,9 +292,7 @@ class _SwipeToReplyState extends State<SwipeToReply>
   }
 }
 
-/// Paints the circular hold-progress affordance inside the action pill: a
-/// faint full-circle track with an arc that sweeps clockwise from the top as
-/// [progress] runs 0 -> 1, signalling the dwell toward edit.
+/// Circular hold-progress ring drawn inside the action pill.
 class _HoldRingPainter extends CustomPainter {
   const _HoldRingPainter({
     required this.progress,
