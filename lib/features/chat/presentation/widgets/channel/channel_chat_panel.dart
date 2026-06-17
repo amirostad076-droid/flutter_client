@@ -7,9 +7,9 @@ import 'package:fluxer_app/features/chat/presentation/widgets/composer/typing_in
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/neko_sprite.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/inline_expression_panel.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/pickers/inline_expression_panel_host.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
-import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -58,9 +58,6 @@ class ChannelChatPanel extends ConsumerWidget {
     final bool showNeko = ref.watch(
       appearancePreferencesProvider.select((state) => state.showNeko),
     );
-    final double panelBottomOffset = inlineExpressionPanelBottomOffset(
-      keyboardInset: MediaQuery.viewInsetsOf(context).bottom,
-    );
     return ColoredBox(
       color: context.colors.chatBackground,
       child: Stack(
@@ -78,9 +75,11 @@ class ChannelChatPanel extends ConsumerWidget {
                         child: !loadMessages
                             ? const SizedBox.expand()
                             : isMessageListReady
-                            ? MessageList(
-                                key: ValueKey<String>(activeChannelId),
-                                targetMessageId: targetMessageId,
+                            ? RepaintBoundary(
+                                child: MessageList(
+                                  key: ValueKey<String>(activeChannelId),
+                                  targetMessageId: targetMessageId,
+                                ),
                               )
                             : Center(
                                 child: FluxerLoadingSpinner(
@@ -128,41 +127,14 @@ class ChannelChatPanel extends ConsumerWidget {
                   ],
                 ),
               ),
-              const ChannelTextarea(),
+              const RepaintBoundary(child: ChannelTextarea()),
               if (isMobile && isPanelOpen)
                 const SizedBox(height: kCollapsedPanelHeight),
             ],
           ),
-          if (isMobile && isPanelOpen && showInlineEmojiPicker)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: panelBottomOffset,
-              child: InlineExpressionPanel(
-                onClose: () =>
-                    ref.read(expressionPanelProvider.notifier).close(),
-                onEmojiSelect: (String name, String surrogates) {
-                  ref
-                      .read(pendingEmojiInsertProvider.notifier)
-                      .emit(name, surrogates);
-                },
-                onGifSelect: (selection) {
-                  ref
-                      .read(pendingGifSelectionProvider.notifier)
-                      .emit(selection);
-                },
-                onStickerSelect: (selection) {
-                  ref
-                      .read(pendingStickerSelectionProvider.notifier)
-                      .emit(selection);
-                },
-                onFavoriteMemeSelect: (selection) {
-                  ref
-                      .read(pendingFavoriteMemeSelectionProvider.notifier)
-                      .emit(selection);
-                },
-              ),
-            ),
+          InlineExpressionPanelHost(
+            showInlineEmojiPicker: showInlineEmojiPicker,
+          ),
         ],
       ),
     );

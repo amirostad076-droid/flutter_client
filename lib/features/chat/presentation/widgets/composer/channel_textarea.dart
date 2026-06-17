@@ -428,7 +428,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           ),
         ),
         Container(
-          height: MediaQuery.of(context).padding.bottom,
+          height: MediaQuery.paddingOf(context).bottom,
           decoration: BoxDecoration(color: context.colors.chatInputBackground),
         ),
       ],

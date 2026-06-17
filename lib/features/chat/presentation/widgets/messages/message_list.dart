@@ -1344,11 +1344,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       );
     }
 
-    final MediaQueryData mediaQuery = MediaQuery.of(context);
     final double scaleRatio = chatFontSize / 16.0;
-    final TextScaler combinedScaler = TextScaler.linear(
-      mediaQuery.textScaler.scale(1) * scaleRatio,
-    );
 
     final bool showUnreadBar =
         !isLoading && messages.isNotEmpty && showUnreadIndicators;
@@ -1372,10 +1368,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       ],
     );
 
-    return MediaQuery(
-      data: mediaQuery.copyWith(textScaler: combinedScaler),
-      child: scaledBody,
-    );
+    return _ChatTextScale(scaleRatio: scaleRatio, child: scaledBody);
   }
 
   String? _visualUnreadId({
@@ -1634,6 +1627,27 @@ class _MessageListState extends ConsumerState<MessageList> {
           Expanded(child: Divider(color: context.colors.borderColor)),
         ],
       ),
+    );
+  }
+}
+
+/// Applies the chat font-size text scaler without forcing the heavy message
+/// list build to depend on [MediaQuery]. The captured [child] element is
+/// reused across keyboard-driven rebuilds, so only this wrapper re-resolves.
+class _ChatTextScale extends StatelessWidget {
+  const _ChatTextScale({required this.scaleRatio, required this.child});
+
+  final double scaleRatio;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final MediaQueryData data = MediaQuery.of(context);
+    return MediaQuery(
+      data: data.copyWith(
+        textScaler: TextScaler.linear(data.textScaler.scale(1) * scaleRatio),
+      ),
+      child: child,
     );
   }
 }

@@ -6,9 +6,7 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_header.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/pickers/inline_expression_panel.dart';
-import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
-import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/pickers/inline_expression_panel_host.dart';
 import 'package:fluxer_app/features/mature_content/presentation/widgets/mature_content_channel_gate.dart';
 import 'package:fluxer_app/features/mature_content/providers/mature_content_agreements_provider.dart';
 import 'package:fluxer_app/features/members/presentation/widgets/channel_members.dart';
@@ -45,12 +43,27 @@ class ChannelLayout extends ConsumerWidget {
         ref.watch(channelByIdProvider(channelId)).value;
     final bool isVoiceChannel = channel?.type == ChannelType.voice;
     final isMobile = isMobileLayout(context);
-    final isPanelOpen = ref.watch(expressionPanelProvider);
     final AsyncValue<bool> showGateAsync = ref.watch(
       shouldShowMatureContentGateProvider(channelId),
     );
     final bool showMatureContentGate = showGateAsync.value ?? false;
     ref.listen(memberListSubscriptionProvider, (_, _) {});
+
+    final Widget primaryContent = showMatureContentGate
+        ? MatureContentChannelGate(
+            channelId: channelId,
+            guildId: guildId,
+            channelType: channel?.type,
+          )
+        : isVoiceChannel
+        ? VoiceChannelPageView(guildId: guildId, channelId: channelId)
+        : ChannelChatContent(
+            channelId: channelId,
+            targetMessageId: messageId,
+            showTopBar: false,
+            showInlineEmojiPicker: false,
+          );
+    final Widget header = ChannelHeader(showMessageActions: !isVoiceChannel);
 
     return MobileChatBackScope(
       child: ColoredBox(
@@ -58,83 +71,30 @@ class ChannelLayout extends ConsumerWidget {
             ? context.colors.chatInputBackground
             : context.colors.chatBackground,
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final showMemberList =
-                  isMemberListVisible &&
-                  constraints.maxWidth >= _minWidthForMemberList;
-              final panelBottomOffset = inlineExpressionPanelBottomOffset(
-                keyboardInset: MediaQuery.viewInsetsOf(context).bottom,
-              );
-
-              return Stack(
-                children: [
-                  Column(
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final showMemberList =
+                      isMemberListVisible &&
+                      constraints.maxWidth >= _minWidthForMemberList;
+                  return Column(
                     children: [
-                      ChannelHeader(showMessageActions: !isVoiceChannel),
+                      header,
                       Expanded(
                         child: Row(
                           children: [
-                            Expanded(
-                              child: showMatureContentGate
-                                  ? MatureContentChannelGate(
-                                      channelId: channelId,
-                                      guildId: guildId,
-                                      channelType: channel?.type,
-                                    )
-                                  : isVoiceChannel
-                                  ? VoiceChannelPageView(
-                                      guildId: guildId,
-                                      channelId: channelId,
-                                    )
-                                  : ChannelChatContent(
-                                      channelId: channelId,
-                                      targetMessageId: messageId,
-                                      showTopBar: false,
-                                      showInlineEmojiPicker: false,
-                                    ),
-                            ),
+                            Expanded(child: primaryContent),
                             if (showMemberList) const ChannelMembers(),
                           ],
                         ),
                       ),
                     ],
-                  ),
-                  if (isMobile && isPanelOpen)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: panelBottomOffset,
-                      child: InlineExpressionPanel(
-                        onClose: () =>
-                            ref.read(expressionPanelProvider.notifier).close(),
-                        onEmojiSelect: (name, surrogates) {
-                          ref
-                              .read(pendingEmojiInsertProvider.notifier)
-                              .emit(name, surrogates);
-                        },
-                        onGifSelect: (selection) {
-                          ref
-                              .read(pendingGifSelectionProvider.notifier)
-                              .emit(selection);
-                        },
-                        onStickerSelect: (selection) {
-                          ref
-                              .read(pendingStickerSelectionProvider.notifier)
-                              .emit(selection);
-                        },
-                        onFavoriteMemeSelect: (selection) {
-                          ref
-                              .read(
-                                pendingFavoriteMemeSelectionProvider.notifier,
-                              )
-                              .emit(selection);
-                        },
-                      ),
-                    ),
-                ],
-              );
-            },
+                  );
+                },
+              ),
+              const InlineExpressionPanelHost(showInlineEmojiPicker: true),
+            ],
           ),
         ),
       ),

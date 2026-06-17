@@ -645,7 +645,7 @@ class _VoiceMessageRecorderState extends ConsumerState<VoiceMessageRecorder>
 
   Widget _buildRecordingBar(BuildContext context) {
     final FluxerColorTheme colors = context.colors;
-    final MediaQueryData mediaQuery = MediaQuery.of(context);
+    final double bottomPadding = MediaQuery.paddingOf(context).bottom;
     return Material(
       color: colors.brandPrimary,
       elevation: 8,
@@ -655,7 +655,7 @@ class _VoiceMessageRecorderState extends ConsumerState<VoiceMessageRecorder>
           left: 12,
           right: 12,
           top: 10,
-          bottom: 10 + mediaQuery.padding.bottom,
+          bottom: 10 + bottomPadding,
         ),
         child: Row(
           children: [

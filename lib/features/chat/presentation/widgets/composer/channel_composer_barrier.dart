@@ -130,7 +130,7 @@ class _ChannelComposerBarrierState
           ),
         ),
         Container(
-          height: MediaQuery.of(context).padding.bottom,
+          height: MediaQuery.paddingOf(context).bottom,
           decoration: BoxDecoration(color: context.colors.chatInputBackground),
         ),
       ],
