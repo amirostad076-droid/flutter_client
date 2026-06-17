@@ -612,10 +612,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                   if (!isGrouped && msg.isReply)
                     _wrapMessageSendingDim(
                       dim: dimMessagePartsExceptAttachments,
-                      child: _buildReplyRow(
-                        msg,
-                        guildId: guildId,
-                      ),
+                      child: _buildReplyRow(msg, guildId: guildId),
                     ),
                   if (!isGrouped &&
                       msg.isForwarded &&
@@ -674,11 +671,17 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     if (!isTouch || onReply == null || widget.inboxPreviewMode) {
       return _wrapMessageSendingDim(dim: dimEntireMessage, child: body);
     }
+    final bool canEditOwnMessage =
+        widget.onEdit != null &&
+        msg.authorId == widget.currentUserId &&
+        msg.isUserMessage &&
+        msg.messageSnapshots.isEmpty;
     return _wrapMessageSendingDim(
       dim: dimEntireMessage,
       child: SwipeToReply(
         enabled: widget.canSendMessages,
         onReply: onReply,
+        onEdit: canEditOwnMessage ? widget.onEdit : null,
         child: body,
       ),
     );
