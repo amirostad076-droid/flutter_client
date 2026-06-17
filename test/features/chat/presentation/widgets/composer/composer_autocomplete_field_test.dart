@@ -34,12 +34,33 @@ Future<EmojiTextEditingController> _pumpBioField(
   required FluxerDatabase db,
   List<GuildEmojiEntry> custom = const <GuildEmojiEntry>[],
   VoidCallback? onApplied,
+  Widget Function(TextEditingController controller, FocusNode focusNode)?
+  childBuilder,
+  double? width,
 }) async {
   final controller = EmojiTextEditingController();
   addTearDown(controller.dispose);
   final focusNode = FocusNode();
   addTearDown(focusNode.dispose);
   final colorTheme = buildDarkColorTheme();
+
+  final Widget field = ComposerAutocompleteField(
+    controller: controller,
+    focusNode: focusNode,
+    allowedTriggers: const <ComposerAutocompleteTriggerKind>{
+      ComposerAutocompleteTriggerKind.emoji,
+    },
+    maxActualLength: 320,
+    onApplied: onApplied,
+    child:
+        childBuilder?.call(controller, focusNode) ??
+        TextField(controller: controller, focusNode: focusNode),
+  );
+  final Widget body = width == null
+      ? field
+      : Center(
+          child: SizedBox(width: width, child: field),
+        );
 
   await tester.pumpWidget(
     ProviderScope(
@@ -63,18 +84,7 @@ Future<EmojiTextEditingController> _pumpBioField(
           textTheme: FluxerTextTheme.fromColors(colorTheme),
           layoutTheme: FluxerLayoutTheme.scaled(),
         ),
-        home: Scaffold(
-          body: ComposerAutocompleteField(
-            controller: controller,
-            focusNode: focusNode,
-            allowedTriggers: const <ComposerAutocompleteTriggerKind>{
-              ComposerAutocompleteTriggerKind.emoji,
-            },
-            maxActualLength: 320,
-            onApplied: onApplied,
-            child: TextField(controller: controller, focusNode: focusNode),
-          ),
-        ),
+        home: Scaffold(body: body),
       ),
     ),
   );
@@ -181,5 +191,47 @@ void main() {
     await tester.enterText(find.byType(TextField), '#general');
     await _settleAutocomplete(tester);
     expect(_fieldState(tester).hasOpenMenu, isFalse);
+  });
+
+  testWidgets('suggestions panel spans the full composer width, not just the '
+      'text input flanked by buttons', (tester) async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    await _pumpBioField(
+      tester,
+      db: db,
+      width: 480,
+      childBuilder: (controller, focusNode) => Row(
+        children: <Widget>[
+          const SizedBox(width: 48, height: 44),
+          Expanded(
+            child: TextField(controller: controller, focusNode: focusNode),
+          ),
+          const SizedBox(width: 48, height: 44),
+        ],
+      ),
+      custom: <GuildEmojiEntry>[
+        GuildEmojiEntry(
+          id: 'e1',
+          name: 'smile',
+          animated: false,
+          guildId: 'g1',
+        ),
+      ],
+    );
+
+    await tester.enterText(find.byType(TextField), ':smile');
+    await _settleAutocomplete(tester);
+
+    expect(_fieldState(tester).hasOpenMenu, isTrue);
+
+    // The panel matches the full 480px composer width (the autocomplete wraps
+    // the whole composer row), while the text input is narrower because the
+    // 48px leading/trailing buttons flank it.
+    final double panelWidth = tester.getSize(find.byType(ListView)).width;
+    final double inputWidth = tester.getSize(find.byType(TextField)).width;
+    expect(panelWidth, moreOrLessEquals(480, epsilon: 0.5));
+    expect(inputWidth, lessThan(panelWidth));
   });
 }

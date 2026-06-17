@@ -260,27 +260,20 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        ComposerAutocompleteField(
-          key: _composerFieldKey,
+        TextField(
           controller: _controller,
           focusNode: _focusNode,
-          channelId: channelId,
           enabled: perms.isComposerEnabled,
-          child: TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            enabled: perms.isComposerEnabled,
-            style: context.textStyles.inputText,
-            minLines: minLines,
-            maxLines: maxLines,
-            decoration: effectiveDecoration,
-            textAlignVertical: textAlignVertical,
-            textCapitalization: TextCapitalization.sentences,
-            inputFormatters: _messageLengthInputFormatters(
-              maxMessageLength: maxMessageLength,
-              perms: perms,
-              channelId: channelId,
-            ),
+          style: context.textStyles.inputText,
+          minLines: minLines,
+          maxLines: maxLines,
+          decoration: effectiveDecoration,
+          textAlignVertical: textAlignVertical,
+          textCapitalization: TextCapitalization.sentences,
+          inputFormatters: _messageLengthInputFormatters(
+            maxMessageLength: maxMessageLength,
+            perms: perms,
+            channelId: channelId,
           ),
         ),
         Positioned(
@@ -425,17 +418,24 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: ResponsiveLayout(
-            builder: (context, mode) {
-              switch (mode) {
-                case LayoutMode.desktop:
-                  return _buildLargeLayout(context, chatNotifier, perms);
-                case LayoutMode.tablet:
-                  return _buildLargeLayout(context, chatNotifier, perms);
-                case LayoutMode.mobile:
-                  return _buildMobileLayout(context, chatNotifier, perms);
-              }
-            },
+          child: ComposerAutocompleteField(
+            key: _composerFieldKey,
+            controller: _controller,
+            focusNode: _focusNode,
+            channelId: channelId,
+            enabled: perms.isComposerEnabled,
+            child: ResponsiveLayout(
+              builder: (context, mode) {
+                switch (mode) {
+                  case LayoutMode.desktop:
+                    return _buildLargeLayout(context, chatNotifier, perms);
+                  case LayoutMode.tablet:
+                    return _buildLargeLayout(context, chatNotifier, perms);
+                  case LayoutMode.mobile:
+                    return _buildMobileLayout(context, chatNotifier, perms);
+                }
+              },
+            ),
           ),
         ),
         Container(
