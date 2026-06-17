@@ -33,6 +33,8 @@ autolabeler:
 categories:
   - type: pre-exclude
     title: Pre-exclude
+    labels:
+      - skip-changelog
     when:
       labels:
         - skip-changelog
