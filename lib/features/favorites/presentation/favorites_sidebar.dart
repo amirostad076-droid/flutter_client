@@ -19,7 +19,7 @@ class FavoritesSidebar extends ConsumerWidget {
 
     return Container(
       width: isMobileLayout(context) ? null : 240,
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+      padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
       decoration: BoxDecoration(
         color: context.colors.channelSidebarBackground,
         border: isMobileLayout(context)

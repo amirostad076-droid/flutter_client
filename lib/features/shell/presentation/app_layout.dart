@@ -228,26 +228,18 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   Widget _buildMobileChannelBody(String location) {
     final isOnChatRoute = _isChatRoute(location);
     final isPanelOpen = ref.watch(expressionPanelProvider);
-    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
-
     final shouldResizeForKeyboard =
         mobileChannelScaffoldShouldResizeForKeyboard(
           isChatRoute: isOnChatRoute,
           isExpressionPanelOpen: isPanelOpen,
         );
 
-    return Scaffold(
+    return _MobileChannelScaffold(
       backgroundColor: context.colors.backgroundPrimary,
       resizeToAvoidBottomInset: shouldResizeForKeyboard,
-      body: SidebarDrawer(
-        base: Column(
-          children: [
-            Expanded(child: _buildMobileSidebar(location)),
-            if (!keyboardOpen) _buildBottomNav(context),
-          ],
-        ),
-        slider: widget.navigationShell,
-      ),
+      sidebar: _buildMobileSidebar(location),
+      bottomNav: _buildBottomNav(context),
+      slider: widget.navigationShell,
     );
   }
 
@@ -279,8 +271,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     if (!canSwipePop) {
       return mainContent;
     }
-    final mediaQuery = MediaQuery.of(context);
-    final double screenWidth = mediaQuery.size.width;
+    final double screenWidth = MediaQuery.sizeOf(context).width;
     if (screenWidth <= 0) {
       return mainContent;
     }
@@ -490,6 +481,45 @@ class _AppLayoutState extends ConsumerState<AppLayout>
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Builds the mobile channel [Scaffold] and reads the keyboard inset in its own
+/// build, so a keyboard show/hide rebuilds only this thin wrapper. [sidebar],
+/// [bottomNav] and [slider] are captured instances, so the surfaces behind the
+/// chat (DM list, guild navbar, channels) are not rebuilt while the keyboard
+/// animates — only the bottom-nav visibility toggles.
+class _MobileChannelScaffold extends StatelessWidget {
+  const _MobileChannelScaffold({
+    required this.backgroundColor,
+    required this.resizeToAvoidBottomInset,
+    required this.sidebar,
+    required this.bottomNav,
+    required this.slider,
+  });
+
+  final Color backgroundColor;
+  final bool resizeToAvoidBottomInset;
+  final Widget sidebar;
+  final Widget bottomNav;
+  final Widget slider;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+      body: SidebarDrawer(
+        base: Column(
+          children: <Widget>[
+            Expanded(child: sidebar),
+            if (!keyboardOpen) bottomNav,
+          ],
+        ),
+        slider: slider,
+      ),
     );
   }
 }

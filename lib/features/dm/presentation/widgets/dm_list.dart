@@ -179,7 +179,7 @@ class _DMListState extends ConsumerState<DMList> {
         )
         .toList();
     return Container(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+      padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
       color: context.colors.channelSidebarBackground,
       child: Stack(
         children: [

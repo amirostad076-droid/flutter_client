@@ -430,10 +430,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
 
     _scheduleScrollIndicatorUpdate();
 
-    final double topPadding = max<double>(
-      MediaQuery.of(context).padding.top,
-      4,
-    );
+    final double topPadding = max<double>(MediaQuery.paddingOf(context).top, 4);
     final List<_NavbarListEntry> navbarEntries = _buildNavbarEntries(
       showFavorites: showFavorites,
       allowlistedDms: allowlistedDms,

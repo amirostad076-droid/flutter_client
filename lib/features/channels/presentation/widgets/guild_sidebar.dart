@@ -139,7 +139,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
 
     return Container(
       width: 240,
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+      padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
       decoration: BoxDecoration(
         color: context.colors.channelSidebarBackground,
         border: Border(right: BorderSide(color: context.colors.borderColor)),
