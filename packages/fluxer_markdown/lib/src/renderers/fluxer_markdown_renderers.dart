@@ -560,11 +560,18 @@ class _MarkdownInlineRenderer {
       case FluxerEveryoneMentionSyntax.tag:
         return _buildEveryoneMention(node, effectiveStyle);
       case FluxerTimestampSyntax.tag:
-        return WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: FluxerTimestampWidget(
-            element: node,
-            baseStyle: effectiveStyle,
+        final timestampText = _formatTimestampText(node);
+        if (timestampText == null) {
+          return const TextSpan(text: '');
+        }
+        return TextSpan(
+          text: timestampText,
+          style: effectiveStyle.copyWith(
+            background: Paint()
+              ..color =
+                  (effectiveStyle.color ??
+                          Theme.of(context).colorScheme.onSurface)
+                      .withValues(alpha: 0.08),
           ),
         );
       case FluxerSpoilerSyntax.tag:
@@ -1138,66 +1145,25 @@ class FluxerEmojiWidget extends StatelessWidget {
   }
 }
 
-class FluxerTimestampWidget extends StatelessWidget {
-  const FluxerTimestampWidget({
-    required this.element,
-    required this.baseStyle,
-    super.key,
-  });
-
-  final md.Element element;
-  final TextStyle baseStyle;
-
-  @override
-  Widget build(BuildContext context) {
-    final unix = int.tryParse(element.textContent);
-    if (unix == null) {
-      return const SizedBox.shrink();
-    }
-
-    final dt = DateTime.fromMillisecondsSinceEpoch(unix * 1000);
-    final flag = element.attributes['flag'] ?? 'f';
-    final text = switch (flag) {
-      's' => DateFormat.yMd().add_Hm().format(dt),
-      'S' => DateFormat.yMd().add_Hms().format(dt),
-      't' => DateFormat.Hm().format(dt),
-      'T' => DateFormat.Hms().format(dt),
-      'd' => DateFormat.yMd().format(dt),
-      'D' => DateFormat.yMMMMd().format(dt),
-      'F' => DateFormat.yMMMMEEEEd().add_Hm().format(dt),
-      'R' => _relative(dt),
-      _ => DateFormat.yMMMMd().add_Hm().format(dt),
-    };
-    final iconColor = Theme.of(context).colorScheme.onSurfaceVariant;
-    final fontSize = (baseStyle.fontSize ?? 16) * 0.85;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(3),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            PhosphorIconsFill.clock,
-            size: fontSize,
-            color: iconColor.withValues(alpha: 0.7),
-          ),
-          const SizedBox(width: 3),
-          Text(
-            text,
-            style: baseStyle.copyWith(
-              fontSize: fontSize,
-              color: iconColor,
-              fontFamily: 'monospace',
-            ),
-          ),
-        ],
-      ),
-    );
+String? _formatTimestampText(md.Element element) {
+  final unix = int.tryParse(element.textContent);
+  if (unix == null) {
+    return null;
   }
+
+  final dt = DateTime.fromMillisecondsSinceEpoch(unix * 1000);
+  final flag = element.attributes['flag'] ?? 'f';
+  return switch (flag) {
+    's' => DateFormat.yMd().add_Hm().format(dt),
+    'S' => DateFormat.yMd().add_Hms().format(dt),
+    't' => DateFormat.Hm().format(dt),
+    'T' => DateFormat.Hms().format(dt),
+    'd' => DateFormat.yMd().format(dt),
+    'D' => DateFormat.yMMMMd().format(dt),
+    'F' => DateFormat.yMMMMEEEEd().add_Hm().format(dt),
+    'R' => _relative(dt),
+    _ => DateFormat.yMMMMd().add_Hm().format(dt),
+  };
 }
 
 String _relative(DateTime dt) {
