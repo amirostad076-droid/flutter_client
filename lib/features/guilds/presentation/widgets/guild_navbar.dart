@@ -419,14 +419,18 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       hasCollapsedDmUnread = false;
     }
 
-    ref.listen<List<GuildNavbarItem>>(organizedGuildListProvider, (
-      List<GuildNavbarItem>? previous,
-      List<GuildNavbarItem> next,
-    ) {
-      if (previous != next) {
-        _prefetchGuildPermissions(next);
-      }
-    });
+    ref
+      ..listen<List<GuildNavbarItem>>(organizedGuildListProvider, (
+        List<GuildNavbarItem>? previous,
+        List<GuildNavbarItem> next,
+      ) {
+        if (previous != next) {
+          _prefetchGuildPermissions(next);
+        }
+      })
+      ..listen(guildReadStateProvider, (_, _) {
+        _scheduleScrollIndicatorUpdate();
+      });
 
     _scheduleScrollIndicatorUpdate();
 
@@ -805,8 +809,8 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     required int unavailableCount,
   }) {
     final itemKey = _itemKeys.putIfAbsent(guild.id, GlobalKey.new);
-    return Builder(
-      builder: (context) {
+    return Consumer(
+      builder: (context, ref, child) {
         final unread = ref.watch(
           guildReadStateProvider.select((s) => s[guild.id]),
         );
@@ -1341,8 +1345,8 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
   }
 
   Widget _buildGuildItemInFolder(BuildContext context, Guild guild) {
-    return Builder(
-      builder: (context) {
+    return Consumer(
+      builder: (context, ref, child) {
         final unread = ref.watch(
           guildReadStateProvider.select((s) => s[guild.id]),
         );
