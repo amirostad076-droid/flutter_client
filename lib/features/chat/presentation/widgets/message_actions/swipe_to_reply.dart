@@ -18,8 +18,8 @@ const double _kIconRightPadding = 20;
 const double _kMaxCornerRadius = 8;
 
 const Duration _kEditHoldDelay = Duration(milliseconds: 400);
-const double _kHoldRingStroke = 2.5;
-const double _kHoldRingInset = 4;
+const double _kHoldRingStroke = 1.5;
+const double _kHoldRingInset = 2;
 
 /// Wraps [child] with a swipe-left-to-reply gesture, plus optional
 /// hold-to-edit.
