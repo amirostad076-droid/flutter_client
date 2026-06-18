@@ -15,10 +15,10 @@ analyzer:
     - "lib/core/push/**/*.fcm.dart"
     - "lib/core/push/services/firebase_messaging_push_service.fcm.dart"
     - "packages/fluxer_fcm/**"
-    - "*.pbjson.dart"
-    - "*.pb.dart"
-    - "*.pbenum.dart"
-    - "lib/core/synced_preferances/generated/**"
+    - "**/*.pbjson.dart"
+    - "**/*.pb.dart"
+    - "**/*.pbenum.dart"
+    - "lib/core/synced_preferences/generated/**"
 
 language:
   strict-casts: true

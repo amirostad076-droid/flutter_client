@@ -24,7 +24,7 @@ class GuildPermissions extends _$GuildPermissions {
     final ({int value, bool shouldCache}) outcome = await _computePermissions(
       guildId,
     );
-    if (outcome.shouldCache && outcome.value != 0) {
+    if (outcome.shouldCache) {
       final Map<String, int> newState = Map<String, int>.from(state);
       newState[guildId] = outcome.value;
       state = newState;
@@ -56,8 +56,11 @@ class GuildPermissions extends _$GuildPermissions {
     state = {};
   }
 
-  /// `shouldCache` is false when guild or membership is not loaded yet so we
-  /// do not persist a misleading 0 from lazy permission resolution.
+  /// Caches the resolved value, including a pending `0` when the current
+  /// user's member row is not loaded yet; gateway member add/update/chunk
+  /// events for the current user invalidate that entry via
+  /// [refreshPermissions]. Only an unknown guild stays uncached
+  /// (`shouldCache: false`), since its permission inputs are not yet known.
   Future<({int value, bool shouldCache})> _computePermissions(
     String guildId,
   ) async {
@@ -81,7 +84,7 @@ class GuildPermissions extends _$GuildPermissions {
     );
 
     if (memberRow == null) {
-      return (value: 0, shouldCache: false);
+      return (value: 0, shouldCache: true);
     }
 
     final memberRoleIds = memberRow.roleIdsJson.isNotEmpty

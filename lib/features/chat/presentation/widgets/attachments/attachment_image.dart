@@ -4,7 +4,9 @@ import 'package:flutter_thumbhash/flutter_thumbhash.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/media/embed_animated_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
+import 'package:fluxer_app/features/chat/utils/embed_animated_image_url.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/media_viewer/attachment_media_viewer.dart';
@@ -58,6 +60,8 @@ class AttachmentImage extends StatelessWidget {
     final int? decodeHeight = display == null
         ? null
         : (display.height * dpr).round();
+    final bool animate = attachment.isAnimated;
+    final String effectiveUrl = attachment.proxyUrl ?? attachment.url;
     final image = Container(
       margin: const EdgeInsets.only(top: 4, bottom: 3),
       constraints: BoxConstraints(
@@ -89,28 +93,23 @@ class AttachmentImage extends StatelessWidget {
                 ),
           child: AspectRatio(
             aspectRatio: _resolveAspectRatio(),
-            child: CachedNetworkImage(
-              imageUrl: attachment.url,
-              memCacheWidth: decodeWidth,
-              memCacheHeight: decodeHeight,
-              fit: BoxFit.contain,
-              placeholder: (context, url) {
-                if (attachment.placeholder != null) {
-                  return Image(
-                    image: ThumbHash.fromBase64(
-                      attachment.placeholder!,
-                    ).toImage(),
+            child: animate
+                ? EmbedAnimatedImage(
+                    animatedUrl: animatedEmbedImageUrl(effectiveUrl),
+                    staticUrl: staticEmbedImageUrl(effectiveUrl),
+                    visibilityKey:
+                        '${channelId}_${messageId}_${attachment.id}',
                     fit: BoxFit.contain,
-                  );
-                }
-                return const Skeletonizer(
-                  child: SizedBox(
-                    height: double.maxFinite,
-                    width: double.maxFinite,
+                    placeholder: _buildImagePlaceholder(context),
+                  )
+                : CachedNetworkImage(
+                    imageUrl: attachment.url,
+                    memCacheWidth: decodeWidth,
+                    memCacheHeight: decodeHeight,
+                    fit: BoxFit.contain,
+                    placeholder: (context, url) =>
+                        _buildImagePlaceholder(context),
                   ),
-                );
-              },
-            ),
           ),
         ),
       ),
@@ -122,6 +121,21 @@ class AttachmentImage extends StatelessWidget {
       isSpoiler: attachment.isSpoiler,
       initiallyRevealed: revealSpoiler,
       child: image,
+    );
+  }
+
+  Widget _buildImagePlaceholder(BuildContext context) {
+    if (attachment.placeholder != null) {
+      return Image(
+        image: ThumbHash.fromBase64(attachment.placeholder!).toImage(),
+        fit: BoxFit.contain,
+      );
+    }
+    return const Skeletonizer(
+      child: SizedBox(
+        height: double.maxFinite,
+        width: double.maxFinite,
+      ),
     );
   }
 

@@ -2,7 +2,7 @@ name-template: "v$RESOLVED_VERSION (Beta)"
 tag-template: "v$RESOLVED_VERSION"
 tag-prefix: v
 commitish: beta
-filter-by-commitish: true
+filter-by-commitish: false
 prerelease-identifier: beta
 pull-request-limit: 100
 

@@ -1,3 +1,4 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -40,5 +41,60 @@ void main() {
 
     expect(container.read(channelHasTypingProvider('A')), isTrue);
     expect(container.read(channelHasTypingProvider('B')), isFalse);
+  });
+
+  test(
+    'typingUsersInChannel lists remote typers excluding the current user',
+    () {
+      final container = makeContainer();
+      container.read(typingIndicatorsProvider.notifier).addTyping('A', 'u1');
+      container.read(typingIndicatorsProvider.notifier).addTyping('A', 'me');
+      container.read(typingIndicatorsProvider.notifier).addTyping('A', 'u2');
+
+      expect(container.read(typingUsersInChannelProvider('A')), ['u1', 'u2']);
+      expect(container.read(typingUsersInChannelProvider('B')), isEmpty);
+    },
+  );
+
+  test(
+    'prunes a typer after the expiry window and clears channelHasTyping',
+    () {
+      fakeAsync((FakeAsync async) {
+        final container = ProviderContainer(
+          overrides: [currentUserIdProvider.overrideWithValue('me')],
+        );
+        container.read(typingIndicatorsProvider.notifier).addTyping('A', 'u1');
+        expect(container.read(channelHasTypingProvider('A')), isTrue);
+
+        async.elapse(const Duration(seconds: 10, milliseconds: 1));
+
+        expect(container.read(channelHasTypingProvider('A')), isFalse);
+        expect(
+          container.read(typingIndicatorsProvider).containsKey('A'),
+          isFalse,
+        );
+        container.dispose();
+      });
+    },
+  );
+
+  test('re-typing within the window extends the expiry', () {
+    fakeAsync((FakeAsync async) {
+      final container = ProviderContainer(
+        overrides: [currentUserIdProvider.overrideWithValue('me')],
+      );
+      container.read(typingIndicatorsProvider.notifier).addTyping('A', 'u1');
+
+      async.elapse(const Duration(seconds: 6));
+      container.read(typingIndicatorsProvider.notifier).addTyping('A', 'u1');
+      async.elapse(const Duration(seconds: 6));
+
+      expect(container.read(channelHasTypingProvider('A')), isTrue);
+
+      async.elapse(const Duration(seconds: 5));
+
+      expect(container.read(channelHasTypingProvider('A')), isFalse);
+      container.dispose();
+    });
   });
 }

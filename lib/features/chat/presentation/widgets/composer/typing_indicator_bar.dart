@@ -1,13 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/providers/channel_typing_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/utils/typing_indicator_text.dart';
-import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/providers/blocked_users_view_model.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
@@ -20,64 +17,36 @@ import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 
 const double _kAvatarSize = 12;
 const int _kMaxVisibleAvatars = 5;
-const Duration _kRefreshInterval = Duration(milliseconds: 500);
 
 /// Floating pill shown over the chat area when other users are typing.
-class TypingIndicatorBar extends ConsumerStatefulWidget {
+class TypingIndicatorBar extends ConsumerWidget {
   const TypingIndicatorBar({super.key});
 
   @override
-  ConsumerState<TypingIndicatorBar> createState() => _TypingIndicatorBarState();
-}
-
-class _TypingIndicatorBarState extends ConsumerState<TypingIndicatorBar> {
-  Timer? _refreshTimer;
-
-  @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    super.dispose();
-  }
-
-  void _ensureTimer(bool hasTyping) {
-    if (hasTyping && _refreshTimer == null) {
-      _refreshTimer = Timer.periodic(_kRefreshInterval, (_) {
-        if (mounted) {
-          setState(() {});
-        }
-      });
-      return;
-    }
-    if (!hasTyping && _refreshTimer != null) {
-      _refreshTimer!.cancel();
-      _refreshTimer = null;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final channelId = ref.watch(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final String channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final currentUserId = ref.watch(currentUserIdProvider);
-    final indicators = ref.watch(typingIndicatorsProvider);
+    if (channelId.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final List<String> userIds = ref.watch(
+      typingUsersInChannelProvider(channelId),
+    );
+    if (userIds.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final blocked = ref.watch(blockedUsersViewModelProvider).value;
-    final blockedIds = blocked == null
+    final Set<String> blockedIds = blocked == null
         ? const <String>{}
         : {for (final f in blocked) f.id};
-    final now = DateTime.now();
-    final activeUserIds = indicators
-        .where(
-          (t) =>
-              t.channelId == channelId &&
-              t.userId != currentUserId &&
-              !blockedIds.contains(t.userId) &&
-              t.expiresAt.isAfter(now),
-        )
-        .map((t) => t.userId)
-        .toList();
-    _ensureTimer(activeUserIds.isNotEmpty);
-    if (channelId.isEmpty || activeUserIds.isEmpty) {
+    final List<String> activeUserIds = blockedIds.isEmpty
+        ? userIds
+        : <String>[
+            for (final String id in userIds)
+              if (!blockedIds.contains(id)) id,
+          ];
+    if (activeUserIds.isEmpty) {
       return const SizedBox.shrink();
     }
     return IgnorePointer(child: _TypingPill(userIds: activeUserIds));
@@ -160,7 +129,9 @@ class _TypingPill extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FluxerLoadingSpinner(color: colors.textSecondary),
+          RepaintBoundary(
+            child: FluxerLoadingSpinner(color: colors.textSecondary),
+          ),
           const SizedBox(width: 8),
           FluxerAvatarStack(
             size: _kAvatarSize,

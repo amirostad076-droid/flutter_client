@@ -2,10 +2,12 @@ name: iOS Beta TestFlight Build
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   check-actor:
     name: Check allowed user
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}
@@ -37,6 +39,9 @@ jobs:
   build-and-upload:
     name: Build and upload to TestFlight
     needs: check-actor
+    if: |
+      always() &&
+      (github.event_name == 'workflow_call' || needs.check-actor.result == 'success')
     runs-on: macos-26
     env:
       LANG: en_US.UTF-8
@@ -46,6 +51,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
+          ref: ${{ github.event_name == 'workflow_call' && 'beta' || github.ref }}
           submodules: recursive
 
       - name: Sync submodules

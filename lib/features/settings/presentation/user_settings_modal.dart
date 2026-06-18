@@ -47,7 +47,7 @@ String _userSettingsFooterText(AppRuntimeInfo info, FluxerLocalizations l10n) {
       ? 'beta $betaNumber'
       : info.environment.name;
   final base =
-      'v${info.version} (${info.buildNumber})'
+      'v${info.releaseVersion} (${info.buildNumber})'
       ' • $environmentLabel'
       ' • ${formatPushProviderLabel(info.pushProvider)}';
   if (info.buildTimestamp.isEmpty) {

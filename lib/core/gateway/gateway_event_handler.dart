@@ -176,13 +176,18 @@ class GatewayEventHandler {
           ' → ${event.guildId}',
         );
         _handleMemberUpsert(event.guildId, event.member);
+        if (event.member.user.id == currentUserId) {
+          onGuildPermissionsChanged?.call(event.guildId);
+        }
       case GuildMemberUpdateEvent():
         talker.debug(
           '[Gateway] GUILD_MEMBER_UPDATE: ${event.member.user.id}'
           ' → ${event.guildId}',
         );
         _handleMemberUpsert(event.guildId, event.member);
-        onGuildPermissionsChanged?.call(event.guildId);
+        if (event.member.user.id == currentUserId) {
+          onGuildPermissionsChanged?.call(event.guildId);
+        }
       case GuildMemberRemoveEvent():
         talker.debug(
           '[Gateway] GUILD_MEMBER_REMOVE: ${event.userId}'
@@ -1113,6 +1118,9 @@ class GatewayEventHandler {
     if (channel == null) {
       return message.mentionEveryone;
     }
+    if (!message.mentionEveryone && message.mentionRoles.isEmpty) {
+      return false;
+    }
     final settingsRow = await database.userGuildSettingsDao.getByGuildId(
       channel.guildId,
     );
@@ -1404,6 +1412,9 @@ class GatewayEventHandler {
       event.chunkCount,
       userIds,
     );
+    if (currentUserId != null && userIds.contains(currentUserId)) {
+      onGuildPermissionsChanged?.call(event.guildId);
+    }
   }
 
   Future<void> _handleMemberListUpdate(GuildMemberListUpdateEvent event) async {

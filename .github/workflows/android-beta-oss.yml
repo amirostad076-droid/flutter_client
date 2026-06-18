@@ -2,6 +2,7 @@ name: Android Beta OSS Build
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -9,6 +10,7 @@ permissions:
 jobs:
   check-actor:
     name: Check allowed user
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}
@@ -40,11 +42,15 @@ jobs:
   build-beta-oss:
     name: Build beta OSS APK (UnifiedPush)
     needs: check-actor
+    if: |
+      always() &&
+      (github.event_name == 'workflow_call' || needs.check-actor.result == 'success')
     runs-on: macos-26
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
+          ref: ${{ github.event_name == 'workflow_call' && 'beta' || github.ref }}
           submodules: recursive
 
       - name: Resolve beta version name

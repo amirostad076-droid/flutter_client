@@ -201,3 +201,25 @@ String? oldestUnreadMessageId({
 
   return null;
 }
+
+/// True if the DM-relevant read-state fields (ack id + mention count) differ
+/// between two channelId->ReadState snapshots. Used to skip recomputes that
+/// Drift's table-level stream invalidation fires when no relevant read state
+/// actually changed.
+bool dmReadStatesChanged(
+  Map<String, ReadState> previous,
+  Map<String, ReadState> next,
+) {
+  if (previous.length != next.length) {
+    return true;
+  }
+  for (final entry in next.entries) {
+    final prior = previous[entry.key];
+    if (prior == null ||
+        prior.lastMessageId != entry.value.lastMessageId ||
+        prior.mentionCount != entry.value.mentionCount) {
+      return true;
+    }
+  }
+  return false;
+}

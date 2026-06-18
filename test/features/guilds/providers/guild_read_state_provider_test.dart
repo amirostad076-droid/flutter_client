@@ -348,6 +348,7 @@ void main() {
     await db.messageDao.upsertMessage(
       _cachedMessage(id: newerMessageId, channelId: 'channel-1'),
     );
+    await db.channelDao.setLastMessageId('channel-1', newerMessageId);
     await _waitForGuildState(container, 'guild-1');
 
     final after = container.read(guildReadStateProvider)['guild-1']!;
@@ -591,5 +592,134 @@ void main() {
     final entry = container.read(guildReadStateProvider)['guild-1'];
     expect(entry?.hasUnread, isTrue);
     expect(entry?.hasPlainUnread, isTrue);
+  });
+
+  test(
+    'incremental recompute converges to full recompute across channels',
+    () async {
+      final last1 = _recentSnowflake();
+      final last2 = _recentSnowflake(ago: const Duration(minutes: 50));
+      final last3 = _recentSnowflake(ago: const Duration(minutes: 40));
+      final channels = [
+        (id: 'c1', name: 'c1', type: 0, lastMessageId: last1),
+        (id: 'c2', name: 'c2', type: 0, lastMessageId: last2),
+        (id: 'c3', name: 'c3', type: 0, lastMessageId: last3),
+      ];
+
+      Future<void> seedReadStates(
+        FluxerDatabase db, {
+        required int c2Mentions,
+      }) async {
+        await db.readStateDao.upsertReadState(
+          ReadStatesCompanion(
+            channelId: const Value('c1'),
+            lastMessageId: Value(snowflakeAtPreviousMillisecond(last1)),
+          ),
+        );
+        await db.readStateDao.upsertReadState(
+          ReadStatesCompanion(
+            channelId: const Value('c2'),
+            lastMessageId: Value(last2),
+            mentionCount: Value(c2Mentions),
+          ),
+        );
+        await db.readStateDao.upsertReadState(
+          ReadStatesCompanion(
+            channelId: const Value('c3'),
+            lastMessageId: Value(snowflakeAtPreviousMillisecond(last3)),
+            mentionCount: const Value(2),
+          ),
+        );
+      }
+
+      final db2 = FluxerDatabase.forTesting(NativeDatabase.memory());
+      await _seedGuild(db2, 'g', channels: channels);
+      await seedReadStates(db2, c2Mentions: 1);
+      final container2 = _container(db2);
+      container2.read(gatewayReadyProvider.notifier).setReady();
+      final sub2 = container2.listen(
+        guildReadStateProvider,
+        (_, _) {},
+        fireImmediately: true,
+      );
+      await _waitForGuildState(container2, 'g');
+      final full = container2.read(guildReadStateProvider)['g']!;
+      sub2.close();
+      container2.dispose();
+      await db2.close();
+
+      final db1 = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db1.close);
+      await _seedGuild(db1, 'g', channels: channels);
+      await seedReadStates(db1, c2Mentions: 0);
+      final container1 = _container(db1);
+      addTearDown(container1.dispose);
+      container1.read(gatewayReadyProvider.notifier).setReady();
+      final sub1 = container1.listen(
+        guildReadStateProvider,
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(sub1.close);
+      await _waitForGuildState(container1, 'g');
+      final before = container1.read(guildReadStateProvider)['g']!;
+
+      await db1.readStateDao.incrementMentionCount('c2');
+      await _waitFor(
+        () =>
+            (container1.read(guildReadStateProvider)['g']?.mentionCount ?? 0) ==
+            full.mentionCount,
+      );
+      final incremental = container1.read(guildReadStateProvider)['g']!;
+
+      expect(incremental.mentionCount, greaterThan(before.mentionCount));
+      expect(incremental.hasUnread, full.hasUnread);
+      expect(incremental.hasPlainUnread, full.hasPlainUnread);
+      expect(incremental.mentionCount, full.mentionCount);
+      expect(incremental.unreadChannelId, full.unreadChannelId);
+      expect(incremental.mentionChannels, full.mentionChannels);
+    },
+  );
+
+  test('a message edit leaves guild unread untouched', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    final lastId = _recentSnowflake();
+    await _seedGuild(
+      db,
+      'guild-1',
+      channels: [
+        (id: 'channel-1', name: 'general', type: 0, lastMessageId: lastId),
+      ],
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(snowflakeAtPreviousMillisecond(lastId)),
+      ),
+    );
+
+    final container = _container(db);
+    addTearDown(container.dispose);
+    container.read(gatewayReadyProvider.notifier).setReady();
+    final sub = container.listen(
+      guildReadStateProvider,
+      (_, _) {},
+      fireImmediately: true,
+    );
+    addTearDown(sub.close);
+    await _waitForGuildState(container, 'guild-1');
+    final before = container.read(guildReadStateProvider)['guild-1']!;
+
+    // Message-only edit: channel.lastMessageId is unchanged, so no recompute fires.
+    await db.messageDao.upsertMessage(
+      _cachedMessage(id: lastId, channelId: 'channel-1'),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    final after = container.read(guildReadStateProvider)['guild-1']!;
+    expect(after.sentinel, before.sentinel);
+    expect(after.hasUnread, before.hasUnread);
   });
 }

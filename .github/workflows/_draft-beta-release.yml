@@ -1,35 +1,37 @@
-name: Release Drafter
+name: Draft Beta Release
 
 on:
-  push:
-    branches:
-      - beta
-      - stable
+  workflow_call:
+    outputs:
+      release_id:
+        description: GitHub release ID for the beta draft
+        value: ${{ jobs.draft.outputs.release_id }}
+      tag_name:
+        description: Tag name for the beta draft release
+        value: ${{ jobs.draft.outputs.tag_name }}
 
 permissions:
   contents: write
   pull-requests: read
 
 jobs:
-  update_beta_draft:
+  draft:
     name: Update beta release draft
-    if: github.ref == 'refs/heads/beta'
-    uses: ./.github/workflows/_draft-beta-release.yml
-    secrets: inherit
-
-  update_stable_draft:
-    name: Update stable release draft
-    if: github.ref == 'refs/heads/stable'
     runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.release_drafter.outputs.id }}
+      tag_name: ${{ steps.release_drafter.outputs.tag_name }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: beta
 
       - id: release_drafter
         uses: release-drafter/release-drafter@693d20e7c1ce1a81d3a41962f85914253b518449
         with:
-          config-name: release-drafter-stable.yml
+          config-name: release-drafter-beta.yml
           github-token: ${{ secrets.FLUXER_AUTOMATION_PAT }}
-          commitish: stable
+          commitish: beta
 
       - name: Append contributor avatars
         env:

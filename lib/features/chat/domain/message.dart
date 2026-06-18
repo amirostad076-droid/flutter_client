@@ -400,6 +400,10 @@ class Attachment {
     return ['png', 'jpg', 'jpeg', 'gif', 'webp'].contains(ext);
   }
 
+  bool get isAnimated =>
+      contentType?.toLowerCase() == 'image/gif' ||
+      filename.toLowerCase().endsWith('.gif');
+
   bool get isVideo {
     if (contentType?.startsWith('video/') ?? false) {
       return true;

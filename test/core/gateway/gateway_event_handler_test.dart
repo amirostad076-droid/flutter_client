@@ -129,6 +129,87 @@ void main() {
     expect(stickers.single.tagsJson, '["wave","hello"]');
     expect(stickers.single.animated, isFalse);
   });
+
+  group('member-load permission refresh', () {
+    const memberGuildId = 'g1';
+
+    ({GatewayEventHandler handler, FluxerDatabase database}) build(
+      List<String> captured,
+    ) {
+      final database = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(database.close);
+      final handler = GatewayEventHandler(
+        database: database,
+        currentUserId: '100',
+        onGuildPermissionsChanged: (guildId) => captured.add(guildId),
+      );
+      return (handler: handler, database: database);
+    }
+
+    test('member add for the current user refreshes permissions', () async {
+      final captured = <String>[];
+      final ctx = build(captured);
+      await ctx.handler.handle(
+        GuildMemberAddEvent(guildId: memberGuildId, member: _member('100')),
+      );
+      expect(captured, <String>[memberGuildId]);
+      await ctx.database.memberDao.countMembers(memberGuildId);
+    });
+
+    test('member add for another user does not refresh', () async {
+      final captured = <String>[];
+      final ctx = build(captured);
+      await ctx.handler.handle(
+        GuildMemberAddEvent(guildId: memberGuildId, member: _member('999')),
+      );
+      expect(captured, isEmpty);
+      await ctx.database.memberDao.countMembers(memberGuildId);
+    });
+
+    test('member update is gated to the current user', () async {
+      final captured = <String>[];
+      final ctx = build(captured);
+      await ctx.handler.handle(
+        GuildMemberUpdateEvent(guildId: memberGuildId, member: _member('999')),
+      );
+      expect(captured, isEmpty);
+      await ctx.handler.handle(
+        GuildMemberUpdateEvent(guildId: memberGuildId, member: _member('100')),
+      );
+      expect(captured, <String>[memberGuildId]);
+      await ctx.database.memberDao.countMembers(memberGuildId);
+    });
+
+    test('members chunk containing the current user refreshes once', () async {
+      final captured = <String>[];
+      final ctx = build(captured);
+      await ctx.handler.handle(
+        GuildMembersChunkEvent(
+          guildId: memberGuildId,
+          members: [_member('111'), _member('100'), _member('222')],
+          chunkIndex: 0,
+          chunkCount: 1,
+        ),
+      );
+      expect(captured, <String>[memberGuildId]);
+      await ctx.database.memberDao.countMembers(memberGuildId);
+    });
+
+    test('members chunk without the current user does not refresh', () async {
+      final captured = <String>[];
+      final ctx = build(captured);
+      await ctx.handler.handle(
+        GuildMembersChunkEvent(
+          guildId: memberGuildId,
+          members: [_member('111'), _member('222')],
+          chunkIndex: 0,
+          chunkCount: 1,
+        ),
+      );
+      expect(captured, isEmpty);
+      await ctx.database.memberDao.countMembers(memberGuildId);
+    });
+  });
 }
 
 UserPrivateResponse _user() => UserPrivateResponse.fromJson({
@@ -215,3 +296,19 @@ Map<String, dynamic> _guildWithSticker() => {
     },
   ],
 };
+
+GuildMemberResponse _member(String userId) => GuildMemberResponse(
+  user: UserPartialResponse(
+    id: userId,
+    username: 'user-$userId',
+    discriminator: '0001',
+    globalName: null,
+    avatar: null,
+    avatarColor: null,
+    flags: 0,
+  ),
+  roles: const <String>[],
+  joinedAt: DateTime.utc(2024),
+  mute: false,
+  deaf: false,
+);

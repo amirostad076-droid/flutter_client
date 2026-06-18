@@ -1,0 +1,70 @@
+name: Merge Canary to Beta
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check-actor:
+    name: Check allowed user
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check actor against allowlist
+        id: check
+        run: |
+          ALLOWED="${{ vars.ALLOWED_TESTFLIGHT_ACTORS }}"
+          if [ -z "$ALLOWED" ]; then
+            echo "::error::Repository variable ALLOWED_TESTFLIGHT_ACTORS is not set. Add a comma-separated list of GitHub usernames in Settings -> Secrets and variables -> Actions -> Variables."
+            exit 1
+          fi
+          ACTOR="${{ github.actor }}"
+          ALLOWED_ARR="${ALLOWED//,/ }"
+          FOUND=false
+          for user_name in $ALLOWED_ARR; do
+            user_name_trimmed=$(echo "$user_name" | xargs)
+            if [ "$user_name_trimmed" = "$ACTOR" ]; then
+              FOUND=true
+              break
+            fi
+          done
+          if [ "$FOUND" != "true" ]; then
+            echo "::error::User $ACTOR is not allowed to run this workflow. Allowed users are listed in ALLOWED_TESTFLIGHT_ACTORS."
+            exit 1
+          fi
+
+  merge-canary-to-beta:
+    name: Merge canary into beta
+    needs: check-actor
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout beta
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: beta
+          token: ${{ secrets.FLUXER_AUTOMATION_PAT }}
+          fetch-depth: 0
+
+      - name: Fast-forward or merge canary into beta
+        env:
+          GH_TOKEN: ${{ secrets.FLUXER_AUTOMATION_PAT }}
+        run: |
+          set -euo pipefail
+          git config user.name "fluxer-automation"
+          git config user.email "ci@fluxerapp.com"
+          git fetch origin canary
+          if git merge-base --is-ancestor origin/canary HEAD; then
+            echo "::notice::beta already contains canary. Nothing to merge."
+            exit 0
+          fi
+          if git merge --ff-only origin/canary; then
+            echo "::notice::Fast-forwarded beta to canary at $(git rev-parse --short HEAD)"
+          elif git merge --no-ff origin/canary --no-edit -m "Merge branch 'canary' into beta"; then
+            echo "::notice::Merged canary into beta at $(git rev-parse --short HEAD)"
+          else
+            echo "::error::Merge conflict while merging canary into beta. Resolve conflicts manually."
+            git merge --abort || true
+            exit 1
+          fi
+          git push origin HEAD:beta

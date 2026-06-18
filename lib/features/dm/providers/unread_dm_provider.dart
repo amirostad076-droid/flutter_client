@@ -59,6 +59,7 @@ class UnreadDmChannels extends _$UnreadDmChannels {
   StreamSubscription<List<DmChannel>>? _dmSubscription;
   StreamSubscription<List<ReadState>>? _readStateSubscription;
   List<DmChannel> _latestRows = const [];
+  Map<String, ReadState> _dmReadStateSnapshot = const {};
 
   @override
   UnreadDmState build() {
@@ -67,12 +68,22 @@ class UnreadDmChannels extends _$UnreadDmChannels {
 
     unawaited(_dmSubscription?.cancel());
     unawaited(_readStateSubscription?.cancel());
+    _dmReadStateSnapshot = const {};
     _dmSubscription = db.dmChannelDao.watchDmChannels().listen(
       (rows) => unawaited(_reconcile(rows)),
     );
-    _readStateSubscription = db.readStateDao.watchReadStates().listen(
-      (_) => unawaited(_reconcile()),
-    );
+    _readStateSubscription = db.readStateDao.watchReadStates().listen((rows) {
+      final dmIds = _latestRows.map((row) => row.id).toSet();
+      final next = <String, ReadState>{
+        for (final r in rows)
+          if (dmIds.contains(r.channelId)) r.channelId: r,
+      };
+      if (!dmReadStatesChanged(_dmReadStateSnapshot, next)) {
+        return;
+      }
+      _dmReadStateSnapshot = next;
+      unawaited(_reconcile());
+    });
 
     ref.onDispose(() {
       unawaited(_dmSubscription?.cancel());
@@ -130,6 +141,7 @@ class UnreadDmChannels extends _$UnreadDmChannels {
         ? <ReadState>[]
         : await db.readStateDao.watchReadStatesForChannels(channelIds).first;
     final readStateMap = {for (final rs in readStates) rs.channelId: rs};
+    _dmReadStateSnapshot = readStateMap;
     final allChannels = _latestRows.map((channel) {
       final readState = readStateMap[channel.id];
       final latestMessageId = resolveLatestMessageIdForUnread(
