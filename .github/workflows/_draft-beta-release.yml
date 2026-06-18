@@ -25,6 +25,8 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: beta
+          fetch-depth: 0
+          fetch-tags: true
 
       - id: release_drafter
         uses: release-drafter/release-drafter@693d20e7c1ce1a81d3a41962f85914253b518449
@@ -33,11 +35,19 @@ jobs:
           token: ${{ secrets.FLUXER_AUTOMATION_PAT }}
           commitish: beta
 
+      - name: Append direct commits
+        env:
+          RELEASE_ID: ${{ steps.release_drafter.outputs.id }}
+          RELEASE_TAG: ${{ steps.release_drafter.outputs.tag_name }}
+          BODY: ${{ steps.release_drafter.outputs.body }}
+          COMMITISH: beta
+          GH_TOKEN: ${{ secrets.FLUXER_AUTOMATION_PAT }}
+        run: |
+          printf '%s\n' "$BODY" > /tmp/release-body.md
+          python3 .github/scripts/append_release_direct_commits.py /tmp/release-body.md
+
       - name: Append contributor avatars
         env:
           RELEASE_ID: ${{ steps.release_drafter.outputs.id }}
-          BODY: ${{ steps.release_drafter.outputs.body }}
           GH_TOKEN: ${{ github.token }}
-        run: |
-          printf '%s\n' "$BODY" > /tmp/release-body.md
-          python3 .github/scripts/append_release_contributor_avatars.py /tmp/release-body.md
+        run: python3 .github/scripts/append_release_contributor_avatars.py /tmp/release-body.md

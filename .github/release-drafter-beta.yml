@@ -25,13 +25,13 @@ exclude-labels:
 autolabeler:
   - label: feature
     title:
-      - '/^feat(\([^)]+\))?!?:/i'
+      - '/^feat(\([^)]+\)|\{[^}]+\})?!?:/i'
   - label: fix
     title:
-      - '/^fix(\([^)]+\))?!?:/i'
+      - '/^fix(\([^)]+\)|\{[^}]+\})?!?:/i'
   - label: skip-changelog
     title:
-      - '/^(chore|ci|build|style|refactor|test)(\([^)]+\))?!?:/i'
+      - '/^(chore|ci|build|style|refactor|test)(\([^)]+\)|\{[^}]+\})?!?:/i'
     files:
       - ".github/**"
 
