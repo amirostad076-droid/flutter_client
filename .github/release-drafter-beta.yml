@@ -70,6 +70,8 @@ template: |
 
   Pre-release build for TestFlight and Android APK (FCM + OSS).
 
-  ## Changes
+  ## What's New
+
+  ## Detailed changes
 
   $CHANGES
