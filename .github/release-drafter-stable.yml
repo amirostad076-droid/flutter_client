@@ -18,29 +18,33 @@ exclude-contributors:
   - fluxer-automation
   - fluxer-automation[bot]
 
+exclude-labels:
+  - skip-changelog
+
+version-resolver:
+  major:
+    labels:
+      - breaking
+  minor:
+    labels:
+      - feature
+      - enhancement
+  patch:
+    labels:
+      - fix
+      - bug
+  default: patch
+
 categories:
-  - type: pre-exclude
-    when:
-      labels:
-        - skip-changelog
-
-  - type: version-resolver
-    semver-increment: major
-    when:
-      label: breaking
-
   - title: Features
-    semver-increment: minor
-    when:
-      labels:
-        - feature
-        - enhancement
+    labels:
+      - feature
+      - enhancement
 
   - title: Fixes
-    when:
-      labels:
-        - fix
-        - bug
+    labels:
+      - fix
+      - bug
 
   - title: Other
 

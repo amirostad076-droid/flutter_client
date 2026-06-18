@@ -3,7 +3,9 @@ tag-template: "v$RESOLVED_VERSION"
 tag-prefix: v
 commitish: beta
 filter-by-commitish: false
+prerelease: true
 prerelease-identifier: beta
+include-pre-releases: true
 pull-request-limit: 100
 
 exclude-contributors:
@@ -16,6 +18,9 @@ exclude-contributors:
   - github-actions[bot]
   - fluxer-automation
   - fluxer-automation[bot]
+
+exclude-labels:
+  - skip-changelog
 
 autolabeler:
   - label: feature
@@ -30,27 +35,30 @@ autolabeler:
     files:
       - ".github/**"
 
-categories:
-  - type: pre-exclude
-    title: Pre-exclude
+version-resolver:
+  major:
     labels:
-      - skip-changelog
-    when:
-      labels:
-        - skip-changelog
+      - breaking
+  minor:
+    labels:
+      - feature
+      - enhancement
+  patch:
+    labels:
+      - fix
+      - bug
+  default: patch
 
+categories:
   - title: Features
-    semver-increment: minor
-    when:
-      labels:
-        - feature
-        - enhancement
+    labels:
+      - feature
+      - enhancement
 
   - title: Fixes
-    when:
-      labels:
-        - fix
-        - bug
+    labels:
+      - fix
+      - bug
 
   - title: Other
 
@@ -65,4 +73,3 @@ template: |
   ## Changes
 
   $CHANGES
-
