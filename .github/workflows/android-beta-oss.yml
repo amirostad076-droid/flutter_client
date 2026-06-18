@@ -3,7 +3,6 @@ name: Android Beta OSS Build
 on:
   workflow_dispatch:
   workflow_call:
-    secrets: inherit
 
 permissions:
   contents: read

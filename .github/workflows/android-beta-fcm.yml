@@ -3,7 +3,6 @@ name: Android Beta FCM Build
 on:
   workflow_dispatch:
   workflow_call:
-    secrets: inherit
 
 permissions:
   contents: read

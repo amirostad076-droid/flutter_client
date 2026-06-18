@@ -3,7 +3,6 @@ name: iOS Beta TestFlight Build
 on:
   workflow_dispatch:
   workflow_call:
-    secrets: inherit
 
 jobs:
   check-actor:
