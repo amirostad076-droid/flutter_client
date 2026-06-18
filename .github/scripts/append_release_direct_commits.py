@@ -11,6 +11,10 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from beta_release_metadata import build_release_patch_payload, patch_release
+
 BETA_TAG_PATTERN = re.compile(r"^v?(\d+\.\d+\.\d+)-beta\.(\d+)$")
 COMMIT_SCOPE_PATTERN = r"(?:\([^)]+\)|\{[^}]+\})?"
 CONVENTIONAL_COMMIT_PATTERN = re.compile(
@@ -238,21 +242,12 @@ def insert_direct_commits(body: str, direct_commits: list[DirectCommit]) -> str:
 
 def patch_release_body(release_id: str, body: str) -> None:
     repository = os.environ["GITHUB_REPOSITORY"]
-    payload = json.dumps({"body": body})
-    subprocess.run(
-        [
-            "gh",
-            "api",
-            "--method",
-            "PATCH",
-            f"repos/{repository}/releases/{release_id}",
-            "--input",
-            "-",
-        ],
-        input=payload,
-        text=True,
-        check=True,
+    payload = build_release_patch_payload(
+        body=body,
+        tag_name=os.environ.get("RELEASE_TAG", "").strip() or None,
+        target_commitish=os.environ.get("COMMITISH", "").strip() or None,
     )
+    patch_release(repository, release_id, payload)
 
 
 def main() -> int:
