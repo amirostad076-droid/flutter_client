@@ -17,6 +17,7 @@ class AppIconBadge extends _$AppIconBadge {
   List<DmChannel> _dmRows = const [];
   Map<String, ReadState> _readStateByChannel = const {};
   int _dmMentionCount = 0;
+  bool _hasState = false;
 
   @override
   AppIconBadgeValue build() {
@@ -73,10 +74,14 @@ class AppIconBadge extends _$AppIconBadge {
     );
     final int pendingFriends =
         ref.read(pendingFriendRequestCountProvider).value ?? 0;
-    state = _computeFromParts(
+    final AppIconBadgeValue next = _computeFromParts(
       guildStates: guildStates,
       pendingFriendRequestCount: pendingFriends,
     );
+    if (!_hasState || next.count != state.count) {
+      _hasState = true;
+      state = next;
+    }
   }
 
   AppIconBadgeValue _computeFromParts({

@@ -263,4 +263,55 @@ void main() {
       expect(base.mentionCountFor('absent'), 0);
     },
   );
+
+  test('guild read-state churn does not re-emit the DM list', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    await db.dmChannelDao.upsertDmChannels([
+      DmChannelsCompanion.insert(
+        id: 'dm-1',
+        recipientId: 'other',
+        unreadCount: const Value(0),
+      ),
+    ]);
+    await db.readStateDao.upsertReadState(
+      const ReadStatesCompanion(
+        channelId: Value('dm-1'),
+        mentionCount: Value(1),
+      ),
+    );
+    final container = ProviderContainer(
+      overrides: [fluxerDatabaseProvider.overrideWithValue(db)],
+    );
+    addTearDown(container.dispose);
+
+    var emissions = 0;
+    final subscription = container.listen(
+      unreadDmChannelsProvider,
+      (_, _) => emissions++,
+    );
+    addTearDown(subscription.close);
+
+    await pumpEventQueue();
+    final settledState = container.read(unreadDmChannelsProvider);
+    final settledEmissions = emissions;
+    expect(settledState.channels.map((channel) => channel.id), ['dm-1']);
+
+    // A read state for a channel that is not a DM (e.g. a guild channel) must
+    // not wake the DM reconcile: Drift fires the broad read-state watch, but
+    // the DM-relevant subset is unchanged, so the diff gate skips.
+    await db.readStateDao.upsertReadState(
+      const ReadStatesCompanion(
+        channelId: Value('guild-chan-1'),
+        mentionCount: Value(5),
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(emissions, settledEmissions);
+    expect(
+      identical(container.read(unreadDmChannelsProvider), settledState),
+      isTrue,
+    );
+  });
 }

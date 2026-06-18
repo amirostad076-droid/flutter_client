@@ -1113,6 +1113,9 @@ class GatewayEventHandler {
     if (channel == null) {
       return message.mentionEveryone;
     }
+    if (!message.mentionEveryone && message.mentionRoles.isEmpty) {
+      return false;
+    }
     final settingsRow = await database.userGuildSettingsDao.getByGuildId(
       channel.guildId,
     );

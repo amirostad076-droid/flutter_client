@@ -38,6 +38,8 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
   var disposed = false;
   StreamSubscription<Object?>? memberSub;
   String? watchedMemberGuildId;
+  StreamSubscription<Object?>? settingsSub;
+  String? watchedSettingsGuildId;
 
   Future<void> recompute() async {
     if (disposed) {
@@ -73,6 +75,14 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
         watchedMemberGuildId = channel.guildId;
         memberSub = db.memberDao
             .watchMemberByUserId(currentUserId, channel.guildId)
+            .listen((_) => unawaited(recompute()));
+      }
+      if (channel.guildId.isNotEmpty &&
+          watchedSettingsGuildId != channel.guildId) {
+        unawaited(settingsSub?.cancel());
+        watchedSettingsGuildId = channel.guildId;
+        settingsSub = db.userGuildSettingsDao
+            .watchByGuildId(channel.guildId)
             .listen((_) => unawaited(recompute()));
       }
     }
@@ -132,9 +142,6 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
   final messageSub = db.messageDao
       .watchMessages(channelId)
       .listen((_) => unawaited(recompute()));
-  final settingsSub = db.userGuildSettingsDao.watchAll().listen(
-    (_) => unawaited(recompute()),
-  );
 
   unawaited(recompute());
 
@@ -143,7 +150,7 @@ Stream<UnreadState> channelUnread(Ref ref, String channelId) {
     unawaited(channelSub.cancel());
     unawaited(readStateSub.cancel());
     unawaited(messageSub.cancel());
-    unawaited(settingsSub.cancel());
+    unawaited(settingsSub?.cancel());
     unawaited(memberSub?.cancel());
     unawaited(controller.close());
   });

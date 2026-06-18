@@ -31,6 +31,7 @@ class DmRepository {
     final controller = StreamController<List<DmConversation>>();
     var latestRows = <db.DmChannel>[];
     var disposed = false;
+    var dmReadStateSnapshot = <String, db.ReadState>{};
 
     Future<void> recompute([List<db.DmChannel>? rows]) async {
       if (disposed) {
@@ -47,10 +48,18 @@ class DmRepository {
       (rows) => unawaited(recompute(rows)),
       onError: controller.addError,
     );
-    final readStateSub = _db.readStateDao.watchReadStates().listen(
-      (_) => unawaited(recompute()),
-      onError: controller.addError,
-    );
+    final readStateSub = _db.readStateDao.watchReadStates().listen((rows) {
+      final dmIds = latestRows.map((r) => r.id).toSet();
+      final next = <String, db.ReadState>{
+        for (final r in rows)
+          if (dmIds.contains(r.channelId)) r.channelId: r,
+      };
+      if (!dmReadStatesChanged(dmReadStateSnapshot, next)) {
+        return;
+      }
+      dmReadStateSnapshot = next;
+      unawaited(recompute());
+    }, onError: controller.addError);
 
     controller.onCancel = () async {
       disposed = true;
