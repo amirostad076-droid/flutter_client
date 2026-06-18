@@ -348,6 +348,7 @@ void main() {
     await db.messageDao.upsertMessage(
       _cachedMessage(id: newerMessageId, channelId: 'channel-1'),
     );
+    await db.channelDao.setLastMessageId('channel-1', newerMessageId);
     await _waitForGuildState(container, 'guild-1');
 
     final after = container.read(guildReadStateProvider)['guild-1']!;
@@ -679,4 +680,46 @@ void main() {
       expect(incremental.mentionChannels, full.mentionChannels);
     },
   );
+
+  test('a message edit leaves guild unread untouched', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    final lastId = _recentSnowflake();
+    await _seedGuild(
+      db,
+      'guild-1',
+      channels: [
+        (id: 'channel-1', name: 'general', type: 0, lastMessageId: lastId),
+      ],
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(snowflakeAtPreviousMillisecond(lastId)),
+      ),
+    );
+
+    final container = _container(db);
+    addTearDown(container.dispose);
+    container.read(gatewayReadyProvider.notifier).setReady();
+    final sub = container.listen(
+      guildReadStateProvider,
+      (_, _) {},
+      fireImmediately: true,
+    );
+    addTearDown(sub.close);
+    await _waitForGuildState(container, 'guild-1');
+    final before = container.read(guildReadStateProvider)['guild-1']!;
+
+    // Message-only edit: channel.lastMessageId is unchanged, so no recompute fires.
+    await db.messageDao.upsertMessage(
+      _cachedMessage(id: lastId, channelId: 'channel-1'),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    final after = container.read(guildReadStateProvider)['guild-1']!;
+    expect(after.sentinel, before.sentinel);
+    expect(after.hasUnread, before.hasUnread);
+  });
 }

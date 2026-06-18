@@ -104,8 +104,6 @@ class GuildReadState extends _$GuildReadState {
   final Map<String, UserGuildSettingsResponse?> _guildSettings =
       <String, UserGuildSettingsResponse?>{};
   final Map<String, String> _guildSettingsRaw = <String, String>{};
-  final Map<String, StreamSubscription<List<Message>>> _messageSubs =
-      <String, StreamSubscription<List<Message>>>{};
 
   @override
   Map<String, GuildReadStateEntry> build() {
@@ -116,7 +114,6 @@ class GuildReadState extends _$GuildReadState {
       final next = <String, ReadState>{for (final r in rows) r.channelId: r};
       final touched = _diffReadStates(_readStateSnapshot, next);
       _readStateSnapshot = next;
-      _syncMessageSubscriptions(db, currentUserId);
       if (touched.isNotEmpty) {
         _enqueueChannels(touched, db, currentUserId, refreshLatest: false);
       }
@@ -126,7 +123,6 @@ class GuildReadState extends _$GuildReadState {
       final next = <String, Channel>{for (final c in channels) c.id: c};
       final touched = _diffChannels(_channelSnapshot, next);
       _channelSnapshot = next;
-      _syncMessageSubscriptions(db, currentUserId);
       if (touched.isNotEmpty) {
         _enqueueChannels(touched, db, currentUserId, refreshLatest: true);
       }
@@ -175,10 +171,6 @@ class GuildReadState extends _$GuildReadState {
       unawaited(channelSub.cancel());
       unawaited(settingsSub.cancel());
       unawaited(guildSub.cancel());
-      for (final sub in _messageSubs.values) {
-        unawaited(sub.cancel());
-      }
-      _messageSubs.clear();
       _clearCaches();
       _pendingSeedChannelIds.clear();
     });
@@ -203,7 +195,6 @@ class GuildReadState extends _$GuildReadState {
     _channelSnapshot = {for (final c in allChannels) c.id: c};
     _readStateSnapshot = {for (final r in allReadStates) r.channelId: r};
     _updateGuildSettings(allSettings);
-    _syncMessageSubscriptions(db, currentUserId);
     final now = DateTime.now();
     for (final channel in _channelSnapshot.values) {
       if (!isGuildTextBasedChannel(channel.type)) {
@@ -238,27 +229,6 @@ class GuildReadState extends _$GuildReadState {
       _enqueueChannels(buffered, db, currentUserId, refreshLatest: false);
     }
     ref.read(guildReadStateReadyProvider.notifier).markReady();
-  }
-
-  void _syncMessageSubscriptions(FluxerDatabase db, String? currentUserId) {
-    final watchedChannelIds = _channelSnapshot.keys
-        .where((channelId) => _readStateSnapshot.containsKey(channelId))
-        .toSet();
-    for (final channelId in _messageSubs.keys.toList()) {
-      if (!watchedChannelIds.contains(channelId)) {
-        unawaited(_messageSubs.remove(channelId)?.cancel());
-      }
-    }
-    for (final channelId in watchedChannelIds) {
-      if (_messageSubs.containsKey(channelId)) {
-        continue;
-      }
-      _messageSubs[channelId] = db.messageDao.watchMessages(channelId).listen((
-        _,
-      ) {
-        _enqueueChannels({channelId}, db, currentUserId, refreshLatest: true);
-      });
-    }
   }
 
   void _enqueueChannels(
