@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/utils/system_message_text.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+const Color _kGuildJoinIconColor = Color(0xFF22C55E);
 
 /// Renders a system message as a single row with an icon,
 /// bold author name, descriptive text, and timestamp.
@@ -12,7 +16,20 @@ class SystemMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (icon, text) = _iconAndText();
+    final textStyle = TextStyle(
+      color: context.colors.textTertiaryMuted,
+      fontSize: 14,
+    );
+    final usernameStyle = TextStyle(
+      color: context.colors.textChat,
+      fontWeight: FontWeight.bold,
+      fontSize: 14,
+    );
+    final (icon, textSpans) = _iconAndTextSpans(
+      context,
+      textStyle: textStyle,
+      usernameStyle: usernameStyle,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -23,31 +40,15 @@ class SystemMessage extends StatelessWidget {
             child: PhosphorIcon(
               icon,
               size: 18,
-              color: context.colors.textTertiaryMuted,
+              color: message.type == messageTypeUserJoin
+                  ? _kGuildJoinIconColor
+                  : context.colors.textTertiaryMuted,
             ),
           ),
           const SizedBox(width: 8),
           Flexible(
             child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: message.authorName,
-                    style: TextStyle(
-                      color: context.colors.textChat,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' $text',
-                    style: TextStyle(
-                      color: context.colors.textTertiaryMuted,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
+              TextSpan(children: textSpans),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -64,19 +65,65 @@ class SystemMessage extends StatelessWidget {
     );
   }
 
+  (IconData, List<InlineSpan>) _iconAndTextSpans(
+    BuildContext context, {
+    required TextStyle textStyle,
+    required TextStyle usernameStyle,
+  }) {
+    if (message.type == messageTypeUserJoin) {
+      return (
+        PhosphorIconsBold.arrowRight,
+        _guildJoinTextSpans(
+          FluxerLocalizations.of(context),
+          textStyle: textStyle,
+          usernameStyle: usernameStyle,
+        ),
+      );
+    }
+
+    final (icon, text) = _iconAndText();
+    return (
+      icon,
+      <InlineSpan>[
+        TextSpan(text: message.authorName, style: usernameStyle),
+        TextSpan(text: ' $text', style: textStyle),
+      ],
+    );
+  }
+
+  List<InlineSpan> _guildJoinTextSpans(
+    FluxerLocalizations l10n, {
+    required TextStyle textStyle,
+    required TextStyle usernameStyle,
+  }) {
+    final template = resolveGuildJoinMessageTemplate(
+      l10n,
+      messageId: message.id,
+    );
+    final parts = template.split(kGuildJoinMessageUsernamePlaceholder);
+    if (parts.length == 1) {
+      return <InlineSpan>[TextSpan(text: template, style: textStyle)];
+    }
+    return <InlineSpan>[
+      for (var i = 0; i < parts.length; i++) ...[
+        if (parts[i].isNotEmpty) TextSpan(text: parts[i], style: textStyle),
+        if (i < parts.length - 1)
+          TextSpan(text: message.authorName, style: usernameStyle),
+      ],
+    ];
+  }
+
   (IconData, String) _iconAndText() {
     switch (message.type) {
-      case 7:
-        return (PhosphorIconsFill.arrowRight, 'joined the server.');
-      case 2:
+      case messageTypeRecipientRemove:
         return (PhosphorIconsFill.info, message.content);
-      case 3:
+      case messageTypeCall:
         return (PhosphorIconsFill.phone, 'started a call.');
-      case 4:
+      case messageTypeChannelNameChange:
         return (PhosphorIconsFill.textAa, 'changed the channel name.');
-      case 5:
+      case messageTypeChannelIconChange:
         return (PhosphorIconsFill.image, 'changed the channel icon.');
-      case 6:
+      case messageTypeChannelPinnedMessage:
         return (PhosphorIconsFill.pushPin, 'pinned a message.');
       default:
         return (PhosphorIconsFill.info, message.content);
