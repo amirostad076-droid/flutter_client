@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
 import 'package:fluxer_dart/gateway.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gateway_event_providers.g.dart';
@@ -43,63 +44,100 @@ List<VoiceState> otherUserConnectionsInChannel({
       .toList();
 }
 
-class TypingUser {
-  final String userId;
-  final String channelId;
-  final DateTime expiresAt;
-
-  const TypingUser({
-    required this.userId,
-    required this.channelId,
-    required this.expiresAt,
-  });
-}
-
 const Duration _kTypingExpiry = Duration(seconds: 10);
-const Duration _kTypingCleanupInterval = Duration(seconds: 1);
 
 @Riverpod(keepAlive: true)
 class TypingIndicators extends _$TypingIndicators {
-  Timer? _cleanupTimer;
+  Timer? _expiryTimer;
 
   @override
-  List<TypingUser> build() {
-    _cleanupTimer = Timer.periodic(_kTypingCleanupInterval, (_) => _cleanup());
-    ref.onDispose(() => _cleanupTimer?.cancel());
-    return const [];
+  Map<String, Map<String, DateTime>> build() {
+    ref.onDispose(() => _expiryTimer?.cancel());
+    return const <String, Map<String, DateTime>>{};
   }
 
   void addTyping(String channelId, String userId) {
-    final expiresAt = DateTime.now().add(_kTypingExpiry);
-
-    state = [
-      ...state.where((t) => !(t.channelId == channelId && t.userId == userId)),
-      TypingUser(userId: userId, channelId: channelId, expiresAt: expiresAt),
-    ];
+    final DateTime expiresAt = clock.now().add(_kTypingExpiry);
+    final Map<String, Map<String, DateTime>> next =
+        Map<String, Map<String, DateTime>>.from(state);
+    final Map<String, DateTime> channelEntries = Map<String, DateTime>.from(
+      next[channelId] ?? const <String, DateTime>{},
+    );
+    channelEntries[userId] = expiresAt;
+    next[channelId] = channelEntries;
+    state = next;
+    _scheduleExpiry(clock.now());
   }
 
   void removeTyping(String channelId, String userId) {
-    state = state
-        .where((t) => !(t.channelId == channelId && t.userId == userId))
-        .toList();
-  }
-
-  List<TypingUser> typingInChannel(String channelId) {
-    final now = DateTime.now();
-    return state
-        .where((t) => t.channelId == channelId && t.expiresAt.isAfter(now))
-        .toList();
-  }
-
-  void _cleanup() {
-    final now = DateTime.now();
-    final updated = state.where((t) => t.expiresAt.isAfter(now)).toList();
-    if (updated.length != state.length) {
-      state = updated;
+    final Map<String, DateTime>? existing = state[channelId];
+    if (existing == null || !existing.containsKey(userId)) {
+      return;
     }
+    final Map<String, Map<String, DateTime>> next =
+        Map<String, Map<String, DateTime>>.from(state);
+    final Map<String, DateTime> channelEntries = Map<String, DateTime>.from(
+      existing,
+    )..remove(userId);
+    if (channelEntries.isEmpty) {
+      next.remove(channelId);
+    } else {
+      next[channelId] = channelEntries;
+    }
+    state = next;
+    _scheduleExpiry(clock.now());
   }
 
-  void clearAll() => state = const [];
+  void clearAll() {
+    _expiryTimer?.cancel();
+    _expiryTimer = null;
+    state = const <String, Map<String, DateTime>>{};
+  }
+
+  void _scheduleExpiry(DateTime now) {
+    _expiryTimer?.cancel();
+    _expiryTimer = null;
+    DateTime? nearest;
+    for (final Map<String, DateTime> entries in state.values) {
+      for (final DateTime expiresAt in entries.values) {
+        if (nearest == null || expiresAt.isBefore(nearest)) {
+          nearest = expiresAt;
+        }
+      }
+    }
+    if (nearest == null) {
+      return;
+    }
+    final Duration delay = nearest.isAfter(now)
+        ? nearest.difference(now)
+        : Duration.zero;
+    _expiryTimer = Timer(delay, _pruneExpired);
+  }
+
+  void _pruneExpired() {
+    _expiryTimer = null;
+    final DateTime now = clock.now();
+    Map<String, Map<String, DateTime>>? next;
+    state.forEach((String channelId, Map<String, DateTime> entries) {
+      if (!entries.values.any((DateTime e) => !e.isAfter(now))) {
+        return;
+      }
+      next ??= Map<String, Map<String, DateTime>>.from(state);
+      final Map<String, DateTime> kept = <String, DateTime>{
+        for (final MapEntry<String, DateTime> e in entries.entries)
+          if (e.value.isAfter(now)) e.key: e.value,
+      };
+      if (kept.isEmpty) {
+        next!.remove(channelId);
+      } else {
+        next![channelId] = kept;
+      }
+    });
+    if (next != null) {
+      state = next!;
+    }
+    _scheduleExpiry(now);
+  }
 }
 
 /// Tracks voice state per gateway [VoiceState.connectionId] (or a synthetic key
@@ -374,7 +412,9 @@ class OutgoingVoiceCallInitiator extends _$OutgoingVoiceCallInitiator {
 @riverpod
 VoiceState? voiceStateForConnection(Ref ref, String connectionId) {
   return ref.watch(
-    voiceStatesMapProvider.select((Map<String, VoiceState> map) => map[connectionId]),
+    voiceStatesMapProvider.select(
+      (Map<String, VoiceState> map) => map[connectionId],
+    ),
   );
 }
 
@@ -389,8 +429,7 @@ List<VoiceState> voiceStatesInChannel(
   final Map<String, VoiceState> map = ref.watch(voiceStatesMapProvider);
   return map.values
       .where(
-        (VoiceState vs) =>
-            vs.channelId == channelId && vs.guildId == guildId,
+        (VoiceState vs) => vs.channelId == channelId && vs.guildId == guildId,
       )
       .toList();
 }
