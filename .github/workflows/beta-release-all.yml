@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
-  contents: read
+  contents: write
+  pull-requests: read
 
 jobs:
   check-actor:
@@ -35,22 +35,69 @@ jobs:
             exit 1
           fi
 
-  trigger-builds:
-    name: Trigger ${{ matrix.workflow }}
+  draft-release:
+    name: Draft beta release
     needs: check-actor
+    uses: ./.github/workflows/_draft-beta-release.yml
+    secrets: inherit
+
+  android-fcm:
+    name: Android FCM build
+    needs: [check-actor, draft-release]
+    uses: ./.github/workflows/android-beta-fcm.yml
+    secrets: inherit
+
+  android-oss:
+    name: Android OSS build
+    needs: [check-actor, draft-release]
+    uses: ./.github/workflows/android-beta-oss.yml
+    secrets: inherit
+
+  ios-testflight:
+    name: iOS TestFlight build
+    needs: [check-actor, draft-release]
+    uses: ./.github/workflows/ios-beta-testflight.yml
+    secrets: inherit
+
+  publish-release-assets:
+    name: Upload APKs to draft release
+    needs: [draft-release, android-fcm, android-oss]
+    if: |
+      always() &&
+      needs.draft-release.result == 'success' &&
+      (needs.android-fcm.result == 'success' || needs.android-oss.result == 'success')
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        workflow:
-          - ios-beta-testflight.yml
-          - android-beta-fcm.yml
-          - android-beta-oss.yml
     steps:
-      - name: Dispatch workflow
+      - name: Download FCM APK artifacts
+        if: needs.android-fcm.result == 'success'
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+        with:
+          name: beta-fcm-apk
+          path: release-assets/fcm
+
+      - name: Download OSS APK artifacts
+        if: needs.android-oss.result == 'success'
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+        with:
+          name: beta-oss-apk
+          path: release-assets/oss
+
+      - name: Upload APKs to draft release
         env:
           GH_TOKEN: ${{ secrets.FLUXER_AUTOMATION_PAT }}
+          TAG: ${{ needs.draft-release.outputs.tag_name }}
         run: |
-          gh workflow run "${{ matrix.workflow }}" \
-            --repo "${{ github.repository }}" \
-            --ref "beta"
+          set -euo pipefail
+          if [ -z "$TAG" ]; then
+            echo "::error::Draft release tag name is missing"
+            exit 1
+          fi
+          shopt -s globstar nullglob
+          apks=(release-assets/**/*.apk)
+          if [ "${#apks[@]}" -eq 0 ]; then
+            echo "::error::No APK files found to upload"
+            exit 1
+          fi
+          echo "Uploading ${#apks[@]} APK(s) to release $TAG"
+          gh release upload "$TAG" "${apks[@]}" --repo "${{ github.repository }}" --clobber
+          gh release view "$TAG" --repo "${{ github.repository }}"
