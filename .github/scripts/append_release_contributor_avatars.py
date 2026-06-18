@@ -3,12 +3,15 @@
 
 from __future__ import annotations
 
-import json
 import os
 import re
 import subprocess
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from beta_release_metadata import build_release_patch_payload, patch_release
 
 CONTRIBUTORS_HEADING = "## Contributors"
 MENTION_PATTERN = re.compile(r"@([A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\[bot\])?)")
@@ -72,21 +75,12 @@ def strip_contributors_section(body: str) -> str:
 
 def patch_release_body(release_id: str, body: str) -> None:
     repository = os.environ["GITHUB_REPOSITORY"]
-    payload = json.dumps({"body": body})
-    subprocess.run(
-        [
-            "gh",
-            "api",
-            "--method",
-            "PATCH",
-            f"repos/{repository}/releases/{release_id}",
-            "--input",
-            "-",
-        ],
-        input=payload,
-        text=True,
-        check=True,
+    payload = build_release_patch_payload(
+        body=body,
+        tag_name=os.environ.get("RELEASE_TAG", "").strip() or None,
+        target_commitish=os.environ.get("COMMITISH", "").strip() or None,
     )
+    patch_release(repository, release_id, payload)
 
 
 def main() -> int:
