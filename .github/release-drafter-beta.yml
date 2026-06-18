@@ -66,7 +66,8 @@ change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
 change-title-escapes: '\<*_&'
 
 template: |
-  ## Beta release
+  > [!CAUTION]
+  > The Fluxer Flutter mobile client is still in beta so features will be missing or broken.
 
   Pre-release build for TestFlight and Android APK (FCM + OSS).
 
