@@ -36,4 +36,35 @@ void main() {
       expect(errors, isEmpty);
     },
   );
+
+  test('guildUserDisplayProvider re-emits when the watched user row '
+      'changes', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    await db.userDao.upsertUser(
+      UsersCompanion.insert(id: 'user-1', username: 'alice'),
+    );
+
+    final container = ProviderContainer(
+      overrides: [fluxerDatabaseProvider.overrideWithValue(db)],
+    );
+    addTearDown(container.dispose);
+
+    final names = <String?>[];
+    final sub = container.listen(
+      guildUserDisplayProvider(('user-1', null)),
+      (previous, next) => names.add(next.value?.displayName),
+      fireImmediately: true,
+    );
+    addTearDown(sub.close);
+
+    await pumpEventQueue();
+    expect(names.last, 'alice');
+
+    await db.userDao.upsertUser(
+      UsersCompanion.insert(id: 'user-1', username: 'alice2'),
+    );
+    await pumpEventQueue();
+    expect(names.last, 'alice2');
+  });
 }

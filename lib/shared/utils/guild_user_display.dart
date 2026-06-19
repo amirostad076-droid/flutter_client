@@ -208,7 +208,7 @@ GuildUserDisplay resolveMessageAuthorDisplay({
   if (webhookId != null && webhookId.isNotEmpty) {
     return messageDisplay;
   }
-  if (guildId == null || guildDisplay == null) {
+  if (guildDisplay == null) {
     return messageDisplay;
   }
   final bool treatsAsBot = message.authorIsBot || guildDisplay.isBot;
