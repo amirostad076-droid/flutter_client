@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart' as drift_db;
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
@@ -31,6 +32,7 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/system_message.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/providers/messages/spoiler_reveal_provider.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/chat/utils/message_grouping_utils.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
@@ -39,10 +41,13 @@ import 'package:fluxer_app/features/dm/presentation/widgets/personal_notes_welco
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart';
+import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kUnreadDividerHeight = 16.0;
@@ -755,6 +760,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required bool channelCanAddReactions,
     required bool channelCanPinMessage,
     required bool channelCanManageMessages,
+    required MessageRenderSettings renderSettings,
   }) {
     final bool isNewDay =
         previousMessage == null ||
@@ -790,6 +796,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           key: itemKey,
           message: message,
           isGrouped: isGrouped,
+          renderSettings: renderSettings,
           isJumpHighlighted: message.id == highlightedMessageId,
           currentUserId: currentUserId,
           canDelete: canDelete,
@@ -863,6 +870,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required bool channelCanAddReactions,
     required bool channelCanPinMessage,
     required bool channelCanManageMessages,
+    required MessageRenderSettings renderSettings,
   }) {
     if (messages.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -889,6 +897,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             channelCanAddReactions: channelCanAddReactions,
             channelCanPinMessage: channelCanPinMessage,
             channelCanManageMessages: channelCanManageMessages,
+            renderSettings: renderSettings,
           );
         },
         childCount: messages.length,
@@ -912,6 +921,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required bool channelCanAddReactions,
     required bool channelCanPinMessage,
     required bool channelCanManageMessages,
+    required MessageRenderSettings renderSettings,
   }) {
     if (messages.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -937,6 +947,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             channelCanAddReactions: channelCanAddReactions,
             channelCanPinMessage: channelCanPinMessage,
             channelCanManageMessages: channelCanManageMessages,
+            renderSettings: renderSettings,
           );
         },
         childCount: messages.length,
@@ -959,6 +970,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required bool channelCanAddReactions,
     required bool channelCanPinMessage,
     required bool channelCanManageMessages,
+    required MessageRenderSettings renderSettings,
     required bool isLoadingMore,
     required bool isLoadingNewer,
   }) {
@@ -992,6 +1004,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                   channelCanAddReactions: channelCanAddReactions,
                   channelCanPinMessage: channelCanPinMessage,
                   channelCanManageMessages: channelCanManageMessages,
+                  renderSettings: renderSettings,
                 ),
               ),
               SliverPadding(
@@ -1014,6 +1027,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                   channelCanAddReactions: channelCanAddReactions,
                   channelCanPinMessage: channelCanPinMessage,
                   channelCanManageMessages: channelCanManageMessages,
+                  renderSettings: renderSettings,
                 ),
               ),
             ],
@@ -1236,6 +1250,31 @@ class _MessageListState extends ConsumerState<MessageList> {
       channelPermissionBits: channelPermissionBits,
     );
 
+    final RenderSpoilers renderSpoilers = ref.watch(
+      userSettingsViewModelProvider.select((s) => s.renderSpoilers),
+    );
+    final MessageRenderSettings messageRenderSettings = MessageRenderSettings(
+      activeGuildId: ref.watch(activeGuildIdProvider),
+      renderEmbeds: ref.watch(
+        userSettingsViewModelProvider.select((s) => s.renderEmbeds),
+      ),
+      renderReactions: ref.watch(
+        userSettingsViewModelProvider.select((s) => s.renderReactions),
+      ),
+      inlineAttachmentMedia: ref.watch(
+        userSettingsViewModelProvider.select((s) => s.inlineAttachmentMedia),
+      ),
+      renderSpoilers: renderSpoilers,
+      revealSpoilers: switch (renderSpoilers) {
+        RenderSpoilers.always => true,
+        RenderSpoilers.ifModerator =>
+          channelId.isNotEmpty &&
+              (ref.watch(spoilerAutoRevealProvider(channelId)).value ?? false),
+        RenderSpoilers.onClick || RenderSpoilers.$unknown => false,
+      },
+      chatPreferences: ref.watch(chatPreferencesProvider),
+    );
+
     if (messages.isEmpty) {
       _itemKeys.clear();
     }
@@ -1343,6 +1382,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         channelCanAddReactions: channelCanAddReactions,
         channelCanPinMessage: channelCanPinMessage,
         channelCanManageMessages: channelCanManageMessages,
+        renderSettings: messageRenderSettings,
         isLoadingMore: isLoadingMore,
         isLoadingNewer: isLoadingNewer,
       );
