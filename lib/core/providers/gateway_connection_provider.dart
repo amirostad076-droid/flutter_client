@@ -8,6 +8,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gateway_connection_provider.g.dart';
 
+/// Mirrors web GatewayIdentifyFlags.DEBOUNCE_MESSAGE_REACTIONS (1 << 1).
+const int kGatewayDebounceMessageReactions = 1 << 1;
+
 @Riverpod(keepAlive: true)
 GatewayConnection gatewayConnection(Ref ref) {
   final Dio dio = ref.read(fluxerDioProvider);
@@ -25,6 +28,7 @@ GatewayConnection gatewayConnection(Ref ref) {
     token: token,
     dio: dio,
     initialGuildId: activeGuildId,
+    flags: kGatewayDebounceMessageReactions,
     properties: GatewayIdentifyProperties(
       os: Platform.operatingSystem,
       browser: 'fluxer_app',
