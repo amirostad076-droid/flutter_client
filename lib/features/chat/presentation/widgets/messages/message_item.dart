@@ -46,6 +46,7 @@ import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -1098,9 +1099,16 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                       ),
                     ),
                   ),
-                  if (msg.authorIsBot) ...[
+                  if (messageAuthorShowsUserTag(
+                    authorIsBot: msg.authorIsBot,
+                    authorId: msg.authorId,
+                  )) ...[
                     const SizedBox(width: 6),
-                    const FluxerBotBadge(),
+                    FluxerUserTag(
+                      isSystem: messageAuthorUserTagIsSystem(
+                        authorId: msg.authorId,
+                      ),
+                    ),
                   ],
                   const SizedBox(width: 8),
                   Text(
