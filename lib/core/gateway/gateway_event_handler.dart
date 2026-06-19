@@ -1443,19 +1443,19 @@ class GatewayEventHandler {
   }
 
   void _handlePresenceUpdateBulk(PresenceUpdateBulkEvent event) {
+    final updates = <({String userId, String status, String? customStatus})>[];
     for (final p in event.presences) {
       final userId = (p['user'] as Map<String, dynamic>?)?['id'] as String?;
       final status = p['status'] as String?;
       if (userId != null && status != null) {
-        unawaited(
-          database.userDao.updateUserPresence(
-            userId,
-            status: status,
-            customStatus: _presenceCustomStatusTextFromMap(p),
-          ),
-        );
+        updates.add((
+          userId: userId,
+          status: status,
+          customStatus: _presenceCustomStatusTextFromMap(p),
+        ));
       }
     }
+    unawaited(database.userDao.updateUserPresencesBatch(updates));
   }
 
   void _handleGuildCreate(GuildCreateEvent event) {

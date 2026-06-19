@@ -210,6 +210,47 @@ void main() {
       await ctx.database.memberDao.countMembers(memberGuildId);
     });
   });
+
+  group('presence update bulk', () {
+    test('writes status and custom status for every presence', () async {
+      final database = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(database.close);
+      await database.userDao.upsertUser(
+        UsersCompanion.insert(id: 'u1', username: 'one'),
+      );
+      await database.userDao.upsertUser(
+        UsersCompanion.insert(id: 'u2', username: 'two'),
+      );
+
+      final handler = GatewayEventHandler(
+        database: database,
+        currentUserId: '100',
+      );
+      await handler.handle(
+        const PresenceUpdateBulkEvent(
+          presences: <Map<String, dynamic>>[
+            <String, dynamic>{
+              'user': <String, dynamic>{'id': 'u1'},
+              'status': 'idle',
+              'custom_status': <String, dynamic>{'text': 'busy'},
+            },
+            <String, dynamic>{
+              'user': <String, dynamic>{'id': 'u2'},
+              'status': 'dnd',
+            },
+          ],
+        ),
+      );
+      await pumpEventQueue();
+
+      final u1 = await database.userDao.getUserById('u1');
+      final u2 = await database.userDao.getUserById('u2');
+      expect(u1?.status, 'idle');
+      expect(u1?.customStatus, 'busy');
+      expect(u2?.status, 'dnd');
+      expect(u2?.customStatus, isNull);
+    });
+  });
 }
 
 UserPrivateResponse _user() => UserPrivateResponse.fromJson({
