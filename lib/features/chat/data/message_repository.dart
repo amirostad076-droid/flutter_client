@@ -113,13 +113,10 @@ class MessageRepository {
   final Dio _dio;
   final db.FluxerDatabase _db;
   final String? _currentUserId;
+  final Map<String, Future<MessageListLoadResult>> _inFlightPages =
+      <String, Future<MessageListLoadResult>>{};
 
-  const MessageRepository(
-    this._client,
-    this._dio,
-    this._db,
-    this._currentUserId,
-  );
+  MessageRepository(this._client, this._dio, this._db, this._currentUserId);
 
   Stream<List<Message>> watchMessages(String channelId) {
     return _db.messageDao
@@ -132,6 +129,32 @@ class MessageRepository {
     int limit = 30,
   }) async {
     final rows = await _db.messageDao.getMessages(channelId, limit: limit);
+    return rows.map(Message.fromRow).toList();
+  }
+
+  Future<List<Message>> getCachedMessagesBefore(
+    String channelId,
+    String beforeId, {
+    int limit = 30,
+  }) async {
+    final rows = await _db.messageDao.getMessages(
+      channelId,
+      limit: limit,
+      beforeId: beforeId,
+    );
+    return rows.map(Message.fromRow).toList();
+  }
+
+  Future<List<Message>> getCachedMessagesAfter(
+    String channelId,
+    String afterId, {
+    int limit = 30,
+  }) async {
+    final rows = await _db.messageDao.getMessagesAfter(
+      channelId,
+      afterId,
+      limit: limit,
+    );
     return rows.map(Message.fromRow).toList();
   }
 
@@ -153,6 +176,33 @@ class MessageRepository {
   }
 
   Future<MessageListLoadResult> loadMessagePage({
+    required String channelId,
+    int limit = 30,
+    String? before,
+    String? after,
+    String? around,
+  }) {
+    final String key =
+        '$channelId|${before ?? ''}|${after ?? ''}|${around ?? ''}|$limit';
+    final Future<MessageListLoadResult>? existing = _inFlightPages[key];
+    if (existing != null) {
+      return existing;
+    }
+    final Future<MessageListLoadResult> future =
+        _fetchMessagePage(
+          channelId: channelId,
+          limit: limit,
+          before: before,
+          after: after,
+          around: around,
+        ).whenComplete(() {
+          _inFlightPages.removeWhere((k, _) => k == key);
+        });
+    _inFlightPages[key] = future;
+    return future;
+  }
+
+  Future<MessageListLoadResult> _fetchMessagePage({
     required String channelId,
     int limit = 30,
     String? before,

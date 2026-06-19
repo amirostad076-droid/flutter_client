@@ -14,7 +14,6 @@ import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
-import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/channels/providers/read_state_repository_provider.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
@@ -187,6 +186,9 @@ class ChatViewModel extends _$ChatViewModel {
   Timer? _draftSaveTimer;
   Timer? _jumpHighlightTimer;
   final Set<String> _loadedUnreadBoundaryKeys = <String>{};
+  String? _contigChannelId;
+  String? _contigOldestId;
+  String? _contigNewestId;
   bool _readViewportActive = false;
   bool _readViewportNearBottom = true;
   // Guards against duplicate sends when send is triggered repeatedly before an
@@ -388,6 +390,10 @@ class ChatViewModel extends _$ChatViewModel {
         if (state.messages.any((m) => m.id == msg.id)) {
           return null;
         }
+        if (state.hasMoreNewerMessages) {
+          return null;
+        }
+        _extendNewer(msg.id);
         return [...state.messages, msg];
       case MessageUpdated(:final event):
         if (event.message.channelId != state.channelId) {
@@ -753,6 +759,7 @@ class ChatViewModel extends _$ChatViewModel {
           hasMoreMessages: cached.length >= _kPageSize,
           hasMoreNewerMessages: false,
         );
+        _setContiguityWindow(channelId, cached);
         _notifyMessageReferencesLoaded(channelId: channelId, messages: cached);
         if (_shouldRefreshChannelFromNetwork(channelId)) {
           _markChannelNetworkRefresh(channelId);
@@ -891,6 +898,7 @@ class ChatViewModel extends _$ChatViewModel {
         errorMessage: null,
         messageLoadFailed: false,
       );
+      _setContiguityWindow(channelId, page.messages);
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: merged,
@@ -1027,10 +1035,42 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       final repo = ref.read(messageRepositoryProvider);
       final oldestId = state.messages.first.id;
+      if (_contigChannelId == state.channelId &&
+          canServeOlderFromCache(
+            windowOldestId: oldestId,
+            contigOldestId: _contigOldestId,
+          )) {
+        final cachedPage = await repo.getCachedMessagesBefore(
+          state.channelId,
+          oldestId,
+        );
+        final olderInRange = cachedPage
+            .where((m) => compareSnowflakeIds(m.id, _contigOldestId) >= 0)
+            .toList();
+        if (olderInRange.isNotEmpty) {
+          final mergedCache = [...olderInRange, ...state.messages];
+          final trimCache = trimMessageWindow(mergedCache, keepNewest: false);
+          state = state.copyWith(
+            messages: trimCache.messages,
+            isLoadingMore: false,
+            hasMoreMessages: true,
+            hasMoreNewerMessages:
+                trimCache.droppedNewer || state.hasMoreNewerMessages,
+          );
+          _notifyMessageReferencesLoaded(
+            channelId: state.channelId,
+            messages: trimCache.messages,
+          );
+          return;
+        }
+      }
       final page = await repo.loadMessagePage(
         channelId: state.channelId,
         before: oldestId,
       );
+      if (page.messages.isNotEmpty) {
+        _extendOlder(page.messages.first.id);
+      }
       final merged = [...page.messages, ...state.messages];
       final trim = trimMessageWindow(merged, keepNewest: false);
       state = state.copyWith(
@@ -1058,12 +1098,48 @@ class ChatViewModel extends _$ChatViewModel {
     }
     state = state.copyWith(isLoadingNewer: true);
     try {
+      final repo = ref.read(messageRepositoryProvider);
       final String newestId = state.messages.last.id;
-      final page = await ref
-          .read(messageRepositoryProvider)
-          .loadMessagePage(channelId: state.channelId, after: newestId);
+      if (_contigChannelId == state.channelId &&
+          canServeNewerFromCache(
+            windowNewestId: newestId,
+            contigNewestId: _contigNewestId,
+          )) {
+        final cachedPage = await repo.getCachedMessagesAfter(
+          state.channelId,
+          newestId,
+        );
+        final newerInRange = cachedPage
+            .where((m) => compareSnowflakeIds(m.id, _contigNewestId) <= 0)
+            .toList();
+        if (newerInRange.isNotEmpty) {
+          final mergedCache = _mergeMessages(state.messages, newerInRange);
+          final trimCache = trimMessageWindow(mergedCache, keepNewest: true);
+          final bool hasMoreNewerCache = await _hasNewerMessagesThanChannel(
+            mergedCache.last.id,
+          );
+          state = state.copyWith(
+            messages: trimCache.messages,
+            isLoadingNewer: false,
+            hasMoreNewerMessages: hasMoreNewerCache,
+            hasMoreMessages: trimCache.droppedOlder || state.hasMoreMessages,
+          );
+          _notifyMessageReferencesLoaded(
+            channelId: state.channelId,
+            messages: trimCache.messages,
+          );
+          return;
+        }
+      }
+      final page = await repo.loadMessagePage(
+        channelId: state.channelId,
+        after: newestId,
+      );
       if (state.channelId.isEmpty) {
         return;
+      }
+      if (page.messages.isNotEmpty) {
+        _extendNewer(page.messages.last.id);
       }
       final List<Message> merged = _mergeMessages(
         state.messages,
@@ -1116,6 +1192,7 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreMessages: page.messages.length >= _kPageSize,
         hasMoreNewerMessages: false,
       );
+      _setContiguityWindow(channelId, page.messages);
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: page.messages,
@@ -1273,6 +1350,7 @@ class ChatViewModel extends _$ChatViewModel {
       state = state.copyWith(
         messages: _mergeMessages(state.messages, messages),
       );
+      _extendNewer(messages.last.id);
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load unread boundary: $e');
     }
@@ -1324,6 +1402,37 @@ class ChatViewModel extends _$ChatViewModel {
         return a.timestamp.compareTo(b.timestamp);
       });
     return merged;
+  }
+
+  void _setContiguityWindow(String channelId, List<Message> page) {
+    _contigChannelId = channelId;
+    if (page.isEmpty) {
+      _contigOldestId = null;
+      _contigNewestId = null;
+      return;
+    }
+    _contigOldestId = page.first.id;
+    _contigNewestId = page.last.id;
+  }
+
+  void _extendOlder(String id) {
+    if (_contigChannelId != state.channelId) {
+      return;
+    }
+    if (_contigOldestId == null ||
+        compareSnowflakeIds(id, _contigOldestId) < 0) {
+      _contigOldestId = id;
+    }
+  }
+
+  void _extendNewer(String id) {
+    if (_contigChannelId != state.channelId) {
+      return;
+    }
+    if (_contigNewestId == null ||
+        compareSnowflakeIds(id, _contigNewestId) > 0) {
+      _contigNewestId = id;
+    }
   }
 
   String _unreadBoundaryKey(String channelId, String ackMessageId) =>
@@ -2257,6 +2366,7 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreMessages: page.messages.length >= _kPageSize,
         hasMoreNewerMessages: hasMoreNewer,
       );
+      _setContiguityWindow(channelId, page.messages);
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: page.messages,

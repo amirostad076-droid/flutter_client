@@ -17,8 +17,11 @@ import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_auto_ack_allowed_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
+import 'package:fluxer_app/features/chat/providers/messages/message_realtime_provider.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
+import 'package:fluxer_dart/gateway.dart';
 
 String _snowflakeForUtc(DateTime utc) {
   final int internal = (utc.millisecondsSinceEpoch - kSnowflakeEpochMs) << 22;
@@ -1467,6 +1470,70 @@ void main() {
       },
     );
   });
+
+  test(
+    'live message received while scrolled into history is dropped',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final olderId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final incomingId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      // Channel's newest message is far ahead of the loaded page, so the
+      // window sits in history with hasMoreNewerMessages == true.
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: olderId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+
+      final loaded = container.read(chatViewModelProvider);
+      expect(loaded.hasMoreNewerMessages, isTrue);
+      expect(loaded.messages.map((m) => m.id).toList(), [olderId]);
+
+      container
+          .read(messageRealtimeBusProvider)
+          .emit(
+            MessageCreated(
+              MessageCreateEvent(
+                message: MessageResponseSchema.fromJson(
+                  _messageJson(
+                    id: incomingId,
+                    channelId: 'channel-1',
+                    authorId: 'other',
+                  ),
+                ),
+              ),
+            ),
+          );
+      await _flushAsync();
+
+      // Mirrors web ignorePastVisibleWindow: the live message is not appended
+      // to the history tail while newer messages remain unloaded.
+      expect(
+        container
+            .read(chatViewModelProvider)
+            .messages
+            .map((m) => m.id)
+            .toList(),
+        [olderId],
+      );
+    },
+  );
 }
 
 ProviderContainer _container(
