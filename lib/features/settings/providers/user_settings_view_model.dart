@@ -717,26 +717,54 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
 
   void _watchUser(String userId) {
     final db = ref.read(fluxerDatabaseProvider);
-    final subscription = db.userDao.watchUserById(userId).listen((user) {
-      if (user == null) {
-        return;
-      }
-      state = state.copyWith(
-        username: user.username,
-        displayName: user.globalName ?? user.username,
-        discriminator: user.discriminator,
-        avatar: user.avatar,
-        avatarColor: user.avatarColor,
-        bio: user.bio,
-        pronouns: user.pronouns,
-        accentColor: user.accentColor,
-        banner: user.banner,
-        premiumBadgeHidden: user.premiumBadgeHidden ?? false,
-        premiumBadgeMasked: user.premiumBadgeMasked ?? false,
-        premiumBadgeTimestampHidden: user.premiumBadgeTimestampHidden ?? false,
-        premiumBadgeSequenceHidden: user.premiumBadgeSequenceHidden ?? false,
-      );
-    });
+    // Project to only the fields this view state consumes, then dedupe: a
+    // presence-only write (status/customStatus) re-emits the user row but
+    // yields an equal record, so `.distinct()` filters it out and avoids a
+    // needless `state=` notification storm on every PRESENCE_UPDATE.
+    final subscription = db.userDao
+        .watchUserById(userId)
+        .map(
+          (user) => user == null
+              ? null
+              : (
+                  username: user.username,
+                  displayName: user.globalName ?? user.username,
+                  discriminator: user.discriminator,
+                  avatar: user.avatar,
+                  avatarColor: user.avatarColor,
+                  bio: user.bio,
+                  pronouns: user.pronouns,
+                  accentColor: user.accentColor,
+                  banner: user.banner,
+                  premiumBadgeHidden: user.premiumBadgeHidden ?? false,
+                  premiumBadgeMasked: user.premiumBadgeMasked ?? false,
+                  premiumBadgeTimestampHidden:
+                      user.premiumBadgeTimestampHidden ?? false,
+                  premiumBadgeSequenceHidden:
+                      user.premiumBadgeSequenceHidden ?? false,
+                ),
+        )
+        .distinct()
+        .listen((fields) {
+          if (fields == null) {
+            return;
+          }
+          state = state.copyWith(
+            username: fields.username,
+            displayName: fields.displayName,
+            discriminator: fields.discriminator,
+            avatar: fields.avatar,
+            avatarColor: fields.avatarColor,
+            bio: fields.bio,
+            pronouns: fields.pronouns,
+            accentColor: fields.accentColor,
+            banner: fields.banner,
+            premiumBadgeHidden: fields.premiumBadgeHidden,
+            premiumBadgeMasked: fields.premiumBadgeMasked,
+            premiumBadgeTimestampHidden: fields.premiumBadgeTimestampHidden,
+            premiumBadgeSequenceHidden: fields.premiumBadgeSequenceHidden,
+          );
+        });
     ref.onDispose(subscription.cancel);
   }
 
