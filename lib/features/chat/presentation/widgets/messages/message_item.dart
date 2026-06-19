@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/message_avatar.dart';
+import 'package:fluxer_app/features/chat/utils/message_timestamp_format.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/message_debug_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -1103,7 +1104,11 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                   ],
                   const SizedBox(width: 8),
                   Text(
-                    _formatTimestamp(msg.timestamp.toLocal()),
+                    formatMessageTimestamp(
+                      msg.timestamp.toLocal(),
+                      FluxerLocalizations.of(context),
+                      Localizations.localeOf(context).toString(),
+                    ),
                     style: context.textStyles.timestamp,
                   ),
                 ],
@@ -1488,17 +1493,4 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       ),
     ),
   );
-
-  String _formatTimestamp(DateTime dt) {
-    final now = DateTime.now();
-    final isToday =
-        dt.year == now.year && dt.month == now.month && dt.day == now.day;
-    final h = dt.hour.toString().padLeft(2, '0');
-    final m = dt.minute.toString().padLeft(2, '0');
-    if (isToday) {
-      return 'Today at $h:$m';
-    }
-    return '${dt.month}/${dt.day}/${dt.year}'
-        ' $h:$m';
-  }
 }
