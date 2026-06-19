@@ -60,8 +60,8 @@ jobs:
           fi
           if git merge --ff-only origin/canary; then
             echo "::notice::Fast-forwarded beta to canary at $(git rev-parse --short HEAD)"
-          elif git merge --no-ff origin/canary --no-edit -m "Merge branch 'canary' into beta"; then
-            echo "::notice::Merged canary into beta at $(git rev-parse --short HEAD)"
+          elif git merge --no-ff -X theirs origin/canary --no-edit -m "Merge branch 'canary' into beta"; then
+            echo "::notice::Merged canary into beta (conflicts resolved in favor of canary) at $(git rev-parse --short HEAD)"
           else
             echo "::error::Merge conflict while merging canary into beta. Resolve conflicts manually."
             git merge --abort || true
