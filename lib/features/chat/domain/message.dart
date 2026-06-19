@@ -1055,13 +1055,14 @@ class Message {
     return Uri.tryParse(trimmed)?.hasAbsolutePath ?? false;
   }
 
+  static final RegExp _invitesRegExp = RegExp(
+    r'(?:https?://)?(?:fluxer\.gg/(?!invite/)([a-zA-Z0-9\-]{2,32})|(?:web\.)?fluxer\.app/invite/([a-zA-Z0-9\-]{2,32}))(?![a-zA-Z0-9\-])', // .com (soon)
+  );
+
   List<String> get invites {
-    final re = RegExp(
-      r'(?:https?://)?(?:fluxer\.gg/(?!invite/)([a-zA-Z0-9\-]{2,32})|(?:web\.)?fluxer\.app/invite/([a-zA-Z0-9\-]{2,32}))(?![a-zA-Z0-9\-])', // .com (soon)
-    );
     final seen = <String>{};
     final result = <String>[];
-    for (final m in re.allMatches(content)) {
+    for (final m in _invitesRegExp.allMatches(content)) {
       final code = m.group(1) ?? m.group(2);
       if (code != null && seen.add(code)) {
         result.add(code);
@@ -1073,13 +1074,14 @@ class Message {
     return result;
   }
 
+  static final RegExp _themesRegExp = RegExp(
+    r'https?://web\.fluxer\.app/theme/([a-zA-Z0-9\-]{2,32})(?![a-zA-Z0-9\-])',
+  );
+
   List<String> get themes {
-    final re = RegExp(
-      r'https?://web\.fluxer\.app/theme/([a-zA-Z0-9\-]{2,32})(?![a-zA-Z0-9\-])',
-    );
     final seen = <String>{};
     final result = <String>[];
-    for (final m in re.allMatches(content)) {
+    for (final m in _themesRegExp.allMatches(content)) {
       final id = m.group(1);
       if (id != null && seen.add(id)) {
         result.add(id);
