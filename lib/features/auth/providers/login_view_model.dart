@@ -11,10 +11,12 @@ import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
 import 'package:fluxer_app/features/auth/domain/auth_session.dart';
 import 'package:fluxer_app/features/auth/domain/ban_view.dart';
 import 'package:fluxer_app/features/auth/domain/ip_authorization_challenge.dart';
+import 'package:fluxer_app/features/auth/domain/login_error.dart';
 import 'package:fluxer_app/features/auth/domain/login_result.dart';
 import 'package:fluxer_app/features/auth/domain/mfa_challenge.dart';
 import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
 import 'package:fluxer_app/features/auth/providers/ban_view_provider.dart';
+import 'package:fluxer_app/features/auth/providers/passkey_error.dart';
 import 'package:fluxer_app/features/auth/providers/pending_invite_code_provider.dart';
 import 'package:fluxer_app/features/auth/providers/registration_draft_provider.dart';
 import 'package:passkeys/authenticator.dart';
@@ -24,20 +26,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'login_view_model.g.dart';
 
 const Duration _kPostAuthStartupTimeout = Duration(seconds: 20);
-
-enum LoginError {
-  invalidEmail,
-  invalidCredentials,
-  unableToCreateAccount,
-  unableToSignIn,
-  unableToSendResetLink,
-  unableToResetPassword,
-  passkeyNoCredentials,
-  passkeyDeviceNotSupported,
-  passkeyDomainNotAssociated,
-  passkeyTimeout,
-  passkeyFailed,
-}
 
 class LoginViewState {
   static const _unset = Object();
@@ -617,7 +605,7 @@ class LoginViewModel extends _$LoginViewModel {
       state = state.copyWith(isLoggingIn: false);
     } on AuthenticatorException catch (e) {
       talker.error('[LoginViewModel] Passkey error: $e');
-      final (errorType, errorMessage) = _passkeyError(e);
+      final (errorType, errorMessage) = mapPasskeyAuthError(e);
       state = state.copyWith(
         errorType: errorType,
         errorMessage: errorMessage,
@@ -627,31 +615,5 @@ class LoginViewModel extends _$LoginViewModel {
       talker.error('[LoginViewModel] Passkey error: $e');
       state = state.copyWith(isLoggingIn: false);
     }
-  }
-
-  static (LoginError?, String?) _passkeyError(AuthenticatorException e) {
-    return switch (e) {
-      NoCredentialsAvailableException() => (
-        LoginError.passkeyNoCredentials,
-        null,
-      ),
-      DeviceNotSupportedException() => (
-        LoginError.passkeyDeviceNotSupported,
-        null,
-      ),
-      DomainNotAssociatedException() => (
-        LoginError.passkeyDomainNotAssociated,
-        null,
-      ),
-      TimeoutException() => (LoginError.passkeyTimeout, null),
-      // TYPE_UNKNOWN includes OS-localized messages (e.g. verification
-      // failure, domain mismatch). Pass the message through directly
-      // since it's already in the user's language.
-      UnhandledAuthenticatorException(:final message) when message != null => (
-        null,
-        message,
-      ),
-      _ => (LoginError.passkeyFailed, null),
-    };
   }
 }
