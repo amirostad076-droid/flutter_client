@@ -10,6 +10,7 @@ const int guildProfileDefaultAccentColor = 0x4641D9;
 const int guildProfileAvatarUnsetFlag = 1 << 0;
 const int guildProfileBannerUnsetFlag = 1 << 1;
 
+@immutable
 class GuildUserDisplay {
   const GuildUserDisplay({
     required this.displayName,
@@ -38,6 +39,39 @@ class GuildUserDisplay {
   final String? pronouns;
   final bool hasGuildProfile;
   final bool isShowingGlobalProfile;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GuildUserDisplay &&
+          other.displayName == displayName &&
+          other.accountDisplayName == accountDisplayName &&
+          other.isBot == isBot &&
+          other.avatarUrl == avatarUrl &&
+          other.avatarHash == avatarHash &&
+          other.avatarColor == avatarColor &&
+          other.bannerUrl == bannerUrl &&
+          other.bannerColor == bannerColor &&
+          other.bio == bio &&
+          other.pronouns == pronouns &&
+          other.hasGuildProfile == hasGuildProfile &&
+          other.isShowingGlobalProfile == isShowingGlobalProfile;
+
+  @override
+  int get hashCode => Object.hash(
+    displayName,
+    accountDisplayName,
+    isBot,
+    avatarUrl,
+    avatarHash,
+    avatarColor,
+    bannerUrl,
+    bannerColor,
+    bio,
+    pronouns,
+    hasGuildProfile,
+    isShowingGlobalProfile,
+  );
 }
 
 Color resolveGuildProfileBannerColor({

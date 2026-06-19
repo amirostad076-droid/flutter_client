@@ -409,10 +409,7 @@ void main() {
     });
 
     test('shortMentionWireIdFallback truncates long snowflakes', () {
-      expect(
-        shortMentionWireIdFallback('123456789012345678'),
-        '12345678…',
-      );
+      expect(shortMentionWireIdFallback('123456789012345678'), '12345678…');
     });
 
     test('resolveMentionUserDisplayName uses guild display when present', () {
@@ -433,9 +430,7 @@ void main() {
 
     test('resolveMentionUserDisplayName falls back to truncated id', () {
       expect(
-        resolveMentionUserDisplayName(
-          userId: '123456789012345678',
-        ),
+        resolveMentionUserDisplayName(userId: '123456789012345678'),
         '12345678…',
       );
     });
@@ -459,6 +454,60 @@ void main() {
           guildAvatarHash: 'bot_avatar',
         ),
         isTrue,
+      );
+    });
+  });
+
+  group('GuildUserDisplay equality', () {
+    GuildUserDisplay make({
+      String displayName = 'Alice',
+      String accountDisplayName = 'alice',
+      bool isBot = false,
+      String? avatarUrl = 'https://cdn/a.png',
+      String? avatarHash = 'hash',
+      int? avatarColor = 0x112233,
+      String? bannerUrl,
+      Color? bannerColor,
+      String? bio,
+      String? pronouns,
+      bool hasGuildProfile = false,
+      bool isShowingGlobalProfile = false,
+    }) => GuildUserDisplay(
+      displayName: displayName,
+      accountDisplayName: accountDisplayName,
+      isBot: isBot,
+      avatarUrl: avatarUrl,
+      avatarHash: avatarHash,
+      avatarColor: avatarColor,
+      bannerUrl: bannerUrl,
+      bannerColor: bannerColor,
+      bio: bio,
+      pronouns: pronouns,
+      hasGuildProfile: hasGuildProfile,
+      isShowingGlobalProfile: isShowingGlobalProfile,
+    );
+
+    test('equal and same hashCode when all display fields match', () {
+      expect(make(), make());
+      expect(make().hashCode, make().hashCode);
+    });
+
+    test('differs when displayName changes', () {
+      expect(make(), isNot(make(displayName: 'Bob')));
+    });
+
+    test('differs when avatarUrl changes', () {
+      expect(make(), isNot(make(avatarUrl: 'https://cdn/b.png')));
+    });
+
+    test('differs when avatarColor changes', () {
+      expect(make(), isNot(make(avatarColor: 0x445566)));
+    });
+
+    test('differs when bannerColor changes', () {
+      expect(
+        make(bannerColor: const Color(0xFF000000)),
+        isNot(make(bannerColor: const Color(0xFFFFFFFF))),
       );
     });
   });
