@@ -186,17 +186,50 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  bool _canTriggerLoadNewer(ChatViewState state) {
+  bool _canTriggerLoadNewer(
+    ChatViewState state, {
+    bool requireUserIntent = true,
+    bool bypassCooldown = false,
+  }) {
     if (!_paginationGuard.shouldLoadNewer(
       hasMoreNewerMessages: state.hasMoreNewerMessages,
       isLoadingMore: state.isLoadingMore,
       isLoadingNewer: state.isLoadingNewer,
+      requireUserIntent: requireUserIntent,
+      bypassCooldown: bypassCooldown,
     )) {
       return false;
     }
     return canTriggerLoadNewerDuringUnreadReview(
       inUnreadReview: _isInUnreadReview(state),
     );
+  }
+
+  void _recheckEdgeAfterScrollSettle() {
+    if (_awaitingInitialUnreadScroll) {
+      return;
+    }
+    if (!_scrollController.hasClients) {
+      return;
+    }
+    final ChatViewState chatState = ref.read(chatViewModelProvider);
+    if (_paginationGuard.shouldLoadMore(
+      hasMoreMessages: chatState.hasMoreMessages,
+      isLoadingMore: chatState.isLoadingMore,
+      isLoadingNewer: chatState.isLoadingNewer,
+      requireUserIntent: false,
+      bypassCooldown: true,
+    )) {
+      unawaited(ref.read(chatViewModelProvider.notifier).loadMore());
+      return;
+    }
+    if (_canTriggerLoadNewer(
+      chatState,
+      requireUserIntent: false,
+      bypassCooldown: true,
+    )) {
+      unawaited(ref.read(chatViewModelProvider.notifier).loadNewer());
+    }
   }
 
   void _syncChannelPivot({
@@ -258,6 +291,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         }
       }
       _syncReadViewport(ignoreJumpTarget: releasedAtBottom);
+      _recheckEdgeAfterScrollSettle();
     }
     return false;
   }
@@ -1094,6 +1128,12 @@ class _MessageListState extends ConsumerState<MessageList> {
         (bool? previous, bool next) {
           if ((previous ?? false) && !next) {
             _paginationGuard.beginCooldown();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) {
+                return;
+              }
+              _recheckEdgeAfterScrollSettle();
+            });
           }
         },
       )
@@ -1102,6 +1142,12 @@ class _MessageListState extends ConsumerState<MessageList> {
         (bool? previous, bool next) {
           if ((previous ?? false) && !next) {
             _paginationGuard.beginCooldown();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) {
+                return;
+              }
+              _recheckEdgeAfterScrollSettle();
+            });
           }
         },
       )

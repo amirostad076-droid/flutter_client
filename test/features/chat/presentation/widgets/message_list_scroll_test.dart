@@ -359,6 +359,143 @@ void main() {
     );
   });
 
+  testWidgets('edge re-check loads more at top despite cooldown and rest', (
+    tester,
+  ) async {
+    final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
+        GlobalKey<CenterSliverScrollHarnessState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 400,
+            child: CenterSliverScrollHarness(
+              key: harnessKey,
+              initialCount: 50,
+              pivotIndex: 10,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final MessageListPaginationGuard activeGuard = MessageListPaginationGuard(
+      scrollController: harnessKey.currentState!.scrollController,
+    );
+    addTearDown(activeGuard.dispose);
+    harnessKey.currentState!.scrollToTop();
+    await tester.pumpAndSettle();
+    expect(harnessKey.currentState!.isNearTopForLoadMore(), isTrue);
+    activeGuard.beginCooldown();
+    // At rest inside the cooldown the normal scroll path stays blocked.
+    expect(
+      activeGuard.shouldLoadMore(
+        hasMoreMessages: true,
+        isLoadingMore: false,
+        isLoadingNewer: false,
+      ),
+      isFalse,
+    );
+    // The ScrollEnd / post-load re-check path bypasses both gates and loads.
+    expect(
+      activeGuard.shouldLoadMore(
+        hasMoreMessages: true,
+        isLoadingMore: false,
+        isLoadingNewer: false,
+        requireUserIntent: false,
+        bypassCooldown: true,
+      ),
+      isTrue,
+    );
+    // Let the cooldown timer fire so no fake-async timer leaks past teardown.
+    await tester.pump(kMessageListPaginationCooldown);
+  });
+
+  testWidgets('edge re-check loads newer at bottom despite cooldown and rest', (
+    tester,
+  ) async {
+    final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
+        GlobalKey<CenterSliverScrollHarnessState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 400,
+            child: CenterSliverScrollHarness(
+              key: harnessKey,
+              initialCount: 50,
+              pivotIndex: 10,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final MessageListPaginationGuard activeGuard = MessageListPaginationGuard(
+      scrollController: harnessKey.currentState!.scrollController,
+    );
+    addTearDown(activeGuard.dispose);
+    harnessKey.currentState!.scrollToBottom();
+    await tester.pumpAndSettle();
+    activeGuard.beginCooldown();
+    expect(
+      activeGuard.shouldLoadNewer(
+        hasMoreNewerMessages: true,
+        isLoadingMore: false,
+        isLoadingNewer: false,
+      ),
+      isFalse,
+    );
+    expect(
+      activeGuard.shouldLoadNewer(
+        hasMoreNewerMessages: true,
+        isLoadingMore: false,
+        isLoadingNewer: false,
+        requireUserIntent: false,
+        bypassCooldown: true,
+      ),
+      isTrue,
+    );
+    await tester.pump(kMessageListPaginationCooldown);
+  });
+
+  testWidgets('edge re-check yields to an in-flight load', (tester) async {
+    final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
+        GlobalKey<CenterSliverScrollHarnessState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 400,
+            child: CenterSliverScrollHarness(
+              key: harnessKey,
+              initialCount: 50,
+              pivotIndex: 10,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final MessageListPaginationGuard activeGuard = MessageListPaginationGuard(
+      scrollController: harnessKey.currentState!.scrollController,
+    );
+    addTearDown(activeGuard.dispose);
+    harnessKey.currentState!.scrollToTop();
+    await tester.pumpAndSettle();
+    // Even with both bypasses, a load already in flight must not be duplicated.
+    expect(
+      activeGuard.shouldLoadMore(
+        hasMoreMessages: true,
+        isLoadingMore: true,
+        isLoadingNewer: false,
+        requireUserIntent: false,
+        bypassCooldown: true,
+      ),
+      isFalse,
+    );
+  });
+
   testWidgets('pre-center prepend with pinned unread pivot keeps offset', (
     tester,
   ) async {
@@ -558,10 +695,7 @@ void main() {
         home: Scaffold(
           body: SizedBox(
             height: 400,
-            child: CenterSliverScrollHarness(
-              key: harnessKey,
-              initialCount: 50,
-            ),
+            child: CenterSliverScrollHarness(key: harnessKey, initialCount: 50),
           ),
         ),
       ),
