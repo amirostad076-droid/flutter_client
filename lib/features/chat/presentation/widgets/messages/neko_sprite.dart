@@ -49,6 +49,7 @@ class _NekoSpriteState extends ConsumerState<NekoSprite>
   _NekoAnimationMode _mode = _NekoAnimationMode.idle;
   int _scratchFrameIndex = 0;
   int _scratchTick = 0;
+  int _idleFrameIndex = 0;
   Timer? _scratchFrameTimer;
   Timer? _scratchScheduleTimer;
   Timer? _shockTimer;
@@ -62,6 +63,7 @@ class _NekoSpriteState extends ConsumerState<NekoSprite>
       vsync: this,
       duration: _kNekoIdleFrameDuration,
     )..repeat();
+    _idleController.addListener(_onIdleTick);
     unawaited(_loadSpriteImage());
     _scheduleRandomScratch();
   }
@@ -85,7 +87,9 @@ class _NekoSpriteState extends ConsumerState<NekoSprite>
     _scratchFrameTimer?.cancel();
     _scratchScheduleTimer?.cancel();
     _shockTimer?.cancel();
-    _idleController.dispose();
+    _idleController
+      ..removeListener(_onIdleTick)
+      ..dispose();
     _spriteImage?.dispose();
     super.dispose();
   }
@@ -206,13 +210,22 @@ class _NekoSpriteState extends ConsumerState<NekoSprite>
     return completer.future;
   }
 
+  void _onIdleTick() {
+    if (_mode != _NekoAnimationMode.idle) {
+      return;
+    }
+    final int next = _idleController.value <= 0.5 ? 0 : 1;
+    if (next != _idleFrameIndex) {
+      setState(() => _idleFrameIndex = next);
+    }
+  }
+
   Rect _frameForMode() {
     switch (_mode) {
       case _NekoAnimationMode.idle:
-        if (_idleController.value <= 0.5) {
-          return _kNekoIdleFrameTop;
-        }
-        return _kNekoIdleFrameBottom;
+        return _idleFrameIndex == 0
+            ? _kNekoIdleFrameTop
+            : _kNekoIdleFrameBottom;
       case _NekoAnimationMode.shock:
         return _kNekoShockFrame;
       case _NekoAnimationMode.scratch:
@@ -226,17 +239,12 @@ class _NekoSpriteState extends ConsumerState<NekoSprite>
     if (spriteImage == null) {
       return const SizedBox(width: _kNekoSize, height: _kNekoSize);
     }
-    return AnimatedBuilder(
-      animation: _idleController,
-      builder: (BuildContext context, Widget? child) {
-        return CustomPaint(
-          size: const Size(_kNekoSize, _kNekoSize),
-          painter: _NekoSpritePainter(
-            image: spriteImage,
-            sourceRect: _frameForMode(),
-          ),
-        );
-      },
+    return CustomPaint(
+      size: const Size(_kNekoSize, _kNekoSize),
+      painter: _NekoSpritePainter(
+        image: spriteImage,
+        sourceRect: _frameForMode(),
+      ),
     );
   }
 }
