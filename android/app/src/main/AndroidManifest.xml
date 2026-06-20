@@ -81,9 +81,6 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <meta-data
-            android:name="firebase_messaging_notification_delegation_enabled"
-            android:value="false" />
-        <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/fluxer_logo_monochrome" />
         <meta-data
