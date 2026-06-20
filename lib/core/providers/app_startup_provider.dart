@@ -32,6 +32,7 @@ import 'package:fluxer_app/features/mature_content/providers/sensitive_content_p
 import 'package:fluxer_app/features/profile/providers/status_expiry_scheduler.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/features/voice/services/voice_callkit_coordinator.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/emoji_sprite_sheet.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -137,6 +138,7 @@ class AppStartup extends _$AppStartup {
       ..read(ackBatcherGatewayListenerProvider)
       ..read(fluxerSfxIncomingRingBindingProvider)
       ..read(fluxerMessageSfxBindingProvider)
+      ..read(voiceCallKitCoordinatorProvider)
       ..read(friendRelationshipsSyncProvider)
       ..read(guildListSyncProvider)
       ..read(statusExpiryBindingProvider);
