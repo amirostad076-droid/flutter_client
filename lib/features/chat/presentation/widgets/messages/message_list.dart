@@ -112,6 +112,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   bool _initialUnreadPivotReleased = false;
   bool _awaitingInitialUnreadScroll = false;
   bool _pinnedLiveNearBottom = false;
+  bool _newerSettleLoadArmed = false;
   bool _needsInitialBottomPin = false;
   bool _initialBottomPinDeferScheduled = false;
   int _bottomPinGeneration = 0;
@@ -186,11 +187,17 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  bool _canTriggerLoadNewer(ChatViewState state) {
+  bool _canTriggerLoadNewer(
+    ChatViewState state, {
+    bool requireUserIntent = true,
+    bool bypassCooldown = false,
+  }) {
     if (!_paginationGuard.shouldLoadNewer(
       hasMoreNewerMessages: state.hasMoreNewerMessages,
       isLoadingMore: state.isLoadingMore,
       isLoadingNewer: state.isLoadingNewer,
+      requireUserIntent: requireUserIntent,
+      bypassCooldown: bypassCooldown,
     )) {
       return false;
     }
@@ -199,14 +206,13 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  // Re-runs the load-older check once after the list settles at the top edge,
+  // Re-runs the load-older check after the list settles at the top edge,
   // bypassing the cooldown and user-intent gates that can otherwise swallow the
   // trigger when a fling comes to rest exactly at the boundary. Loading older
   // self-terminates because a prepend pushes the viewport out of the band, so
-  // this cannot run away. The newer direction is deliberately excluded: a newer
-  // append keeps the viewport inside the band and _restoreScrollOffset's
-  // jumpTo emits a ScrollEndNotification, which would otherwise chain loads all
-  // the way to the live tail and make the list jump.
+  // it cannot run away and is safe to re-run on every settle. The newer
+  // direction needs the one-shot guard in _recheckLoadNewerAfterUserSettle
+  // instead, because a newer append keeps the viewport inside the band.
   void _recheckLoadOlderAfterScrollSettle() {
     if (_awaitingInitialUnreadScroll) {
       return;
@@ -226,6 +232,30 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
   }
 
+  // Loads exactly one page of newer messages when the user's own scroll settles
+  // in the bottom band. Armed only by a user drag (a ScrollStartNotification
+  // that carries dragDetails) and consumed on the next settle, so the synthetic
+  // ScrollEndNotification that _restoreScrollOffset's jumpTo emits after the
+  // append cannot re-trigger it -- that one-shot is what keeps a single fling
+  // from chaining all the way to the live tail.
+  void _recheckLoadNewerAfterUserSettle() {
+    if (!_newerSettleLoadArmed) {
+      return;
+    }
+    _newerSettleLoadArmed = false;
+    if (_awaitingInitialUnreadScroll || !_scrollController.hasClients) {
+      return;
+    }
+    final ChatViewState chatState = ref.read(chatViewModelProvider);
+    if (_canTriggerLoadNewer(
+      chatState,
+      requireUserIntent: false,
+      bypassCooldown: true,
+    )) {
+      unawaited(ref.read(chatViewModelProvider.notifier).loadNewer());
+    }
+  }
+
   void _syncChannelPivot({
     required String channelId,
     required List<Message> messages,
@@ -238,6 +268,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       _initialUnreadPivotReleased = false;
       _awaitingInitialUnreadScroll = false;
       _pinnedLiveNearBottom = false;
+      _newerSettleLoadArmed = false;
       _needsInitialBottomPin = true;
       _initialBottomPinDeferScheduled = false;
       _paginationGuard.resetScrollIntent();
@@ -270,6 +301,11 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
+    if (notification.depth == 0 &&
+        notification is ScrollStartNotification &&
+        notification.dragDetails != null) {
+      _newerSettleLoadArmed = true;
+    }
     if (notification is ScrollEndNotification) {
       final ChatViewState state = ref.read(chatViewModelProvider);
       bool releasedAtBottom = false;
@@ -285,7 +321,10 @@ class _MessageListState extends ConsumerState<MessageList> {
         }
       }
       _syncReadViewport(ignoreJumpTarget: releasedAtBottom);
-      _recheckLoadOlderAfterScrollSettle();
+      if (notification.depth == 0) {
+        _recheckLoadOlderAfterScrollSettle();
+        _recheckLoadNewerAfterUserSettle();
+      }
     }
     return false;
   }

@@ -411,6 +411,55 @@ void main() {
     await tester.pump(kMessageListPaginationCooldown);
   });
 
+  testWidgets('edge re-check loads newer at bottom despite cooldown and rest', (
+    tester,
+  ) async {
+    final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
+        GlobalKey<CenterSliverScrollHarnessState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 400,
+            child: CenterSliverScrollHarness(
+              key: harnessKey,
+              initialCount: 50,
+              pivotIndex: 10,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final MessageListPaginationGuard activeGuard = MessageListPaginationGuard(
+      scrollController: harnessKey.currentState!.scrollController,
+    );
+    addTearDown(activeGuard.dispose);
+    harnessKey.currentState!.scrollToBottom();
+    await tester.pumpAndSettle();
+    activeGuard.beginCooldown();
+    // The drag-armed settle re-check bypasses cooldown and rest at the bottom.
+    expect(
+      activeGuard.shouldLoadNewer(
+        hasMoreNewerMessages: true,
+        isLoadingMore: false,
+        isLoadingNewer: false,
+      ),
+      isFalse,
+    );
+    expect(
+      activeGuard.shouldLoadNewer(
+        hasMoreNewerMessages: true,
+        isLoadingMore: false,
+        isLoadingNewer: false,
+        requireUserIntent: false,
+        bypassCooldown: true,
+      ),
+      isTrue,
+    );
+    await tester.pump(kMessageListPaginationCooldown);
+  });
+
   testWidgets('edge re-check yields to an in-flight load', (tester) async {
     final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
         GlobalKey<CenterSliverScrollHarnessState>();
