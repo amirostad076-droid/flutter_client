@@ -106,7 +106,8 @@ class MessageListPaginationGuard {
     if (requireUserIntent && !hasUserScrollIntent(position)) {
       return false;
     }
-    return position.pixels <= kMessageListLoadNewerThreshold;
+    return position.pixels <=
+        position.minScrollExtent + kMessageListLoadNewerThreshold;
   }
 
   bool hasUserScrollIntent(ScrollPosition position) {

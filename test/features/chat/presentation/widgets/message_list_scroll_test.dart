@@ -460,6 +460,58 @@ void main() {
     await tester.pump(kMessageListPaginationCooldown);
   });
 
+  testWidgets('load-newer only fires near the bottom, not mid post-center', (
+    tester,
+  ) async {
+    final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
+        GlobalKey<CenterSliverScrollHarnessState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 400,
+            child: CenterSliverScrollHarness(
+              key: harnessKey,
+              initialCount: 80,
+              pivotIndex: 5,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final MessageListPaginationGuard activeGuard = MessageListPaginationGuard(
+      scrollController: harnessKey.currentState!.scrollController,
+    );
+    addTearDown(activeGuard.dispose);
+    // Park deep in the post-center sliver but far above the bottom edge.
+    final double minExtent = harnessKey.currentState!.minScrollExtent!;
+    harnessKey.currentState!.scrollController.jumpTo(minExtent / 2);
+    await tester.pumpAndSettle();
+    expect(
+      activeGuard.shouldLoadNewer(
+        hasMoreNewerMessages: true,
+        isLoadingMore: false,
+        isLoadingNewer: false,
+        requireUserIntent: false,
+        bypassCooldown: true,
+      ),
+      isFalse,
+    );
+    harnessKey.currentState!.scrollToBottom();
+    await tester.pumpAndSettle();
+    expect(
+      activeGuard.shouldLoadNewer(
+        hasMoreNewerMessages: true,
+        isLoadingMore: false,
+        isLoadingNewer: false,
+        requireUserIntent: false,
+        bypassCooldown: true,
+      ),
+      isTrue,
+    );
+  });
+
   testWidgets('edge re-check yields to an in-flight load', (tester) async {
     final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
         GlobalKey<CenterSliverScrollHarnessState>();
