@@ -407,8 +407,11 @@ class _MessageListState extends ConsumerState<MessageList> {
       _pinToBottomAfterLayout(generation: generation);
       return;
     }
-    _scrollAnchoredPivotMessageId ??= previousMessages.last.id;
-    _restoreScrollOffset(savedOffset);
+    // Newer messages land in the post-center sliver, which keeps the visible
+    // offset stable on its own (see the post-center append tests in
+    // message_list_scroll_test.dart). Manually restoring the offset here was
+    // what made the list jump up then down when scrolling toward newer
+    // messages, so we intentionally leave the position alone.
   }
 
   drift_db.ReadState? _readStateForChannel(String channelId) {
@@ -596,35 +599,9 @@ class _MessageListState extends ConsumerState<MessageList> {
     });
   }
 
-  void _restoreScrollOffset(double offset) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) {
-        return;
-      }
-      _jumpToClampedOffset(offset);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !_scrollController.hasClients) {
-          return;
-        }
-        _jumpToClampedOffset(offset);
-      });
-    });
-  }
-
   void _jumpToMinScrollExtent() {
     final ScrollPosition position = _scrollController.position;
     position.jumpTo(position.minScrollExtent);
-  }
-
-  void _jumpToClampedOffset(double offset) {
-    final ScrollPosition position = _scrollController.position;
-    final double target = offset.clamp(
-      position.minScrollExtent,
-      position.maxScrollExtent,
-    );
-    if ((position.pixels - target).abs() > 1) {
-      position.jumpTo(target);
-    }
   }
 
   String? _resolvedPivotMessageId({
@@ -655,9 +632,12 @@ class _MessageListState extends ConsumerState<MessageList> {
       if (isNearBottom) {
         _scrollAnchoredPivotMessageId = null;
       } else {
+        // Pin the anchor once when leaving the bottom and keep it stable;
+        // letting it follow messages.last on every tick re-centers the list as
+        // newer pages load, which yanks the viewport. Cleared above at bottom.
         final List<Message> messages = state.messages;
         if (messages.isNotEmpty) {
-          _scrollAnchoredPivotMessageId = messages.last.id;
+          _scrollAnchoredPivotMessageId ??= messages.last.id;
         }
       }
     }
