@@ -58,6 +58,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'chat_view_model.g.dart';
 
 const _kPageSize = 30;
+const _kInitialPageSize = 50;
 const Duration _kChannelNetworkRefreshTtl = Duration(seconds: 30);
 const _kReadAckMinInterval = Duration(seconds: 1);
 const _kDraftSaveDebounce = Duration(milliseconds: 400);
@@ -763,7 +764,9 @@ class ChatViewModel extends _$ChatViewModel {
         _notifyMessageReferencesLoaded(channelId: channelId, messages: cached);
         if (_shouldRefreshChannelFromNetwork(channelId)) {
           _markChannelNetworkRefresh(channelId);
-          unawaited(_refreshMessagesFromNetwork(channelId));
+          unawaited(
+            _refreshMessagesFromNetwork(channelId, limit: _kInitialPageSize),
+          );
         }
         return;
       }
@@ -780,19 +783,11 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreMessages: true,
         hasMoreNewerMessages: false,
       );
-      if (hasUnread) {
-        final String? aroundMessageId = await _unreadChannelLoadAnchor(
-          channelId,
-        );
-        await _refreshMessagesFromNetwork(
-          channelId,
-          aroundMessageId: aroundMessageId,
-          showLoadingSpinner: true,
-          runOnMessagesLoaded: true,
-        );
-        return;
-      }
-      await _refreshMessagesFromNetwork(channelId, showLoadingSpinner: true);
+      await _refreshMessagesFromNetwork(
+        channelId,
+        showLoadingSpinner: true,
+        limit: _kInitialPageSize,
+      );
     } finally {
       debugPrint(
         '[ChatViewModel] switchChannel($channelId) completed in '
@@ -810,18 +805,8 @@ class ChatViewModel extends _$ChatViewModel {
     if (state.isLoading || state.isSyncingMessages) {
       return;
     }
-    final bool hasUnread = await _channelHasNewUnreadMessages(channelId);
-    if (hasUnread) {
-      final String? aroundMessageId = await _unreadChannelLoadAnchor(channelId);
-      await _refreshMessagesFromNetwork(
-        channelId,
-        aroundMessageId: aroundMessageId,
-        runOnMessagesLoaded: true,
-      );
-      return;
-    }
     state = state.copyWith(isSyncingMessages: true);
-    await _refreshMessagesFromNetwork(channelId);
+    await _refreshMessagesFromNetwork(channelId, limit: _kInitialPageSize);
     if (state.channelId == channelId) {
       state = state.copyWith(isSyncingMessages: false);
     }
@@ -838,28 +823,11 @@ class ChatViewModel extends _$ChatViewModel {
     );
   }
 
-  Future<String?> _unreadChannelLoadAnchor(String channelId) async {
-    final db.ReadState? readState = await ref
-        .read(fluxerDatabaseProvider)
-        .readStateDao
-        .getReadState(channelId);
-    final String? stickyId = readState?.stickyUnreadMessageId;
-    if (stickyId != null && stickyId.isNotEmpty) {
-      return stickyId;
-    }
-    final String? ackId = readState?.lastMessageId;
-    if (ackId != null && ackId.isNotEmpty) {
-      return ackId;
-    }
-    return null;
-  }
-
   Future<void> _refreshMessagesFromNetwork(
     String channelId, {
     String? targetMessageId,
-    String? aroundMessageId,
     bool showLoadingSpinner = false,
-    bool runOnMessagesLoaded = false,
+    int limit = _kPageSize,
   }) async {
     if (showLoadingSpinner) {
       state = state.copyWith(
@@ -873,7 +841,8 @@ class ChatViewModel extends _$ChatViewModel {
       final repo = ref.read(messageRepositoryProvider);
       final page = await repo.loadMessagePage(
         channelId: channelId,
-        around: targetMessageId ?? aroundMessageId,
+        around: targetMessageId,
+        limit: limit,
       );
       if (state.channelId != channelId) {
         return;
@@ -893,7 +862,7 @@ class ChatViewModel extends _$ChatViewModel {
         messages: merged,
         isLoading: false,
         isSyncingMessages: false,
-        hasMoreMessages: page.messages.length >= _kPageSize,
+        hasMoreMessages: page.messages.length >= limit,
         hasMoreNewerMessages: hasMoreNewer,
         errorMessage: null,
         messageLoadFailed: false,
@@ -904,8 +873,7 @@ class ChatViewModel extends _$ChatViewModel {
         messages: merged,
         embeddedReplyParents: page.embeddedReplyParents,
       );
-      if (targetMessageId == null &&
-          (aroundMessageId == null || runOnMessagesLoaded)) {
+      if (targetMessageId == null) {
         await _onMessagesLoaded(channelId);
       }
     } on Exception catch (e) {
@@ -985,10 +953,13 @@ class ChatViewModel extends _$ChatViewModel {
         .read(fluxerDatabaseProvider)
         .readStateDao
         .getReadState(channelId);
-    await _ensureUnreadBoundaryLoaded(channelId, readState: readState);
     final unreadId = _firstUnreadForCurrentMessages(readState: readState);
+    // Anchor the new-messages divider without scrolling to it: the list stays
+    // at the latest (web parity) and the read-viewport ack advances read state.
     if (unreadId != null) {
-      _showInitialUnread(channelId, unreadId);
+      if (state.channelId == channelId) {
+        state = state.copyWith(stickyUnreadMessageId: unreadId);
+      }
       return;
     }
     final db.Channel? channel = await ref
@@ -1406,17 +1377,6 @@ class ChatViewModel extends _$ChatViewModel {
           .where((message) => !_isOwnMessage(message, currentUserId))
           .map((message) => message.id),
       ackLastMessageId: readState?.lastMessageId,
-    );
-  }
-
-  void _showInitialUnread(String channelId, String unreadId) {
-    if (state.channelId != channelId) {
-      return;
-    }
-    final version = (state.scrollToMessageSignal?.$2 ?? 0) + 1;
-    state = state.copyWith(
-      stickyUnreadMessageId: unreadId,
-      scrollToMessageSignal: (unreadId, version),
     );
   }
 

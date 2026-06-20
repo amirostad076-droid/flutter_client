@@ -110,8 +110,6 @@ class _MessageListState extends ConsumerState<MessageList> {
   String? _pendingScrollTarget;
   String? _lastChannelId;
   List<Message>? _lastAnchorMessages;
-  bool _initialUnreadPivotReleased = false;
-  bool _awaitingInitialUnreadScroll = false;
   ChatUnreadSummary? _cachedUnreadSummary;
   Object? _unreadSummaryKey;
 
@@ -164,7 +162,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   // load self-terminates: the ChatScrollObserver keeps the viewport fixed, so
   // an inserted page pushes the position back out of the band.
   void _maybeLoadAtEdges() {
-    if (_awaitingInitialUnreadScroll || !_scrollController.hasClients) {
+    if (!_scrollController.hasClients) {
       return;
     }
     final ScrollPosition position = _scrollController.position;
@@ -177,15 +175,12 @@ class _MessageListState extends ConsumerState<MessageList> {
     )) {
       unawaited(_chatViewModel.loadMore());
     }
-    if (canTriggerLoadNewerDuringUnreadReview(
-          inUnreadReview: _isInUnreadReview(state),
-        ) &&
-        shouldLoadNewerAtEdge(
-          pixels: position.pixels,
-          minScrollExtent: position.minScrollExtent,
-          hasMoreNewerMessages: state.hasMoreNewerMessages,
-          isLoadingNewer: state.isLoadingNewer,
-        )) {
+    if (shouldLoadNewerAtEdge(
+      pixels: position.pixels,
+      minScrollExtent: position.minScrollExtent,
+      hasMoreNewerMessages: state.hasMoreNewerMessages,
+      isLoadingNewer: state.isLoadingNewer,
+    )) {
       unawaited(_chatViewModel.loadNewer());
     }
   }
@@ -231,53 +226,21 @@ class _MessageListState extends ConsumerState<MessageList> {
     });
   }
 
-  bool _isInUnreadReview(ChatViewState state) {
-    return isInUnreadReview(
-      stickyUnreadMessageId: state.stickyUnreadMessageId,
-      initialUnreadPivotReleased: _initialUnreadPivotReleased,
-    );
-  }
-
   void _resetOnChannelSwitch(String channelId) {
     if (channelId == _lastChannelId) {
       return;
     }
     _lastChannelId = channelId;
-    _initialUnreadPivotReleased = false;
-    _awaitingInitialUnreadScroll = false;
     _lastAnchorMessages = null;
-  }
-
-  void _completeUnreadReviewAtBottom() {
-    _initialUnreadPivotReleased = true;
-    _chatViewModel.clearCurrentManualUnread();
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification.depth != 0) {
       return false;
     }
-    if (notification is ScrollStartNotification &&
-        notification.dragDetails != null) {
-      // A user-initiated drag supersedes the initial-unread jump, so resume
-      // edge-loading even if the programmatic scroll never settled.
-      _awaitingInitialUnreadScroll = false;
-    } else if (notification is ScrollEndNotification) {
-      final ChatViewState state = ref.read(chatViewModelProvider);
-      bool releasedAtBottom = false;
-      if (_scrollController.hasClients) {
-        final ScrollPosition position = _scrollController.position;
-        if (shouldReleaseUnreadReviewOnScrollEnd(
-          inUnreadReview: _isInUnreadReview(state),
-          pixels: position.pixels,
-          minScrollExtent: position.minScrollExtent,
-        )) {
-          _completeUnreadReviewAtBottom();
-          releasedAtBottom = true;
-        }
-      }
-      _syncReadViewport(ignoreJumpTarget: releasedAtBottom);
-      if (_isLiveNearBottom() && !_isInUnreadReview(state)) {
+    if (notification is ScrollEndNotification) {
+      _syncReadViewport();
+      if (_isLiveNearBottom()) {
         _chatViewModel.trimToNewestWindow();
       }
     }
@@ -297,9 +260,6 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   bool _hasActiveJumpTarget() {
     if (widget.targetMessageId != null || _pendingScrollTarget != null) {
-      return true;
-    }
-    if (_awaitingInitialUnreadScroll) {
       return true;
     }
     final ChatViewState chatState = ref.read(chatViewModelProvider);
@@ -357,25 +317,14 @@ class _MessageListState extends ConsumerState<MessageList> {
         (!ignoreJumpTarget && _hasActiveJumpTarget())) {
       return;
     }
-    final ChatViewState state = ref.read(chatViewModelProvider);
-    final bool liveNearBottom = _isLiveNearBottom();
-    final bool inUnreadReview = _isInUnreadReview(state);
-    final bool isNearBottom = reportIsNearBottomForReadViewport(
-      inUnreadReview: inUnreadReview,
-      liveNearBottom: liveNearBottom,
-    );
-    _chatViewModel.updateReadViewport(isNearBottom: isNearBottom);
+    _chatViewModel.updateReadViewport(isNearBottom: _isLiveNearBottom());
   }
 
-  void _onScrollToBottom({bool forceDuringUnreadReview = false}) {
+  void _onScrollToBottom() {
     if (_hasActiveJumpTarget()) {
       return;
     }
     final ChatViewState chatState = ref.read(chatViewModelProvider);
-    if (_isInUnreadReview(chatState) && !forceDuringUnreadReview) {
-      return;
-    }
-    _initialUnreadPivotReleased = true;
     if (chatState.hasMoreNewerMessages) {
       unawaited(
         ref.read(chatViewModelProvider.notifier).jumpToLatestMessages(),
@@ -396,7 +345,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onUnreadBarTap() {
-    _onScrollToBottom(forceDuringUnreadReview: true);
+    _onScrollToBottom();
     unawaited(_chatViewModel.markCurrentChannelRead());
   }
 
@@ -425,8 +374,8 @@ class _MessageListState extends ConsumerState<MessageList> {
         }
         final int renderIndex = messages.length - 1 - dataIndex;
         _confirmJumpHighlightScroll(messageId);
-        // Bound the wait so a stalled observer animation can't strand
-        // _awaitingInitialUnreadScroll and freeze edge-loading until reopen.
+        // Bound the wait so a stalled observer animation can't strand the
+        // jump and freeze edge-loading until reopen.
         await _observerController
             .animateTo(
               index: renderIndex,
@@ -445,24 +394,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onScrollToMessage(String messageId) {
-    final String? stickyUnreadId = ref
-        .read(chatViewModelProvider)
-        .stickyUnreadMessageId;
-    final bool isInitialUnreadLanding =
-        !_initialUnreadPivotReleased &&
-        stickyUnreadId != null &&
-        stickyUnreadId == messageId;
-    if (isInitialUnreadLanding) {
-      _awaitingInitialUnreadScroll = true;
-    }
-    unawaited(
-      _jumpToMessage(messageId).whenComplete(() {
-        if (!mounted) {
-          return;
-        }
-        _awaitingInitialUnreadScroll = false;
-      }),
-    );
+    unawaited(_jumpToMessage(messageId));
   }
 
   Widget _buildMessageTile({
@@ -675,7 +607,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         ),
         (int? previous, int next) {
           if (next != previous) {
-            _onScrollToBottom(forceDuringUnreadReview: true);
+            _onScrollToBottom();
           }
         },
       )
@@ -782,10 +714,6 @@ class _MessageListState extends ConsumerState<MessageList> {
       liveNearBottom: _isLiveNearBottom(),
       hasMoreNewerMessages: hasMoreNewerMessages,
       isManualReadState: readState?.manual ?? false,
-      inUnreadReview: isInUnreadReview(
-        stickyUnreadMessageId: stickyUnreadId,
-        initialUnreadPivotReleased: _initialUnreadPivotReleased,
-      ),
       stickyUnreadMessageId: stickyUnreadId,
     );
     final String? effectiveVisualUnreadId = showUnreadIndicators
