@@ -396,7 +396,7 @@ void main() {
       ),
       isFalse,
     );
-    // The ScrollEnd / post-load re-check path bypasses both gates and loads.
+    // The ScrollEnd re-check path bypasses both gates and loads.
     expect(
       activeGuard.shouldLoadMore(
         hasMoreMessages: true,
@@ -408,54 +408,6 @@ void main() {
       isTrue,
     );
     // Let the cooldown timer fire so no fake-async timer leaks past teardown.
-    await tester.pump(kMessageListPaginationCooldown);
-  });
-
-  testWidgets('edge re-check loads newer at bottom despite cooldown and rest', (
-    tester,
-  ) async {
-    final GlobalKey<CenterSliverScrollHarnessState> harnessKey =
-        GlobalKey<CenterSliverScrollHarnessState>();
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: SizedBox(
-            height: 400,
-            child: CenterSliverScrollHarness(
-              key: harnessKey,
-              initialCount: 50,
-              pivotIndex: 10,
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final MessageListPaginationGuard activeGuard = MessageListPaginationGuard(
-      scrollController: harnessKey.currentState!.scrollController,
-    );
-    addTearDown(activeGuard.dispose);
-    harnessKey.currentState!.scrollToBottom();
-    await tester.pumpAndSettle();
-    activeGuard.beginCooldown();
-    expect(
-      activeGuard.shouldLoadNewer(
-        hasMoreNewerMessages: true,
-        isLoadingMore: false,
-        isLoadingNewer: false,
-      ),
-      isFalse,
-    );
-    expect(
-      activeGuard.shouldLoadNewer(
-        hasMoreNewerMessages: true,
-        isLoadingMore: false,
-        isLoadingNewer: false,
-        requireUserIntent: false,
-        bypassCooldown: true,
-      ),
-      isTrue,
-    );
     await tester.pump(kMessageListPaginationCooldown);
   });
 

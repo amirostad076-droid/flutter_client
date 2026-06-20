@@ -186,17 +186,11 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  bool _canTriggerLoadNewer(
-    ChatViewState state, {
-    bool requireUserIntent = true,
-    bool bypassCooldown = false,
-  }) {
+  bool _canTriggerLoadNewer(ChatViewState state) {
     if (!_paginationGuard.shouldLoadNewer(
       hasMoreNewerMessages: state.hasMoreNewerMessages,
       isLoadingMore: state.isLoadingMore,
       isLoadingNewer: state.isLoadingNewer,
-      requireUserIntent: requireUserIntent,
-      bypassCooldown: bypassCooldown,
     )) {
       return false;
     }
@@ -205,7 +199,15 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  void _recheckEdgeAfterScrollSettle() {
+  // Re-runs the load-older check once after the list settles at the top edge,
+  // bypassing the cooldown and user-intent gates that can otherwise swallow the
+  // trigger when a fling comes to rest exactly at the boundary. Loading older
+  // self-terminates because a prepend pushes the viewport out of the band, so
+  // this cannot run away. The newer direction is deliberately excluded: a newer
+  // append keeps the viewport inside the band and _restoreScrollOffset's
+  // jumpTo emits a ScrollEndNotification, which would otherwise chain loads all
+  // the way to the live tail and make the list jump.
+  void _recheckLoadOlderAfterScrollSettle() {
     if (_awaitingInitialUnreadScroll) {
       return;
     }
@@ -221,14 +223,6 @@ class _MessageListState extends ConsumerState<MessageList> {
       bypassCooldown: true,
     )) {
       unawaited(ref.read(chatViewModelProvider.notifier).loadMore());
-      return;
-    }
-    if (_canTriggerLoadNewer(
-      chatState,
-      requireUserIntent: false,
-      bypassCooldown: true,
-    )) {
-      unawaited(ref.read(chatViewModelProvider.notifier).loadNewer());
     }
   }
 
@@ -291,7 +285,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         }
       }
       _syncReadViewport(ignoreJumpTarget: releasedAtBottom);
-      _recheckEdgeAfterScrollSettle();
+      _recheckLoadOlderAfterScrollSettle();
     }
     return false;
   }
@@ -1128,12 +1122,6 @@ class _MessageListState extends ConsumerState<MessageList> {
         (bool? previous, bool next) {
           if ((previous ?? false) && !next) {
             _paginationGuard.beginCooldown();
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) {
-                return;
-              }
-              _recheckEdgeAfterScrollSettle();
-            });
           }
         },
       )
@@ -1142,12 +1130,6 @@ class _MessageListState extends ConsumerState<MessageList> {
         (bool? previous, bool next) {
           if ((previous ?? false) && !next) {
             _paginationGuard.beginCooldown();
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) {
-                return;
-              }
-              _recheckEdgeAfterScrollSettle();
-            });
           }
         },
       )

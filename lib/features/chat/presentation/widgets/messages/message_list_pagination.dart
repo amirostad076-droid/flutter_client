@@ -89,13 +89,10 @@ class MessageListPaginationGuard {
     required bool hasMoreNewerMessages,
     required bool isLoadingMore,
     required bool isLoadingNewer,
-    bool requireUserIntent = true,
-    bool bypassCooldown = false,
   }) {
     if (!shouldHandleScroll(
       isLoadingMore: isLoadingMore,
       isLoadingNewer: isLoadingNewer,
-      bypassCooldown: bypassCooldown,
     )) {
       return false;
     }
@@ -103,7 +100,7 @@ class MessageListPaginationGuard {
       return false;
     }
     final ScrollPosition position = _scrollController!.position;
-    if (requireUserIntent && !hasUserScrollIntent(position)) {
+    if (!hasUserScrollIntent(position)) {
       return false;
     }
     return position.pixels <= kMessageListLoadNewerThreshold;
