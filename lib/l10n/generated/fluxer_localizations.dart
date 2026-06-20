@@ -8353,6 +8353,18 @@ abstract class FluxerLocalizations {
   /// **'Your private space for thoughts and reminders'**
   String get personalNotesSubtitle;
 
+  /// Heading on the start-of-channel welcome shown at the top of a guild channel's loaded message history and as its empty state. {channelName} already includes the leading # (e.g. #general).
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to {channelName}'**
+  String channelWelcomeHeading(String channelName);
+
+  /// Whimsical body text on the start-of-channel welcome. {channelName} already includes the leading # (e.g. #general).
+  ///
+  /// In en, this message translates to:
+  /// **'In the beginning, there was nothing. Then, there was {channelName}. And it was good.'**
+  String channelWelcomeDescription(String channelName);
+
   /// Placeholder in the message composer when viewing personal notes.
   ///
   /// In en, this message translates to:

@@ -23,6 +23,8 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/remove_all_reactions_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
+    'widgets/messages/channel_welcome_section.dart';
+import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_list_pagination.dart';
@@ -590,6 +592,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required MessageRenderSettings renderSettings,
     required bool isLoadingMore,
     required bool isLoadingNewer,
+    required Widget? startOfChannelHeader,
   }) {
     final ScrollPhysics chatPhysics = ScrollConfiguration.of(context)
         .getScrollPhysics(context)
@@ -607,10 +610,15 @@ class _MessageListState extends ConsumerState<MessageList> {
               scrollCacheExtent: const ScrollCacheExtent.pixels(800),
               padding: const EdgeInsets.only(top: 8, bottom: 33),
               physics: chatPhysics,
-              itemCount: messages.length,
+              itemCount:
+                  messages.length + (startOfChannelHeader != null ? 1 : 0),
               addAutomaticKeepAlives: false,
               addRepaintBoundaries: false,
               itemBuilder: (BuildContext context, int renderIndex) {
+                if (startOfChannelHeader != null &&
+                    renderIndex == messages.length) {
+                  return startOfChannelHeader;
+                }
                 final int dataIndex = messages.length - 1 - renderIndex;
                 final Message message = messages[dataIndex];
                 final Message? previousMessage = dataIndex > 0
@@ -718,6 +726,9 @@ class _MessageListState extends ConsumerState<MessageList> {
     final bool isLoadingNewer = ref.watch(
       chatViewModelProvider.select((ChatViewState s) => s.isLoadingNewer),
     );
+    final bool hasMoreMessages = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.hasMoreMessages),
+    );
     _resetOnChannelSwitch(channelId);
     final bool isDmChannel =
         channelId.isNotEmpty &&
@@ -738,12 +749,10 @@ class _MessageListState extends ConsumerState<MessageList> {
             return dm?.isPersonalNotes ?? false;
           }),
         );
-    final String? guildId = isDmChannel || channelId.isEmpty
+    final channelRow = isDmChannel || channelId.isEmpty
         ? null
-        : findChannelById(
-            ref.watch(channelListViewModelProvider),
-            channelId,
-          )?.guildId;
+        : findChannelById(ref.watch(channelListViewModelProvider), channelId);
+    final String? guildId = channelRow?.guildId;
     final int? channelPermissionBits = channelId.isEmpty
         ? null
         : ref
@@ -856,6 +865,13 @@ class _MessageListState extends ConsumerState<MessageList> {
       }
     }
 
+    final Widget? startOfChannelHeader = !hasMoreMessages && channelRow != null
+        ? ChannelWelcomeSection(
+            key: const ValueKey<String>('channel-welcome-section'),
+            channel: channelRow,
+            effectivePermissionBits: channelPermissionBits,
+          )
+        : null;
     final Widget body;
     if (isLoading && messages.isEmpty) {
       body = Center(
@@ -895,36 +911,46 @@ class _MessageListState extends ConsumerState<MessageList> {
         ),
       );
     } else if (messages.isEmpty) {
-      body = isPersonalNotesChannel
-          ? const PersonalNotesWelcomeSection()
-          : Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  PhosphorIcon(
-                    PhosphorIconsFill.chatCircleDots,
-                    size: 48,
-                    color: context.colors.textPrimaryMuted,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No messages yet',
-                    style: TextStyle(
-                      color: context.colors.textPrimaryMuted,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Be the first to send a message!',
-                    style: TextStyle(
-                      color: context.colors.textTertiaryMuted,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
+      if (isPersonalNotesChannel) {
+        body = const PersonalNotesWelcomeSection();
+      } else if (channelRow != null) {
+        body = Align(
+          alignment: Alignment.bottomLeft,
+          child: ChannelWelcomeSection(
+            channel: channelRow,
+            effectivePermissionBits: channelPermissionBits,
+          ),
+        );
+      } else {
+        body = Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              PhosphorIcon(
+                PhosphorIconsFill.chatCircleDots,
+                size: 48,
+                color: context.colors.textPrimaryMuted,
               ),
-            );
+              const SizedBox(height: 16),
+              Text(
+                'No messages yet',
+                style: TextStyle(
+                  color: context.colors.textPrimaryMuted,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Be the first to send a message!',
+                style: TextStyle(
+                  color: context.colors.textTertiaryMuted,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
     } else {
       body = _buildMessageListView(
         context: context,
@@ -942,6 +968,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         renderSettings: messageRenderSettings,
         isLoadingMore: isLoadingMore,
         isLoadingNewer: isLoadingNewer,
+        startOfChannelHeader: startOfChannelHeader,
       );
     }
 

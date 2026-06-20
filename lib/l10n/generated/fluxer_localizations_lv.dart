@@ -4839,6 +4839,16 @@ class FluxerLocalizationsLv extends FluxerLocalizations {
       'Your private space for thoughts and reminders';
 
   @override
+  String channelWelcomeHeading(String channelName) {
+    return 'Welcome to $channelName';
+  }
+
+  @override
+  String channelWelcomeDescription(String channelName) {
+    return 'In the beginning, there was nothing. Then, there was $channelName. And it was good.';
+  }
+
+  @override
   String get personalNotesComposerHint => 'Message yourself';
 
   @override
