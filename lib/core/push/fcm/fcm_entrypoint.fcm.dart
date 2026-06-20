@@ -5,11 +5,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
+import 'package:fluxer_app/core/push/fcm/fcm_background_handler_policy.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_tap_payload_cache.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
-import 'package:fluxer_app/core/push/push_notification_path_resolver.dart';
-import 'package:fluxer_app/core/push/push_notification_payload.dart';
 import 'package:fluxer_fcm/fcm_message_mapper.dart';
 import 'package:fluxer_fcm/fcm_push_message.dart';
 import 'package:fluxer_fcm/firebase_options.dart';
@@ -61,21 +60,11 @@ Future<void> fcmBackgroundMessageHandler(RemoteMessage message) async {
     );
   }
   final FcmPushMessage mapped = mapRemoteMessage(message);
-  final Map<String, String> normalized = normalizePushTapPayload(
-    mapped.payload,
-  );
-  if (resolvePushNotificationPath(normalized) == null) {
-    if (kDebugMode) {
-      debugPrint('[FCM] background message skipped: no navigable payload');
-    }
-    return;
-  }
-  await FcmTapPayloadCache.save(
-    payload: mapped.payload,
-    gcmMessageId: message.messageId,
-  );
-  if (message.notification != null) {
-    return;
+  if (shouldSaveFcmTapPayloadCache(mapped.payload)) {
+    await FcmTapPayloadCache.save(
+      payload: mapped.payload,
+      gcmMessageId: message.messageId,
+    );
   }
   final LocalPushNotifications localPush = LocalPushNotifications();
   final bool ready = await localPush.ensureInitialized();
