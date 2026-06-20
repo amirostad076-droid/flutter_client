@@ -1484,7 +1484,9 @@ class ChatViewModel extends _$ChatViewModel {
     } else {
       _readAckGate.clearManualUnread(channelId);
     }
-    if (state.channelId == channelId) {
+    // Only a manual mark-read clears the divider; a non-manual ack (our own
+    // auto-ack echoed by the server, or another session's) keeps the sticky.
+    if (manual && state.channelId == channelId) {
       clearStickyUnread();
     }
   }

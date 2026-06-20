@@ -644,6 +644,102 @@ void main() {
     );
   });
 
+  test('server ack echo does not clear sticky unread divider', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final unreadId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(0),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: unreadId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    await _flushAsync();
+    expect(
+      container.read(chatViewModelProvider).stickyUnreadMessageId,
+      unreadId,
+    );
+
+    // A non-manual ack (e.g. the server echoing our own auto-ack) must not
+    // clear the pinned divider.
+    notifier.applyExternalAck('channel-1', manual: false);
+    await _flushAsync();
+
+    expect(
+      container.read(chatViewModelProvider).stickyUnreadMessageId,
+      unreadId,
+    );
+  });
+
+  test('manual external ack clears sticky unread divider', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final unreadId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(0),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: unreadId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+      ],
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    await _flushAsync();
+    expect(
+      container.read(chatViewModelProvider).stickyUnreadMessageId,
+      unreadId,
+    );
+
+    // A manual mark-read clears the divider.
+    notifier.applyExternalAck('channel-1', manual: true);
+    await _flushAsync();
+
+    expect(container.read(chatViewModelProvider).stickyUnreadMessageId, null);
+  });
+
   test(
     'auto ack does not preserve sticky unread divider for own messages',
     () async {

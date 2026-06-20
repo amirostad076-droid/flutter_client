@@ -23,10 +23,10 @@ void main() {
     });
   });
 
-  group('shouldShowUnreadIndicators', () {
+  group('shouldShowUnreadBar', () {
     test('returns false when there is no unread', () {
       expect(
-        shouldShowUnreadIndicators(
+        shouldShowUnreadBar(
           hasUnread: false,
           liveNearBottom: false,
           hasMoreNewerMessages: false,
@@ -39,7 +39,7 @@ void main() {
 
     test('suppresses at bottom on latest page with unread', () {
       expect(
-        shouldShowUnreadIndicators(
+        shouldShowUnreadBar(
           hasUnread: true,
           liveNearBottom: true,
           hasMoreNewerMessages: false,
@@ -52,7 +52,7 @@ void main() {
 
     test('shows when scrolled up with unread', () {
       expect(
-        shouldShowUnreadIndicators(
+        shouldShowUnreadBar(
           hasUnread: true,
           liveNearBottom: false,
           hasMoreNewerMessages: false,
@@ -65,7 +65,7 @@ void main() {
 
     test('shows at bottom when read state is manual', () {
       expect(
-        shouldShowUnreadIndicators(
+        shouldShowUnreadBar(
           hasUnread: true,
           liveNearBottom: true,
           hasMoreNewerMessages: false,
@@ -78,7 +78,7 @@ void main() {
 
     test('shows at bottom when sticky unread is set', () {
       expect(
-        shouldShowUnreadIndicators(
+        shouldShowUnreadBar(
           hasUnread: true,
           liveNearBottom: true,
           hasMoreNewerMessages: false,
@@ -91,7 +91,7 @@ void main() {
 
     test('shows at bottom when newer pages remain', () {
       expect(
-        shouldShowUnreadIndicators(
+        shouldShowUnreadBar(
           hasUnread: true,
           liveNearBottom: true,
           hasMoreNewerMessages: true,

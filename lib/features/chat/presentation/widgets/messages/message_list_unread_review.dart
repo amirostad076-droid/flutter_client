@@ -23,7 +23,9 @@ bool isLiveNearBottom({
   );
 }
 
-bool shouldShowUnreadIndicators({
+/// Visibility of the top "new messages" bar: driven by the unread count and
+/// suppressed at the bottom of the latest page.
+bool shouldShowUnreadBar({
   required bool hasUnread,
   required bool liveNearBottom,
   required bool hasMoreNewerMessages,

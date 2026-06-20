@@ -702,27 +702,24 @@ class _MessageListState extends ConsumerState<MessageList> {
       hasMoreNewerMessages: hasMoreNewerMessages,
     );
     final String? oldestUnreadId = unreadSummary.oldestUnreadMessageId;
-    final String? visualUnreadId = _visualUnreadId(
-      messages: messages,
+    final String? visualUnreadId = resolveVisualUnreadId(
+      messages: messages.map(
+        (Message message) =>
+            ChatUnreadMessageRef(id: message.id, authorId: message.authorId),
+      ),
       stickyUnreadId: stickyUnreadId,
       oldestUnreadId: oldestUnreadId,
       currentUserId: currentUserId,
     );
     final int unreadCount = unreadSummary.displayUnreadCount;
-    final bool showUnreadIndicators = shouldShowUnreadIndicators(
+    final bool showUnreadBarEligible = shouldShowUnreadBar(
       hasUnread: unreadCount > 0,
       liveNearBottom: _isLiveNearBottom(),
       hasMoreNewerMessages: hasMoreNewerMessages,
       isManualReadState: readState?.manual ?? false,
       stickyUnreadMessageId: stickyUnreadId,
     );
-    final String? effectiveVisualUnreadId = showUnreadIndicators
-        ? visualUnreadId
-        : null;
-    final DateTime? unreadSince = _messageTimestamp(
-      messages,
-      effectiveVisualUnreadId,
-    );
+    final DateTime? unreadSince = _messageTimestamp(messages, visualUnreadId);
     final int chatFontSize = ref.watch(
       themePreferenceProvider.select(
         (ThemePreferenceState s) => s.chatFontSize,
@@ -883,7 +880,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       body = _buildMessageListView(
         context: context,
         messages: messages,
-        visualUnreadId: effectiveVisualUnreadId,
+        visualUnreadId: visualUnreadId,
         highlightedMessageId: highlightedMessageId,
         currentUserId: currentUserId,
         isDmChannel: isDmChannel,
@@ -903,7 +900,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     final double scaleRatio = chatFontSize / 16.0;
 
     final bool showUnreadBar =
-        !isLoading && messages.isNotEmpty && showUnreadIndicators;
+        !isLoading && messages.isNotEmpty && showUnreadBarEligible;
     final Widget scaledBody = Stack(
       fit: StackFit.expand,
       children: [
@@ -925,29 +922,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
 
     return _ChatTextScale(scaleRatio: scaleRatio, child: scaledBody);
-  }
-
-  String? _visualUnreadId({
-    required List<Message> messages,
-    required String? stickyUnreadId,
-    required String? oldestUnreadId,
-    required String? currentUserId,
-  }) {
-    if (stickyUnreadId == null) {
-      return oldestUnreadId;
-    }
-    final bool hasVisibleSticky = messages.any(
-      (Message message) =>
-          message.id == stickyUnreadId &&
-          !_isOwnMessage(message, currentUserId),
-    );
-    return hasVisibleSticky ? stickyUnreadId : oldestUnreadId;
-  }
-
-  bool _isOwnMessage(Message message, String? currentUserId) {
-    return currentUserId != null &&
-        currentUserId.isNotEmpty &&
-        message.authorId == currentUserId;
   }
 
   DateTime? _messageTimestamp(List<Message> messages, String? messageId) {
