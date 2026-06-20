@@ -1031,62 +1031,69 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
 
+    final String channelId = state.channelId;
     state = state.copyWith(isLoadingMore: true);
     try {
       final repo = ref.read(messageRepositoryProvider);
       final oldestId = state.messages.first.id;
-      if (_contigChannelId == state.channelId &&
+      if (_contigChannelId == channelId &&
           canServeOlderFromCache(
             windowOldestId: oldestId,
             contigOldestId: _contigOldestId,
           )) {
         final cachedPage = await repo.getCachedMessagesBefore(
-          state.channelId,
+          channelId,
           oldestId,
         );
+        if (state.channelId != channelId) {
+          return;
+        }
         final olderInRange = cachedPage
             .where((m) => compareSnowflakeIds(m.id, _contigOldestId) >= 0)
             .toList();
         if (olderInRange.isNotEmpty) {
-          final mergedCache = [...olderInRange, ...state.messages];
-          final trimCache = trimMessageWindow(mergedCache, keepNewest: false);
+          // Pure prepend: older messages land above the viewport, so the
+          // reverse list keeps position for free. Never trim the newest here;
+          // trimToNewestWindow() reclaims memory at the live tail.
+          final merged = [...olderInRange, ...state.messages];
           state = state.copyWith(
-            messages: trimCache.messages,
+            messages: merged,
             isLoadingMore: false,
             hasMoreMessages: true,
-            hasMoreNewerMessages:
-                trimCache.droppedNewer || state.hasMoreNewerMessages,
           );
           _notifyMessageReferencesLoaded(
-            channelId: state.channelId,
-            messages: trimCache.messages,
+            channelId: channelId,
+            messages: olderInRange,
           );
           return;
         }
       }
       final page = await repo.loadMessagePage(
-        channelId: state.channelId,
+        channelId: channelId,
         before: oldestId,
       );
+      if (state.channelId != channelId) {
+        return;
+      }
       if (page.messages.isNotEmpty) {
         _extendOlder(page.messages.first.id);
       }
       final merged = [...page.messages, ...state.messages];
-      final trim = trimMessageWindow(merged, keepNewest: false);
       state = state.copyWith(
-        messages: trim.messages,
+        messages: merged,
         isLoadingMore: false,
         hasMoreMessages: page.messages.length >= _kPageSize,
-        hasMoreNewerMessages: trim.droppedNewer || state.hasMoreNewerMessages,
       );
       _notifyMessageReferencesLoaded(
-        channelId: state.channelId,
-        messages: trim.messages,
+        channelId: channelId,
+        messages: page.messages,
         embeddedReplyParents: page.embeddedReplyParents,
       );
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load more: $e');
-      state = state.copyWith(isLoadingMore: false);
+      if (state.channelId == channelId) {
+        state = state.copyWith(isLoadingMore: false);
+      }
     }
   }
 
@@ -1096,19 +1103,23 @@ class ChatViewModel extends _$ChatViewModel {
         state.messages.isEmpty) {
       return;
     }
+    final String channelId = state.channelId;
     state = state.copyWith(isLoadingNewer: true);
     try {
       final repo = ref.read(messageRepositoryProvider);
       final String newestId = state.messages.last.id;
-      if (_contigChannelId == state.channelId &&
+      if (_contigChannelId == channelId &&
           canServeNewerFromCache(
             windowNewestId: newestId,
             contigNewestId: _contigNewestId,
           )) {
         final cachedPage = await repo.getCachedMessagesAfter(
-          state.channelId,
+          channelId,
           newestId,
         );
+        if (state.channelId != channelId) {
+          return;
+        }
         final newerInRange = cachedPage
             .where((m) => compareSnowflakeIds(m.id, _contigNewestId) <= 0)
             .toList();
@@ -1118,6 +1129,9 @@ class ChatViewModel extends _$ChatViewModel {
           final bool hasMoreNewerCache = await _hasNewerMessagesThanChannel(
             mergedCache.last.id,
           );
+          if (state.channelId != channelId) {
+            return;
+          }
           state = state.copyWith(
             messages: trimCache.messages,
             isLoadingNewer: false,
@@ -1125,17 +1139,17 @@ class ChatViewModel extends _$ChatViewModel {
             hasMoreMessages: trimCache.droppedOlder || state.hasMoreMessages,
           );
           _notifyMessageReferencesLoaded(
-            channelId: state.channelId,
+            channelId: channelId,
             messages: trimCache.messages,
           );
           return;
         }
       }
       final page = await repo.loadMessagePage(
-        channelId: state.channelId,
+        channelId: channelId,
         after: newestId,
       );
-      if (state.channelId.isEmpty) {
+      if (state.channelId != channelId) {
         return;
       }
       if (page.messages.isNotEmpty) {
@@ -1145,10 +1159,13 @@ class ChatViewModel extends _$ChatViewModel {
         state.messages,
         page.messages,
       );
-      final trim = trimMessageWindow(merged, keepNewest: true);
       final bool hasMoreNewer =
           page.messages.length >= _kPageSize &&
           await _hasNewerMessagesThanChannel(merged.last.id);
+      if (state.channelId != channelId) {
+        return;
+      }
+      final trim = trimMessageWindow(merged, keepNewest: true);
       state = state.copyWith(
         messages: trim.messages,
         isLoadingNewer: false,
@@ -1156,14 +1173,31 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreMessages: trim.droppedOlder || state.hasMoreMessages,
       );
       _notifyMessageReferencesLoaded(
-        channelId: state.channelId,
+        channelId: channelId,
         messages: trim.messages,
         embeddedReplyParents: page.embeddedReplyParents,
       );
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load newer messages: $e');
-      state = state.copyWith(isLoadingNewer: false);
+      if (state.channelId == channelId) {
+        state = state.copyWith(isLoadingNewer: false);
+      }
     }
+  }
+
+  /// Trims the loaded window back to the newest [kMaxLoadedMessages] once the
+  /// viewport is at the live tail, reclaiming memory after a deep scroll-up.
+  /// No-op while newer history is unloaded or the window is within the cap.
+  void trimToNewestWindow() {
+    if (state.hasMoreNewerMessages ||
+        state.messages.length <= kMaxLoadedMessages) {
+      return;
+    }
+    final trim = trimMessageWindow(state.messages, keepNewest: true);
+    state = state.copyWith(
+      messages: trim.messages,
+      hasMoreMessages: trim.droppedOlder || state.hasMoreMessages,
+    );
   }
 
   Future<void> jumpToLatestMessages() async {

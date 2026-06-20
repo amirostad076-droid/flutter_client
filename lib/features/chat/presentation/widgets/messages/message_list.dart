@@ -87,10 +87,9 @@ const _kMonthNames = [
   'December',
 ];
 
-/// The scrollable list of messages in the chat area.
-///
-/// Uses a center-anchored [CustomScrollView] so prepending older
-/// messages and appending newer messages do not shift the viewport.
+/// The scrollable list of messages in the chat area: a single `reverse: true`
+/// [ListView] anchored by a [ChatScrollObserver] (older messages prepend
+/// above the viewport; newer ones hold position unless at the live tail).
 class MessageList extends ConsumerStatefulWidget {
   const MessageList({this.targetMessageId, super.key});
 
@@ -253,7 +252,15 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
-    if (notification.depth == 0 && notification is ScrollEndNotification) {
+    if (notification.depth != 0) {
+      return false;
+    }
+    if (notification is ScrollStartNotification &&
+        notification.dragDetails != null) {
+      // A user-initiated drag supersedes the initial-unread jump, so resume
+      // edge-loading even if the programmatic scroll never settled.
+      _awaitingInitialUnreadScroll = false;
+    } else if (notification is ScrollEndNotification) {
       final ChatViewState state = ref.read(chatViewModelProvider);
       bool releasedAtBottom = false;
       if (_scrollController.hasClients) {
@@ -268,6 +275,9 @@ class _MessageListState extends ConsumerState<MessageList> {
         }
       }
       _syncReadViewport(ignoreJumpTarget: releasedAtBottom);
+      if (_isLiveNearBottom() && !_isInUnreadReview(state)) {
+        _chatViewModel.trimToNewestWindow();
+      }
     }
     return false;
   }
@@ -413,12 +423,16 @@ class _MessageListState extends ConsumerState<MessageList> {
         }
         final int renderIndex = messages.length - 1 - dataIndex;
         _confirmJumpHighlightScroll(messageId);
-        await _observerController.animateTo(
-          index: renderIndex,
-          alignment: alignment,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+        // Bound the wait so a stalled observer animation can't strand
+        // _awaitingInitialUnreadScroll and freeze edge-loading until reopen.
+        await _observerController
+            .animateTo(
+              index: renderIndex,
+              alignment: alignment,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            )
+            .timeout(const Duration(seconds: 2), onTimeout: () {});
       } finally {
         if (!completer.isCompleted) {
           completer.complete();
