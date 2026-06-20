@@ -102,38 +102,6 @@ void main() {
     });
   });
 
-  group('shouldClearPivotOnUnreadReviewRelease', () {
-    test('clears pivot when at channel latest', () {
-      expect(
-        shouldClearPivotOnUnreadReviewRelease(hasMoreNewerMessages: false),
-        isTrue,
-      );
-    });
-
-    test('keeps pivot when newer pages remain', () {
-      expect(
-        shouldClearPivotOnUnreadReviewRelease(hasMoreNewerMessages: true),
-        isFalse,
-      );
-    });
-  });
-
-  group('shouldMigratePivotDuringUnreadReview', () {
-    test('never migrates pivot during review', () {
-      expect(
-        shouldMigratePivotDuringUnreadReview(inUnreadReview: true),
-        isFalse,
-      );
-    });
-
-    test('allows migration outside review', () {
-      expect(
-        shouldMigratePivotDuringUnreadReview(inUnreadReview: false),
-        isFalse,
-      );
-    });
-  });
-
   group('canTriggerLoadNewerDuringUnreadReview', () {
     test('blocks loadNewer during review', () {
       expect(

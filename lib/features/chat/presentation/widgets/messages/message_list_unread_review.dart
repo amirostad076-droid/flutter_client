@@ -32,16 +32,6 @@ bool shouldReleaseUnreadReviewOnScrollEnd({
       );
 }
 
-bool shouldClearPivotOnUnreadReviewRelease({
-  required bool hasMoreNewerMessages,
-}) {
-  return !hasMoreNewerMessages;
-}
-
-bool shouldMigratePivotDuringUnreadReview({required bool inUnreadReview}) {
-  return false;
-}
-
 bool canTriggerLoadNewerDuringUnreadReview({required bool inUnreadReview}) {
   return !inUnreadReview;
 }
