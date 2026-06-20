@@ -115,6 +115,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   bool _newerSettleLoadArmed = false;
   bool _needsInitialBottomPin = false;
   bool _initialBottomPinDeferScheduled = false;
+  bool _lastBuiltHasMoreNewerMessages = false;
   int _bottomPinGeneration = 0;
   ChatUnreadSummary? _cachedUnreadSummary;
   Object? _unreadSummaryKey;
@@ -400,7 +401,12 @@ class _MessageListState extends ConsumerState<MessageList> {
       pixels: savedOffset,
       minScrollExtent: position.minScrollExtent,
     );
-    if (liveNearBottom && !state.hasMoreNewerMessages) {
+    // Only auto-follow to the bottom for a genuine live append (we were already
+    // at the tail last build). When pagination crosses into the tail we stay
+    // put so scrolling toward newer messages does not snap past them.
+    if (liveNearBottom &&
+        !state.hasMoreNewerMessages &&
+        !_lastBuiltHasMoreNewerMessages) {
       _scrollAnchoredPivotMessageId = null;
       _pinnedLiveNearBottom = true;
       final int generation = ++_bottomPinGeneration;
@@ -1180,6 +1186,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     final bool hasMoreNewerMessages = ref.watch(
       chatViewModelProvider.select((ChatViewState s) => s.hasMoreNewerMessages),
     );
+    _lastBuiltHasMoreNewerMessages = hasMoreNewerMessages;
     final bool isLoading = ref.watch(
       chatViewModelProvider.select((ChatViewState s) => s.isLoading),
     );
