@@ -1178,12 +1178,12 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                   ),
                   if (messageAuthorShowsUserTag(
                     authorIsBot: msg.authorIsBot,
-                    authorId: msg.authorId,
+                    authorIsSystem: msg.authorIsSystem,
                   )) ...[
                     const SizedBox(width: 6),
                     FluxerUserTag(
                       isSystem: messageAuthorUserTagIsSystem(
-                        authorId: msg.authorId,
+                        authorIsSystem: msg.authorIsSystem,
                       ),
                     ),
                   ],

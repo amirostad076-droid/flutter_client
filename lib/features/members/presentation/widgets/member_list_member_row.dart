@@ -58,6 +58,8 @@ class _MemberListSidebarMemberRowState
       roleIds: member.roles,
       rolesById: widget.rolesById,
     );
+    final bool showUserTag =
+        (member.user.bot ?? false) || (member.user.system ?? false);
     final FluxerLayoutTheme layout = context.layout;
     return SizedBox(
       height: kMemberListRowHeight,
@@ -99,7 +101,6 @@ class _MemberListSidebarMemberRowState
                         hash: avatar,
                       ),
                       avatarColor: member.user.avatarColor,
-                      roleColor: roleColor,
                       status: status,
                       size: 32,
                     ),
@@ -122,9 +123,11 @@ class _MemberListSidebarMemberRowState
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (member.user.bot ?? false) ...<Widget>[
+                              if (showUserTag) ...<Widget>[
                                 SizedBox(width: layout.s1),
-                                const FluxerBotBadge(),
+                                FluxerUserTag(
+                                  isSystem: member.user.system ?? false,
+                                ),
                               ],
                             ],
                           ),
@@ -187,6 +190,8 @@ class MemberListDetailsMemberRow extends ConsumerWidget {
       roleIds: member.roles,
       rolesById: rolesById,
     );
+    final bool showUserTag =
+        (member.user.bot ?? false) || (member.user.system ?? false);
     final Widget row = Material(
       color: Colors.transparent,
       child: InkWell(
@@ -209,7 +214,6 @@ class MemberListDetailsMemberRow extends ConsumerWidget {
                   hash: avatar,
                 ),
                 avatarColor: member.user.avatarColor,
-                roleColor: roleColor,
                 status: status,
                 size: 32,
               ),
@@ -240,13 +244,14 @@ class MemberListDetailsMemberRow extends ConsumerWidget {
                             color: Color(0xFFFAA61A),
                           ),
                         ],
-                        if (member.user.bot ?? false) ...<Widget>[
+                        if (showUserTag) ...<Widget>[
                           const SizedBox(width: 6),
-                          const FluxerBotBadge(),
+                          FluxerUserTag(isSystem: member.user.system ?? false),
                         ],
                       ],
                     ),
-                    if (customStatus != null && customStatus.isNotEmpty) ...<Widget>[
+                    if (customStatus != null &&
+                        customStatus.isNotEmpty) ...<Widget>[
                       const SizedBox(height: 2),
                       Text(
                         customStatus,

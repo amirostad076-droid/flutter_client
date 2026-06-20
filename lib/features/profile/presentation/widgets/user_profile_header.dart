@@ -12,10 +12,13 @@ class UserProfileHeader extends StatelessWidget {
     required this.flags,
     required this.hasPlutonium,
     required this.customStatus,
+    this.isLifetimePlutonium = false,
+    this.premiumSince,
     this.pronouns,
     this.premiumLifetimeSequence,
     this.showUsername = true,
-    this.showBotTag = false,
+    this.isBot = false,
+    this.isSystem = false,
     super.key,
   });
 
@@ -25,20 +28,23 @@ class UserProfileHeader extends StatelessWidget {
   final int flags;
   final bool hasPlutonium;
   final String? customStatus;
+  final bool isLifetimePlutonium;
+  final String? premiumSince;
   final String? pronouns;
   final int? premiumLifetimeSequence;
   final bool showUsername;
-  final bool showBotTag;
+  final bool isBot;
+  final bool isSystem;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final textStyles = context.textStyles;
     final layout = context.layout;
-    final isUsernameAsDisplay = displayName == username;
     final String? pronounsTrimmed = pronouns?.trim();
     final bool showPronouns =
         pronounsTrimmed != null && pronounsTrimmed.isNotEmpty;
+    final bool showUserTag = isBot || isSystem;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,16 +63,7 @@ class UserProfileHeader extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            if (showBotTag) const FluxerBotBadge(),
-            if (showUsername && isUsernameAsDisplay)
-              Text(
-                '#$discriminator',
-                style: textStyles.heading.copyWith(
-                  color: colors.textTertiary,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+            if (showUserTag) FluxerUserTag(isSystem: isSystem),
           ],
         ),
         if (showUsername) ...[
@@ -76,17 +73,18 @@ class UserProfileHeader extends StatelessWidget {
             spacing: 6,
             runSpacing: 4,
             children: [
-              if (!isUsernameAsDisplay)
-                Text(
-                  '$username#$discriminator',
-                  style: textStyles.bodySmall.copyWith(
-                    color: colors.textTertiary,
-                    fontWeight: FontWeight.w500,
-                  ),
+              Text(
+                '$username#$discriminator',
+                style: textStyles.bodySmall.copyWith(
+                  color: colors.textTertiary,
+                  fontWeight: FontWeight.w500,
                 ),
+              ),
               UserProfileBadges(
                 flags: flags,
                 hasPlutonium: hasPlutonium,
+                isLifetimePlutonium: isLifetimePlutonium,
+                premiumSince: premiumSince,
                 premiumLifetimeSequence: premiumLifetimeSequence,
               ),
             ],

@@ -1699,6 +1699,7 @@ class ChatViewModel extends _$ChatViewModel {
       authorAvatar: currentUser?.avatar,
       authorAvatarColor: currentUser?.avatarColor,
       authorIsBot: currentUser?.bot ?? false,
+      authorIsSystem: currentUser?.system ?? false,
       clientNonce: clientNonce,
       attachments: optimisticAttachments,
       flags: kMessageFlagVoiceMessage,
@@ -1863,6 +1864,7 @@ class ChatViewModel extends _$ChatViewModel {
       authorAvatar: currentUser?.avatar,
       authorAvatarColor: currentUser?.avatarColor,
       authorIsBot: currentUser?.bot ?? false,
+      authorIsSystem: currentUser?.system ?? false,
       clientNonce: clientNonce,
       attachments: optimisticAttachments,
       flags: messageFlags,
@@ -2030,8 +2032,9 @@ class ChatViewModel extends _$ChatViewModel {
         error,
         st,
       );
-      uploadNotifier.restoreToComposer(clientNonce);
-      uploadNotifier.removeMessageUpload(clientNonce);
+      uploadNotifier
+        ..restoreToComposer(clientNonce)
+        ..removeMessageUpload(clientNonce);
       _markOptimisticSendFailed(optimisticMessageId);
     }
   }
@@ -2235,7 +2238,7 @@ class ChatViewModel extends _$ChatViewModel {
         debugPrint('[ChatViewModel] Failed to delete message: $e');
         state = state.copyWith(errorMessage: 'Failed to delete message');
       } finally {
-        _pendingDeleteFutures.remove(messageId);
+        unawaited(_pendingDeleteFutures.remove(messageId));
       }
     }();
     _pendingDeleteFutures[messageId] = deleteFuture;
@@ -2265,7 +2268,7 @@ class ChatViewModel extends _$ChatViewModel {
     unawaited(_flushComposerDraftSave());
   }
 
-  void setReplyMentioning(bool mentioning) {
+  void setReplyMentioning({required bool mentioning}) {
     if (state.replyMentioning == mentioning) {
       return;
     }
@@ -2731,6 +2734,7 @@ class ChatViewModel extends _$ChatViewModel {
     required int? authorAvatarColor,
     required String clientNonce,
     bool authorIsBot = false,
+    bool authorIsSystem = false,
     List<Attachment> attachments = const <Attachment>[],
     int flags = 0,
   }) {
@@ -2743,6 +2747,7 @@ class ChatViewModel extends _$ChatViewModel {
       authorAvatar: authorAvatar,
       authorAvatarColor: authorAvatarColor,
       authorIsBot: authorIsBot,
+      authorIsSystem: authorIsSystem,
       content: content,
       timestamp: now,
       replyToId: replyToId,

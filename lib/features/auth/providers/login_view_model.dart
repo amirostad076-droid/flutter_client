@@ -191,6 +191,9 @@ class LoginViewModel extends _$LoginViewModel {
   void showRegisterScreen() {
     state = state.copyWith(
       showRegister: true,
+      showForgotPassword: false,
+      forgotPasswordEmailSent: false,
+      resetToken: null,
       errorMessage: null,
       fieldErrors: const {},
     );
@@ -327,7 +330,9 @@ class LoginViewModel extends _$LoginViewModel {
   void showForgotPasswordScreen() {
     state = state.copyWith(
       showForgotPassword: true,
+      showRegister: false,
       forgotPasswordEmailSent: false,
+      resetToken: null,
       errorMessage: null,
       fieldErrors: const {},
     );
@@ -346,6 +351,7 @@ class LoginViewModel extends _$LoginViewModel {
     state = state.copyWith(
       resetToken: token,
       showForgotPassword: false,
+      showRegister: false,
       forgotPasswordEmailSent: false,
       errorMessage: null,
       fieldErrors: const {},
