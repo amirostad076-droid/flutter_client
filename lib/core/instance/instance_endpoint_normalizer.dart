@@ -1,0 +1,71 @@
+import 'package:fluxer_app/core/instance/instance_constants.dart';
+
+abstract final class InstanceEndpointPatterns {
+  static final RegExp schemePrefix = RegExp(
+    r'^[a-zA-Z][a-zA-Z0-9+\-.]*://',
+  );
+  static final RegExp trailingSlashes = RegExp(r'/+$');
+  static final RegExp apiPathSuffix = RegExp(r'/api/?$');
+}
+
+class InstanceEndpointNormalizer {
+  const InstanceEndpointNormalizer();
+
+  String normalizeEndpoint(String input) {
+    final String trimmed = input.trim();
+    if (trimmed.isEmpty) {
+      throw const FormatException('API endpoint is required');
+    }
+    String candidate = trimmed;
+    if (!InstanceEndpointPatterns.schemePrefix.hasMatch(candidate)) {
+      candidate = 'https://$candidate';
+    }
+    final Uri url = Uri.parse(candidate);
+    if (url.scheme != 'http' && url.scheme != 'https') {
+      throw const FormatException('Instance URL must use http or https');
+    }
+    String path = url.path;
+    if (path.isEmpty || path == '/') {
+      path = '/api';
+    }
+    final String normalizedPath =
+        path.replaceAll(InstanceEndpointPatterns.trailingSlashes, '');
+    return url.replace(path: normalizedPath).toString();
+  }
+
+  String buildWellKnownUrl(String apiEndpoint) {
+    try {
+      final Uri url = Uri.parse(apiEndpoint);
+      final bool isOfficialWebApp =
+          url.host == 'web.fluxer.app' || url.host == 'web.canary.fluxer.app';
+      final String wellKnownPath =
+          isOfficialWebApp ? '/api/.well-known/fluxer' : '/.well-known/fluxer';
+      return url.replace(path: wellKnownPath).toString();
+    } on FormatException {
+      final String base =
+          apiEndpoint.replaceAll(InstanceEndpointPatterns.apiPathSuffix, '');
+      return '$base/.well-known/fluxer';
+    }
+  }
+
+  String describeApiEndpoint(String endpoint) {
+    if (endpoint.isEmpty) {
+      return describeApiEndpoint(InstanceConstants.defaultApiBaseUrl);
+    }
+    try {
+      final Uri url = Uri.parse(endpoint);
+      final String path = url.path == '/api' ? '' : url.path;
+      return '${url.host}$path';
+    } on FormatException {
+      return endpoint;
+    }
+  }
+
+  String extractDisplayDomain(String apiEndpoint) {
+    try {
+      return Uri.parse(apiEndpoint).host.toLowerCase();
+    } on FormatException {
+      return apiEndpoint.trim().toLowerCase();
+    }
+  }
+}

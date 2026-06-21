@@ -5,6 +5,7 @@ class StoredAccount {
   final String? avatar;
   final bool isValid;
   final DateTime lastActive;
+  final String? displayDomain;
 
   const StoredAccount({
     required this.userId,
@@ -13,6 +14,7 @@ class StoredAccount {
     this.username,
     this.discriminator,
     this.avatar,
+    this.displayDomain,
   });
 
   String get displayName => username ?? userId;

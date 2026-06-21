@@ -6320,5 +6320,52 @@
   "composerEmojiUnavailable": "You can't use that emoji here.",
   "@composerEmojiUnavailable": {
     "description": "Toast shown when a message contains a custom emoji the user cannot use in this channel."
+  },
+  "instanceUrlLabel": "Instance URL",
+  "@instanceUrlLabel": {
+    "description": "Label for the self-hosted instance URL input on the login screen."
+  },
+  "instanceUrlPlaceholder": "Enter instance URL (e.g. fluxer.app)",
+  "@instanceUrlPlaceholder": {
+    "description": "Placeholder for the self-hosted instance URL input."
+  },
+  "instanceConnect": "Connect",
+  "@instanceConnect": {
+    "description": "Button label to connect to a custom Fluxer instance."
+  },
+  "instanceConnecting": "Connecting…",
+  "@instanceConnecting": {
+    "description": "Status text while discovering a custom Fluxer instance."
+  },
+  "instanceConnectFailed": "Failed to connect to instance",
+  "@instanceConnectFailed": {
+    "description": "Fallback error when instance discovery fails."
+  },
+  "recentInstances": "Recent instances",
+  "@recentInstances": {
+    "description": "Label for the recent self-hosted instances list."
+  },
+  "removeRecentInstance": "Remove {domain} from recent instances",
+  "@removeRecentInstance": {
+    "description": "Accessibility label for removing a recent instance.",
+    "placeholders": {
+      "domain": { "type": "String" }
+    }
+  },
+  "instanceSheetTitle": "Connect to instance",
+  "@instanceSheetTitle": {
+    "description": "Title for the self-hosted instance connection bottom sheet."
+  },
+  "connectToDifferentInstance": "Connect to a different instance",
+  "@connectToDifferentInstance": {
+    "description": "Subtle link on the login screen to open the instance connection sheet."
+  },
+  "changeInstance": "Change",
+  "@changeInstance": {
+    "description": "Link to change the connected Fluxer instance."
+  },
+  "instanceConnectionRequired": "Connect to the instance to sign in",
+  "@instanceConnectionRequired": {
+    "description": "Hint shown when login is blocked until instance discovery succeeds."
   }
 }

@@ -8916,6 +8916,72 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'You can\'t use that emoji here.'**
   String get composerEmojiUnavailable;
+
+  /// Label for the self-hosted instance URL input on the login screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Instance URL'**
+  String get instanceUrlLabel;
+
+  /// Placeholder for the self-hosted instance URL input.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter instance URL (e.g. fluxer.app)'**
+  String get instanceUrlPlaceholder;
+
+  /// Button label to connect to a custom Fluxer instance.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get instanceConnect;
+
+  /// Status text while discovering a custom Fluxer instance.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get instanceConnecting;
+
+  /// Fallback error when instance discovery fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to connect to instance'**
+  String get instanceConnectFailed;
+
+  /// Label for the recent self-hosted instances list.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent instances'**
+  String get recentInstances;
+
+  /// Accessibility label for removing a recent instance.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {domain} from recent instances'**
+  String removeRecentInstance(String domain);
+
+  /// Title for the self-hosted instance connection bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to instance'**
+  String get instanceSheetTitle;
+
+  /// Subtle link on the login screen to open the instance connection sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to a different instance'**
+  String get connectToDifferentInstance;
+
+  /// Link to change the connected Fluxer instance.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get changeInstance;
+
+  /// Hint shown when login is blocked until instance discovery succeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to the instance to sign in'**
+  String get instanceConnectionRequired;
 }
 
 class _FluxerLocalizationsDelegate

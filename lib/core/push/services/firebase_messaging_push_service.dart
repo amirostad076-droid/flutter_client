@@ -1,57 +1,28 @@
+import 'dart:async';
+
 import 'package:fluxer_app/core/push/fcm/fcm_tap_binding_host.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
 import 'package:fluxer_app/core/push/push_service.dart';
-import 'package:fluxer_fcm/fcm_push_message.dart';
-import 'package:fluxer_fcm/fluxer_fcm_push_service.dart';
 
+/// OSS / UnifiedPush builds: FCM is not linked; this stub is never selected at runtime.
 class FirebaseMessagingPushService implements PushService {
   const FirebaseMessagingPushService();
 
-  static final FluxerFcmPushService _delegate = FluxerFcmPushService.instance;
+  static final FcmTapBindingHost tapHost = FcmTapBindingHostStub();
 
-  static FcmTapBindingHost get tapHost => _FcmTapBindingHostAdapter(_delegate);
+  static Future<void> bootstrapAfterAuth() async {}
 
-  static FluxerFcmPushService get delegate => _delegate;
-
-  static Stream<String> get tokenRefreshStream => _delegate.tokenRefreshStream;
-
-  static Future<void> bootstrapAfterAuth() => _delegate.initialize();
+  static Stream<String> get tokenRefreshStream => const Stream<String>.empty();
 
   @override
-  Future<void> requestPermissions() => _delegate.requestPermissions();
+  Future<void> requestPermissions() async {}
 
   @override
-  Future<void> initialize() => _delegate.initialize();
+  Future<void> initialize() async {}
 
   @override
-  Future<String?> getToken() => _delegate.getToken();
+  Future<String?> getToken() async => null;
 
   @override
-  Stream<PushMessage> watchMessages() {
-    return _delegate.watchMessages().map(_toPushMessage);
-  }
-
-  static PushMessage _toPushMessage(FcmPushMessage message) {
-    return PushMessage(
-      id: message.id,
-      title: message.title,
-      body: message.body,
-      payload: message.payload,
-    );
-  }
-}
-
-final class _FcmTapBindingHostAdapter implements FcmTapBindingHost {
-  const _FcmTapBindingHostAdapter(this._delegate);
-
-  final FluxerFcmPushService _delegate;
-
-  @override
-  void setNotificationTapCallback(FcmNotificationTapCallback? callback) {
-    _delegate.setNotificationTapCallback(
-      callback == null
-          ? null
-          : (Map<String, String> payload) => callback(payload),
-    );
-  }
+  Stream<PushMessage> watchMessages() => const Stream<PushMessage>.empty();
 }

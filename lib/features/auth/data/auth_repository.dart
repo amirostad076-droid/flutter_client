@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' hide AuthSession;
+import 'package:fluxer_app/core/instance/instance_config_snapshot.dart';
 import 'package:fluxer_app/features/auth/data/auth_token_storage.dart';
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
 import 'package:fluxer_app/features/auth/domain/auth_session.dart';
@@ -15,8 +18,14 @@ class AuthRepository {
   final FluxerClient _client;
   final FluxerDatabase _db;
   final AuthTokenStorage _tokenStorage;
+  final InstanceConfigSnapshot Function() _readInstanceSnapshot;
 
-  const AuthRepository(this._client, this._db, this._tokenStorage);
+  const AuthRepository(
+    this._client,
+    this._db,
+    this._tokenStorage, {
+    required InstanceConfigSnapshot Function() readInstanceSnapshot,
+  }) : _readInstanceSnapshot = readInstanceSnapshot;
 
   Future<LoginResult> login({
     required String email,
@@ -270,7 +279,47 @@ class AuthRepository {
       username: username,
       discriminator: discriminator,
       avatar: avatar,
+      instanceSnapshotJson: _readInstanceSnapshot().toJson(),
     );
+  }
+
+  Future<InstanceConfigSnapshot> resolveInstanceSnapshotForUser(
+    String userId,
+  ) async {
+    final String? json = await _db.authSessionDao.getInstanceSnapshotJson(
+      userId,
+    );
+    if (json == null || json.isEmpty) {
+      return InstanceConfigSnapshot.officialDefault();
+    }
+    return InstanceConfigSnapshot.fromJson(json);
+  }
+
+  Future<InstanceConfigSnapshot?> resolveActiveInstanceSnapshot() async {
+    final row = await _db.authSessionDao.getActiveSession();
+    if (row == null) {
+      return null;
+    }
+    return resolveInstanceSnapshotForUser(row.userId);
+  }
+
+  String? _parseDisplayDomain(String? instanceSnapshotJson) {
+    if (instanceSnapshotJson == null || instanceSnapshotJson.isEmpty) {
+      return null;
+    }
+    try {
+      final Object? decoded = jsonDecode(instanceSnapshotJson);
+      if (decoded is! Map<String, dynamic>) {
+        return null;
+      }
+      final Object? displayDomain = decoded['display_domain'];
+      if (displayDomain is String && displayDomain.isNotEmpty) {
+        return displayDomain;
+      }
+      return null;
+    } on Object {
+      return null;
+    }
   }
 
   Future<AuthSession> verifyMfaTotp({
@@ -426,6 +475,7 @@ class AuthRepository {
             username: s.username,
             discriminator: s.discriminator,
             avatar: s.avatar,
+            displayDomain: _parseDisplayDomain(s.instanceSnapshotJson),
           ),
         )
         .toList();

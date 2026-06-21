@@ -79,8 +79,16 @@ class AccountRow extends StatelessWidget {
                         style: textStyles.bodySmall.copyWith(
                           color: colors.textDanger,
                         ),
-                      )
-                    else if (isCurrent)
+                      ),
+                    if (account.isValid && account.displayDomain != null)
+                      Text(
+                        account.displayDomain!,
+                        style: textStyles.bodySmall.copyWith(
+                          color: colors.textTertiary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (account.isValid && isCurrent)
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

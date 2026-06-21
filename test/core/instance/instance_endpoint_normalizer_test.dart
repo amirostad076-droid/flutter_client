@@ -1,0 +1,75 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/instance/instance_endpoint_normalizer.dart';
+
+void main() {
+  const InstanceEndpointNormalizer normalizer = InstanceEndpointNormalizer();
+
+  group('normalizeEndpoint', () {
+    test('prepends https for bare hostnames', () {
+      expect(
+        normalizer.normalizeEndpoint('chat.example.com'),
+        'https://chat.example.com/api',
+      );
+    });
+
+    test('preserves explicit https URL with path', () {
+      expect(
+        normalizer.normalizeEndpoint('https://chat.example.com/v1'),
+        'https://chat.example.com/v1',
+      );
+    });
+
+    test('strips trailing slashes from path', () {
+      expect(
+        normalizer.normalizeEndpoint('https://chat.example.com/api/'),
+        'https://chat.example.com/api',
+      );
+    });
+
+    test('allows http for LAN installs', () {
+      expect(
+        normalizer.normalizeEndpoint('http://192.168.1.10'),
+        'http://192.168.1.10/api',
+      );
+    });
+
+    test('throws on empty input', () {
+      expect(
+        () => normalizer.normalizeEndpoint('  '),
+        throwsA(isA<FormatException>()),
+      );
+    });
+  });
+
+  group('buildWellKnownUrl', () {
+    test('uses root well-known for self-hosted api endpoint', () {
+      expect(
+        normalizer.buildWellKnownUrl('https://chat.example.com/api'),
+        'https://chat.example.com/.well-known/fluxer',
+      );
+    });
+
+    test('uses api well-known for official web app host', () {
+      expect(
+        normalizer.buildWellKnownUrl('https://web.fluxer.app/api'),
+        'https://web.fluxer.app/api/.well-known/fluxer',
+      );
+    });
+  });
+
+  group('describeApiEndpoint', () {
+    test('hides default /api path segment', () {
+      expect(
+        normalizer.describeApiEndpoint('https://api.fluxer.app/api'),
+        'api.fluxer.app',
+      );
+    });
+
+    test('keeps non-default path segments', () {
+      expect(
+        normalizer.describeApiEndpoint('https://api.fluxer.app/v1'),
+        'api.fluxer.app/v1',
+      );
+    });
+  });
+}

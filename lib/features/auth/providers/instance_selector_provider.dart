@@ -1,0 +1,221 @@
+import 'dart:async';
+
+import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/instance/instance_discovery_service.dart';
+import 'package:fluxer_app/core/providers/active_instance_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'instance_selector_provider.g.dart';
+
+enum InstanceDiscoveryStatus {
+  idle,
+  discovering,
+  success,
+  error,
+}
+
+class InstanceSelectorState {
+  const InstanceSelectorState({
+    required this.instanceUrl,
+    required this.status,
+    required this.recentInstances,
+    required this.requiresDiscovery,
+    this.errorMessage,
+  });
+
+  final String instanceUrl;
+  final InstanceDiscoveryStatus status;
+  final String? errorMessage;
+  final List<RecentInstance> recentInstances;
+  final bool requiresDiscovery;
+
+  bool get canAuthenticate {
+    if (status == InstanceDiscoveryStatus.discovering) {
+      return false;
+    }
+    if (status == InstanceDiscoveryStatus.error) {
+      return false;
+    }
+    if (requiresDiscovery && status != InstanceDiscoveryStatus.success) {
+      return false;
+    }
+    return true;
+  }
+
+  InstanceSelectorState copyWith({
+    String? instanceUrl,
+    InstanceDiscoveryStatus? status,
+    String? errorMessage,
+    List<RecentInstance>? recentInstances,
+    bool? requiresDiscovery,
+    bool clearError = false,
+  }) {
+    return InstanceSelectorState(
+      instanceUrl: instanceUrl ?? this.instanceUrl,
+      status: status ?? this.status,
+      errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
+      recentInstances: recentInstances ?? this.recentInstances,
+      requiresDiscovery: requiresDiscovery ?? this.requiresDiscovery,
+    );
+  }
+}
+
+@riverpod
+class InstanceSelector extends _$InstanceSelector {
+  Timer? _debounceTimer;
+  int _connectSeq = 0;
+
+  @override
+  Future<InstanceSelectorState> build() async {
+    ref.onDispose(() {
+      _debounceTimer?.cancel();
+    });
+    final String instanceUrl = ref
+        .read(activeInstanceProvider.notifier)
+        .describeApiEndpoint();
+    final List<RecentInstance> recentInstances = await ref
+        .read(fluxerDatabaseProvider)
+        .recentInstancesDao
+        .getRecentInstances();
+    return InstanceSelectorState(
+      instanceUrl: instanceUrl,
+      status: InstanceDiscoveryStatus.idle,
+      recentInstances: recentInstances,
+      requiresDiscovery: false,
+    );
+  }
+
+  void updateInstanceUrl(String value) {
+    final InstanceSelectorState? current = state.asData?.value;
+    if (current == null) {
+      return;
+    }
+    state = AsyncData(
+      current.copyWith(
+        instanceUrl: value,
+        status: InstanceDiscoveryStatus.idle,
+        requiresDiscovery: value.trim().isNotEmpty,
+        clearError: true,
+      ),
+    );
+    _debounceTimer?.cancel();
+    if (value.trim().isEmpty) {
+      ref.read(activeInstanceProvider.notifier).resetToOfficialDefault();
+      state = AsyncData(
+        current.copyWith(
+          instanceUrl: value,
+          requiresDiscovery: false,
+          status: InstanceDiscoveryStatus.idle,
+          clearError: true,
+        ),
+      );
+      return;
+    }
+    _debounceTimer = Timer(const Duration(milliseconds: 800), () {
+      unawaited(connectToCurrentUrl());
+    });
+  }
+
+  Future<void> connectToCurrentUrl() async {
+    final InstanceSelectorState? current = state.asData?.value;
+    if (current == null) {
+      return;
+    }
+    final String url = current.instanceUrl.trim();
+    if (url.isEmpty) {
+      ref.read(activeInstanceProvider.notifier).resetToOfficialDefault();
+      state = AsyncData(
+        current.copyWith(
+          status: InstanceDiscoveryStatus.idle,
+          requiresDiscovery: false,
+          clearError: true,
+        ),
+      );
+      return;
+    }
+    final int connectId = ++_connectSeq;
+    state = AsyncData(
+      current.copyWith(
+        status: InstanceDiscoveryStatus.discovering,
+        clearError: true,
+      ),
+    );
+    try {
+      final List<RecentInstance> recentInstances = await ref
+          .read(activeInstanceProvider.notifier)
+          .connectToEndpoint(url);
+      if (connectId != _connectSeq) {
+        return;
+      }
+      final String describedUrl = ref
+          .read(activeInstanceProvider.notifier)
+          .describeApiEndpoint();
+      state = AsyncData(
+        current.copyWith(
+          instanceUrl: describedUrl,
+          status: InstanceDiscoveryStatus.success,
+          requiresDiscovery: false,
+          recentInstances: recentInstances,
+          clearError: true,
+        ),
+      );
+    } on InstanceDiscoveryException catch (error) {
+      if (connectId != _connectSeq) {
+        return;
+      }
+      state = AsyncData(
+        current.copyWith(
+          status: InstanceDiscoveryStatus.error,
+          errorMessage: error.message,
+        ),
+      );
+    } on Object catch (error) {
+      if (connectId != _connectSeq) {
+        return;
+      }
+      state = AsyncData(
+        current.copyWith(
+          status: InstanceDiscoveryStatus.error,
+          errorMessage: error.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> selectRecentInstance(RecentInstance instance) async {
+    final InstanceSelectorState? current = state.asData?.value;
+    if (current == null) {
+      return;
+    }
+    state = AsyncData(current.copyWith(instanceUrl: instance.domain));
+    await connectToCurrentUrl();
+  }
+
+  Future<void> removeRecentInstance(String domain) async {
+    await ref
+        .read(fluxerDatabaseProvider)
+        .recentInstancesDao
+        .removeRecentInstance(domain);
+    final InstanceSelectorState? current = state.asData?.value;
+    if (current == null) {
+      return;
+    }
+    final List<RecentInstance> recentInstances = await ref
+        .read(fluxerDatabaseProvider)
+        .recentInstancesDao
+        .getRecentInstances();
+    state = AsyncData(current.copyWith(recentInstances: recentInstances));
+  }
+}
+
+@riverpod
+bool instanceSelectorCanAuthenticate(Ref ref) {
+  final AsyncValue<InstanceSelectorState> selector = ref.watch(
+    instanceSelectorProvider,
+  );
+  return selector.maybeWhen(
+    data: (InstanceSelectorState state) => state.canAuthenticate,
+    orElse: () => true,
+  );
+}

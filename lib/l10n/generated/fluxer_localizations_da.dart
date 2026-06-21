@@ -5139,4 +5139,39 @@ class FluxerLocalizationsDa extends FluxerLocalizations {
 
   @override
   String get composerEmojiUnavailable => 'You can\'t use that emoji here.';
+
+  @override
+  String get instanceUrlLabel => 'Instance URL';
+
+  @override
+  String get instanceUrlPlaceholder => 'Enter instance URL (e.g. fluxer.app)';
+
+  @override
+  String get instanceConnect => 'Connect';
+
+  @override
+  String get instanceConnecting => 'Connecting…';
+
+  @override
+  String get instanceConnectFailed => 'Failed to connect to instance';
+
+  @override
+  String get recentInstances => 'Recent instances';
+
+  @override
+  String removeRecentInstance(String domain) {
+    return 'Remove $domain from recent instances';
+  }
+
+  @override
+  String get instanceSheetTitle => 'Connect to instance';
+
+  @override
+  String get connectToDifferentInstance => 'Connect to a different instance';
+
+  @override
+  String get changeInstance => 'Change';
+
+  @override
+  String get instanceConnectionRequired => 'Connect to the instance to sign in';
 }

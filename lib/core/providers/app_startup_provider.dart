@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_handler.dart';
+import 'package:fluxer_app/core/instance/instance_config_snapshot.dart';
+import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
@@ -75,6 +77,14 @@ class AppStartup extends _$AppStartup {
 
     if (session == null) {
       return;
+    }
+
+    final InstanceConfigSnapshot? activeSnapshot =
+        await authRepository.resolveActiveInstanceSnapshot();
+    if (activeSnapshot != null) {
+      ref
+          .read(activeInstanceProvider.notifier)
+          .applySnapshot(activeSnapshot, invalidateWellKnown: false);
     }
 
     // Validate the session and try fallback sessions on 401.
