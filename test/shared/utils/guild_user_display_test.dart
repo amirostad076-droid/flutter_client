@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/members/domain/member.dart' as members;
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_app/shared/utils/mention_display_utils.dart';
 import 'package:fluxer_dart/export.dart';
@@ -154,6 +156,26 @@ void main() {
     });
   });
 
+  group('resolveGuildUserDisplayFromRows', () {
+    test('avatar unset forces null avatar url', () {
+      final GuildUserDisplay actual = resolveGuildUserDisplayFromRows(
+        user: _dbUser(),
+        member: _dbMember(profileFlags: guildProfileAvatarUnsetFlag),
+        guildId: '10',
+      );
+      expect(actual.avatarUrl, isNull);
+    });
+
+    test('inherit mode uses global avatar when guild avatar is absent', () {
+      final GuildUserDisplay actual = resolveGuildUserDisplayFromRows(
+        user: _dbUser(),
+        member: _dbMember(),
+        guildId: '10',
+      );
+      expect(actual.avatarUrl, contains('/avatars/1/user_avatar.webp'));
+    });
+  });
+
   group('resolveGuildUserDisplayFromMessage', () {
     test('can force animated avatar hashes to static urls', () {
       final GuildUserDisplay actual = resolveGuildUserDisplayFromMessage(
@@ -167,6 +189,38 @@ void main() {
       );
       expect(actual.avatarUrl, contains('/avatars/1/avatar.webp'));
       expect(actual.avatarUrl, isNot(contains('animated=true')));
+    });
+
+    test('avatar unset forces null avatar url when member is provided', () {
+      final GuildUserDisplay actual = resolveGuildUserDisplayFromMessage(
+        userId: '1',
+        fallbackDisplayName: 'User',
+        fallbackAvatarHash: 'user_avatar',
+        fallbackAvatarColor: null,
+        member: _dbMember(profileFlags: guildProfileAvatarUnsetFlag),
+        guildId: '10',
+      );
+      expect(actual.avatarUrl, isNull);
+    });
+  });
+
+  group('Member.fromRow avatar resolution', () {
+    test('avatar unset returns null avatar', () {
+      final members.Member actual = members.Member.fromRow(
+        _dbMember(profileFlags: guildProfileAvatarUnsetFlag),
+        _dbUser(),
+        const <db.Role>[],
+      );
+      expect(actual.avatar, isNull);
+    });
+
+    test('inherit mode falls back to user avatar', () {
+      final members.Member actual = members.Member.fromRow(
+        _dbMember(),
+        _dbUser(),
+        const <db.Role>[],
+      );
+      expect(actual.avatar, 'user_avatar');
     });
   });
 
@@ -597,5 +651,29 @@ UserProfileFullResponseGuildMemberProfile _guildProfile({
     pronouns: pronouns,
     banner: banner,
     accentColor: 0x112233,
+  );
+}
+
+db.User _dbUser() {
+  return db.User(
+    id: '1',
+    username: 'user',
+    discriminator: '0001',
+    globalName: 'Global Name',
+    avatar: 'user_avatar',
+    avatarColor: 0x112233,
+    bot: false,
+    system: false,
+    status: 'online',
+  );
+}
+
+db.Member _dbMember({int? profileFlags, String? serverAvatar}) {
+  return db.Member(
+    userId: '1',
+    guildId: '10',
+    serverAvatar: serverAvatar,
+    roleIdsJson: '[]',
+    profileFlags: profileFlags,
   );
 }

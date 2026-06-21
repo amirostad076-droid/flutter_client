@@ -127,10 +127,15 @@ GuildUserDisplay resolveGuildUserDisplayFromRows({
       ? nick
       : fallbackDisplayName ?? user.globalName ?? user.username;
   final String? memberAvatar = member?.serverAvatar;
+  final bool isAvatarUnset =
+      guildId != null &&
+      member != null &&
+      hasMemberProfileFlag(member.profileFlags, guildProfileAvatarUnsetFlag);
   final String? resolvedAvatarHash =
       memberAvatar ?? fallbackAvatarHash ?? user.avatar;
-  final String? avatarUrl =
-      guildId != null && memberAvatar != null && memberAvatar.isNotEmpty
+  final String? avatarUrl = isAvatarUnset
+      ? null
+      : guildId != null && memberAvatar != null && memberAvatar.isNotEmpty
       ? FluxerMediaUrl.guildMemberMedia(
           guildId: guildId,
           userId: user.id,
@@ -169,9 +174,14 @@ GuildUserDisplay resolveGuildUserDisplayFromMessage({
       ? nick
       : fallbackDisplayName;
   final String? memberAvatar = member?.serverAvatar;
+  final bool isAvatarUnset =
+      guildId != null &&
+      member != null &&
+      hasMemberProfileFlag(member.profileFlags, guildProfileAvatarUnsetFlag);
   final String? resolvedAvatarHash = memberAvatar ?? fallbackAvatarHash;
-  final String? avatarUrl =
-      guildId != null && memberAvatar != null && memberAvatar.isNotEmpty
+  final String? avatarUrl = isAvatarUnset
+      ? null
+      : guildId != null && memberAvatar != null && memberAvatar.isNotEmpty
       ? FluxerMediaUrl.guildMemberMedia(
           guildId: guildId,
           userId: userId,
@@ -345,7 +355,10 @@ GuildUserDisplay resolveGuildUserDisplayFromProfile({
 }
 
 bool hasGuildProfileFlag(GuildMemberResponse? member, int flag) {
-  final int? profileFlags = member?.profileFlags;
+  return hasMemberProfileFlag(member?.profileFlags, flag);
+}
+
+bool hasMemberProfileFlag(int? profileFlags, int flag) {
   return profileFlags != null && (profileFlags & flag) != 0;
 }
 

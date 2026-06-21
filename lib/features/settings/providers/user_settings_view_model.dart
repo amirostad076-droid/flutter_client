@@ -1168,6 +1168,16 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
       }
 
       await selectGuild(guildId);
+      await ref.read(fluxerDatabaseProvider).memberDao.upsertMember(
+        MembersCompanion.insert(
+          userId: state.userId,
+          guildId: guildId,
+          serverAvatar: state.guildAvatarMode == GuildAssetMode.custom
+              ? Value(state.guildAvatar)
+              : const Value(null),
+          profileFlags: Value(state.guildProfileFlags),
+        ),
+      );
     } on Exception catch (e) {
       talker.error('Failed to save guild profile', e);
       state = state.copyWith(
