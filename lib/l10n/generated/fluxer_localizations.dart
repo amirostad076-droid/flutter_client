@@ -5436,7 +5436,7 @@ abstract class FluxerLocalizations {
   /// Filename-like progress label for a temporary message attachment while multiple selected files are uploading.
   ///
   /// In en, this message translates to:
-  /// **'Uploading {count, plural, one {# file} other {# files}}'**
+  /// **'Uploading {count, plural, =1{1 file} other{{count} files}}'**
   String chatUploadingAttachmentsSummary(int count);
 
   /// Button or menu action label for canceling an in-flight message attachment upload.

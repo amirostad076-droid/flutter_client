@@ -3137,8 +3137,8 @@ class FluxerLocalizationsGl extends FluxerLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# files',
-      one: '# file',
+      other: '$count files',
+      one: '1 file',
     );
     return 'Uploading $_temp0';
   }
