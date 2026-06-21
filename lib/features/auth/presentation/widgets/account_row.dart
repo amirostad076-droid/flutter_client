@@ -73,20 +73,31 @@ class AccountRow extends StatelessWidget {
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
+                    Row(
+                      children: [
+                        PhosphorIcon(
+                          PhosphorIconsFill.globe,
+                          size: 12,
+                          color: colors.textTertiary,
+                        ),
+                        SizedBox(width: layout.s1),
+                        Expanded(
+                          child: Text(
+                            account.instanceDomain,
+                            style: textStyles.bodySmall.copyWith(
+                              color: colors.textTertiary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                     if (!account.isValid)
                       Text(
                         l10n.accountExpired,
                         style: textStyles.bodySmall.copyWith(
                           color: colors.textDanger,
                         ),
-                      ),
-                    if (account.isValid && account.displayDomain != null)
-                      Text(
-                        account.displayDomain!,
-                        style: textStyles.bodySmall.copyWith(
-                          color: colors.textTertiary,
-                        ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                     if (account.isValid && isCurrent)
                       Row(

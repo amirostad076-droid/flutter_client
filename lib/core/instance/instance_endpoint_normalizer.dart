@@ -63,9 +63,18 @@ class InstanceEndpointNormalizer {
 
   String extractDisplayDomain(String apiEndpoint) {
     try {
-      return Uri.parse(apiEndpoint).host.toLowerCase();
+      return formatDisplayDomain(Uri.parse(apiEndpoint).host);
     } on FormatException {
-      return apiEndpoint.trim().toLowerCase();
+      return formatDisplayDomain(apiEndpoint);
     }
+  }
+
+  String formatDisplayDomain(String domain) {
+    final String trimmed = domain.trim().toLowerCase();
+    const String apiPrefix = 'api.';
+    if (trimmed.startsWith(apiPrefix)) {
+      return trimmed.substring(apiPrefix.length);
+    }
+    return trimmed;
   }
 }

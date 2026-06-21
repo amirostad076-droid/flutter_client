@@ -72,4 +72,29 @@ void main() {
       );
     });
   });
+
+  group('formatDisplayDomain', () {
+    test('strips api subdomain prefix', () {
+      expect(
+        normalizer.formatDisplayDomain('api.fluxer.app'),
+        'fluxer.app',
+      );
+    });
+
+    test('leaves domains without api prefix unchanged', () {
+      expect(
+        normalizer.formatDisplayDomain('chat.example.com'),
+        'chat.example.com',
+      );
+    });
+  });
+
+  group('extractDisplayDomain', () {
+    test('strips api subdomain from api endpoint host', () {
+      expect(
+        normalizer.extractDisplayDomain('https://api.fluxer.app/v1'),
+        'fluxer.app',
+      );
+    });
+  });
 }

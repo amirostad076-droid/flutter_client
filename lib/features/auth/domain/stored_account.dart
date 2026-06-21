@@ -1,3 +1,6 @@
+import 'package:fluxer_app/core/instance/instance_config_snapshot.dart';
+import 'package:fluxer_app/core/instance/instance_endpoint_normalizer.dart';
+
 class StoredAccount {
   final String userId;
   final String? username;
@@ -21,4 +24,10 @@ class StoredAccount {
 
   String get identifier =>
       discriminator != null ? '$displayName#$discriminator' : displayName;
+
+  String get instanceDomain {
+    final String raw =
+        displayDomain ?? InstanceConfigSnapshot.officialDefault().displayDomain;
+    return const InstanceEndpointNormalizer().formatDisplayDomain(raw);
+  }
 }

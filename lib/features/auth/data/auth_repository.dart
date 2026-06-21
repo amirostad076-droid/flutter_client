@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' hide AuthSession;
 import 'package:fluxer_app/core/instance/instance_config_snapshot.dart';
+import 'package:fluxer_app/core/instance/instance_endpoint_normalizer.dart';
 import 'package:fluxer_app/features/auth/data/auth_token_storage.dart';
 import 'package:fluxer_app/features/auth/domain/auth_failure.dart';
 import 'package:fluxer_app/features/auth/domain/auth_session.dart';
@@ -303,6 +304,14 @@ class AuthRepository {
     return resolveInstanceSnapshotForUser(row.userId);
   }
 
+  String _resolveDisplayDomain(String? instanceSnapshotJson) {
+    const InstanceEndpointNormalizer normalizer = InstanceEndpointNormalizer();
+    final String? parsed = _parseDisplayDomain(instanceSnapshotJson);
+    final String raw =
+        parsed ?? InstanceConfigSnapshot.officialDefault().displayDomain;
+    return normalizer.formatDisplayDomain(raw);
+  }
+
   String? _parseDisplayDomain(String? instanceSnapshotJson) {
     if (instanceSnapshotJson == null || instanceSnapshotJson.isEmpty) {
       return null;
@@ -475,7 +484,7 @@ class AuthRepository {
             username: s.username,
             discriminator: s.discriminator,
             avatar: s.avatar,
-            displayDomain: _parseDisplayDomain(s.instanceSnapshotJson),
+            displayDomain: _resolveDisplayDomain(s.instanceSnapshotJson),
           ),
         )
         .toList();

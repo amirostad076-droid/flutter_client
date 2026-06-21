@@ -93,7 +93,8 @@ String? activeInstanceGatewayUrl(Ref ref) {
 
 @Riverpod(keepAlive: true)
 String activeInstanceDisplayDomain(Ref ref) {
-  return ref.watch(activeInstanceProvider).displayDomain;
+  final String domain = ref.watch(activeInstanceProvider).displayDomain;
+  return const InstanceEndpointNormalizer().formatDisplayDomain(domain);
 }
 
 @Riverpod(keepAlive: true)

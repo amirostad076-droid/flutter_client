@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/instance/instance_endpoint_normalizer.dart';
 import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/providers/instance_selector_provider.dart';
@@ -326,16 +327,21 @@ class _RecentInstancesList extends StatelessWidget {
       child: Column(
         children: instances
             .map(
-              (RecentInstance instance) => ListTile(
+              (RecentInstance instance) {
+                final String displayDomain =
+                    const InstanceEndpointNormalizer().formatDisplayDomain(
+                  instance.domain,
+                );
+                return ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 title: Text(
-                  instance.name ?? instance.domain,
+                  instance.name ?? displayDomain,
                   style: context.textStyles.bodySmall,
                 ),
                 subtitle: instance.name != null
                     ? Text(
-                        instance.domain,
+                        displayDomain,
                         style: context.textStyles.bodySmall.copyWith(
                           color: context.colors.textTertiary,
                         ),
@@ -343,7 +349,7 @@ class _RecentInstancesList extends StatelessWidget {
                     : null,
                 onTap: enabled ? () => onSelect(instance) : null,
                 trailing: IconButton(
-                  tooltip: l10n.removeRecentInstance(instance.domain),
+                  tooltip: l10n.removeRecentInstance(displayDomain),
                   onPressed: enabled ? () => onRemove(instance.domain) : null,
                   icon: PhosphorIcon(
                     PhosphorIconsFill.trash,
@@ -351,7 +357,8 @@ class _RecentInstancesList extends StatelessWidget {
                     size: 18,
                   ),
                 ),
-              ),
+              );
+              },
             )
             .toList(),
       ),
