@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/widgets/auth_flow_content.dart';
+import 'package:fluxer_app/features/auth/providers/add_account_instance_guard_provider.dart';
+import 'package:fluxer_app/features/auth/providers/instance_selector_provider.dart';
 import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -24,6 +27,9 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
   void initState() {
     super.initState();
     _initialUserId = ref.read(currentUserIdProvider);
+    ref
+        .read(addAccountInstanceGuardProvider.notifier)
+        .arm(ref.read(activeInstanceProvider));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -34,6 +40,17 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
         notifier.updateEmail(widget.prefillEmail!);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    if (_initialUserId != null && currentUserId == _initialUserId) {
+      ref.read(addAccountInstanceGuardProvider.notifier).restoreActiveInstance();
+      ref.invalidate(instanceSelectorProvider);
+    }
+    ref.read(addAccountInstanceGuardProvider.notifier).disarm();
+    super.dispose();
   }
 
   @override

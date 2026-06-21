@@ -42,6 +42,10 @@ class ActiveInstance extends _$ActiveInstance {
     return _normalizer.describeApiEndpoint(state.apiBaseUrl);
   }
 
+  Future<InstanceConfigSnapshot> discoverEndpoint(String input) {
+    return _discoveryService.connectToEndpoint(input);
+  }
+
   Future<List<RecentInstance>> connectToEndpoint(String input) async {
     final int connectId = ++_connectSeq;
     final InstanceConfigSnapshot snapshot =
