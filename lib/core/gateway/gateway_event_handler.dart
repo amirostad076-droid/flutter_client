@@ -11,6 +11,7 @@ import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart'
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/guilds/data/guild_local_cleanup.dart';
+import 'package:fluxer_app/features/profile/domain/custom_status_utils.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -62,10 +63,10 @@ typedef GuildMemberListUpdateCallback =
 typedef VoiceServerUpdateCallback = void Function(VoiceServerUpdateEvent event);
 typedef GatewayErrorCallback = void Function(GatewayErrorEvent event);
 
-String? _presenceCustomStatusTextFromMap(Map<String, dynamic> presence) {
+String? _presenceCustomStatusFromMap(Map<String, dynamic> presence) {
   final Map<String, dynamic>? customStatusMap =
       presence['custom_status'] as Map<String, dynamic>?;
-  return customStatusMap?['text'] as String?;
+  return serializeCustomStatusMap(customStatusMap);
 }
 
 class GatewayEventHandler {
@@ -509,7 +510,9 @@ class GatewayEventHandler {
           premiumBadgeSequenceHidden: Value(
             event.user.premiumBadgeSequenceHidden,
           ),
-          customStatus: Value(event.userSettings?.customStatus?.text),
+          customStatus: Value(
+            serializeCustomStatus(event.userSettings?.customStatus),
+          ),
         ),
       );
 
@@ -682,7 +685,7 @@ class GatewayEventHandler {
           await database.userDao.updateUserPresence(
             userId,
             status: status,
-            customStatus: _presenceCustomStatusTextFromMap(p),
+            customStatus: _presenceCustomStatusFromMap(p),
           );
         }
       }
@@ -819,7 +822,7 @@ class GatewayEventHandler {
     await database.userDao.updateUserPresence(
       userId,
       status: event.settings.status,
-      customStatus: event.settings.customStatus?.text,
+      customStatus: serializeCustomStatus(event.settings.customStatus),
     );
     onUserSettingsHydrate?.call(event.settings);
   }
@@ -1419,7 +1422,7 @@ class GatewayEventHandler {
         updates.add((
           userId: userId,
           status: status,
-          customStatus: _presenceCustomStatusTextFromMap(presence),
+          customStatus: _presenceCustomStatusFromMap(presence),
         ));
       }
       if (updates.isNotEmpty) {
@@ -1451,7 +1454,7 @@ class GatewayEventHandler {
         updates.add((
           userId: userId,
           status: status,
-          customStatus: _presenceCustomStatusTextFromMap(p),
+          customStatus: _presenceCustomStatusFromMap(p),
         ));
       }
     }

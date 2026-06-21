@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/instance/instance_endpoint_normalizer.dart';
 import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/auth/presentation/widgets/instance_domain_icon.dart';
 import 'package:fluxer_app/features/auth/providers/instance_selector_provider.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -78,6 +81,7 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
       instanceSelectorProvider,
     );
     final InstanceSelector notifier = ref.read(instanceSelectorProvider.notifier);
+    final bool isOfficial = ref.watch(isActiveInstanceOfficialProvider);
 
     return selectorAsync.when(
       loading: () => const SizedBox.shrink(),
@@ -96,9 +100,8 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
               label: l10n.instanceUrlLabel,
               hint: l10n.instanceUrlPlaceholder,
               enabled: widget.enabled,
-              prefixIcon: PhosphorIcon(
-                PhosphorIconsFill.globe,
-                color: context.colors.textPrimaryMuted,
+              prefixIcon: InstanceDomainIcon(
+                isOfficial: isOfficial && !selector.requiresDiscovery,
                 size: 20,
               ),
               suffixIcon: _buildStatusIcon(context, selector.status),
@@ -178,13 +181,8 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
           size: 20,
         );
       case InstanceDiscoveryStatus.discovering:
-        return SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: context.colors.textPrimaryMuted,
-          ),
+        return FluxerLoadingSpinner(
+          color: context.colors.textPrimaryMuted,
         );
       case InstanceDiscoveryStatus.idle:
         return null;
@@ -275,11 +273,7 @@ class InstanceSelectorLoginEntry extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            PhosphorIcon(
-              PhosphorIconsFill.globe,
-              size: 12,
-              color: context.colors.textTertiary,
-            ),
+            const InstanceDomainIcon(isOfficial: false),
             SizedBox(width: context.layout.s1),
             Text(displayDomain, style: tertiaryStyle),
             Text(' · ', style: tertiaryStyle),
@@ -326,16 +320,21 @@ class _RecentInstancesList extends StatelessWidget {
       child: Column(
         children: instances
             .map(
-              (RecentInstance instance) => ListTile(
+              (RecentInstance instance) {
+                final String displayDomain =
+                    const InstanceEndpointNormalizer().formatDisplayDomain(
+                  instance.domain,
+                );
+                return ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 title: Text(
-                  instance.name ?? instance.domain,
+                  instance.name ?? displayDomain,
                   style: context.textStyles.bodySmall,
                 ),
                 subtitle: instance.name != null
                     ? Text(
-                        instance.domain,
+                        displayDomain,
                         style: context.textStyles.bodySmall.copyWith(
                           color: context.colors.textTertiary,
                         ),
@@ -343,7 +342,7 @@ class _RecentInstancesList extends StatelessWidget {
                     : null,
                 onTap: enabled ? () => onSelect(instance) : null,
                 trailing: IconButton(
-                  tooltip: l10n.removeRecentInstance(instance.domain),
+                  tooltip: l10n.removeRecentInstance(displayDomain),
                   onPressed: enabled ? () => onRemove(instance.domain) : null,
                   icon: PhosphorIcon(
                     PhosphorIconsFill.trash,
@@ -351,7 +350,8 @@ class _RecentInstancesList extends StatelessWidget {
                     size: 18,
                   ),
                 ),
-              ),
+              );
+              },
             )
             .toList(),
       ),

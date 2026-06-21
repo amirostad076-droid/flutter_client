@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart' as domain;
+import 'package:fluxer_app/features/profile/domain/custom_status_utils.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 
@@ -249,6 +250,42 @@ void main() {
       expect(u1?.customStatus, 'busy');
       expect(u2?.status, 'dnd');
       expect(u2?.customStatus, isNull);
+    });
+
+    test('stores custom emoji custom status as json', () async {
+      final database = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(database.close);
+      await database.userDao.upsertUser(
+        UsersCompanion.insert(id: 'u3', username: 'three'),
+      );
+
+      final handler = GatewayEventHandler(
+        database: database,
+        currentUserId: '100',
+      );
+      await handler.handle(
+        const PresenceUpdateBulkEvent(
+          presences: <Map<String, dynamic>>[
+            <String, dynamic>{
+              'user': <String, dynamic>{'id': 'u3'},
+              'status': 'online',
+              'custom_status': <String, dynamic>{
+                'emoji_id': '123456789',
+                'emoji_animated': true,
+              },
+            },
+          ],
+        ),
+      );
+      await pumpEventQueue();
+
+      final u3 = await database.userDao.getUserById('u3');
+      expect(u3?.status, 'online');
+      final CustomStatusResponse? parsed = parseStoredCustomStatus(
+        u3?.customStatus,
+      );
+      expect(parsed?.emojiId?.toString(), '123456789');
+      expect(parsed?.emojiAnimated, isTrue);
     });
   });
 }

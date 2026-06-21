@@ -4,7 +4,6 @@ import 'package:fluxer_app/core/instance/instance_constants.dart';
 import 'package:fluxer_app/core/instance/instance_discovery_service.dart';
 import 'package:fluxer_app/core/instance/instance_endpoint_normalizer.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'active_instance_provider.g.dart';
@@ -43,6 +42,10 @@ class ActiveInstance extends _$ActiveInstance {
     return _normalizer.describeApiEndpoint(state.apiBaseUrl);
   }
 
+  Future<InstanceConfigSnapshot> discoverEndpoint(String input) {
+    return _discoveryService.connectToEndpoint(input);
+  }
+
   Future<List<RecentInstance>> connectToEndpoint(String input) async {
     final int connectId = ++_connectSeq;
     final InstanceConfigSnapshot snapshot =
@@ -50,29 +53,20 @@ class ActiveInstance extends _$ActiveInstance {
     if (connectId != _connectSeq) {
       return ref.read(fluxerDatabaseProvider).recentInstancesDao.getRecentInstances();
     }
-    _applySnapshot(snapshot, invalidateWellKnown: true);
+    _applySnapshot(snapshot);
     return ref.read(fluxerDatabaseProvider).recentInstancesDao.touchRecentInstance(
       domain: snapshot.displayDomain,
       name: snapshot.instanceDisplayName,
     );
   }
 
-  void applySnapshot(
-    InstanceConfigSnapshot snapshot, {
-    bool invalidateWellKnown = true,
-  }) {
-    _applySnapshot(snapshot, invalidateWellKnown: invalidateWellKnown);
+  void applySnapshot(InstanceConfigSnapshot snapshot) {
+    _applySnapshot(snapshot);
   }
 
-  void _applySnapshot(
-    InstanceConfigSnapshot snapshot, {
-    required bool invalidateWellKnown,
-  }) {
+  void _applySnapshot(InstanceConfigSnapshot snapshot) {
     snapshot.apply();
     state = snapshot;
-    if (invalidateWellKnown) {
-      ref.invalidate(wellKnownProvider);
-    }
   }
 
   void resetToOfficialDefault() {
@@ -93,7 +87,8 @@ String? activeInstanceGatewayUrl(Ref ref) {
 
 @Riverpod(keepAlive: true)
 String activeInstanceDisplayDomain(Ref ref) {
-  return ref.watch(activeInstanceProvider).displayDomain;
+  final String domain = ref.watch(activeInstanceProvider).displayDomain;
+  return const InstanceEndpointNormalizer().formatDisplayDomain(domain);
 }
 
 @Riverpod(keepAlive: true)

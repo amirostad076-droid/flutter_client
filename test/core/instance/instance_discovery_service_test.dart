@@ -124,7 +124,7 @@ class _DiscoveryAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     expect(options.method, 'GET');
-    expect(options.uri.path, '/.well-known/fluxer');
+    expect(options.uri.path, '/api/.well-known/fluxer');
 
     return ResponseBody.fromString(
       jsonEncode(responseJson),

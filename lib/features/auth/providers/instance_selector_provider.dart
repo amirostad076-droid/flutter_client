@@ -1,9 +1,11 @@
-import 'dart:async';
-
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/instance/instance_config_snapshot.dart';
 import 'package:fluxer_app/core/instance/instance_discovery_service.dart';
+import 'package:fluxer_app/core/instance/instance_endpoint_normalizer.dart';
 import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/features/auth/providers/add_account_instance_guard_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'instance_selector_provider.g.dart';
@@ -22,6 +24,7 @@ class InstanceSelectorState {
     required this.recentInstances,
     required this.requiresDiscovery,
     this.errorMessage,
+    this.pendingSnapshot,
   });
 
   final String instanceUrl;
@@ -29,6 +32,7 @@ class InstanceSelectorState {
   final String? errorMessage;
   final List<RecentInstance> recentInstances;
   final bool requiresDiscovery;
+  final InstanceConfigSnapshot? pendingSnapshot;
 
   bool get canAuthenticate {
     if (status == InstanceDiscoveryStatus.discovering) {
@@ -49,7 +53,9 @@ class InstanceSelectorState {
     String? errorMessage,
     List<RecentInstance>? recentInstances,
     bool? requiresDiscovery,
+    InstanceConfigSnapshot? pendingSnapshot,
     bool clearError = false,
+    bool clearPendingSnapshot = false,
   }) {
     return InstanceSelectorState(
       instanceUrl: instanceUrl ?? this.instanceUrl,
@@ -57,20 +63,24 @@ class InstanceSelectorState {
       errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
       recentInstances: recentInstances ?? this.recentInstances,
       requiresDiscovery: requiresDiscovery ?? this.requiresDiscovery,
+      pendingSnapshot: clearPendingSnapshot
+          ? null
+          : pendingSnapshot ?? this.pendingSnapshot,
     );
   }
 }
 
 @riverpod
 class InstanceSelector extends _$InstanceSelector {
-  Timer? _debounceTimer;
   int _connectSeq = 0;
+  static const InstanceEndpointNormalizer _normalizer =
+      InstanceEndpointNormalizer();
+
+  bool get _isolatesActiveInstance =>
+      ref.read(addAccountInstanceGuardProvider) != null;
 
   @override
   Future<InstanceSelectorState> build() async {
-    ref.onDispose(() {
-      _debounceTimer?.cancel();
-    });
     final String instanceUrl = ref
         .read(activeInstanceProvider.notifier)
         .describeApiEndpoint();
@@ -91,30 +101,41 @@ class InstanceSelector extends _$InstanceSelector {
     if (current == null) {
       return;
     }
-    state = AsyncData(
-      current.copyWith(
-        instanceUrl: value,
-        status: InstanceDiscoveryStatus.idle,
-        requiresDiscovery: value.trim().isNotEmpty,
-        clearError: true,
-      ),
-    );
-    _debounceTimer?.cancel();
     if (value.trim().isEmpty) {
-      ref.read(activeInstanceProvider.notifier).resetToOfficialDefault();
+      if (!_isolatesActiveInstance) {
+        ref.read(activeInstanceProvider.notifier).resetToOfficialDefault();
+      }
       state = AsyncData(
         current.copyWith(
           instanceUrl: value,
           requiresDiscovery: false,
           status: InstanceDiscoveryStatus.idle,
           clearError: true,
+          clearPendingSnapshot: true,
         ),
       );
       return;
     }
-    _debounceTimer = Timer(const Duration(milliseconds: 800), () {
-      unawaited(connectToCurrentUrl());
-    });
+    state = AsyncData(
+      current.copyWith(
+        instanceUrl: value,
+        status: InstanceDiscoveryStatus.idle,
+        requiresDiscovery: true,
+        clearError: true,
+        clearPendingSnapshot: true,
+      ),
+    );
+  }
+
+  Future<void> commitPendingInstanceForAuth() async {
+    if (!_isolatesActiveInstance) {
+      return;
+    }
+    final InstanceConfigSnapshot? pending =
+        state.asData?.value.pendingSnapshot;
+    if (pending != null) {
+      ref.read(activeInstanceProvider.notifier).applySnapshot(pending);
+    }
   }
 
   Future<void> connectToCurrentUrl() async {
@@ -124,12 +145,15 @@ class InstanceSelector extends _$InstanceSelector {
     }
     final String url = current.instanceUrl.trim();
     if (url.isEmpty) {
-      ref.read(activeInstanceProvider.notifier).resetToOfficialDefault();
+      if (!_isolatesActiveInstance) {
+        ref.read(activeInstanceProvider.notifier).resetToOfficialDefault();
+      }
       state = AsyncData(
         current.copyWith(
           status: InstanceDiscoveryStatus.idle,
           requiresDiscovery: false,
           clearError: true,
+          clearPendingSnapshot: true,
         ),
       );
       return;
@@ -142,6 +166,34 @@ class InstanceSelector extends _$InstanceSelector {
       ),
     );
     try {
+      if (_isolatesActiveInstance) {
+        final InstanceConfigSnapshot snapshot = await ref
+            .read(activeInstanceProvider.notifier)
+            .discoverEndpoint(url);
+        if (connectId != _connectSeq) {
+          return;
+        }
+        final List<RecentInstance> recentInstances = await ref
+            .read(fluxerDatabaseProvider)
+            .recentInstancesDao
+            .touchRecentInstance(
+              domain: snapshot.displayDomain,
+              name: snapshot.instanceDisplayName,
+            );
+        final String describedUrl =
+            _normalizer.describeApiEndpoint(snapshot.apiBaseUrl);
+        state = AsyncData(
+          current.copyWith(
+            instanceUrl: describedUrl,
+            status: InstanceDiscoveryStatus.success,
+            requiresDiscovery: false,
+            recentInstances: recentInstances,
+            pendingSnapshot: snapshot,
+            clearError: true,
+          ),
+        );
+        return;
+      }
       final List<RecentInstance> recentInstances = await ref
           .read(activeInstanceProvider.notifier)
           .connectToEndpoint(url);
@@ -164,16 +216,25 @@ class InstanceSelector extends _$InstanceSelector {
       if (connectId != _connectSeq) {
         return;
       }
+      talker.warning(
+        '[InstanceSelector] Discovery failed for "${current.instanceUrl}": '
+        '${error.message}',
+      );
       state = AsyncData(
         current.copyWith(
           status: InstanceDiscoveryStatus.error,
           errorMessage: error.message,
         ),
       );
-    } on Object catch (error) {
+    } on Object catch (error, stackTrace) {
       if (connectId != _connectSeq) {
         return;
       }
+      talker.error(
+        '[InstanceSelector] Discovery failed for "${current.instanceUrl}"',
+        error,
+        stackTrace,
+      );
       state = AsyncData(
         current.copyWith(
           status: InstanceDiscoveryStatus.error,

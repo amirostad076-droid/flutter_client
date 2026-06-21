@@ -42,10 +42,24 @@ void main() {
   });
 
   group('buildWellKnownUrl', () {
-    test('uses root well-known for self-hosted api endpoint', () {
+    test('uses api well-known for self-hosted endpoints', () {
       expect(
         normalizer.buildWellKnownUrl('https://chat.example.com/api'),
-        'https://chat.example.com/.well-known/fluxer',
+        'https://chat.example.com/api/.well-known/fluxer',
+      );
+    });
+
+    test('uses api well-known for self-hosted api client endpoints', () {
+      expect(
+        normalizer.buildWellKnownUrl('https://chat.example.com/v1'),
+        'https://chat.example.com/api/.well-known/fluxer',
+      );
+    });
+
+    test('uses root well-known for official api host', () {
+      expect(
+        normalizer.buildWellKnownUrl('https://api.fluxer.app/v1'),
+        'https://api.fluxer.app/.well-known/fluxer',
       );
     });
 
@@ -69,6 +83,31 @@ void main() {
       expect(
         normalizer.describeApiEndpoint('https://api.fluxer.app/v1'),
         'api.fluxer.app/v1',
+      );
+    });
+  });
+
+  group('formatDisplayDomain', () {
+    test('strips api subdomain prefix', () {
+      expect(
+        normalizer.formatDisplayDomain('api.fluxer.app'),
+        'fluxer.app',
+      );
+    });
+
+    test('leaves domains without api prefix unchanged', () {
+      expect(
+        normalizer.formatDisplayDomain('chat.example.com'),
+        'chat.example.com',
+      );
+    });
+  });
+
+  group('extractDisplayDomain', () {
+    test('strips api subdomain from api endpoint host', () {
+      expect(
+        normalizer.extractDisplayDomain('https://api.fluxer.app/v1'),
+        'fluxer.app',
       );
     });
   });

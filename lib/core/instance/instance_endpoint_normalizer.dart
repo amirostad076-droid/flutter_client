@@ -6,6 +6,8 @@ abstract final class InstanceEndpointPatterns {
   );
   static final RegExp trailingSlashes = RegExp(r'/+$');
   static final RegExp apiPathSuffix = RegExp(r'/api/?$');
+  static const String wellKnownPathOfficial = '/.well-known/fluxer';
+  static const String wellKnownPathSelfHosted = '/api/.well-known/fluxer';
 }
 
 class InstanceEndpointNormalizer {
@@ -36,15 +38,16 @@ class InstanceEndpointNormalizer {
   String buildWellKnownUrl(String apiEndpoint) {
     try {
       final Uri url = Uri.parse(apiEndpoint);
-      final bool isOfficialWebApp =
-          url.host == 'web.fluxer.app' || url.host == 'web.canary.fluxer.app';
-      final String wellKnownPath =
-          isOfficialWebApp ? '/api/.well-known/fluxer' : '/.well-known/fluxer';
+      final bool isOfficialApiHost =
+          url.host == 'api.fluxer.app' || url.host == 'api.canary.fluxer.app';
+      final String wellKnownPath = isOfficialApiHost
+          ? InstanceEndpointPatterns.wellKnownPathOfficial
+          : InstanceEndpointPatterns.wellKnownPathSelfHosted;
       return url.replace(path: wellKnownPath).toString();
     } on FormatException {
       final String base =
           apiEndpoint.replaceAll(InstanceEndpointPatterns.apiPathSuffix, '');
-      return '$base/.well-known/fluxer';
+      return '$base${InstanceEndpointPatterns.wellKnownPathSelfHosted}';
     }
   }
 
@@ -63,9 +66,18 @@ class InstanceEndpointNormalizer {
 
   String extractDisplayDomain(String apiEndpoint) {
     try {
-      return Uri.parse(apiEndpoint).host.toLowerCase();
+      return formatDisplayDomain(Uri.parse(apiEndpoint).host);
     } on FormatException {
-      return apiEndpoint.trim().toLowerCase();
+      return formatDisplayDomain(apiEndpoint);
     }
+  }
+
+  String formatDisplayDomain(String domain) {
+    final String trimmed = domain.trim().toLowerCase();
+    const String apiPrefix = 'api.';
+    if (trimmed.startsWith(apiPrefix)) {
+      return trimmed.substring(apiPrefix.length);
+    }
+    return trimmed;
   }
 }

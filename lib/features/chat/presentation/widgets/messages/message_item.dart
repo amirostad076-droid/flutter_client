@@ -6,7 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/limits/instance_limit_provider.dart';
+import 'package:fluxer_app/core/limits/limit_key.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -405,7 +406,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       // from this guild, or the user has global access (premium + external
       // emojis), the only path in DMs, where there's no guild to match.
       final hasGlobalEmojiAccess =
-          ref.read(currentUserPremiumTypeProvider) > 0 &&
+          ref.read(
+            instanceFeatureEnabledProvider(LimitKeys.featureGlobalExpressions),
+          ) &&
           channelMessagePermissionsForComposer(
             ref.read(
               channelMessagePermissionsProvider(widget.message.channelId),
