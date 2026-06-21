@@ -84,7 +84,7 @@ class AppStartup extends _$AppStartup {
     if (activeSnapshot != null) {
       ref
           .read(activeInstanceProvider.notifier)
-          .applySnapshot(activeSnapshot, invalidateWellKnown: false);
+          .applySnapshot(activeSnapshot);
     }
 
     // Validate the session and try fallback sessions on 401.

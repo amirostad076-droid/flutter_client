@@ -42,10 +42,24 @@ void main() {
   });
 
   group('buildWellKnownUrl', () {
-    test('uses root well-known for self-hosted api endpoint', () {
+    test('uses api well-known for self-hosted endpoints', () {
       expect(
         normalizer.buildWellKnownUrl('https://chat.example.com/api'),
-        'https://chat.example.com/.well-known/fluxer',
+        'https://chat.example.com/api/.well-known/fluxer',
+      );
+    });
+
+    test('uses api well-known for self-hosted api client endpoints', () {
+      expect(
+        normalizer.buildWellKnownUrl('https://chat.example.com/v1'),
+        'https://chat.example.com/api/.well-known/fluxer',
+      );
+    });
+
+    test('uses root well-known for official api host', () {
+      expect(
+        normalizer.buildWellKnownUrl('https://api.fluxer.app/v1'),
+        'https://api.fluxer.app/.well-known/fluxer',
       );
     });
 

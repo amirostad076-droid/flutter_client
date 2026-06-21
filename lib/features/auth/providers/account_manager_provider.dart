@@ -76,7 +76,7 @@ class AccountManager extends _$AccountManager {
           await authRepository.resolveInstanceSnapshotForUser(userId);
       ref
           .read(activeInstanceProvider.notifier)
-          .applySnapshot(instanceSnapshot, invalidateWellKnown: true);
+          .applySnapshot(instanceSnapshot);
 
       // Validate the stored token against the server before switching.
       final isValid = await _validateToken(session.token);
