@@ -18,6 +18,7 @@ import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart
 import 'package:fluxer_app/features/channels/providers/read_state_repository_provider.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/domain/message_upload_send_cancelled_exception.dart';
 import 'package:fluxer_app/features/chat/domain/message_window.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
@@ -2001,6 +2002,15 @@ class ChatViewModel extends _$ChatViewModel {
         nonce: clientNonce,
         favoriteMemePayload: favoriteMemeId != null,
       );
+      if (!_isOptimisticSendStillActive(optimisticMessageId)) {
+        return;
+      }
+      if (prepared.isEmpty &&
+          outgoingText.isEmpty &&
+          stickerIds.isEmpty &&
+          favoriteMemeId == null) {
+        return;
+      }
       final Message sent = await ref
           .read(messageRepositoryProvider)
           .sendMessage(
@@ -2020,6 +2030,9 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId != channelId) {
         return;
       }
+      if (!_isOptimisticSendStillActive(optimisticMessageId)) {
+        return;
+      }
       final int optimisticIndex = state.messages.indexWhere(
         (Message m) => m.id == optimisticMessageId,
       );
@@ -2032,6 +2045,8 @@ class ChatViewModel extends _$ChatViewModel {
         ),
       );
       state = state.copyWith(messages: nextMessages);
+    } on MessageUploadSendCancelledException {
+      return;
     } on Object catch (error, st) {
       talker.error(
         '[ChatViewModel] send api_error channelId=$channelId',
@@ -2043,6 +2058,10 @@ class ChatViewModel extends _$ChatViewModel {
         ..removeMessageUpload(clientNonce);
       _markOptimisticSendFailed(optimisticMessageId);
     }
+  }
+
+  bool _isOptimisticSendStillActive(String optimisticMessageId) {
+    return state.messages.any((Message m) => m.id == optimisticMessageId);
   }
 
   void _notifySendBlocked(
