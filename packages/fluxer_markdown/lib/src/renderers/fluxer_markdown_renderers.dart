@@ -33,6 +33,8 @@ final RegExp _spoilerSyncUrlPattern = RegExp(
   caseSensitive: false,
 );
 
+final RegExp _blankMarkdownLinkLabelPattern = RegExp(r'^\s*$');
+
 Widget defaultFluxerAlertBuilder(
   BuildContext context,
   FluxerAlertType type,
@@ -644,6 +646,9 @@ class _MarkdownInlineRenderer {
   InlineSpan _buildLink(md.Element element, TextStyle style) {
     final href = element.attributes['href'] ?? element.textContent;
     final text = element.textContent;
+    if (_blankMarkdownLinkLabelPattern.hasMatch(text)) {
+      return TextSpan(text: '[$text]($href)', style: style);
+    }
     final linkColor = config.linkColor ?? Theme.of(context).colorScheme.primary;
 
     return TextSpan(

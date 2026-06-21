@@ -175,6 +175,95 @@ void main() {
       expect(tappedHref, url);
     });
 
+    testWidgets('blank markdown link labels render as plain text', (
+      tester,
+    ) async {
+      const String url = 'https://fluxer.app';
+      const String input = '[]($url)';
+      String? tappedHref;
+      final FluxerMarkdownConfig config = FluxerMarkdownConfig(
+        resolveEmojiShortcode: _noopEmojiShortcode,
+        unicodeEmojiUrlBuilder: _noopUnicodeEmojiUrl,
+        customEmojiUrlBuilder: _noopCustomEmojiUrl,
+        onTapLink: (_, href) async {
+          tappedHref = href;
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(data: input, config: config),
+          ),
+        ),
+      );
+
+      expect(find.text(input, findRichText: true), findsOneWidget);
+
+      await tester.tapOnText(find.textRange.ofSubstring(input));
+
+      expect(tappedHref, isNull);
+    });
+
+    testWidgets('whitespace-only markdown link labels render as plain text', (
+      tester,
+    ) async {
+      const String url = 'https://fluxer.app';
+      const String input = '[     ]($url)';
+      String? tappedHref;
+      final FluxerMarkdownConfig config = FluxerMarkdownConfig(
+        resolveEmojiShortcode: _noopEmojiShortcode,
+        unicodeEmojiUrlBuilder: _noopUnicodeEmojiUrl,
+        customEmojiUrlBuilder: _noopCustomEmojiUrl,
+        onTapLink: (_, href) async {
+          tappedHref = href;
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(data: input, config: config),
+          ),
+        ),
+      );
+
+      expect(find.text(input, findRichText: true), findsOneWidget);
+
+      await tester.tapOnText(find.textRange.ofSubstring(input));
+
+      expect(tappedHref, isNull);
+    });
+
+    testWidgets('non-blank markdown link labels still hyperlink', (
+      tester,
+    ) async {
+      const String url = 'https://fluxer.app';
+      String? tappedHref;
+      final FluxerMarkdownConfig config = FluxerMarkdownConfig(
+        resolveEmojiShortcode: _noopEmojiShortcode,
+        unicodeEmojiUrlBuilder: _noopUnicodeEmojiUrl,
+        customEmojiUrlBuilder: _noopCustomEmojiUrl,
+        onTapLink: (_, href) async {
+          tappedHref = href;
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(data: '[hello]($url)', config: config),
+          ),
+        ),
+      );
+
+      expect(find.text('hello', findRichText: true), findsOneWidget);
+
+      await tester.tapOnText(find.textRange.ofSubstring('hello'));
+
+      expect(tappedHref, url);
+    });
+
     testWidgets('labeled message links keep their markdown label', (
       tester,
     ) async {
