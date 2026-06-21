@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/instance/instance_discovery_service.dart';
 import 'package:fluxer_app/core/providers/active_instance_provider.dart';
@@ -64,14 +62,10 @@ class InstanceSelectorState {
 
 @riverpod
 class InstanceSelector extends _$InstanceSelector {
-  Timer? _debounceTimer;
   int _connectSeq = 0;
 
   @override
   Future<InstanceSelectorState> build() async {
-    ref.onDispose(() {
-      _debounceTimer?.cancel();
-    });
     final String instanceUrl = ref
         .read(activeInstanceProvider.notifier)
         .describeApiEndpoint();
@@ -92,15 +86,6 @@ class InstanceSelector extends _$InstanceSelector {
     if (current == null) {
       return;
     }
-    state = AsyncData(
-      current.copyWith(
-        instanceUrl: value,
-        status: InstanceDiscoveryStatus.idle,
-        requiresDiscovery: value.trim().isNotEmpty,
-        clearError: true,
-      ),
-    );
-    _debounceTimer?.cancel();
     if (value.trim().isEmpty) {
       ref.read(activeInstanceProvider.notifier).resetToOfficialDefault();
       state = AsyncData(
@@ -113,9 +98,14 @@ class InstanceSelector extends _$InstanceSelector {
       );
       return;
     }
-    _debounceTimer = Timer(const Duration(milliseconds: 800), () {
-      unawaited(connectToCurrentUrl());
-    });
+    state = AsyncData(
+      current.copyWith(
+        instanceUrl: value,
+        status: InstanceDiscoveryStatus.idle,
+        requiresDiscovery: true,
+        clearError: true,
+      ),
+    );
   }
 
   Future<void> connectToCurrentUrl() async {
