@@ -349,5 +349,46 @@ void main() {
       final String renderedText = richText.text.toPlainText();
       expect(renderedText, 'test line one\n\n\ntest line two');
     });
+
+    testWidgets('renders multi-line strikethrough across soft line breaks', (
+      tester,
+    ) async {
+      const String input = '~~line one\nline two~~';
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(
+              data: input,
+              config: _testMarkdownConfig,
+              baseStyle: baseStyle,
+            ),
+          ),
+        ),
+      );
+      final RichText richText = tester.widget<RichText>(find.byType(RichText));
+      final String renderedText = richText.text.toPlainText();
+      expect(renderedText, 'line one\nline two');
+      expect(renderedText, isNot(contains('~')));
+      expect(_hasMultiLineStrikethrough(richText.text), isTrue);
+    });
   });
+}
+
+bool _hasMultiLineStrikethrough(InlineSpan span) {
+  if (span is! TextSpan) {
+    return false;
+  }
+  final TextDecoration? decoration = span.style?.decoration;
+  if (decoration?.contains(TextDecoration.lineThrough) ?? false) {
+    final String text = span.toPlainText();
+    if (text.contains('line one') && text.contains('line two')) {
+      return true;
+    }
+  }
+  for (final InlineSpan child in span.children ?? const <InlineSpan>[]) {
+    if (_hasMultiLineStrikethrough(child)) {
+      return true;
+    }
+  }
+  return false;
 }

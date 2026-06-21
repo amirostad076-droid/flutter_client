@@ -13,6 +13,7 @@ import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_markdown/src/config/fluxer_markdown_config.dart';
 import 'package:fluxer_markdown/src/contexts/fluxer_markdown_features.dart';
+import 'package:fluxer_markdown/src/parsing/inline_parse_chunks.dart';
 import 'package:fluxer_markdown/src/parsing/markdown_parse_cache.dart';
 import 'package:fluxer_markdown/src/syntaxes/fluxer_markdown_syntaxes.dart';
 import 'package:fluxer_markdown/src/utils/highlight_languages.dart';
@@ -107,28 +108,28 @@ Widget buildFluxerMarkdownTextFlow({
   if (text.isEmpty) {
     return const SizedBox.shrink();
   }
-  final lines = text.split('\n');
+  final chunks = splitIntoInlineParseChunks(text);
   final spans = <InlineSpan>[];
-  for (var i = 0; i < lines.length; i++) {
+  for (var i = 0; i < chunks.length; i++) {
     if (i > 0) {
       spans.add(TextSpan(text: '\n', style: baseStyle));
     }
-    final lineNodes = _inlineNodeCache.resolve((
-      lines[i],
+    final chunkNodes = _inlineNodeCache.resolve((
+      chunks[i],
       features,
-    ), () => inlineDocument.parseInline(lines[i]));
-    if (lineNodes.isEmpty) {
+    ), () => inlineDocument.parseInline(chunks[i]));
+    if (chunkNodes.isEmpty) {
       continue;
     }
-    final lineSpans = _MarkdownInlineRenderer(
+    final chunkSpans = _MarkdownInlineRenderer(
       context: context,
       baseStyle: baseStyle,
       config: config,
       features: features,
       isDark: isDark,
-      jumbo: features.allowJumboEmoji && _allNodesAreEmoji(lineNodes),
-    ).build(lineNodes);
-    spans.addAll(lineSpans);
+      jumbo: features.allowJumboEmoji && _allNodesAreEmoji(chunkNodes),
+    ).build(chunkNodes);
+    spans.addAll(chunkSpans);
   }
   if (spans.isEmpty) {
     return const SizedBox.shrink();
