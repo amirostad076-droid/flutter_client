@@ -19,6 +19,7 @@ import 'package:fluxer_markdown/src/syntaxes/fluxer_markdown_syntaxes.dart';
 import 'package:fluxer_markdown/src/utils/highlight_languages.dart';
 import 'package:fluxer_markdown/src/utils/jumbo_emoji.dart';
 import 'package:intl/intl.dart';
+import 'package:latext/latext.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -932,6 +933,10 @@ class _FluxerSpoilerSpanState extends State<_FluxerSpoilerSpan>
   }
 }
 
+bool _isLatexLanguage(String language) {
+  return language == 'latex' || language == 'tex';
+}
+
 class FluxerCodeBlockWidget extends StatelessWidget {
   const FluxerCodeBlockWidget({
     required this.element,
@@ -958,18 +963,29 @@ class FluxerCodeBlockWidget extends StatelessWidget {
       code = code.substring(0, code.length - 1);
     }
 
+    final bgColor = isDark
+        ? (vs2015Theme['root']?.backgroundColor ??
+              Theme.of(context).colorScheme.surfaceContainerHighest)
+        : (githubTheme['root']?.backgroundColor ??
+              Theme.of(context).colorScheme.surfaceContainerHighest);
+
+    if (_isLatexLanguage(rawLang)) {
+      return _FluxerCodeBlockWithCopy(
+        code: code,
+        child: _FluxerLatexCodeBlockBody(
+          code: code,
+          baseStyle: baseStyle,
+          bgColor: bgColor,
+        ),
+      );
+    }
+
     final knownLang = kFluxerMarkdownLanguages.containsKey(rawLang)
         ? rawLang
         : null;
     if (knownLang == null && rawLang.isNotEmpty) {
       code = '$rawLang\n$code';
     }
-
-    final bgColor = isDark
-        ? (vs2015Theme['root']?.backgroundColor ??
-              Theme.of(context).colorScheme.surfaceContainerHighest)
-        : (githubTheme['root']?.backgroundColor ??
-              Theme.of(context).colorScheme.surfaceContainerHighest);
 
     final Widget codeBody;
     if (knownLang == null) {
@@ -999,6 +1015,51 @@ class FluxerCodeBlockWidget extends StatelessWidget {
     }
 
     return _FluxerCodeBlockWithCopy(code: code, child: codeBody);
+  }
+}
+
+class _FluxerLatexCodeBlockBody extends StatelessWidget {
+  const _FluxerLatexCodeBlockBody({
+    required this.code,
+    required this.baseStyle,
+    required this.bgColor,
+  });
+
+  final String code;
+  final TextStyle baseStyle;
+  final Color bgColor;
+
+  static const _kPadding = EdgeInsets.all(12);
+  static const _kRadius = BorderRadius.all(Radius.circular(4));
+
+  @override
+  Widget build(BuildContext context) {
+    final Color textColor =
+        baseStyle.color ?? Theme.of(context).colorScheme.onSurface;
+    final TextStyle monoStyle = baseStyle.copyWith(
+      fontFamily: 'monospace',
+      fontSize: (baseStyle.fontSize ?? 16) * 0.85,
+      color: textColor,
+    );
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(color: bgColor, borderRadius: _kRadius),
+      padding: _kPadding,
+      child: Center(
+        child: LaTexT(
+          laTeXCode: Text(
+            '${r'$$'}$code${r'$$'}',
+            textAlign: TextAlign.center,
+            style: baseStyle.copyWith(color: textColor),
+          ),
+          equationStyle: baseStyle.copyWith(
+            color: textColor,
+            fontSize: (baseStyle.fontSize ?? 16) * 1.1,
+          ),
+          onErrorFallback: (String text) => Text(text, style: monoStyle),
+        ),
+      ),
+    );
   }
 }
 
