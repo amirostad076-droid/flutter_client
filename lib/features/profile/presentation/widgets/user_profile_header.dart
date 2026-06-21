@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/profile/domain/custom_status_utils.dart';
 import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_badges.dart';
 import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_custom_status.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -98,7 +99,8 @@ class UserProfileHeader extends StatelessWidget {
           ),
           SizedBox(height: layout.s1),
         ],
-        if (customStatus != null) UserProfileCustomStatus(text: customStatus),
+        if (hasVisibleCustomStatus(customStatus))
+          UserProfileCustomStatus(text: customStatus),
       ],
     );
   }

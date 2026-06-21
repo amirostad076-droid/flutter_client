@@ -48,7 +48,9 @@ import 'package:fluxer_app/features/members/providers/member_list_desired_ranges
 import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
+import 'package:fluxer_app/features/profile/domain/custom_status_utils.dart';
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
+import 'package:fluxer_app/shared/widgets/custom_status_display.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -1568,6 +1570,10 @@ class _DmMemberGroups extends ConsumerWidget {
                         ),
                   avatarColor: participant.avatarColor,
                   status: resolveStatus(participant.id),
+                  customStatus: ref
+                      .watch(userPresenceProvider(participant.id))
+                      .value
+                      ?.customStatus,
                   isBot: participant.isBot,
                   isSystem: participant.isSystem,
                   isCurrentUser: participant.isCurrentUser,
@@ -1646,7 +1652,10 @@ class _SimpleMemberRow extends StatelessWidget {
         size: 36,
       ),
       title: name,
-      subtitle: customStatus,
+      subtitle: hasVisibleCustomStatus(customStatus) ? null : customStatus,
+      subtitleWidget: hasVisibleCustomStatus(customStatus)
+          ? CustomStatusDisplay(stored: customStatus, maxLines: 1)
+          : null,
       dimmed: dimmed,
       onTap: onTap,
       onLongPress: onLongPress,
