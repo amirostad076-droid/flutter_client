@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/providers/instance_selector_provider.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -179,13 +180,8 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
           size: 20,
         );
       case InstanceDiscoveryStatus.discovering:
-        return SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: context.colors.textPrimaryMuted,
-          ),
+        return FluxerLoadingSpinner(
+          color: context.colors.textPrimaryMuted,
         );
       case InstanceDiscoveryStatus.idle:
         return null;

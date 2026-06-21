@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/instance/instance_discovery_service.dart';
 import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'instance_selector_provider.g.dart';
@@ -164,16 +165,25 @@ class InstanceSelector extends _$InstanceSelector {
       if (connectId != _connectSeq) {
         return;
       }
+      talker.warning(
+        '[InstanceSelector] Discovery failed for "${current.instanceUrl}": '
+        '${error.message}',
+      );
       state = AsyncData(
         current.copyWith(
           status: InstanceDiscoveryStatus.error,
           errorMessage: error.message,
         ),
       );
-    } on Object catch (error) {
+    } on Object catch (error, stackTrace) {
       if (connectId != _connectSeq) {
         return;
       }
+      talker.error(
+        '[InstanceSelector] Discovery failed for "${current.instanceUrl}"',
+        error,
+        stackTrace,
+      );
       state = AsyncData(
         current.copyWith(
           status: InstanceDiscoveryStatus.error,
