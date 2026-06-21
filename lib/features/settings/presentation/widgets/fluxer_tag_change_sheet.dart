@@ -189,7 +189,8 @@ class _FluxerTagChangeContentState
         }
       }
 
-      if (state.isPremium &&
+      if (ref.read(shouldShowPremiumCommerceProvider) &&
+          state.isPremium &&
           !state.hasLifetimePremium &&
           _hasPendingDiscriminatorChange &&
           !_confirmedTemporary) {
@@ -339,9 +340,12 @@ class _FluxerTagChangeContentState
 
   String? _buildPremiumWarningText(
     UserSettingsViewState state,
-    FluxerLocalizations l10n,
-  ) {
-    if (!state.isPremium || state.hasLifetimePremium) {
+    FluxerLocalizations l10n, {
+    required bool shouldShowPremiumCommerce,
+  }) {
+    if (!shouldShowPremiumCommerce ||
+        !state.isPremium ||
+        state.hasLifetimePremium) {
       return null;
     }
 
@@ -414,7 +418,11 @@ class _FluxerTagChangeContentState
     final textStyles = context.textStyles;
 
     final l10n = FluxerLocalizations.of(context);
-    final premiumWarning = _buildPremiumWarningText(state, l10n);
+    final premiumWarning = _buildPremiumWarningText(
+      state,
+      l10n,
+      shouldShowPremiumCommerce: shouldShowPremiumCommerce,
+    );
 
     return SingleChildScrollView(
       child: Padding(

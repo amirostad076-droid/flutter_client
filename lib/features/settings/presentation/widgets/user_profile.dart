@@ -229,7 +229,6 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     }
 
     final animCheck = ImageUtils.checkAnimated(picked.bytes);
-    final state = ref.read(userSettingsViewModelProvider);
 
     if (animCheck.isAnimated) {
       final bool hasAnimatedEntitlement = isAvatar
@@ -927,7 +926,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         ),
         SizedBox(height: layout.s3),
         FluxerHintText(l10n.changeUsernameAndTagHint),
-        if (state.premiumDiscriminator && !state.hasLifetimePremium) ...[
+        if (state.premiumDiscriminator &&
+            shouldShowPremiumCommerce &&
+            !state.hasLifetimePremium) ...[
           SizedBox(height: layout.s2),
           Text(
             l10n.customTagSubscriptionWarning(state.discriminator),
