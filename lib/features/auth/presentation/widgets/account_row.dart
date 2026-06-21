@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/domain/stored_account.dart';
+import 'package:fluxer_app/features/auth/presentation/widgets/instance_domain_icon.dart';
 import 'package:fluxer_app/features/ui/action_menu/fluxer_action_menu.dart';
 import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
@@ -75,10 +76,8 @@ class AccountRow extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        PhosphorIcon(
-                          PhosphorIconsFill.globe,
-                          size: 12,
-                          color: colors.textTertiary,
+                        InstanceDomainIcon(
+                          isOfficial: account.isOfficialInstance,
                         ),
                         SizedBox(width: layout.s1),
                         Expanded(

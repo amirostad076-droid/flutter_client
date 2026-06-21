@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/instance/instance_endpoint_normalizer.dart';
 import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/auth/presentation/widgets/instance_domain_icon.dart';
 import 'package:fluxer_app/features/auth/providers/instance_selector_provider.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
@@ -80,6 +81,7 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
       instanceSelectorProvider,
     );
     final InstanceSelector notifier = ref.read(instanceSelectorProvider.notifier);
+    final bool isOfficial = ref.watch(isActiveInstanceOfficialProvider);
 
     return selectorAsync.when(
       loading: () => const SizedBox.shrink(),
@@ -98,9 +100,8 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
               label: l10n.instanceUrlLabel,
               hint: l10n.instanceUrlPlaceholder,
               enabled: widget.enabled,
-              prefixIcon: PhosphorIcon(
-                PhosphorIconsFill.globe,
-                color: context.colors.textPrimaryMuted,
+              prefixIcon: InstanceDomainIcon(
+                isOfficial: isOfficial && !selector.requiresDiscovery,
                 size: 20,
               ),
               suffixIcon: _buildStatusIcon(context, selector.status),
@@ -272,11 +273,7 @@ class InstanceSelectorLoginEntry extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            PhosphorIcon(
-              PhosphorIconsFill.globe,
-              size: 12,
-              color: context.colors.textTertiary,
-            ),
+            const InstanceDomainIcon(isOfficial: false),
             SizedBox(width: context.layout.s1),
             Text(displayDomain, style: tertiaryStyle),
             Text(' · ', style: tertiaryStyle),

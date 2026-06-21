@@ -30,4 +30,7 @@ class StoredAccount {
         displayDomain ?? InstanceConfigSnapshot.officialDefault().displayDomain;
     return const InstanceEndpointNormalizer().formatDisplayDomain(raw);
   }
+
+  bool get isOfficialInstance =>
+      instanceDomain == InstanceConfigSnapshot.officialDefault().displayDomain;
 }
