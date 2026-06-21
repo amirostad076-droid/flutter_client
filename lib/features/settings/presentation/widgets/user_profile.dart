@@ -4,6 +4,9 @@ import 'dart:math' show max;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:fluxer_app/core/limits/instance_limit_provider.dart';
+import 'package:fluxer_app/core/limits/limit_key.dart';
+import 'package:fluxer_app/core/premium/should_show_premium_commerce_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
@@ -229,7 +232,14 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     final state = ref.read(userSettingsViewModelProvider);
 
     if (animCheck.isAnimated) {
-      if (!state.isPremium) {
+      final bool hasAnimatedEntitlement = isAvatar
+          ? ref.read(
+              instanceFeatureEnabledProvider(LimitKeys.featureAnimatedAvatar),
+            )
+          : ref.read(
+              instanceFeatureEnabledProvider(LimitKeys.featureAnimatedBanner),
+            );
+      if (!hasAnimatedEntitlement) {
         if (!mounted) {
           return;
         }
@@ -351,6 +361,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(userSettingsViewModelProvider);
+    final bool hasPerGuildProfiles = ref.watch(
+      instanceFeatureEnabledProvider(LimitKeys.featurePerGuildProfiles),
+    );
+    final bool shouldShowPremiumCommerce = ref.watch(
+      shouldShowPremiumCommerceProvider,
+    );
     _syncControllers(state);
 
     ref
@@ -478,7 +494,8 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                               : vm.updatePronouns,
                         ),
                         if (state.isPerGuildProfile &&
-                            !state.hasPerGuildProfiles &&
+                            !hasPerGuildProfiles &&
+                            shouldShowPremiumCommerce &&
                             !state.isLoadingGuildProfile) ...[
                           SizedBox(height: layout.s6),
                           _buildPerGuildPremiumUpsell(layout, l10n),
@@ -491,9 +508,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                         ] else if (!state.isLoadingGuildProfile) ...[
                           SizedBox(height: layout.s6),
                           Opacity(
-                            opacity: state.hasPerGuildProfiles ? 1.0 : 0.5,
+                            opacity: hasPerGuildProfiles ? 1.0 : 0.5,
                             child: IgnorePointer(
-                              ignoring: !state.hasPerGuildProfiles,
+                              ignoring: !hasPerGuildProfiles,
                               child: _buildGuildAvatarSection(
                                 state,
                                 vm,
@@ -504,9 +521,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                           ),
                           SizedBox(height: layout.s6),
                           Opacity(
-                            opacity: state.hasPerGuildProfiles ? 1.0 : 0.5,
+                            opacity: hasPerGuildProfiles ? 1.0 : 0.5,
                             child: IgnorePointer(
-                              ignoring: !state.hasPerGuildProfiles,
+                              ignoring: !hasPerGuildProfiles,
                               child: _buildGuildBannerSection(
                                 state,
                                 vm,
@@ -519,14 +536,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                         SizedBox(height: layout.s6),
                         Opacity(
                           opacity:
-                              state.isPerGuildProfile &&
-                                  !state.hasPerGuildProfiles
+                              state.isPerGuildProfile && !hasPerGuildProfiles
                               ? 0.5
                               : 1.0,
                           child: IgnorePointer(
                             ignoring:
-                                state.isPerGuildProfile &&
-                                !state.hasPerGuildProfiles,
+                                state.isPerGuildProfile && !hasPerGuildProfiles,
                             child: FluxerColorPickerField(
                               label: l10n.accentColorLabel,
                               description: l10n.accentColorDescription,
@@ -549,14 +564,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                         SizedBox(height: layout.s6),
                         Opacity(
                           opacity:
-                              state.isPerGuildProfile &&
-                                  !state.hasPerGuildProfiles
+                              state.isPerGuildProfile && !hasPerGuildProfiles
                               ? 0.5
                               : 1.0,
                           child: IgnorePointer(
                             ignoring:
-                                state.isPerGuildProfile &&
-                                !state.hasPerGuildProfiles,
+                                state.isPerGuildProfile && !hasPerGuildProfiles,
                             child: _buildBioSection(state, vm, layout, l10n),
                           ),
                         ),
@@ -855,6 +868,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   ) {
     final colors = context.colors;
     final textStyles = context.textStyles;
+    final bool hasCustomDiscriminator = ref.watch(
+      instanceFeatureEnabledProvider(LimitKeys.featureCustomDiscriminator),
+    );
+    final bool shouldShowPremiumCommerce = ref.watch(
+      shouldShowPremiumCommerceProvider,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -879,7 +898,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 label: l10n.changeFluxerTag,
                 size: FluxerButtonSize.small,
               ),
-            if (!state.isPremium && !isMobileLayout(context))
+            if (!hasCustomDiscriminator &&
+                shouldShowPremiumCommerce &&
+                !isMobileLayout(context))
               FluxerTooltip(
                 message: l10n.customizeTagWithPlutoniumTooltip(
                   state.discriminator,
@@ -1043,6 +1064,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     final textStyles = context.textStyles;
 
     if (!state.isPremium) {
+      if (!ref.watch(shouldShowPremiumCommerceProvider)) {
+        return const SizedBox.shrink();
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -22,6 +22,8 @@ import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dar
 import 'package:fluxer_app/core/push/push_notification_tap_handler.dart';
 import 'package:fluxer_app/core/push/services/firebase_messaging_push_service.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
+import 'package:fluxer_app/core/premium/current_user_entitlements_provider.dart';
+import 'package:fluxer_app/core/premium/premium_state_sync_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/auth/providers/account_manager_provider.dart';
@@ -104,8 +106,12 @@ class AppStartup extends _$AppStartup {
           avatar: user.avatar,
         );
         ref
+            .read(currentUserEntitlementsProvider.notifier)
+            .applyUserProfile(user);
+        ref
             .read(currentUserPremiumTypeProvider.notifier)
             .set(user.premiumType?.json ?? 0);
+        unawaited(refreshPremiumState(ref));
         break; // Session is valid.
       } on DioException catch (e) {
         if (e.response?.statusCode == 401) {
@@ -153,7 +159,8 @@ class AppStartup extends _$AppStartup {
       ..read(voiceCallKitCoordinatorProvider)
       ..read(friendRelationshipsSyncProvider)
       ..read(guildListSyncProvider)
-      ..read(statusExpiryBindingProvider);
+      ..read(statusExpiryBindingProvider)
+      ..read(premiumStateSyncBindingProvider);
 
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
     ref.read(pendingPushNotificationPathProvider.notifier).flushIfReady();
