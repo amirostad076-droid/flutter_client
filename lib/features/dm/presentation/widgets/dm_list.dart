@@ -153,8 +153,6 @@ class _DMListState extends ConsumerState<DMList> {
     final List<DmConversation> convos = ref.watch(
       dmViewModelProvider.select((DmViewState state) => state.conversations),
     );
-    final Map<String, String> presenceByUserId =
-        ref.watch(dmListPresenceMapProvider).value ?? const <String, String>{};
     final location = ref.watch(currentLocationProvider);
     const mePrefix = '${RoutePaths.me}/';
     final selectedId = location.startsWith(mePrefix)
@@ -252,7 +250,6 @@ class _DMListState extends ConsumerState<DMList> {
                   isMobile: isMobile,
                   pinnedIds: pinnedIds,
                   mutedIds: mutedIds,
-                  presenceByUserId: presenceByUserId,
                 ),
               ),
             ],
@@ -519,7 +516,6 @@ class _DMListState extends ConsumerState<DMList> {
     required bool isMobile,
     required Set<String> pinnedIds,
     required Set<String> mutedIds,
-    required Map<String, String> presenceByUserId,
   }) {
     final userId = ref.watch(currentUserIdProvider);
     final listPadding = isMobile
@@ -551,7 +547,6 @@ class _DMListState extends ConsumerState<DMList> {
           isMobile: isMobile,
           isPinned: pinnedIds.contains(convo.id),
           isMuted: mutedIds.contains(convo.id),
-          presenceByUserId: presenceByUserId,
         );
       },
     );
@@ -661,7 +656,6 @@ class _DMListState extends ConsumerState<DMList> {
     IconData? leadingIcon,
     String? leadingLabel,
     VoidCallback? onCustomTap,
-    Map<String, String> presenceByUserId = const <String, String>{},
   }) {
     final avatarSize = isMobile ? 40.0 : 32.0;
     final tileHeight = isMobile ? 52.0 : 42.0;
@@ -744,36 +738,53 @@ class _DMListState extends ConsumerState<DMList> {
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                if (c.isGroup)
-                  FluxerAvatarCluster(
-                    channelId: c.id,
-                    iconUrl: FluxerMediaUrl.guildIcon(
-                      guildId: c.id,
-                      hash: c.icon,
-                    ),
-                    status: groupDmAggregateStatus(
-                      participantIds: c.remoteRecipientIds,
-                      resolveStatus: (String id) =>
-                          presenceByUserId[id] ?? 'offline',
-                    ),
-                    members: _clusterMembers(c),
-                    size: avatarSize,
-                  )
-                else
-                  FluxerAvatar.user(
-                    fallbackText: c.recipientName,
-                    userId: c.recipientId,
-                    imageUrl: FluxerMediaUrl.userAvatar(
+                Consumer(
+                  builder: (context, ref, _) {
+                    if (c.isGroup) {
+                      final String? status = ref.watch(
+                        dmListPresenceMapProvider.select(
+                          (AsyncValue<Map<String, String>> p) =>
+                              groupDmAggregateStatus(
+                                participantIds: c.remoteRecipientIds,
+                                resolveStatus: (String id) =>
+                                    p.value?[id] ?? 'offline',
+                              ),
+                        ),
+                      );
+                      return FluxerAvatarCluster(
+                        channelId: c.id,
+                        iconUrl: FluxerMediaUrl.guildIcon(
+                          guildId: c.id,
+                          hash: c.icon,
+                        ),
+                        status: status,
+                        members: _clusterMembers(c),
+                        size: avatarSize,
+                      );
+                    }
+                    final bool showPresence = shouldShowDmRecipientPresence(c);
+                    final String? status = showPresence
+                        ? ref.watch(
+                            dmListPresenceMapProvider.select(
+                              (AsyncValue<Map<String, String>> p) =>
+                                  p.value?[c.recipientId] ?? 'offline',
+                            ),
+                          )
+                        : null;
+                    return FluxerAvatar.user(
+                      fallbackText: c.recipientName,
                       userId: c.recipientId,
-                      hash: c.recipientAvatar,
-                      animated: isSelected,
-                    ),
-                    status: shouldShowDmRecipientPresence(c)
-                        ? presenceByUserId[c.recipientId] ?? 'offline'
-                        : null,
-                    showStatus: shouldShowDmRecipientPresence(c),
-                    size: avatarSize,
-                  ),
+                      imageUrl: FluxerMediaUrl.userAvatar(
+                        userId: c.recipientId,
+                        hash: c.recipientAvatar,
+                        animated: isSelected,
+                      ),
+                      status: status,
+                      showStatus: showPresence,
+                      size: avatarSize,
+                    );
+                  },
+                ),
                 SizedBox(width: layout.s3),
                 Expanded(
                   child: Column(
