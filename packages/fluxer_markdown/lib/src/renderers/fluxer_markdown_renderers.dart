@@ -338,6 +338,7 @@ class _MarkdownBlockRenderer {
       element: codeElement,
       isDark: isDark,
       baseStyle: baseStyle,
+      onCopyCode: config.onCopyCode,
     );
   }
 
@@ -942,12 +943,14 @@ class FluxerCodeBlockWidget extends StatelessWidget {
     required this.element,
     required this.isDark,
     required this.baseStyle,
+    this.onCopyCode,
     super.key,
   });
 
   final md.Element element;
   final bool isDark;
   final TextStyle baseStyle;
+  final FluxerCodeCopyHandler? onCopyCode;
 
   static const _kPadding = EdgeInsets.all(12);
   static const _kRadius = BorderRadius.all(Radius.circular(4));
@@ -972,6 +975,7 @@ class FluxerCodeBlockWidget extends StatelessWidget {
     if (_isLatexLanguage(rawLang)) {
       return _FluxerCodeBlockWithCopy(
         code: code,
+        onCopyCode: onCopyCode,
         child: _FluxerLatexCodeBlockBody(
           code: code,
           baseStyle: baseStyle,
@@ -1014,7 +1018,11 @@ class FluxerCodeBlockWidget extends StatelessWidget {
       );
     }
 
-    return _FluxerCodeBlockWithCopy(code: code, child: codeBody);
+    return _FluxerCodeBlockWithCopy(
+      code: code,
+      onCopyCode: onCopyCode,
+      child: codeBody,
+    );
   }
 }
 
@@ -1064,10 +1072,15 @@ class _FluxerLatexCodeBlockBody extends StatelessWidget {
 }
 
 class _FluxerCodeBlockWithCopy extends StatelessWidget {
-  const _FluxerCodeBlockWithCopy({required this.code, required this.child});
+  const _FluxerCodeBlockWithCopy({
+    required this.code,
+    required this.child,
+    this.onCopyCode,
+  });
 
   final String code;
   final Widget child;
+  final FluxerCodeCopyHandler? onCopyCode;
 
   static const _kRadius = BorderRadius.all(Radius.circular(4));
 
@@ -1086,8 +1099,9 @@ class _FluxerCodeBlockWithCopy extends StatelessWidget {
             child: Tooltip(
               message: copyLabel,
               child: GestureDetector(
-                onTap: () {
-                  unawaited(Clipboard.setData(ClipboardData(text: code)));
+                onTap: () async {
+                  await Clipboard.setData(ClipboardData(text: code));
+                  onCopyCode?.call(context, code);
                 },
                 child: PhosphorIcon(
                   PhosphorIconsFill.clipboard,
