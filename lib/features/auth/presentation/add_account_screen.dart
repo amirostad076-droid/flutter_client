@@ -27,13 +27,13 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
   void initState() {
     super.initState();
     _initialUserId = ref.read(currentUserIdProvider);
-    ref
-        .read(addAccountInstanceGuardProvider.notifier)
-        .arm(ref.read(activeInstanceProvider));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
+      ref
+          .read(addAccountInstanceGuardProvider.notifier)
+          .arm(ref.read(activeInstanceProvider));
       final LoginViewModel notifier = ref.read(loginViewModelProvider.notifier);
       notifier.hideAccountSelector();
       if (widget.prefillEmail != null) {
@@ -42,15 +42,21 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     });
   }
 
-  @override
-  void dispose() {
+  void _releaseAddAccountGuard() {
     final String? currentUserId = ref.read(currentUserIdProvider);
     if (_initialUserId != null && currentUserId == _initialUserId) {
       ref.read(addAccountInstanceGuardProvider.notifier).restoreActiveInstance();
       ref.invalidate(instanceSelectorProvider);
     }
     ref.read(addAccountInstanceGuardProvider.notifier).disarm();
-    super.dispose();
+  }
+
+  void _close() {
+    if (!mounted) {
+      return;
+    }
+    _releaseAddAccountGuard();
+    Navigator.of(context).pop();
   }
 
   @override
@@ -60,34 +66,43 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
       String? next,
     ) {
       if (next != null && next != _initialUserId && mounted) {
-        Navigator.of(context).pop();
+        _close();
       }
     });
 
     final layout = context.layout;
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    return Scaffold(
-      backgroundColor: context.colors.backgroundPrimary,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (didPop) {
+          return;
+        }
+        _close();
+      },
+      child: Scaffold(
         backgroundColor: context.colors.backgroundPrimary,
-        elevation: 0,
-        leading: IconButton(
-          icon: PhosphorIcon(
-            PhosphorIconsRegular.x,
-            color: context.colors.textPrimary,
+        appBar: AppBar(
+          backgroundColor: context.colors.backgroundPrimary,
+          elevation: 0,
+          leading: IconButton(
+            icon: PhosphorIcon(
+              PhosphorIconsRegular.x,
+              color: context.colors.textPrimary,
+            ),
+            onPressed: _close,
           ),
-          onPressed: () => Navigator.of(context).pop(),
         ),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: isMobileLayout(context) ? double.infinity : 420),
-            child: Padding(
-              padding: EdgeInsets.all(layout.s5),
-              child: AuthFlowContent(
-                showBrowserLogin: false,
-                heading: l10n.accountAdd,
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: isMobileLayout(context) ? double.infinity : 420),
+              child: Padding(
+                padding: EdgeInsets.all(layout.s5),
+                child: AuthFlowContent(
+                  showBrowserLogin: false,
+                  heading: l10n.accountAdd,
+                ),
               ),
             ),
           ),
