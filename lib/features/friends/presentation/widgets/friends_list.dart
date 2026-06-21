@@ -142,10 +142,7 @@ class FriendsList extends ConsumerWidget {
                 'assets/images/inbox-icon.svg',
                 width: 24,
                 height: 24,
-                colorFilter: ColorFilter.mode(
-                  context.colors.interactiveNormal,
-                  BlendMode.srcIn,
-                ),
+                theme: SvgTheme(currentColor: context.colors.interactiveNormal),
               ),
             ),
           ),
