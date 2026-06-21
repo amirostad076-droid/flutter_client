@@ -67,5 +67,17 @@ void main() {}
       expect(find.byType(HighlightView), findsOneWidget);
       expect(find.byType(LaTexT), findsNothing);
     });
+
+    testWidgets('keeps markdown alert syntax inside fenced block', (
+      tester,
+    ) async {
+      const String input = '''```
+> [!NOTE]
+Alert syntax stays literal
+```''';
+      await _pumpMarkdown(tester, input);
+      expect(find.textContaining('[!NOTE]'), findsOneWidget);
+      expect(find.textContaining('Alert syntax stays literal'), findsOneWidget);
+    });
   });
 }
