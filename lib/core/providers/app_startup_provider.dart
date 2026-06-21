@@ -24,6 +24,7 @@ import 'package:fluxer_app/core/push/services/firebase_messaging_push_service.da
 import 'package:fluxer_app/core/push/unified_push/unified_push_mobile_device_registration.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
+import 'package:fluxer_app/features/auth/providers/account_manager_provider.dart';
 import 'package:fluxer_app/features/auth/providers/auth_providers.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_gateway_listener_provider.dart';
 import 'package:fluxer_app/features/friends/providers/friend_relationships_sync_provider.dart';
@@ -129,6 +130,7 @@ class AppStartup extends _$AppStartup {
 
     ref.read(authStateProvider.notifier).setAuthenticated(value: true);
     ref.read(currentUserIdProvider.notifier).set(session.userId);
+    unawaited(ref.read(accountManagerProvider.notifier).loadAccounts());
     await Future.wait<void>([
       ref.read(themePreferenceProvider.notifier).load(session.userId),
       ref.read(appearancePreferencesProvider.notifier).load(session.userId),
