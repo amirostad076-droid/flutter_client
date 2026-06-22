@@ -64,6 +64,24 @@ class InstanceEndpointNormalizer {
     }
   }
 
+  bool isOfficialInstanceInput(String input) {
+    final String trimmed = input.trim();
+    if (trimmed.isEmpty) {
+      return false;
+    }
+    try {
+      String candidate = trimmed;
+      if (!InstanceEndpointPatterns.schemePrefix.hasMatch(candidate)) {
+        candidate = 'https://$candidate';
+      }
+      final String host = Uri.parse(candidate).host.toLowerCase();
+      return InstanceConstants.officialInstanceHosts.contains(host);
+    } on FormatException {
+      final String host = trimmed.split('/').first.toLowerCase();
+      return InstanceConstants.officialInstanceHosts.contains(host);
+    }
+  }
+
   String extractDisplayDomain(String apiEndpoint) {
     try {
       return formatDisplayDomain(Uri.parse(apiEndpoint).host);

@@ -8929,6 +8929,12 @@ abstract class FluxerLocalizations {
   /// **'Enter instance URL (e.g. fluxer.app)'**
   String get instanceUrlPlaceholder;
 
+  /// Tooltip for the button that resets the instance URL to the official Fluxer instance.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to Fluxer'**
+  String get resetToDefaultInstance;
+
   /// Button label to connect to a custom Fluxer instance.
   ///
   /// In en, this message translates to:

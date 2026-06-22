@@ -5147,6 +5147,9 @@ class FluxerLocalizationsIt extends FluxerLocalizations {
   String get instanceUrlPlaceholder => 'Enter instance URL (e.g. fluxer.app)';
 
   @override
+  String get resetToDefaultInstance => 'Reset to Fluxer';
+
+  @override
   String get instanceConnect => 'Connect';
 
   @override

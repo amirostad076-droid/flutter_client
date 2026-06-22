@@ -71,6 +71,24 @@ void main() {
     });
   });
 
+  group('isOfficialInstanceInput', () {
+    test('matches official web app host', () {
+      expect(normalizer.isOfficialInstanceInput('web.fluxer.app'), isTrue);
+    });
+
+    test('matches official marketing host', () {
+      expect(normalizer.isOfficialInstanceInput('fluxer.app'), isTrue);
+    });
+
+    test('matches official api host with path', () {
+      expect(normalizer.isOfficialInstanceInput('api.fluxer.app/v1'), isTrue);
+    });
+
+    test('rejects self-hosted host', () {
+      expect(normalizer.isOfficialInstanceInput('chat.example.com'), isFalse);
+    });
+  });
+
   group('describeApiEndpoint', () {
     test('hides default /api path segment', () {
       expect(

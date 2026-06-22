@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/instance/instance_constants.dart';
 import 'package:fluxer_app/core/instance/instance_endpoint_normalizer.dart';
 import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -104,7 +105,12 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
                 isOfficial: isOfficial && !selector.requiresDiscovery,
                 size: 20,
               ),
-              suffixIcon: _buildStatusIcon(context, selector.status),
+              suffixIcon: _buildSuffixIcons(
+                context,
+                selector,
+                notifier,
+                isOfficial,
+              ),
               onChanged: notifier.updateInstanceUrl,
               errorText: errorText,
               textInputAction: TextInputAction.next,
@@ -161,6 +167,53 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
         );
       },
     );
+  }
+
+  Widget? _buildSuffixIcons(
+    BuildContext context,
+    InstanceSelectorState selector,
+    InstanceSelector notifier,
+    bool isOfficial,
+  ) {
+    final Widget? statusIcon = _buildStatusIcon(context, selector.status);
+    final bool showReset = _shouldShowReset(selector, isOfficial);
+    if (!showReset) {
+      return statusIcon;
+    }
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Tooltip(
+          message: l10n.resetToDefaultInstance,
+          child: IconButton(
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            tooltip: l10n.resetToDefaultInstance,
+            onPressed: !widget.enabled ||
+                    selector.status == InstanceDiscoveryStatus.discovering
+                ? null
+                : () => unawaited(notifier.resetToOfficialDefault()),
+            icon: PhosphorIcon(
+              PhosphorIconsFill.arrowsCounterClockwise,
+              color: context.colors.textPrimaryMuted,
+              size: 20,
+            ),
+          ),
+        ),
+        if (statusIcon != null) statusIcon,
+      ],
+    );
+  }
+
+  bool _shouldShowReset(InstanceSelectorState selector, bool isOfficial) {
+    if (selector.status == InstanceDiscoveryStatus.discovering) {
+      return false;
+    }
+    final String current = selector.instanceUrl.trim().toLowerCase();
+    const String defaultUrl = InstanceConstants.defaultInstanceInputUrl;
+    return !isOfficial || current != defaultUrl || selector.requiresDiscovery;
   }
 
   Widget? _buildStatusIcon(

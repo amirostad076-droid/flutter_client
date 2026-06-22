@@ -6329,6 +6329,10 @@
   "@instanceUrlPlaceholder": {
     "description": "Placeholder for the self-hosted instance URL input."
   },
+  "resetToDefaultInstance": "Reset to Fluxer",
+  "@resetToDefaultInstance": {
+    "description": "Tooltip for the button that resets the instance URL to the official Fluxer instance."
+  },
   "instanceConnect": "Connect",
   "@instanceConnect": {
     "description": "Button label to connect to a custom Fluxer instance."
