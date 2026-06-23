@@ -37,6 +37,12 @@ The mobile app supports self hosted instances now! Push notifications are curren
 
 For iOS and Android FCM build we will need to setup a relay service for self hosted instances to use. This is something that will be worked on in the future.
 
+SSO (Single Sign-On) login is supported for self-hosted instances that have configured an OIDC/OAuth2 provider. When connecting to an instance with SSO enabled, the app will display the appropriate login options based on the server's configuration. If SSO is enforced, only the SSO login flow will be available. If SSO is optional, both SSO and email/password login can be used.
+
+For mobile SSO, register this redirect URI with your OIDC provider:
+
+`fluxer://auth/sso/callback`
+
 ## Download
 
 > [!NOTE]

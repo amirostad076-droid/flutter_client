@@ -36,7 +36,10 @@ class UserSettingsDeepLinkTarget {
 }
 
 bool isUserSettingsDeepLinkPath(Uri uri) {
-  return normalizeDeepLinkPath(uri.path) == userSettingsDeepLinkPath;
+  return normalizeDeepLinkPath(
+        normalizeAppProtocolDeepLinkUri(uri).path,
+      ) ==
+      userSettingsDeepLinkPath;
 }
 
 UserSettingsDeepLinkTarget? parseUserSettingsDeepLink(Uri uri) {

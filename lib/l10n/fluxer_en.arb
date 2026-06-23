@@ -85,6 +85,40 @@
   "@logInWithPasskey": {
     "description": "Secondary login using a passkey."
   },
+  "continueWithSso": "Continue with {provider}",
+  "@continueWithSso": {
+    "description": "Button label that starts single sign-on.",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "ssoRequired": "SSO is required to access this instance.",
+  "@ssoRequired": {
+    "description": "Short sign-in note shown when the instance requires single sign-on."
+  },
+  "organizationSsoProvider": "Sign in with your organization's single sign-on provider.",
+  "@organizationSsoProvider": {
+    "description": "Description shown when sign-in is restricted to the configured SSO provider."
+  },
+  "failedToStartSso": "Failed to start SSO",
+  "@failedToStartSso": {
+    "description": "Login flow error shown when the single sign-on redirect cannot be started."
+  },
+  "ssoCancelled": "SSO login was cancelled",
+  "@ssoCancelled": {
+    "description": "Shown when the user cancels the single sign-on browser flow."
+  },
+  "preferSso": "Prefer using SSO? Continue with {provider}.",
+  "@preferSso": {
+    "description": "Optional sign-in note when SSO is available but not required.",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
   "logInViaBrowser": "Log in via browser",
   "@logInViaBrowser": {
     "description": "Secondary login that opens or uses the system browser."

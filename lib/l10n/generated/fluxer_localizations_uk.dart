@@ -72,6 +72,29 @@ class FluxerLocalizationsUk extends FluxerLocalizations {
   String get logInWithPasskey => 'Log in with a passkey';
 
   @override
+  String continueWithSso(String provider) {
+    return 'Continue with $provider';
+  }
+
+  @override
+  String get ssoRequired => 'SSO is required to access this instance.';
+
+  @override
+  String get organizationSsoProvider =>
+      'Sign in with your organization\'s single sign-on provider.';
+
+  @override
+  String get failedToStartSso => 'Failed to start SSO';
+
+  @override
+  String get ssoCancelled => 'SSO login was cancelled';
+
+  @override
+  String preferSso(String provider) {
+    return 'Prefer using SSO? Continue with $provider.';
+  }
+
+  @override
   String get logInViaBrowser => 'Log in via browser';
 
   @override

@@ -74,6 +74,20 @@ class InstanceConfigSnapshot {
     InstanceEndpoints.resetToDefaults();
   }
 
+  WellKnownFluxerResponseSso? get ssoConfig => wellKnown?.sso;
+
+  bool get isSsoEnabled => ssoConfig?.enabled ?? false;
+
+  bool get isSsoEnforced {
+    final WellKnownFluxerResponseSso? config = ssoConfig;
+    return config != null && config.enabled && config.enforced;
+  }
+
+  bool get isSsoOptional {
+    final WellKnownFluxerResponseSso? config = ssoConfig;
+    return config != null && config.enabled && !config.enforced;
+  }
+
   String? get instanceDisplayName {
     final Object? appPublic = wellKnown?.appPublic;
     if (appPublic is Map<String, dynamic>) {

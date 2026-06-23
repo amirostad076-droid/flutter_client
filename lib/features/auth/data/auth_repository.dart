@@ -436,6 +436,40 @@ class AuthRepository {
     }
   }
 
+  Future<SsoStartResponse> startSso({String? redirectTo}) async {
+    try {
+      return await _client.auth.startSso(
+        body: SsoStartRequest(redirectTo: redirectTo),
+      );
+    } on DioException catch (error) {
+      throw _failureFromDio(error);
+    }
+  }
+
+  Future<AuthSession> completeSso({
+    required String code,
+    required String state,
+  }) async {
+    try {
+      final SsoCompleteResponse response = await _client.auth.completeSso(
+        body: SsoCompleteRequest(code: code, state: state),
+      );
+      final AuthSession session = AuthSession(
+        token: response.token,
+        userId: response.userId,
+      );
+      await _saveSession(
+        session,
+        username: response.user.username,
+        discriminator: response.user.discriminator,
+        avatar: response.user.avatar,
+      );
+      return session;
+    } on DioException catch (error) {
+      throw _failureFromDio(error);
+    }
+  }
+
   Future<LoginResult> loginWithPasskey({
     required dynamic response,
     required String challenge,

@@ -291,6 +291,42 @@ abstract class FluxerLocalizations {
   /// **'Log in with a passkey'**
   String get logInWithPasskey;
 
+  /// Button label that starts single sign-on.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with {provider}'**
+  String continueWithSso(String provider);
+
+  /// Short sign-in note shown when the instance requires single sign-on.
+  ///
+  /// In en, this message translates to:
+  /// **'SSO is required to access this instance.'**
+  String get ssoRequired;
+
+  /// Description shown when sign-in is restricted to the configured SSO provider.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your organization\'s single sign-on provider.'**
+  String get organizationSsoProvider;
+
+  /// Login flow error shown when the single sign-on redirect cannot be started.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to start SSO'**
+  String get failedToStartSso;
+
+  /// Shown when the user cancels the single sign-on browser flow.
+  ///
+  /// In en, this message translates to:
+  /// **'SSO login was cancelled'**
+  String get ssoCancelled;
+
+  /// Optional sign-in note when SSO is available but not required.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer using SSO? Continue with {provider}.'**
+  String preferSso(String provider);
+
   /// Secondary login that opens or uses the system browser.
   ///
   /// In en, this message translates to:

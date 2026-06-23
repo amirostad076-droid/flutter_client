@@ -55,27 +55,28 @@ class DeepLinkHandler extends _$DeepLinkHandler {
   }
 
   void _handleDeepLink(Uri uri) {
+    final Uri normalizedUri = normalizeAppProtocolDeepLinkUri(uri);
     talker.info('[DeepLink] Received: $uri');
 
     // Password reset links work without authentication.
-    if (_tryHandleResetLink(uri)) {
+    if (_tryHandleResetLink(normalizedUri)) {
       return;
     }
 
-    if (!isAllowedDeepLinkPath(uri)) {
-      talker.info('[DeepLink] Ignored non-routable path: ${uri.path}');
+    if (!isAllowedDeepLinkPath(normalizedUri)) {
+      talker.info('[DeepLink] Ignored non-routable path: ${normalizedUri.path}');
       return;
     }
 
     final isAuthenticated = ref.read(authStateProvider);
     if (!isAuthenticated) {
-      _pendingDeepLink = uri;
-      _extractInviteCode(uri);
+      _pendingDeepLink = normalizedUri;
+      _extractInviteCode(normalizedUri);
       talker.info('[DeepLink] Queued for after auth');
       return;
     }
 
-    _processDeepLink(uri);
+    _processDeepLink(normalizedUri);
   }
 
   void _extractInviteCode(Uri uri) {
