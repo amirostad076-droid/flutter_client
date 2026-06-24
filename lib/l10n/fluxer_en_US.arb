@@ -6240,5 +6240,323 @@
     "uiColorPickerTitle": "Color picker",
     "@uiColorPickerTitle": {
         "description": "Title for the mobile color picker sheet."
+    },
+    "ipAuthLinkExpired": "Sign-in link expired",
+    "@ipAuthLinkExpired": {
+        "description": "Title shown when the IP authorization ticket has expired and the user must sign in again."
+    },
+    "ipAuthLinkExpiredDescription": "This authorization link expired. Please sign in again.",
+    "@ipAuthLinkExpiredDescription": {
+        "description": "Body shown when the IP authorization ticket has expired."
+    },
+    "errorInvalidEmailOrPassword": "Invalid email or password.",
+    "@errorInvalidEmailOrPassword": {
+        "description": "Error shown on the login screen when the email and password combination is incorrect."
+    },
+    "userProfilePlutoniumSubscriberSinceTooltip": "Fluxer Plutonium subscriber since {date}",
+    "@userProfilePlutoniumSubscriberSinceTooltip": {
+        "description": "Badge label with a date in the user profile badges popout. Preserve {date}; it is inserted by code. In English, keep \"subscriber since\" lowercase. Other locales should use natural local capitalization.",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "userProfileVisionaryBadgeTooltip": "Fluxer Visionary",
+    "@userProfileVisionaryBadgeTooltip": {
+        "description": "Short badge title in the user profile badges popout. English locales use Title Case for official badge titles; other locales should use natural local capitalization."
+    },
+    "userProfileVisionaryBadgeSinceTooltip": "Fluxer Visionary since {date}",
+    "@userProfileVisionaryBadgeSinceTooltip": {
+        "description": "Badge title with a date in the user profile badges popout. Preserve {date}; it is inserted by code. English locales use Title Case for the badge title part; other locales should use natural local capitalization.",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinGladYoureHere": "Glad you're here, {username}!",
+    "@systemJoinGladYoureHere": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinWelcomeMakeYourselfAtHome": "Welcome, {username}! Make yourself at home.",
+    "@systemJoinWelcomeMakeYourselfAtHome": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinHelloNiceToHaveYouHere": "Hello, {username}! Nice to have you here.",
+    "@systemJoinHelloNiceToHaveYouHere": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinHelloJumpInWheneverYoureReady": "Hello, {username}! Jump in whenever you're ready.",
+    "@systemJoinHelloJumpInWheneverYoureReady": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinHeyGreatToSeeYouHere": "Hey {username}, great to see you here!",
+    "@systemJoinHeyGreatToSeeYouHere": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinHeyThereHopeYouEnjoyYourStay": "Hey there, {username}! Hope you enjoy your stay.",
+    "@systemJoinHeyThereHopeYouEnjoyYourStay": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinHeyWelcomeAboard": "Hey, {username}, welcome aboard!",
+    "@systemJoinHeyWelcomeAboard": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinGladYouMadeIt": "Glad you made it, {username}!",
+    "@systemJoinGladYouMadeIt": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinWelcomeIn": "Welcome in, {username}!",
+    "@systemJoinWelcomeIn": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinWelcome": "Welcome, {username}!",
+    "@systemJoinWelcome": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinWelcomeWereGladYoureHere": "Welcome, {username}! We're glad you're here.",
+    "@systemJoinWelcomeWereGladYoureHere": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinWelcomeHopeYouEnjoyYourTimeHere": "Welcome, {username}! Hope you enjoy your time here.",
+    "@systemJoinWelcomeHopeYouEnjoyYourTimeHere": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinWelcomeYourNextConversationStartsHere": "Welcome, {username}! Your next conversation starts here.",
+    "@systemJoinWelcomeYourNextConversationStartsHere": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinWelcomeWereHappyToHaveYouHere": "Welcome, {username}. We're happy to have you here.",
+    "@systemJoinWelcomeWereHappyToHaveYouHere": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinGreatToSeeYouWelcomeIn": "Great to see you, {username}! Welcome in.",
+    "@systemJoinGreatToSeeYouWelcomeIn": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinYoureHereGoodToHaveYouWithUs": "You're here, {username}! Good to have you with us.",
+    "@systemJoinYoureHereGoodToHaveYouWithUs": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "systemJoinYouveArrivedLetsGetStarted": "You've arrived, {username}! Let's get started.",
+    "@systemJoinYouveArrivedLetsGetStarted": {
+        "description": "Randomly selected welcome message that appears as a system message when a user joins a community. Plural placeholder is the new member username. Tone is friendly and warm; keep variety across these strings..",
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "voiceOwnScreenShareTitle": "You are broadcasting",
+    "@voiceOwnScreenShareTitle": {
+        "description": "Title on the participant's own screen-share tile when they are sharing their screen."
+    },
+    "voiceOwnScreenShareSubtitle": "Your stream is live for participants.",
+    "@voiceOwnScreenShareSubtitle": {
+        "description": "Subtitle on the participant's own screen-share tile confirming the stream is live."
+    },
+    "chatMessagesLoadError": "Couldn't load messages.",
+    "@chatMessagesLoadError": {
+        "description": "Shown in the chat message list when the initial message history request fails. The user can retry from the same screen."
+    },
+    "chatMessageTimestampToday": "Today at {time}",
+    "@chatMessageTimestampToday": {
+        "description": "Inline chat message timestamp when the message was sent today. {time} is locale-formatted.",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "chatMessageTimestampYesterday": "Yesterday at {time}",
+    "@chatMessageTimestampYesterday": {
+        "description": "Inline chat message timestamp when the message was sent yesterday. {time} is locale-formatted.",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "channelWelcomeHeading": "Welcome to {channelName}",
+    "@channelWelcomeHeading": {
+        "description": "Heading on the start-of-channel welcome shown at the top of a guild channel's loaded message history and as its empty state. {channelName} already includes the leading # (e.g. #general).",
+        "placeholders": {
+            "channelName": {
+                "type": "String"
+            }
+        }
+    },
+    "channelWelcomeDescription": "In the beginning, there was nothing. Then, there was {channelName}. And it was good.",
+    "@channelWelcomeDescription": {
+        "description": "Whimsical body text on the start-of-channel welcome. {channelName} already includes the leading # (e.g. #general).",
+        "placeholders": {
+            "channelName": {
+                "type": "String"
+            }
+        }
+    },
+    "mentionConfirmTitle": "Mention everyone?",
+    "@mentionConfirmTitle": {
+        "description": "Title of the confirmation dialog shown before sending a message that mentions @everyone or @here in a large server."
+    },
+    "mentionConfirmEveryoneBody": "This will notify {count} members. Continue?",
+    "@mentionConfirmEveryoneBody": {
+        "description": "Body of the @everyone mention confirmation dialog.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "mentionConfirmHereBody": "This will notify {count} online members. Continue?",
+    "@mentionConfirmHereBody": {
+        "description": "Body of the @here mention confirmation dialog.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "mentionConfirmButton": "Mention",
+    "@mentionConfirmButton": {
+        "description": "Confirm button label on the mention confirmation dialog."
+    },
+    "composerEmojiUnavailable": "You can't use that emoji here.",
+    "@composerEmojiUnavailable": {
+        "description": "Toast shown when a message contains a custom emoji the user cannot use in this channel."
+    },
+    "instanceUrlLabel": "Instance URL",
+    "@instanceUrlLabel": {
+        "description": "Label for the self-hosted instance URL input on the login screen."
+    },
+    "instanceUrlPlaceholder": "Enter instance URL (e.g. fluxer.app)",
+    "@instanceUrlPlaceholder": {
+        "description": "Placeholder for the self-hosted instance URL input."
+    },
+    "resetToDefaultInstance": "Reset to Fluxer",
+    "@resetToDefaultInstance": {
+        "description": "Tooltip for the button that resets the instance URL to the official Fluxer instance."
+    },
+    "instanceConnect": "Connect",
+    "@instanceConnect": {
+        "description": "Button label to connect to a custom Fluxer instance."
+    },
+    "instanceConnecting": "Connecting…",
+    "@instanceConnecting": {
+        "description": "Status text while discovering a custom Fluxer instance."
+    },
+    "instanceConnectFailed": "Failed to connect to instance",
+    "@instanceConnectFailed": {
+        "description": "Fallback error when instance discovery fails."
+    },
+    "recentInstances": "Recent instances",
+    "@recentInstances": {
+        "description": "Label for the recent self-hosted instances list."
+    },
+    "removeRecentInstance": "Remove {domain} from recent instances",
+    "@removeRecentInstance": {
+        "description": "Accessibility label for removing a recent instance.",
+        "placeholders": {
+            "domain": {
+                "type": "String"
+            }
+        }
+    },
+    "instanceSheetTitle": "Connect to instance",
+    "@instanceSheetTitle": {
+        "description": "Title for the self-hosted instance connection bottom sheet."
+    },
+    "connectToDifferentInstance": "Connect to a different instance",
+    "@connectToDifferentInstance": {
+        "description": "Subtle link on the login screen to open the instance connection sheet."
+    },
+    "changeInstance": "Change",
+    "@changeInstance": {
+        "description": "Link to change the connected Fluxer instance."
+    },
+    "instanceConnectionRequired": "Connect to the instance to sign in",
+    "@instanceConnectionRequired": {
+        "description": "Hint shown when login is blocked until instance discovery succeeds."
     }
 }
