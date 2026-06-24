@@ -69,9 +69,7 @@ class LoginViewState {
     required this.forgotPasswordEmailSent,
     required this.resetToken,
     required this.showRegister,
-    this.usernameSuggestions = const [],
-    required this.isStartingSso,
-    required this.ssoError,
+    required this.isStartingSso, required this.ssoError, this.usernameSuggestions = const [],
   });
 
   bool get canLogin =>
@@ -189,7 +187,9 @@ class LoginViewModel extends _$LoginViewModel {
     try {
       final SsoStartResponse startResponse = await ref
           .read(authRepositoryProvider)
-          .startSso();
+          .startSso(
+            redirectTo: 'fluxer://auth/sso/callback',
+          );
       final Uri callbackUri = await SsoAuthService().authenticate(
         authorizationUrl: startResponse.authorizationUrl,
       );
