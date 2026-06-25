@@ -1724,7 +1724,7 @@ class _ChatAdapter implements HttpClientAdapter {
     }
 
     if (options.method == 'POST' &&
-        options.uri.path.endsWith('/read-states/ack-bulk')) {
+        options.uri.path.endsWith('/read-states/ack')) {
       ackAttempts++;
       if (holdAck) {
         _ackCompleter ??= Completer<int>();
@@ -1746,7 +1746,14 @@ class _ChatAdapter implements HttpClientAdapter {
           ackedMessageIds.add(entry['message_id'] as String);
         }
       }
-      return ResponseBody.fromString('', 204, statusMessage: 'No Content');
+      return ResponseBody.fromString(
+        '{"read_states":[],"read_state_proto":""}',
+        200,
+        statusMessage: 'OK',
+        headers: {
+          Headers.contentTypeHeader: [Headers.jsonContentType],
+        },
+      );
     }
 
     if (options.method == 'POST' && options.uri.path.endsWith('/ack')) {

@@ -22,6 +22,7 @@ import 'package:fluxer_app/features/chat/domain/message_upload_send_cancelled_ex
 import 'package:fluxer_app/features/chat/domain/message_window.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
+import 'package:fluxer_app/features/chat/providers/core/active_read_channel_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_auto_ack_allowed_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_read_ack_gate.dart';
@@ -208,6 +209,7 @@ class ChatViewModel extends _$ChatViewModel {
     _eventsSub = bus.stream.listen(_onRealtimeEvent);
     ref
       ..listen<bool>(chatAutoAckAllowedProvider, (previous, next) {
+        _syncActiveReadChannel();
         if (!next) {
           _readAckRetryTimer?.cancel();
           return;
@@ -646,6 +648,7 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId != channelId) {
         _readViewportNearBottom = false;
       }
+      _syncActiveReadChannel(channelId: channelId);
       final String previousChannelId = state.channelId;
       final bool isChannelChange =
           previousChannelId.isNotEmpty && previousChannelId != channelId;
@@ -1241,8 +1244,20 @@ class ChatViewModel extends _$ChatViewModel {
     return compareSnowflakeIds(lastMessageId, messageId) > 0;
   }
 
+  void _syncActiveReadChannel({String? channelId}) {
+    ref
+        .read(activeReadChannelProvider.notifier)
+        .update(
+          channelId: channelId ?? state.channelId,
+          isAtBottom: _readViewportNearBottom,
+          canAutoAck:
+              _readViewportActive && ref.read(chatAutoAckAllowedProvider),
+        );
+  }
+
   void setReadViewportActive({required bool isActive}) {
     _readViewportActive = isActive;
+    _syncActiveReadChannel();
     if (!isActive) {
       _readAckRetryTimer?.cancel();
       return;
@@ -1252,6 +1267,7 @@ class ChatViewModel extends _$ChatViewModel {
 
   void updateReadViewport({required bool isNearBottom}) {
     _readViewportNearBottom = isNearBottom;
+    _syncActiveReadChannel();
     if (!isNearBottom) {
       _readAckRetryTimer?.cancel();
       return;

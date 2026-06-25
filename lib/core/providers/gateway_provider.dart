@@ -16,6 +16,8 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/auth/providers/current_auth_session_provider.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
+import 'package:fluxer_app/features/channels/providers/read_state_write_coalescer_provider.dart';
+import 'package:fluxer_app/features/chat/providers/core/active_read_channel_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_provider.dart';
@@ -74,7 +76,10 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       ref.watch(fluxerClientProvider),
       db,
     ),
+    readStateWriteCoalescer: ref.read(readStateWriteCoalescerProvider),
     currentUserId: currentUserId,
+    isAutoAckActive: (channelId) =>
+        ref.read(activeReadChannelProvider.notifier).isAutoAckActive(channelId),
     onReady: () {
       talker.info('[Gateway] Setting gatewayReady = true');
       unawaited(ref.read(channelPermissionCacheProvider.notifier).rebuildAll());
@@ -107,7 +112,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     },
     onVoiceStateUpdate: (voiceState) {
       ref.read(voiceStatesMapProvider.notifier).update(voiceState);
-      ref.read(voiceSessionProvider.notifier).handleSelfVoiceStateUpdate(voiceState);
+      ref
+          .read(voiceSessionProvider.notifier)
+          .handleSelfVoiceStateUpdate(voiceState);
       // Only sync E2EE if this update is for the current voice channel
       final VoiceSessionState session = ref.read(voiceSessionProvider);
       if (session.isConnected &&
@@ -134,7 +141,8 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       if (session.isConnected && session.channelId != null) {
         final bool hasRelevantUpdate = states.any(
           (VoiceState vs) =>
-              vs.channelId == session.channelId && vs.guildId == session.guildId,
+              vs.channelId == session.channelId &&
+              vs.guildId == session.guildId,
         );
         if (hasRelevantUpdate) {
           ref.read(voiceSessionProvider.notifier).syncE2eeFromVoiceStates();

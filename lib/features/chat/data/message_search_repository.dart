@@ -1,4 +1,5 @@
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/utils/message_mention_resolver.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
@@ -151,13 +152,31 @@ class MessageSearchRepository {
           .toList(),
     );
 
+    final mentionContexts = <String, MessageMentionContext>{};
+    for (final channelId
+        in results.messages.map((message) => message.channelId).toSet()) {
+      mentionContexts[channelId] = await buildMessageMentionContext(
+        _database,
+        currentUserId: _currentUserId,
+        channelId: channelId,
+      );
+    }
     final entries = <MessageSearchResultEntry>[
       for (final result in results.messages)
         MessageSearchResultEntry(
-          message: Message.fromSearchResult(
-            result,
-            currentUserId: _currentUserId,
-          ),
+          message:
+              Message.fromSearchResult(
+                result,
+                currentUserId: _currentUserId,
+              ).copyWith(
+                isMentioned: messageMentionsUser(
+                  mentionContexts[result.channelId]!,
+                  authorId: result.author.id,
+                  mentionedUserIds: result.mentions.map((u) => u.id).toList(),
+                  mentionEveryone: result.mentionEveryone,
+                  mentionRoleIds: result.mentionRoles,
+                ),
+              ),
           guildId: channelById[result.channelId]?.guildId,
           channelName: channelById[result.channelId]?.name,
         ),

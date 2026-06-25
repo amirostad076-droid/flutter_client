@@ -18,7 +18,7 @@ class _BulkAckAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     expect(options.method, 'POST');
-    expect(options.uri.path, '/v1/read-states/ack-bulk');
+    expect(options.uri.path, '/v1/read-states/ack');
     final builder = BytesBuilder();
     if (requestStream != null) {
       await for (final chunk in requestStream) {
@@ -39,7 +39,14 @@ class _BulkAckAdapter implements HttpClientAdapter {
         statusMessage: 'Service Unavailable',
       );
     }
-    return ResponseBody.fromString('', 204, statusMessage: 'No Content');
+    return ResponseBody.fromString(
+      '{"read_states":[],"read_state_proto":""}',
+      200,
+      statusMessage: 'OK',
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
   }
 
   @override
