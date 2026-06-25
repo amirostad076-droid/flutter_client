@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/bootstrap/image_cache_config.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_ui_lifecycle_provider.g.dart';
@@ -74,6 +75,7 @@ class _AppUiLifecycleObserverState extends ConsumerState<AppUiLifecycleObserver>
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
       ref.read(appLastBackgroundedAtProvider.notifier).set(DateTime.now());
+      clearFluxerImageCache();
     }
     ref
         .read(appUiForegroundProvider.notifier)
