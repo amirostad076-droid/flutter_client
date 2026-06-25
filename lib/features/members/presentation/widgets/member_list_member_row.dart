@@ -48,14 +48,13 @@ class _MemberListSidebarMemberRowState
     final String displayName =
         member.nick ?? member.user.globalName ?? member.user.username;
     final String? avatar = member.avatar ?? member.user.avatar;
+    final db.User? presenceUser =
+        ref.watch(userPresenceProvider(widget.userId)).value;
     final String status =
-        ref.watch(userPresenceProvider(widget.userId)).value?.status ??
-        listMember.status ??
-        'offline';
+        presenceUser?.status ?? listMember.status ?? 'offline';
     final bool isOffline = !isMemberPresenceOnline(status);
     final String? customStatus =
-        ref.watch(userPresenceProvider(widget.userId)).value?.customStatus ??
-        listMember.customStatus;
+        presenceUser?.customStatus ?? listMember.customStatus;
     final int? roleColor = resolveMemberHighestRoleColor(
       roleIds: member.roles,
       rolesById: widget.rolesById,
@@ -177,13 +176,11 @@ class MemberListDetailsMemberRow extends ConsumerWidget {
     final String displayName =
         member.nick ?? member.user.globalName ?? member.user.username;
     final String? avatar = member.avatar ?? member.user.avatar;
+    final db.User? presenceUser = ref.watch(userPresenceProvider(userId)).value;
     final String status =
-        ref.watch(userPresenceProvider(userId)).value?.status ??
-        listMember.status ??
-        'offline';
+        presenceUser?.status ?? listMember.status ?? 'offline';
     final String? customStatus =
-        ref.watch(userPresenceProvider(userId)).value?.customStatus ??
-        listMember.customStatus;
+        presenceUser?.customStatus ?? listMember.customStatus;
     final int? roleColor = resolveMemberHighestRoleColor(
       roleIds: member.roles,
       rolesById: rolesById,

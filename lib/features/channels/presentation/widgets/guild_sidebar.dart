@@ -112,9 +112,12 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(channelListViewModelProvider);
-    final Guild? guild = state.guild;
-    final List<ChannelCategory> categories = state.categories;
+    final Guild? guild = ref.watch(
+      channelListViewModelProvider.select((s) => s.guild),
+    );
+    final List<ChannelCategory> categories = ref.watch(
+      channelListViewModelProvider.select((s) => s.categories),
+    );
     final String? guildId = ref.watch(activeGuildIdProvider);
 
     if (guildId == null) {
