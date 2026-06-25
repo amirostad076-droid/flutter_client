@@ -7,7 +7,7 @@ import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_handler.dart';
 import 'package:fluxer_app/core/instance/instance_config_snapshot.dart';
-import 'package:fluxer_app/core/providers/active_instance_provider.dart';
+import 'package:fluxer_app/core/measure/measure_reporting_provider.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
@@ -64,6 +64,9 @@ class AppStartup extends _$AppStartup {
 
   Future<void> _validateAndRestore() async {
     final Stopwatch startupStopwatch = Stopwatch()..start();
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      await ref.read(measureReportingProvider.notifier).load();
+    }
     await ref.read(appRuntimeInfoProvider.future);
     unawaited(EmojiRegistry.preload());
     unawaited(ref.read(wellKnownProvider.future));

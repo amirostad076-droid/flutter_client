@@ -28,6 +28,7 @@ import 'package:fluxer_app/features/voice/presentation/dm_voice_call_fullscreen_
     deferred as dm_voice_call;
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:measure_flutter/measure_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 export 'package:fluxer_app/core/router/shell_navigator_keys.dart';
@@ -158,12 +159,17 @@ GoRouter fluxerRouter(Ref ref) {
   final homeShellPopupRouteObserver = createShellPopupRouteObserver();
   final notificationsShellPopupRouteObserver = createShellPopupRouteObserver();
   final youShellPopupRouteObserver = createShellPopupRouteObserver();
+  final msrNavigatorObserver = MsrNavigatorObserver();
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/login',
     refreshListenable: refreshNotifier,
-    observers: [ChannelPersistenceObserver(db), rootShellPopupRouteObserver],
+    observers: [
+      ChannelPersistenceObserver(db),
+      rootShellPopupRouteObserver,
+      msrNavigatorObserver,
+    ],
     redirect: (context, state) {
       final location = state.matchedLocation;
       final isOnLoading = location == '/loading';

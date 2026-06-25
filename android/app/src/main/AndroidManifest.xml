@@ -36,7 +36,7 @@
 
     <application
         android:label="${appLabel}"
-        android:name="${applicationName}"
+        android:name=".FluxerApplication"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -134,6 +134,12 @@
         <meta-data
             android:name="com.fluxer.PUSH_PROVIDER"
             android:value="${pushProvider}" />
+        <meta-data
+            android:name="sh.measure.android.API_KEY"
+            android:value="${measureApiKey}" />
+        <meta-data
+            android:name="sh.measure.android.API_URL"
+            android:value="${measureApiUrl}" />
         <service
             android:name="de.julianassmann.flutter_background.IsolateHolderService"
             android:enabled="true"

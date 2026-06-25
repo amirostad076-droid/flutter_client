@@ -84,6 +84,9 @@ dependencies:
   visibility_detector: ^0.4.0+2
   scrollview_observer: ^1.27.0
   clock: ^1.1.2
+  measure_flutter: ^0.6.0
+  measure_dio: ^0.6.0
+  shared_preferences: ^2.5.3
 
 dependency_overrides:
   device_info_plus: ^12.4.0

@@ -8593,6 +8593,30 @@ abstract class FluxerLocalizations {
   /// **'Advanced'**
   String get userSettingsNavAdvanced;
 
+  /// Advanced settings section title for crash and performance reporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance reporting'**
+  String get advancedPerformanceReportingTitle;
+
+  /// Advanced settings section description for crash and performance reporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Help improve Fluxer by sharing anonymous crash and performance data.'**
+  String get advancedPerformanceReportingSectionDescription;
+
+  /// Toggle label for opting into crash and performance reporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Send crash and performance reports'**
+  String get advancedPerformanceReportingLabel;
+
+  /// Toggle description explaining anonymous self-hosted performance reporting.
+  ///
+  /// In en, this message translates to:
+  /// **'All reported data is anonymous and is sent only to Fluxer\'s own monitoring service — no third-party providers are used.'**
+  String get advancedPerformanceReportingDescription;
+
   /// User settings navigation item for developer applications.
   ///
   /// In en, this message translates to:

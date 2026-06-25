@@ -26,6 +26,14 @@ class AppBuildConfig {
   static const String _betaNumberValue = String.fromEnvironment(
     'BETA_NUMBER',
   );
+  // ignore: do_not_use_environment -- compile-time build flavor config
+  static const String _measureApiKeyValue = String.fromEnvironment(
+    'MEASURE_API_KEY',
+  );
+  // ignore: do_not_use_environment -- compile-time build flavor config
+  static const String _measureApiUrlValue = String.fromEnvironment(
+    'MEASURE_API_URL',
+  );
   static AppBuildEnvironment get environment {
     switch (_environmentValue) {
       case 'canary':
@@ -83,4 +91,9 @@ class AppBuildConfig {
     }
     return int.tryParse(trimmed);
   }
+
+  static String get measureApiKey => _measureApiKeyValue;
+  static String get measureApiUrl => _measureApiUrlValue;
+  static bool get hasMeasureConfig =>
+      measureApiKey.isNotEmpty && measureApiUrl.isNotEmpty;
 }

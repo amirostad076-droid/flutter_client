@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/app.dart';
 import 'package:fluxer_app/core/bootstrap/flutter_error_ui.dart';
 import 'package:fluxer_app/core/bootstrap/image_cache_config.dart';
+import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/core/build/push_provider_assert.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
@@ -14,6 +15,7 @@ import 'package:fluxer_app/core/push/fcm/fcm_entrypoint.dart';
 import 'package:fluxer_app/core/push/services/unified_push_service.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
+import 'package:measure_flutter/measure_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
 void _configureImagePicker() {
@@ -24,6 +26,26 @@ void _configureImagePicker() {
   if (implementation is ImagePickerAndroid) {
     implementation.useAndroidPhotoPicker = true;
   }
+}
+
+bool _shouldInitializeMeasure() {
+  if (kIsWeb) {
+    return false;
+  }
+  return (Platform.isAndroid || Platform.isIOS) &&
+      AppBuildConfig.hasMeasureConfig;
+}
+
+void _runFluxerApp(ProviderContainer container) {
+  final Widget app = UncontrolledProviderScope(
+    container: container,
+    child: const FluxerApp(),
+  );
+  if (_shouldInitializeMeasure()) {
+    runApp(MeasureWidget(child: app));
+    return;
+  }
+  runApp(app);
 }
 
 Future<void> main(List<String> args) async {
@@ -59,7 +81,7 @@ Future<void> main(List<String> args) async {
     });
   }
 
-  final container = ProviderContainer();
+  final ProviderContainer container = ProviderContainer();
   if (PushProviderGuard.isUnifiedPush) {
     UnifiedPushService.instance.attachDatabase(
       container.read(fluxerDatabaseProvider),
@@ -67,7 +89,15 @@ Future<void> main(List<String> args) async {
   }
   container.read(appStartupProvider);
 
-  runApp(
-    UncontrolledProviderScope(container: container, child: const FluxerApp()),
-  );
+  if (_shouldInitializeMeasure()) {
+    await Measure.instance.init(
+      () => _runFluxerApp(container),
+      config: MeasureConfig(
+        autoStart: false,
+        enableLogging: kDebugMode,
+      ),
+    );
+    return;
+  }
+  _runFluxerApp(container);
 }

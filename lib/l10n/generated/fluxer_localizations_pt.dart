@@ -4976,6 +4976,21 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
   String get userSettingsNavAdvanced => 'Advanced';
 
   @override
+  String get advancedPerformanceReportingTitle => 'Performance reporting';
+
+  @override
+  String get advancedPerformanceReportingSectionDescription =>
+      'Help improve Fluxer by sharing anonymous crash and performance data.';
+
+  @override
+  String get advancedPerformanceReportingLabel =>
+      'Send crash and performance reports';
+
+  @override
+  String get advancedPerformanceReportingDescription =>
+      'All reported data is anonymous and is sent only to Fluxer\'s own monitoring service — no third-party providers are used.';
+
+  @override
   String get userSettingsNavApplications => 'Applications';
 
   @override
@@ -5270,6 +5285,29 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
   String get logInWithPasskey => 'Log in with a passkey';
 
   @override
+  String continueWithSso(String provider) {
+    return 'Continue with $provider';
+  }
+
+  @override
+  String get ssoRequired => 'SSO is required to access this instance.';
+
+  @override
+  String get organizationSsoProvider =>
+      'Sign in with your organization\'s single sign-on provider.';
+
+  @override
+  String get failedToStartSso => 'Failed to start SSO';
+
+  @override
+  String get ssoCancelled => 'SSO login was cancelled';
+
+  @override
+  String preferSso(String provider) {
+    return 'Prefer using SSO? Continue with $provider.';
+  }
+
+  @override
   String get logInViaBrowser => 'Log in via browser';
 
   @override
@@ -5311,6 +5349,13 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
   @override
   String get ipAuthConnectionLostDescription =>
       'We lost the connection while waiting for authorization. Please try again.';
+
+  @override
+  String get ipAuthLinkExpired => 'Sign-in link expired';
+
+  @override
+  String get ipAuthLinkExpiredDescription =>
+      'This authorization link expired. Please sign in again.';
 
   @override
   String get ipAuthResendEmail => 'Resend email';
@@ -5696,6 +5741,9 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
       'Unable to sign in right now. Please try again.';
 
   @override
+  String get errorInvalidEmailOrPassword => 'Invalid email or password.';
+
+  @override
   String get errorUnableToSendResetLink =>
       'Unable to send reset link. Please try again.';
 
@@ -5825,6 +5873,9 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
 
   @override
   String get notificationMuteChannel => 'Mute Channel';
+
+  @override
+  String get notificationUnmuteChannel => 'Unmute Channel';
 
   @override
   String get notificationNoCategory => 'No Category';
@@ -7420,6 +7471,19 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
   String get userProfilePlutoniumBadgeTooltip => 'Fluxer Plutonium';
 
   @override
+  String userProfilePlutoniumSubscriberSinceTooltip(String date) {
+    return 'Fluxer Plutonium subscriber since $date';
+  }
+
+  @override
+  String get userProfileVisionaryBadgeTooltip => 'Fluxer Visionary';
+
+  @override
+  String userProfileVisionaryBadgeSinceTooltip(String date) {
+    return 'Fluxer Visionary since $date';
+  }
+
+  @override
   String userProfileVisionaryIdTooltip(int sequence) {
     return 'Visionary ID #$sequence';
   }
@@ -7751,6 +7815,91 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
 
   @override
   String get typingIndicatorApocalypse => 'Whoa, it\'s a typing apocalypse';
+
+  @override
+  String systemJoinGladYoureHere(String username) {
+    return 'Glad you\'re here, $username!';
+  }
+
+  @override
+  String systemJoinWelcomeMakeYourselfAtHome(String username) {
+    return 'Welcome, $username! Make yourself at home.';
+  }
+
+  @override
+  String systemJoinHelloNiceToHaveYouHere(String username) {
+    return 'Hello, $username! Nice to have you here.';
+  }
+
+  @override
+  String systemJoinHelloJumpInWheneverYoureReady(String username) {
+    return 'Hello, $username! Jump in whenever you\'re ready.';
+  }
+
+  @override
+  String systemJoinHeyGreatToSeeYouHere(String username) {
+    return 'Hey $username, great to see you here!';
+  }
+
+  @override
+  String systemJoinHeyThereHopeYouEnjoyYourStay(String username) {
+    return 'Hey there, $username! Hope you enjoy your stay.';
+  }
+
+  @override
+  String systemJoinHeyWelcomeAboard(String username) {
+    return 'Hey, $username, welcome aboard!';
+  }
+
+  @override
+  String systemJoinGladYouMadeIt(String username) {
+    return 'Glad you made it, $username!';
+  }
+
+  @override
+  String systemJoinWelcomeIn(String username) {
+    return 'Welcome in, $username!';
+  }
+
+  @override
+  String systemJoinWelcome(String username) {
+    return 'Welcome, $username!';
+  }
+
+  @override
+  String systemJoinWelcomeWereGladYoureHere(String username) {
+    return 'Welcome, $username! We\'re glad you\'re here.';
+  }
+
+  @override
+  String systemJoinWelcomeHopeYouEnjoyYourTimeHere(String username) {
+    return 'Welcome, $username! Hope you enjoy your time here.';
+  }
+
+  @override
+  String systemJoinWelcomeYourNextConversationStartsHere(String username) {
+    return 'Welcome, $username! Your next conversation starts here.';
+  }
+
+  @override
+  String systemJoinWelcomeWereHappyToHaveYouHere(String username) {
+    return 'Welcome, $username. We\'re happy to have you here.';
+  }
+
+  @override
+  String systemJoinGreatToSeeYouWelcomeIn(String username) {
+    return 'Great to see you, $username! Welcome in.';
+  }
+
+  @override
+  String systemJoinYoureHereGoodToHaveYouWithUs(String username) {
+    return 'You\'re here, $username! Good to have you with us.';
+  }
+
+  @override
+  String systemJoinYouveArrivedLetsGetStarted(String username) {
+    return 'You\'ve arrived, $username! Let\'s get started.';
+  }
 
   @override
   String get relativeTimeShortNow => 'now';
@@ -9136,6 +9285,13 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
       'Stop watching the current stream';
 
   @override
+  String get voiceOwnScreenShareTitle => 'You are broadcasting';
+
+  @override
+  String get voiceOwnScreenShareSubtitle =>
+      'Your stream is live for participants.';
+
+  @override
   String get voiceLiveBadge => 'Live';
 
   @override
@@ -9758,6 +9914,9 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
   String get chatReplyOriginalFailedToLoad => 'Original message failed to load';
 
   @override
+  String get chatMessagesLoadError => 'Couldn\'t load messages.';
+
+  @override
   String get chatReplyMentionOverrideTitle => 'Override mention preference?';
 
   @override
@@ -9805,6 +9964,16 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
 
   @override
   String get chatMessageEdited => '(edited)';
+
+  @override
+  String chatMessageTimestampToday(String time) {
+    return 'Today at $time';
+  }
+
+  @override
+  String chatMessageTimestampYesterday(String time) {
+    return 'Yesterday at $time';
+  }
 
   @override
   String get mediaViewerImagePreview => 'Image preview';
@@ -9917,6 +10086,16 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
   @override
   String get personalNotesSubtitle =>
       'Your private space for thoughts and reminders';
+
+  @override
+  String channelWelcomeHeading(String channelName) {
+    return 'Welcome to $channelName';
+  }
+
+  @override
+  String channelWelcomeDescription(String channelName) {
+    return 'In the beginning, there was nothing. Then, there was $channelName. And it was good.';
+  }
 
   @override
   String get personalNotesComposerHint => 'Message yourself';
@@ -10177,4 +10356,61 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
 
   @override
   String get uiColorPickerTitle => 'Color picker';
+
+  @override
+  String get mentionConfirmTitle => 'Mention everyone?';
+
+  @override
+  String mentionConfirmEveryoneBody(int count) {
+    return 'This will notify $count members. Continue?';
+  }
+
+  @override
+  String mentionConfirmHereBody(int count) {
+    return 'This will notify $count online members. Continue?';
+  }
+
+  @override
+  String get mentionConfirmButton => 'Mention';
+
+  @override
+  String get composerEmojiUnavailable => 'You can\'t use that emoji here.';
+
+  @override
+  String get instanceUrlLabel => 'Instance URL';
+
+  @override
+  String get instanceUrlPlaceholder => 'Enter instance URL (e.g. fluxer.app)';
+
+  @override
+  String get resetToDefaultInstance => 'Reset to Fluxer';
+
+  @override
+  String get instanceConnect => 'Connect';
+
+  @override
+  String get instanceConnecting => 'Connecting…';
+
+  @override
+  String get instanceConnectFailed => 'Failed to connect to instance';
+
+  @override
+  String get recentInstances => 'Recent instances';
+
+  @override
+  String removeRecentInstance(String domain) {
+    return 'Remove $domain from recent instances';
+  }
+
+  @override
+  String get instanceSheetTitle => 'Connect to instance';
+
+  @override
+  String get connectToDifferentInstance => 'Connect to a different instance';
+
+  @override
+  String get changeInstance => 'Change';
+
+  @override
+  String get instanceConnectionRequired => 'Connect to the instance to sign in';
 }

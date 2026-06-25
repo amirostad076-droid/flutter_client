@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_dart/export.dart';
+import 'package:measure_dio/measure_dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 
@@ -65,6 +66,7 @@ Dio fluxerDio(Ref ref) {
   );
   dio.interceptors.add(SkipAuthInterceptor());
   dio.interceptors.add(RetryInterceptor(dio: dio));
+  dio.interceptors.add(MsrInterceptor());
   dio.interceptors.add(
     CaptchaInterceptor(
       dio: dio,
