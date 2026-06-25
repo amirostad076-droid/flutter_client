@@ -976,6 +976,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   }) {
     final Widget markdown = MessageMarkdown(
       data: msg.content,
+      messageId: msg.id,
       selectable: !isMobile,
       channelId: msg.channelId,
       revealSpoilers: revealSpoilers,
