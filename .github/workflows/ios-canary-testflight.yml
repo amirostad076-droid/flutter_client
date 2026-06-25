@@ -231,6 +231,8 @@ jobs:
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          MEASURE_API_KEY: ${{ secrets.MEASURE_API_KEY }}
+          MEASURE_API_URL: ${{ secrets.MEASURE_API_URL }}
         run: bundle exec fastlane ios testflight_canary
       - name: Cleanup temporary keychain
         if: always()

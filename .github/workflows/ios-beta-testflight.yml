@@ -240,6 +240,8 @@ jobs:
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
           BETA_NUMBER: ${{ steps.beta_version_name.outputs.beta_number }}
+          MEASURE_API_KEY: ${{ secrets.MEASURE_API_KEY }}
+          MEASURE_API_URL: ${{ secrets.MEASURE_API_URL }}
         run: bundle exec fastlane ios testflight_beta
       - name: Cleanup temporary keychain
         if: always()

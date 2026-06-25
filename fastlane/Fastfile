@@ -8,6 +8,39 @@ def fetchOptionalEnvironmentValue(key, defaultValue)
   return ENV[key] || defaultValue
 end
 
+def measureDartDefines
+  api_key = fetchOptionalEnvironmentValue("MEASURE_API_KEY", "")
+  api_url = fetchOptionalEnvironmentValue("MEASURE_API_URL", "")
+  return [
+    "--dart-define=MEASURE_API_KEY=#{api_key}",
+    "--dart-define=MEASURE_API_URL=#{api_url}",
+  ]
+end
+
+def writeMeasureNativeConfig
+  sh("bash", "tool/measure/write_native_measure_config.sh")
+end
+
+def uploadMeasureDsymsIfConfigured
+  api_key = ENV["MEASURE_API_KEY"]
+  api_url = ENV["MEASURE_API_URL"]
+  if api_key.nil? || api_key.empty? || api_url.nil? || api_url.empty?
+    UI.important("Measure credentials not set; skipping dSYM upload.")
+    return
+  end
+  xcarchive_path = lane_context[SharedValues::XCODEBUILD_ARCHIVE]
+  ipa_path = lane_context[SharedValues::IPA_OUTPUT_PATH]
+  sh(
+    "bash",
+    "tool/measure/upload_dsym_xcarchive.sh",
+    xcarchive_path,
+    api_url,
+    api_key,
+    "",
+    ipa_path
+  )
+end
+
 platform :ios do
   desc "Build beta archive and upload to TestFlight"
   lane :testflight_beta do
@@ -60,6 +93,7 @@ platform :ios do
       podfile: "ios/Podfile",
       clean_install: true
     )
+    writeMeasureNativeConfig
 
     sh(
       "flutter",
@@ -74,7 +108,8 @@ platform :ios do
       "--dart-define-from-file=tool/dart_defines/beta.json",
       "--dart-define=PUSH_PROVIDER=apns",
       "--dart-define=BUILD_TIMESTAMP=#{Time.now.utc.iso8601}",
-      "--dart-define=BETA_NUMBER=#{ENV["BETA_NUMBER"]}"
+      "--dart-define=BETA_NUMBER=#{ENV["BETA_NUMBER"]}",
+      *measureDartDefines
     )
     build_app(
       workspace: "ios/Runner.xcworkspace",
@@ -100,6 +135,7 @@ platform :ios do
         "CODE_SIGN_STYLE=Manual",
       ].join(" ")
     )
+    uploadMeasureDsymsIfConfigured
     maximum_attempts = 3
     attempt_index = 1
     begin
@@ -175,6 +211,7 @@ platform :ios do
       podfile: "ios/Podfile",
       clean_install: true
     )
+    writeMeasureNativeConfig
 
     sh(
       "flutter",
@@ -188,7 +225,8 @@ platform :ios do
       flutter_build_number.to_s,
       "--dart-define-from-file=tool/dart_defines/canary.json",
       "--dart-define=PUSH_PROVIDER=apns",
-      "--dart-define=BUILD_TIMESTAMP=#{Time.now.utc.iso8601}"
+      "--dart-define=BUILD_TIMESTAMP=#{Time.now.utc.iso8601}",
+      *measureDartDefines
     )
     build_app(
       workspace: "ios/Runner.xcworkspace",
@@ -214,6 +252,7 @@ platform :ios do
         "CODE_SIGN_STYLE=Manual",
       ].join(" ")
     )
+    uploadMeasureDsymsIfConfigured
     maximum_attempts = 3
     attempt_index = 1
     begin
@@ -289,6 +328,7 @@ platform :ios do
       podfile: "ios/Podfile",
       clean_install: true
     )
+    writeMeasureNativeConfig
 
     sh(
       "flutter",
@@ -302,7 +342,8 @@ platform :ios do
       flutter_build_number.to_s,
       "--dart-define-from-file=tool/dart_defines/stable.json",
       "--dart-define=PUSH_PROVIDER=apns",
-      "--dart-define=BUILD_TIMESTAMP=#{Time.now.utc.iso8601}"
+      "--dart-define=BUILD_TIMESTAMP=#{Time.now.utc.iso8601}",
+      *measureDartDefines
     )
     build_app(
       workspace: "ios/Runner.xcworkspace",
@@ -328,6 +369,7 @@ platform :ios do
         "CODE_SIGN_STYLE=Manual",
       ].join(" ")
     )
+    uploadMeasureDsymsIfConfigured
     maximum_attempts = 3
     attempt_index = 1
     begin
