@@ -311,6 +311,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     },
   );
 
-  ref.onDispose(subscription.cancel);
+  ref.onDispose(() {
+    subscription.cancel();
+    handler.dispose();
+  });
   return subscription;
 }

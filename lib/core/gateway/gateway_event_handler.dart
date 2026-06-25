@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/gateway/gateway_ready_guild_parser.dart';
+import 'package:fluxer_app/core/gateway/presence_update_batcher.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
@@ -16,6 +17,14 @@ import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
+
+
+void _logGatewayDebug(void Function() log) {
+  assert(() {
+    log();
+    return true;
+  }(), 'gateway debug logging');
+}
 
 typedef TypingCallback = void Function(String channelId, String userId);
 typedef VoiceStateCallback = void Function(VoiceState state);
@@ -148,9 +157,18 @@ class GatewayEventHandler {
   final GuildMembersChunkProgressCallback? onMembersChunkProgress;
   final GuildMemberListUpdateCallback? onMemberListUpdate;
 
+  late final PresenceUpdateBatcher _presenceUpdateBatcher = PresenceUpdateBatcher(
+    database: database,
+    currentUserId: currentUserId,
+  );
+
   String? _currentUserId;
   String? _lastReadyUserId;
   bool _hasCommittedReady = false;
+
+  void dispose() {
+    _presenceUpdateBatcher.dispose();
+  }
 
   Future<void> handle(GatewayEvent event) async {
     switch (event) {
@@ -160,118 +178,118 @@ class GatewayEventHandler {
         talker.info('[Gateway] RESUMED');
         onReady?.call();
       case MessageCreateEvent():
-        talker.debug('[Gateway] MESSAGE_CREATE: ${event.message.channelId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] MESSAGE_CREATE: ${event.message.channelId}'));
         await _handleMessageCreate(event);
       case MessageUpdateEvent():
-        talker.debug('[Gateway] MESSAGE_UPDATE: ${event.message.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] MESSAGE_UPDATE: ${event.message.id}'));
         await _handleMessageUpdate(event);
       case MessageDeleteEvent():
-        talker.debug('[Gateway] MESSAGE_DELETE: ${event.messageId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] MESSAGE_DELETE: ${event.messageId}'));
         await _handleMessageDelete(event);
       case TypingStartEvent():
         _handleTypingStart(event);
       case PresenceUpdateEvent():
         _handlePresenceUpdate(event);
       case GuildMemberAddEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] GUILD_MEMBER_ADD: ${event.member.user.id}'
           ' → ${event.guildId}',
-        );
+        ));
         _handleMemberUpsert(event.guildId, event.member);
         if (event.member.user.id == currentUserId) {
           onGuildPermissionsChanged?.call(event.guildId);
         }
       case GuildMemberUpdateEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] GUILD_MEMBER_UPDATE: ${event.member.user.id}'
           ' → ${event.guildId}',
-        );
+        ));
         _handleMemberUpsert(event.guildId, event.member);
         if (event.member.user.id == currentUserId) {
           onGuildPermissionsChanged?.call(event.guildId);
         }
       case GuildMemberRemoveEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] GUILD_MEMBER_REMOVE: ${event.userId}'
           ' → ${event.guildId}',
-        );
+        ));
         _handleMemberRemove(event);
       case ChannelCreateEvent():
-        talker.debug('[Gateway] CHANNEL_CREATE: ${event.channel.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] CHANNEL_CREATE: ${event.channel.id}'));
         _handleChannelUpsert(event.channel);
       case ChannelUpdateEvent():
-        talker.debug('[Gateway] CHANNEL_UPDATE: ${event.channel.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] CHANNEL_UPDATE: ${event.channel.id}'));
         _handleChannelUpsert(event.channel);
       case ChannelDeleteEvent():
-        talker.debug('[Gateway] CHANNEL_DELETE: ${event.channel.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] CHANNEL_DELETE: ${event.channel.id}'));
         _handleChannelDelete(event);
       case MessageReactionAddEvent():
-        talker.debug('[Gateway] MESSAGE_REACTION_ADD: ${event.messageId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] MESSAGE_REACTION_ADD: ${event.messageId}'));
         await _handleReactionAdd(event);
       case MessageReactionRemoveEvent():
-        talker.debug('[Gateway] MESSAGE_REACTION_REMOVE: ${event.messageId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] MESSAGE_REACTION_REMOVE: ${event.messageId}'));
         await _handleReactionRemove(event);
       case MessageReactionRemoveAllEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] MESSAGE_REACTION_REMOVE_ALL: ${event.messageId}',
-        );
+        ));
         _handleReactionRemoveAll(event);
       case MessageReactionRemoveEmojiEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] MESSAGE_REACTION_REMOVE_EMOJI: ${event.messageId}',
-        );
+        ));
         _handleReactionRemoveEmoji(event);
       case GuildCreateEvent():
-        talker.debug('[Gateway] GUILD_CREATE: ${event.guild.guild.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] GUILD_CREATE: ${event.guild.guild.id}'));
         _handleGuildCreate(event);
       case GuildUpdateEvent():
-        talker.debug('[Gateway] GUILD_UPDATE: ${event.guild.guild.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] GUILD_UPDATE: ${event.guild.guild.id}'));
         _handleGuildUpdate(event);
       case GuildDeleteEvent():
-        talker.debug('[Gateway] GUILD_DELETE: ${event.guildId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] GUILD_DELETE: ${event.guildId}'));
         unawaited(_handleGuildDelete(event));
       case RelationshipAddEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] RELATIONSHIP_ADD: ${event.relationship.user.id}',
-        );
+        ));
         _handleRelationshipUpsert(event.relationship);
       case RelationshipUpdateEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] RELATIONSHIP_UPDATE: ${event.relationship.user.id}',
-        );
+        ));
         _handleRelationshipUpsert(event.relationship);
       case RelationshipRemoveEvent():
-        talker.debug('[Gateway] RELATIONSHIP_REMOVE: ${event.userId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] RELATIONSHIP_REMOVE: ${event.userId}'));
         _handleRelationshipRemove(event);
       case UserUpdateEvent():
-        talker.debug('[Gateway] USER_UPDATE: ${event.user.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] USER_UPDATE: ${event.user.id}'));
         _handleUserUpdate(event);
       case MessageDeleteBulkEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] MESSAGE_DELETE_BULK: ${event.ids.length} messages',
-        );
+        ));
         await _handleMessageDeleteBulk(event);
       case MessageAckEvent():
-        talker.debug('[Gateway] MESSAGE_ACK: ${event.channelId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] MESSAGE_ACK: ${event.channelId}'));
         await _handleMessageAck(event);
       case MessageReactionAddManyEvent():
-        talker.debug('[Gateway] MESSAGE_REACTION_ADD_MANY: ${event.messageId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] MESSAGE_REACTION_ADD_MANY: ${event.messageId}'));
         _handleReactionAddMany(event);
       case ChannelUpdateBulkEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] CHANNEL_UPDATE_BULK: ${event.channels.length} channels',
-        );
+        ));
         for (final channel in event.channels) {
           _handleChannelUpsert(channel);
         }
       case ChannelPinsUpdateEvent():
-        talker.debug('[Gateway] CHANNEL_PINS_UPDATE: ${event.channelId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] CHANNEL_PINS_UPDATE: ${event.channelId}'));
         await database.channelDao.updateLastPinTimestamp(
           event.channelId,
           event.lastPinTimestamp,
         );
       case ChannelPinsAckEvent():
-        talker.debug('[Gateway] CHANNEL_PINS_ACK: ${event.channelId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] CHANNEL_PINS_ACK: ${event.channelId}'));
         final channel = await database.channelDao.getChannelById(
           event.channelId,
         );
@@ -280,13 +298,13 @@ class GatewayEventHandler {
           event.lastPinTimestamp ?? channel?.lastPinTimestamp,
         );
       case ChannelRecipientAddEvent():
-        talker.debug('[Gateway] CHANNEL_RECIPIENT_ADD: ${event.channelId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] CHANNEL_RECIPIENT_ADD: ${event.channelId}'));
         unawaited(database.userDao.upsertUser(userFromPartialSdk(event.user)));
         unawaited(
           database.dmChannelDao.addRecipientId(event.channelId, event.user.id),
         );
       case ChannelRecipientRemoveEvent():
-        talker.debug('[Gateway] CHANNEL_RECIPIENT_REMOVE: ${event.channelId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] CHANNEL_RECIPIENT_REMOVE: ${event.channelId}'));
         if (event.user.id == currentUserId) {
           unawaited(database.dmChannelDao.deleteDmChannel(event.channelId));
         } else {
@@ -300,57 +318,57 @@ class GatewayEventHandler {
       case PassiveUpdatesEvent():
         _handlePassiveUpdates(event);
       case GuildRoleCreateEvent():
-        talker.debug('[Gateway] GUILD_ROLE_CREATE: ${event.role.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] GUILD_ROLE_CREATE: ${event.role.id}'));
         _handleRoleUpsert(event.guildId, event.role);
       case GuildRoleUpdateEvent():
-        talker.debug('[Gateway] GUILD_ROLE_UPDATE: ${event.role.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] GUILD_ROLE_UPDATE: ${event.role.id}'));
         _handleRoleUpsert(event.guildId, event.role);
       case GuildRoleDeleteEvent():
-        talker.debug('[Gateway] GUILD_ROLE_DELETE: ${event.roleId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] GUILD_ROLE_DELETE: ${event.roleId}'));
         unawaited(database.roleDao.deleteRole(event.roleId));
         onGuildPermissionsChanged?.call(event.guildId);
       case GuildRoleUpdateBulkEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] GUILD_ROLE_UPDATE_BULK: ${event.roles.length} roles',
-        );
+        ));
         _handleRoleUpdateBulk(event);
       case GuildBanAddEvent():
-        talker.debug('[Gateway] GUILD_BAN_ADD: ${event.guildId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] GUILD_BAN_ADD: ${event.guildId}'));
       case GuildBanRemoveEvent():
-        talker.debug('[Gateway] GUILD_BAN_REMOVE: ${event.guildId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] GUILD_BAN_REMOVE: ${event.guildId}'));
       case GuildEmojisUpdateEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] GUILD_EMOJIS_UPDATE: ${event.guildId}'
           ' (${event.emojis.length})',
-        );
+        ));
         unawaited(_handleGuildEmojisUpdate(event));
       case GuildStickersUpdateEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] GUILD_STICKERS_UPDATE: ${event.guildId}'
           ' (${event.stickers.length})',
-        );
+        ));
         unawaited(_handleGuildStickersUpdate(event));
       case GuildSyncEvent():
-        talker.debug('[Gateway] GUILD_SYNC: ${event.guild.guild.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] GUILD_SYNC: ${event.guild.guild.id}'));
         _handleGuildCreate(GuildCreateEvent(guild: event.guild));
       case GuildMembersChunkEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] GUILD_MEMBERS_CHUNK: ${event.guildId}'
           ' (${event.members.length})',
-        );
+        ));
         _handleMembersChunk(event);
       case GuildMemberListUpdateEvent():
         unawaited(_handleMemberListUpdate(event));
       case PresenceUpdateBulkEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] PRESENCE_UPDATE_BULK: ${event.presences.length}',
-        );
+        ));
         _handlePresenceUpdateBulk(event);
       case VoiceStateUpdateEvent():
-        talker.debug(
+        _logGatewayDebug(() => talker.debug(
           '[Gateway] VOICE_STATE_UPDATE: ${event.state.userId}'
           ' → ${event.state.channelId}',
-        );
+        ));
         onVoiceStateUpdate?.call(event.state);
       case final VoiceServerUpdateEvent e:
         talker.info(
@@ -359,63 +377,63 @@ class GatewayEventHandler {
         );
         onVoiceServerUpdate?.call(e);
       case CallCreateEvent():
-        talker.debug('[Gateway] CALL_CREATE: ${event.channelId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] CALL_CREATE: ${event.channelId}'));
         onCallCreate?.call(event);
       case CallUpdateEvent():
-        talker.debug('[Gateway] CALL_UPDATE: ${event.channelId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] CALL_UPDATE: ${event.channelId}'));
         onCallUpdate?.call(event);
       case CallDeleteEvent():
-        talker.debug('[Gateway] CALL_DELETE: ${event.channelId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] CALL_DELETE: ${event.channelId}'));
         onCallDelete?.call(event.channelId);
       case UserSettingsUpdateEvent():
-        talker.debug('[Gateway] USER_SETTINGS_UPDATE');
+        _logGatewayDebug(() => talker.debug('[Gateway] USER_SETTINGS_UPDATE'));
         unawaited(_handleUserSettingsUpdate(event));
       case UserGuildSettingsUpdateEvent():
-        talker.debug('[Gateway] USER_GUILD_SETTINGS_UPDATE: ${event.guildId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] USER_GUILD_SETTINGS_UPDATE: ${event.guildId}'));
         unawaited(_handleUserGuildSettingsUpdate(event));
       case UserPinnedDmsUpdateEvent():
-        talker.debug('[Gateway] USER_PINNED_DMS_UPDATE');
+        _logGatewayDebug(() => talker.debug('[Gateway] USER_PINNED_DMS_UPDATE'));
         unawaited(_handleUserPinnedDmsUpdate(event));
       case UserNoteUpdateEvent():
-        talker.debug('[Gateway] USER_NOTE_UPDATE: ${event.userId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] USER_NOTE_UPDATE: ${event.userId}'));
         unawaited(_handleUserNoteUpdate(event));
       case UserConnectionsUpdateEvent():
-        talker.debug('[Gateway] USER_CONNECTIONS_UPDATE');
+        _logGatewayDebug(() => talker.debug('[Gateway] USER_CONNECTIONS_UPDATE'));
         _handleUserConnectionsUpdate(event);
       case WebauthnCredentialsUpdateEvent():
-        talker.debug('[Gateway] WEBAUTHN_CREDENTIALS_UPDATE');
+        _logGatewayDebug(() => talker.debug('[Gateway] WEBAUTHN_CREDENTIALS_UPDATE'));
         onWebauthnCredentialsUpdate?.call(event.credentials);
       case AuthSessionChangeEvent():
-        talker.debug('[Gateway] AUTH_SESSION_CHANGE');
+        _logGatewayDebug(() => talker.debug('[Gateway] AUTH_SESSION_CHANGE'));
         onAuthSessionIdHashChanged?.call(event.newAuthSessionIdHash);
       case InviteCreateEvent():
-        talker.debug('[Gateway] INVITE_CREATE');
+        _logGatewayDebug(() => talker.debug('[Gateway] INVITE_CREATE'));
         onInviteCreate?.call(event.data);
       case InviteDeleteEvent():
-        talker.debug('[Gateway] INVITE_DELETE: ${event.code}');
+        _logGatewayDebug(() => talker.debug('[Gateway] INVITE_DELETE: ${event.code}'));
         onInviteDelete?.call(event.code);
       case SavedMessageCreateEvent():
-        talker.debug('[Gateway] SAVED_MESSAGE_CREATE: ${event.message.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] SAVED_MESSAGE_CREATE: ${event.message.id}'));
         unawaited(database.savedMessageDao.addSavedMessage(event.message.id));
       case SavedMessageDeleteEvent():
-        talker.debug('[Gateway] SAVED_MESSAGE_DELETE: ${event.messageId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] SAVED_MESSAGE_DELETE: ${event.messageId}'));
         unawaited(database.savedMessageDao.removeSavedMessage(event.messageId));
       case RecentMentionDeleteEvent():
-        talker.debug('[Gateway] RECENT_MENTION_DELETE: ${event.messageId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] RECENT_MENTION_DELETE: ${event.messageId}'));
         unawaited(database.notificationDao.deleteMentionRow(event.messageId));
       case WebhooksUpdateEvent():
-        talker.debug('[Gateway] WEBHOOKS_UPDATE: ${event.channelId}');
+        _logGatewayDebug(() => talker.debug('[Gateway] WEBHOOKS_UPDATE: ${event.channelId}'));
       case FavoriteMemeCreateEvent():
-        talker.debug('[Gateway] FAVORITE_MEME_CREATE');
+        _logGatewayDebug(() => talker.debug('[Gateway] FAVORITE_MEME_CREATE'));
         unawaited(_handleFavoriteMemeCreate(event));
       case FavoriteMemeUpdateEvent():
-        talker.debug('[Gateway] FAVORITE_MEME_UPDATE');
+        _logGatewayDebug(() => talker.debug('[Gateway] FAVORITE_MEME_UPDATE'));
         unawaited(_handleFavoriteMemeUpdate(event));
       case FavoriteMemeDeleteEvent():
-        talker.debug('[Gateway] FAVORITE_MEME_DELETE: ${event.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway] FAVORITE_MEME_DELETE: ${event.id}'));
         unawaited(_handleFavoriteMemeDelete(event));
       case SessionsReplaceEvent():
-        talker.debug('[Gateway] SESSIONS_REPLACE');
+        _logGatewayDebug(() => talker.debug('[Gateway] SESSIONS_REPLACE'));
       case final GatewayErrorEvent e:
         talker.warning('[Gateway] Error: [${e.code}] ${e.message}');
         onGatewayError?.call(e);
@@ -425,7 +443,7 @@ class GatewayEventHandler {
             '[Gateway] Failed to parse MESSAGE_UPDATE: ${event.data}',
           );
         } else {
-          talker.debug('[Gateway] Unknown event: ${event.eventType}');
+          _logGatewayDebug(() => talker.debug('[Gateway] Unknown event: ${event.eventType}'));
         }
     }
   }
@@ -1296,12 +1314,10 @@ class GatewayEventHandler {
   }
 
   void _handlePresenceUpdate(PresenceUpdateEvent event) {
-    unawaited(
-      database.userDao.updateUserPresence(
-        event.userId,
-        status: event.status,
-        customStatus: event.customStatus,
-      ),
+    _presenceUpdateBatcher.enqueue(
+      userId: event.userId,
+      status: event.status,
+      customStatus: event.customStatus,
     );
   }
 
@@ -1792,30 +1808,30 @@ class GatewayEventHandler {
     final updated = event.updatedChannels;
     final deleted = event.deletedChannelIds;
 
-    talker.debug(
+    _logGatewayDebug(() => talker.debug(
       '[Gateway] PASSIVE_UPDATES: '
       'created=${created?.length ?? 0}, '
       'updated=${updated?.length ?? 0}, '
       'deleted=${deleted?.length ?? 0}',
-    );
+    ));
 
     if (created != null) {
       for (final channel in created) {
-        talker.debug('[Gateway]   +channel: ${channel.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway]   +channel: ${channel.id}'));
         _handleChannelUpsert(channel);
       }
     }
 
     if (updated != null) {
       for (final channel in updated) {
-        talker.debug('[Gateway]   ~channel: ${channel.id}');
+        _logGatewayDebug(() => talker.debug('[Gateway]   ~channel: ${channel.id}'));
         _handleChannelUpsert(channel);
       }
     }
 
     if (deleted != null) {
       for (final id in deleted) {
-        talker.debug('[Gateway]   -channel: $id');
+        _logGatewayDebug(() => talker.debug('[Gateway]   -channel: $id'));
         unawaited(database.channelDao.deleteChannel(id));
       }
     }

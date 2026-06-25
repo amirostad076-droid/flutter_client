@@ -9,6 +9,8 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
+import 'package:fluxer_app/features/voice/providers/pending_incoming_voice_calls_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/gateway.dart';
@@ -19,6 +21,7 @@ part 'gateway_reconnect_provider.g.dart';
 const Duration kGatewayReconnectFailureTimeout = Duration(seconds: 30);
 const Duration kGatewayResumeReconnectFailureTimeout = Duration(seconds: 60);
 const Duration kForegroundStaleReconnectThreshold = Duration(seconds: 30);
+const Duration kBackgroundGatewayDisconnectGrace = Duration(seconds: 45);
 const Duration kResumeReconnectDelay = Duration(milliseconds: 500);
 const Duration kConnectivityReconnectDebounce = Duration(milliseconds: 500);
 
@@ -51,7 +54,28 @@ Future<void> nudgeGatewayReconnectAfterResume(
     return;
   }
   talker.info('[Gateway] Resume reconnect starting');
-  await connection.reconnectNow();
+  if (connection.isReconnectSuspended) {
+    await connection.unsuspendAndReconnect();
+  } else {
+    await connection.reconnectNow();
+  }
+}
+
+bool shouldKeepGatewayConnectedForVoiceFromState({
+  required bool isInVoice,
+  required List<String> pendingIncomingChannelIds,
+}) {
+  if (isInVoice) {
+    return true;
+  }
+  return pendingIncomingChannelIds.isNotEmpty;
+}
+
+bool shouldKeepGatewayConnectedForVoice(Ref ref) {
+  return shouldKeepGatewayConnectedForVoiceFromState(
+    isInVoice: ref.read(voiceSessionProvider).isInVoice,
+    pendingIncomingChannelIds: ref.read(pendingIncomingVoiceChannelIdsProvider),
+  );
 }
 
 @Riverpod(keepAlive: true)
@@ -176,32 +200,71 @@ Raw<StreamSubscription<GatewayState>?> gatewayStateListener(Ref ref) {
 
 @Riverpod(keepAlive: true)
 void gatewayForegroundListener(Ref ref) {
+  Timer? backgroundDisconnectTimer;
+
+  void clearBackgroundDisconnectTimer() {
+    backgroundDisconnectTimer?.cancel();
+    backgroundDisconnectTimer = null;
+  }
+
+  ref.onDispose(clearBackgroundDisconnectTimer);
+
   ref.listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
+    if ((previous ?? true) && !next) {
+      clearBackgroundDisconnectTimer();
+      backgroundDisconnectTimer = Timer(kBackgroundGatewayDisconnectGrace, () {
+        backgroundDisconnectTimer = null;
+        if (ref.read(appUiForegroundProvider)) {
+          return;
+        }
+        if (shouldKeepGatewayConnectedForVoice(ref)) {
+          return;
+        }
+        final GatewayConnection connection = ref.read(gatewayConnectionProvider);
+        if (connection.isReconnectSuspended) {
+          return;
+        }
+        final GatewayState state = connection.state;
+        if (state == GatewayState.connected ||
+            state == GatewayState.connecting ||
+            state == GatewayState.reconnecting) {
+          talker.info('[Gateway] Background suspend — disconnecting');
+          unawaited(connection.suspend());
+        }
+      });
+      return;
+    }
     if ((previous ?? true) || !next) {
       return;
     }
+    clearBackgroundDisconnectTimer();
     final GatewayConnection connection = ref.read(gatewayConnectionProvider);
-    final DateTime? backgroundedAt = ref.read(appLastBackgroundedAtProvider);
-    final Duration? backgroundDuration = backgroundedAt != null
-        ? DateTime.now().difference(backgroundedAt)
-        : null;
-    final bool isStaleConnected =
-        connection.state == GatewayState.connected &&
-        backgroundDuration != null &&
-        backgroundDuration > kForegroundStaleReconnectThreshold;
-    if (connection.state != GatewayState.connected || isStaleConnected) {
+    if (connection.isReconnectSuspended) {
+      talker.info('[Gateway] App resumed from background suspend');
+    } else {
+      final DateTime? backgroundedAt = ref.read(appLastBackgroundedAtProvider);
+      final Duration? backgroundDuration = backgroundedAt != null
+          ? DateTime.now().difference(backgroundedAt)
+          : null;
+      final bool isStaleConnected =
+          connection.state == GatewayState.connected &&
+          backgroundDuration != null &&
+          backgroundDuration > kForegroundStaleReconnectThreshold;
+      if (connection.state == GatewayState.connected && !isStaleConnected) {
+        return;
+      }
       talker.info('[Gateway] App resumed, scheduling reconnect');
-      unawaited(
-        nudgeGatewayReconnectAfterResume(
-          connection,
-          onResumeReconnectInFlight: ({required bool inFlight}) {
-            ref
-                .read(gatewayResumeReconnectInFlightProvider.notifier)
-                .setInFlight(value: inFlight);
-          },
-        ),
-      );
     }
+    unawaited(
+      nudgeGatewayReconnectAfterResume(
+        connection,
+        onResumeReconnectInFlight: ({required bool inFlight}) {
+          ref
+              .read(gatewayResumeReconnectInFlightProvider.notifier)
+              .setInFlight(value: inFlight);
+        },
+      ),
+    );
   });
 }
 
@@ -279,6 +342,10 @@ Raw<StreamSubscription<List<ConnectivityResult>>?> connectivityListener(
       (ConnectivityResult r) => r != ConnectivityResult.none,
     );
     if (!hasConnection || connection.state == GatewayState.connected) {
+      clearDebounce();
+      return;
+    }
+    if (!ref.read(appUiForegroundProvider) || connection.isReconnectSuspended) {
       clearDebounce();
       return;
     }
