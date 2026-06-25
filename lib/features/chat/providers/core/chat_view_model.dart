@@ -660,19 +660,6 @@ class ChatViewModel extends _$ChatViewModel {
         ref
             .read(messageReferencesProvider.notifier)
             .clearChannel(previousChannelId);
-        state = _switchedChannelState(
-          channelId: channelId,
-          messages: const [],
-          draft: (text: '', reply: null),
-          replyMentioning: false,
-          scrollToBottomSignal: state.scrollToBottomSignal,
-          isLoading: loadMessages,
-          isSyncingMessages: false,
-          isLoadingMore: false,
-          isLoadingNewer: false,
-          hasMoreMessages: true,
-          hasMoreNewerMessages: false,
-        );
         unawaited(
           _persistComposerDraftForChannel(
             channelId: previousChannelId,
@@ -691,7 +678,7 @@ class ChatViewModel extends _$ChatViewModel {
       if (!loadMessages) {
         state = _switchedChannelState(
           channelId: channelId,
-          messages: state.messages,
+          messages: isChannelChange ? const [] : state.messages,
           draft: draft,
           replyMentioning: replyMentioning,
           scrollToBottomSignal: state.scrollToBottomSignal,
@@ -699,8 +686,9 @@ class ChatViewModel extends _$ChatViewModel {
           isSyncingMessages: false,
           isLoadingMore: false,
           isLoadingNewer: false,
-          hasMoreMessages: state.hasMoreMessages,
-          hasMoreNewerMessages: state.hasMoreNewerMessages,
+          hasMoreMessages: isChannelChange ? true : state.hasMoreMessages,
+          hasMoreNewerMessages:
+              isChannelChange ? false : state.hasMoreNewerMessages,
         );
         return;
       }
@@ -762,7 +750,10 @@ class ChatViewModel extends _$ChatViewModel {
           hasMoreNewerMessages: false,
         );
         _setContiguityWindow(channelId, cached);
-        _notifyMessageReferencesLoaded(channelId: channelId, messages: cached);
+        _deferMessageReferencesLoaded(
+          channelId: channelId,
+          messages: cached,
+        );
         if (_shouldRefreshChannelFromNetwork(channelId)) {
           _markChannelNetworkRefresh(channelId);
           unawaited(
@@ -795,6 +786,23 @@ class ChatViewModel extends _$ChatViewModel {
         '${switchStopwatch.elapsedMilliseconds}ms',
       );
     }
+  }
+
+  void _deferMessageReferencesLoaded({
+    required String channelId,
+    required List<Message> messages,
+    List<Message>? embeddedReplyParents,
+  }) {
+    scheduleMicrotask(() {
+      if (state.channelId != channelId) {
+        return;
+      }
+      _notifyMessageReferencesLoaded(
+        channelId: channelId,
+        messages: messages,
+        embeddedReplyParents: embeddedReplyParents ?? const [],
+      );
+    });
   }
 
   /// Refreshes the open channel after gateway READY/RESUMED without navigation
@@ -1066,6 +1074,10 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId == channelId) {
         state = state.copyWith(isLoadingMore: false);
       }
+    } finally {
+      if (state.channelId == channelId && state.isLoadingMore) {
+        state = state.copyWith(isLoadingMore: false);
+      }
     }
   }
 
@@ -1152,6 +1164,10 @@ class ChatViewModel extends _$ChatViewModel {
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load newer messages: $e');
       if (state.channelId == channelId) {
+        state = state.copyWith(isLoadingNewer: false);
+      }
+    } finally {
+      if (state.channelId == channelId && state.isLoadingNewer) {
         state = state.copyWith(isLoadingNewer: false);
       }
     }

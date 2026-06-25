@@ -38,6 +38,19 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
   ({String channelId, String? targetMessageId, bool loadMessages})?
   _lastSwitchRequest;
   ({String channelId, String? targetMessageId})? _lastClosedPanelRequest;
+  bool? _lastMobileLayout;
+  RevealSide? _lastRevealSide;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _syncChannelIfNeeded(loadMessages: _resolveLoadMessages());
+    });
+  }
 
   @override
   void didUpdateWidget(ChannelChatContent oldWidget) {
@@ -46,9 +59,26 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
         oldWidget.targetMessageId != widget.targetMessageId) {
       _lastSwitchRequest = null;
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _syncChannelIfNeeded(loadMessages: _resolveLoadMessages());
+    });
   }
 
-  void _scheduleChannelSync({required bool loadMessages}) {
+  bool _resolveLoadMessages() {
+    final bool isMobile = isMobileLayout(context);
+    final RevealSide revealSide = isMobile
+        ? ref.read(currentRevealSideProvider)
+        : RevealSide.main;
+    return channelChatShouldLoadMessages(
+      isMobile: isMobile,
+      revealSide: revealSide,
+    );
+  }
+
+  void _syncChannelIfNeeded({required bool loadMessages}) {
     final request = (
       channelId: widget.channelId,
       targetMessageId: widget.targetMessageId,
@@ -58,9 +88,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
       return;
     }
     _lastSwitchRequest = request;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(_runChannelSync(request));
-    });
+    unawaited(_runChannelSync(request));
   }
 
   Future<void> _runChannelSync(
@@ -88,16 +116,31 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = isMobileLayout(context);
-    final revealSide = isMobile
+    final bool isMobile = isMobileLayout(context);
+    final RevealSide revealSide = isMobile
         ? ref.watch(currentRevealSideProvider)
         : RevealSide.main;
-    final shouldLoadMessages = channelChatShouldLoadMessages(
+    if (_lastMobileLayout != isMobile || _lastRevealSide != revealSide) {
+      _lastMobileLayout = isMobile;
+      _lastRevealSide = revealSide;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        _syncChannelIfNeeded(
+          loadMessages: channelChatShouldLoadMessages(
+            isMobile: isMobile,
+            revealSide: revealSide,
+          ),
+        );
+      });
+    }
+    listenChatViewModelErrors(ref);
+
+    final bool shouldLoadMessages = channelChatShouldLoadMessages(
       isMobile: isMobile,
       revealSide: revealSide,
     );
-    _scheduleChannelSync(loadMessages: shouldLoadMessages);
-    listenChatViewModelErrors(ref);
 
     return ColoredBox(
       color: isMobile

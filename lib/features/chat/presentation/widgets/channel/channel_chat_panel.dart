@@ -49,11 +49,7 @@ class ChannelChatPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bool isMobile = isMobileLayout(context);
-    final String activeChannelId = ref.watch(
-      chatViewModelProvider.select((ChatViewState state) => state.channelId),
-    );
-    final bool isMessageListReady =
-        displayChannelId == null || activeChannelId == displayChannelId;
+    final String? listChannelId = displayChannelId;
     final bool isPanelOpen = ref.watch(expressionPanelProvider);
     final bool showNeko = ref.watch(
       appearancePreferencesProvider.select((state) => state.showNeko),
@@ -74,16 +70,13 @@ class ChannelChatPanel extends ConsumerWidget {
                             FocusManager.instance.primaryFocus?.unfocus(),
                         child: !loadMessages
                             ? const SizedBox.expand()
-                            : isMessageListReady
-                            ? RepaintBoundary(
+                            : listChannelId == null
+                            ? const SizedBox.expand()
+                            : RepaintBoundary(
                                 child: MessageList(
-                                  key: ValueKey<String>(activeChannelId),
+                                  key: ValueKey<String>(listChannelId),
+                                  expectedChannelId: listChannelId,
                                   targetMessageId: targetMessageId,
-                                ),
-                              )
-                            : Center(
-                                child: FluxerLoadingSpinner(
-                                  color: context.colors.brandPrimary,
                                 ),
                               ),
                       ),
