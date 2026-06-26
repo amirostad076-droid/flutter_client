@@ -39,7 +39,6 @@ PODS:
     - KSCrash (~> 2.5)
   - measure_flutter (0.3.0):
     - Flutter
-    - measure-sh (~> 0.11.0)
   - media_kit_libs_ios_video (1.0.4):
     - Flutter
   - media_kit_video (0.0.1):
@@ -90,12 +89,12 @@ SPEC CHECKSUMS:
   KSCrash: 8c4464fd5da7de520f2ce4a00fdf63f169a80f18
   livekit_client: 549b62f57d4bae9385f541922b621e7ce84aae4b
   measure-sh: 653622eb0cf3ca79dd81d1a6f541b26f8814d392
-  measure_flutter: 360554c4ebe5f7aeafdf3bdddd0f5a9a8f10b9e5
+  measure_flutter: 24f329e8748c6cd4c53c3694d3dbcc5f5cc11ad7
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
   super_native_extensions: b763c02dc3a8fd078389f410bf15149179020cb4
   WebRTC-SDK: ab9b5319e458c2bfebdc92b3600740da35d5630d
 
-PODFILE CHECKSUM: 27a88784ab2b7e5b9fe9dd5f1a0217458e371692
+PODFILE CHECKSUM: 26b148c349259744fb9b3c6eefcf836d50d08366
 
 COCOAPODS: 1.16.2
