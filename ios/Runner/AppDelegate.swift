@@ -1,6 +1,7 @@
 import AVFAudio
 import CallKit
 import Flutter
+import Measure
 import UIKit
 import UserNotifications
 import WebRTC
@@ -12,9 +13,25 @@ import flutter_callkit_incoming
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    initializeMeasureIfConfigured()
     let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     UNUserNotificationCenter.current().delegate = self
     return result
+  }
+
+  private func initializeMeasureIfConfigured() {
+    guard
+      let info = Bundle.main.infoDictionary,
+      let apiKey = info["MeasureApiKey"] as? String,
+      let apiUrl = info["MeasureApiUrl"] as? String,
+      !apiKey.isEmpty,
+      !apiUrl.isEmpty
+    else {
+      return
+    }
+    let clientInfo = ClientInfo(apiKey: apiKey, apiUrl: apiUrl)
+    let config = BaseMeasureConfig(autoStart: false)
+    Measure.initialize(with: clientInfo, config: config)
   }
 
   override func application(

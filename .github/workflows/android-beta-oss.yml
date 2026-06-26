@@ -148,6 +148,12 @@ jobs:
           mkdir -p android/app/src/main/assets
           printf '%s\n' "$ANDROID_ADI_REGISTRATION_SNIPPET" > android/app/src/main/assets/adi-registration.properties
 
+      - name: Write Measure native config
+        env:
+          MEASURE_API_KEY: ${{ secrets.MEASURE_API_KEY }}
+          MEASURE_API_URL: ${{ secrets.MEASURE_API_URL }}
+        run: bash tool/measure/write_native_measure_config.sh
+
       - name: Build beta OSS split APKs
         run: flutter build apk --release --split-per-abi --flavor betaUnifiedpush --build-name ${{ steps.beta_version_name.outputs.version_name }} --build-number ${{ steps.android_build_number.outputs.build_number }} --dart-define-from-file=tool/dart_defines/beta.json --dart-define=PUSH_PROVIDER=unifiedpush --dart-define=BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ) --dart-define=BETA_NUMBER=${{ steps.beta_version_name.outputs.beta_number }} --dart-define=MEASURE_API_KEY=${{ secrets.MEASURE_API_KEY }} --dart-define=MEASURE_API_URL=${{ secrets.MEASURE_API_URL }}
 

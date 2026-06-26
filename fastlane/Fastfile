@@ -21,6 +21,11 @@ def measureDartDefines
   ]
 end
 
+def writeMeasureNativeConfig
+  script_path = File.join(project_root_path, "tool/measure/write_native_measure_config.sh")
+  sh("bash", script_path)
+end
+
 def uploadMeasureDsymsIfConfigured
   api_key = ENV["MEASURE_API_KEY"]
   api_url = ENV["MEASURE_API_URL"]
@@ -93,6 +98,8 @@ platform :ios do
       podfile: "ios/Podfile",
       clean_install: true
     )
+    writeMeasureNativeConfig
+
     sh(
       "flutter",
       "build",
@@ -209,6 +216,8 @@ platform :ios do
       podfile: "ios/Podfile",
       clean_install: true
     )
+    writeMeasureNativeConfig
+
     sh(
       "flutter",
       "build",
@@ -324,6 +333,8 @@ platform :ios do
       podfile: "ios/Podfile",
       clean_install: true
     )
+    writeMeasureNativeConfig
+
     sh(
       "flutter",
       "build",
