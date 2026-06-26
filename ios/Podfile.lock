@@ -52,7 +52,7 @@ DEPENDENCIES:
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - irondash_engine_context (from `.symlinks/plugins/irondash_engine_context/ios`)
   - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
-  - measure-sh
+  - measure-sh (from `https://github.com/measure-sh/measure.git`, tag `ios-v0.11.0`)
   - measure_flutter (from `.symlinks/plugins/measure_flutter/ios`)
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
@@ -61,7 +61,6 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - KSCrash
-    - measure-sh
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
@@ -73,6 +72,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/irondash_engine_context/ios"
   livekit_client:
     :path: ".symlinks/plugins/livekit_client/ios"
+  measure-sh:
+    :git: https://github.com/measure-sh/measure.git
+    :submodules: true
+    :tag: ios-v0.11.0
   measure_flutter:
     :path: ".symlinks/plugins/measure_flutter/ios"
   media_kit_libs_ios_video:
@@ -81,6 +84,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/media_kit_video/ios"
   super_native_extensions:
     :path: ".symlinks/plugins/super_native_extensions/ios"
+
+CHECKOUT OPTIONS:
+  measure-sh:
+    :git: https://github.com/measure-sh/measure.git
+    :submodules: true
+    :tag: ios-v0.11.0
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
@@ -95,6 +104,6 @@ SPEC CHECKSUMS:
   super_native_extensions: b763c02dc3a8fd078389f410bf15149179020cb4
   WebRTC-SDK: ab9b5319e458c2bfebdc92b3600740da35d5630d
 
-PODFILE CHECKSUM: 26b148c349259744fb9b3c6eefcf836d50d08366
+PODFILE CHECKSUM: e559e6f9c2c8bc788e0764e66ddd2616444e5e35
 
 COCOAPODS: 1.16.2

@@ -2,7 +2,6 @@ source "https://rubygems.org"
 
 gem "fastlane"
 gem "cocoapods"
-gem "cocoapods-pod-linkage"
 gem "multi_json"
 
 plugins_path = File.join(File.dirname(__FILE__), "fastlane", "Pluginfile")

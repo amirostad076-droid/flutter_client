@@ -806,6 +806,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1001,6 +1004,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1033,6 +1039,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1063,6 +1072,9 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer.canary;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1110,6 +1122,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer.canary;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1155,6 +1170,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer.canary;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1199,6 +1217,9 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1246,6 +1267,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1290,6 +1314,9 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2485,6 +2512,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2531,6 +2561,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2575,6 +2608,9 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluxer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
