@@ -139,6 +139,9 @@
         <meta-data
             android:name="sh.measure.android.API_URL"
             android:value="${measureApiUrl}" />
+        <meta-data
+            android:name="sh.measure.android.AUTO_START"
+            android:value="false" />
         <service
             android:name="de.julianassmann.flutter_background.IsolateHolderService"
             android:enabled="true"

@@ -30,11 +30,13 @@ class MeasureReporting extends _$MeasureReporting {
       return;
     }
     final SharedPreferences preferences = await SharedPreferences.getInstance();
-    if (!(preferences.getBool(_kMeasureReportingEnabledKey) ?? false)) {
+    final bool isEnabled =
+        preferences.getBool(_kMeasureReportingEnabledKey) ?? false;
+    state = isEnabled;
+    if (!isEnabled) {
       return;
     }
     await Measure.instance.start();
-    state = true;
   }
 
   Future<void> setEnabled({required bool value}) async {

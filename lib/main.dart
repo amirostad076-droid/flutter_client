@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/bootstrap/image_cache_config.dart';
 import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/core/build/push_provider_assert.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
+import 'package:fluxer_app/core/measure/measure_reporting_provider.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_entrypoint.dart';
@@ -91,7 +92,10 @@ Future<void> main(List<String> args) async {
 
   if (_shouldInitializeMeasure()) {
     await Measure.instance.init(
-      () => _runFluxerApp(container),
+      () async {
+        await container.read(measureReportingProvider.notifier).load();
+        _runFluxerApp(container);
+      },
       config: MeasureConfig(
         autoStart: false,
         enableLogging: kDebugMode,
