@@ -96,7 +96,7 @@ Future<void> main(List<String> args) async {
         await container.read(measureReportingProvider.notifier).load();
         _runFluxerApp(container);
       },
-      config: MeasureConfig(
+      config: const MeasureConfig(
         autoStart: false,
         enableLogging: kDebugMode,
       ),
