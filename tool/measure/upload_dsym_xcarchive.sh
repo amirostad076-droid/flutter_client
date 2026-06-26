@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Usage: upload_dsym_xcarchive.sh <xcarchive> <api_url> <api_key> [custom_headers] [ipa_path]
+# Usage: upload_dsym_xcarchive.sh <xcarchive> <api_key> [ipa_path]
 # https://github.com/measure-sh/measure/blob/main/docs/features/feature-crash-reporting.md#ios-1
 
 set -euo pipefail
 
-[ "$#" -ge 3 ] || {
-  echo "Usage: $0 <xcarchive> <api_url> <api_key> [custom_headers] [ipa_path]"
+MEASURE_API_URL='https://msr-api.fluxer.tools'
+
+[ "$#" -ge 2 ] || {
+  echo "Usage: $0 <xcarchive> <api_key> [ipa_path]"
   exit 1
 }
 command -v jq >/dev/null || {
@@ -13,7 +15,15 @@ command -v jq >/dev/null || {
   exit 1
 }
 
-archive=$1 api_url=$2 api_key=$3 raw_headers=${4:-} ipa_path=${5:-}
+archive=$1
+api_key=$2
+ipa_path=${3:-}
+
+[ -n "$api_key" ] || {
+  echo "api_key is required"
+  exit 1
+}
+
 info_plist="$archive/Info.plist"
 dsym_dir="$archive/dSYMs"
 work_dir=$(mktemp -d)
@@ -50,6 +60,12 @@ else
     build_size=0
   fi
 fi
+
+echo "Measure dSYM upload:"
+echo "  version_name: $version_name"
+echo "  version_code: $version_code"
+echo "  app_id:       $app_id"
+echo "  build_size:   $build_size"
 
 mappings_json='[]'
 tgz_names=()
@@ -91,20 +107,16 @@ jq -n \
 
 meta_args=(
   -sS -w '%{http_code}' -o "$work_dir/response.json"
-  -X PUT "$api_url/builds"
+  -X PUT "${MEASURE_API_URL}/builds"
   -H "Authorization: Bearer $api_key"
   -H 'Content-Type: application/json'
   --data @"$metadata_file"
 )
-IFS='|' read -r -a custom_headers <<<"$raw_headers"
-for header in "${custom_headers[@]}"; do
-  [ -n "$header" ] && meta_args+=(-H "$header")
-done
 
 echo "Uploading build metadata..."
 status=$(curl "${meta_args[@]}")
 case "$status" in
-  200 | 201) ;;
+  200|201) ;;
   401)
     echo "Invalid api-key; stack traces will not be symbolicated."
     exit 1
@@ -113,8 +125,15 @@ case "$status" in
     echo "Build size limit exceeded; stack traces will not be symbolicated."
     exit 1
     ;;
+  500)
+    echo "Measure server error; try again later."
+    exit 1
+    ;;
   *)
     echo "Metadata upload failed with status $status."
+    if [ -s "$work_dir/response.json" ]; then
+      jq -r '.' "$work_dir/response.json" 2>/dev/null || cat "$work_dir/response.json"
+    fi
     exit 1
     ;;
 esac
@@ -135,6 +154,10 @@ upload_file() {
   local url filename path header status attempt
   url=$(jq -r '.upload_url' <<<"$object")
   filename=$(jq -r '.filename' <<<"$object")
+  if [ -z "$url" ] || [ "$url" = 'null' ] || [ -z "$filename" ] || [ "$filename" = 'null' ]; then
+    echo "  Invalid upload response from Measure."
+    return 1
+  fi
   path=$(tgz_path_for "$filename") || {
     echo "Missing local archive for $filename"
     return 1

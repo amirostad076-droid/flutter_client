@@ -28,9 +28,8 @@ end
 
 def uploadMeasureDsymsIfConfigured
   api_key = ENV["MEASURE_API_KEY"]
-  api_url = ENV["MEASURE_API_URL"]
-  if api_key.nil? || api_key.empty? || api_url.nil? || api_url.empty?
-    UI.important("Measure credentials not set; skipping dSYM upload.")
+  if api_key.nil? || api_key.empty?
+    UI.important("Measure API key not set; skipping dSYM upload.")
     return
   end
   xcarchive_path = lane_context[SharedValues::XCODEBUILD_ARCHIVE]
@@ -39,9 +38,7 @@ def uploadMeasureDsymsIfConfigured
     "bash",
     File.join(project_root_path, "tool/measure/upload_dsym_xcarchive.sh"),
     xcarchive_path,
-    api_url,
     api_key,
-    "",
     ipa_path
   )
 end
