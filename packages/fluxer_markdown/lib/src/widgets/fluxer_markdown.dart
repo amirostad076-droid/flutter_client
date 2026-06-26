@@ -231,8 +231,10 @@ class FluxerMarkdown extends StatelessWidget {
   List<md.InlineSyntax> _inlineSyntaxes(FluxerMarkdownFeatures features) {
     return [
       if (config.linkWidgetBuilder != null &&
-          config.internalLinkPattern != null)
+          config.internalLinkPattern != null) ...[
         FluxerJumpLinkSyntax(config.internalLinkPattern!),
+        FluxerBracketedJumpLinkSyntax(config.internalLinkPattern!),
+      ],
       FluxerUnderlineSyntax(),
       md.StrikethroughSyntax(),
       if (features.allowUserMentions) FluxerUserMentionSyntax(),
