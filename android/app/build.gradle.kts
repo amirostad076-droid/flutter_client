@@ -5,7 +5,6 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-    id("sh.measure.android.gradle")
 }
 
 configurations.all {
@@ -30,21 +29,6 @@ if (hasKeystoreProperties) {
     keystorePropertiesFile.inputStream().use { inputStream ->
         keystoreProperties.load(inputStream)
     }
-}
-
-val measureProperties = Properties()
-val measurePropertiesFile = rootProject.file("measure.properties")
-if (measurePropertiesFile.exists()) {
-    measurePropertiesFile.inputStream().use { inputStream ->
-        measureProperties.load(inputStream)
-    }
-}
-
-fun measureConfigValue(key: String): String {
-    return measureProperties.getProperty(key)
-        ?: System.getenv(key)
-        ?: (project.findProperty(key) as String?)
-        ?: ""
 }
 
 android {
@@ -82,8 +66,6 @@ android {
         manifestPlaceholders["appLabel"] = "Fluxer"
         manifestPlaceholders["buildEnvironment"] = "stable"
         manifestPlaceholders["pushProvider"] = "fcm"
-        manifestPlaceholders["measureApiKey"] = measureConfigValue("MEASURE_API_KEY")
-        manifestPlaceholders["measureApiUrl"] = measureConfigValue("MEASURE_API_URL")
     }
 
     productFlavors {
@@ -137,15 +119,6 @@ flutter {
     source = "../.."
 }
 
-measure {
-    variantFilter {
-        if (name.contains("debug", ignoreCase = true)) {
-            enabled = false
-        }
-    }
-}
-
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    implementation("sh.measure:measure-android:0.18.0")
 }
