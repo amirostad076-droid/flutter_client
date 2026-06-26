@@ -188,7 +188,7 @@ class LoginViewModel extends _$LoginViewModel {
       final SsoStartResponse startResponse = await ref
           .read(authRepositoryProvider)
           .startSso(
-            redirectTo: 'fluxer://auth/sso/callback',
+            redirectUri: 'fluxer://auth/sso/callback',
           );
       final Uri callbackUri = await SsoAuthService().authenticate(
         authorizationUrl: startResponse.authorizationUrl,

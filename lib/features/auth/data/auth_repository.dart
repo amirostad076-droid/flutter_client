@@ -436,10 +436,13 @@ class AuthRepository {
     }
   }
 
-  Future<SsoStartResponse> startSso({String? redirectTo}) async {
+  Future<SsoStartResponse> startSso({
+    String? redirectTo,
+    String? redirectUri,
+  }) async {
     try {
       return await _client.auth.startSso(
-        body: SsoStartRequest(redirectTo: redirectTo),
+        body: SsoStartRequest(redirectTo: redirectTo, redirectUri: redirectUri),
       );
     } on DioException catch (error) {
       throw _failureFromDio(error);
