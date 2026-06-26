@@ -347,7 +347,15 @@ class _MessageListState extends ConsumerState<MessageList> {
         (!ignoreJumpTarget && _hasActiveJumpTarget())) {
       return;
     }
-    _chatViewModel.updateReadViewport(isNearBottom: _isLiveNearBottom());
+    final ScrollPosition position = _scrollController.position;
+    _chatViewModel.updateReadViewport(
+      isNearBottom: _isLiveNearBottom(),
+      distanceFromBottom: distanceFromScrollExtentEnd(
+        pixels: position.pixels,
+        minScrollExtent: position.minScrollExtent,
+      ),
+      viewportHeight: position.viewportDimension,
+    );
   }
 
   void _onScrollToBottom() {

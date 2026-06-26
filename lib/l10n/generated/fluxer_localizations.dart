@@ -8885,6 +8885,12 @@ abstract class FluxerLocalizations {
   /// **'Close'**
   String get uiClose;
 
+  /// Accessible label for the chat jump-to-bottom button.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to bottom'**
+  String get chatJumpToBottom;
+
   /// Generic confirm action label for modals and sheets.
   ///
   /// In en, this message translates to:

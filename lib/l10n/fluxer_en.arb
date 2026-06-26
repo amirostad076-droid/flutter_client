@@ -6305,6 +6305,10 @@
   "@uiClose": {
     "description": "Accessible label for icon-only close buttons."
   },
+  "chatJumpToBottom": "Jump to bottom",
+  "@chatJumpToBottom": {
+    "description": "Accessible label for the chat jump-to-bottom button."
+  },
   "uiConfirm": "Confirm",
   "@uiConfirm": {
     "description": "Generic confirm action label for modals and sheets."

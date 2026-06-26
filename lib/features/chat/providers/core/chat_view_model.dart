@@ -194,6 +194,8 @@ class ChatViewModel extends _$ChatViewModel {
   String? _contigNewestId;
   bool _readViewportActive = false;
   bool _readViewportNearBottom = true;
+  double _readViewportDistanceFromBottom = 0;
+  double _readViewportHeight = 0;
   // Guards against duplicate sends when send is triggered repeatedly before an
   // in-flight send finishes its async preparation (e.g. while the app lags).
   bool _isPreparingSend = false;
@@ -647,6 +649,8 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       if (state.channelId != channelId) {
         _readViewportNearBottom = false;
+        _readViewportDistanceFromBottom = 0;
+        _readViewportHeight = 0;
       }
       _syncActiveReadChannel(channelId: channelId);
       final String previousChannelId = state.channelId;
@@ -1252,6 +1256,8 @@ class ChatViewModel extends _$ChatViewModel {
           isAtBottom: _readViewportNearBottom,
           canAutoAck:
               _readViewportActive && ref.read(chatAutoAckAllowedProvider),
+          distanceFromBottom: _readViewportDistanceFromBottom,
+          viewportHeight: _readViewportHeight,
         );
   }
 
@@ -1265,8 +1271,14 @@ class ChatViewModel extends _$ChatViewModel {
     unawaited(ackCurrentChannel());
   }
 
-  void updateReadViewport({required bool isNearBottom}) {
+  void updateReadViewport({
+    required bool isNearBottom,
+    double distanceFromBottom = 0,
+    double viewportHeight = 0,
+  }) {
     _readViewportNearBottom = isNearBottom;
+    _readViewportDistanceFromBottom = distanceFromBottom;
+    _readViewportHeight = viewportHeight;
     _syncActiveReadChannel();
     if (!isNearBottom) {
       _readAckRetryTimer?.cancel();

@@ -5130,6 +5130,9 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
   String get uiClose => 'Close';
 
   @override
+  String get chatJumpToBottom => 'Jump to bottom';
+
+  @override
   String get uiConfirm => 'Confirm';
 
   @override

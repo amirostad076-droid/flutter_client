@@ -5,9 +5,11 @@ import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_t
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/slowmode_indicator.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/typing_indicator_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list_unread_review.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/neko_sprite.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/inline_expression_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/inline_expression_panel_host.dart';
+import 'package:fluxer_app/features/chat/providers/core/active_read_channel_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -54,6 +56,34 @@ class ChannelChatPanel extends ConsumerWidget {
     final bool showNeko = ref.watch(
       appearancePreferencesProvider.select((state) => state.showNeko),
     );
+    final ActiveReadChannelState activeRead = ref.watch(activeReadChannelProvider);
+    final String effectiveChannelId = listChannelId ??
+        ref.watch(chatViewModelProvider.select((ChatViewState s) => s.channelId));
+    final bool hasMessages = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.messages.isNotEmpty),
+    );
+    final bool isLoading = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.isLoading),
+    );
+    final bool hasMoreNewerMessages = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.hasMoreNewerMessages),
+    );
+    final bool isSyncingMessages = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.isSyncingMessages),
+    );
+    final bool isActiveReadChannel =
+        effectiveChannelId.isNotEmpty &&
+        activeRead.channelId == effectiveChannelId;
+    final bool showJumpToBottom = loadMessages &&
+        listChannelId != null &&
+        shouldShowJumpToBottomButton(
+          hasMessages: hasMessages,
+          isLoading: isLoading,
+          isActiveReadChannel: isActiveReadChannel,
+          distanceFromBottom: activeRead.distanceFromBottom,
+          viewportHeight: activeRead.viewportHeight,
+          hasMoreNewerMessages: hasMoreNewerMessages,
+        );
     return ColoredBox(
       color: context.colors.chatBackground,
       child: Stack(
@@ -108,6 +138,16 @@ class ChannelChatPanel extends ConsumerWidget {
                                     child: FluxerSheetCloseButton(
                                       onTap: onClose!,
                                     ),
+                                  ),
+                                ),
+                              if (showJumpToBottom)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: FluxerJumpToBottomButton(
+                                    enabled: !isSyncingMessages,
+                                    onTap: () => ref
+                                        .read(chatViewModelProvider.notifier)
+                                        .scrollToBottom(),
                                   ),
                                 ),
                               if (showNeko) const NekoSprite(),

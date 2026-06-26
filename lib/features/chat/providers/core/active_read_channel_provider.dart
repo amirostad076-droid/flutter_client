@@ -17,21 +17,33 @@ class ActiveReadChannelState {
     this.channelId = '',
     this.isAtBottom = false,
     this.canAutoAck = false,
+    this.distanceFromBottom = 0,
+    this.viewportHeight = 0,
   });
 
   final String channelId;
   final bool isAtBottom;
   final bool canAutoAck;
+  final double distanceFromBottom;
+  final double viewportHeight;
 
   @override
   bool operator ==(Object other) =>
       other is ActiveReadChannelState &&
       other.channelId == channelId &&
       other.isAtBottom == isAtBottom &&
-      other.canAutoAck == canAutoAck;
+      other.canAutoAck == canAutoAck &&
+      other.distanceFromBottom == distanceFromBottom &&
+      other.viewportHeight == viewportHeight;
 
   @override
-  int get hashCode => Object.hash(channelId, isAtBottom, canAutoAck);
+  int get hashCode => Object.hash(
+    channelId,
+    isAtBottom,
+    canAutoAck,
+    distanceFromBottom,
+    viewportHeight,
+  );
 }
 
 @Riverpod(keepAlive: true)
@@ -43,11 +55,15 @@ class ActiveReadChannel extends _$ActiveReadChannel {
     required String channelId,
     required bool isAtBottom,
     required bool canAutoAck,
+    required double distanceFromBottom,
+    required double viewportHeight,
   }) {
     final next = ActiveReadChannelState(
       channelId: channelId,
       isAtBottom: isAtBottom,
       canAutoAck: canAutoAck,
+      distanceFromBottom: distanceFromBottom,
+      viewportHeight: viewportHeight,
     );
     if (next != state) {
       state = next;
