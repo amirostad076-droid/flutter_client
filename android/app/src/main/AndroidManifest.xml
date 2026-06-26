@@ -36,7 +36,6 @@
 
     <application
         android:label="${appLabel}"
-        android:name=".FluxerApplication"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
