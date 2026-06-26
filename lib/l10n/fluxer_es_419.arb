@@ -620,7 +620,7 @@
     "@copiedToClipboard": {
         "description": "Toast message after copying text to clipboard."
     },
-    "notificationSettings": "Ajustes de Notificación",
+    "notificationSettings": "Ajustes de notificación",
     "@notificationSettings": {
         "description": "Title for guild notification settings bottom sheet."
     },
@@ -637,7 +637,7 @@
     "@notificationMuteDescription": {
         "description": "Description for the mute toggle in guild notification settings."
     },
-    "notificationCommunitySettings": "Ajustes de Notificación de la Comunidad",
+    "notificationCommunitySettings": "Ajustes de notificación de la comunidad",
     "@notificationCommunitySettings": {
         "description": "Section title for notification frequency options."
     },
@@ -693,7 +693,7 @@
     "@dmMuteConversation": {
         "description": "DM context menu action to mute a DM."
     },
-    "dmUnmuteConversation": "Desmutear chat",
+    "dmUnmuteConversation": "Desactivar silencio de chat",
     "@dmUnmuteConversation": {
         "description": "DM context menu action to unmute a DM."
     },
@@ -931,7 +931,7 @@
     "@dmMuted": {
         "description": "Toast message when a DM conversation is muted."
     },
-    "dmUnmuted": "Chat desmuteado",
+    "dmUnmuted": "Sonido de chat activado",
     "@dmUnmuted": {
         "description": "Toast message when a DM conversation is unmuted."
     },
@@ -3920,147 +3920,147 @@
     "@connectionVisibilityEveryone": {
         "description": "Label for the Everyone visibility toggle."
     },
-    "connectionVisibilityEveryoneDesc": "Allow anyone to see this connection on your profile",
+    "connectionVisibilityEveryoneDesc": "Permitir que cualquiera vea esta conexión en tu perfil",
     "@connectionVisibilityEveryoneDesc": {
         "description": "Description under the Everyone visibility toggle."
     },
-    "connectionVisibilityFriends": "Friends",
+    "connectionVisibilityFriends": "Amigos",
     "@connectionVisibilityFriends": {
         "description": "Label for the Friends visibility toggle."
     },
-    "connectionVisibilityFriendsDesc": "Allow your friends to see this connection",
+    "connectionVisibilityFriendsDesc": "Permitir que tus amigos vean esta conexión",
     "@connectionVisibilityFriendsDesc": {
         "description": "Description under the Friends visibility toggle."
     },
-    "connectionVisibilityCommunityMembers": "Community Members",
+    "connectionVisibilityCommunityMembers": "Miembros de la comunidad",
     "@connectionVisibilityCommunityMembers": {
         "description": "Label for the Community Members visibility toggle."
     },
-    "connectionVisibilityCommunityMembersDesc": "Allow members from communities you're in to see this connection",
+    "connectionVisibilityCommunityMembersDesc": "Permitir que los miembros de tus comunidades vean esta conexión",
     "@connectionVisibilityCommunityMembersDesc": {
         "description": "Description under the Community Members visibility toggle."
     },
-    "connectionRemoveTitle": "Remove Connection",
+    "connectionRemoveTitle": "Eliminar conexión",
     "@connectionRemoveTitle": {
         "description": "Title of the remove-connection confirmation sheet."
     },
-    "connectionRemoveDescription": "Are you sure you want to remove this connection? This action cannot be undone.",
+    "connectionRemoveDescription": "¿Estás seguro de que deseas eliminar esta conexión? Esta acción no se puede deshacer.",
     "@connectionRemoveDescription": {
         "description": "Body text of the remove-connection confirmation."
     },
-    "connectionRemoveConfirm": "Remove",
+    "connectionRemoveConfirm": "Eliminar",
     "@connectionRemoveConfirm": {
         "description": "Primary (danger) button on the remove-connection sheet."
     },
-    "connectionsLoadError": "Failed to load connections",
+    "connectionsLoadError": "Error al cargar las conexiones",
     "@connectionsLoadError": {
         "description": "Error message shown when the connections list fails to load."
     },
-    "connectionsReorderError": "Failed to update order",
+    "connectionsReorderError": "No se pudo actualizar el orden",
     "@connectionsReorderError": {
         "description": "Toast message when the reorder PATCH request fails."
     },
-    "connectionInitiateFailed": "Couldn't start verification. Try again.",
+    "connectionInitiateFailed": "No se pudo iniciar la verificación. Inténtalo de nuevo.",
     "@connectionInitiateFailed": {
         "description": "Error message shown in the add-connection sheet when the initiate request fails."
     },
-    "connectionVerifyFailed": "Couldn't verify. Check your DNS record and try again.",
+    "connectionVerifyFailed": "No se pudo verificar. Comprueba tu registro DNS e inténtalo de nuevo.",
     "@connectionVerifyFailed": {
         "description": "Error message shown in the verify step when the verify request fails."
     },
-    "connectionBlueskyAuthorizeFailed": "Couldn't start Bluesky authorization.",
+    "connectionBlueskyAuthorizeFailed": "No se pudo iniciar la autorización de Bluesky.",
     "@connectionBlueskyAuthorizeFailed": {
         "description": "Error shown when the Bluesky authorize endpoint or url_launcher fails."
     },
-    "connectionUpdateFailed": "Couldn't update connection",
+    "connectionUpdateFailed": "No se pudo actualizar la conexión",
     "@connectionUpdateFailed": {
         "description": "Toast shown when the visibility update fails."
     },
-    "connectionRemoveFailed": "Couldn't remove connection",
+    "connectionRemoveFailed": "No se pudo eliminar la conexión",
     "@connectionRemoveFailed": {
         "description": "Toast shown when the delete request fails."
     },
-    "connectionTokenSavedToast": "Saved fluxer-verification",
+    "connectionTokenSavedToast": "Verificación de Fluxer guardada",
     "@connectionTokenSavedToast": {
         "description": "Toast shown after the token file is saved successfully."
     },
-    "connectionTokenSaveFailedToast": "Couldn't save file",
+    "connectionTokenSaveFailedToast": "No se pudo guardar el archivo",
     "@connectionTokenSaveFailedToast": {
         "description": "Toast shown if saving the token file fails."
     },
-    "connectionEnterHandle": "Enter a Bluesky handle.",
+    "connectionEnterHandle": "Ingresa un usuario de Bluesky.",
     "@connectionEnterHandle": {
         "description": "Inline error shown when the Bluesky handle input is empty."
     },
-    "connectionEnterDomain": "Enter a domain.",
+    "connectionEnterDomain": "Ingresa un dominio.",
     "@connectionEnterDomain": {
         "description": "Inline error shown when the domain input is empty."
     },
-    "lookAndFeelTitle": "Look & Feel",
+    "lookAndFeelTitle": "Apariencia y estilo",
     "@lookAndFeelTitle": {
         "description": "Title of the Look & Feel (Appearance) settings page."
     },
-    "lookAndFeelThemeSectionTitle": "Theme",
+    "lookAndFeelThemeSectionTitle": "Tema",
     "@lookAndFeelThemeSectionTitle": {
         "description": "Section title for theme selection."
     },
-    "lookAndFeelThemeSectionDescription": "Choose between dark, coal, or light appearance.",
+    "lookAndFeelThemeSectionDescription": "Escoge el aspecto oscuro, carbón o claro.",
     "@lookAndFeelThemeSectionDescription": {
         "description": "Section description for theme selection."
     },
-    "lookAndFeelThemeDark": "Dark Theme",
+    "lookAndFeelThemeDark": "Tema oscuro",
     "@lookAndFeelThemeDark": {
         "description": "Label on the dark theme swatch button."
     },
-    "lookAndFeelThemeCoal": "Coal Theme",
+    "lookAndFeelThemeCoal": "Tema carbón",
     "@lookAndFeelThemeCoal": {
         "description": "Label on the coal (pitch-black) theme swatch button."
     },
-    "lookAndFeelThemeLight": "Light Theme",
+    "lookAndFeelThemeLight": "Tema claro",
     "@lookAndFeelThemeLight": {
         "description": "Label on the light theme swatch button."
     },
-    "lookAndFeelThemeSystem": "System Theme",
+    "lookAndFeelThemeSystem": "Tema del sistema",
     "@lookAndFeelThemeSystem": {
         "description": "Label on the system (OS-driven) theme swatch button."
     },
-    "lookAndFeelSyncThemeAcrossDevicesLabel": "Sync theme across devices",
+    "lookAndFeelSyncThemeAcrossDevicesLabel": "Sincronizar tema en todos los dispositivos",
     "@lookAndFeelSyncThemeAcrossDevicesLabel": {
         "description": "Toggle label — sync the selected theme to the user's other devices."
     },
-    "lookAndFeelSyncThemeAcrossDevicesDescription": "When enabled, theme changes will sync to all your devices. When disabled, this device will use its own theme setting.",
+    "lookAndFeelSyncThemeAcrossDevicesDescription": "Cuando está activado, los cambios de tema se sincronizarán en todos tus dispositivos. Cuando está desactivado, este dispositivo usará su propia configuración de tema.",
     "@lookAndFeelSyncThemeAcrossDevicesDescription": {
         "description": "Default description for the sync-theme-across-devices toggle."
     },
-    "lookAndFeelSyncThemeAcrossDevicesSystemDescription": "System theme automatically disables sync to track your system's preference on this device.",
+    "lookAndFeelSyncThemeAcrossDevicesSystemDescription": "El tema del sistema desactiva automáticamente la sincronización para seguir la preferencia de tu sistema en este dispositivo.",
     "@lookAndFeelSyncThemeAcrossDevicesSystemDescription": {
         "description": "Description shown under the sync toggle when System theme is active and the toggle is therefore disabled."
     },
-    "lookAndFeelThemeSyncFailed": "Couldn't sync theme to your account. Please try again.",
+    "lookAndFeelThemeSyncFailed": "No se pudo sincronizar el tema con tu cuenta. Por favor, inténtalo de nuevo.",
     "@lookAndFeelThemeSyncFailed": {
         "description": "Toast message shown when the server PATCH for a theme change or sync toggle fails."
     },
-    "lookAndFeelChatFontScalingTitle": "Chat Font Scaling",
+    "lookAndFeelChatFontScalingTitle": "Tamaño de letra del chat",
     "@lookAndFeelChatFontScalingTitle": {
         "description": "Section title for the chat font size slider."
     },
-    "lookAndFeelChatFontScalingDescription": "Adjust the font size in the chat area.",
+    "lookAndFeelChatFontScalingDescription": "Ajusta el tamaño de la fuente en el área de chat.",
     "@lookAndFeelChatFontScalingDescription": {
         "description": "Section description for the chat font size slider."
     },
-    "lookAndFeelInterfaceTitle": "Interface",
+    "lookAndFeelInterfaceTitle": "Interfaz",
     "@lookAndFeelInterfaceTitle": {
         "description": "Section title for interface customization."
     },
-    "lookAndFeelInterfaceDescription": "Customize interface elements and behaviors.",
+    "lookAndFeelInterfaceDescription": "Personaliza los elementos y el comportamiento de la interfaz.",
     "@lookAndFeelInterfaceDescription": {
         "description": "Section description for interface customization."
     },
-    "lookAndFeelChannelTypingIndicatorsTitle": "Channel list typing indicators",
+    "lookAndFeelChannelTypingIndicatorsTitle": "Indicadores de escritura en la lista de canales.",
     "@lookAndFeelChannelTypingIndicatorsTitle": {
         "description": "Subsection title under Interface."
     },
-    "lookAndFeelChannelTypingIndicatorsDescription": "Choose how typing indicators appear in the channel list when someone is typing in a channel.",
+    "lookAndFeelChannelTypingIndicatorsDescription": "Elige cómo aparecen los indicadores de escritura en la lista de canales cuando alguien está escribiendo en un canal.",
     "@lookAndFeelChannelTypingIndicatorsDescription": {
         "description": "Subsection description for channel typing indicators."
     },
@@ -4205,155 +4205,155 @@
     "@lookAndFeelShowActiveNowLabel": {
         "description": "Toggle label — show Active Now on the home screen."
     },
-    "lookAndFeelShowActiveNowDescription": "Show Active Now on the home screen to surface friends active in voice. You'll see a preview, the channel context, who's already there, and a quick way to join in.",
+    "lookAndFeelShowActiveNowDescription": "Muestra \"Activos ahora\" en la pantalla de inicio para ver amigos que están activos en voz. Verás una vista previa, el contexto del canal, quién está ya allí y una forma rápida de unirte.",
     "@lookAndFeelShowActiveNowDescription": {
         "description": "Toggle description for show-active-now."
     },
-    "lookAndFeelFavoritesSectionTitle": "Favorites",
+    "lookAndFeelFavoritesSectionTitle": "Favoritos",
     "@lookAndFeelFavoritesSectionTitle": {
         "description": "Section title for favorites visibility."
     },
-    "lookAndFeelFavoritesSectionDescription": "Control the visibility of favorites throughout the app.",
+    "lookAndFeelFavoritesSectionDescription": "Controla la visibilidad de los favoritos en toda la aplicación.",
     "@lookAndFeelFavoritesSectionDescription": {
         "description": "Section description for favorites visibility."
     },
-    "lookAndFeelEnableFavoritesLabel": "Enable Favorites",
+    "lookAndFeelEnableFavoritesLabel": "Habilitar favoritos",
     "@lookAndFeelEnableFavoritesLabel": {
         "description": "Toggle label — enable the Favorites feature."
     },
-    "lookAndFeelEnableFavoritesDescription": "When enabled, you can favorite channels and they'll appear in the Favorites section. When disabled, all favorite-related UI elements (buttons, menu items) will be hidden. Your existing favorites will be preserved.",
+    "lookAndFeelEnableFavoritesDescription": "Cuando está activado, puedes marcar canales como favoritos y aparecerán en la sección de Favoritos. Cuando está desactivado, todos los elementos de la interfaz relacionados con los favoritos (botones, opciones de menú) se ocultaran. Tus favoritos existentes se conservarán.",
     "@lookAndFeelEnableFavoritesDescription": {
         "description": "Toggle description for the Enable Favorites switch."
     },
-    "favoritesTitle": "Favorites",
+    "favoritesTitle": "Favoritos",
     "@favoritesTitle": {
         "description": "Title for the favorites section."
     },
-    "favoritesEmptyTitle": "No favorites yet",
+    "favoritesEmptyTitle": "Aún no tienes favoritos",
     "@favoritesEmptyTitle": {
         "description": "Empty state title when no channels are favorited."
     },
-    "favoritesEmptyDescription": "Star channels from the chat header to keep them here.",
+    "favoritesEmptyDescription": "Marca canales como favoritos desde el encabezado del chat para mantenerlos aquí.",
     "@favoritesEmptyDescription": {
         "description": "Empty state description for favorites."
     },
-    "favoritesWelcomeTitle": "Welcome to favorites",
+    "favoritesWelcomeTitle": "Bienvenido a Favoritos",
     "@favoritesWelcomeTitle": {
         "description": "Welcome screen title for favorites."
     },
-    "favoritesWelcomeDescription": "Your personal space for quick access to channels, DMs, and groups you love. Press the star on any channel to add it here.",
+    "favoritesWelcomeDescription": "Tu espacio personal para acceder rápidamente a los canales, mensajes directos y grupos que más te gustan. Presiona la estrella en cualquier canal para añadirlo aquí.",
     "@favoritesWelcomeDescription": {
         "description": "Welcome screen description for favorites."
     },
-    "favoritesWelcomeTip": "Not for you? Turn it off anytime.",
+    "favoritesWelcomeTip": "¿No es para ti? Puedes desactivarlo en cualquier momento.",
     "@favoritesWelcomeTip": {
         "description": "Welcome screen tip for disabling favorites."
     },
-    "favoritesDisableButton": "Disable favorites",
+    "favoritesDisableButton": "Desactivar favoritos",
     "@favoritesDisableButton": {
         "description": "Button to disable favorites from welcome screen."
     },
-    "favoritesAddedToast": "Added to Favorites",
+    "favoritesAddedToast": "Añadido a favoritos",
     "@favoritesAddedToast": {
         "description": "Toast when a channel is added to favorites."
     },
-    "favoritesRemovedToast": "Removed from Favorites",
+    "favoritesRemovedToast": "Eliminado de favoritos",
     "@favoritesRemovedToast": {
         "description": "Toast when a channel is removed from favorites."
     },
-    "favoritesHiddenToast": "Favorites hidden",
+    "favoritesHiddenToast": "Favoritos ocultos",
     "@favoritesHiddenToast": {
         "description": "Toast when favorites UI is hidden."
     },
-    "favoritesMute": "Mute favorites",
+    "favoritesMute": "Silenciar favoritos",
     "@favoritesMute": {
         "description": "Action to mute the favorites section."
     },
-    "favoritesUnmute": "Unmute favorites",
+    "favoritesUnmute": "Reactivar notificaciones de favoritos",
     "@favoritesUnmute": {
         "description": "Action to unmute the favorites section."
     },
-    "favoritesHeaderMenu": "Favorites menu",
+    "favoritesHeaderMenu": "Menú de favoritos",
     "@favoritesHeaderMenu": {
         "description": "Accessibility label for favorites header menu."
     },
-    "favoritesCreateCategory": "Create category",
+    "favoritesCreateCategory": "Crear categoría",
     "@favoritesCreateCategory": {
         "description": "Action to create a favorites category."
     },
-    "favoritesCategoryNameLabel": "Category name",
+    "favoritesCategoryNameLabel": "Nombre de la categoría",
     "@favoritesCategoryNameLabel": {
         "description": "Label for favorites category name input."
     },
-    "favoritesHideMutedChannels": "Hide muted channels",
+    "favoritesHideMutedChannels": "Ocultar canales silenciados",
     "@favoritesHideMutedChannels": {
         "description": "Toggle to hide muted channels in favorites."
     },
-    "favoritesShowMutedChannels": "Show muted channels",
+    "favoritesShowMutedChannels": "Mostrar canales silenciados",
     "@favoritesShowMutedChannels": {
         "description": "Toggle to show muted channels in favorites."
     },
-    "favoritesSetNickname": "Set nickname",
+    "favoritesSetNickname": "Establecer apodo",
     "@favoritesSetNickname": {
         "description": "Action to set a favorite channel nickname."
     },
-    "favoritesNicknameLabel": "Nickname",
+    "favoritesNicknameLabel": "Apodo",
     "@favoritesNicknameLabel": {
         "description": "Label for favorite channel nickname input."
     },
-    "favoritesSaveNickname": "Save nickname",
+    "favoritesSaveNickname": "Guardar apodo",
     "@favoritesSaveNickname": {
         "description": "Button to save favorite channel nickname."
     },
-    "favoritesMoveToCategory": "Move to category",
+    "favoritesMoveToCategory": "Mover a categoría",
     "@favoritesMoveToCategory": {
         "description": "Action to move a favorite to a category."
     },
-    "favoritesUncategorized": "Uncategorized",
+    "favoritesUncategorized": "Sin categoría",
     "@favoritesUncategorized": {
         "description": "Label for uncategorized favorites."
     },
-    "favoritesOtherCategory": "Other",
+    "favoritesOtherCategory": "Otros",
     "@favoritesOtherCategory": {
         "description": "Label for favorites in deleted categories."
     },
-    "favoritesRemoveFromFavorites": "Remove from Favorites",
+    "favoritesRemoveFromFavorites": "Quitar de favoritos",
     "@favoritesRemoveFromFavorites": {
         "description": "Action to remove a channel from favorites."
     },
-    "favoritesAddToFavorites": "Add to Favorites",
+    "favoritesAddToFavorites": "Añadir a favoritos",
     "@favoritesAddToFavorites": {
         "description": "Action to add a channel to favorites."
     },
-    "favoritesHideConfirmTitle": "Hide favorites",
+    "favoritesHideConfirmTitle": "Ocultar favoritos",
     "@favoritesHideConfirmTitle": {
         "description": "Title for hide favorites confirmation."
     },
-    "favoritesHideConfirmDescription": "This will hide all favorites-related UI elements including buttons and menu items. Your existing favorites will be preserved and can be re-enabled anytime from Settings > Advanced > Appearance.",
+    "favoritesHideConfirmDescription": "Esto ocultará todos los elementos de la interfaz relacionados con favoritos, incluidos los botones y las opciones del menú. Tus favoritos actuales se conservarán y podrás volver a activarlos en cualquier momento desde Ajustes > Avanzado > Apariencia.",
     "@favoritesHideConfirmDescription": {
         "description": "Description for hide favorites confirmation."
     },
-    "favoritesDirectMessageSubtitle": "Direct Message",
+    "favoritesDirectMessageSubtitle": "Mensaje directo",
     "@favoritesDirectMessageSubtitle": {
         "description": "Subtitle for a 1:1 DM in the favorites channel list."
     },
-    "messagesMediaDisplayGroupTitle": "Display",
+    "messagesMediaDisplayGroupTitle": "Visualización",
     "@messagesMediaDisplayGroupTitle": {
         "description": "Top-level section title for message display settings."
     },
-    "messagesMediaDisplayGroupDescription": "Control how messages, media, and other content are displayed.",
+    "messagesMediaDisplayGroupDescription": "Controla como se muestran los mensajes, archivos multimedia y otros contenidos.",
     "@messagesMediaDisplayGroupDescription": {
         "description": "Top-level section description for message display settings."
     },
-    "messagesMediaMediaGroupTitle": "Media",
+    "messagesMediaMediaGroupTitle": "Multimedia",
     "@messagesMediaMediaGroupTitle": {
         "description": "Top-level section title for media settings."
     },
-    "messagesMediaMediaGroupDescription": "Customize media size preferences and buttons.",
+    "messagesMediaMediaGroupDescription": "Personaliza los botones y las preferencias de tamaño de los archivos multimedia.",
     "@messagesMediaMediaGroupDescription": {
         "description": "Top-level section description for media settings."
     },
-    "messagesMediaInputGroupTitle": "Input",
+    "messagesMediaInputGroupTitle": "Entrada",
     "@messagesMediaInputGroupTitle": {
         "description": "Top-level section title for message input settings."
     },
@@ -4505,79 +4505,79 @@
     "@messagesMediaSizeCompactDescription": {
         "description": "Description for the small media size option."
     },
-    "messagesMediaSizeComfortableName": "Comfortable (550x400)",
+    "messagesMediaSizeComfortableName": "Cómodo",
     "@messagesMediaSizeComfortableName": {
         "description": "Media size option — large."
     },
-    "messagesMediaSizeComfortableDescription": "Larger media size with more detail",
+    "messagesMediaSizeComfortableDescription": "Tamaño de archivos multimedia más grande con más detalles",
     "@messagesMediaSizeComfortableDescription": {
         "description": "Description for the large media size option."
     },
-    "messagesMediaGifsSectionTitle": "GIF Behavior",
+    "messagesMediaGifsSectionTitle": "Comportamiento de los GIF",
     "@messagesMediaGifsSectionTitle": {
         "description": "Section title for GIF behavior."
     },
-    "messagesMediaGifsSectionDescription": "Control how GIFs are inserted into chat",
+    "messagesMediaGifsSectionDescription": "Controla cómo se insertan los GIF en el chat",
     "@messagesMediaGifsSectionDescription": {
         "description": "Section description for GIF behavior."
     },
-    "messagesMediaGifsAutoSendLabel": "Automatically send GIFs when selected",
+    "messagesMediaGifsAutoSendLabel": "Enviar automáticamente los GIF al seleccionarlos",
     "@messagesMediaGifsAutoSendLabel": {
         "description": "Toggle label for auto-sending GIFs from picker."
     },
-    "messagesMediaAutocompleteSectionTitle": "Expression autocomplete (colon autocomplete)",
+    "messagesMediaAutocompleteSectionTitle": "Autocompletar expresiones (autocompletar con dos puntos)",
     "@messagesMediaAutocompleteSectionTitle": {
         "description": "Section title for expression autocomplete settings."
     },
-    "messagesMediaAutocompleteSectionDescription": "Control what appears in the expression autocomplete when you type colon. Customize what suggestions show up to match your preferences.",
+    "messagesMediaAutocompleteSectionDescription": "Controla qué aparece al autocompletar expresiones cuando escribes dos puntos. Personaliza las sugerencias que se muestran según tus preferencias.",
     "@messagesMediaAutocompleteSectionDescription": {
         "description": "Section description for expression autocomplete settings."
     },
-    "messagesMediaAutocompleteDefaultEmojisLabel": "Show default emojis in expression autocomplete",
+    "messagesMediaAutocompleteDefaultEmojisLabel": "Mostrar emojis predeterminados al autocompletar expresiones",
     "@messagesMediaAutocompleteDefaultEmojisLabel": {
         "description": "Toggle label for default emojis in expression autocomplete."
     },
-    "messagesMediaAutocompleteCustomEmojisLabel": "Show custom emojis in expression autocomplete",
+    "messagesMediaAutocompleteCustomEmojisLabel": "Mostrar emojis personalizados al autocompletar expresiones",
     "@messagesMediaAutocompleteCustomEmojisLabel": {
         "description": "Toggle label for custom emojis in expression autocomplete."
     },
-    "messagesMediaAutocompleteStickersLabel": "Show stickers in expression autocomplete",
+    "messagesMediaAutocompleteStickersLabel": "Mostrar stickers al autocompletar expresiones",
     "@messagesMediaAutocompleteStickersLabel": {
         "description": "Toggle label for stickers in expression autocomplete."
     },
-    "messagesMediaAutocompleteSavedMediaLabel": "Show saved media in expression autocomplete",
+    "messagesMediaAutocompleteSavedMediaLabel": "Mostrar archivos multimedia guardados al autocompletar expresiones",
     "@messagesMediaAutocompleteSavedMediaLabel": {
         "description": "Toggle label for saved media in expression autocomplete."
     },
-    "messagesMediaEditingSectionTitle": "Message Editing",
+    "messagesMediaEditingSectionTitle": "Edición de mensajes",
     "@messagesMediaEditingSectionTitle": {
         "description": "Section title for message editing settings."
     },
-    "messagesMediaEditingSectionDescription": "Control what happens to your edit draft when you cancel.",
+    "messagesMediaEditingSectionDescription": "Controla que sucede con el borrador de edición cuando cancelas.",
     "@messagesMediaEditingSectionDescription": {
         "description": "Section description for message editing settings."
     },
-    "messagesMediaEditingPreserveDraftLabel": "Preserve edit draft on cancel",
+    "messagesMediaEditingPreserveDraftLabel": "Conservar el borrador de edición al cancelar",
     "@messagesMediaEditingPreserveDraftLabel": {
         "description": "Toggle label for preserving edit drafts on cancel."
     },
-    "accessibilityUnreadGroupTitle": "Unread indicators",
+    "accessibilityUnreadGroupTitle": "Indicadores de no leídos",
     "@accessibilityUnreadGroupTitle": {
         "description": "Section title for unread-indicator accessibility settings."
     },
-    "accessibilityUnreadGroupDescription": "Control how unread message indicators are displayed.",
+    "accessibilityUnreadGroupDescription": "Controla como se muestran los indicadores de mensajes no leídos.",
     "@accessibilityUnreadGroupDescription": {
         "description": "Section description for unread-indicator accessibility settings."
     },
-    "accessibilityShowFadedUnreadOnMutedChannelsLabel": "Show faded unread indicator on muted channels",
+    "accessibilityShowFadedUnreadOnMutedChannelsLabel": "Mostrar el indicador de no leídos difuminado en canales silenciados",
     "@accessibilityShowFadedUnreadOnMutedChannelsLabel": {
         "description": "Toggle label for showing a faded unread indicator on muted channels."
     },
-    "accessibilityShowFadedUnreadOnMutedChannelsDescription": "Display a dimmed unread indicator next to muted direct messages and channels so you can still see at a glance when there's activity.",
+    "accessibilityShowFadedUnreadOnMutedChannelsDescription": "Muestra un indicador de no leídos difuminado junto a los canales y mensajes directos silenciados para que puedas ver de un vistazo si hay actividad.",
     "@accessibilityShowFadedUnreadOnMutedChannelsDescription": {
         "description": "Toggle description for showing a faded unread indicator on muted channels."
     },
-    "voiceConnectionConfirmTitle": "Voice Connection Confirmation",
+    "voiceConnectionConfirmTitle": "Confirmación de conexión de voz",
     "@voiceConnectionConfirmTitle": {
         "description": "Title of the multi-device voice join confirmation dialog."
     },
@@ -4658,27 +4658,27 @@
     "@voiceParticipantTooltipMobileDevice": {
         "description": "Tooltip on the device icon in the voice participant nameplate when the connection is mobile."
     },
-    "voiceParticipantTooltipDesktopDevice": "Desktop device",
+    "voiceParticipantTooltipDesktopDevice": "Dispositivo de escritorio",
     "@voiceParticipantTooltipDesktopDevice": {
         "description": "Tooltip on the device icon in the voice participant nameplate when the connection is desktop."
     },
-    "voiceParticipantTooltipCommunityMuted": "Community muted",
+    "voiceParticipantTooltipCommunityMuted": "Comunidad silenciada",
     "@voiceParticipantTooltipCommunityMuted": {
         "description": "Tooltip when the participant is muted by the community (server-side)."
     },
-    "voiceParticipantTooltipMuted": "Muted",
+    "voiceParticipantTooltipMuted": "Silenciado",
     "@voiceParticipantTooltipMuted": {
         "description": "Tooltip when the participant is self-muted."
     },
-    "voiceParticipantTooltipCommunityDeafened": "Community deafened",
+    "voiceParticipantTooltipCommunityDeafened": "Comunidad ensordecida",
     "@voiceParticipantTooltipCommunityDeafened": {
         "description": "Tooltip when the participant is deafened by the community (server-side)."
     },
-    "voiceParticipantTooltipDeafened": "Deafened",
+    "voiceParticipantTooltipDeafened": "Ensordecido",
     "@voiceParticipantTooltipDeafened": {
         "description": "Tooltip when the participant is self-deafened."
     },
-    "voiceParticipantTooltipConnection": "Connection: {connectionId}",
+    "voiceParticipantTooltipConnection": "Conexión: {connectionId}",
     "@voiceParticipantTooltipConnection": {
         "description": "Tooltip for the short connection id shown in the participant nameplate.",
         "placeholders": {
@@ -4687,7 +4687,7 @@
             }
         }
     },
-    "voiceChannelParticipantCount": "{count, plural, =1{1 participant} other{{count} participants}}",
+    "voiceChannelParticipantCount": "{count, plural, =1{1 participante} other{{count} participantes}}",
     "@voiceChannelParticipantCount": {
         "description": "Participant count label in the guild voice channel in-call view.",
         "placeholders": {
@@ -4696,43 +4696,43 @@
             }
         }
     },
-    "voiceChannelLeave": "Leave",
+    "voiceChannelLeave": "Desconectar",
     "@voiceChannelLeave": {
         "description": "Button to leave the voice call from the in-page voice view."
     },
-    "voiceControlMute": "Mute",
+    "voiceControlMute": "Silenciar",
     "@voiceControlMute": {
         "description": "Tooltip: mute the microphone in the voice call control bar."
     },
-    "voiceControlUnmute": "Unmute",
+    "voiceControlUnmute": "Desactivar silencio",
     "@voiceControlUnmute": {
         "description": "Tooltip: unmute the microphone in the voice call control bar."
     },
-    "voiceControlDeafen": "Deafen",
+    "voiceControlDeafen": "Ensordecer",
     "@voiceControlDeafen": {
         "description": "Tooltip: deafen (mute + disable incoming audio) in the voice call control bar."
     },
-    "voiceControlUndeafen": "Undeafen",
+    "voiceControlUndeafen": "Desactivar ensordecimiento",
     "@voiceControlUndeafen": {
         "description": "Tooltip: undeafen in the voice call control bar."
     },
-    "voiceControlVideo": "Video",
+    "voiceControlVideo": "Activar cámara",
     "@voiceControlVideo": {
         "description": "Tooltip: camera in the voice call control bar (when supported)."
     },
-    "voiceControlScreenShare": "Screen share",
+    "voiceControlScreenShare": "Compartir pantalla",
     "@voiceControlScreenShare": {
         "description": "Tooltip: share screen in the voice call control bar (when supported)."
     },
-    "voiceScreenShareNotificationText": "Sharing your screen.",
+    "voiceScreenShareNotificationText": "Compartiendo tu pantalla",
     "@voiceScreenShareNotificationText": {
         "description": "Body text for the Android foreground notification shown while screen sharing."
     },
-    "voiceControlMore": "More",
+    "voiceControlMore": "Más",
     "@voiceControlMore": {
         "description": "Tooltip: more voice actions in the voice call control bar."
     },
-    "voiceControlDisconnect": "Disconnect",
+    "voiceControlDisconnect": "Desconectar",
     "@voiceControlDisconnect": {
         "description": "Tooltip: leave the voice call in the voice call control bar."
     },
@@ -4740,11 +4740,11 @@
     "@voiceControlChat": {
         "description": "Label for the chat button in voice lobby and call control surfaces."
     },
-    "voiceTextChatShow": "Show chat",
+    "voiceTextChatShow": "Mostrar chat",
     "@voiceTextChatShow": {
         "description": "Accessibility label for opening voice channel text chat."
     },
-    "voiceTextChatShowUnread": "Show chat with {count, plural, one {# unread message} other {# unread messages}}",
+    "voiceTextChatShowUnread": "Mostrar chat con {count, plural, one {# mensaje sin leer} other {# mensajes sin leer}}",
     "@voiceTextChatShowUnread": {
         "description": "Accessibility label when voice channel text chat has unread messages.",
         "placeholders": {
@@ -4753,19 +4753,19 @@
             }
         }
     },
-    "voiceCameraPermissionRequired": "Camera permission is required for video.",
+    "voiceCameraPermissionRequired": "Necesitas permitir el acceso a la cámara para el video.",
     "@voiceCameraPermissionRequired": {
         "description": "Error when the user enables video but camera access is denied."
     },
-    "voiceErrorScreenShareToggle": "Couldn't start screen sharing. Please try again.",
+    "voiceErrorScreenShareToggle": "No se pudo compartir pantalla. Inténtalo de nuevo.",
     "@voiceErrorScreenShareToggle": {
         "description": "Error shown when toggling screen sharing fails for an unknown reason."
     },
-    "voiceErrorScreenSharePermissionDenied": "Screen-sharing permission was denied.",
+    "voiceErrorScreenSharePermissionDenied": "Se denegó el permiso para compartir pantalla.",
     "@voiceErrorScreenSharePermissionDenied": {
         "description": "Error shown when the OS denies screen-capture permission."
     },
-    "voiceErrorScreenShareUnsupported": "Screen sharing isn't available on this device.",
+    "voiceErrorScreenShareUnsupported": "La transmisión de pantalla no está disponible en este dispositivo",
     "@voiceErrorScreenShareUnsupported": {
         "description": "Error shown when screen sharing is invoked on a platform that does not support it."
     },
@@ -4861,67 +4861,67 @@
     "@notificationsMentionIncludeEveryone": {
         "description": "Checkbox label for everybody mentions in mentions filter."
     },
-    "notificationsMentionIncludeRoles": "Include role mentions",
+    "notificationsMentionIncludeRoles": "Incluir mención de roles",
     "@notificationsMentionIncludeRoles": {
         "description": "Checkbox label for role mentions in mentions filter."
     },
-    "notificationsMentionIncludeGuilds": "Include all community mentions",
+    "notificationsMentionIncludeGuilds": "Incluir todas las menciones de la comunidad",
     "@notificationsMentionIncludeGuilds": {
         "description": "Checkbox label for all guild/community mentions filter."
     },
-    "notificationsNoUnreadTitle": "No Unread Messages",
+    "notificationsNoUnreadTitle": "No hay mensajes sin leer",
     "@notificationsNoUnreadTitle": {
         "description": "Empty-state title when there are no unreads."
     },
-    "notificationsNoUnreadBody": "You're all caught up.",
+    "notificationsNoUnreadBody": "Estás al día.",
     "@notificationsNoUnreadBody": {
         "description": "Empty-state body when there are no unreads."
     },
-    "notificationsNoMentionsTitle": "No Recent Mentions",
+    "notificationsNoMentionsTitle": "No hay menciones recientes",
     "@notificationsNoMentionsTitle": {
         "description": "Empty-state title when there are no recent mentions."
     },
-    "notificationsNoMentionsBody": "All @mentions of you will appear here for 7 days.",
+    "notificationsNoMentionsBody": "Todas las menciones con @ aparecerán aquí por 7 días.",
     "@notificationsNoMentionsBody": {
         "description": "Empty-state body for mentions tab."
     },
-    "notificationsMentionsEndTitle": "You've reached the end",
+    "notificationsMentionsEndTitle": "Has llegado al final.",
     "@notificationsMentionsEndTitle": {
         "description": "Footer title when mentions pagination is exhausted."
     },
-    "notificationsMentionsEndBody": "You've seen all your recent mentions. Don't fret, more will appear here soon.",
+    "notificationsMentionsEndBody": "Has visto todas tus menciones recientes. No te preocupes, pronto aparecerán más aquí.",
     "@notificationsMentionsEndBody": {
         "description": "Footer body when mentions pagination is exhausted."
     },
-    "notificationsJump": "Jump",
+    "notificationsJump": "Ir a",
     "@notificationsJump": {
         "description": "Button to navigate to channel message."
     },
-    "notificationsRemoveMentionTooltip": "Remove mention",
+    "notificationsRemoveMentionTooltip": "Quitar mención",
     "@notificationsRemoveMentionTooltip": {
         "description": "Tooltip to dismiss a mention from the feed."
     },
-    "notificationsViewAllUnread": "View all unread",
+    "notificationsViewAllUnread": "Ver mensajes sin leer",
     "@notificationsViewAllUnread": {
         "description": "Button to open unread channel location."
     },
-    "notificationsMarkAsRead": "Mark as read",
+    "notificationsMarkAsRead": "Marcar como leído",
     "@notificationsMarkAsRead": {
         "description": "Mark inbox channel unread as read."
     },
-    "notificationsExpand": "Expand",
+    "notificationsExpand": "Ver más",
     "@notificationsExpand": {
         "description": "Expand collapsed unread inbox card."
     },
-    "notificationsCollapse": "Collapse",
+    "notificationsCollapse": "Ver menos",
     "@notificationsCollapse": {
         "description": "Collapse unread inbox card preview."
     },
-    "notificationsMessageUnavailable": "This message couldn't be loaded.",
+    "notificationsMessageUnavailable": "No se pudo cargar este mensaje.",
     "@notificationsMessageUnavailable": {
         "description": "Shown when an inbox mention row has no backing message row."
     },
-    "characterCounterRemaining": "{remaining} characters left",
+    "characterCounterRemaining": "Quedan {remaining} caracteres",
     "@characterCounterRemaining": {
         "description": "Character counter tooltip showing how many characters remain.",
         "placeholders": {
@@ -4930,11 +4930,11 @@
             }
         }
     },
-    "characterCounterTooLong": "Message is too long",
+    "characterCounterTooLong": "El mensaje es demasiado largo",
     "@characterCounterTooLong": {
         "description": "Character counter tooltip when the message exceeds the allowed length."
     },
-    "characterCounterRemainingPlutoniumUpsell": "{remaining} characters left. Get {productName} to write up to {premiumMaxLength} characters.",
+    "characterCounterRemainingPlutoniumUpsell": "Quedan {remaining} caracteres. Consigue {productName} para escribir hasta {premiumMaxLength} caracteres.",
     "@characterCounterRemainingPlutoniumUpsell": {
         "description": "Character counter tooltip with a Plutonium upsell when nearing the limit.",
         "placeholders": {
@@ -4949,47 +4949,47 @@
             }
         }
     },
-    "chatMessageFailedToSend": "Failed to send message",
+    "chatMessageFailedToSend": "Error al enviar el mensaje",
     "@chatMessageFailedToSend": {
         "description": "Status label shown under a failed outgoing chat message."
     },
-    "chatMessageDeleteFailed": "Delete Failed Message",
+    "chatMessageDeleteFailed": "Eliminar mensaje fallido",
     "@chatMessageDeleteFailed": {
         "description": "Action label for deleting a failed outgoing chat message."
     },
-    "chatMessageAddReaction": "Add Reaction",
+    "chatMessageAddReaction": "Añadir reacción",
     "@chatMessageAddReaction": {
         "description": "Action label for opening reaction picker for a message."
     },
-    "chatMessageEdit": "Edit Message",
+    "chatMessageEdit": "Editar mensaje",
     "@chatMessageEdit": {
         "description": "Action label for editing a sent message."
     },
-    "chatMessageReply": "Reply",
+    "chatMessageReply": "Responder",
     "@chatMessageReply": {
         "description": "Action label for replying to a message."
     },
-    "chatMessageForward": "Forward",
+    "chatMessageForward": "Reenviar",
     "@chatMessageForward": {
         "description": "Action label for forwarding a message."
     },
-    "forwardMessageTitle": "Forward message",
+    "forwardMessageTitle": "Reenviar mensaje",
     "@forwardMessageTitle": {
         "description": "Title of the forward-message bottom sheet."
     },
-    "forwardSearchHint": "Search channels or DMs",
+    "forwardSearchHint": "Buscar canales o chats",
     "@forwardSearchHint": {
         "description": "Placeholder for the destination search field in the forward sheet."
     },
-    "forwardDirectMessagesSection": "Direct Messages",
+    "forwardDirectMessagesSection": "Mensajes directos",
     "@forwardDirectMessagesSection": {
         "description": "Section header for direct-message destinations in the forward sheet."
     },
-    "forwardCommentHint": "Add a comment (optional)",
+    "forwardCommentHint": "Añadir un comentario (opcional)",
     "@forwardCommentHint": {
         "description": "Placeholder for the optional comment field in the forward sheet."
     },
-    "forwardSendButton": "Send ({count}/{limit})",
+    "forwardSendButton": "Enviar ({count}/{limit})",
     "@forwardSendButton": {
         "description": "Forward sheet send button label with the selected destination count and the selection limit.",
         "placeholders": {
@@ -5001,43 +5001,43 @@
             }
         }
     },
-    "forwardEmptyState": "No channels found",
+    "forwardEmptyState": "No se encontraron canales",
     "@forwardEmptyState": {
         "description": "Shown in the forward sheet when no destinations match the search."
     },
-    "forwardSuccessToast": "Message forwarded",
+    "forwardSuccessToast": "Mensaje reenviado",
     "@forwardSuccessToast": {
         "description": "Toast shown after a message is successfully forwarded."
     },
-    "forwardFailed": "Failed to forward message",
+    "forwardFailed": "Error al reenviar mensaje",
     "@forwardFailed": {
         "description": "Toast shown when forwarding a message fails."
     },
-    "forwardCommentSlowmodeDisabled": "Comments are unavailable because a selected channel has slowmode enabled.",
+    "forwardCommentSlowmodeDisabled": "Los comentarios no están disponibles porque el canal seleccionado tiene modo lento activado.",
     "@forwardCommentSlowmodeDisabled": {
         "description": "Notice shown in the forward sheet when the optional comment is disabled due to slowmode on a selected destination."
     },
-    "forwardDestinationNoSendPermission": "You can't send messages here",
+    "forwardDestinationNoSendPermission": "No puedes enviar mensajes aquí",
     "@forwardDestinationNoSendPermission": {
         "description": "Reason shown on a disabled forward destination when the user lacks the send-messages permission."
     },
-    "forwardDestinationNoEmbedPermission": "You can't embed links here",
+    "forwardDestinationNoEmbedPermission": "No puedes incluir enlaces aquí",
     "@forwardDestinationNoEmbedPermission": {
         "description": "Reason shown on a disabled forward destination when the user lacks embed-links permission and the message has embeds."
     },
-    "forwardDestinationNoAttachPermission": "You can't attach files here",
+    "forwardDestinationNoAttachPermission": "No puedes adjuntar archivos aquí",
     "@forwardDestinationNoAttachPermission": {
         "description": "Reason shown on a disabled forward destination when the user lacks attach-files permission and the message has attachments."
     },
-    "forwardDestinationGuildSendDisabled": "Sending messages is disabled in this community",
+    "forwardDestinationGuildSendDisabled": "El envío de mensajes está desactivado en esta comunidad",
     "@forwardDestinationGuildSendDisabled": {
         "description": "Reason shown on a disabled forward destination when the destination guild has sending disabled server-wide."
     },
-    "forwardDestinationTimedOut": "You're on timeout in this community",
+    "forwardDestinationTimedOut": "Estás en aislamiento en esta comunidad",
     "@forwardDestinationTimedOut": {
         "description": "Reason shown on a disabled forward destination when the current user is timed out (communication disabled) in the destination guild."
     },
-    "forwardDestinationSlowmodeCoolingDown": "Slowmode - wait {remaining}",
+    "forwardDestinationSlowmodeCoolingDown": "Modo lento: espera {remaining}",
     "@forwardDestinationSlowmodeCoolingDown": {
         "description": "Reason shown on a disabled forward destination currently within its slowmode cool-down window. Preserve {remaining}; it is the formatted MM:SS countdown inserted by code.",
         "placeholders": {
@@ -5046,199 +5046,199 @@
             }
         }
     },
-    "chatMessageCopyText": "Copy Message",
+    "chatMessageCopyText": "Copiar mensaje",
     "@chatMessageCopyText": {
         "description": "Action label for copying message text."
     },
-    "chatMessagePin": "Pin Message",
+    "chatMessagePin": "Fijar mensaje",
     "@chatMessagePin": {
         "description": "Action label for pinning a message."
     },
-    "chatMessageUnpin": "Unpin Message",
+    "chatMessageUnpin": "Desfijar mensaje",
     "@chatMessageUnpin": {
         "description": "Action label for unpinning a message."
     },
-    "chatMessageBookmark": "Bookmark Message",
+    "chatMessageBookmark": "Marcar mensaje",
     "@chatMessageBookmark": {
         "description": "Action label for bookmarking a message."
     },
-    "chatMessageRemoveBookmark": "Remove Bookmark",
+    "chatMessageRemoveBookmark": "Eliminar marcador",
     "@chatMessageRemoveBookmark": {
         "description": "Action label for removing a message bookmark."
     },
-    "chatMessageMarkAsUnread": "Mark as Unread",
+    "chatMessageMarkAsUnread": "Marcar como no leído",
     "@chatMessageMarkAsUnread": {
         "description": "Action label for marking a message as unread."
     },
-    "chatMessageCopyMessageLink": "Copy Message Link",
+    "chatMessageCopyMessageLink": "Copiar enlace del mensaje",
     "@chatMessageCopyMessageLink": {
         "description": "Action label for copying a message's deep link."
     },
-    "chatMessageCopyMessageId": "Copy Message ID",
+    "chatMessageCopyMessageId": "Copiar ID del mensaje",
     "@chatMessageCopyMessageId": {
         "description": "Action label for copying the message's snowflake ID to the clipboard."
     },
-    "chatMessageViewReactions": "View reactions",
+    "chatMessageViewReactions": "Ver reacciones",
     "@chatMessageViewReactions": {
         "description": "Action label that opens the message reactions list sheet showing who reacted with each emoji."
     },
-    "chatMessageRemoveAllReactions": "Remove all reactions",
+    "chatMessageRemoveAllReactions": "Eliminar todas las reacciones",
     "@chatMessageRemoveAllReactions": {
         "description": "Danger action label for clearing every reaction from a message; requires MANAGE_MESSAGES."
     },
-    "chatMessageDebug": "Debug Message",
+    "chatMessageDebug": "Depurar mensaje",
     "@chatMessageDebug": {
         "description": "Developer-mode action label that opens a JSON viewer for the underlying message data."
     },
-    "chatMessageDebugSheetTitle": "Debug message",
+    "chatMessageDebugSheetTitle": "Depurar mensaje",
     "@chatMessageDebugSheetTitle": {
         "description": "Title for the developer-mode message debug sheet that shows raw message JSON."
     },
-    "chatMessageDebugCopyJson": "Copy JSON",
+    "chatMessageDebugCopyJson": "Copiar JSON",
     "@chatMessageDebugCopyJson": {
         "description": "Action label that copies the raw message JSON to the clipboard from the debug sheet."
     },
-    "chatMessageDebugJsonCopiedToast": "Message JSON copied to clipboard",
+    "chatMessageDebugJsonCopiedToast": "JSON del mensaje copiado al portapapeles",
     "@chatMessageDebugJsonCopiedToast": {
         "description": "Toast confirming the raw message JSON was copied to clipboard from the debug sheet."
     },
-    "chatReactionsSheetTitle": "Reactions",
+    "chatReactionsSheetTitle": "Reacciones",
     "@chatReactionsSheetTitle": {
         "description": "Title shown at the top of the message reactions sheet that lists who reacted with each emoji."
     },
-    "chatReactionsSheetEmpty": "Nobody has reacted with this yet.",
+    "chatReactionsSheetEmpty": "Nadie ha reaccionado a esto todavía.",
     "@chatReactionsSheetEmpty": {
         "description": "Empty state shown in the message reactions sheet when no users have reacted with the currently selected emoji."
     },
-    "chatMessageReport": "Report Message",
+    "chatMessageReport": "Reportar mensaje",
     "@chatMessageReport": {
         "description": "Action label that opens the report-message sheet so the user can flag the message to moderators."
     },
-    "iarReportMessageTitle": "Report message",
+    "iarReportMessageTitle": "Reportar mensaje",
     "@iarReportMessageTitle": {
         "description": "Title shown at the top of the In-App Reporting (IAR) sheet when the user is reporting a specific message."
     },
-    "iarThisUserFallback": "this user",
+    "iarThisUserFallback": "Este usuario",
     "@iarThisUserFallback": {
         "description": "Lowercase phrase used mid-sentence in IAR copy when referring to the reported user without a name (e.g. inside the close-DM confirmation)."
     },
-    "iarModalDescription": "Report a rule violation, or find tools to manage contact and preferences.",
+    "iarModalDescription": "Reportar una infracción a las reglas o encontrar herramientas para gestionar el contacto y las preferencias.",
     "@iarModalDescription": {
         "description": "Screen-reader description for the IAR sheet announcing what the flow is for."
     },
-    "iarPathStepAriaLabel": "What do you need?",
+    "iarPathStepAriaLabel": "¿Que necesitas?",
     "@iarPathStepAriaLabel": {
         "description": "Accessible label for the primary-path radio group on the first step of the IAR sheet. Not shown visually; the radios are labelled inline."
     },
-    "iarCategoryStepTitle": "What kind of rule was broken?",
+    "iarCategoryStepTitle": "¿Qué clase de regla se infringió?",
     "@iarCategoryStepTitle": {
         "description": "Title shown on the category step of the IAR sheet (platform-report path)."
     },
-    "iarReasonStepTitle": "Which rule was broken?",
+    "iarReasonStepTitle": "¿Qué regla se infringió?",
     "@iarReasonStepTitle": {
         "description": "Title shown on the reason step of the IAR sheet after the user has picked a rule category."
     },
-    "iarReasonSelectHint": "Select a reason",
+    "iarReasonSelectHint": "Selecciona un motivo",
     "@iarReasonSelectHint": {
         "description": "Placeholder shown in the message-report reason dropdown before the user picks a rule."
     },
-    "iarPickAnOptionToast": "Pick an option to continue.",
+    "iarPickAnOptionToast": "Elige una opción para continuar.",
     "@iarPickAnOptionToast": {
         "description": "Toast shown when the user taps Continue on a step without selecting any radio option."
     },
-    "iarPickARuleToast": "Pick the rule that was broken.",
+    "iarPickARuleToast": "Elige la regla que se infringió.",
     "@iarPickARuleToast": {
         "description": "Toast shown when the user taps Send report without selecting a rule reason."
     },
-    "iarPathPlatform": "Report a platform rule violation",
+    "iarPathPlatform": "Reporta una infracción a las reglas de la plataforma",
     "@iarPathPlatform": {
         "description": "Primary-path radio label: file a real DSA / platform-level report."
     },
-    "iarPathCommunity": "Report to the moderators of this community",
+    "iarPathCommunity": "Reportar a los moderadores de esta comunidad",
     "@iarPathCommunity": {
         "description": "Primary-path radio label: surface this to community moderators rather than platform safety."
     },
-    "iarPathPreferenceMessage": "I don't like this content",
+    "iarPathPreferenceMessage": "No me gusta este contenido",
     "@iarPathPreferenceMessage": {
         "description": "Primary-path radio label: the user doesn't want platform action, they want self-service tools (block, leave, settings)."
     },
-    "iarCategoryTargetedHarmLabel": "Threats, harassment, or harm",
+    "iarCategoryTargetedHarmLabel": "Amenazas, acoso o daño",
     "@iarCategoryTargetedHarmLabel": {
         "description": "Rule-category label grouping harassment, hate, violence, terrorism, raids, and self-harm content."
     },
-    "iarCategoryTargetedHarmDescription": "Bullying, threats, hate, violence, raids, or content that pushes self-harm.",
+    "iarCategoryTargetedHarmDescription": "Bullying, amenazas, odio, violencia, raids o contenido que promueva la autolesión.",
     "@iarCategoryTargetedHarmDescription": {
         "description": "One-line description for the targeted-harm rule category."
     },
-    "iarCategorySafetyMinorsLabel": "Child safety or mature content",
+    "iarCategorySafetyMinorsLabel": "Seguridad infantil o material explicito",
     "@iarCategorySafetyMinorsLabel": {
         "description": "Rule-category label grouping child-safety and mature-content reports."
     },
-    "iarCategorySafetyMinorsDescription": "Minors at risk, mature content in the wrong place, or unwanted conduct.",
+    "iarCategorySafetyMinorsDescription": "Menores en riesgo, contenido explícito en el lugar equivocado o conducta no deseada.",
     "@iarCategorySafetyMinorsDescription": {
         "description": "One-line description for the child-safety / mature-content rule category."
     },
-    "iarCategoryPrivacyIdentityLabel": "Privacy or impersonation",
+    "iarCategoryPrivacyIdentityLabel": "Privacidad o suplantación de identidad",
     "@iarCategoryPrivacyIdentityLabel": {
         "description": "Rule-category label grouping privacy violations and impersonation."
     },
-    "iarCategoryPrivacyIdentityDescription": "Doxxing, stalking, pretending to be someone, or an inappropriate profile.",
+    "iarCategoryPrivacyIdentityDescription": "Doxxing, acecho, hacerse pasar por alguien o un perfil inapropiado.",
     "@iarCategoryPrivacyIdentityDescription": {
         "description": "One-line description for the privacy / impersonation rule category."
     },
-    "iarCategoryDeceptionLabel": "Scams, malware, or misinformation",
+    "iarCategoryDeceptionLabel": "Estafas, malware o desinformación",
     "@iarCategoryDeceptionLabel": {
         "description": "Rule-category label grouping spam/scams, malware, and harmful misinformation."
     },
-    "iarCategoryDeceptionDescription": "Phishing, fraud, malicious links, or false claims likely to cause real-world harm.",
+    "iarCategoryDeceptionDescription": "Phishing, fraude, enlaces maliciosos o afirmaciones falsas que puedan causar daños en el mundo real.",
     "@iarCategoryDeceptionDescription": {
         "description": "One-line description for the scams / malware / misinformation rule category."
     },
-    "iarCategoryIllegalOtherLabel": "Illegal activity or something else",
+    "iarCategoryIllegalOtherLabel": "Actividad ilegal u otro motivo",
     "@iarCategoryIllegalOtherLabel": {
         "description": "Rule-category label grouping illegal activity and the catch-all Other reason."
     },
-    "iarCategoryIllegalOtherDescription": "Illegal sales, criminal facilitation, or a clear rule violation that doesn't fit above.",
+    "iarCategoryIllegalOtherDescription": "Ventas ilegales, facilitación de actividades criminales o una infracción clara de las reglas que no encaje en las categorías anteriores.",
     "@iarCategoryIllegalOtherDescription": {
         "description": "One-line description for the illegal / other rule category."
     },
-    "iarReasonHarassmentLabel": "Harassment or threats",
+    "iarReasonHarassmentLabel": "Acoso o amenazas",
     "@iarReasonHarassmentLabel": {
         "description": "Rule-reason label for harassment in the IAR message flow."
     },
-    "iarReasonHarassmentMessageDescription": "Bullying, repeated unwanted contact, stalking, or targeted abuse.",
+    "iarReasonHarassmentMessageDescription": "Bullying, contacto no deseado repetido, acecho o abuso dirigido.",
     "@iarReasonHarassmentMessageDescription": {
         "description": "Rule-reason description for harassment in the IAR message flow."
     },
-    "iarReasonHateLabel": "Hate speech",
+    "iarReasonHateLabel": "Discurso de odio",
     "@iarReasonHateLabel": {
         "description": "Rule-reason label for hate speech in the IAR message flow."
     },
-    "iarReasonHateMessageDescription": "Slurs, dehumanizing language, or attacks on protected groups.",
+    "iarReasonHateMessageDescription": "Insultos, lenguaje denigrante o ataques a grupos protegidos.",
     "@iarReasonHateMessageDescription": {
         "description": "Rule-reason description for hate speech in the IAR message flow."
     },
-    "iarReasonViolenceLabel": "Violence or violent threats",
+    "iarReasonViolenceLabel": "Violencia o amenazas violentas",
     "@iarReasonViolenceLabel": {
         "description": "Rule-reason label for violence in the IAR message flow."
     },
-    "iarReasonViolenceDescription": "Credible threats, graphic violence, or glorification of violence.",
+    "iarReasonViolenceDescription": "Amenazas creíbles, violencia gráfica o apología de la violencia.",
     "@iarReasonViolenceDescription": {
         "description": "Rule-reason description for violence in the IAR message flow."
     },
-    "iarReasonMatureContentLabel": "Mature content or harassment",
+    "iarReasonMatureContentLabel": "Contenido para adultos o acoso",
     "@iarReasonMatureContentLabel": {
         "description": "Rule-reason label for mature content / unwanted conduct in the IAR message flow."
     },
-    "iarReasonMatureContentMessageDescription": "Unwanted conduct or mature content in the wrong place.",
+    "iarReasonMatureContentMessageDescription": "Conducta inapropiada o contenido explícito fuera de lugar.",
     "@iarReasonMatureContentMessageDescription": {
         "description": "Rule-reason description for mature content in the IAR message flow."
     },
-    "iarReasonChildSafetyLabel": "Child safety or exploitation of minors",
+    "iarReasonChildSafetyLabel": "Seguridad infantil o explotación de menores",
     "@iarReasonChildSafetyLabel": {
         "description": "Rule-reason label for child-safety reports in the IAR message flow. Also used as the {childSafetyReason} placeholder in iarUseChildSafetyInstead."
     },
-    "iarReasonChildSafetyMessageDescription": "Grooming or child-exploitation content.",
+    "iarReasonChildSafetyMessageDescription": "Grooming o contenido de explotación infantil.",
     "@iarReasonChildSafetyMessageDescription": {
         "description": "Rule-reason description for child-safety reports in the IAR message flow."
     },
@@ -6592,5 +6592,21 @@
                 "type": "String"
             }
         }
+    },
+    "advancedPerformanceReportingTitle": "Performance reporting",
+    "@advancedPerformanceReportingTitle": {
+        "description": "Advanced settings section title for crash and performance reporting."
+    },
+    "advancedPerformanceReportingSectionDescription": "Help improve Fluxer by sharing anonymous crash and performance data.",
+    "@advancedPerformanceReportingSectionDescription": {
+        "description": "Advanced settings section description for crash and performance reporting."
+    },
+    "advancedPerformanceReportingLabel": "Send crash and performance reports",
+    "@advancedPerformanceReportingLabel": {
+        "description": "Toggle label for opting into crash and performance reporting."
+    },
+    "advancedPerformanceReportingDescription": "All reported data is anonymous and is sent only to Fluxer's own monitoring service — no third-party providers are used.",
+    "@advancedPerformanceReportingDescription": {
+        "description": "Toggle description explaining anonymous self-hosted performance reporting."
     }
 }
