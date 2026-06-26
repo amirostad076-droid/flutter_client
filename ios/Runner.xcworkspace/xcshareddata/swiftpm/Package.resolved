@@ -37,6 +37,24 @@
       }
     },
     {
+      "identity" : "kscrash",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kstenerud/KSCrash.git",
+      "state" : {
+        "revision" : "95a8895d75f3c22aa9ad9f2a15d2fbd97b0a55e2",
+        "version" : "2.5.1"
+      }
+    },
+    {
+      "identity" : "measure",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/measure-sh/measure.git",
+      "state" : {
+        "branch" : "ios-v0.11.0",
+        "revision" : "6d550f29a9a662de51c9beeb9afb67c793eb3b62"
+      }
+    },
+    {
       "identity" : "sdwebimage",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SDWebImage/SDWebImage",
