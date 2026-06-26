@@ -705,7 +705,6 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
         width: _imageSize,
         height: _imageSize,
         memCacheWidth: _imageSize.toInt(),
-        memCacheHeight: _imageSize.toInt(),
         fadeInDuration: Duration.zero,
         fadeOutDuration: Duration.zero,
         fit: BoxFit.contain,

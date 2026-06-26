@@ -1307,7 +1307,6 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         width: _kMessageStickerSize,
         height: _kMessageStickerSize,
         memCacheWidth: _kMessageStickerSize.toInt(),
-        memCacheHeight: _kMessageStickerSize.toInt(),
         fadeInDuration: Duration.zero,
         fadeOutDuration: Duration.zero,
         fit: BoxFit.contain,
