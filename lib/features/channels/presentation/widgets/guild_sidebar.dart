@@ -326,7 +326,16 @@ class _ChannelTile extends ConsumerWidget {
         .value;
 
     final bool isVoice = channel.type == ChannelType.voice;
-    final VoiceSessionState voiceSession = ref.watch(voiceSessionProvider);
+    final String? connectedVoiceGuildId = isVoice
+        ? ref.watch(
+            voiceSessionProvider.select((VoiceSessionState s) => s.guildId),
+          )
+        : null;
+    final String? connectedVoiceChannelId = isVoice
+        ? ref.watch(
+            voiceSessionProvider.select((VoiceSessionState s) => s.channelId),
+          )
+        : null;
     final bool showE2eeVoiceIcon =
         isVoice &&
         guild.hasVoiceE2ee &&
@@ -336,8 +345,8 @@ class _ChannelTile extends ConsumerWidget {
               voiceStates: map,
               guildId: guildId,
               channelId: channel.id,
-              connectedVoiceGuildId: voiceSession.guildId,
-              connectedVoiceChannelId: voiceSession.channelId,
+              connectedVoiceGuildId: connectedVoiceGuildId,
+              connectedVoiceChannelId: connectedVoiceChannelId,
               guildHasVoiceE2ee: guild.hasVoiceE2ee,
             ),
           ),

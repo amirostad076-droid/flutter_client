@@ -371,6 +371,39 @@ void main() {
       expect(asset, isNot(contains('voice_no_connect')));
     });
   });
+
+  group('GuildSidebar voice session isolation', () {
+    testWidgets(
+      'keeps text channels visible when voice session is connecting',
+      (tester) async {
+        _setMobileSurface(tester);
+        final _MutableVoiceSession session = _MutableVoiceSession();
+        await tester.pumpWidget(
+          _buildTestApp(
+            overrides: _buildOverrides(
+              channelListState: _mixedChannelState(),
+              unread: const {'c1': UnreadState(), 'voice-1': UnreadState()},
+              voiceSessionFactory: () => session,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('general'), findsOneWidget);
+
+        session.setSession(
+          const VoiceSessionState(
+            isConnecting: true,
+            guildId: _guildId,
+            channelId: 'voice-1',
+            voiceServerEndpoint: 'wss://voice.example',
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('general'), findsOneWidget);
+      },
+    );
+  });
 }
 
 void _setMobileSurface(WidgetTester tester) {
@@ -424,6 +457,27 @@ ChannelListState _voiceChannelState() => const ChannelListState(
   selectedChannelId: null,
 );
 
+ChannelListState _mixedChannelState() => ChannelListState(
+  guild: const Guild(id: _guildId, name: 'Test Guild'),
+  selectedChannelId: null,
+  categories: [
+    ChannelCategory(
+      id: 'cat1',
+      name: 'My Category',
+      channels: [
+        _channel('c1', 'general'),
+        const Channel(
+          id: 'voice-1',
+          guildId: _guildId,
+          name: 'voice-room',
+          type: ChannelType.voice,
+          parentId: 'cat1',
+        ),
+      ],
+    ),
+  ],
+);
+
 List<Override> _buildOverrides({
   required ChannelListState channelListState,
   String? selectedChannelId,
@@ -434,6 +488,7 @@ List<Override> _buildOverrides({
   Map<String, int> permissionBits = const {},
   Map<String, int?> sidebarConnectBits = const {},
   bool developerMode = false,
+  VoiceSession Function()? voiceSessionFactory,
 }) {
   final db = FluxerDatabase.forTesting(NativeDatabase.memory());
   addTearDown(db.close);
@@ -446,7 +501,9 @@ List<Override> _buildOverrides({
       () => _FakeChannelListViewModel(channelListState),
     ),
     appearancePreferencesProvider.overrideWith(_FakeAppearancePreferences.new),
-    voiceSessionProvider.overrideWith(_FakeVoiceSession.new),
+    voiceSessionProvider.overrideWith(
+      voiceSessionFactory ?? _FakeVoiceSession.new,
+    ),
     userSettingsViewModelProvider.overrideWith(
       () => _FakeUserSettings(developerMode: developerMode),
     ),
@@ -524,6 +581,18 @@ class _FakeAppearancePreferences extends AppearancePreferences {
 class _FakeVoiceSession extends VoiceSession {
   @override
   VoiceSessionState build() => const VoiceSessionState();
+}
+
+class _MutableVoiceSession extends VoiceSession {
+  VoiceSessionState _sessionState = const VoiceSessionState();
+
+  @override
+  VoiceSessionState build() => _sessionState;
+
+  void setSession(VoiceSessionState next) {
+    _sessionState = next;
+    state = next;
+  }
 }
 
 class _FakeUserSettings extends UserSettingsViewModel {

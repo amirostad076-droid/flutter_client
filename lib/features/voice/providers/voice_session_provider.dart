@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
@@ -1407,7 +1408,11 @@ class VoiceSession extends _$VoiceSession {
       activeConnectionId: connectionId,
       clearError: true,
     );
-    unawaited(ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.userJoin));
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      unawaited(
+        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.userJoin),
+      );
+    });
     if (_pendingRingAfterConnect) {
       unawaited(
         _ringAfterConnect(resolvedChannelId, silently: _pendingRingSilently),
