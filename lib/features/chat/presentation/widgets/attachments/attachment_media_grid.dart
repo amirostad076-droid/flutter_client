@@ -87,7 +87,7 @@ class AttachmentMediaGrid extends StatelessWidget {
       builder: (BuildContext context, BoxConstraints constraints) {
         final double gridWidth = constraints.maxWidth;
         final double columnWidth = (gridWidth - _kGridGap) / 2;
-        final double rightCellHeight = (_kThreeLayoutHeight - _kGridGap) / 2;
+        const double rightCellHeight = (_kThreeLayoutHeight - _kGridGap) / 2;
         return SizedBox(
           height: _kThreeLayoutHeight,
           child: Row(
@@ -162,13 +162,7 @@ class AttachmentMediaGrid extends StatelessWidget {
           children
             ..add(const SizedBox(height: _kGridGap))
             ..add(
-              _buildRow(
-                context,
-                items,
-                index,
-                rowCount,
-                gridWidth: gridWidth,
-              ),
+              _buildRow(context, items, index, rowCount, gridWidth: gridWidth),
             );
           index += rowCount;
         }
@@ -275,37 +269,37 @@ class AttachmentMediaGrid extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SpoilerOverlay(
-          isSpoiler: attachment.isSpoiler,
-          initiallyRevealed: revealSpoilers,
-          child: MatureMediaOverlay(
-            channelId: channelId,
-            isMatureMedia: attachment.isMatureMedia,
-            borderRadius: BorderRadius.circular(8),
-            child: GestureDetector(
-              onTap: canOpen ? () => _openMedia(context, attachment) : null,
-              child: DecoratedBox(
-                decoration: const BoxDecoration(color: Colors.black),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: <Widget>[
-                    if (displayUrl.isEmpty)
-                      const ColoredBox(color: Colors.black)
-                    else
-                      CachedNetworkImage(
-                        imageUrl: displayUrl,
-                        memCacheWidth: cache.width,
-                        memCacheHeight: cache.height,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
-                            const ColoredBox(color: Colors.black),
-                      ),
-                    if (isVideo) const VideoPlayButtonOverlay(),
-                  ],
-                ),
+        isSpoiler: attachment.isSpoiler,
+        initiallyRevealed: revealSpoilers,
+        child: MatureMediaOverlay(
+          channelId: channelId,
+          isMatureMedia: attachment.isMatureMedia,
+          borderRadius: BorderRadius.circular(8),
+          child: GestureDetector(
+            onTap: canOpen ? () => _openMedia(context, attachment) : null,
+            child: DecoratedBox(
+              decoration: const BoxDecoration(color: Colors.black),
+              child: Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  if (displayUrl.isEmpty)
+                    const ColoredBox(color: Colors.black)
+                  else
+                    CachedNetworkImage(
+                      imageUrl: displayUrl,
+                      memCacheWidth: cache.width,
+                      memCacheHeight: cache.height,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                          const ColoredBox(color: Colors.black),
+                    ),
+                  if (isVideo) const VideoPlayButtonOverlay(),
+                ],
               ),
             ),
           ),
         ),
+      ),
     );
   }
 

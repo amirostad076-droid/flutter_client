@@ -66,70 +66,70 @@ class EmbedImage extends StatelessWidget {
         maxHeight: dimensions.maxHeight,
       ),
       child: SpoilerOverlay(
-          isSpoiler: isSpoiler,
-          initiallyRevealed: revealSpoiler,
+        isSpoiler: isSpoiler,
+        initiallyRevealed: revealSpoiler,
+        borderRadius: BorderRadius.circular(4),
+        spoilerSyncController: spoilerSyncController,
+        syncKeys: spoilerSyncKeys,
+        child: MatureMediaOverlay(
+          channelId: channelId,
+          isMatureMedia: embed.isMatureMedia,
           borderRadius: BorderRadius.circular(4),
-          spoilerSyncController: spoilerSyncController,
-          syncKeys: spoilerSyncKeys,
-          child: MatureMediaOverlay(
-            channelId: channelId,
-            isMatureMedia: embed.isMatureMedia,
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(4),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: GestureDetector(
-                onTap: canOpenEmbedMediaViewer(media)
-                    ? () => showAttachmentMediaViewer(
-                        context,
-                        items: [
-                          buildEmbedMediaViewerItem(
-                            media: media,
-                            title: embed.title,
-                            animated: animate,
-                          ),
-                        ],
-                        onForward:
-                            (channelId != null &&
-                                messageId != null &&
-                                embedIndex != null)
-                            ? (int _) => showForwardMediaSheet(
-                                context,
-                                sourceChannelId: channelId!,
-                                sourceMessageId: messageId!,
-                                embedIndices: <int>[embedIndex!],
-                              )
-                            : null,
-                      )
-                    : null,
-                child: animate
-                    ? SizedBox(
-                        width: displaySize?.width,
-                        height: displaySize?.height,
-                        child: EmbedAnimatedImage(
-                          animatedUrl: animatedEmbedImageUrl(
-                            embedMediaEffectiveUrl(media),
-                          ),
-                          staticUrl: staticEmbedImageUrl(
-                            embedMediaEffectiveUrl(media),
-                          ),
-                          visibilityKey:
-                              '${channelId}_${messageId}_'
-                              '${embedIndex}_${embed.type.name}',
-                          placeholder: placeholder,
+            child: GestureDetector(
+              onTap: canOpenEmbedMediaViewer(media)
+                  ? () => showAttachmentMediaViewer(
+                      context,
+                      items: [
+                        buildEmbedMediaViewerItem(
+                          media: media,
+                          title: embed.title,
+                          animated: animate,
                         ),
-                      )
-                    : _EmbedStaticImage(
-                        imageUrl: embedMediaEffectiveUrl(media),
-                        displaySize: displaySize,
-                        dimensions: dimensions,
-                        sourceWidth: media.width,
-                        sourceHeight: media.height,
+                      ],
+                      onForward:
+                          (channelId != null &&
+                              messageId != null &&
+                              embedIndex != null)
+                          ? (int _) => showForwardMediaSheet(
+                              context,
+                              sourceChannelId: channelId!,
+                              sourceMessageId: messageId!,
+                              embedIndices: <int>[embedIndex!],
+                            )
+                          : null,
+                    )
+                  : null,
+              child: animate
+                  ? SizedBox(
+                      width: displaySize?.width,
+                      height: displaySize?.height,
+                      child: EmbedAnimatedImage(
+                        animatedUrl: animatedEmbedImageUrl(
+                          embedMediaEffectiveUrl(media),
+                        ),
+                        staticUrl: staticEmbedImageUrl(
+                          embedMediaEffectiveUrl(media),
+                        ),
+                        visibilityKey:
+                            '${channelId}_${messageId}_'
+                            '${embedIndex}_${embed.type.name}',
                         placeholder: placeholder,
                       ),
-              ),
+                    )
+                  : _EmbedStaticImage(
+                      imageUrl: embedMediaEffectiveUrl(media),
+                      displaySize: displaySize,
+                      dimensions: dimensions,
+                      sourceWidth: media.width,
+                      sourceHeight: media.height,
+                      placeholder: placeholder,
+                    ),
             ),
           ),
         ),
+      ),
     );
   }
 }
@@ -156,11 +156,13 @@ class _EmbedStaticImage extends StatelessWidget {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final double devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-        final double cellWidth = displaySize?.width ??
+        final double cellWidth =
+            displaySize?.width ??
             (constraints.maxWidth.isFinite
                 ? constraints.maxWidth
                 : dimensions.maxWidth);
-        final double cellHeight = displaySize?.height ??
+        final double cellHeight =
+            displaySize?.height ??
             (constraints.maxHeight.isFinite ? constraints.maxHeight : 200);
         final ({int? width, int? height}) cache = coverDecodeCacheSize(
           cellWidth: cellWidth,

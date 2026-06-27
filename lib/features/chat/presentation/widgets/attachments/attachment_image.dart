@@ -59,59 +59,55 @@ class AttachmentImage extends StatelessWidget {
     final bool animate = attachment.isAnimated;
     final String effectiveUrl = attachment.proxyUrl ?? attachment.url;
     final Widget image = Container(
-        margin: const EdgeInsets.only(top: 4, bottom: 3),
-        constraints: BoxConstraints(
-          maxWidth: dimensions.maxWidth,
-          maxHeight: dimensions.maxHeight,
-        ),
-        decoration: BoxDecoration(
-          color: context.colors.backgroundSecondaryAlt,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: GestureDetector(
-            onTap: gallery.isEmpty
-                ? null
-                : () => showAttachmentMediaViewer(
-                    context,
-                    items: gallery.map(_buildMediaViewerItem).toList(),
-                    initialIndex: imageGalleryIndex.clamp(
-                      0,
-                      gallery.length - 1,
-                    ),
-                    channelId: channelId,
-                    onForward: (channelId != null && messageId != null)
-                        ? (int index) => showForwardMediaSheet(
-                            context,
-                            sourceChannelId: channelId!,
-                            sourceMessageId: messageId!,
-                            attachmentIds: <String>[gallery[index].id],
-                          )
-                        : null,
+      margin: const EdgeInsets.only(top: 4, bottom: 3),
+      constraints: BoxConstraints(
+        maxWidth: dimensions.maxWidth,
+        maxHeight: dimensions.maxHeight,
+      ),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondaryAlt,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: GestureDetector(
+          onTap: gallery.isEmpty
+              ? null
+              : () => showAttachmentMediaViewer(
+                  context,
+                  items: gallery.map(_buildMediaViewerItem).toList(),
+                  initialIndex: imageGalleryIndex.clamp(0, gallery.length - 1),
+                  channelId: channelId,
+                  onForward: (channelId != null && messageId != null)
+                      ? (int index) => showForwardMediaSheet(
+                          context,
+                          sourceChannelId: channelId!,
+                          sourceMessageId: messageId!,
+                          attachmentIds: <String>[gallery[index].id],
+                        )
+                      : null,
+                ),
+          child: AspectRatio(
+            aspectRatio: _resolveAspectRatio(),
+            child: animate
+                ? EmbedAnimatedImage(
+                    animatedUrl: animatedEmbedImageUrl(effectiveUrl),
+                    staticUrl: staticEmbedImageUrl(effectiveUrl),
+                    visibilityKey: '${channelId}_${messageId}_${attachment.id}',
+                    fit: BoxFit.contain,
+                    placeholder: _buildImagePlaceholder(context),
+                  )
+                : _AttachmentStaticImage(
+                    imageUrl: attachment.url,
+                    displaySize: displaySize,
+                    dimensions: dimensions,
+                    sourceWidth: attachment.width,
+                    sourceHeight: attachment.height,
+                    placeholder: _buildImagePlaceholder(context),
                   ),
-            child: AspectRatio(
-              aspectRatio: _resolveAspectRatio(),
-              child: animate
-                  ? EmbedAnimatedImage(
-                      animatedUrl: animatedEmbedImageUrl(effectiveUrl),
-                      staticUrl: staticEmbedImageUrl(effectiveUrl),
-                      visibilityKey:
-                          '${channelId}_${messageId}_${attachment.id}',
-                      fit: BoxFit.contain,
-                      placeholder: _buildImagePlaceholder(context),
-                    )
-                  : _AttachmentStaticImage(
-                      imageUrl: attachment.url,
-                      displaySize: displaySize,
-                      dimensions: dimensions,
-                      sourceWidth: attachment.width,
-                      sourceHeight: attachment.height,
-                      placeholder: _buildImagePlaceholder(context),
-                    ),
-            ),
           ),
         ),
+      ),
     );
     if (!wrapWithSpoiler) {
       return image;

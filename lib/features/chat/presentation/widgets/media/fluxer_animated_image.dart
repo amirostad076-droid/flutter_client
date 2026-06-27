@@ -46,17 +46,11 @@ class FluxerAnimatedImage extends StatelessWidget {
           child: AnimatedSwitcher(
             duration: Duration.zero,
             layoutBuilder:
-                (
-                  Widget? currentChild,
-                  List<Widget> previousChildren,
-                ) {
+                (Widget? currentChild, List<Widget> previousChildren) {
                   return Stack(
                     fit: StackFit.passthrough,
                     alignment: Alignment.center,
-                    children: <Widget>[
-                      ...previousChildren,
-                      ?currentChild,
-                    ],
+                    children: <Widget>[...previousChildren, ?currentChild],
                   );
                 },
             child: CachedNetworkImage(
