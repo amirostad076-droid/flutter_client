@@ -414,8 +414,6 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         _scheduleScrollIndicatorUpdate();
       });
 
-    _scheduleScrollIndicatorUpdate();
-
     final double topPadding = max<double>(MediaQuery.paddingOf(context).top, 4);
     final List<_NavbarListEntry> navbarEntries = _buildNavbarEntries(
       showFavorites: showFavorites,
@@ -564,6 +562,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
             entry.organizedItem! as GuildNavbarGuild;
         final Guild guild = guildItem.guild;
         return GuildDragWrapper(
+          key: ValueKey<String>('guild-${guild.id}'),
           itemId: guild.id,
           isFolder: false,
           enabled: !guild.isUnavailable,
@@ -578,6 +577,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         final GuildNavbarFolder folderItem =
             entry.organizedItem! as GuildNavbarFolder;
         return GuildDragWrapper(
+          key: ValueKey<String>('folder-${folderItem.id}'),
           itemId: folderItem.id.toString(),
           isFolder: true,
           child: _GuildFolderWidget(

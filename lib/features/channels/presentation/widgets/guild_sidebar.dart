@@ -17,7 +17,6 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/domain/channel_unread_state.dart';
-import 'package:fluxer_app/features/channels/domain/hide_muted_channels_filter.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/channel_notification_settings_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
@@ -27,7 +26,7 @@ import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/channel_typing_provider.dart';
-import 'package:fluxer_app/features/channels/providers/guild_collapsed_categories_provider.dart';
+import 'package:fluxer_app/features/channels/providers/guild_sidebar_entries_provider.dart';
 import 'package:fluxer_app/features/channels/providers/guild_sidebar_scroll_store_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
@@ -36,7 +35,6 @@ import 'package:fluxer_app/features/favorites/providers/favorite_channels_provid
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
-import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -45,6 +43,7 @@ import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/providers/voice_channel_member_count_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_channel_participants_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_e2ee_display.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_url_launcher.dart';
@@ -53,24 +52,6 @@ import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-
-enum _GuildSidebarEntryKind { categoryHeader, channel, voiceParticipants }
-
-class _GuildSidebarEntry {
-  const _GuildSidebarEntry({
-    required this.kind,
-    this.category,
-    this.isCategoryCollapsed = false,
-    this.channel,
-    this.guildId,
-  });
-
-  final _GuildSidebarEntryKind kind;
-  final ChannelCategory? category;
-  final bool isCategoryCollapsed;
-  final Channel? channel;
-  final String? guildId;
-}
 
 class GuildSidebar extends ConsumerStatefulWidget {
   const GuildSidebar({super.key});
@@ -115,10 +96,10 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
     final Guild? guild = ref.watch(
       channelListViewModelProvider.select((s) => s.guild),
     );
-    final List<ChannelCategory> categories = ref.watch(
-      channelListViewModelProvider.select((s) => s.categories),
-    );
     final String? guildId = ref.watch(activeGuildIdProvider);
+    final List<GuildSidebarEntry> sidebarEntries = ref.watch(
+      guildSidebarEntriesProvider,
+    );
 
     if (guildId == null) {
       _restoredGuildId = null;
@@ -151,7 +132,12 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
         children: [
           _buildServerHeader(context, guild),
           Expanded(
-            child: _buildChannelList(context, guild, categories, guildId),
+            child: _buildChannelList(
+              context,
+              guild: guild,
+              guildId: guildId,
+              sidebarEntries: sidebarEntries,
+            ),
           ),
         ],
       ),
@@ -251,43 +237,12 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
   }
 
   Widget _buildChannelList(
-    BuildContext context,
-    Guild? guild,
-    List<ChannelCategory> categories,
-    String? guildId,
-  ) {
+    BuildContext context, {
+    required Guild? guild,
+    required String? guildId,
+    required List<GuildSidebarEntry> sidebarEntries,
+  }) {
     final String? selectedId = ref.watch(activeChannelIdProvider);
-    final List<_GuildSidebarEntry> sidebarEntries;
-    if (guild == null || guildId == null) {
-      sidebarEntries = const <_GuildSidebarEntry>[];
-    } else {
-      final bool hideMutedChannels =
-          ref.watch(guildMuteProvider(guildId)).value?.hideMutedChannels ??
-          false;
-      final Set<String> mutedSet =
-          ref.watch(mutedChannelIdsProvider(guildId)).value ?? const <String>{};
-      final Set<String> collapsed =
-          ref.watch(guildCollapsedCategoriesProvider(guild.id)).value ??
-          const <String>{};
-      final String? connectedChannelId = ref.watch(
-        voiceSessionProvider.select((s) => s.channelId),
-      );
-      final bool showFadedUnread = ref.watch(
-        appearancePreferencesProvider.select(
-          (s) => s.showFadedUnreadOnMutedChannels,
-        ),
-      );
-      sidebarEntries = _flattenSidebarEntries(
-        categories: categories,
-        collapsed: collapsed,
-        mutedSet: mutedSet,
-        hideMuted: hideMutedChannels,
-        selectedId: selectedId,
-        connectedChannelId: connectedChannelId,
-        showFadedUnread: showFadedUnread,
-        guildId: guildId,
-      );
-    }
 
     return ListView.builder(
       controller: _scrollController,
@@ -295,16 +250,16 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
       padding: const EdgeInsets.only(top: 12),
       itemCount: sidebarEntries.length,
       itemBuilder: (BuildContext context, int index) {
-        final _GuildSidebarEntry entry = sidebarEntries[index];
+        final GuildSidebarEntry entry = sidebarEntries[index];
         switch (entry.kind) {
-          case _GuildSidebarEntryKind.categoryHeader:
+          case GuildSidebarEntryKind.categoryHeader:
             return _CategoryHeader(
               key: ValueKey<String>('cat:${entry.category!.id}'),
               category: entry.category!,
               isCollapsed: entry.isCategoryCollapsed,
               guildId: guildId!,
             );
-          case _GuildSidebarEntryKind.channel:
+          case GuildSidebarEntryKind.channel:
             return _ChannelTile(
               key: ValueKey<String>(entry.channel!.id),
               channel: entry.channel!,
@@ -312,7 +267,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
               guildId: guildId!,
               guild: guild!,
             );
-          case _GuildSidebarEntryKind.voiceParticipants:
+          case GuildSidebarEntryKind.voiceParticipants:
             return VoiceChannelParticipantsList(
               key: ValueKey<String>('vp:${entry.channel!.id}'),
               guildId: entry.guildId!,
@@ -321,117 +276,6 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
         }
       },
     );
-  }
-
-  List<_GuildSidebarEntry> _flattenSidebarEntries({
-    required List<ChannelCategory> categories,
-    required Set<String> collapsed,
-    required Set<String> mutedSet,
-    required bool hideMuted,
-    required String? selectedId,
-    required String? connectedChannelId,
-    required bool showFadedUnread,
-    required String guildId,
-  }) {
-    final List<_GuildSidebarEntry> entries = <_GuildSidebarEntry>[];
-    for (final ChannelCategory category in categories) {
-      final bool isCollapsed = collapsed.contains(category.id);
-      final bool isCategoryMuted = mutedSet.contains(category.id);
-
-      final List<Channel> base = <Channel>[];
-      for (final Channel channel in category.channels) {
-        if (hideMuted) {
-          final bool hasVisibleUnread =
-              mutedSet.contains(channel.id) &&
-              _hasVisibleUnread(channel, mutedSet, showFadedUnread);
-          if (!shouldShowChannelWhenHidingMuted(
-            channelId: channel.id,
-            mutedChannelIds: mutedSet,
-            selectedChannelId: selectedId,
-            connectedChannelId: connectedChannelId,
-            hasVisibleUnread: hasVisibleUnread,
-          )) {
-            continue;
-          }
-        }
-        base.add(channel);
-      }
-      if (hideMuted && base.isEmpty) {
-        continue;
-      }
-
-      if (!category.isUncategorized) {
-        entries.add(
-          _GuildSidebarEntry(
-            kind: _GuildSidebarEntryKind.categoryHeader,
-            category: category,
-            isCategoryCollapsed: isCollapsed,
-          ),
-        );
-      }
-
-      if (!category.isUncategorized && isCollapsed) {
-        for (final Channel channel in base) {
-          if (shouldShowChannelInCollapsedCategory(
-            isCategoryMuted: isCategoryMuted,
-            isSelected: channel.id == selectedId,
-            isConnected: channel.id == connectedChannelId,
-            hasVisibleUnread: _hasVisibleUnread(
-              channel,
-              mutedSet,
-              showFadedUnread,
-            ),
-          )) {
-            entries.add(
-              _GuildSidebarEntry(
-                kind: _GuildSidebarEntryKind.channel,
-                channel: channel,
-              ),
-            );
-          }
-        }
-        continue;
-      }
-
-      for (final Channel channel in base) {
-        entries.add(
-          _GuildSidebarEntry(
-            kind: _GuildSidebarEntryKind.channel,
-            channel: channel,
-          ),
-        );
-        if (channel.type == ChannelType.voice) {
-          entries.add(
-            _GuildSidebarEntry(
-              kind: _GuildSidebarEntryKind.voiceParticipants,
-              channel: channel,
-              guildId: guildId,
-            ),
-          );
-        }
-      }
-    }
-    return entries;
-  }
-
-  bool _hasVisibleUnread(
-    Channel channel,
-    Set<String> mutedSet,
-    bool showFadedUnread,
-  ) {
-    final UnreadState? unread = ref
-        .watch(channelUnreadProvider(channel.id))
-        .value;
-    if (unread == null) {
-      return false;
-    }
-    return getChannelUnreadState(
-      unreadCount: unread.hasUnreadMessages ? 1 : 0,
-      mentionCount: unread.mentionCount,
-      isMuted: mutedSet.contains(channel.id),
-      showFadedUnreadOnMutedChannels: showFadedUnread,
-      unreadBadgesLevel: unread.unreadBadgesLevel,
-    ).hasVisibleUnread;
   }
 }
 
@@ -479,28 +323,26 @@ class _ChannelTile extends ConsumerWidget {
     final int? effectivePermissionBits = ref
         .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
         .value;
+    final int? iconPermissionBits =
+        effectivePermissionBits ?? cachedPermissionBits;
 
     final bool isVoice = channel.type == ChannelType.voice;
-    bool showE2eeVoiceIcon = false;
-    if (isVoice && guild.hasVoiceE2ee) {
-      final Map<String, VoiceState> voiceStates = ref.watch(
-        voiceStatesMapProvider,
-      );
-      final String? connectedVoiceGuildId = ref.watch(
-        voiceSessionProvider.select((s) => s.guildId),
-      );
-      final String? connectedVoiceChannelId = ref.watch(
-        voiceSessionProvider.select((s) => s.channelId),
-      );
-      showE2eeVoiceIcon = isVoiceChannelE2eeEncryptedForIcon(
-        voiceStates: voiceStates,
-        guildId: guildId,
-        channelId: channel.id,
-        connectedVoiceGuildId: connectedVoiceGuildId,
-        connectedVoiceChannelId: connectedVoiceChannelId,
-        guildHasVoiceE2ee: guild.hasVoiceE2ee,
-      );
-    }
+    final VoiceSessionState voiceSession = ref.watch(voiceSessionProvider);
+    final bool showE2eeVoiceIcon =
+        isVoice &&
+        guild.hasVoiceE2ee &&
+        ref.watch(
+          voiceStatesMapProvider.select(
+            (Map<String, VoiceState> map) => isVoiceChannelE2eeEncryptedForIcon(
+              voiceStates: map,
+              guildId: guildId,
+              channelId: channel.id,
+              connectedVoiceGuildId: voiceSession.guildId,
+              connectedVoiceChannelId: voiceSession.channelId,
+              guildHasVoiceE2ee: guild.hasVoiceE2ee,
+            ),
+          ),
+        );
 
     final Color textColor = isSelected
         ? context.colors.textPrimary
@@ -582,8 +424,8 @@ class _ChannelTile extends ConsumerWidget {
                     ChannelIcon(
                       type: channel.type,
                       channel: channel,
-                      effectivePermissionBits: cachedPermissionBits,
-                      canConnectPermissionBits: cachedPermissionBits,
+                      effectivePermissionBits: iconPermissionBits,
+                      canConnectPermissionBits: iconPermissionBits,
                       color: textColor,
                       e2eeEncrypted: showE2eeVoiceIcon,
                     ),

@@ -61,7 +61,12 @@ class ChannelListViewModel extends _$ChannelListViewModel {
       return;
     }
     _currentGuildId = guildId;
-    state = state.copyWith(guild: guild ?? state.guild);
+    state = ChannelListState(
+      guild: guild,
+      categories: const <ChannelCategory>[],
+      selectedChannelId: state.selectedChannelId,
+      isMemberListVisible: state.isMemberListVisible,
+    );
 
     final repo = ref.read(channelRepositoryProvider);
     unawaited(_subscription?.cancel());
