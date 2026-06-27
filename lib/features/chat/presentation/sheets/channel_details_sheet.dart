@@ -2108,7 +2108,7 @@ class _DmUserFilterSheetLoaderState
       future: _usersFuture,
       builder: (BuildContext context, AsyncSnapshot<List<_PickerUser>> snap) {
         if (!snap.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: FluxerLoadingSpinner());
         }
         return _UserFilterSheet(
           availableUsers: snap.data!,
@@ -2311,7 +2311,7 @@ class _GuildUserSearchFilterSheetState
                     ),
                   )
                 : _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: FluxerLoadingSpinner())
                 : _results.isEmpty
                 ? Center(
                     child: Text(

@@ -18,6 +18,7 @@ import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_proxy_url.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/shared/utils/media_kit_bootstrap.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
@@ -1272,7 +1273,7 @@ class _FavoriteMediaSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Center(
-    child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator()),
+    child: SizedBox(width: 28, height: 28, child: FluxerLoadingSpinner()),
   );
 }
 

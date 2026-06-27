@@ -27,6 +27,7 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/splash_screen.dart';
 import 'package:fluxer_app/features/shell/presentation/stub_screen.dart';
 import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
+import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/voice/presentation/dm_voice_call_fullscreen_page.dart'
     deferred as dm_voice_call;
 import 'package:go_router/go_router.dart';
@@ -288,7 +289,7 @@ GoRouter fluxerRouter(Ref ref) {
             builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
                 return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
+                  body: Center(child: FluxerLoadingSpinner()),
                 );
               }
               return guild_settings.GuildSettingsModal(
@@ -351,7 +352,7 @@ GoRouter fluxerRouter(Ref ref) {
                                       ConnectionState.done) {
                                     return const Scaffold(
                                       body: Center(
-                                        child: CircularProgressIndicator(),
+                                        child: FluxerLoadingSpinner(),
                                       ),
                                     );
                                   }

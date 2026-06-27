@@ -360,7 +360,7 @@ class _VoiceChannelParticipantGridState
       loading: () => const Center(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: CircularProgressIndicator(),
+          child: FluxerLoadingSpinner(),
         ),
       ),
       error: (Object err, StackTrace s) {
