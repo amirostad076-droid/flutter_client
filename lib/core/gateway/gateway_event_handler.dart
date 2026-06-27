@@ -951,6 +951,7 @@ class GatewayEventHandler {
                   id: Value(id),
                   data: Value(jsonEncode(region)),
                 ),
+                mode: InsertMode.insertOrReplace,
               );
         }
       }
