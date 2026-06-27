@@ -109,6 +109,39 @@ class _VoiceChannelParticipantGridState
   bool isOverlayVisible = true;
   Timer? _overlayHideTimer;
 
+  // Layout metrics cache to avoid expensive recalculation on every frame
+  VoiceGridPackedLayoutMetrics? _cachedLayoutMetrics;
+  int? _cachedTileCount;
+  double? _cachedContainerWidth;
+  double? _cachedContainerHeight;
+  bool? _cachedCompact;
+
+  VoiceGridPackedLayoutMetrics _resolveLayoutMetrics({
+    required int tileCount,
+    required double containerWidth,
+    required double containerHeight,
+    required bool compact,
+  }) {
+    if (_cachedLayoutMetrics != null &&
+        _cachedTileCount == tileCount &&
+        _cachedContainerWidth == containerWidth &&
+        _cachedContainerHeight == containerHeight &&
+        _cachedCompact == compact) {
+      return _cachedLayoutMetrics!;
+    }
+    _cachedTileCount = tileCount;
+    _cachedContainerWidth = containerWidth;
+    _cachedContainerHeight = containerHeight;
+    _cachedCompact = compact;
+    _cachedLayoutMetrics = resolveVoiceGridPackedLayoutMetrics(
+      tileCount: tileCount,
+      containerWidth: containerWidth,
+      containerHeight: containerHeight,
+      compact: compact,
+    );
+    return _cachedLayoutMetrics!;
+  }
+
   void _cancelOverlayHideTimer() {
     _overlayHideTimer?.cancel();
     _overlayHideTimer = null;
@@ -394,13 +427,12 @@ class _VoiceChannelParticipantGridState
     final bool compact = maxWidth < 520 || maxHeight < 360;
     final int count = tiles.length;
 
-    final VoiceGridPackedLayoutMetrics packed =
-        resolveVoiceGridPackedLayoutMetrics(
-          tileCount: count,
-          containerWidth: maxWidth,
-          containerHeight: maxHeight,
-          compact: compact,
-        );
+    final VoiceGridPackedLayoutMetrics packed = _resolveLayoutMetrics(
+      tileCount: count,
+      containerWidth: maxWidth,
+      containerHeight: maxHeight,
+      compact: compact,
+    );
     final bool gridOverflow = packed.visibleTileCount < count;
 
     _VoiceGridTileItem? pinned;
