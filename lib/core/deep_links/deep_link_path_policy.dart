@@ -50,9 +50,7 @@ Uri normalizeAppProtocolDeepLinkUri(Uri uri) {
   final String host = uri.host;
   final String rawPath = uri.path;
   final String path = host.isNotEmpty
-      ? (rawPath.isEmpty || rawPath == '/'
-            ? '/$host'
-            : '/$host$rawPath')
+      ? (rawPath.isEmpty || rawPath == '/' ? '/$host' : '/$host$rawPath')
       : (rawPath.isEmpty ? '/' : rawPath);
   return Uri(
     path: normalizeDeepLinkPath(path),

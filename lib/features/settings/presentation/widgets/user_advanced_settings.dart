@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/measure/measure_reporting_provider.dart';
+import 'package:fluxer_app/core/observability/observability_reporting_provider.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -12,9 +12,9 @@ class UserAdvancedSettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(measureReportingProvider.notifier);
-    final bool isAvailable = measureReportingIsAvailable();
-    final bool isEnabled = ref.watch(measureReportingProvider);
+    final notifier = ref.read(observabilityReportingProvider.notifier);
+    final bool isAvailable = observabilityReportingIsAvailable();
+    final bool isEnabled = ref.watch(observabilityReportingProvider);
     final layout = context.layout;
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
 

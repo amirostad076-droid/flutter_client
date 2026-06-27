@@ -6,9 +6,6 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/profile/domain/custom_status_utils.dart';
 import 'package:fluxer_app/features/profile/domain/presence_status_labels.dart';
 import 'package:fluxer_app/features/profile/domain/time_window_presets.dart';
-import 'package:fluxer_app/shared/utils/emoji_image_cache.dart';
-import 'package:fluxer_app/shared/widgets/custom_status_display.dart';
-import 'package:fluxer_app/shared/widgets/unicode_emoji_widget.dart';
 import 'package:fluxer_app/features/profile/presentation/sheets/custom_status_sheet.dart';
 import 'package:fluxer_app/features/profile/providers/user_settings_status_provider.dart';
 import 'package:fluxer_app/features/profile/providers/user_status_service.dart';
@@ -16,6 +13,9 @@ import 'package:fluxer_app/features/settings/providers/user_settings_view_model.
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/status_indicator/fluxer_status_indicator.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/utils/emoji_image_cache.dart';
+import 'package:fluxer_app/shared/widgets/custom_status_display.dart';
+import 'package:fluxer_app/shared/widgets/unicode_emoji_widget.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -114,7 +114,9 @@ class _StatusChangeSheetBodyState extends ConsumerState<StatusChangeSheetBody> {
   @override
   Widget build(BuildContext context) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final UserSettingsResponse? settings = ref.watch(userSettingsStatusProvider);
+    final UserSettingsResponse? settings = ref.watch(
+      userSettingsStatusProvider,
+    );
     final String currentStatus = settings?.status ?? 'online';
     final CustomStatusResponse? customStatus = normalizeCustomStatus(
       settings?.customStatus,
@@ -139,7 +141,8 @@ class _StatusChangeSheetBodyState extends ConsumerState<StatusChangeSheetBody> {
               padding: EdgeInsets.zero,
               child: FluxerMenuGroup(
                 children: [
-                  for (final PresenceStatus status in kSelectablePresenceStatuses)
+                  for (final PresenceStatus status
+                      in kSelectablePresenceStatuses)
                     _ExpandableStatusMenuItem(
                       status: status,
                       currentStatus: currentStatus,
@@ -173,8 +176,7 @@ class _StatusChangeSheetBodyState extends ConsumerState<StatusChangeSheetBody> {
       );
     }
     final String? text = customStatus.text?.trim();
-    final String displayText =
-        text != null && text.isNotEmpty ? text : '';
+    final String displayText = text != null && text.isNotEmpty ? text : '';
     final Widget? emojiLeading = _customStatusMenuLeading(customStatus);
     return FluxerMenuGroup(
       children: [
@@ -198,7 +200,7 @@ class _StatusChangeSheetBodyState extends ConsumerState<StatusChangeSheetBody> {
     final SnowflakeType? emojiId = status.emojiId;
     if (emojiId != null) {
       return CachedEmojiImage(
-        emojiId: emojiId.toString(),
+        emojiId: emojiId,
         animated: status.emojiAnimated,
         requestSize: kCustomStatusEmojiRequestSize,
         size: 20,

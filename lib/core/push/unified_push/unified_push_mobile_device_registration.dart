@@ -51,7 +51,7 @@ class UnifiedPushMobileDeviceRegistration
           unawaited(_onAppResumed());
         }
       });
-    _endpointSubscription?.cancel();
+    unawaited(_endpointSubscription?.cancel());
     _endpointSubscription = UnifiedPushService.instance.endpointStream.listen((
       up.PushEndpoint endpoint,
     ) {

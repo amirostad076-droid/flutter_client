@@ -202,12 +202,14 @@ void main() {
       IarRuleReason.terrorismExtremism: ReportUserRequestCategoryCategory.other,
       IarRuleReason.matureContent: ReportUserRequestCategoryCategory.harassment,
       IarRuleReason.childSafety: ReportUserRequestCategoryCategory.underageUser,
-      IarRuleReason.harmfulMisinformation: ReportUserRequestCategoryCategory.other,
+      IarRuleReason.harmfulMisinformation:
+          ReportUserRequestCategoryCategory.other,
       IarRuleReason.illegalActivity: ReportUserRequestCategoryCategory.other,
       IarRuleReason.spamScams: ReportUserRequestCategoryCategory.spamAccount,
       IarRuleReason.malware: ReportUserRequestCategoryCategory.spamAccount,
       IarRuleReason.privacy: ReportUserRequestCategoryCategory.harassment,
-      IarRuleReason.impersonation: ReportUserRequestCategoryCategory.impersonation,
+      IarRuleReason.impersonation:
+          ReportUserRequestCategoryCategory.impersonation,
       IarRuleReason.inappropriateProfile:
           ReportUserRequestCategoryCategory.inappropriateProfile,
       IarRuleReason.raidCoordination: ReportUserRequestCategoryCategory.other,

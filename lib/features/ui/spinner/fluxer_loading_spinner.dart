@@ -90,8 +90,7 @@ class _FluxerLoadingDotsPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double totalWidth =
-        dotCount * dotSize + (dotCount - 1) * dotSpacing;
+    final double totalWidth = dotCount * dotSize + (dotCount - 1) * dotSpacing;
     double x = (size.width - totalWidth) / 2;
     final double y = size.height / 2;
     for (int index = 0; index < dotCount; index++) {

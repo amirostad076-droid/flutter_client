@@ -105,17 +105,11 @@ void main() {
 
   group('distanceFromScrollExtentEnd', () {
     test('returns zero at minScrollExtent', () {
-      expect(
-        distanceFromScrollExtentEnd(pixels: 80, minScrollExtent: 80),
-        0,
-      );
+      expect(distanceFromScrollExtentEnd(pixels: 80, minScrollExtent: 80), 0);
     });
 
     test('returns offset above minScrollExtent', () {
-      expect(
-        distanceFromScrollExtentEnd(pixels: 140, minScrollExtent: 80),
-        60,
-      );
+      expect(distanceFromScrollExtentEnd(pixels: 140, minScrollExtent: 80), 60);
     });
   });
 

@@ -25,7 +25,9 @@ LimitConfigSnapshot expandLimitWireFormat(
   );
 }
 
-LimitFilter? _mapLimitFilter(WellKnownFluxerResponseLimitsRulesFilters? filters) {
+LimitFilter? _mapLimitFilter(
+  WellKnownFluxerResponseLimitsRulesFilters? filters,
+) {
   if (filters == null) {
     return null;
   }

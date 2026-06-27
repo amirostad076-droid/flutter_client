@@ -55,16 +55,13 @@ class ReadStateRepository {
         ReadStatesCompanion(
           channelId: Value(rs.id),
           lastMessageId: Value(rs.lastMessageId),
-          mentionCount: Value(rs.mentionCount.toInt()),
+          mentionCount: Value(rs.mentionCount),
           version: Value(rs.version),
         ),
       );
       final dm = await _db.dmChannelDao.getDmChannelById(rs.id);
       if (dm != null) {
-        await _db.dmChannelDao.updateUnreadCount(
-          rs.id,
-          rs.mentionCount.toInt(),
-        );
+        await _db.dmChannelDao.updateUnreadCount(rs.id, rs.mentionCount);
       }
     }
   }

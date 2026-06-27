@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_path_policy.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('isAllowedDeepLinkPath', () {
@@ -36,7 +36,10 @@ void main() {
 
     test('rejects paths with blocklisted characters', () {
       expect(hasBlocklistedDeepLinkPathCharacters('/channels/"evil'), isTrue);
-      expect(hasBlocklistedDeepLinkPathCharacters('/channels/foo\nbar'), isTrue);
+      expect(
+        hasBlocklistedDeepLinkPathCharacters('/channels/foo\nbar'),
+        isTrue,
+      );
     });
 
     test('allows fluxer:// app protocol URLs', () {
@@ -53,11 +56,7 @@ void main() {
         'fluxer:/channels/@me',
       ];
       for (final String url in allowedFluxerUrls) {
-        expect(
-          isAllowedDeepLinkPath(Uri.parse(url)),
-          isTrue,
-          reason: url,
-        );
+        expect(isAllowedDeepLinkPath(Uri.parse(url)), isTrue, reason: url);
       }
     });
 
@@ -68,11 +67,7 @@ void main() {
         'fluxer://',
       ];
       for (final String url in ignoredFluxerUrls) {
-        expect(
-          isAllowedDeepLinkPath(Uri.parse(url)),
-          isFalse,
-          reason: url,
-        );
+        expect(isAllowedDeepLinkPath(Uri.parse(url)), isFalse, reason: url);
       }
     });
   });

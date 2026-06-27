@@ -131,23 +131,34 @@ const List<IarRuleReason> messageReportReasons = [
 /// Maps a chosen reason onto the backend wire-format
 /// [ReportMessageRequestCategoryCategory]. Mirrors `REPORT_CATEGORY_BY_REASON.message`
 /// from the web.
-ReportMessageRequestCategoryCategory iarReasonToMessageCategory(IarRuleReason reason) {
+ReportMessageRequestCategoryCategory iarReasonToMessageCategory(
+  IarRuleReason reason,
+) {
   return switch (reason) {
     IarRuleReason.harassment => ReportMessageRequestCategoryCategory.harassment,
     IarRuleReason.hate => ReportMessageRequestCategoryCategory.hateSpeech,
-    IarRuleReason.violence => ReportMessageRequestCategoryCategory.violentContent,
+    IarRuleReason.violence =>
+      ReportMessageRequestCategoryCategory.violentContent,
     IarRuleReason.terrorismExtremism =>
       ReportMessageRequestCategoryCategory.violentContent,
-    IarRuleReason.matureContent => ReportMessageRequestCategoryCategory.nsfwViolation,
-    IarRuleReason.childSafety => ReportMessageRequestCategoryCategory.childSafety,
-    IarRuleReason.harmfulMisinformation => ReportMessageRequestCategoryCategory.other,
-    IarRuleReason.illegalActivity => ReportMessageRequestCategoryCategory.illegalActivity,
+    IarRuleReason.matureContent =>
+      ReportMessageRequestCategoryCategory.nsfwViolation,
+    IarRuleReason.childSafety =>
+      ReportMessageRequestCategoryCategory.childSafety,
+    IarRuleReason.harmfulMisinformation =>
+      ReportMessageRequestCategoryCategory.other,
+    IarRuleReason.illegalActivity =>
+      ReportMessageRequestCategoryCategory.illegalActivity,
     IarRuleReason.spamScams => ReportMessageRequestCategoryCategory.spam,
-    IarRuleReason.malware => ReportMessageRequestCategoryCategory.maliciousLinks,
+    IarRuleReason.malware =>
+      ReportMessageRequestCategoryCategory.maliciousLinks,
     IarRuleReason.privacy => ReportMessageRequestCategoryCategory.doxxing,
-    IarRuleReason.impersonation => ReportMessageRequestCategoryCategory.impersonation,
-    IarRuleReason.inappropriateProfile => ReportMessageRequestCategoryCategory.other,
-    IarRuleReason.raidCoordination => ReportMessageRequestCategoryCategory.harassment,
+    IarRuleReason.impersonation =>
+      ReportMessageRequestCategoryCategory.impersonation,
+    IarRuleReason.inappropriateProfile =>
+      ReportMessageRequestCategoryCategory.other,
+    IarRuleReason.raidCoordination =>
+      ReportMessageRequestCategoryCategory.harassment,
     IarRuleReason.selfHarm => ReportMessageRequestCategoryCategory.selfHarm,
     IarRuleReason.other => ReportMessageRequestCategoryCategory.other,
   };
@@ -243,7 +254,9 @@ const List<IarRuleReason> userReportReasons = [
 
 /// Maps a chosen reason onto the backend wire-format [ReportUserRequestCategoryCategory].
 /// Mirrors `REPORT_CATEGORY_BY_REASON.user` from the web.
-ReportUserRequestCategoryCategory iarReasonToUserCategory(IarRuleReason reason) {
+ReportUserRequestCategoryCategory iarReasonToUserCategory(
+  IarRuleReason reason,
+) {
   return switch (reason) {
     IarRuleReason.harassment => ReportUserRequestCategoryCategory.harassment,
     IarRuleReason.hate => ReportUserRequestCategoryCategory.hateSpeech,
@@ -251,12 +264,14 @@ ReportUserRequestCategoryCategory iarReasonToUserCategory(IarRuleReason reason) 
     IarRuleReason.terrorismExtremism => ReportUserRequestCategoryCategory.other,
     IarRuleReason.matureContent => ReportUserRequestCategoryCategory.harassment,
     IarRuleReason.childSafety => ReportUserRequestCategoryCategory.underageUser,
-    IarRuleReason.harmfulMisinformation => ReportUserRequestCategoryCategory.other,
+    IarRuleReason.harmfulMisinformation =>
+      ReportUserRequestCategoryCategory.other,
     IarRuleReason.illegalActivity => ReportUserRequestCategoryCategory.other,
     IarRuleReason.spamScams => ReportUserRequestCategoryCategory.spamAccount,
     IarRuleReason.malware => ReportUserRequestCategoryCategory.spamAccount,
     IarRuleReason.privacy => ReportUserRequestCategoryCategory.harassment,
-    IarRuleReason.impersonation => ReportUserRequestCategoryCategory.impersonation,
+    IarRuleReason.impersonation =>
+      ReportUserRequestCategoryCategory.impersonation,
     IarRuleReason.inappropriateProfile =>
       ReportUserRequestCategoryCategory.inappropriateProfile,
     IarRuleReason.raidCoordination => ReportUserRequestCategoryCategory.other,

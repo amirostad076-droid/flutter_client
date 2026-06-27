@@ -130,7 +130,11 @@ class FluxerSheetCloseButton extends StatelessWidget {
 
 /// Scroll-to-bottom affordance for chat message lists.
 class FluxerJumpToBottomButton extends StatelessWidget {
-  const FluxerJumpToBottomButton({required this.onTap, this.enabled = true, super.key});
+  const FluxerJumpToBottomButton({
+    required this.onTap,
+    this.enabled = true,
+    super.key,
+  });
 
   final VoidCallback onTap;
   final bool enabled;

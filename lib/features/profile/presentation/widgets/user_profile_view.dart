@@ -571,8 +571,9 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
                       communities: mutualCommunities,
                       onFriendTap: (UserPartialResponse friend) =>
                           _showMutualFriendProfile(friend.id),
-                      onCommunityTap: (UserProfileFullResponseMutualGuilds community) =>
-                          _openMutualCommunity(community.id),
+                      onCommunityTap:
+                          (UserProfileFullResponseMutualGuilds community) =>
+                              _openMutualCommunity(community.id),
                     ),
                     SizedBox(height: layout.s4),
                   ],
@@ -909,7 +910,8 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
               : response.mutualFriends ?? const <UserPartialResponse>[],
           mutualCommunities: isCurrentProfile
               ? const <UserProfileFullResponseMutualGuilds>[]
-              : response.mutualGuilds ?? const <UserProfileFullResponseMutualGuilds>[],
+              : response.mutualGuilds ??
+                    const <UserProfileFullResponseMutualGuilds>[],
           actionUser: response.user,
           connections:
               response.connectedAccounts ?? const <ConnectionResponse>[],

@@ -174,9 +174,7 @@ class _QuickSwitcherSheetBodyState
           onSubmitted: (_) => _confirmSelection(state),
         ),
         SizedBox(height: context.layout.s3),
-        Expanded(
-          child: _buildSearchResults(context, state, l10n),
-        ),
+        Expanded(child: _buildSearchResults(context, state, l10n)),
       ],
     );
   }
@@ -346,7 +344,8 @@ class _QuickSwitcherSheetBodyState
   }
 
   void _confirmSelection(QuickSwitcherState state) {
-    if (state.selectedIndex < 0 || state.selectedIndex >= state.results.length) {
+    if (state.selectedIndex < 0 ||
+        state.selectedIndex >= state.results.length) {
       return;
     }
     final QuickSwitcherResult result = state.results[state.selectedIndex];

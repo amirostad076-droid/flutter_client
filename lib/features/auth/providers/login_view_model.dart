@@ -69,11 +69,16 @@ class LoginViewState {
     required this.forgotPasswordEmailSent,
     required this.resetToken,
     required this.showRegister,
-    required this.isStartingSso, required this.ssoError, this.usernameSuggestions = const [],
+    required this.isStartingSso,
+    required this.ssoError,
+    this.usernameSuggestions = const [],
   });
 
   bool get canLogin =>
-      !isLoggingIn && !isStartingSso && email.trim().isNotEmpty && password.isNotEmpty;
+      !isLoggingIn &&
+      !isStartingSso &&
+      email.trim().isNotEmpty &&
+      password.isNotEmpty;
 
   bool get hasError =>
       errorMessage != null && errorMessage!.isNotEmpty || errorType != null;
@@ -187,9 +192,7 @@ class LoginViewModel extends _$LoginViewModel {
     try {
       final SsoStartResponse startResponse = await ref
           .read(authRepositoryProvider)
-          .startSso(
-            redirectUri: 'fluxer://auth/sso/callback',
-          );
+          .startSso(redirectUri: 'fluxer://auth/sso/callback');
       final Uri callbackUri = await SsoAuthService().authenticate(
         authorizationUrl: startResponse.authorizationUrl,
       );
@@ -221,15 +224,16 @@ class LoginViewModel extends _$LoginViewModel {
       );
     } on AuthFailure catch (error) {
       if (isAddingAccount) {
-        ref.read(addAccountInstanceGuardProvider.notifier).restoreActiveInstance();
+        ref
+            .read(addAccountInstanceGuardProvider.notifier)
+            .restoreActiveInstance();
       }
-      state = state.copyWith(
-        ssoError: error.message,
-        isStartingSso: false,
-      );
+      state = state.copyWith(ssoError: error.message, isStartingSso: false);
     } on Exception catch (e) {
       if (isAddingAccount) {
-        ref.read(addAccountInstanceGuardProvider.notifier).restoreActiveInstance();
+        ref
+            .read(addAccountInstanceGuardProvider.notifier)
+            .restoreActiveInstance();
       }
       talker.error('[LoginViewModel] SSO error: $e');
       state = state.copyWith(
@@ -606,7 +610,9 @@ class LoginViewModel extends _$LoginViewModel {
       }
     } on AuthFailure catch (error) {
       if (isAddingAccount) {
-        ref.read(addAccountInstanceGuardProvider.notifier).restoreActiveInstance();
+        ref
+            .read(addAccountInstanceGuardProvider.notifier)
+            .restoreActiveInstance();
       }
       if (error.kind == AuthFailureKind.invalidCredentials) {
         state = state.copyWith(
@@ -624,7 +630,9 @@ class LoginViewModel extends _$LoginViewModel {
       return false;
     } on Exception catch (e) {
       if (isAddingAccount) {
-        ref.read(addAccountInstanceGuardProvider.notifier).restoreActiveInstance();
+        ref
+            .read(addAccountInstanceGuardProvider.notifier)
+            .restoreActiveInstance();
       }
       talker.error('[LoginViewModel] Unexpected error: $e');
       state = state.copyWith(
@@ -718,14 +726,18 @@ class LoginViewModel extends _$LoginViewModel {
       }
     } on AuthFailure catch (error) {
       if (isAddingAccount) {
-        ref.read(addAccountInstanceGuardProvider.notifier).restoreActiveInstance();
+        ref
+            .read(addAccountInstanceGuardProvider.notifier)
+            .restoreActiveInstance();
       }
       state = state.copyWith(errorMessage: error.message, isLoggingIn: false);
     } on PasskeyAuthCancelledException {
       state = state.copyWith(isLoggingIn: false);
     } on AuthenticatorException catch (e) {
       if (isAddingAccount) {
-        ref.read(addAccountInstanceGuardProvider.notifier).restoreActiveInstance();
+        ref
+            .read(addAccountInstanceGuardProvider.notifier)
+            .restoreActiveInstance();
       }
       talker.error('[LoginViewModel] Passkey error: $e');
       final (errorType, errorMessage) = mapPasskeyAuthError(e);
@@ -736,7 +748,9 @@ class LoginViewModel extends _$LoginViewModel {
       );
     } on Exception catch (e) {
       if (isAddingAccount) {
-        ref.read(addAccountInstanceGuardProvider.notifier).restoreActiveInstance();
+        ref
+            .read(addAccountInstanceGuardProvider.notifier)
+            .restoreActiveInstance();
       }
       talker.error('[LoginViewModel] Passkey error: $e');
       state = state.copyWith(isLoggingIn: false);

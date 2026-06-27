@@ -1102,6 +1102,9 @@ class _FluxerCodeBlockWithCopy extends StatelessWidget {
               child: GestureDetector(
                 onTap: () async {
                   await Clipboard.setData(ClipboardData(text: code));
+                  if (!context.mounted) {
+                    return;
+                  }
                   onCopyCode?.call(context, code);
                 },
                 child: PhosphorIcon(

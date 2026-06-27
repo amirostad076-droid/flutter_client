@@ -15,21 +15,21 @@ ReadStateWriteCoalescer readStateWriteCoalescer(Ref ref) {
   );
 
   // Persist pending unreads before the app is backgrounded (and can be killed).
-  ref.listen<bool>(appUiForegroundProvider, (prev, next) {
-    if ((prev ?? false) && !next) {
-      unawaited(coalescer.flushAll());
-    }
-  });
-  // Persist pending unreads when the gateway drops, before the next READY
-  // snapshot (which clears pending) arrives.
-  ref.listen<bool>(gatewayReadyProvider, (prev, next) {
-    if ((prev ?? false) && !next) {
-      unawaited(coalescer.flushAll());
-    }
-  });
-
-  ref.onDispose(() {
-    unawaited(coalescer.dispose());
-  });
+  ref
+    ..listen<bool>(appUiForegroundProvider, (prev, next) {
+      if ((prev ?? false) && !next) {
+        unawaited(coalescer.flushAll());
+      }
+    })
+    // Persist pending unreads when the gateway drops, before the next READY
+    // snapshot (which clears pending) arrives.
+    ..listen<bool>(gatewayReadyProvider, (prev, next) {
+      if ((prev ?? false) && !next) {
+        unawaited(coalescer.flushAll());
+      }
+    })
+    ..onDispose(() {
+      unawaited(coalescer.dispose());
+    });
   return coalescer;
 }

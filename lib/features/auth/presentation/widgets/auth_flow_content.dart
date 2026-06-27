@@ -49,9 +49,6 @@ class AuthFlowContent extends ConsumerWidget {
       return const SsoLoginPanel();
     }
 
-    return LoginForm(
-      showBrowserLogin: showBrowserLogin,
-      heading: heading,
-    );
+    return LoginForm(showBrowserLogin: showBrowserLogin, heading: heading);
   }
 }

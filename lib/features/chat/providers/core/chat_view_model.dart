@@ -693,9 +693,8 @@ class ChatViewModel extends _$ChatViewModel {
           isSyncingMessages: false,
           isLoadingMore: false,
           isLoadingNewer: false,
-          hasMoreMessages: isChannelChange ? true : state.hasMoreMessages,
-          hasMoreNewerMessages:
-              isChannelChange ? false : state.hasMoreNewerMessages,
+          hasMoreMessages: isChannelChange || state.hasMoreMessages,
+          hasMoreNewerMessages: !isChannelChange && state.hasMoreNewerMessages,
         );
         return;
       }
@@ -757,10 +756,7 @@ class ChatViewModel extends _$ChatViewModel {
           hasMoreNewerMessages: false,
         );
         _setContiguityWindow(channelId, cached);
-        _deferMessageReferencesLoaded(
-          channelId: channelId,
-          messages: cached,
-        );
+        _deferMessageReferencesLoaded(channelId: channelId, messages: cached);
         if (_shouldRefreshChannelFromNetwork(channelId)) {
           _markChannelNetworkRefresh(channelId);
           unawaited(

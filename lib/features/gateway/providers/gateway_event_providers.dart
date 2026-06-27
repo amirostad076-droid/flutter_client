@@ -374,7 +374,7 @@ class ActiveCalls extends _$ActiveCalls {
 }
 
 /// Tracks channels where this client initiated an outbound ring (suppresses
-/// incoming overlay for caller), matching fluxer-web [CallInitiator].
+/// incoming overlay for caller), matching the web `CallInitiator`.
 @Riverpod(keepAlive: true)
 class OutgoingVoiceCallInitiator extends _$OutgoingVoiceCallInitiator {
   @override

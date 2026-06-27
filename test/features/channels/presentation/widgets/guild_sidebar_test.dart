@@ -348,8 +348,8 @@ List<Override> _buildOverrides({
     guildCollapsedCategoriesProvider(
       _guildId,
     ).overrideWith((ref) => Stream.value(collapsed)),
-    for (final channel in channelListState.categories.expand(
-      (category) => category.channels,
+    for (final Channel channel in channelListState.categories.expand<Channel>(
+      (ChannelCategory category) => category.channels,
     ))
       effectiveGuildChannelPermissionBitsProvider(
         channel.id,

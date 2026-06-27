@@ -154,16 +154,16 @@ Widget _buildTestApp({required GoRouter router}) {
     userSettingsViewModelProvider.overrideWith(_TestUserSettingsViewModel.new),
     matureContentGateReasonProvider(
       '1000000000000000001',
-    ).overrideWith((ref) async => MatureContentGateReason.none),
+    ).overrideWith((ref) => MatureContentGateReason.none),
     matureContentGateReasonProvider(
       '1000000000000000003',
-    ).overrideWith((ref) async => MatureContentGateReason.none),
+    ).overrideWith((ref) => MatureContentGateReason.none),
     matureContentGateReasonProvider(
       '1000000000000000005',
-    ).overrideWith((ref) async => MatureContentGateReason.none),
+    ).overrideWith((ref) => MatureContentGateReason.none),
     matureContentGateReasonProvider(
       '1000000000000000007',
-    ).overrideWith((ref) async => MatureContentGateReason.none),
+    ).overrideWith((ref) => MatureContentGateReason.none),
     unreadDmChannelsProvider.overrideWith(
       () => _FakeUnreadDmChannels(
         const UnreadDmState(

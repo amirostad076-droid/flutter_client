@@ -87,16 +87,16 @@ class ChannelListViewModel extends _$ChannelListViewModel {
   }
 
   void toggleMemberList() {
-    setMemberListVisible(!state.isMemberListVisible);
+    setMemberListVisible(isVisible: !state.isMemberListVisible);
   }
 
-  void setMemberListVisible(bool isVisible) {
+  void setMemberListVisible({required bool isVisible}) {
     if (state.isMemberListVisible == isVisible) {
       return;
     }
     state = state.copyWith(isMemberListVisible: isVisible);
-    ref.read(syncedPreferencesStoreProvider).markDirty(
-      SyncedPreferenceField.memberList,
-    );
+    ref
+        .read(syncedPreferencesStoreProvider)
+        .markDirty(SyncedPreferenceField.memberList);
   }
 }

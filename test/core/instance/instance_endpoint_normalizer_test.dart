@@ -107,10 +107,7 @@ void main() {
 
   group('formatDisplayDomain', () {
     test('strips api subdomain prefix', () {
-      expect(
-        normalizer.formatDisplayDomain('api.fluxer.app'),
-        'fluxer.app',
-      );
+      expect(normalizer.formatDisplayDomain('api.fluxer.app'), 'fluxer.app');
     });
 
     test('leaves domains without api prefix unchanged', () {

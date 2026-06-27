@@ -56,9 +56,14 @@ class ChannelChatPanel extends ConsumerWidget {
     final bool showNeko = ref.watch(
       appearancePreferencesProvider.select((state) => state.showNeko),
     );
-    final ActiveReadChannelState activeRead = ref.watch(activeReadChannelProvider);
-    final String effectiveChannelId = listChannelId ??
-        ref.watch(chatViewModelProvider.select((ChatViewState s) => s.channelId));
+    final ActiveReadChannelState activeRead = ref.watch(
+      activeReadChannelProvider,
+    );
+    final String effectiveChannelId =
+        listChannelId ??
+        ref.watch(
+          chatViewModelProvider.select((ChatViewState s) => s.channelId),
+        );
     final bool hasMessages = ref.watch(
       chatViewModelProvider.select((ChatViewState s) => s.messages.isNotEmpty),
     );
@@ -74,7 +79,8 @@ class ChannelChatPanel extends ConsumerWidget {
     final bool isActiveReadChannel =
         effectiveChannelId.isNotEmpty &&
         activeRead.channelId == effectiveChannelId;
-    final bool showJumpToBottom = loadMessages &&
+    final bool showJumpToBottom =
+        loadMessages &&
         listChannelId != null &&
         shouldShowJumpToBottomButton(
           hasMessages: hasMessages,

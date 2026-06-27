@@ -81,12 +81,10 @@ class AppStartup extends _$AppStartup {
       return;
     }
 
-    final InstanceConfigSnapshot? activeSnapshot =
-        await authRepository.resolveActiveInstanceSnapshot();
+    final InstanceConfigSnapshot? activeSnapshot = await authRepository
+        .resolveActiveInstanceSnapshot();
     if (activeSnapshot != null) {
-      ref
-          .read(activeInstanceProvider.notifier)
-          .applySnapshot(activeSnapshot);
+      ref.read(activeInstanceProvider.notifier).applySnapshot(activeSnapshot);
     }
 
     // Validate the session and try fallback sessions on 401.

@@ -4,11 +4,7 @@ import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 
 /// Chat loading spinner with optional debug mount logging.
 class ChatLoadingSpinner extends StatelessWidget {
-  const ChatLoadingSpinner({
-    required this.reason,
-    this.color,
-    super.key,
-  });
+  const ChatLoadingSpinner({required this.reason, this.color, super.key});
 
   final ChatSpinnerReason reason;
   final Color? color;
@@ -18,9 +14,7 @@ class ChatLoadingSpinner extends StatelessWidget {
     assert(() {
       debugLogChatSpinnerMount(reason);
       return true;
-    }());
-    return RepaintBoundary(
-      child: FluxerLoadingSpinner(color: color),
-    );
+    }(), 'Log chat spinner mount for debug builds.');
+    return RepaintBoundary(child: FluxerLoadingSpinner(color: color));
   }
 }

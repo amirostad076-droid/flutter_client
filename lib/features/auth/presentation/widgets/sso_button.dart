@@ -14,11 +14,7 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart';
 
 class SsoButton extends ConsumerWidget {
-  const SsoButton({
-    required this.enabled,
-    this.subtitle,
-    super.key,
-  });
+  const SsoButton({required this.enabled, this.subtitle, super.key});
 
   final bool enabled;
   final String? subtitle;
@@ -28,11 +24,13 @@ class SsoButton extends ConsumerWidget {
     final FluxerLocalizations strings = FluxerLocalizations.of(context);
     final LoginViewState vm = ref.watch(loginViewModelProvider);
     final LoginViewModel notifier = ref.read(loginViewModelProvider.notifier);
-    final WellKnownFluxerResponseSso? ssoConfig =
-        ref.watch(authInstanceSnapshotProvider).ssoConfig;
-    final String providerName =
-        ssoConfig?.displayName ?? 'Single Sign-On';
-    final bool canAuthenticate = ref.watch(instanceSelectorCanAuthenticateProvider);
+    final WellKnownFluxerResponseSso? ssoConfig = ref
+        .watch(authInstanceSnapshotProvider)
+        .ssoConfig;
+    final String providerName = ssoConfig?.displayName ?? 'Single Sign-On';
+    final bool canAuthenticate = ref.watch(
+      instanceSelectorCanAuthenticateProvider,
+    );
     final bool canStartSso = enabled && canAuthenticate && !vm.isLoggingIn;
     final String? errorText = resolveLoginError(vm, strings);
 
@@ -50,7 +48,9 @@ class SsoButton extends ConsumerWidget {
           SizedBox(height: context.layout.s4),
         ],
         FluxerButton.secondary(
-          onPressed: canStartSso ? () => unawaited(notifier.startSsoLogin()) : null,
+          onPressed: canStartSso
+              ? () => unawaited(notifier.startSsoLogin())
+              : null,
           label: strings.continueWithSso(providerName),
           isLoading: vm.isStartingSso,
         ),
@@ -76,10 +76,10 @@ class SsoLoginPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final FluxerLocalizations strings = FluxerLocalizations.of(context);
     final LoginViewState vm = ref.watch(loginViewModelProvider);
-    final WellKnownFluxerResponseSso? ssoConfig =
-        ref.watch(authInstanceSnapshotProvider).ssoConfig;
-    final String providerName =
-        ssoConfig?.displayName ?? 'Single Sign-On';
+    final WellKnownFluxerResponseSso? ssoConfig = ref
+        .watch(authInstanceSnapshotProvider)
+        .ssoConfig;
+    final String providerName = ssoConfig?.displayName ?? 'Single Sign-On';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -104,9 +104,7 @@ class SsoLoginPanel extends ConsumerWidget {
           ),
         ),
         SizedBox(height: context.layout.s8),
-        SsoButton(
-          enabled: !vm.isLoggingIn,
-        ),
+        SsoButton(enabled: !vm.isLoggingIn),
       ],
     );
   }

@@ -25,22 +25,7 @@ import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_connection_actions.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
-import 'package:fluxer_dart/gateway.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-
-bool _isVoiceSessionOnThisChannel(
-  VoiceSessionState s,
-  String guildId,
-  String channelId,
-) {
-  if (!s.isInVoice) {
-    return false;
-  }
-  if (s.channelId != channelId) {
-    return false;
-  }
-  return s.guildId == guildId;
-}
 
 class VoiceChannelPageView extends ConsumerStatefulWidget {
   const VoiceChannelPageView({
@@ -432,7 +417,9 @@ class _DesktopVoiceChatDockState extends ConsumerState<_DesktopVoiceChatDock> {
         return;
       }
       unawaited(
-        ref.read(chatViewModelProvider.notifier).switchChannel(widget.channelId),
+        ref
+            .read(chatViewModelProvider.notifier)
+            .switchChannel(widget.channelId),
       );
     });
   }
@@ -444,9 +431,7 @@ class _DesktopVoiceChatDockState extends ConsumerState<_DesktopVoiceChatDock> {
       width: _kDesktopChatPanelWidth,
       decoration: BoxDecoration(
         color: context.colors.chatBackground,
-        border: Border(
-          left: BorderSide(color: context.colors.borderColor),
-        ),
+        border: Border(left: BorderSide(color: context.colors.borderColor)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -483,9 +468,7 @@ class _DesktopVoiceChatDockState extends ConsumerState<_DesktopVoiceChatDock> {
           Expanded(
             child: UploadDropOverlay(
               channelId: widget.channelId,
-              child: ChannelChatPanel(
-                displayChannelId: widget.channelId,
-              ),
+              child: ChannelChatPanel(displayChannelId: widget.channelId),
             ),
           ),
         ],

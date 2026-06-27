@@ -47,14 +47,14 @@ import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.
 import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_providers.dart';
-import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/profile/domain/custom_status_utils.dart';
+import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
-import 'package:fluxer_app/shared/widgets/custom_status_display.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/widgets/custom_status_display.dart';
 import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
@@ -1620,10 +1620,7 @@ class _SimpleMemberRow extends StatelessWidget {
     this.isSystem = false,
     this.isCurrentUser = false,
     this.onTap,
-    this.isOwner = false,
     this.customStatus,
-    this.dimmed = false,
-    this.onLongPress,
   });
 
   final String userId;
@@ -1634,11 +1631,8 @@ class _SimpleMemberRow extends StatelessWidget {
   final bool isBot;
   final bool isSystem;
   final bool isCurrentUser;
-  final bool isOwner;
   final String? customStatus;
-  final bool dimmed;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -1656,16 +1650,8 @@ class _SimpleMemberRow extends StatelessWidget {
       subtitleWidget: hasVisibleCustomStatus(customStatus)
           ? CustomStatusDisplay(stored: customStatus, maxLines: 1)
           : null,
-      dimmed: dimmed,
       onTap: onTap,
-      onLongPress: onLongPress,
       titleAdornments: [
-        if (isOwner)
-          const PhosphorIcon(
-            PhosphorIconsFill.crown,
-            size: 14,
-            color: Color(0xFFFAA61A),
-          ),
         if (isCurrentUser) const _MemberTag(label: 'You'),
         if (isBot || isSystem) FluxerUserTag(isSystem: isSystem),
       ],
@@ -2754,88 +2740,6 @@ void _stubComingSoon(BuildContext context, WidgetRef ref) {
   ref
       .read(toastProvider.notifier)
       .show(const FluxerToast(message: 'Coming soon'));
-}
-
-Future<void> _showGuildMemberActionsSheet(
-  BuildContext context, {
-  required WidgetRef ref,
-  required Member member,
-  required String? guildId,
-  required bool isCurrentUser,
-  required bool isOwner,
-}) {
-  return FluxerBottomSheet.show<void>(
-    context,
-    title: member.displayName,
-    variant: FluxerBottomSheetVariant.menu,
-    builder: (sheetContext, close) {
-      void run(VoidCallback action) {
-        close();
-        action();
-      }
-
-      final canKick = !isCurrentUser && !isOwner;
-      final canBan = !isCurrentUser && !isOwner;
-
-      return FluxerBottomSheetContent(
-        child: FluxerBottomSheetGroupColumn(
-          children: <Widget>[
-            FluxerMenuGroup(
-              children: [
-                FluxerBottomSheetMenuItem(
-                  label: 'Open Profile',
-                  icon: PhosphorIconsBold.user,
-                  onTap: () => run(
-                    () => FluxerUserProfileSheet.show(
-                      context,
-                      userId: member.id,
-                      guildId: guildId,
-                    ),
-                  ),
-                ),
-                FluxerBottomSheetMenuItem(
-                  label: 'Copy User ID',
-                  icon: PhosphorIconsRegular.snowflake,
-                  onTap: () => run(() {
-                    unawaited(
-                      Clipboard.setData(ClipboardData(text: member.id)),
-                    );
-                    ref
-                        .read(toastProvider.notifier)
-                        .show(
-                          const FluxerToast(
-                            message: 'Copied user ID',
-                            variant: FluxerToastVariant.success,
-                          ),
-                        );
-                  }),
-                ),
-              ],
-            ),
-            if (canKick || canBan)
-              FluxerMenuGroup(
-                children: [
-                  if (canKick)
-                    FluxerBottomSheetMenuItem(
-                      label: 'Kick Member',
-                      icon: PhosphorIconsBold.userMinus,
-                      isDanger: true,
-                      onTap: () => run(() => _stubComingSoon(context, ref)),
-                    ),
-                  if (canBan)
-                    FluxerBottomSheetMenuItem(
-                      label: 'Ban Member',
-                      icon: PhosphorIconsBold.prohibit,
-                      isDanger: true,
-                      onTap: () => run(() => _stubComingSoon(context, ref)),
-                    ),
-                ],
-              ),
-          ],
-        ),
-      );
-    },
-  );
 }
 
 Future<void> _showDetailsMoreSheet(

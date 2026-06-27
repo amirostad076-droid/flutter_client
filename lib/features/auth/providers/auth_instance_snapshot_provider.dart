@@ -7,8 +7,10 @@ part 'auth_instance_snapshot_provider.g.dart';
 
 @riverpod
 InstanceConfigSnapshot authInstanceSnapshot(Ref ref) {
-  final InstanceSelectorState? selector =
-      ref.watch(instanceSelectorProvider).asData?.value;
+  final InstanceSelectorState? selector = ref
+      .watch(instanceSelectorProvider)
+      .asData
+      ?.value;
   final InstanceConfigSnapshot? pendingSnapshot = selector?.pendingSnapshot;
   if (pendingSnapshot != null) {
     return pendingSnapshot;

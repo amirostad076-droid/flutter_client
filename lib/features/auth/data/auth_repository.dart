@@ -350,53 +350,6 @@ class AuthRepository {
     }
   }
 
-  Future<AuthSession> verifyMfaSms({
-    required String ticket,
-    required String code,
-  }) {
-    // Legacy SMS MFA flow kept for reference during WhatsApp migration.
-    // try {
-    //   final response = await _client.auth.loginWithSmsMfa(
-    //     body: MfaSmsRequest(code: code, ticket: ticket),
-    //   );
-    //   final session = AuthSession(
-    //     token: response.token,
-    //     userId: response.userId,
-    //   );
-    //   await _saveSession(session);
-    //   return session;
-    // } on DioException catch (error) {
-    //   throw _failureFromDio(error);
-    // }
-    // TODO(whatsapp): Switch SMS MFA verification to WhatsApp MFA verification.
-    if (ticket.isEmpty || code.isEmpty) {
-      return Future<AuthSession>.error(
-        const AuthFailure('Invalid MFA challenge.'),
-      );
-    }
-    return Future<AuthSession>.error(
-      const AuthFailure('WhatsApp MFA verification is coming soon.'),
-    );
-  }
-
-  Future<void> sendMfaSms({required String ticket}) {
-    // Legacy SMS MFA flow kept for reference during WhatsApp migration.
-    // try {
-    //   await _client.auth.sendSmsMfaCode(
-    //     body: MfaTicketRequest(ticket: ticket),
-    //   );
-    // } on DioException catch (error) {
-    //   throw _failureFromDio(error);
-    // }
-    // TODO(whatsapp): Switch SMS MFA code delivery to WhatsApp MFA delivery.
-    if (ticket.isEmpty) {
-      return Future<void>.error(const AuthFailure('Invalid MFA challenge.'));
-    }
-    return Future<void>.error(
-      const AuthFailure('WhatsApp MFA delivery is coming soon.'),
-    );
-  }
-
   Future<dynamic> getMfaWebauthnOptions({required String ticket}) async {
     try {
       return await _client.auth.getWebauthnMfaOptions(

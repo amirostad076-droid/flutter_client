@@ -86,19 +86,14 @@ void main() {
 
     test('message at or behind ack is covered', () {
       final decision = resolveReadStateIncomingMessageDecision(
-        _incoming(messageId: '100', ackMessageId: '100'),
+        _incoming(messageId: '100'),
       );
       expect(decision.kind, ReadStateIncomingMessageKind.coveredByAck);
     });
 
     test('unknown read state seeds ack on first unread message', () {
       final decision = resolveReadStateIncomingMessageDecision(
-        _incoming(
-          readStateKnown: false,
-          messageId: '300',
-          ackMessageId: null,
-          previousLastMessageId: '100',
-        ),
+        _incoming(readStateKnown: false, messageId: '300', ackMessageId: null),
       );
       expect(decision.kind, ReadStateIncomingMessageKind.recordUnread);
       expect(decision.initializeUnknownReadState, isTrue);
@@ -106,7 +101,7 @@ void main() {
 
     test('known read state records unread without initializing', () {
       final decision = resolveReadStateIncomingMessageDecision(
-        _incoming(messageId: '300', ackMessageId: '100'),
+        _incoming(messageId: '300'),
       );
       expect(decision.kind, ReadStateIncomingMessageKind.recordUnread);
       expect(decision.initializeUnknownReadState, isFalse);
@@ -137,11 +132,7 @@ void main() {
 
     test('ack equal to current refreshes and updates mention count', () {
       final decision = resolveReadStateServerAckDecision(
-        _serverAck(
-          messageId: '200',
-          ackMessageId: '200',
-          hasMentionCount: true,
-        ),
+        _serverAck(ackMessageId: '200', hasMentionCount: true),
       );
       expect(decision.kind, ReadStateServerAckKind.refreshCurrentAck);
       expect(decision.shouldUpdateMentionCount, isTrue);
@@ -151,11 +142,7 @@ void main() {
 
     test('newer ack advances', () {
       final decision = resolveReadStateServerAckDecision(
-        _serverAck(
-          messageId: '300',
-          ackMessageId: '100',
-          hasMentionCount: true,
-        ),
+        _serverAck(messageId: '300', hasMentionCount: true),
       );
       expect(decision.kind, ReadStateServerAckKind.advanceAck);
       expect(decision.shouldUpdateMentionCount, isTrue);

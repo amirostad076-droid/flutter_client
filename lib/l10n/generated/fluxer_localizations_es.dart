@@ -168,20 +168,11 @@ class FluxerLocalizationsEs extends FluxerLocalizations {
   String get mfaMethodTotp => 'Authenticator App';
 
   @override
-  String get mfaMethodSms => 'SMS Code';
-
-  @override
   String get mfaMethodWebauthn => 'Security Key / Passkey';
 
   @override
   String get mfaTotpDescription =>
       'Enter the 6-digit code from your authenticator app or one of your backup codes.';
-
-  @override
-  String get mfaSmsDescription => 'Enter the 6-digit code sent to your phone.';
-
-  @override
-  String get mfaSendSmsCode => 'Send SMS Code';
 
   @override
   String get mfaCodeLabel => 'Code';
@@ -1828,15 +1819,13 @@ class FluxerLocalizationsEs extends FluxerLocalizations {
   String get securityPhoneSectionTitle => 'Phone Number';
 
   @override
-  String get securityPhoneSectionDescription =>
-      'Manage your phone number for SMS two-factor authentication';
+  String get securityPhoneSectionDescription => 'Manage your phone number.';
 
   @override
   String get securityPhoneLabel => 'Phone Number';
 
   @override
-  String get securityPhoneNone =>
-      'Add a phone number to enable SMS two-factor authentication';
+  String get securityPhoneNone => 'No phone number added.';
 
   @override
   String get securityPhoneAdd => 'Add Phone';
@@ -1852,46 +1841,7 @@ class FluxerLocalizationsEs extends FluxerLocalizations {
       'Are you sure you want to remove your phone number?';
 
   @override
-  String get securityPhoneRemoveWarning =>
-      'This will also disable SMS two-factor authentication.';
-
-  @override
   String get securityPhoneRemoved => 'Phone number removed';
-
-  @override
-  String get securitySmsSectionTitle => 'SMS Two-Factor Authentication';
-
-  @override
-  String get securitySmsSectionDescription =>
-      'Receive verification codes via SMS as a backup authentication method';
-
-  @override
-  String get securitySmsBackup => 'SMS Backup';
-
-  @override
-  String get securitySmsEnabled => 'SMS two-factor authentication is enabled';
-
-  @override
-  String get securitySmsDisabled =>
-      'Enable SMS codes as a backup for your authenticator app';
-
-  @override
-  String get securitySmsEnableTitle => 'Enable SMS Two-Factor Authentication';
-
-  @override
-  String get securitySmsEnableDescription =>
-      'SMS two-factor authentication adds an additional layer of security by requiring a verification code sent to your phone number when signing in.';
-
-  @override
-  String get securitySmsDisableTitle => 'Disable SMS Two-Factor Authentication';
-
-  @override
-  String get securitySmsDisableDescription =>
-      'Are you sure you want to disable SMS two-factor authentication? This will make your account less secure.';
-
-  @override
-  String get securitySmsDisabledForPartners =>
-      'SMS backup is disabled for partners';
 
   @override
   String get securityClaimTitle => 'Security Features';
@@ -5385,21 +5335,11 @@ class FluxerLocalizationsEs419 extends FluxerLocalizationsEs {
   String get mfaMethodTotp => 'Aplicación de Autenticación';
 
   @override
-  String get mfaMethodSms => 'Código SMS';
-
-  @override
   String get mfaMethodWebauthn => 'Llave de Seguridad / Passkey';
 
   @override
   String get mfaTotpDescription =>
       'Ingresa el código de 6 dígitos de tu aplicación de autenticación o uno de tus códigos de respaldo.';
-
-  @override
-  String get mfaSmsDescription =>
-      'Ingresa el código de 6 dígitos enviado a tu teléfono.';
-
-  @override
-  String get mfaSendSmsCode => 'Enviar código SMS';
 
   @override
   String get mfaCodeLabel => 'Código';
@@ -7056,15 +6996,13 @@ class FluxerLocalizationsEs419 extends FluxerLocalizationsEs {
   String get securityPhoneSectionTitle => 'Phone Number';
 
   @override
-  String get securityPhoneSectionDescription =>
-      'Manage your phone number for SMS two-factor authentication';
+  String get securityPhoneSectionDescription => 'Manage your phone number.';
 
   @override
   String get securityPhoneLabel => 'Phone Number';
 
   @override
-  String get securityPhoneNone =>
-      'Add a phone number to enable SMS two-factor authentication';
+  String get securityPhoneNone => 'No phone number added.';
 
   @override
   String get securityPhoneAdd => 'Añadir teléfono';
@@ -7080,49 +7018,7 @@ class FluxerLocalizationsEs419 extends FluxerLocalizationsEs {
       '¿Seguro que quieres eliminar tu número de teléfono?';
 
   @override
-  String get securityPhoneRemoveWarning =>
-      'Esto también desactivara la autenticación de dos factores por SMS.';
-
-  @override
   String get securityPhoneRemoved => 'Número de teléfono eliminado';
-
-  @override
-  String get securitySmsSectionTitle => 'Autenticación de dos factores por SMS';
-
-  @override
-  String get securitySmsSectionDescription =>
-      'Recibe códigos de verificación por SMS como método de autenticación de respaldo';
-
-  @override
-  String get securitySmsBackup => 'Respaldo por SMS';
-
-  @override
-  String get securitySmsEnabled =>
-      'La autenticación de dos factores por SMS está activada';
-
-  @override
-  String get securitySmsDisabled =>
-      'Activa los códigos por SMS como respaldo para tu app de autenticación';
-
-  @override
-  String get securitySmsEnableTitle =>
-      'Activar la autenticación de dos factores por SMS';
-
-  @override
-  String get securitySmsEnableDescription =>
-      'La autenticación de dos factores por SMS agrega una capa adicional de seguridad al requerir un código de verificación enviado a tu número de teléfono al iniciar sesión.';
-
-  @override
-  String get securitySmsDisableTitle =>
-      'Desactivar autenticación de dos factores por SMS';
-
-  @override
-  String get securitySmsDisableDescription =>
-      '¿Seguro que quieres desactivar la autenticación de dos factores por SMS? Esto hará que tu cuenta sea menos segura.';
-
-  @override
-  String get securitySmsDisabledForPartners =>
-      'El respaldo por SMS está desactivado para partners';
 
   @override
   String get securityClaimTitle => 'Funciones de seguridad';

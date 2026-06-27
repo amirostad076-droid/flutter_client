@@ -39,9 +39,10 @@ void main() {
       UsersCompanion.insert(id: 'u1', username: 'u1'),
       UsersCompanion.insert(id: 'u2', username: 'u2'),
     ]);
-    batcher.enqueue(userId: 'u1', status: 'online');
-    batcher.enqueue(userId: 'u2', status: 'dnd');
-    batcher.enqueue(userId: 'u1', status: 'idle');
+    batcher
+      ..enqueue(userId: 'u1', status: 'online')
+      ..enqueue(userId: 'u2', status: 'dnd')
+      ..enqueue(userId: 'u1', status: 'idle');
     await Future<void>.delayed(const Duration(milliseconds: 80));
     final User? u1 = await database.userDao.getUserById('u1');
     final User? u2 = await database.userDao.getUserById('u2');

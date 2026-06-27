@@ -28,9 +28,8 @@ void main() {
 
     test('tolerates null current_subscription_price and '
         'pending_subscription_change', () {
-      final PremiumStateResponseBilling state = PremiumStateResponseBilling.fromJson(
-        billingJson(),
-      );
+      final PremiumStateResponseBilling state =
+          PremiumStateResponseBilling.fromJson(billingJson());
 
       expect(state.currentSubscriptionPrice, isNull);
       expect(state.pendingSubscriptionChange, isNull);

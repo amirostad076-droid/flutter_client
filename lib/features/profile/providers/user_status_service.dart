@@ -42,8 +42,9 @@ class UserStatusService {
     final DateTime? resetsAt = duration == null
         ? null
         : DateTime.now().toUtc().add(duration);
-    final PresenceResetStatus? resetsTo =
-        duration == null ? null : PresenceResetStatus.online;
+    final PresenceResetStatus? resetsTo = duration == null
+        ? null
+        : PresenceResetStatus.online;
     final UserSettingsUpdateRequest request = UserSettingsUpdateRequest(
       status: status,
       statusResetsAt: resetsAt?.toIso8601String(),
@@ -104,8 +105,9 @@ class UserStatusService {
       return;
     }
     final FluxerDatabase database = _ref.read(fluxerDatabaseProvider);
-    final UserSettingsResponse? previousSettings =
-        _ref.read(userSettingsStatusProvider);
+    final UserSettingsResponse? previousSettings = _ref.read(
+      userSettingsStatusProvider,
+    );
     await _applyOptimisticUpdate(
       userId: userId,
       previousSettings: previousSettings,
@@ -115,9 +117,9 @@ class UserStatusService {
       request: const UserSettingsUpdateRequest(),
     );
     if (previousSettings != null) {
-      final Map<String, Object?> merged =
-          Map<String, Object?>.from(previousSettings.toJson())
-            ..['custom_status'] = null;
+      final Map<String, Object?> merged = Map<String, Object?>.from(
+        previousSettings.toJson(),
+      )..['custom_status'] = null;
       await database.userSettingsDao.upsertSettings(
         UserSettingsTableCompanion(
           userId: Value(userId),
@@ -130,10 +132,12 @@ class UserStatusService {
       );
     }
     try {
-      await _ref.read(fluxerDioProvider).patch<dynamic>(
-        '/users/@me/settings',
-        data: <String, dynamic>{'custom_status': null},
-      );
+      await _ref
+          .read(fluxerDioProvider)
+          .patch<dynamic>(
+            '/users/@me/settings',
+            data: <String, dynamic>{'custom_status': null},
+          );
       talker.debug('[UserStatusService] Cleared custom status');
     } on Object catch (error, stackTrace) {
       talker.error(
@@ -151,9 +155,7 @@ class UserStatusService {
         await database.userDao.updateUserPresence(
           userId,
           status: previousSettings.status,
-          customStatus: serializeCustomStatus(
-            previousSettings.customStatus,
-          ),
+          customStatus: serializeCustomStatus(previousSettings.customStatus),
         );
       }
       rethrow;
@@ -167,8 +169,9 @@ class UserStatusService {
     required String? optimisticCustomStatusText,
   }) async {
     final FluxerDatabase database = _ref.read(fluxerDatabaseProvider);
-    final UserSettingsResponse? previousSettings =
-        _ref.read(userSettingsStatusProvider);
+    final UserSettingsResponse? previousSettings = _ref.read(
+      userSettingsStatusProvider,
+    );
     await _applyOptimisticUpdate(
       userId: userId,
       previousSettings: previousSettings,
@@ -196,9 +199,7 @@ class UserStatusService {
         await database.userDao.updateUserPresence(
           userId,
           status: previousSettings.status,
-          customStatus: serializeCustomStatus(
-            previousSettings.customStatus,
-          ),
+          customStatus: serializeCustomStatus(previousSettings.customStatus),
         );
       }
       rethrow;
@@ -213,8 +214,8 @@ class UserStatusService {
     required UserSettingsUpdateRequest request,
   }) async {
     final FluxerDatabase database = _ref.read(fluxerDatabaseProvider);
-    final UserSettingsTableData? row =
-        await database.userSettingsDao.getSettings(userId);
+    final UserSettingsTableData? row = await database.userSettingsDao
+        .getSettings(userId);
     final Map<String, Object?> merged = row == null
         ? <String, Object?>{}
         : Map<String, Object?>.from(

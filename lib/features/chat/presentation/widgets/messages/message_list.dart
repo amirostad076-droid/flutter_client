@@ -22,6 +22,7 @@ import 'package:fluxer_app/features/chat/presentation/'
     'sheets/message_reactions_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/remove_all_reactions_confirm_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/chat_loading_spinner.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/channel_welcome_section.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -35,6 +36,7 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/messages/spoiler_reveal_provider.dart';
+import 'package:fluxer_app/features/chat/utils/chat_spinner_debug.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/chat/utils/message_grouping_utils.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
@@ -46,8 +48,6 @@ import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart'
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/chat_loading_spinner.dart';
-import 'package:fluxer_app/features/chat/utils/chat_spinner_debug.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:fluxer_dart/export.dart';
@@ -96,11 +96,7 @@ const _kMonthNames = [
 /// [ListView] anchored by a [ChatScrollObserver] (older messages prepend
 /// above the viewport; newer ones hold position unless at the live tail).
 class MessageList extends ConsumerStatefulWidget {
-  const MessageList({
-    this.expectedChannelId,
-    this.targetMessageId,
-    super.key,
-  });
+  const MessageList({this.expectedChannelId, this.targetMessageId, super.key});
 
   /// When set, shows a loading shell until [ChatViewState.channelId] matches.
   final String? expectedChannelId;
@@ -819,7 +815,8 @@ class _MessageListState extends ConsumerState<MessageList> {
               bool canAddReactions,
               bool canPinMessage,
               bool canManageMessages,
-            }) channelActions,
+            })
+            channelActions,
           ) {
             final Widget body;
             if (isLoading && messages.isEmpty) {
@@ -1255,27 +1252,23 @@ class _MessageListSettingsLayer extends ConsumerWidget {
       },
       chatPreferences: ref.watch(chatPreferencesProvider),
     );
-    return builder(
-      context,
-      settings,
-      (
-        canSendMessages: channelMessagePerms.canSendMessages,
-        canAddReactions: canAddReactionsInChannel(
-          isDmChannel: isDmChannel,
-          channelPermissionBits: channelPermissionBits,
-          interactionsBlocked: interactionsBlocked,
-        ),
-        canPinMessage: canPinMessageInChannel(
-          isDmChannel: isDmChannel,
-          channelPermissionBits: channelPermissionBits,
-          interactionsBlocked: interactionsBlocked,
-        ),
-        canManageMessages: canManageMessagesInChannel(
-          isDmChannel: isDmChannel,
-          channelPermissionBits: channelPermissionBits,
-        ),
+    return builder(context, settings, (
+      canSendMessages: channelMessagePerms.canSendMessages,
+      canAddReactions: canAddReactionsInChannel(
+        isDmChannel: isDmChannel,
+        channelPermissionBits: channelPermissionBits,
+        interactionsBlocked: interactionsBlocked,
       ),
-    );
+      canPinMessage: canPinMessageInChannel(
+        isDmChannel: isDmChannel,
+        channelPermissionBits: channelPermissionBits,
+        interactionsBlocked: interactionsBlocked,
+      ),
+      canManageMessages: canManageMessagesInChannel(
+        isDmChannel: isDmChannel,
+        channelPermissionBits: channelPermissionBits,
+      ),
+    ));
   }
 }
 

@@ -33,15 +33,19 @@ class InstanceSelectorControl extends ConsumerStatefulWidget {
       _InstanceSelectorControlState();
 }
 
-class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorControl> {
+class _InstanceSelectorControlState
+    extends ConsumerState<InstanceSelectorControl> {
   final TextEditingController _controller = TextEditingController();
   bool _showRecentInstances = false;
 
   @override
   void initState() {
     super.initState();
-    final String? initialUrl =
-        ref.read(instanceSelectorProvider).asData?.value.instanceUrl;
+    final String? initialUrl = ref
+        .read(instanceSelectorProvider)
+        .asData
+        ?.value
+        .instanceUrl;
     if (initialUrl != null) {
       _controller.text = initialUrl;
     }
@@ -81,14 +85,17 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
     final AsyncValue<InstanceSelectorState> selectorAsync = ref.watch(
       instanceSelectorProvider,
     );
-    final InstanceSelector notifier = ref.read(instanceSelectorProvider.notifier);
+    final InstanceSelector notifier = ref.read(
+      instanceSelectorProvider.notifier,
+    );
     final bool isOfficial = ref.watch(isActiveInstanceOfficialProvider);
 
     return selectorAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
       data: (InstanceSelectorState selector) {
-        final String? errorText = selector.status == InstanceDiscoveryStatus.error
+        final String? errorText =
+            selector.status == InstanceDiscoveryStatus.error
             ? selector.errorMessage ?? l10n.instanceConnectFailed
             : null;
 
@@ -120,11 +127,14 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
               children: [
                 Expanded(
                   child: FluxerButton.secondary(
-                    onPressed: !widget.enabled ||
-                            selector.status == InstanceDiscoveryStatus.discovering
+                    onPressed:
+                        !widget.enabled ||
+                            selector.status ==
+                                InstanceDiscoveryStatus.discovering
                         ? null
                         : () => unawaited(notifier.connectToCurrentUrl()),
-                    label: selector.status == InstanceDiscoveryStatus.discovering
+                    label:
+                        selector.status == InstanceDiscoveryStatus.discovering
                         ? l10n.instanceConnecting
                         : l10n.instanceConnect,
                     isLoading:
@@ -191,7 +201,8 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             tooltip: l10n.resetToDefaultInstance,
-            onPressed: !widget.enabled ||
+            onPressed:
+                !widget.enabled ||
                     selector.status == InstanceDiscoveryStatus.discovering
                 ? null
                 : () => unawaited(notifier.resetToOfficialDefault()),
@@ -202,7 +213,7 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
             ),
           ),
         ),
-        if (statusIcon != null) statusIcon,
+        ?statusIcon,
       ],
     );
   }
@@ -234,9 +245,7 @@ class _InstanceSelectorControlState extends ConsumerState<InstanceSelectorContro
           size: 20,
         );
       case InstanceDiscoveryStatus.discovering:
-        return FluxerLoadingSpinner(
-          color: context.colors.textPrimaryMuted,
-        );
+        return FluxerLoadingSpinner(color: context.colors.textPrimaryMuted);
       case InstanceDiscoveryStatus.idle:
         return null;
     }
@@ -261,7 +270,9 @@ class InstanceSelectorLoginEntry extends ConsumerWidget {
     );
     final bool isOfficial = ref.watch(isActiveInstanceOfficialProvider);
     final String displayDomain = ref.watch(activeInstanceDisplayDomainProvider);
-    final bool canAuthenticate = ref.watch(instanceSelectorCanAuthenticateProvider);
+    final bool canAuthenticate = ref.watch(
+      instanceSelectorCanAuthenticateProvider,
+    );
 
     return selectorAsync.maybeWhen(
       data: (InstanceSelectorState selector) => _buildEntry(
@@ -371,42 +382,36 @@ class _RecentInstancesList extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(top: context.layout.s2),
       child: Column(
-        children: instances
-            .map(
-              (RecentInstance instance) {
-                final String displayDomain =
-                    const InstanceEndpointNormalizer().formatDisplayDomain(
-                  instance.domain,
-                );
-                return ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  instance.name ?? displayDomain,
-                  style: context.textStyles.bodySmall,
-                ),
-                subtitle: instance.name != null
-                    ? Text(
-                        displayDomain,
-                        style: context.textStyles.bodySmall.copyWith(
-                          color: context.colors.textTertiary,
-                        ),
-                      )
-                    : null,
-                onTap: enabled ? () => onSelect(instance) : null,
-                trailing: IconButton(
-                  tooltip: l10n.removeRecentInstance(displayDomain),
-                  onPressed: enabled ? () => onRemove(instance.domain) : null,
-                  icon: PhosphorIcon(
-                    PhosphorIconsFill.trash,
-                    color: context.colors.textTertiary,
-                    size: 18,
-                  ),
-                ),
-              );
-              },
-            )
-            .toList(),
+        children: instances.map((RecentInstance instance) {
+          final String displayDomain = const InstanceEndpointNormalizer()
+              .formatDisplayDomain(instance.domain);
+          return ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              instance.name ?? displayDomain,
+              style: context.textStyles.bodySmall,
+            ),
+            subtitle: instance.name != null
+                ? Text(
+                    displayDomain,
+                    style: context.textStyles.bodySmall.copyWith(
+                      color: context.colors.textTertiary,
+                    ),
+                  )
+                : null,
+            onTap: enabled ? () => onSelect(instance) : null,
+            trailing: IconButton(
+              tooltip: l10n.removeRecentInstance(displayDomain),
+              onPressed: enabled ? () => onRemove(instance.domain) : null,
+              icon: PhosphorIcon(
+                PhosphorIconsFill.trash,
+                color: context.colors.textTertiary,
+                size: 18,
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

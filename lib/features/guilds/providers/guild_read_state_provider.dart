@@ -148,19 +148,19 @@ class GuildReadState extends _$GuildReadState {
       _pruneRemovedGuilds(guilds.map((g) => g.id).toSet());
     });
 
-    ref.listen<bool>(gatewayReadyProvider, (prev, next) {
-      if (!(prev ?? false) && next) {
-        _seeded = false;
-        unawaited(_seedAll(db, currentUserId));
-      }
-    });
-
-    ref.listen<int>(gatewaySessionRecoveryProvider, (int? previous, int next) {
-      if (next > 0 && previous != next) {
-        _seeded = false;
-        unawaited(_seedAll(db, currentUserId));
-      }
-    });
+    ref
+      ..listen<bool>(gatewayReadyProvider, (prev, next) {
+        if (!(prev ?? false) && next) {
+          _seeded = false;
+          unawaited(_seedAll(db, currentUserId));
+        }
+      })
+      ..listen<int>(gatewaySessionRecoveryProvider, (int? previous, int next) {
+        if (next > 0 && previous != next) {
+          _seeded = false;
+          unawaited(_seedAll(db, currentUserId));
+        }
+      });
 
     if (ref.read(gatewayReadyProvider)) {
       unawaited(_seedAll(db, currentUserId));

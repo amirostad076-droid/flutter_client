@@ -823,7 +823,8 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                     guildId: guild.id,
                     body: ChannelCreateRequest4(
                       name: name,
-                      type: GuildCategoryChannelCreateRequestTypeType.guildCategory,
+                      type: GuildCategoryChannelCreateRequestTypeType
+                          .guildCategory,
                       topic: null,
                       url: null,
                       parentId: null,
@@ -1358,8 +1359,8 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                       guildId: guild.id,
                       body: ChannelCreateRequest4(
                         name: name,
-                        type:
-                            GuildCategoryChannelCreateRequestTypeType.guildCategory,
+                        type: GuildCategoryChannelCreateRequestTypeType
+                            .guildCategory,
                         topic: null,
                         url: null,
                         parentId: null,

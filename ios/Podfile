@@ -36,105 +36,16 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 
 flutter_ios_podfile_setup
 
-# measure-sh is a static_framework; allow it alongside dynamic use_frameworks!
-pre_install do |installer|
-  Pod::Installer::Xcode::TargetValidator.send(
-    :define_method,
-    :verify_no_static_framework_transitive_dependencies,
-  ) {}
-end
-
 target 'Runner' do
   use_frameworks!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-  pod 'measure-sh',
-      :git => 'https://github.com/measure-sh/measure.git',
-      :tag => 'ios-v0.11.0',
-      :submodules => true
   target 'RunnerTests' do
     inherit! :search_paths
   end
 end
 
-def ensure_measure_sh_libwebp!
-  libwebp_dir = File.expand_path('Pods/measure-sh/ios/Sources/MeasureWebP/libwebp', __dir__)
-  dec_header = File.join(libwebp_dir, 'src/dec/vp8_dec.h')
-  return if File.exist?(dec_header)
-
-  Pod::UI.puts 'Fetching complete libwebp for measure-sh...'
-  temp_dir = "#{libwebp_dir}.tmp"
-  FileUtils.rm_rf(temp_dir)
-  FileUtils.rm_rf(libwebp_dir)
-  success = system(
-    'git', 'clone', '--depth', '1', '--branch', 'v1.6.0',
-    'https://github.com/webmproject/libwebp.git',
-    temp_dir
-  )
-  raise 'Failed to clone libwebp for measure-sh' unless success
-
-  FileUtils.mv(temp_dir, libwebp_dir)
-end
-
-# Temporary workaround for measure-sh iOS 0.11.0 on iOS 26: direct scalar
-# @NSManaged setters can pass raw integers to Core Data's Objective-C path.
-# Remove once the upstream SDK boxes scalar Core Data writes or bumps the pod.
-def patch_measure_sh_core_data_scalar_writes!
-  pod_root = File.expand_path('Pods/measure-sh', __dir__)
-  replacements = {
-    'ios/Sources/MeasureSDK/Swift/CoreData/SessionStore.swift' => {
-      'sessionOb.pid = session.pid' => 'sessionOb.setValue(NSNumber(value: session.pid), forKey: "pid")',
-      'sessionOb.createdAt = session.createdAt' => 'sessionOb.setValue(NSNumber(value: session.createdAt), forKey: "createdAt")',
-      'sessionOb.needsReporting = session.needsReporting' => 'sessionOb.setValue(NSNumber(value: session.needsReporting), forKey: "needsReporting")',
-      'sessionOb.crashed = session.crashed' => 'sessionOb.setValue(NSNumber(value: session.crashed), forKey: "crashed")',
-      'session.crashed = true' => 'session.setValue(NSNumber(value: true), forKey: "crashed")',
-      'session.needsReporting = needsReporting' => 'session.setValue(NSNumber(value: needsReporting), forKey: "needsReporting")',
-    },
-    'ios/Sources/MeasureSDK/Swift/CoreData/EventStore.swift' => {
-      'eventOb.userTriggered = event.userTriggered' => 'eventOb.setValue(NSNumber(value: event.userTriggered), forKey: "userTriggered")',
-      'eventOb.timestampInMillis = event.timestampInMillis' => 'eventOb.setValue(NSNumber(value: event.timestampInMillis), forKey: "timestampInMillis")',
-      'eventOb.needsReporting = event.needsReporting' => 'eventOb.setValue(NSNumber(value: event.needsReporting), forKey: "needsReporting")',
-      'attachmentOb.attachmentSize = attachment.size' => 'attachmentOb.setValue(NSNumber(value: attachment.size), forKey: "attachmentSize")',
-      'events.forEach { $0.needsReporting = needsReporting }' => 'events.forEach { $0.setValue(NSNumber(value: needsReporting), forKey: "needsReporting") }',
-      'events.forEach { $0.needsReporting = true }' => 'events.forEach { $0.setValue(NSNumber(value: true), forKey: "needsReporting") }',
-    },
-    'ios/Sources/MeasureSDK/Swift/CoreData/SpanStore.swift' => {
-      'spanOb.startTime = span.startTime' => 'spanOb.setValue(NSNumber(value: span.startTime), forKey: "startTime")',
-      'spanOb.endTime = span.endTime' => 'spanOb.setValue(NSNumber(value: span.endTime), forKey: "endTime")',
-      'spanOb.duration = span.duration' => 'spanOb.setValue(NSNumber(value: span.duration), forKey: "duration")',
-      'spanOb.status = span.status ?? 0' => 'spanOb.setValue(NSNumber(value: span.status ?? 0), forKey: "status")',
-      'spanOb.hasEnded = span.hasEnded' => 'spanOb.setValue(NSNumber(value: span.hasEnded), forKey: "hasEnded")',
-      'spanOb.isSampled = span.isSampled' => 'spanOb.setValue(NSNumber(value: span.isSampled), forKey: "isSampled")',
-    },
-    'ios/Sources/MeasureSDK/Swift/CoreData/BatchStore.swift' => {
-      'batchOb.createdAt = batch.createdAt' => 'batchOb.setValue(NSNumber(value: batch.createdAt), forKey: "createdAt")',
-    },
-  }
-
-  replacements.each do |relative_path, file_replacements|
-    path = File.join(pod_root, relative_path)
-    raise "Measure source file missing: #{path}" unless File.exist?(path)
-
-    contents = File.read(path)
-    patched = contents.dup
-    file_replacements.each do |source, replacement|
-      if patched.include?(source)
-        patched = patched.gsub(source, replacement)
-      elsif !patched.include?(replacement)
-        raise "Measure source pattern missing in #{relative_path}: #{source}"
-      end
-    end
-    next if patched == contents
-
-    File.write(path, patched)
-    Pod::UI.puts "Patched Measure Core Data scalar writes in #{relative_path}"
-  end
-end
-
 post_install do |installer|
-  ensure_measure_sh_libwebp!
-  patch_measure_sh_core_data_scalar_writes!
-
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
@@ -152,36 +63,6 @@ post_install do |installer|
         definitions << 'PERMISSION_CAMERA=1'
       end
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions
-    end
-  end
-
-  measure_sh = installer.pods_project.targets.find { |t| t.name == 'measure-sh' }
-  measure_flutter = installer.pods_project.targets.find { |t| t.name == 'measure_flutter' }
-  kscrash = installer.pods_project.targets.find { |t| t.name == 'KSCrash' }
-  if measure_flutter
-    [measure_sh, kscrash].compact.each do |dependency_target|
-      unless measure_flutter.dependencies.any? { |dep| dep.target == dependency_target }
-        measure_flutter.add_dependency(dependency_target)
-      end
-    end
-    measure_framework_paths = [
-      '"${PODS_CONFIGURATION_BUILD_DIR}/measure-sh"',
-      '"${PODS_CONFIGURATION_BUILD_DIR}/KSCrash"',
-    ]
-    measure_flutter.build_configurations.each do |config|
-      framework_search_paths = config.build_settings['FRAMEWORK_SEARCH_PATHS'] || '$(inherited)'
-      framework_search_paths = [framework_search_paths] unless framework_search_paths.is_a?(Array)
-      measure_framework_paths.each do |path|
-        framework_search_paths << path unless framework_search_paths.include?(path)
-      end
-      config.build_settings['FRAMEWORK_SEARCH_PATHS'] = framework_search_paths
-
-      ldflags = config.build_settings['OTHER_LDFLAGS'] || '$(inherited)'
-      ldflags = [ldflags] unless ldflags.is_a?(Array)
-      unless ldflags.join(' ').include?('-framework Measure')
-        ldflags += ['-framework', 'Measure', '-framework', 'KSCrash']
-      end
-      config.build_settings['OTHER_LDFLAGS'] = ldflags
     end
   end
 

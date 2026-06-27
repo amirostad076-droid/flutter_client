@@ -457,12 +457,6 @@ abstract class FluxerLocalizations {
   /// **'Authenticator App'**
   String get mfaMethodTotp;
 
-  /// Label for the SMS code method.
-  ///
-  /// In en, this message translates to:
-  /// **'SMS Code'**
-  String get mfaMethodSms;
-
   /// Label for the WebAuthn security key method.
   ///
   /// In en, this message translates to:
@@ -474,18 +468,6 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Enter the 6-digit code from your authenticator app or one of your backup codes.'**
   String get mfaTotpDescription;
-
-  /// Description for the SMS code entry screen.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the 6-digit code sent to your phone.'**
-  String get mfaSmsDescription;
-
-  /// Button label to send an SMS verification code.
-  ///
-  /// In en, this message translates to:
-  /// **'Send SMS Code'**
-  String get mfaSendSmsCode;
 
   /// Label for the MFA code input field.
   ///
@@ -3400,7 +3382,7 @@ abstract class FluxerLocalizations {
   /// Description for phone number section.
   ///
   /// In en, this message translates to:
-  /// **'Manage your phone number for SMS two-factor authentication'**
+  /// **'Manage your phone number.'**
   String get securityPhoneSectionDescription;
 
   /// Label for phone number row.
@@ -3412,7 +3394,7 @@ abstract class FluxerLocalizations {
   /// Shown when no phone number is set.
   ///
   /// In en, this message translates to:
-  /// **'Add a phone number to enable SMS two-factor authentication'**
+  /// **'No phone number added.'**
   String get securityPhoneNone;
 
   /// Button to add phone number.
@@ -3439,77 +3421,11 @@ abstract class FluxerLocalizations {
   /// **'Are you sure you want to remove your phone number?'**
   String get securityPhoneRemoveDescription;
 
-  /// Warning when removing phone with SMS MFA.
-  ///
-  /// In en, this message translates to:
-  /// **'This will also disable SMS two-factor authentication.'**
-  String get securityPhoneRemoveWarning;
-
   /// Toast after phone removed.
   ///
   /// In en, this message translates to:
   /// **'Phone number removed'**
   String get securityPhoneRemoved;
-
-  /// Title for SMS MFA section.
-  ///
-  /// In en, this message translates to:
-  /// **'SMS Two-Factor Authentication'**
-  String get securitySmsSectionTitle;
-
-  /// Description for SMS MFA section.
-  ///
-  /// In en, this message translates to:
-  /// **'Receive verification codes via SMS as a backup authentication method'**
-  String get securitySmsSectionDescription;
-
-  /// Label for SMS backup row.
-  ///
-  /// In en, this message translates to:
-  /// **'SMS Backup'**
-  String get securitySmsBackup;
-
-  /// Status when SMS MFA is enabled.
-  ///
-  /// In en, this message translates to:
-  /// **'SMS two-factor authentication is enabled'**
-  String get securitySmsEnabled;
-
-  /// Status when SMS MFA is disabled.
-  ///
-  /// In en, this message translates to:
-  /// **'Enable SMS codes as a backup for your authenticator app'**
-  String get securitySmsDisabled;
-
-  /// Title for SMS MFA enable confirmation.
-  ///
-  /// In en, this message translates to:
-  /// **'Enable SMS Two-Factor Authentication'**
-  String get securitySmsEnableTitle;
-
-  /// Description for SMS MFA enable.
-  ///
-  /// In en, this message translates to:
-  /// **'SMS two-factor authentication adds an additional layer of security by requiring a verification code sent to your phone number when signing in.'**
-  String get securitySmsEnableDescription;
-
-  /// Title for SMS MFA disable confirmation.
-  ///
-  /// In en, this message translates to:
-  /// **'Disable SMS Two-Factor Authentication'**
-  String get securitySmsDisableTitle;
-
-  /// Description for SMS MFA disable.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to disable SMS two-factor authentication? This will make your account less secure.'**
-  String get securitySmsDisableDescription;
-
-  /// Tooltip when SMS MFA is not available for partner accounts.
-  ///
-  /// In en, this message translates to:
-  /// **'SMS backup is disabled for partners'**
-  String get securitySmsDisabledForPartners;
 
   /// Title when user needs to claim account for security.
   ///

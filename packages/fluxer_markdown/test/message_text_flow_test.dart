@@ -41,7 +41,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(1)),
+            data: const MediaQueryData(textScaler: TextScaler.noScaling),
             child: Scaffold(
               body: Center(
                 child: SizedBox(
@@ -74,7 +74,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(1)),
+            data: const MediaQueryData(textScaler: TextScaler.noScaling),
             child: Scaffold(
               body: Center(
                 child: SizedBox(
@@ -103,7 +103,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(1)),
+            data: const MediaQueryData(textScaler: TextScaler.noScaling),
             child: Scaffold(
               body: Center(
                 child: SizedBox(
@@ -436,7 +436,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: MediaQuery(
-            data: MediaQueryData(textScaler: TextScaler.linear(1)),
+            data: MediaQueryData(textScaler: TextScaler.noScaling),
             child: Scaffold(
               body: Center(
                 child: SizedBox(

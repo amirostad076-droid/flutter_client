@@ -470,7 +470,7 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // TODO(montys): Replace with a more final design.
+        // TODO(M0n7y5): Replace with a more final design.
         const VoiceCallBar(),
         Divider(height: 1, color: context.colors.borderColor),
         AppBottomNavBar(

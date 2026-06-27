@@ -83,8 +83,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     onReady: () {
       talker.info('[Gateway] Setting gatewayReady = true');
       unawaited(ref.read(channelPermissionCacheProvider.notifier).rebuildAll());
-      ref.invalidate(effectiveGuildChannelPermissionBitsProvider);
-      ref.invalidate(channelLocalGuildChannelPermissionBitsProvider);
+      ref
+        ..invalidate(effectiveGuildChannelPermissionBitsProvider)
+        ..invalidate(channelLocalGuildChannelPermissionBitsProvider);
       ref.read(gatewayReadyProvider.notifier).setReady();
       ref.read(guildSyncProvider.notifier).clearAll();
       ref.read(memberListViewportProvider.notifier).clearSession();
@@ -196,8 +197,9 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       unawaited(
         ref.read(channelPermissionCacheProvider.notifier).rebuildGuild(guildId),
       );
-      ref.invalidate(effectiveGuildChannelPermissionBitsProvider);
-      ref.invalidate(channelLocalGuildChannelPermissionBitsProvider);
+      ref
+        ..invalidate(effectiveGuildChannelPermissionBitsProvider)
+        ..invalidate(channelLocalGuildChannelPermissionBitsProvider);
     },
     onGuildPermissionsEvict: (guildId) {
       ref.read(guildPermissionsProvider.notifier).evict(guildId);
@@ -211,14 +213,16 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
             .read(channelPermissionCacheProvider.notifier)
             .rebuildChannel(channelId),
       );
-      ref.invalidate(effectiveGuildChannelPermissionBitsProvider(channelId));
-      ref.invalidate(channelLocalGuildChannelPermissionBitsProvider(channelId));
+      ref
+        ..invalidate(effectiveGuildChannelPermissionBitsProvider(channelId))
+        ..invalidate(channelLocalGuildChannelPermissionBitsProvider(channelId));
     },
     onPermissionsClearAll: () {
       ref.read(guildPermissionsProvider.notifier).clearAll();
       ref.read(channelPermissionCacheProvider.notifier).clearAll();
-      ref.invalidate(effectiveGuildChannelPermissionBitsProvider);
-      ref.invalidate(channelLocalGuildChannelPermissionBitsProvider);
+      ref
+        ..invalidate(effectiveGuildChannelPermissionBitsProvider)
+        ..invalidate(channelLocalGuildChannelPermissionBitsProvider);
     },
     onMessageCreate: (event) => messageBus.emit(MessageCreated(event)),
     onMessageUpdate: (event) => messageBus.emit(MessageUpdated(event)),
@@ -320,7 +324,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
   );
 
   ref.onDispose(() {
-    subscription.cancel();
+    unawaited(subscription.cancel());
     handler.dispose();
   });
   return subscription;

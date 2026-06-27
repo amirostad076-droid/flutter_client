@@ -19,11 +19,7 @@ import 'package:fluxer_dart/export.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
-  const LoginForm({
-    required this.showBrowserLogin,
-    this.heading,
-    super.key,
-  });
+  const LoginForm({required this.showBrowserLogin, this.heading, super.key});
 
   final bool showBrowserLogin;
   final String? heading;
@@ -43,7 +39,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
   void _submitLogin() {
     final notifier = ref.read(loginViewModelProvider.notifier);
-    final bool canAuthenticate = ref.read(instanceSelectorCanAuthenticateProvider);
+    final bool canAuthenticate = ref.read(
+      instanceSelectorCanAuthenticateProvider,
+    );
     if (ref.read(loginViewModelProvider).canLogin && canAuthenticate) {
       unawaited(notifier.login());
       TextInput.finishAutofillContext();
@@ -57,13 +55,15 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     final notifier = ref.read(loginViewModelProvider.notifier);
     final layout = context.layout;
     final errorText = resolveLoginError(vm, strings);
-    final bool canAuthenticate = ref.watch(instanceSelectorCanAuthenticateProvider);
+    final bool canAuthenticate = ref.watch(
+      instanceSelectorCanAuthenticateProvider,
+    );
     final bool canSubmit = vm.canLogin && canAuthenticate;
     final bool isSsoEnabled = ref.watch(isAuthInstanceSsoEnabledProvider);
-    final WellKnownFluxerResponseSso? ssoConfig =
-        ref.watch(authInstanceSnapshotProvider).ssoConfig;
-    final String ssoProviderName =
-        ssoConfig?.displayName ?? 'Single Sign-On';
+    final WellKnownFluxerResponseSso? ssoConfig = ref
+        .watch(authInstanceSnapshotProvider)
+        .ssoConfig;
+    final String ssoProviderName = ssoConfig?.displayName ?? 'Single Sign-On';
 
     return AbsorbPointer(
       absorbing: vm.isLoggingIn || vm.isStartingSso,
@@ -186,7 +186,8 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               SizedBox(height: layout.s4),
               InstanceSelectorLoginEntry(
                 enabled: !vm.isLoggingIn,
-                onOpenSheet: () => unawaited(showInstanceSelectorSheet(context)),
+                onOpenSheet: () =>
+                    unawaited(showInstanceSelectorSheet(context)),
               ),
             ],
           ),

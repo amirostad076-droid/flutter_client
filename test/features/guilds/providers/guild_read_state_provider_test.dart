@@ -561,7 +561,7 @@ void main() {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
     final ackId = _recentSnowflake(ago: const Duration(hours: 2));
-    final latestId = _recentSnowflake(ago: const Duration(hours: 1));
+    final latestId = _recentSnowflake();
     await _seedGuild(
       db,
       'guild-1',

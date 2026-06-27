@@ -14,7 +14,6 @@ import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_connection_actions.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
-import 'package:fluxer_dart/gateway.dart';
 import 'package:go_router/go_router.dart';
 
 class DmVoiceCallFullscreenPage extends ConsumerStatefulWidget {
@@ -115,33 +114,6 @@ class _DmVoiceCallFullscreenPageState
             ),
     );
   }
-}
-
-bool _isVoiceSessionOnPrivateDm(VoiceSessionState s, String channelId) {
-  if (!s.isInVoice) {
-    return false;
-  }
-  if (s.channelId != channelId) {
-    return false;
-  }
-  return s.guildId == null || s.guildId!.isEmpty;
-}
-
-int _countUniqueParticipantsPrivateChannel(
-  Map<String, VoiceState> map,
-  String channelId,
-) {
-  final Set<String> userIds = <String>{};
-  for (final VoiceState vs in map.values) {
-    if (vs.channelId != channelId) {
-      continue;
-    }
-    if (vs.guildId != null && vs.guildId!.isNotEmpty) {
-      continue;
-    }
-    userIds.add(vs.userId);
-  }
-  return userIds.length;
 }
 
 class _DmVoiceEmptyPane extends ConsumerWidget {

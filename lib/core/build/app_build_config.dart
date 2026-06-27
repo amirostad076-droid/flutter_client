@@ -23,16 +23,11 @@ class AppBuildConfig {
     'BUILD_TIMESTAMP',
   );
   // ignore: do_not_use_environment -- compile-time build flavor config
-  static const String _betaNumberValue = String.fromEnvironment(
-    'BETA_NUMBER',
-  );
+  static const String _betaNumberValue = String.fromEnvironment('BETA_NUMBER');
   // ignore: do_not_use_environment -- compile-time build flavor config
-  static const String _measureApiKeyValue = String.fromEnvironment(
-    'MEASURE_API_KEY',
-  );
-  // ignore: do_not_use_environment -- compile-time build flavor config
-  static const String _measureApiUrlValue = String.fromEnvironment(
-    'MEASURE_API_URL',
+  static const String _signozOtlpTracesEndpointValue = String.fromEnvironment(
+    'SIGNOZ_OTLP_TRACES_ENDPOINT',
+    defaultValue: 'https://sgnz-otlp.fluxer.tools/v1/traces',
   );
   static AppBuildEnvironment get environment {
     switch (_environmentValue) {
@@ -92,8 +87,7 @@ class AppBuildConfig {
     return int.tryParse(trimmed);
   }
 
-  static String get measureApiKey => _measureApiKeyValue;
-  static String get measureApiUrl => _measureApiUrlValue;
-  static bool get hasMeasureConfig =>
-      measureApiKey.isNotEmpty && measureApiUrl.isNotEmpty;
+  static String get signozOtlpTracesEndpoint =>
+      _signozOtlpTracesEndpointValue.trim();
+  static bool get hasObservabilityConfig => signozOtlpTracesEndpoint.isNotEmpty;
 }
