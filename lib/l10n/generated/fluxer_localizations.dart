@@ -8003,13 +8003,13 @@ abstract class FluxerLocalizations {
   /// **'Editing message'**
   String get chatEditingMessage;
 
-  /// Placeholder in the inline reply preview when the parent message was deleted.
+  /// Label in the channel and chat reply preview. Keep the tone plain and specific.
   ///
   /// In en, this message translates to:
   /// **'Original message was deleted'**
   String get chatReplyOriginalDeleted;
 
-  /// Placeholder in the inline reply preview when the parent message could not be loaded.
+  /// Error message in the channel and chat reply preview.
   ///
   /// In en, this message translates to:
   /// **'Original message failed to load'**

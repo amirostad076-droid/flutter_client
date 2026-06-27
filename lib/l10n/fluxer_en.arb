@@ -5856,11 +5856,11 @@
   },
   "chatReplyOriginalDeleted": "Original message was deleted",
   "@chatReplyOriginalDeleted": {
-    "description": "Placeholder in the inline reply preview when the parent message was deleted."
+    "description": "Label in the channel and chat reply preview. Keep the tone plain and specific."
   },
   "chatReplyOriginalFailedToLoad": "Original message failed to load",
   "@chatReplyOriginalFailedToLoad": {
-    "description": "Placeholder in the inline reply preview when the parent message could not be loaded."
+    "description": "Error message in the channel and chat reply preview."
   },
   "chatReplyAttachedMedia": "Message contains attached media",
   "@chatReplyAttachedMedia": {
