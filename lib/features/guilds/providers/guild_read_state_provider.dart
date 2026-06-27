@@ -186,6 +186,18 @@ class GuildReadState extends _$GuildReadState {
       return;
     }
     _seeded = true;
+    if (_isInitialSeedComplete) {
+      // Re-seed via the generation-guarded incremental path. A wholesale DB read
+      // here races the un-awaited gateway replay and can re-mark an acked channel
+      // unread on RESUME.
+      _enqueueChannels(
+        _channelSnapshot.keys.toList(),
+        db,
+        currentUserId,
+        refreshLatest: true,
+      );
+      return;
+    }
     _recomputeGeneration++;
     _clearCaches();
     final guilds = await db.guildDao.getServers();
