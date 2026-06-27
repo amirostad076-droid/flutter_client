@@ -583,7 +583,7 @@ class _MessageListState extends ConsumerState<MessageList> {
               itemCount:
                   messages.length + (startOfChannelHeader != null ? 1 : 0),
               addAutomaticKeepAlives: false,
-              addRepaintBoundaries: false,
+              addRepaintBoundaries: true,
               itemBuilder: (BuildContext context, int renderIndex) {
                 if (startOfChannelHeader != null &&
                     renderIndex == messages.length) {
