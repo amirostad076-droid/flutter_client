@@ -111,10 +111,7 @@ class _VoiceChannelParticipantGridState
 
   // Layout metrics cache to avoid expensive recalculation on every frame
   VoiceGridPackedLayoutMetrics? _cachedLayoutMetrics;
-  int? _cachedTileCount;
-  double? _cachedContainerWidth;
-  double? _cachedContainerHeight;
-  bool? _cachedCompact;
+  int? _cachedLayoutKey;
 
   VoiceGridPackedLayoutMetrics _resolveLayoutMetrics({
     required int tileCount,
@@ -122,17 +119,16 @@ class _VoiceChannelParticipantGridState
     required double containerHeight,
     required bool compact,
   }) {
-    if (_cachedLayoutMetrics != null &&
-        _cachedTileCount == tileCount &&
-        _cachedContainerWidth == containerWidth &&
-        _cachedContainerHeight == containerHeight &&
-        _cachedCompact == compact) {
+    final int layoutCacheKey = Object.hash(
+      tileCount,
+      containerWidth,
+      containerHeight,
+      compact,
+    );
+    if (_cachedLayoutKey == layoutCacheKey && _cachedLayoutMetrics != null) {
       return _cachedLayoutMetrics!;
     }
-    _cachedTileCount = tileCount;
-    _cachedContainerWidth = containerWidth;
-    _cachedContainerHeight = containerHeight;
-    _cachedCompact = compact;
+    _cachedLayoutKey = layoutCacheKey;
     _cachedLayoutMetrics = resolveVoiceGridPackedLayoutMetrics(
       tileCount: tileCount,
       containerWidth: containerWidth,
