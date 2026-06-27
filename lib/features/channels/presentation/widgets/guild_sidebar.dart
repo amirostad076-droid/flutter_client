@@ -25,6 +25,7 @@ import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_
 import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_user_count.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
+import 'package:fluxer_app/features/channels/providers/channel_sidebar_icon_connect_bits_provider.dart';
 import 'package:fluxer_app/features/channels/providers/channel_typing_provider.dart';
 import 'package:fluxer_app/features/channels/providers/guild_sidebar_entries_provider.dart';
 import 'package:fluxer_app/features/channels/providers/guild_sidebar_scroll_store_provider.dart';
@@ -317,14 +318,12 @@ class _ChannelTile extends ConsumerWidget {
       unreadBadgesLevel: unread?.unreadBadgesLevel,
     );
     final bool hasTyping = ref.watch(channelHasTypingProvider(channel.id));
-    final int? cachedPermissionBits = ref.watch(
-      channelPermissionCacheProvider.select((m) => m[channel.id]),
-    );
+    final int? connectPermissionBits = ref
+        .watch(channelSidebarIconConnectBitsProvider(channel.id))
+        .value;
     final int? effectivePermissionBits = ref
         .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
         .value;
-    final int? iconPermissionBits =
-        effectivePermissionBits ?? cachedPermissionBits;
 
     final bool isVoice = channel.type == ChannelType.voice;
     final VoiceSessionState voiceSession = ref.watch(voiceSessionProvider);
@@ -424,8 +423,8 @@ class _ChannelTile extends ConsumerWidget {
                     ChannelIcon(
                       type: channel.type,
                       channel: channel,
-                      effectivePermissionBits: iconPermissionBits,
-                      canConnectPermissionBits: iconPermissionBits,
+                      effectivePermissionBits: connectPermissionBits,
+                      canConnectPermissionBits: connectPermissionBits,
                       color: textColor,
                       e2eeEncrypted: showE2eeVoiceIcon,
                     ),

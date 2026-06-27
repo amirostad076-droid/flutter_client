@@ -16,6 +16,8 @@ import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/guild_sidebar.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/channels/providers/channel_sidebar_icon_connect_bits_provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/guild_collapsed_categories_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
@@ -281,6 +283,99 @@ void main() {
       expect(find.text('Copy Link'), findsOneWidget);
     });
   });
+
+  group('GuildSidebar voice channel access icons', () {
+    testWidgets('shows no-connect icon when connect permission is denied', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+      const String voiceChannelId = 'voice-1';
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _voiceChannelState(),
+            unread: const {'voice-1': UnreadState()},
+            sidebarConnectBits: {
+              voiceChannelId: Permission.viewChannel.value,
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final Finder voiceRow = find.ancestor(
+        of: find.text('locked-voice'),
+        matching: find.byType(Row),
+      );
+      final SvgPicture svg = tester.widget<SvgPicture>(
+        find.descendant(of: voiceRow, matching: find.byType(SvgPicture)),
+      );
+      final String asset =
+          (svg.bytesLoader as SvgAssetLoader).assetName;
+      expect(asset, contains('voice_no_connect'));
+    });
+
+    testWidgets('shows default voice icon while connect bits are unresolved', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+      const String voiceChannelId = 'voice-1';
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _voiceChannelState(),
+            unread: const {'voice-1': UnreadState()},
+            sidebarConnectBits: {voiceChannelId: null},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final Finder voiceRow = find.ancestor(
+        of: find.text('locked-voice'),
+        matching: find.byType(Row),
+      );
+      final SvgPicture svg = tester.widget<SvgPicture>(
+        find.descendant(of: voiceRow, matching: find.byType(SvgPicture)),
+      );
+      final String asset =
+          (svg.bytesLoader as SvgAssetLoader).assetName;
+      expect(asset, contains('voice.svg'));
+      expect(asset, isNot(contains('voice_no_connect')));
+    });
+
+    testWidgets('shows default voice icon when connect is allowed', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+      const String voiceChannelId = 'voice-1';
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _voiceChannelState(),
+            unread: const {'voice-1': UnreadState()},
+            sidebarConnectBits: {
+              voiceChannelId:
+                  Permission.viewChannel.value | Permission.connect.value,
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final Finder voiceRow = find.ancestor(
+        of: find.text('locked-voice'),
+        matching: find.byType(Row),
+      );
+      final SvgPicture svg = tester.widget<SvgPicture>(
+        find.descendant(of: voiceRow, matching: find.byType(SvgPicture)),
+      );
+      final String asset =
+          (svg.bytesLoader as SvgAssetLoader).assetName;
+      expect(asset, contains('voice.svg'));
+      expect(asset, isNot(contains('voice_no_connect')));
+    });
+  });
 }
 
 void _setMobileSurface(WidgetTester tester) {
@@ -314,6 +409,26 @@ ChannelListState _state({String? selectedChannelId}) => ChannelListState(
   selectedChannelId: selectedChannelId,
 );
 
+ChannelListState _voiceChannelState() => const ChannelListState(
+  guild: Guild(id: _guildId, name: 'Test Guild'),
+  categories: [
+    ChannelCategory(
+      id: 'cat1',
+      name: 'Voice',
+      channels: [
+        Channel(
+          id: 'voice-1',
+          guildId: _guildId,
+          name: 'locked-voice',
+          type: ChannelType.voice,
+          parentId: 'cat1',
+        ),
+      ],
+    ),
+  ],
+  selectedChannelId: null,
+);
+
 List<Override> _buildOverrides({
   required ChannelListState channelListState,
   String? selectedChannelId,
@@ -322,6 +437,7 @@ List<Override> _buildOverrides({
   bool hideMuted = false,
   Map<String, UnreadState> unread = const {},
   Map<String, int> permissionBits = const {},
+  Map<String, int?> sidebarConnectBits = const {},
   bool developerMode = false,
 }) {
   final db = FluxerDatabase.forTesting(NativeDatabase.memory());
@@ -350,10 +466,15 @@ List<Override> _buildOverrides({
     ).overrideWith((ref) => Stream.value(collapsed)),
     for (final Channel channel in channelListState.categories.expand<Channel>(
       (ChannelCategory category) => category.channels,
-    ))
+    )) ...[
       effectiveGuildChannelPermissionBitsProvider(
         channel.id,
       ).overrideWith((ref) => permissionBits[channel.id] ?? 0),
+      if (sidebarConnectBits.containsKey(channel.id))
+        channelSidebarIconConnectBitsProvider(channel.id).overrideWith(
+          (ref) async => sidebarConnectBits[channel.id],
+        ),
+    ],
     for (final entry in unread.entries)
       channelUnreadProvider(
         entry.key,
