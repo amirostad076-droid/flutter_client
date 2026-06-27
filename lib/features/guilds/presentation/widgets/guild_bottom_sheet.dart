@@ -107,6 +107,7 @@ void _openSubmenuSheet(BuildContext context, GuildMenuSubmenu submenu) {
       context,
       title: submenu.label,
       onBack: () => Navigator.of(context).pop(),
+      initialChildSize: 0.5,
       maxChildSize: 0.85,
       builder: (sheetContext, scrollController, close) {
         final layout = sheetContext.layout;
