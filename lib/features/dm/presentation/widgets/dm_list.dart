@@ -122,7 +122,7 @@ class _DMListState extends ConsumerState<DMList> {
         return;
       }
       if (ref.read(chatViewModelProvider).channelId == channelId) {
-        await ref.read(chatViewModelProvider.notifier).switchChannel(channelId);
+        await ref.read(chatViewModelProvider.notifier).reloadCurrentChannel();
       }
       ref
           .read(toastProvider.notifier)

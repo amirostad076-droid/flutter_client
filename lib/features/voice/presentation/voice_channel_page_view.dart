@@ -9,6 +9,7 @@ import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/upload_drop_overlay.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/utils/chat_route_sync_guard.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
@@ -51,7 +52,7 @@ class _VoiceChannelPageViewState extends ConsumerState<VoiceChannelPageView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
+      if (!mounted || !chatRouteShouldSync(context)) {
         return;
       }
       unawaited(
@@ -67,7 +68,7 @@ class _VoiceChannelPageViewState extends ConsumerState<VoiceChannelPageView> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.channelId != widget.channelId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
+        if (!mounted || !chatRouteShouldSync(context)) {
           return;
         }
         unawaited(
@@ -413,7 +414,25 @@ class _DesktopVoiceChatDockState extends ConsumerState<_DesktopVoiceChatDock> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
+      if (!mounted || !chatRouteShouldSync(context)) {
+        return;
+      }
+      unawaited(
+        ref
+            .read(chatViewModelProvider.notifier)
+            .switchChannel(widget.channelId),
+      );
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _DesktopVoiceChatDock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.channelId == widget.channelId) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !chatRouteShouldSync(context)) {
         return;
       }
       unawaited(

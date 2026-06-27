@@ -199,6 +199,9 @@ class ChatViewModel extends _$ChatViewModel {
   // Guards against duplicate sends when send is triggered repeatedly before an
   // in-flight send finishes its async preparation (e.g. while the app lags).
   bool _isPreparingSend = false;
+  // Monotonically increasing token identifying the most recent switchChannel
+  // call.
+  int _channelSwitchGeneration = 0;
   final Map<String, Future<void>> _pendingDeleteFutures =
       <String, Future<void>>{};
   final Map<String, DateTime> _lastNetworkRefreshByChannel =
@@ -646,6 +649,19 @@ class ChatViewModel extends _$ChatViewModel {
     bool loadMessages = true,
   }) async {
     final Stopwatch switchStopwatch = Stopwatch()..start();
+    if (state.channelId == channelId &&
+        targetMessageId != null &&
+        state.isLoading) {
+      return;
+    }
+    if (state.channelId == channelId &&
+        targetMessageId == null &&
+        loadMessages &&
+        (state.isLoading || state.isSyncingMessages)) {
+      return;
+    }
+    final int switchGeneration = ++_channelSwitchGeneration;
+    bool isCurrentSwitch() => switchGeneration == _channelSwitchGeneration;
     try {
       if (state.channelId != channelId) {
         _readViewportNearBottom = false;
@@ -676,12 +692,21 @@ class ChatViewModel extends _$ChatViewModel {
         );
       }
       final draft = await _loadComposerDraft(channelId);
-      final bool replyMentioning =
-          !(draft.reply == null) &&
-          await _defaultReplyMentionFor(
-            message: draft.reply!,
-            channelId: channelId,
-          );
+      if (!isCurrentSwitch()) {
+        return;
+      }
+      final bool replyMentioning;
+      if (draft.reply == null) {
+        replyMentioning = false;
+      } else {
+        replyMentioning = await _defaultReplyMentionFor(
+          message: draft.reply!,
+          channelId: channelId,
+        );
+        if (!isCurrentSwitch()) {
+          return;
+        }
+      }
       if (!loadMessages) {
         state = _switchedChannelState(
           channelId: channelId,
@@ -727,8 +752,12 @@ class ChatViewModel extends _$ChatViewModel {
           hasMoreNewerMessages: false,
         );
         highlightJumpMessage(targetMessageId);
-        await _loadMessages(channelId, targetMessageId: targetMessageId);
-        if (state.channelId == channelId) {
+        await _loadMessages(
+          channelId,
+          targetMessageId: targetMessageId,
+          shouldApplyResult: isCurrentSwitch,
+        );
+        if (isCurrentSwitch() && state.channelId == channelId) {
           scrollToMessage(targetMessageId);
         }
         return;
@@ -740,8 +769,15 @@ class ChatViewModel extends _$ChatViewModel {
       }
       final repo = ref.read(messageRepositoryProvider);
       final cached = await repo.getCachedMessages(channelId);
+      if (!isCurrentSwitch()) {
+        return;
+      }
       final hasUnread = await _channelHasNewUnreadMessages(channelId);
+      if (!isCurrentSwitch()) {
+        return;
+      }
       if (cached.isNotEmpty && !hasUnread) {
+        final bool willRefresh = _shouldRefreshChannelFromNetwork(channelId);
         state = _switchedChannelState(
           channelId: channelId,
           messages: cached,
@@ -749,7 +785,7 @@ class ChatViewModel extends _$ChatViewModel {
           replyMentioning: replyMentioning,
           scrollToBottomSignal: state.scrollToBottomSignal,
           isLoading: false,
-          isSyncingMessages: true,
+          isSyncingMessages: willRefresh,
           isLoadingMore: false,
           isLoadingNewer: false,
           hasMoreMessages: cached.length >= _kPageSize,
@@ -757,10 +793,13 @@ class ChatViewModel extends _$ChatViewModel {
         );
         _setContiguityWindow(channelId, cached);
         _deferMessageReferencesLoaded(channelId: channelId, messages: cached);
-        if (_shouldRefreshChannelFromNetwork(channelId)) {
-          _markChannelNetworkRefresh(channelId);
+        if (willRefresh) {
           unawaited(
-            _refreshMessagesFromNetwork(channelId, limit: _kInitialPageSize),
+            _refreshMessagesFromNetwork(
+              channelId,
+              limit: _kInitialPageSize,
+              shouldApplyResult: isCurrentSwitch,
+            ),
           );
         }
         return;
@@ -782,6 +821,7 @@ class ChatViewModel extends _$ChatViewModel {
         channelId,
         showLoadingSpinner: true,
         limit: _kInitialPageSize,
+        shouldApplyResult: isCurrentSwitch,
       );
     } finally {
       debugPrint(
@@ -827,11 +867,13 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> _loadMessages(
     String channelId, {
     String? targetMessageId,
+    bool Function()? shouldApplyResult,
   }) async {
     await _refreshMessagesFromNetwork(
       channelId,
       targetMessageId: targetMessageId,
       showLoadingSpinner: true,
+      shouldApplyResult: shouldApplyResult,
     );
   }
 
@@ -840,8 +882,13 @@ class ChatViewModel extends _$ChatViewModel {
     String? targetMessageId,
     bool showLoadingSpinner = false,
     int limit = _kPageSize,
+    bool Function()? shouldApplyResult,
   }) async {
+    bool shouldApply() => shouldApplyResult?.call() ?? true;
     if (showLoadingSpinner) {
+      if (!shouldApply()) {
+        return;
+      }
       state = state.copyWith(
         isLoading: true,
         isSyncingMessages: false,
@@ -856,7 +903,7 @@ class ChatViewModel extends _$ChatViewModel {
         around: targetMessageId,
         limit: limit,
       );
-      if (state.channelId != channelId) {
+      if (state.channelId != channelId || !shouldApply()) {
         return;
       }
       final String? syncBaselineOldestId = state.messages.isEmpty
@@ -870,6 +917,9 @@ class ChatViewModel extends _$ChatViewModel {
       final bool hasMoreNewer =
           merged.isNotEmpty &&
           await _hasNewerMessagesThanChannel(merged.last.id);
+      if (state.channelId != channelId || !shouldApply()) {
+        return;
+      }
       state = state.copyWith(
         messages: merged,
         isLoading: false,
@@ -886,11 +936,12 @@ class ChatViewModel extends _$ChatViewModel {
         embeddedReplyParents: page.embeddedReplyParents,
       );
       if (targetMessageId == null) {
+        _markChannelNetworkRefresh(channelId);
         await _onMessagesLoaded(channelId);
       }
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load messages: $e');
-      if (state.channelId != channelId) {
+      if (state.channelId != channelId || !shouldApply()) {
         return;
       }
       state = state.copyWith(
@@ -1259,11 +1310,12 @@ class ChatViewModel extends _$ChatViewModel {
 
   void setReadViewportActive({required bool isActive}) {
     _readViewportActive = isActive;
-    _syncActiveReadChannel();
     if (!isActive) {
       _readAckRetryTimer?.cancel();
+      unawaited(Future.microtask(_syncActiveReadChannel));
       return;
     }
+    _syncActiveReadChannel();
     unawaited(ackCurrentChannel());
   }
 
@@ -2469,6 +2521,18 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     await _refreshMessagesFromNetwork(channelId, showLoadingSpinner: true);
+  }
+
+  Future<void> reloadCurrentChannel() async {
+    final String channelId = state.channelId;
+    if (channelId.isEmpty) {
+      return;
+    }
+    await _refreshMessagesFromNetwork(
+      channelId,
+      showLoadingSpinner: true,
+      limit: _kInitialPageSize,
+    );
   }
 
   void updateMessageText(String text) {

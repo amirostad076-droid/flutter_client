@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_header.dart';
@@ -12,6 +13,7 @@ import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
+import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/dm_call_e2ee_footer.dart';
 
 /// Composite chat view that assembles the top bar, message list,
@@ -44,12 +46,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-      _syncChannelIfNeeded(loadMessages: _resolveLoadMessages());
-    });
+    _scheduleSyncChannelIfNeeded();
   }
 
   @override
@@ -59,6 +56,10 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
         oldWidget.targetMessageId != widget.targetMessageId) {
       _lastSwitchRequest = null;
     }
+    _scheduleSyncChannelIfNeeded();
+  }
+
+  void _scheduleSyncChannelIfNeeded() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -79,12 +80,17 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
   }
 
   void _syncChannelIfNeeded({required bool loadMessages}) {
+    if (widget.channelId != ref.read(activeChannelIdProvider) ||
+        ref.read(shellHasPopupOverlayProvider)) {
+      return;
+    }
     final request = (
       channelId: widget.channelId,
       targetMessageId: widget.targetMessageId,
       loadMessages: loadMessages,
     );
-    if (_lastSwitchRequest == request) {
+    if (_lastSwitchRequest == request &&
+        ref.read(chatViewModelProvider).channelId == request.channelId) {
       return;
     }
     _lastSwitchRequest = request;
@@ -120,20 +126,17 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
     final RevealSide revealSide = isMobile
         ? ref.watch(currentRevealSideProvider)
         : RevealSide.main;
+    ref
+      ..listen<String?>(activeChannelIdProvider, (_, _) {
+        _scheduleSyncChannelIfNeeded();
+      })
+      ..listen<bool>(shellHasPopupOverlayProvider, (_, _) {
+        _scheduleSyncChannelIfNeeded();
+      });
     if (_lastMobileLayout != isMobile || _lastRevealSide != revealSide) {
       _lastMobileLayout = isMobile;
       _lastRevealSide = revealSide;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
-        _syncChannelIfNeeded(
-          loadMessages: channelChatShouldLoadMessages(
-            isMobile: isMobile,
-            revealSide: revealSide,
-          ),
-        );
-      });
+      _scheduleSyncChannelIfNeeded();
     }
     listenChatViewModelErrors(ref);
 

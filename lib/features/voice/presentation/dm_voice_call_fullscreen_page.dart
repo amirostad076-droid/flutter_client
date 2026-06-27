@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/utils/chat_route_sync_guard.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_control_bar.dart';
@@ -32,7 +33,7 @@ class _DmVoiceCallFullscreenPageState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
+      if (!mounted || !chatRouteShouldSync(context)) {
         return;
       }
       unawaited(
@@ -48,7 +49,7 @@ class _DmVoiceCallFullscreenPageState
     super.didUpdateWidget(oldWidget);
     if (oldWidget.channelId != widget.channelId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
+        if (!mounted || !chatRouteShouldSync(context)) {
           return;
         }
         unawaited(
