@@ -1513,35 +1513,19 @@ class _DmMemberGroups extends ConsumerWidget {
     if (userId == null) {
       return const SizedBox.shrink();
     }
-    String resolveStatus(String id) =>
-        ref.watch(userPresenceProvider(id)).value?.status ?? 'offline';
     final db.User? currentUser = ref.watch(userPresenceProvider(userId)).value;
-    final List<_DmParticipant> participants = <_DmParticipant>[
-      _DmParticipant(
-        id: userId,
-        name: currentUser?.globalName ?? currentUser?.username ?? 'You',
-        avatar: currentUser?.avatar,
-        avatarColor: currentUser?.avatarColor,
-        isBot: currentUser?.bot ?? false,
-        isCurrentUser: true,
-      ),
-      if (dm.isGroup)
-        for (final GroupMemberInfo member in dm.groupMembers)
-          if (member.id != userId)
-            _DmParticipant(
-              id: member.id,
-              name: member.name,
-              avatar: member.avatar,
-            )
-          else if (!dm.isPersonalNotes)
-            _DmParticipant(
-              id: dm.recipientId,
-              name: dm.recipientName,
-              avatar: dm.recipientAvatar,
-              isBot: dm.isBot,
-              isSystem: dm.isSystem,
-            ),
-    ];
+    final List<_DmParticipant> participants = _buildDmParticipants(
+      dm: dm,
+      currentUserId: userId,
+      currentUser: currentUser,
+    );
+    final Map<String, db.User?> presenceById = <String, db.User?>{
+      for (final _DmParticipant participant in participants)
+        participant.id: participant.id == userId
+            ? currentUser
+            : ref.watch(userPresenceProvider(participant.id)).value,
+    };
+    String resolveStatus(String id) => presenceById[id]?.status ?? 'offline';
     final List<GroupDmMemberGroup<_DmParticipant>> groups =
         groupDmMembersByPresence<_DmParticipant>(
           members: participants,
@@ -1570,10 +1554,7 @@ class _DmMemberGroups extends ConsumerWidget {
                         ),
                   avatarColor: participant.avatarColor,
                   status: resolveStatus(participant.id),
-                  customStatus: ref
-                      .watch(userPresenceProvider(participant.id))
-                      .value
-                      ?.customStatus,
+                  customStatus: presenceById[participant.id]?.customStatus,
                   isBot: participant.isBot,
                   isSystem: participant.isSystem,
                   isCurrentUser: participant.isCurrentUser,
@@ -1587,6 +1568,63 @@ class _DmMemberGroups extends ConsumerWidget {
       ],
     );
   }
+}
+
+List<_DmParticipant> _buildDmParticipants({
+  required DmConversation dm,
+  required String currentUserId,
+  required db.User? currentUser,
+}) {
+  final List<_DmParticipant> participants = <_DmParticipant>[];
+  final Set<String> addedIds = <String>{};
+
+  void add(_DmParticipant participant) {
+    if (participant.id.isEmpty || !addedIds.add(participant.id)) {
+      return;
+    }
+    participants.add(participant);
+  }
+
+  add(
+    _DmParticipant(
+      id: currentUserId,
+      name: currentUser?.globalName ?? currentUser?.username ?? 'You',
+      avatar: currentUser?.avatar,
+      avatarColor: currentUser?.avatarColor,
+      isBot: currentUser?.bot ?? false,
+      isSystem: currentUser?.system ?? false,
+      isCurrentUser: true,
+    ),
+  );
+
+  if (dm.isPersonalNotes) {
+    return participants;
+  }
+
+  if (dm.isGroup) {
+    for (final GroupMemberInfo member in dm.groupMembers) {
+      final String name = member.name.trim();
+      add(
+        _DmParticipant(
+          id: member.id,
+          name: name.isEmpty ? member.id : member.name,
+          avatar: member.avatar,
+        ),
+      );
+    }
+    return participants;
+  }
+
+  add(
+    _DmParticipant(
+      id: dm.recipientId,
+      name: dm.recipientName.trim().isEmpty ? dm.recipientId : dm.recipientName,
+      avatar: dm.recipientAvatar,
+      isBot: dm.isBot,
+      isSystem: dm.isSystem,
+    ),
+  );
+  return participants;
 }
 
 class _DmParticipant {
