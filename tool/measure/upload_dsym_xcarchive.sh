@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-MEASURE_API_URL='https://msr-api.fluxer.tools'
+MEASURE_API_URL="${MEASURE_API_URL:-https://msr-api.fluxer.tools}"
 
 [ "$#" -ge 2 ] || {
   echo "Usage: $0 <xcarchive> <api_key> [ipa_path]"
@@ -67,6 +67,61 @@ echo "  version_code: $version_code"
 echo "  app_id:       $app_id"
 echo "  build_size:   $build_size"
 
+is_retryable_http_status() {
+  case "$1" in
+    408|425|429|500|502|503|504) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+curl_status_with_retries() {
+  local label=$1
+  shift
+
+  local attempts=${MEASURE_CURL_RETRIES:-5}
+  local delay=${MEASURE_CURL_RETRY_DELAY_SECONDS:-3}
+  local attempt=1
+  local status=''
+  local rc=0
+  local err_file
+
+  while [ "$attempt" -le "$attempts" ]; do
+    err_file="$work_dir/curl-${attempt}.err"
+    set +e
+    status=$(curl "$@" 2>"$err_file")
+    rc=$?
+    set -e
+
+    if [ "$rc" -eq 0 ] && ! is_retryable_http_status "$status"; then
+      printf '%s' "$status"
+      return 0
+    fi
+
+    if [ "$attempt" -ge "$attempts" ]; then
+      if [ -s "$err_file" ]; then
+        cat "$err_file" >&2
+      fi
+      if [ "$rc" -eq 0 ]; then
+        printf '%s' "$status"
+        return 0
+      fi
+      return "$rc"
+    fi
+
+    if [ "$rc" -ne 0 ]; then
+      echo "  $label failed with curl exit $rc; retrying in ${delay}s..." >&2
+      if [ -s "$err_file" ]; then
+        sed 's/^/    /' "$err_file" >&2
+      fi
+    else
+      echo "  $label returned HTTP $status; retrying in ${delay}s..." >&2
+    fi
+
+    sleep "$delay"
+    attempt=$((attempt + 1))
+  done
+}
+
 mappings_json='[]'
 tgz_names=()
 tgz_paths=()
@@ -114,7 +169,10 @@ meta_args=(
 )
 
 echo "Uploading build metadata..."
-status=$(curl "${meta_args[@]}")
+if ! status=$(curl_status_with_retries "Build metadata upload" "${meta_args[@]}"); then
+  echo "Metadata upload failed: could not reach Measure after ${MEASURE_CURL_RETRIES:-5} attempts."
+  exit 1
+fi
 case "$status" in
   200|201) ;;
   401)
@@ -125,7 +183,7 @@ case "$status" in
     echo "Build size limit exceeded; stack traces will not be symbolicated."
     exit 1
     ;;
-  500)
+  500|502|503|504)
     echo "Measure server error; try again later."
     exit 1
     ;;
@@ -151,7 +209,7 @@ tgz_path_for() {
 
 upload_file() {
   local object=$1
-  local url filename path header status attempt
+  local url filename path header status
   url=$(jq -r '.upload_url' <<<"$object")
   filename=$(jq -r '.filename' <<<"$object")
   if [ -z "$url" ] || [ "$url" = 'null' ] || [ -z "$filename" ] || [ "$filename" = 'null' ]; then
@@ -172,15 +230,15 @@ upload_file() {
     [ -n "$header" ] && upload_args+=(-H "$header")
   done < <(jq -r '.headers | to_entries[] | "\(.key): \(.value)"' <<<"$object")
 
-  for attempt in 1 2 3; do
-    echo "  Uploading $filename (attempt $attempt/3)..."
-    status=$(curl "${upload_args[@]}")
-    if [ "$status" -ge 200 ] && [ "$status" -le 299 ]; then
-      echo "  Uploaded $filename"
-      return 0
-    fi
-    [ "$attempt" -lt 3 ] && sleep 1
-  done
+  echo "  Uploading $filename..."
+  if ! status=$(curl_status_with_retries "Upload $filename" "${upload_args[@]}"); then
+    echo "  Failed to upload $filename: curl could not reach upload endpoint."
+    return 1
+  fi
+  if [ "$status" -ge 200 ] && [ "$status" -le 299 ]; then
+    echo "  Uploaded $filename"
+    return 0
+  fi
   echo "  Failed to upload $filename (status $status)"
   return 1
 }
