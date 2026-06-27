@@ -59,6 +59,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_read_state_ready_prov
 import 'package:fluxer_app/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxer_app/features/guilds/utils/leave_guild_action.dart';
+import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -219,7 +220,9 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     }
     entries
       ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.divider))
-      ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.exploreCommunities))
+      ..add(
+        const _NavbarListEntry(kind: _NavbarListEntryKind.exploreCommunities),
+      )
       ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.addCommunity))
       ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.help));
     return entries;
@@ -808,10 +811,13 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
             unawaited(leaveGuildAndCleanup(ref, guild.id));
           },
           onDeleteMyMessages: (guildId) async {
-            await ref.read(fluxerClientProvider).guilds.bulkDeleteMyMessagesInGuild(
-              guildId: guildId,
-              body: const SudoVerificationSchema(),
-            );
+            await ref
+                .read(fluxerClientProvider)
+                .guilds
+                .bulkDeleteMyMessagesInGuild(
+                  guildId: guildId,
+                  body: const SudoVerificationSchema(),
+                );
           },
           onGuildSettingsAction: (action) {
             unawaited(
@@ -891,11 +897,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
             final dmRepo = ref.read(dmRepositoryProvider);
             final friends = await friendRepo.getRelationships();
             final dms = await dmRepo.getDmChannels();
-            return _buildRecipientList(
-              friends,
-              dms,
-              l10n,
-            );
+            return _buildRecipientList(friends, dms, l10n);
           },
           onSendInviteTo: (channelId, recipientId, url) async {
             final client = ref.read(fluxerClientProvider);
@@ -1356,10 +1358,13 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
               unawaited(leaveGuildAndCleanup(ref, guild.id));
             },
             onDeleteMyMessages: (guildId) async {
-              await ref.read(fluxerClientProvider).guilds.bulkDeleteMyMessagesInGuild(
-                guildId: guildId,
-                body: const SudoVerificationSchema(),
-              );
+              await ref
+                  .read(fluxerClientProvider)
+                  .guilds
+                  .bulkDeleteMyMessagesInGuild(
+                    guildId: guildId,
+                    body: const SudoVerificationSchema(),
+                  );
             },
             onGuildSettingsAction: (action) {
               unawaited(
@@ -1442,11 +1447,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
               final dmRepo = ref.read(dmRepositoryProvider);
               final friends = await friendRepo.getRelationships();
               final dms = await dmRepo.getDmChannels();
-              return _buildRecipientList(
-                friends,
-                dms,
-                l10n,
-              );
+              return _buildRecipientList(friends, dms, l10n);
             },
             onSendInviteTo: (channelId, recipientId, url) async {
               final client = ref.read(fluxerClientProvider);
@@ -1735,7 +1736,8 @@ Future<void> _runGuildMenuAction(
   required Guild guild,
   required GuildAction action,
 }) async {
-  final GlobalKey<_GuildListItemState> menuKey = GlobalKey<_GuildListItemState>();
+  final GlobalKey<_GuildListItemState> menuKey =
+      GlobalKey<_GuildListItemState>();
   final OverlayState overlay = Overlay.of(context);
   late final OverlayEntry entry;
   final Completer<void> mounted = Completer<void>();
@@ -1807,10 +1809,13 @@ Widget _buildGuildMenuActionItem({
       unawaited(leaveGuildAndCleanup(ref, guild.id));
     },
     onDeleteMyMessages: (String guildId) async {
-      await ref.read(fluxerClientProvider).guilds.bulkDeleteMyMessagesInGuild(
-        guildId: guildId,
-        body: const SudoVerificationSchema(),
-      );
+      await ref
+          .read(fluxerClientProvider)
+          .guilds
+          .bulkDeleteMyMessagesInGuild(
+            guildId: guildId,
+            body: const SudoVerificationSchema(),
+          );
     },
     onGuildSettingsAction: (GuildAction action) {
       unawaited(
@@ -1824,24 +1829,27 @@ Widget _buildGuildMenuActionItem({
     },
     onCreateCategory: (String name) {
       unawaited(
-        ref.read(fluxerClientProvider).guilds.createGuildChannel(
-          guildId: guild.id,
-          body: ChannelCreateRequest4(
-            name: name,
-            type: GuildCategoryChannelCreateRequestTypeType.guildCategory,
-            topic: null,
-            url: null,
-            parentId: null,
-            bitrate: null,
-            userLimit: null,
-            voiceConnectionLimit: null,
-            permissionOverwrites: const [],
-            nsfw: false,
-            nsfwOverride: null,
-            contentWarningLevel: null,
-            contentWarningText: null,
-          ),
-        ),
+        ref
+            .read(fluxerClientProvider)
+            .guilds
+            .createGuildChannel(
+              guildId: guild.id,
+              body: ChannelCreateRequest4(
+                name: name,
+                type: GuildCategoryChannelCreateRequestTypeType.guildCategory,
+                topic: null,
+                url: null,
+                parentId: null,
+                bitrate: null,
+                userLimit: null,
+                voiceConnectionLimit: null,
+                permissionOverwrites: const [],
+                nsfw: false,
+                nsfwOverride: null,
+                contentWarningLevel: null,
+                contentWarningText: null,
+              ),
+            ),
       );
     },
     onCreateChannel: (ChannelCreateRequest request) {
@@ -1853,11 +1861,7 @@ Widget _buildGuildMenuActionItem({
       );
     },
     onCreateInvite:
-        ({
-          int maxAge = 604800,
-          int maxUses = 0,
-          bool temporary = false,
-        }) async {
+        ({int maxAge = 604800, int maxUses = 0, bool temporary = false}) async {
           final db = ref.read(fluxerDatabaseProvider);
           final client = ref.read(fluxerClientProvider);
           final channels = await db.channelDao.getChannels(guild.id);
@@ -1884,11 +1888,7 @@ Widget _buildGuildMenuActionItem({
       final dmRepo = ref.read(dmRepositoryProvider);
       final friends = await friendRepo.getRelationships();
       final dms = await dmRepo.getDmChannels();
-      return _buildRecipientList(
-        friends,
-        dms,
-        l10n,
-      );
+      return _buildRecipientList(friends, dms, l10n);
     },
     onSendInviteTo: (String? channelId, String? recipientId, String url) async {
       final client = ref.read(fluxerClientProvider);
@@ -1900,10 +1900,7 @@ Widget _buildGuildMenuActionItem({
         targetId = ch.id;
       }
       if (targetId != null) {
-        await client.channels.sendMessage(
-          channelId: targetId,
-          content: url,
-        );
+        await client.channels.sendMessage(channelId: targetId, content: url);
       }
     },
     onGetPrivacyState: () => _getPrivacyState(
@@ -1974,22 +1971,23 @@ Widget _buildGuildMenuActionItem({
     onUpdateChannelOverride:
         (String channelId, int messageNotifications, {required bool muted}) {
           unawaited(
-            ref.read(guildUserSettingsRepositoryProvider).updateChannelOverride(
-              guildId: guild.id,
-              channelId: channelId,
-              messageNotifications: UserNotificationSettings.fromJson(
-                messageNotifications,
-              ),
-              muted: muted,
-            ),
+            ref
+                .read(guildUserSettingsRepositoryProvider)
+                .updateChannelOverride(
+                  guildId: guild.id,
+                  channelId: channelId,
+                  messageNotifications: UserNotificationSettings.fromJson(
+                    messageNotifications,
+                  ),
+                  muted: muted,
+                ),
           );
         },
     onRemoveChannelOverride: (String channelId) {
       unawaited(
-        ref.read(guildUserSettingsRepositoryProvider).removeChannelOverride(
-          guildId: guild.id,
-          channelId: channelId,
-        ),
+        ref
+            .read(guildUserSettingsRepositoryProvider)
+            .removeChannelOverride(guildId: guild.id, channelId: channelId),
       );
     },
     onMounted: onMounted,
@@ -3374,7 +3372,10 @@ class _GuildListItemState extends State<_GuildListItem>
                   FluxerSelectItem(value: 10, label: l10n.guildNavbarUses(10)),
                   FluxerSelectItem(value: 25, label: l10n.guildNavbarUses(25)),
                   FluxerSelectItem(value: 50, label: l10n.guildNavbarUses(50)),
-                  FluxerSelectItem(value: 100, label: l10n.guildNavbarUses(100)),
+                  FluxerSelectItem(
+                    value: 100,
+                    label: l10n.guildNavbarUses(100),
+                  ),
                 ],
                 onChanged: (v) => setState(() => maxUses = v),
               ),
@@ -4196,6 +4197,13 @@ class _GuildListItemState extends State<_GuildListItem>
       case GuildAction.notificationSettings:
         unawaited(_showNotificationSettingsSheet(context));
       case GuildAction.editCommunityProfile:
+        unawaited(
+          UserSettingsModal.show(
+            context,
+            openProfileSection: true,
+            guildId: guildId,
+          ),
+        );
       case GuildAction.reportCommunity:
       case GuildAction.reportRaid:
         break;
@@ -4688,8 +4696,9 @@ class _GuildTooltipContent extends StatelessWidget {
     if (muteEndTime == null) {
       return l10n.voiceParticipantTooltipMuted;
     }
-    final String formattedDate =
-        DateFormat('MMM d, y h:mm a').format(muteEndTime!);
+    final String formattedDate = DateFormat(
+      'MMM d, y h:mm a',
+    ).format(muteEndTime!);
     return l10n.guildNavbarMutedUntil(formattedDate);
   }
 

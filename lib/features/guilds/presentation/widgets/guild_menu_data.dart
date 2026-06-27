@@ -240,20 +240,11 @@ List<GuildMenuGroup> buildGuildMenuGroups({
   ];
 }
 
-typedef _SettingsTabDef = ({
-  GuildAction action,
-  List<Permission> perms,
-});
+typedef _SettingsTabDef = ({GuildAction action, List<Permission> perms});
 
 const List<_SettingsTabDef> _settingsTabDefs = <_SettingsTabDef>[
-  (
-    action: GuildAction.settingsOverview,
-    perms: [Permission.manageGuild],
-  ),
-  (
-    action: GuildAction.settingsRoles,
-    perms: [Permission.manageRoles],
-  ),
+  (action: GuildAction.settingsOverview, perms: [Permission.manageGuild]),
+  (action: GuildAction.settingsRoles, perms: [Permission.manageRoles]),
   (
     action: GuildAction.settingsEmoji,
     perms: [Permission.createExpressions, Permission.manageExpressions],
@@ -266,34 +257,16 @@ const List<_SettingsTabDef> _settingsTabDefs = <_SettingsTabDef>[
     action: GuildAction.settingsSafetyModeration,
     perms: [Permission.manageGuild],
   ),
-  (
-    action: GuildAction.settingsActivityLog,
-    perms: [Permission.viewAuditLog],
-  ),
-  (
-    action: GuildAction.settingsWebhooks,
-    perms: [Permission.manageWebhooks],
-  ),
+  (action: GuildAction.settingsActivityLog, perms: [Permission.viewAuditLog]),
+  (action: GuildAction.settingsWebhooks, perms: [Permission.manageWebhooks]),
   (
     action: GuildAction.settingsCustomInviteUrl,
     perms: [Permission.manageGuild],
   ),
-  (
-    action: GuildAction.settingsDiscovery,
-    perms: [Permission.manageGuild],
-  ),
-  (
-    action: GuildAction.settingsMembers,
-    perms: [Permission.manageGuild],
-  ),
-  (
-    action: GuildAction.settingsInviteLinks,
-    perms: [Permission.manageGuild],
-  ),
-  (
-    action: GuildAction.settingsBans,
-    perms: [Permission.banMembers],
-  ),
+  (action: GuildAction.settingsDiscovery, perms: [Permission.manageGuild]),
+  (action: GuildAction.settingsMembers, perms: [Permission.manageGuild]),
+  (action: GuildAction.settingsInviteLinks, perms: [Permission.manageGuild]),
+  (action: GuildAction.settingsBans, perms: [Permission.banMembers]),
 ];
 
 String _settingsTabLabel(GuildAction action, FluxerLocalizations l10n) {
@@ -335,9 +308,18 @@ List<GuildMenuEntry> _buildMuteSubmenuItems(FluxerLocalizations l10n) {
     GuildMenuAction(label: l10n.dmMuteFor15Min, action: GuildAction.mute15Min),
     GuildMenuAction(label: l10n.dmMuteFor30Min, action: GuildAction.mute30Min),
     GuildMenuAction(label: l10n.dmMuteFor1Hour, action: GuildAction.mute1Hour),
-    GuildMenuAction(label: l10n.dmMuteFor3Hours, action: GuildAction.mute3Hours),
-    GuildMenuAction(label: l10n.dmMuteFor4Hours, action: GuildAction.mute4Hours),
-    GuildMenuAction(label: l10n.dmMuteFor8Hours, action: GuildAction.mute8Hours),
+    GuildMenuAction(
+      label: l10n.dmMuteFor3Hours,
+      action: GuildAction.mute3Hours,
+    ),
+    GuildMenuAction(
+      label: l10n.dmMuteFor4Hours,
+      action: GuildAction.mute4Hours,
+    ),
+    GuildMenuAction(
+      label: l10n.dmMuteFor8Hours,
+      action: GuildAction.mute8Hours,
+    ),
     GuildMenuAction(
       label: l10n.dmMuteFor24Hours,
       action: GuildAction.mute24Hours,

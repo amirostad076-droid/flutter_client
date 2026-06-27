@@ -46,8 +46,7 @@ Future<GuildAction?> showGuildBottomSheet(
     maxChildSize: 0.85,
     builder: (sheetContext, scrollController, close) {
       final layout = sheetContext.layout;
-      void pop(GuildAction action) =>
-          Navigator.of(sheetContext).pop(action);
+      void pop(GuildAction action) => Navigator.of(sheetContext).pop(action);
 
       final menuGroups = <Widget>[
         for (final group in groups)
@@ -62,15 +61,8 @@ Future<GuildAction?> showGuildBottomSheet(
 
       return ListView(
         controller: scrollController,
-        padding: EdgeInsets.fromLTRB(
-          layout.s4,
-          0,
-          layout.s4,
-          layout.s4,
-        ),
-        children: [
-          FluxerBottomSheetGroupColumn(children: menuGroups),
-        ],
+        padding: EdgeInsets.fromLTRB(layout.s4, 0, layout.s4, layout.s4),
+        children: [FluxerBottomSheetGroupColumn(children: menuGroups)],
       );
     },
   );
@@ -118,17 +110,11 @@ void _openSubmenuSheet(BuildContext context, GuildMenuSubmenu submenu) {
       maxChildSize: 0.85,
       builder: (sheetContext, scrollController, close) {
         final layout = sheetContext.layout;
-        void pop(GuildAction action) =>
-            Navigator.of(sheetContext).pop(action);
+        void pop(GuildAction action) => Navigator.of(sheetContext).pop(action);
 
         return ListView(
           controller: scrollController,
-          padding: EdgeInsets.fromLTRB(
-            layout.s4,
-            0,
-            layout.s4,
-            layout.s4,
-          ),
+          padding: EdgeInsets.fromLTRB(layout.s4, 0, layout.s4, layout.s4),
           children: [
             FluxerBottomSheetGroupColumn(
               children: [
@@ -208,11 +194,11 @@ class _GuildStats extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final Guild guild = ref.watch(
+    final Guild guild =
+        ref.watch(
           guildListViewModelProvider.select(
-            (GuildListViewState state) => state.guilds
-                .where((Guild g) => g.id == guildId)
-                .firstOrNull,
+            (GuildListViewState state) =>
+                state.guilds.where((Guild g) => g.id == guildId).firstOrNull,
           ),
         ) ??
         fallbackGuild;
