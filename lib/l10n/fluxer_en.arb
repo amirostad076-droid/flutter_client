@@ -5938,6 +5938,10 @@
   "@chatMessageEdited": {
     "description": "Message metadata label displayed after edited messages."
   },
+  "chatMessageSilent": "This was a @silent message.",
+  "@chatMessageSilent": {
+    "description": "Tooltip on the bell-slash icon beside a silent message. \"@silent\" is the literal command keyword and must not be translated."
+  },
   "chatMessageTimestampToday": "Today at {time}",
   "@chatMessageTimestampToday": {
     "description": "Inline chat message timestamp when the message was sent today. {time} is locale-formatted.",

@@ -4706,6 +4706,9 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   String get chatMessageEdited => '(edited)';
 
   @override
+  String get chatMessageSilent => 'This was a @silent message.';
+
+  @override
   String chatMessageTimestampToday(String time) {
     return 'Today at $time';
   }

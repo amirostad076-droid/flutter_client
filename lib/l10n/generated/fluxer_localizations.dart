@@ -8111,6 +8111,12 @@ abstract class FluxerLocalizations {
   /// **'(edited)'**
   String get chatMessageEdited;
 
+  /// Tooltip on the bell-slash icon beside a silent message. "@silent" is the literal command keyword and must not be translated.
+  ///
+  /// In en, this message translates to:
+  /// **'This was a @silent message.'**
+  String get chatMessageSilent;
+
   /// Inline chat message timestamp when the message was sent today. {time} is locale-formatted.
   ///
   /// In en, this message translates to:
