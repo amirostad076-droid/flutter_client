@@ -13,6 +13,8 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/login_screen.dart';
 import 'package:fluxer_app/features/auth/providers/account_manager_provider.dart';
 import 'package:fluxer_app/features/chat/presentation/channel_layout.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/chat_loading_spinner.dart';
+import 'package:fluxer_app/features/chat/utils/chat_spinner_debug.dart';
 import 'package:fluxer_app/features/dm/presentation/dm_layout.dart';
 import 'package:fluxer_app/features/favorites/presentation/favorites_layout.dart';
 import 'package:fluxer_app/features/notifications/presentation/notifications_page.dart';
@@ -471,7 +473,12 @@ GoRouter fluxerRouter(Ref ref) {
                   key: state.pageKey,
                   child: Scaffold(
                     backgroundColor: context.colors.backgroundPrimary,
-                    body: const Center(child: Text('Select a channel')),
+                    body: Center(
+                      child: ChatLoadingSpinner(
+                        reason: ChatSpinnerReason.panelNotReady,
+                        color: context.colors.brandPrimary,
+                      ),
+                    ),
                   ),
                 ),
                 routes: [
