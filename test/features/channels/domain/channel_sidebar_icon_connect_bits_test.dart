@@ -35,10 +35,7 @@ void main() {
     });
 
     test('returns null when no cache and no computed outcome', () {
-      expect(
-        resolveChannelSidebarIconConnectBits(),
-        isNull,
-      );
+      expect(resolveChannelSidebarIconConnectBits(), isNull);
     });
   });
 }

@@ -295,9 +295,7 @@ void main() {
           overrides: _buildOverrides(
             channelListState: _voiceChannelState(),
             unread: const {'voice-1': UnreadState()},
-            sidebarConnectBits: {
-              voiceChannelId: Permission.viewChannel.value,
-            },
+            sidebarConnectBits: {voiceChannelId: Permission.viewChannel.value},
           ),
         ),
       );
@@ -310,8 +308,7 @@ void main() {
       final SvgPicture svg = tester.widget<SvgPicture>(
         find.descendant(of: voiceRow, matching: find.byType(SvgPicture)),
       );
-      final String asset =
-          (svg.bytesLoader as SvgAssetLoader).assetName;
+      final String asset = (svg.bytesLoader as SvgAssetLoader).assetName;
       expect(asset, contains('voice_no_connect'));
     });
 
@@ -338,8 +335,7 @@ void main() {
       final SvgPicture svg = tester.widget<SvgPicture>(
         find.descendant(of: voiceRow, matching: find.byType(SvgPicture)),
       );
-      final String asset =
-          (svg.bytesLoader as SvgAssetLoader).assetName;
+      final String asset = (svg.bytesLoader as SvgAssetLoader).assetName;
       expect(asset, contains('voice.svg'));
       expect(asset, isNot(contains('voice_no_connect')));
     });
@@ -370,8 +366,7 @@ void main() {
       final SvgPicture svg = tester.widget<SvgPicture>(
         find.descendant(of: voiceRow, matching: find.byType(SvgPicture)),
       );
-      final String asset =
-          (svg.bytesLoader as SvgAssetLoader).assetName;
+      final String asset = (svg.bytesLoader as SvgAssetLoader).assetName;
       expect(asset, contains('voice.svg'));
       expect(asset, isNot(contains('voice_no_connect')));
     });
@@ -471,9 +466,9 @@ List<Override> _buildOverrides({
         channel.id,
       ).overrideWith((ref) => permissionBits[channel.id] ?? 0),
       if (sidebarConnectBits.containsKey(channel.id))
-        channelSidebarIconConnectBitsProvider(channel.id).overrideWith(
-          (ref) async => sidebarConnectBits[channel.id],
-        ),
+        channelSidebarIconConnectBitsProvider(
+          channel.id,
+        ).overrideWith((ref) async => sidebarConnectBits[channel.id]),
     ],
     for (final entry in unread.entries)
       channelUnreadProvider(

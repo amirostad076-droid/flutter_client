@@ -70,7 +70,10 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   Widget build(BuildContext context) {
     final String location = ref.watch(currentLocationProvider);
     ref
-      ..listen<String>(currentLocationProvider, (String? previous, String next) {
+      ..listen<String>(currentLocationProvider, (
+        String? previous,
+        String next,
+      ) {
         _swipeController.value = 0;
         ref.read(currentRevealSideProvider.notifier).syncForRoute(next);
       })

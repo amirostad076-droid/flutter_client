@@ -77,78 +77,81 @@ void main() {
       expect(bits, isNull);
     });
 
-    test('returns cached denied connect bits for restricted voice channel', () async {
-      final FluxerDatabase db = FluxerDatabase.forTesting(
-        NativeDatabase.memory(),
-      );
-      addTearDown(db.close);
-      const String guildId = 'guild_1';
-      const String channelId = 'voice_1';
-      const String userId = 'user_1';
-      final String everyoneDenyConnect =
-          '[{"id":"guild_1","type":0,"allow":"0","deny":"${Permission.connect.value}"}]';
-      await db.guildDao.upsertServer(
-        ServersCompanion.insert(id: guildId, name: 'Guild'),
-      );
-      await db.channelDao.upsertChannel(
-        ChannelsCompanion.insert(
-          id: channelId,
-          guildId: guildId,
-          name: 'locked',
-          type: const Value(2),
-          permissionOverwritesJson: Value(everyoneDenyConnect),
-        ),
-      );
-      await db.roleDao.upsertRoles([
-        RolesCompanion.insert(
-          id: guildId,
-          guildId: guildId,
-          name: '@everyone',
-          permissions: Value(Permission.viewChannel.value.toString()),
-        ),
-      ]);
-      await db.memberDao.upsertMember(
-        MembersCompanion.insert(userId: userId, guildId: guildId),
-      );
-
-      final ProviderContainer container = ProviderContainer(
-        overrides: [
-          fluxerDatabaseProvider.overrideWithValue(db),
-          guildListViewModelProvider.overrideWith(
-            () => _FixedGuildListViewModel(
-              const <Guild>[Guild(id: guildId, name: 'Guild')],
-            ),
-          ),
-          userSettingsViewModelProvider.overrideWith(
-            () => _FixedUserSettingsViewModel(userId),
-          ),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      await container
-          .read(channelPermissionCacheProvider.notifier)
-          .rebuildChannel(channelId);
-
-      final int? bits = await container.read(
-        channelSidebarIconConnectBitsProvider(channelId).future,
-      );
-
-      expect(bits, Permission.viewChannel.value);
-      expect(
-        resolveChannelIconAccessOverlay(
-          channel: Channel(
+    test(
+      'returns cached denied connect bits for restricted voice channel',
+      () async {
+        final FluxerDatabase db = FluxerDatabase.forTesting(
+          NativeDatabase.memory(),
+        );
+        addTearDown(db.close);
+        const String guildId = 'guild_1';
+        const String channelId = 'voice_1';
+        const String userId = 'user_1';
+        final String everyoneDenyConnect =
+            '[{"id":"guild_1","type":0,"allow":"0","deny":"${Permission.connect.value}"}]';
+        await db.guildDao.upsertServer(
+          ServersCompanion.insert(id: guildId, name: 'Guild'),
+        );
+        await db.channelDao.upsertChannel(
+          ChannelsCompanion.insert(
             id: channelId,
             guildId: guildId,
             name: 'locked',
-            type: ChannelType.voice,
-            permissionOverwritesJson: everyoneDenyConnect,
+            type: const Value(2),
+            permissionOverwritesJson: Value(everyoneDenyConnect),
           ),
-          canConnectPermissionBits: bits,
-        ),
-        ChannelIconAccessOverlay.noConnect,
-      );
-    });
+        );
+        await db.roleDao.upsertRoles([
+          RolesCompanion.insert(
+            id: guildId,
+            guildId: guildId,
+            name: '@everyone',
+            permissions: Value(Permission.viewChannel.value.toString()),
+          ),
+        ]);
+        await db.memberDao.upsertMember(
+          MembersCompanion.insert(userId: userId, guildId: guildId),
+        );
+
+        final ProviderContainer container = ProviderContainer(
+          overrides: [
+            fluxerDatabaseProvider.overrideWithValue(db),
+            guildListViewModelProvider.overrideWith(
+              () => _FixedGuildListViewModel(const <Guild>[
+                Guild(id: guildId, name: 'Guild'),
+              ]),
+            ),
+            userSettingsViewModelProvider.overrideWith(
+              () => _FixedUserSettingsViewModel(userId),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await container
+            .read(channelPermissionCacheProvider.notifier)
+            .rebuildChannel(channelId);
+
+        final int? bits = await container.read(
+          channelSidebarIconConnectBitsProvider(channelId).future,
+        );
+
+        expect(bits, Permission.viewChannel.value);
+        expect(
+          resolveChannelIconAccessOverlay(
+            channel: Channel(
+              id: channelId,
+              guildId: guildId,
+              name: 'locked',
+              type: ChannelType.voice,
+              permissionOverwritesJson: everyoneDenyConnect,
+            ),
+            canConnectPermissionBits: bits,
+          ),
+          ChannelIconAccessOverlay.noConnect,
+        );
+      },
+    );
   });
 }
 
