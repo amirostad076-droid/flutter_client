@@ -140,7 +140,7 @@ class InlineReplyPreview extends ConsumerWidget {
                 Expanded(
                   child: _ReplyPreviewContent(
                     message: replyMsg,
-                    emptyLabel: 'Click to see attachment',
+                    emptyLabel: l10n.chatReplyAttachedMedia,
                   ),
                 ),
               ] else ...[

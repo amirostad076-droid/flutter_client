@@ -4651,6 +4651,9 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get chatReplyOriginalFailedToLoad => 'Original message failed to load';
 
   @override
+  String get chatReplyAttachedMedia => 'Message contains attached media';
+
+  @override
   String get chatMessagesLoadError => 'Couldn\'t load messages.';
 
   @override

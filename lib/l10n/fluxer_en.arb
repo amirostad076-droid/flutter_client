@@ -5862,6 +5862,10 @@
   "@chatReplyOriginalFailedToLoad": {
     "description": "Placeholder in the inline reply preview when the parent message could not be loaded."
   },
+  "chatReplyAttachedMedia": "Message contains attached media",
+  "@chatReplyAttachedMedia": {
+    "description": "Label in the channel and chat reply preview."
+  },
   "chatMessagesLoadError": "Couldn't load messages.",
   "@chatMessagesLoadError": {
     "description": "Shown in the chat message list when the initial message history request fails. The user can retry from the same screen."

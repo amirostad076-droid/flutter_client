@@ -8015,6 +8015,12 @@ abstract class FluxerLocalizations {
   /// **'Original message failed to load'**
   String get chatReplyOriginalFailedToLoad;
 
+  /// Label in the channel and chat reply preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Message contains attached media'**
+  String get chatReplyAttachedMedia;
+
   /// Shown in the chat message list when the initial message history request fails. The user can retry from the same screen.
   ///
   /// In en, this message translates to:
