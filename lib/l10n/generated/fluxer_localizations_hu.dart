@@ -5452,7 +5452,7 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get guildMenuSettingsSafetyModeration => 'Safety & Moderation';
 
   @override
-  String get guildMenuSettingsActivityLog => 'Activity log';
+  String get guildMenuSettingsActivityLog => 'Activity Log';
 
   @override
   String get guildMenuSettingsWebhooks => 'Webhooks';
