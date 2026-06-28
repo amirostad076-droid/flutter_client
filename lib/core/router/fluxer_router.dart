@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
 import 'package:fluxer_app/core/router/channel_persistence_observer.dart';
+import 'package:fluxer_app/core/router/guild_root_redirect.dart';
 import 'package:fluxer_app/core/router/pre_reconnecting_location_provider.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/shell_navigator_keys.dart';
@@ -501,35 +502,13 @@ GoRouter fluxerRouter(Ref ref) {
               GoRoute(
                 path: '/channels/:guildId',
                 name: RouteNames.guild,
-                redirect: (context, state) async {
-                  final guildId = state.pathParameters['guildId'];
-                  if (guildId == null) {
-                    return RoutePaths.me;
-                  }
-                  // Already on a child route -/don't redirect.
-                  final fullPath = state.uri.path;
-                  if (RegExp('^/channels/[^/]+/.+').hasMatch(fullPath)) {
-                    return null;
-                  }
-                  if (state.uri.queryParameters['view'] == 'list') {
-                    return null;
-                  }
-                  final db = ref.read(fluxerDatabaseProvider);
-                  final lastChannelId = await db.guildLastChannelDao
-                      .getLastChannel(guildId);
-                  if (lastChannelId != null) {
-                    return RoutePaths.guildChannel(guildId, lastChannelId);
-                  }
-                  final channels = await db.channelDao.getChannels(guildId);
-                  const categoryType = 4;
-                  const linkType = 998;
-                  for (final channel in channels) {
-                    if (channel.type != categoryType &&
-                        channel.type != linkType) {
-                      return RoutePaths.guildChannel(guildId, channel.id);
-                    }
-                  }
-                  return null;
+                redirect: (context, state) {
+                  return resolveGuildRootRedirect(
+                    guildId: state.pathParameters['guildId'],
+                    fullPath: state.uri.path,
+                    isMobile: isMobileLayout(context),
+                    db: ref.read(fluxerDatabaseProvider),
+                  );
                 },
                 pageBuilder: (context, state) => _fadeTransitionPage(
                   key: state.pageKey,

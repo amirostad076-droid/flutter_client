@@ -74,11 +74,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-String _guildTapPath(BuildContext context, String guildId) {
-  final path = RoutePaths.guild(guildId);
-  return isMobileLayout(context) ? '$path?view=list' : path;
-}
-
 typedef _ScrollIndicatorView = ({
   bool show,
   ScrollIndicatorSeverity severity,
@@ -793,7 +788,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           invitesPaused: invitesPaused,
           developerMode: developerMode,
           onTap: () {
-            context.go(_guildTapPath(context, guild.id));
+            context.go(RoutePaths.guild(guild.id));
           },
           onMenuOpened: () {
             ref.read(guildSyncProvider.notifier).syncIfNeeded(guild.id);
@@ -1340,7 +1335,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             invitesPaused: invitesPaused,
             developerMode: developerMode,
             onTap: () {
-              context.go(_guildTapPath(context, guild.id));
+              context.go(RoutePaths.guild(guild.id));
             },
             onMenuOpened: () {
               ref.read(guildSyncProvider.notifier).syncIfNeeded(guild.id);
