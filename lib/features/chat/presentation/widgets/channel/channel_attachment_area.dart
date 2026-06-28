@@ -170,8 +170,10 @@ class _AttachmentChip extends ConsumerWidget {
                                   : PhosphorIconsFill.eye,
                               onPressed: () {
                                 final int next = isSpoiler
-                                    ? attachment.flags & ~attachmentFlagIsSpoiler
-                                    : attachment.flags | attachmentFlagIsSpoiler;
+                                    ? attachment.flags &
+                                          ~attachmentFlagIsSpoiler
+                                    : attachment.flags |
+                                          attachmentFlagIsSpoiler;
                                 ref
                                     .read(
                                       cloudUploadControllerProvider(
