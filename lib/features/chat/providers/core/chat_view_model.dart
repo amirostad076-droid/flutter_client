@@ -218,6 +218,9 @@ class ChatViewModel extends _$ChatViewModel {
           _readAckRetryTimer?.cancel();
           return;
         }
+        if (previous == false) {
+          unawaited(refreshAfterSessionRecovery());
+        }
         unawaited(ackCurrentChannel());
       })
       ..onDispose(() {
@@ -854,6 +857,9 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     if (state.isLoading || state.isSyncingMessages) {
+      return;
+    }
+    if (state.hasMoreNewerMessages || !_readViewportNearBottom) {
       return;
     }
     state = state.copyWith(isSyncingMessages: true);
