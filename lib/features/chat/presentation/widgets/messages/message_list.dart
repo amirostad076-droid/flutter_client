@@ -1056,7 +1056,7 @@ class _MessageListState extends ConsumerState<MessageList> {
               ],
             ),
             ColoredBox(
-              color: context.colors.backgroundSecondaryLighter,
+              color: context.colors.chatBackground,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
