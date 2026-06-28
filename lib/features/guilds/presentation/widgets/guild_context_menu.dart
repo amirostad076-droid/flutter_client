@@ -300,6 +300,7 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
               _SubMenuItem(
                 key: _keyFor(entry.key),
                 label: entry.label,
+                icon: entry.icon,
                 hint: entry.hint,
                 isActive: _activeSubmenuKey == entry.key,
                 onActivate: () => _activateSubmenu(entry.key),
@@ -324,6 +325,7 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
 
 class _SubMenuItem extends StatefulWidget {
   final String label;
+  final IconData? icon;
   final String? hint;
   final bool isActive;
   final VoidCallback onActivate;
@@ -334,6 +336,7 @@ class _SubMenuItem extends StatefulWidget {
     required this.isActive,
     required this.onActivate,
     required this.onDeactivate,
+    this.icon,
     this.hint,
     super.key,
   });
@@ -379,6 +382,14 @@ class _SubMenuItemState extends State<_SubMenuItem> {
           ),
           child: Row(
             children: [
+              if (widget.icon != null) ...[
+                PhosphorIcon(
+                  widget.icon!,
+                  size: 18,
+                  color: textColor,
+                ),
+                SizedBox(width: layout.s3),
+              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

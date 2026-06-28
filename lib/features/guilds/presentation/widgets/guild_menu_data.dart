@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:intl/intl.dart';
@@ -67,6 +66,7 @@ class GuildMenuAction extends GuildMenuEntry {
 class GuildMenuSubmenu extends GuildMenuEntry {
   final String key;
   final String label;
+  final IconData? icon;
   final String? hint;
   final List<GuildMenuEntry> children;
 
@@ -74,6 +74,7 @@ class GuildMenuSubmenu extends GuildMenuEntry {
     required this.key,
     required this.label,
     required this.children,
+    this.icon,
     this.hint,
   });
 }
@@ -143,6 +144,7 @@ List<GuildMenuGroup> buildGuildMenuGroups({
         GuildMenuSubmenu(
           key: 'communitySettings',
           label: l10n.guildMenuCommunitySettings,
+          icon: PhosphorIconsFill.gear,
           children: _buildSettingsSubmenu(l10n, p),
         ),
       if (canManageChannels) ...[

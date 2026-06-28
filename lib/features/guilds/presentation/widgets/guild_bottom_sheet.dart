@@ -90,6 +90,7 @@ Widget _buildMenuEntry(
     GuildMenuSubmenu() => FluxerBottomSheetSubmenuItem(
       label: entry.label,
       hint: entry.hint,
+      icon: entry.icon,
       onTap: () => _openSubmenuSheet(context, entry),
     ),
     GuildMenuCheckbox() => FluxerBottomSheetCheckboxItem(
