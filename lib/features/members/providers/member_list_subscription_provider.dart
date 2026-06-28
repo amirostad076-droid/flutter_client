@@ -20,7 +20,9 @@ class MemberListPanelActive extends _$MemberListPanelActive {
   @override
   bool build() => false;
 
-  void setActive({required bool value}) {
+  bool get active => state;
+
+  set active(bool value) {
     state = value;
   }
 }
