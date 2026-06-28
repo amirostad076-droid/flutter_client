@@ -423,88 +423,92 @@ class _ChannelTile extends ConsumerWidget {
           ),
         Opacity(
           opacity: rowOpacity,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onSecondaryTapUp: (details) => unawaited(
-                _showChannelActions(
-                  context,
-                  ref,
-                  hasUnread: hasUnread,
-                  position: details.globalPosition,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+            child: Material(
+              color: isSelected
+                  ? context.colors.backgroundModifierSelected
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(4),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(4),
+                onSecondaryTapUp: (details) => unawaited(
+                  _showChannelActions(
+                    context,
+                    ref,
+                    hasUnread: hasUnread,
+                    position: details.globalPosition,
+                  ),
                 ),
-              ),
-              onLongPress: isMobileLayout(context)
-                  ? () => unawaited(
-                      _showChannelActions(
-                        context,
-                        ref,
-                        hasUnread: hasUnread,
-                        position: Offset.zero,
-                      ),
-                    )
-                  : null,
-              onTap: () async {
-                await navigateToGuildChannelContent(
-                  context: context,
-                  ref: ref,
-                  guildId: guildId,
-                  channel: channel,
-                  effectivePermissionBits: effectivePermissionBits,
-                );
-              },
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? context.colors.backgroundModifierSelected
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  children: [
-                    ChannelIcon(
-                      type: channel.type,
-                      channel: channel,
-                      effectivePermissionBits: connectPermissionBits,
-                      canConnectPermissionBits: connectPermissionBits,
-                      color: textColor,
-                      e2eeEncrypted: showE2eeVoiceIcon,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        channel.name,
-                        style: context.textStyles.channelName.copyWith(
-                          color: textColor,
-                          fontWeight: FontWeight.w500,
+                onLongPress: isMobileLayout(context)
+                    ? () => unawaited(
+                        _showChannelActions(
+                          context,
+                          ref,
+                          hasUnread: hasUnread,
+                          position: Offset.zero,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                      )
+                    : null,
+                onTap: () async {
+                  await navigateToGuildChannelContent(
+                    context: context,
+                    ref: ref,
+                    guildId: guildId,
+                    channel: channel,
+                    effectivePermissionBits: effectivePermissionBits,
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    children: [
+                      ChannelIcon(
+                        type: channel.type,
+                        channel: channel,
+                        effectivePermissionBits: connectPermissionBits,
+                        canConnectPermissionBits: connectPermissionBits,
+                        color: textColor,
+                        e2eeEncrypted: showE2eeVoiceIcon,
                       ),
-                    ),
-                    if (hasTyping) ...[
-                      const SizedBox(width: 4),
-                      RepaintBoundary(
-                        child: FluxerLoadingSpinner(
-                          color: context.colors.textSecondary,
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          channel.name,
+                          style: context.textStyles.channelName.copyWith(
+                            color: textColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (hasTyping) ...[
+                        const SizedBox(width: 4),
+                        RepaintBoundary(
+                          child: FluxerLoadingSpinner(
+                            color: context.colors.textSecondary,
+                          ),
+                        ),
+                      ],
+                      if (!isSelected &&
+                          mentionCount > 0 &&
+                          channelUnreadState.hasMentions) ...[
+                        const SizedBox(width: 4),
+                        FluxerBadge.count(count: mentionCount),
+                      ],
+                      if (showVoiceUserCount) ...[
+                        const SizedBox(width: 4),
+                        VoiceChannelUserCount(
+                          currentUserCount: voiceCurrentCount,
+                          userLimit: voiceUserLimit,
+                        ),
+                      ],
                     ],
-                    if (!isSelected &&
-                        mentionCount > 0 &&
-                        channelUnreadState.hasMentions) ...[
-                      const SizedBox(width: 4),
-                      FluxerBadge.count(count: mentionCount),
-                    ],
-                    if (showVoiceUserCount) ...[
-                      const SizedBox(width: 4),
-                      VoiceChannelUserCount(
-                        currentUserCount: voiceCurrentCount,
-                        userLimit: voiceUserLimit,
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
               ),
             ),
