@@ -282,7 +282,8 @@ class _LobbyActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final FluxerColorTheme colors = context.colors;
-    final bool isEmphasis = (activeIsDanger && isActive) || primaryWhenNotActive;
+    final bool isEmphasis =
+        (activeIsDanger && isActive) || primaryWhenNotActive;
     final Color baseColor = activeIsDanger && isActive
         ? colors.statusDanger
         : primaryWhenNotActive
