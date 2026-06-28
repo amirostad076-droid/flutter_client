@@ -19,8 +19,11 @@ import 'package:fluxer_app/features/dm/presentation/dm_layout.dart';
 import 'package:fluxer_app/features/favorites/presentation/favorites_layout.dart';
 import 'package:fluxer_app/features/notifications/presentation/notifications_page.dart';
 import 'package:fluxer_app/features/profile/presentation/profile_page.dart';
-import 'package:fluxer_app/features/settings/presentation/guild_settings_modal.dart'
-    deferred as guild_settings;
+import 'package:fluxer_app/features/settings/domain/guild/guild_settings_tab.dart';
+import 'package:fluxer_app/features/settings/presentation/pages/guild/guild_settings_nav_page.dart';
+import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_audit_log_page.dart';
+import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_moderation_page.dart';
+import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_overview_page.dart';
 import 'package:fluxer_app/features/shell/presentation/app_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/reconnecting_screen.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -28,11 +31,13 @@ import 'package:fluxer_app/features/shell/presentation/splash_screen.dart';
 import 'package:fluxer_app/features/shell/presentation/stub_screen.dart';
 import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
-import 'package:fluxer_app/features/voice/presentation/dm_voice_call_fullscreen_page.dart'
-    deferred as dm_voice_call;
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:fluxer_app/features/voice/presentation/dm_voice_call_fullscreen_page.dart'
+    deferred as dm_voice_call;
+import 'package:fluxer_app/features/settings/presentation/guild_settings_modal.dart'
+    deferred as guild_settings;
 
 export 'package:fluxer_app/core/router/shell_navigator_keys.dart';
 
@@ -77,11 +82,15 @@ int _guildSettingsTabIndex(String? tab) {
   return switch (tab) {
     'overview' => 0,
     'roles' => 1,
-    'emoji' => 3,
-    'stickers' => 4,
-    'members' => 6,
-    'channels' => 7,
-    'bans' => 8,
+    'emoji' => 2,
+    'stickers' => 3,
+    'moderation' => 4,
+    'audit-log' => 5,
+    'webhooks' => 6,
+    'discovery' => 7,
+    'members' => 8,
+    'invites' => 9,
+    'bans' => 10,
     _ => 0,
   };
 }
@@ -282,23 +291,75 @@ GoRouter fluxerRouter(Ref ref) {
         path: '/settings/guild/:guildId',
         name: RouteNames.guildSettings,
         parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (context, state) => _fadeTransitionPage(
-          key: state.pageKey,
-          child: FutureBuilder<void>(
-            future: guild_settings.loadLibrary(),
-            builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Scaffold(
-                  body: Center(child: FluxerLoadingSpinner()),
+        redirect: (BuildContext context, GoRouterState state) {
+          final String? tab = state.uri.queryParameters['tab'];
+          if (tab == null || tab.isEmpty || !isMobileLayout(context)) {
+            return null;
+          }
+          final String guildId = state.pathParameters['guildId'] ?? '';
+          return guildSettingsTabPathFromQuery(guildId, tab);
+        },
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          final String guildId = state.pathParameters['guildId'] ?? '';
+          if (isMobileLayout(context)) {
+            return _slideTransitionPage(
+              key: state.pageKey,
+              child: GuildSettingsNavPage(guildId: guildId),
+            );
+          }
+          return _fadeTransitionPage(
+            key: state.pageKey,
+            child: FutureBuilder<void>(
+              future: guild_settings.loadLibrary(),
+              builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const Scaffold(
+                    body: Center(child: FluxerLoadingSpinner()),
+                  );
+                }
+                return guild_settings.GuildSettingsModal(
+                  guildId: guildId,
+                  initialTab: guildSettingsTabFromIndex(
+                    _guildSettingsTabIndex(state.uri.queryParameters['tab']),
+                  ),
                 );
-              }
-              return guild_settings.GuildSettingsModal(
-                guildId: state.pathParameters['guildId'] ?? '',
-                initialTab: _guildSettingsTabIndex(
-                  state.uri.queryParameters['tab'],
-                ),
-              );
-            },
+              },
+            ),
+          );
+        },
+      ),
+
+      // Guild settings tab pages (full-screen on mobile, slide-over on desktop)
+      GoRoute(
+        path: '/settings/guild/:guildId/overview',
+        name: RouteNames.guildSettingsOverview,
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (context, state) => _slideTransitionPage(
+          key: state.pageKey,
+          child: SettingsOverviewPage(
+            guildId: state.pathParameters['guildId'] ?? '',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/settings/guild/:guildId/moderation',
+        name: RouteNames.guildSettingsModeration,
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (context, state) => _slideTransitionPage(
+          key: state.pageKey,
+          child: SettingsModerationPage(
+            guildId: state.pathParameters['guildId'] ?? '',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/settings/guild/:guildId/audit-log',
+        name: RouteNames.guildSettingsAuditLog,
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (context, state) => _slideTransitionPage(
+          key: state.pageKey,
+          child: SettingsAuditLogPage(
+            guildId: state.pathParameters['guildId'] ?? '',
           ),
         ),
       ),

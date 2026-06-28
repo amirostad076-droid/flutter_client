@@ -2330,7 +2330,6 @@ Future<void> updateGuildUserSettings(
     case GuildAction.settingsSafetyModeration:
     case GuildAction.settingsActivityLog:
     case GuildAction.settingsWebhooks:
-    case GuildAction.settingsCustomInviteUrl:
     case GuildAction.settingsDiscovery:
     case GuildAction.settingsMembers:
     case GuildAction.settingsInviteLinks:
@@ -4150,7 +4149,6 @@ class _GuildListItemState extends State<_GuildListItem>
       case GuildAction.settingsSafetyModeration:
       case GuildAction.settingsActivityLog:
       case GuildAction.settingsWebhooks:
-      case GuildAction.settingsCustomInviteUrl:
       case GuildAction.settingsDiscovery:
       case GuildAction.settingsInviteLinks:
         unawaited(context.push(RoutePaths.guildSettingsPath(guildId)));
