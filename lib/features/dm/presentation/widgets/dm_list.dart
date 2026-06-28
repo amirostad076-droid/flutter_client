@@ -325,6 +325,30 @@ class _DMListState extends ConsumerState<DMList> {
     ),
   );
 
+  Widget _selectableRow(
+    BuildContext context, {
+    required bool isSelected,
+    required EdgeInsetsGeometry margin,
+    required EdgeInsetsGeometry padding,
+    required Widget child,
+    VoidCallback? onTap,
+    VoidCallback? onLongPress,
+    double? height,
+  }) => FluxerSelectableRow(
+    isSelected: isSelected,
+    selectedColor: context.colors.surfaceInteractiveSelectedBg.withValues(
+      alpha: 0.35,
+    ),
+    hoverColor: context.colors.surfaceInteractiveHoverBg,
+    borderRadius: context.layout.radiusMd,
+    margin: margin,
+    padding: padding,
+    height: height,
+    onTap: onTap,
+    onLongPress: onLongPress,
+    child: child,
+  );
+
   Widget _buildNavButton(
     BuildContext context, {
     required IconData icon,
@@ -332,60 +356,45 @@ class _DMListState extends ConsumerState<DMList> {
     required VoidCallback onTap,
     bool isSelected = false,
     VoidCallback? onLongPress,
-  }) => Padding(
-    padding: EdgeInsets.symmetric(horizontal: context.layout.s2, vertical: 1),
-    child: Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: context.layout.radiusMd,
-        hoverColor: context.colors.surfaceInteractiveHoverBg,
-        onTap: onTap,
-        onLongPress: onLongPress,
-        child: Container(
-          height: 42,
-          padding: EdgeInsets.symmetric(horizontal: context.layout.s2),
-          decoration: isSelected
-              ? BoxDecoration(
-                  color: context.colors.surfaceInteractiveSelectedBg.withValues(
-                    alpha: 0.35,
-                  ),
-                  borderRadius: context.layout.radiusMd,
-                )
-              : null,
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? context.colors.brandPrimary
-                      : context.colors.backgroundModifierAccent,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: PhosphorIcon(
-                    icon,
-                    size: 18,
-                    color: isSelected
-                        ? context.colors.textOnBrandPrimary
-                        : context.colors.interactiveNormal,
-                  ),
-                ),
-              ),
-              SizedBox(width: context.layout.s3),
-              Text(
-                label,
-                style: context.textStyles.username.copyWith(
-                  color: isSelected
-                      ? context.colors.surfaceInteractiveSelectedColor
-                      : context.colors.textPrimaryMuted,
-                ),
-              ),
-            ],
+  }) => _selectableRow(
+    context,
+    isSelected: isSelected,
+    margin: EdgeInsets.symmetric(horizontal: context.layout.s2, vertical: 1),
+    padding: EdgeInsets.symmetric(horizontal: context.layout.s2),
+    height: 42,
+    onTap: onTap,
+    onLongPress: onLongPress,
+    child: Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? context.colors.brandPrimary
+                : context.colors.backgroundModifierAccent,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: PhosphorIcon(
+              icon,
+              size: 18,
+              color: isSelected
+                  ? context.colors.textOnBrandPrimary
+                  : context.colors.interactiveNormal,
+            ),
           ),
         ),
-      ),
+        SizedBox(width: context.layout.s3),
+        Text(
+          label,
+          style: context.textStyles.username.copyWith(
+            color: isSelected
+                ? context.colors.surfaceInteractiveSelectedColor
+                : context.colors.textPrimaryMuted,
+          ),
+        ),
+      ],
     ),
   );
 
@@ -557,69 +566,52 @@ class _DMListState extends ConsumerState<DMList> {
     BuildContext context,
     String? userId, {
     required bool isSelected,
-  }) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: () {
-        if (userId != null) {
-          unawaited(_navigateToDmChannel(userId));
-        }
-      },
-      onLongPress: userId != null
-          ? () => _showPersonalNotesContextMenu(context, channelId: userId)
-          : null,
-      child: Container(
-        margin: EdgeInsets.symmetric(
-          horizontal: context.layout.s2,
-          vertical: 2,
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: context.layout.s2,
-          vertical: 6,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? context.colors.surfaceInteractiveSelectedBg.withValues(
-                  alpha: 0.35,
-                )
-              : Colors.transparent,
-          borderRadius: context.layout.radiusMd,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? context.colors.brandPrimary
-                    : context.colors.backgroundModifierAccent,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: PhosphorIcon(
-                  PhosphorIconsFill.notePencil,
-                  size: 20,
-                  color: isSelected
-                      ? context.colors.textOnBrandPrimary
-                      : context.colors.interactiveNormal,
-                ),
-              ),
+  }) => _selectableRow(
+    context,
+    isSelected: isSelected,
+    margin: EdgeInsets.symmetric(horizontal: context.layout.s2, vertical: 2),
+    padding: EdgeInsets.symmetric(horizontal: context.layout.s2, vertical: 6),
+    onTap: () {
+      if (userId != null) {
+        unawaited(_navigateToDmChannel(userId));
+      }
+    },
+    onLongPress: userId != null
+        ? () => _showPersonalNotesContextMenu(context, channelId: userId)
+        : null,
+    child: Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? context.colors.brandPrimary
+                : context.colors.backgroundModifierAccent,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: PhosphorIcon(
+              PhosphorIconsFill.notePencil,
+              size: 20,
+              color: isSelected
+                  ? context.colors.textOnBrandPrimary
+                  : context.colors.interactiveNormal,
             ),
-            const SizedBox(width: 12),
-            Text(
-              FluxerLocalizations.of(context).personalNotesTitle,
-              style: TextStyle(
-                color: isSelected
-                    ? context.colors.surfaceInteractiveSelectedColor
-                    : context.colors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(width: 12),
+        Text(
+          FluxerLocalizations.of(context).personalNotesTitle,
+          style: TextStyle(
+            color: isSelected
+                ? context.colors.surfaceInteractiveSelectedColor
+                : context.colors.textPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     ),
   );
 
@@ -705,158 +697,145 @@ class _DMListState extends ConsumerState<DMList> {
 
     return Opacity(
       opacity: isMuted && !isSelected ? 0.5 : 1.0,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: layout.radiusMd,
-          hoverColor: context.colors.surfaceInteractiveHoverBg,
-          onTap: () {
-            unawaited(_navigateToDmChannel(c.id));
-          },
-          onLongPress: isMobile ? () => _showDmContextMenu(context, c) : null,
-          child: Container(
-            height: tileHeight,
-            margin: EdgeInsets.symmetric(
-              horizontal: layout.s2,
-              vertical: isMobile ? 2 : 1,
-            ),
-            padding: EdgeInsets.symmetric(horizontal: layout.s2),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? context.colors.surfaceInteractiveSelectedBg.withValues(
-                      alpha: 0.35,
-                    )
-                  : Colors.transparent,
-              borderRadius: layout.radiusMd,
-            ),
-            child: Row(
-              children: [
-                if (hasUnread && !isSelected)
-                  Container(
-                    width: 4,
-                    height: tileHeight * 0.5,
-                    margin: const EdgeInsets.only(right: 4),
-                    decoration: BoxDecoration(
-                      color: context.colors.textPrimary,
-                      borderRadius: BorderRadius.circular(2),
+      child: _selectableRow(
+        context,
+        isSelected: isSelected,
+        height: tileHeight,
+        margin: EdgeInsets.symmetric(
+          horizontal: layout.s2,
+          vertical: isMobile ? 2 : 1,
+        ),
+        padding: EdgeInsets.symmetric(horizontal: layout.s2),
+        onTap: () {
+          unawaited(_navigateToDmChannel(c.id));
+        },
+        onLongPress: isMobile ? () => _showDmContextMenu(context, c) : null,
+        child: Row(
+          children: [
+            if (hasUnread && !isSelected)
+              Container(
+                width: 4,
+                height: tileHeight * 0.5,
+                margin: const EdgeInsets.only(right: 4),
+                decoration: BoxDecoration(
+                  color: context.colors.textPrimary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            Consumer(
+              builder: (context, ref, _) {
+                if (c.isGroup) {
+                  final String? status = ref.watch(
+                    dmListPresenceMapProvider.select(
+                      (AsyncValue<Map<String, String>> p) =>
+                          groupDmAggregateStatus(
+                            participantIds: c.remoteRecipientIds,
+                            resolveStatus: (String id) =>
+                                p.value?[id] ?? 'offline',
+                          ),
                     ),
-                  ),
-                Consumer(
-                  builder: (context, ref, _) {
-                    if (c.isGroup) {
-                      final String? status = ref.watch(
+                  );
+                  return groupDmAvatarCluster(
+                    dm: c,
+                    size: avatarSize,
+                    status: status,
+                  );
+                }
+                final bool showPresence = shouldShowDmRecipientPresence(c);
+                final String? status = showPresence
+                    ? ref.watch(
                         dmListPresenceMapProvider.select(
                           (AsyncValue<Map<String, String>> p) =>
-                              groupDmAggregateStatus(
-                                participantIds: c.remoteRecipientIds,
-                                resolveStatus: (String id) =>
-                                    p.value?[id] ?? 'offline',
-                              ),
+                              p.value?[c.recipientId] ?? 'offline',
                         ),
-                      );
-                      return groupDmAvatarCluster(
-                        dm: c,
-                        size: avatarSize,
-                        status: status,
-                      );
-                    }
-                    final bool showPresence = shouldShowDmRecipientPresence(c);
-                    final String? status = showPresence
-                        ? ref.watch(
-                            dmListPresenceMapProvider.select(
-                              (AsyncValue<Map<String, String>> p) =>
-                                  p.value?[c.recipientId] ?? 'offline',
-                            ),
-                          )
-                        : null;
-                    return FluxerAvatar.user(
-                      fallbackText: c.recipientName,
-                      userId: c.recipientId,
-                      imageUrl: FluxerMediaUrl.userAvatar(
-                        userId: c.recipientId,
-                        hash: c.recipientAvatar,
-                        animated: isSelected,
-                      ),
-                      status: status,
-                      showStatus: showPresence,
-                      size: avatarSize,
-                    );
-                  },
-                ),
-                SizedBox(width: layout.s3),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                      )
+                    : null;
+                return FluxerAvatar.user(
+                  fallbackText: c.recipientName,
+                  userId: c.recipientId,
+                  imageUrl: FluxerMediaUrl.userAvatar(
+                    userId: c.recipientId,
+                    hash: c.recipientAvatar,
+                    animated: isSelected,
+                  ),
+                  status: status,
+                  showStatus: showPresence,
+                  size: avatarSize,
+                );
+              },
+            ),
+            SizedBox(width: layout.s3),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          if (isPinned)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: PhosphorIcon(
-                                PhosphorIconsFill.pushPin,
-                                size: 12,
-                                color: timestampColor,
-                              ),
-                            ),
-                          Flexible(
-                            child: Text(
-                              c.displayName,
-                              style: context.textStyles.username.copyWith(
-                                color: titleColor,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                      if (isPinned)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: PhosphorIcon(
+                            PhosphorIconsFill.pushPin,
+                            size: 12,
+                            color: timestampColor,
                           ),
-                          if (!c.isGroup && isBotOrSystemDmRecipient(c))
-                            Padding(
-                              padding: const EdgeInsets.only(left: 4),
-                              child: FluxerUserTag(isSystem: c.isSystem),
-                            ),
-                        ],
+                        ),
+                      Flexible(
+                        child: Text(
+                          c.displayName,
+                          style: context.textStyles.username.copyWith(
+                            color: titleColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      if (c.isGroup)
-                        Text(
-                          FluxerLocalizations.of(
-                            context,
-                          ).dmGroupMemberCount(c.memberCount),
-                          style: TextStyle(
-                            color: secondaryColor,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            height: 14 / 11,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        )
-                      else if (lastMessagePreview.isNotEmpty)
-                        Text(
-                          lastMessagePreview,
-                          style: TextStyle(
-                            color: secondaryColor,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            height: 16 / 11,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
+                      if (!c.isGroup && isBotOrSystemDmRecipient(c))
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: FluxerUserTag(isSystem: c.isSystem),
                         ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _formatRelativeTime(c.lastMessageTime),
-                  style: TextStyle(
-                    color: timestampColor,
-                    fontSize: 12,
-                    height: 16 / 12,
-                  ),
-                ),
-              ],
+                  if (c.isGroup)
+                    Text(
+                      FluxerLocalizations.of(
+                        context,
+                      ).dmGroupMemberCount(c.memberCount),
+                      style: TextStyle(
+                        color: secondaryColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        height: 14 / 11,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    )
+                  else if (lastMessagePreview.isNotEmpty)
+                    Text(
+                      lastMessagePreview,
+                      style: TextStyle(
+                        color: secondaryColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        height: 16 / 11,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            Text(
+              _formatRelativeTime(c.lastMessageTime),
+              style: TextStyle(
+                color: timestampColor,
+                fontSize: 12,
+                height: 16 / 12,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1349,45 +1328,29 @@ class _DMListState extends ConsumerState<DMList> {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
-  }) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      borderRadius: context.layout.radiusMd,
-      hoverColor: context.colors.surfaceInteractiveHoverBg,
-      onTap: onTap,
-      child: Container(
-        height: 42,
-        margin: EdgeInsets.symmetric(
-          horizontal: context.layout.s2,
-          vertical: 1,
-        ),
-        padding: EdgeInsets.symmetric(horizontal: context.layout.s2),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? context.colors.surfaceInteractiveSelectedBg.withValues(
-                  alpha: 0.35,
-                )
-              : Colors.transparent,
-          borderRadius: context.layout.radiusMd,
-        ),
-        child: Row(
-          children: [
-            leading,
-            SizedBox(width: context.layout.s3),
-            Expanded(
-              child: Text(
-                label,
-                style: context.textStyles.username.copyWith(
-                  color: isSelected
-                      ? context.colors.surfaceInteractiveSelectedColor
-                      : context.colors.textPrimaryMuted,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
+  }) => _selectableRow(
+    context,
+    isSelected: isSelected,
+    height: 42,
+    margin: EdgeInsets.symmetric(horizontal: context.layout.s2, vertical: 1),
+    padding: EdgeInsets.symmetric(horizontal: context.layout.s2),
+    onTap: onTap,
+    child: Row(
+      children: [
+        leading,
+        SizedBox(width: context.layout.s3),
+        Expanded(
+          child: Text(
+            label,
+            style: context.textStyles.username.copyWith(
+              color: isSelected
+                  ? context.colors.surfaceInteractiveSelectedColor
+                  : context.colors.textPrimaryMuted,
             ),
-          ],
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-      ),
+      ],
     ),
   );
 }
