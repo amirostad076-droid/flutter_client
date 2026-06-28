@@ -159,6 +159,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
             ),
           ]
         : const <Shadow>[];
+    final Color? bannerForegroundColor = hasImage ? Colors.white : null;
     final Widget headerContent = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
@@ -187,6 +188,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
               child: FluxerGuildBadge(
                 features: guild.features,
                 shadows: bannerShadows,
+                color: bannerForegroundColor,
                 forceBrightness: hasImage ? Brightness.dark : null,
               ),
             ),
@@ -194,6 +196,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
             child: Text(
               guild?.name ?? '',
               style: context.textStyles.channelName.copyWith(
+                color: bannerForegroundColor,
                 shadows: bannerShadows,
               ),
               overflow: TextOverflow.ellipsis,
@@ -201,7 +204,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
           ),
           PhosphorIcon(
             PhosphorIconsFill.caretDown,
-            color: context.colors.textChat,
+            color: bannerForegroundColor ?? context.colors.textChat,
             size: 16,
             shadows: bannerShadows,
           ),
@@ -212,8 +215,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
     if (hasImage) {
       return AspectRatio(
         aspectRatio: bannerAspectRatio,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: DecoratedBox(
           decoration: BoxDecoration(
             color: context.colors.channelSidebarBackground,
             border: Border(
@@ -224,7 +226,38 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
               fit: BoxFit.cover,
             ),
           ),
-          child: headerContent,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 40,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: <Color>[
+                          context.colors.guildBannerGradient,
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                child: headerContent,
+              ),
+            ],
+          ),
         ),
       );
     }
