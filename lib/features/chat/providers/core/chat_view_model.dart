@@ -1167,7 +1167,7 @@ class ChatViewModel extends _$ChatViewModel {
             .where((m) => compareSnowflakeIds(m.id, _contigNewestId) <= 0)
             .toList();
         if (newerInRange.isNotEmpty) {
-          final mergedCache = _mergeMessages(state.messages, newerInRange);
+          final mergedCache = mergeMessagesSorted(state.messages, newerInRange);
           final trimCache = trimMessageWindow(mergedCache, keepNewest: true);
           final bool hasMoreNewerCache = await _hasNewerMessagesThanChannel(
             mergedCache.last.id,
@@ -1198,7 +1198,7 @@ class ChatViewModel extends _$ChatViewModel {
       if (page.messages.isNotEmpty) {
         _extendNewer(page.messages.last.id);
       }
-      final List<Message> merged = _mergeMessages(
+      final List<Message> merged = mergeMessagesSorted(
         state.messages,
         page.messages,
       );
@@ -1451,7 +1451,7 @@ class ChatViewModel extends _$ChatViewModel {
         return;
       }
       state = state.copyWith(
-        messages: _mergeMessages(state.messages, messages),
+        messages: mergeMessagesSorted(state.messages, messages),
       );
       _extendNewer(messages.last.id);
     } on Exception catch (e) {
@@ -1476,24 +1476,6 @@ class ChatViewModel extends _$ChatViewModel {
           .map((message) => message.id),
       ackLastMessageId: readState?.lastMessageId,
     );
-  }
-
-  List<Message> _mergeMessages(List<Message> current, List<Message> incoming) {
-    final byId = <String, Message>{
-      for (final message in current) message.id: message,
-    };
-    for (final message in incoming) {
-      byId[message.id] = message;
-    }
-    final merged = byId.values.toList()
-      ..sort((a, b) {
-        final byId = compareSnowflakeIds(a.id, b.id);
-        if (byId != 0) {
-          return byId;
-        }
-        return a.timestamp.compareTo(b.timestamp);
-      });
-    return merged;
   }
 
   void _setContiguityWindow(String channelId, List<Message> page) {
