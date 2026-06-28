@@ -150,7 +150,7 @@ We welcome contributions for app translations. Translations are managed through 
 Riverpod generated files are not committed, so you need to generate them before running the project.
 
 ```text
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 ```
 
 ### Mobile builds
