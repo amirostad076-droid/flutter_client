@@ -277,7 +277,7 @@ class _DMListState extends ConsumerState<DMList> {
       child: PhosphorIcon(
         PhosphorIconsFill.paperPlane,
         size: 24,
-        color: context.colors.textPrimary,
+        color: context.colors.textOnBrandPrimary,
       ),
     ),
   );
@@ -368,7 +368,7 @@ class _DMListState extends ConsumerState<DMList> {
                     icon,
                     size: 18,
                     color: isSelected
-                        ? context.colors.textPrimary
+                        ? context.colors.textOnBrandPrimary
                         : context.colors.interactiveNormal,
                   ),
                 ),
@@ -1337,7 +1337,7 @@ class _DMListState extends ConsumerState<DMList> {
         icon,
         size: size * 0.55,
         color: isSelected
-            ? context.colors.textPrimary
+            ? context.colors.textOnBrandPrimary
             : context.colors.interactiveNormal,
       ),
     );
