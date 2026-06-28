@@ -126,6 +126,30 @@ class MessageRenderSettings {
   final RenderSpoilers renderSpoilers;
   final bool revealSpoilers;
   final ChatPreferencesState chatPreferences;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MessageRenderSettings &&
+          runtimeType == other.runtimeType &&
+          activeGuildId == other.activeGuildId &&
+          renderEmbeds == other.renderEmbeds &&
+          renderReactions == other.renderReactions &&
+          inlineAttachmentMedia == other.inlineAttachmentMedia &&
+          renderSpoilers == other.renderSpoilers &&
+          revealSpoilers == other.revealSpoilers &&
+          chatPreferences == other.chatPreferences;
+
+  @override
+  int get hashCode => Object.hash(
+    activeGuildId,
+    renderEmbeds,
+    renderReactions,
+    inlineAttachmentMedia,
+    renderSpoilers,
+    revealSpoilers,
+    chatPreferences,
+  );
 }
 
 /// A single message row -- avatar, username, timestamp,
