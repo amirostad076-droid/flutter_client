@@ -370,13 +370,8 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        unawaited(
-          _scrollController.animateTo(
-            _scrollController.position.minScrollExtent,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-          ),
-        );
+        // Instant jump: animateTo would build every tile it scrolls past.
+        _scrollController.jumpTo(_scrollController.position.minScrollExtent);
       }
     });
   }
