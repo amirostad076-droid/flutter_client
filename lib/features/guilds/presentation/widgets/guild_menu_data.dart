@@ -27,7 +27,6 @@ enum GuildAction {
   leaveGuild,
   deleteMyMessages,
   reportCommunity,
-  reportRaid,
   debugCommunity,
   copyGuildId,
   mute15Min,
@@ -158,12 +157,6 @@ List<GuildMenuGroup> buildGuildMenuGroups({
           action: GuildAction.createCategory,
         ),
       ],
-      if (canManageGuild)
-        GuildMenuAction(
-          label: l10n.guildMenuReportRaid,
-          icon: PhosphorIconsFill.warning,
-          action: GuildAction.reportRaid,
-        ),
     ],
     [
       GuildMenuAction(

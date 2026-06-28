@@ -6877,10 +6877,6 @@
   "@guildMenuCommunitySettings": {
     "description": "Guild menu submenu for community settings tabs."
   },
-  "guildMenuReportRaid": "Report Raid",
-  "@guildMenuReportRaid": {
-    "description": "Guild menu action to report a raid."
-  },
   "guildMenuEditCommunityProfile": "Edit Community Profile",
   "@guildMenuEditCommunityProfile": {
     "description": "Guild menu action to edit the community profile."

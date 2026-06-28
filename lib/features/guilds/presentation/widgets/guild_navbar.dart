@@ -2340,7 +2340,6 @@ Future<void> updateGuildUserSettings(
     case GuildAction.leaveGuild:
     case GuildAction.deleteMyMessages:
     case GuildAction.reportCommunity:
-    case GuildAction.reportRaid:
     case GuildAction.debugCommunity:
     case GuildAction.copyGuildId:
       return;
@@ -4203,7 +4202,6 @@ class _GuildListItemState extends State<_GuildListItem>
           ),
         );
       case GuildAction.reportCommunity:
-      case GuildAction.reportRaid:
         break;
       case GuildAction.privacySettings:
         unawaited(_showPrivacySettingsSheet(context));

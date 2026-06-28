@@ -5411,9 +5411,6 @@ class FluxerLocalizationsSl extends FluxerLocalizations {
   String get guildMenuCommunitySettings => 'Community Settings';
 
   @override
-  String get guildMenuReportRaid => 'Report Raid';
-
-  @override
   String get guildMenuEditCommunityProfile => 'Edit Community Profile';
 
   @override

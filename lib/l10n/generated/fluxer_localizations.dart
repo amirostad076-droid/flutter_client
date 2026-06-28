@@ -9395,12 +9395,6 @@ abstract class FluxerLocalizations {
   /// **'Community Settings'**
   String get guildMenuCommunitySettings;
 
-  /// Guild menu action to report a raid.
-  ///
-  /// In en, this message translates to:
-  /// **'Report Raid'**
-  String get guildMenuReportRaid;
-
   /// Guild menu action to edit the community profile.
   ///
   /// In en, this message translates to:
