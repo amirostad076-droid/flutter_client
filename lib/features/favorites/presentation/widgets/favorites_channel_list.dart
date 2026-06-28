@@ -368,12 +368,7 @@ class _FavoriteChannelTile extends ConsumerWidget {
       clipBehavior: Clip.none,
       children: [
         if (!isSelected && unreadState.shouldShowUnreadIndicator)
-          Positioned(
-            left: 1,
-            top: 0,
-            bottom: 0,
-            child: Center(child: ChannelUnreadIndicator(faded: isMuted)),
-          ),
+          ChannelUnreadIndicator.positioned(faded: isMuted),
         FluxerSelectableRow(
           isSelected: isSelected,
           selectedColor: context.colors.backgroundModifierSelected,

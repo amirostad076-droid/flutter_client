@@ -13,6 +13,7 @@ import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
 import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
@@ -695,149 +696,146 @@ class _DMListState extends ConsumerState<DMList> {
       lastMessagePreview = '$prefix: ${c.lastMessage}';
     }
 
-    return Opacity(
-      opacity: isMuted && !isSelected ? 0.5 : 1.0,
-      child: _selectableRow(
-        context,
-        isSelected: isSelected,
-        height: tileHeight,
-        margin: EdgeInsets.symmetric(
-          horizontal: layout.s2,
-          vertical: isMobile ? 2 : 1,
-        ),
-        padding: EdgeInsets.symmetric(horizontal: layout.s2),
-        onTap: () {
-          unawaited(_navigateToDmChannel(c.id));
-        },
-        onLongPress: isMobile ? () => _showDmContextMenu(context, c) : null,
-        child: Row(
-          children: [
-            if (hasUnread && !isSelected)
-              Container(
-                width: 4,
-                height: tileHeight * 0.5,
-                margin: const EdgeInsets.only(right: 4),
-                decoration: BoxDecoration(
-                  color: context.colors.textPrimary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            Consumer(
-              builder: (context, ref, _) {
-                if (c.isGroup) {
-                  final String? status = ref.watch(
-                    dmListPresenceMapProvider.select(
-                      (AsyncValue<Map<String, String>> p) =>
-                          groupDmAggregateStatus(
-                            participantIds: c.remoteRecipientIds,
-                            resolveStatus: (String id) =>
-                                p.value?[id] ?? 'offline',
-                          ),
-                    ),
-                  );
-                  return groupDmAvatarCluster(
-                    dm: c,
-                    size: avatarSize,
-                    status: status,
-                  );
-                }
-                final bool showPresence = shouldShowDmRecipientPresence(c);
-                final String? status = showPresence
-                    ? ref.watch(
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (hasUnread && !isSelected)
+          ChannelUnreadIndicator.positioned(faded: isMuted),
+        Opacity(
+          opacity: isMuted && !isSelected ? 0.5 : 1.0,
+          child: _selectableRow(
+            context,
+            isSelected: isSelected,
+            height: tileHeight,
+            margin: EdgeInsets.symmetric(
+              horizontal: layout.s2,
+              vertical: isMobile ? 2 : 1,
+            ),
+            padding: EdgeInsets.symmetric(horizontal: layout.s2),
+            onTap: () {
+              unawaited(_navigateToDmChannel(c.id));
+            },
+            onLongPress: isMobile ? () => _showDmContextMenu(context, c) : null,
+            child: Row(
+              children: [
+                Consumer(
+                  builder: (context, ref, _) {
+                    if (c.isGroup) {
+                      final String? status = ref.watch(
                         dmListPresenceMapProvider.select(
                           (AsyncValue<Map<String, String>> p) =>
-                              p.value?[c.recipientId] ?? 'offline',
+                              groupDmAggregateStatus(
+                                participantIds: c.remoteRecipientIds,
+                                resolveStatus: (String id) =>
+                                    p.value?[id] ?? 'offline',
+                              ),
                         ),
-                      )
-                    : null;
-                return FluxerAvatar.user(
-                  fallbackText: c.recipientName,
-                  userId: c.recipientId,
-                  imageUrl: FluxerMediaUrl.userAvatar(
-                    userId: c.recipientId,
-                    hash: c.recipientAvatar,
-                    animated: isSelected,
-                  ),
-                  status: status,
-                  showStatus: showPresence,
-                  size: avatarSize,
-                );
-              },
-            ),
-            SizedBox(width: layout.s3),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                      );
+                      return groupDmAvatarCluster(
+                        dm: c,
+                        size: avatarSize,
+                        status: status,
+                      );
+                    }
+                    final bool showPresence = shouldShowDmRecipientPresence(c);
+                    final String? status = showPresence
+                        ? ref.watch(
+                            dmListPresenceMapProvider.select(
+                              (AsyncValue<Map<String, String>> p) =>
+                                  p.value?[c.recipientId] ?? 'offline',
+                            ),
+                          )
+                        : null;
+                    return FluxerAvatar.user(
+                      fallbackText: c.recipientName,
+                      userId: c.recipientId,
+                      imageUrl: FluxerMediaUrl.userAvatar(
+                        userId: c.recipientId,
+                        hash: c.recipientAvatar,
+                        animated: isSelected,
+                      ),
+                      status: status,
+                      showStatus: showPresence,
+                      size: avatarSize,
+                    );
+                  },
+                ),
+                SizedBox(width: layout.s3),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (isPinned)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: PhosphorIcon(
-                            PhosphorIconsFill.pushPin,
-                            size: 12,
-                            color: timestampColor,
+                      Row(
+                        children: [
+                          if (isPinned)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: PhosphorIcon(
+                                PhosphorIconsFill.pushPin,
+                                size: 12,
+                                color: timestampColor,
+                              ),
+                            ),
+                          Flexible(
+                            child: Text(
+                              c.displayName,
+                              style: context.textStyles.username.copyWith(
+                                color: titleColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      Flexible(
-                        child: Text(
-                          c.displayName,
-                          style: context.textStyles.username.copyWith(
-                            color: titleColor,
+                          if (!c.isGroup && isBotOrSystemDmRecipient(c))
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: FluxerUserTag(isSystem: c.isSystem),
+                            ),
+                        ],
+                      ),
+                      if (c.isGroup)
+                        Text(
+                          FluxerLocalizations.of(
+                            context,
+                          ).dmGroupMemberCount(c.memberCount),
+                          style: TextStyle(
+                            color: secondaryColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            height: 14 / 11,
                           ),
                           overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (!c.isGroup && isBotOrSystemDmRecipient(c))
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4),
-                          child: FluxerUserTag(isSystem: c.isSystem),
+                          maxLines: 1,
+                        )
+                      else if (lastMessagePreview.isNotEmpty)
+                        Text(
+                          lastMessagePreview,
+                          style: TextStyle(
+                            color: secondaryColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            height: 16 / 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                     ],
                   ),
-                  if (c.isGroup)
-                    Text(
-                      FluxerLocalizations.of(
-                        context,
-                      ).dmGroupMemberCount(c.memberCount),
-                      style: TextStyle(
-                        color: secondaryColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        height: 14 / 11,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    )
-                  else if (lastMessagePreview.isNotEmpty)
-                    Text(
-                      lastMessagePreview,
-                      style: TextStyle(
-                        color: secondaryColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        height: 16 / 11,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _formatRelativeTime(c.lastMessageTime),
+                  style: TextStyle(
+                    color: timestampColor,
+                    fontSize: 12,
+                    height: 16 / 12,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              _formatRelativeTime(c.lastMessageTime),
-              style: TextStyle(
-                color: timestampColor,
-                fontSize: 12,
-                height: 16 / 12,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 

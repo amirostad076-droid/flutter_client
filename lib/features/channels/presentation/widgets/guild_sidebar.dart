@@ -411,15 +411,8 @@ class _ChannelTile extends ConsumerWidget {
       clipBehavior: Clip.none,
       children: [
         if (showUnreadIndicator)
-          Positioned(
-            left: 1,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: ChannelUnreadIndicator(
-                faded: channelUnreadState.isUnreadIndicatorMuted,
-              ),
-            ),
+          ChannelUnreadIndicator.positioned(
+            faded: channelUnreadState.isUnreadIndicatorMuted,
           ),
         Opacity(
           opacity: rowOpacity,
