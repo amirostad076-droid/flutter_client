@@ -600,7 +600,9 @@ class _DMListState extends ConsumerState<DMList> {
                 child: PhosphorIcon(
                   PhosphorIconsFill.notePencil,
                   size: 20,
-                  color: context.colors.interactiveNormal,
+                  color: isSelected
+                      ? context.colors.textOnBrandPrimary
+                      : context.colors.interactiveNormal,
                 ),
               ),
             ),
