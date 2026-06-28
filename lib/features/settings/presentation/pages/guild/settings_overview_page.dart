@@ -13,8 +13,9 @@ class SettingsOverviewPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<GuildSettingsDetails> guildAsync =
-        ref.watch(guildSettingsOverviewProvider(guildId));
+    final AsyncValue<GuildSettingsDetails> guildAsync = ref.watch(
+      guildSettingsOverviewProvider(guildId),
+    );
     return GuildSettingsPageShell(
       guildId: guildId,
       tab: GuildSettingsTab.overview,

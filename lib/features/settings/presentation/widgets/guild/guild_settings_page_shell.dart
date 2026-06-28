@@ -51,15 +51,9 @@ class GuildSettingsPageShell extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         title: Text(guildSettingsTabTitle(l10n, tab)),
-        actions: <Widget>[
-          ...actions,
-        ],
+        actions: <Widget>[...actions],
       ),
-      body: GuildSettingsAccessGate(
-        guildId: guildId,
-        tab: tab,
-        child: body,
-      ),
+      body: GuildSettingsAccessGate(guildId: guildId, tab: tab, child: body),
     );
   }
 }

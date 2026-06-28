@@ -17,12 +17,7 @@ enum AuditLogTargetType {
   message,
 }
 
-enum AuditLogActionKind {
-  create,
-  update,
-  delete,
-  other,
-}
+enum AuditLogActionKind { create, update, delete, other }
 
 class GuildAuditLogConstants {
   GuildAuditLogConstants._();

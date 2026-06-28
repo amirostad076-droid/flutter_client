@@ -101,7 +101,11 @@ Widget _buildMenuEntry(
   };
 }
 
-void _handleSubmenuTap(BuildContext context, GuildMenuSubmenu submenu, String guildId) {
+void _handleSubmenuTap(
+  BuildContext context,
+  GuildMenuSubmenu submenu,
+  String guildId,
+) {
   switch (submenu.key) {
     case 'communitySettings':
       Navigator.of(context).pop();

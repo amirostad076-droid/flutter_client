@@ -44,8 +44,8 @@ class GuildAuditLogFilterRow extends ConsumerWidget {
             imageUrl: _resolveFilterAvatarUrl(member),
             fallbackText: member.displayName,
             userId: member.id,
-            avatarColor: state.filterMemberAvatarColor(member.id) ??
-                member.avatarColor,
+            avatarColor:
+                state.filterMemberAvatarColor(member.id) ?? member.avatarColor,
             size: 28,
             showStatus: false,
           ),
@@ -85,7 +85,8 @@ class GuildAuditLogFilterRow extends ConsumerWidget {
     );
     final Widget actionSelect = FluxerSelect<String>(
       label: l10n.guildSettingsAuditLogFilterAction,
-      value: state.selectedActionType?.json?.toString() ??
+      value:
+          state.selectedActionType?.json?.toString() ??
           kGuildAuditLogAllActionsFilterValue,
       items: actionItems,
       enableSearch: true,
@@ -129,9 +130,6 @@ class GuildAuditLogFilterRow extends ConsumerWidget {
     if (!state.hasResolvedProfiles) {
       return null;
     }
-    return FluxerMediaUrl.userAvatar(
-      userId: member.id,
-      hash: member.avatar,
-    );
+    return FluxerMediaUrl.userAvatar(userId: member.id, hash: member.avatar);
   }
 }

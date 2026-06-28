@@ -48,10 +48,12 @@ class _GuildSettingsModalState extends ConsumerState<GuildSettingsModal> {
   @override
   Widget build(BuildContext context) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final int permissions =
-        ref.watch(guildSettingsPermissionsProvider(widget.guildId));
-    final AsyncValue<Guild?> guildAsync =
-        ref.watch(guildByIdProvider(widget.guildId));
+    final int permissions = ref.watch(
+      guildSettingsPermissionsProvider(widget.guildId),
+    );
+    final AsyncValue<Guild?> guildAsync = ref.watch(
+      guildByIdProvider(widget.guildId),
+    );
     final Guild? guild = guildAsync.value;
     final List<GuildSettingsTab> visibleTabs = visibleGuildSettingsTabs(
       permissions: permissions,
@@ -59,8 +61,8 @@ class _GuildSettingsModalState extends ConsumerState<GuildSettingsModal> {
     );
     final GuildSettingsTab activeTab =
         visibleTabs.contains(_selectedTab) || visibleTabs.isEmpty
-            ? _selectedTab
-            : visibleTabs.first;
+        ? _selectedTab
+        : visibleTabs.first;
     if (activeTab != _selectedTab) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -68,8 +70,11 @@ class _GuildSettingsModalState extends ConsumerState<GuildSettingsModal> {
         }
       });
     }
-    final List<SettingsSidebarItem> sidebarItems =
-        _buildSidebarItems(l10n, visibleTabs, ref);
+    final List<SettingsSidebarItem> sidebarItems = _buildSidebarItems(
+      l10n,
+      visibleTabs,
+      ref,
+    );
     final int selectedIndex = visibleTabs.indexOf(activeTab);
     return Scaffold(
       backgroundColor: context.colors.backgroundPrimary,

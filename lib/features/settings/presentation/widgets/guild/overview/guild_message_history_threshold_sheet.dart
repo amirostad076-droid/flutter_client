@@ -15,11 +15,14 @@ Future<void> showGuildMessageHistoryThresholdSheet({
 }) {
   return FluxerBottomSheet.show<void>(
     context,
-    title: FluxerLocalizations.of(context).guildSettingsMessageHistoryThresholdTitle,
-    builder: (BuildContext sheetContext, _) => _GuildMessageHistoryThresholdSheet(
-      guildId: guildId,
-      initialCutoff: initialCutoff,
-    ),
+    title: FluxerLocalizations.of(
+      context,
+    ).guildSettingsMessageHistoryThresholdTitle,
+    builder: (BuildContext sheetContext, _) =>
+        _GuildMessageHistoryThresholdSheet(
+          guildId: guildId,
+          initialCutoff: initialCutoff,
+        ),
   );
 }
 
@@ -79,7 +82,9 @@ class _GuildMessageHistoryThresholdSheetState
       if (!mounted) {
         return;
       }
-      ref.read(toastProvider.notifier).show(
+      ref
+          .read(toastProvider.notifier)
+          .show(
             FluxerToast(
               message: FluxerLocalizations.of(
                 context,
@@ -122,10 +127,7 @@ class _GuildMessageHistoryThresholdSheetState
           ),
           if (_isEnabled) ...<Widget>[
             SizedBox(height: context.layout.s4),
-            FluxerButton.secondary(
-              onPressed: _pickDate,
-              label: dateLabel,
-            ),
+            FluxerButton.secondary(onPressed: _pickDate, label: dateLabel),
             SizedBox(height: context.layout.s2),
             Text(
               l10n.guildSettingsMessageHistoryThresholdDateHint,

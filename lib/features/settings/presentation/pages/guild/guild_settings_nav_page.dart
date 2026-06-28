@@ -21,7 +21,9 @@ class GuildSettingsNavPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final int permissions = ref.watch(guildSettingsPermissionsProvider(guildId));
+    final int permissions = ref.watch(
+      guildSettingsPermissionsProvider(guildId),
+    );
     final Guild? guild = ref.watch(guildByIdProvider(guildId)).value;
     final List<GuildSettingsTab> tabs = visibleGuildSettingsTabs(
       permissions: permissions,
@@ -43,7 +45,12 @@ class GuildSettingsNavPage extends ConsumerWidget {
         ),
       ),
       body: FluxerSettingsNavList(
-        padding: EdgeInsets.fromLTRB(layout.s4, layout.s4, layout.s4, layout.s4),
+        padding: EdgeInsets.fromLTRB(
+          layout.s4,
+          layout.s4,
+          layout.s4,
+          layout.s4,
+        ),
         groups: _buildNavGroups(l10n, tabs, context, guildId, ref),
       ),
     );
@@ -64,13 +71,11 @@ class GuildSettingsNavPage extends ConsumerWidget {
         return;
       }
       groups.add(
-        FluxerSettingsNavGroup(
-          label: currentCategory,
-          items: currentItems,
-        ),
+        FluxerSettingsNavGroup(label: currentCategory, items: currentItems),
       );
       currentItems = <FluxerSettingsNavItem>[];
     }
+
     for (final GuildSettingsTab tab in tabs) {
       final String? category = guildSettingsTabCategoryLabel(l10n, tab);
       if (category != currentCategory) {

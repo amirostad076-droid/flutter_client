@@ -93,7 +93,8 @@ GuildAuditLogEntry guildAuditLogEntryFromSdk(GuildAuditLogEntryResponse sdk) {
     targetId: sdk.targetId,
     reason: sdk.reason,
     options: guildAuditLogEntryOptionsFromSdk(sdk.options),
-    changes: sdk.changes
+    changes:
+        sdk.changes
             ?.map(
               (AuditLogChangeSchema change) => GuildAuditLogChange(
                 key: change.key,

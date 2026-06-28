@@ -50,7 +50,10 @@ class GuildAuditLogSummaryBuilder {
   }) {
     final AuditLogActionType action = entry.actionType;
     final int? pruneDays = int.tryParse(
-      GuildAuditLogUtils.findChangeNewScalar(entry.changes, 'prune_delete_days') ??
+      GuildAuditLogUtils.findChangeNewScalar(
+            entry.changes,
+            'prune_delete_days',
+          ) ??
           '',
     );
     final int? bulkCount = entry.options?.count?.toInt();
@@ -69,27 +72,30 @@ class GuildAuditLogSummaryBuilder {
         actor,
         target,
       ),
-      AuditLogActionType.channelOverwriteCreate => hasChannel
-          ? l10n.auditLogSummaryChannelOverwriteCreateInChannel(
-              actor,
-              target,
-              channel,
-            )
-          : l10n.auditLogSummaryChannelOverwriteCreate(actor, target),
-      AuditLogActionType.channelOverwriteUpdate => hasChannel
-          ? l10n.auditLogSummaryChannelOverwriteUpdateInChannel(
-              actor,
-              target,
-              channel,
-            )
-          : l10n.auditLogSummaryChannelOverwriteUpdate(actor, target),
-      AuditLogActionType.channelOverwriteDelete => hasChannel
-          ? l10n.auditLogSummaryChannelOverwriteDeleteInChannel(
-              actor,
-              target,
-              channel,
-            )
-          : l10n.auditLogSummaryChannelOverwriteDelete(actor, target),
+      AuditLogActionType.channelOverwriteCreate =>
+        hasChannel
+            ? l10n.auditLogSummaryChannelOverwriteCreateInChannel(
+                actor,
+                target,
+                channel,
+              )
+            : l10n.auditLogSummaryChannelOverwriteCreate(actor, target),
+      AuditLogActionType.channelOverwriteUpdate =>
+        hasChannel
+            ? l10n.auditLogSummaryChannelOverwriteUpdateInChannel(
+                actor,
+                target,
+                channel,
+              )
+            : l10n.auditLogSummaryChannelOverwriteUpdate(actor, target),
+      AuditLogActionType.channelOverwriteDelete =>
+        hasChannel
+            ? l10n.auditLogSummaryChannelOverwriteDeleteInChannel(
+                actor,
+                target,
+                channel,
+              )
+            : l10n.auditLogSummaryChannelOverwriteDelete(actor, target),
       AuditLogActionType.memberKick => l10n.auditLogSummaryMemberKick(
         actor,
         target,
@@ -112,9 +118,10 @@ class GuildAuditLogSummaryBuilder {
         pruneDays != null && pruneDays > 0
             ? l10n.auditLogSummaryMemberPruneDays(actor, pruneDays)
             : l10n.auditLogSummaryMemberPrune(actor),
-      AuditLogActionType.memberMove => hasChannel
-          ? l10n.auditLogSummaryMemberMoveToChannel(actor, target, channel)
-          : l10n.auditLogSummaryMemberMove(actor, target),
+      AuditLogActionType.memberMove =>
+        hasChannel
+            ? l10n.auditLogSummaryMemberMoveToChannel(actor, target, channel)
+            : l10n.auditLogSummaryMemberMove(actor, target),
       AuditLogActionType.memberDisconnect =>
         l10n.auditLogSummaryMemberDisconnect(actor, target),
       AuditLogActionType.botAdd => l10n.auditLogSummaryBotAdd(actor, target),
@@ -130,15 +137,18 @@ class GuildAuditLogSummaryBuilder {
         actor,
         target,
       ),
-      AuditLogActionType.inviteCreate => hasChannel
-          ? l10n.auditLogSummaryInviteCreateForChannel(actor, target, channel)
-          : l10n.auditLogSummaryInviteCreate(actor, target),
-      AuditLogActionType.inviteUpdate => hasChannel
-          ? l10n.auditLogSummaryInviteUpdateForChannel(actor, target, channel)
-          : l10n.auditLogSummaryInviteUpdate(actor, target),
-      AuditLogActionType.inviteDelete => hasChannel
-          ? l10n.auditLogSummaryInviteDeleteForChannel(actor, target, channel)
-          : l10n.auditLogSummaryInviteDelete(actor, target),
+      AuditLogActionType.inviteCreate =>
+        hasChannel
+            ? l10n.auditLogSummaryInviteCreateForChannel(actor, target, channel)
+            : l10n.auditLogSummaryInviteCreate(actor, target),
+      AuditLogActionType.inviteUpdate =>
+        hasChannel
+            ? l10n.auditLogSummaryInviteUpdateForChannel(actor, target, channel)
+            : l10n.auditLogSummaryInviteUpdate(actor, target),
+      AuditLogActionType.inviteDelete =>
+        hasChannel
+            ? l10n.auditLogSummaryInviteDeleteForChannel(actor, target, channel)
+            : l10n.auditLogSummaryInviteDelete(actor, target),
       AuditLogActionType.webhookCreate => l10n.auditLogSummaryWebhookCreate(
         actor,
         target,
@@ -175,25 +185,25 @@ class GuildAuditLogSummaryBuilder {
         actor,
         target,
       ),
-      AuditLogActionType.messageDelete => hasChannel
-          ? l10n.auditLogSummaryMessageDeleteInChannel(actor, channel)
-          : l10n.auditLogSummaryMessageDelete(actor),
+      AuditLogActionType.messageDelete =>
+        hasChannel
+            ? l10n.auditLogSummaryMessageDeleteInChannel(actor, channel)
+            : l10n.auditLogSummaryMessageDelete(actor),
       AuditLogActionType.messageBulkDelete => _bulkDeleteSummary(
         l10n: l10n,
         actor: actor,
         channel: channel,
         bulkCount: bulkCount,
       ),
-      AuditLogActionType.messagePin => hasChannel
-          ? l10n.auditLogSummaryMessagePinInChannel(actor, channel)
-          : l10n.auditLogSummaryMessagePin(actor),
-      AuditLogActionType.messageUnpin => hasChannel
-          ? l10n.auditLogSummaryMessageUnpinInChannel(actor, channel)
-          : l10n.auditLogSummaryMessageUnpin(actor),
-      AuditLogActionType.$unknown => l10n.auditLogSummaryDefault(
-        actor,
-        target,
-      ),
+      AuditLogActionType.messagePin =>
+        hasChannel
+            ? l10n.auditLogSummaryMessagePinInChannel(actor, channel)
+            : l10n.auditLogSummaryMessagePin(actor),
+      AuditLogActionType.messageUnpin =>
+        hasChannel
+            ? l10n.auditLogSummaryMessageUnpinInChannel(actor, channel)
+            : l10n.auditLogSummaryMessageUnpin(actor),
+      AuditLogActionType.$unknown => l10n.auditLogSummaryDefault(actor, target),
     };
   }
 

@@ -36,15 +36,15 @@ class GuildSettingsRepository {
     AuditLogActionType? actionType,
   }) async {
     try {
-      final GuildAuditLogListResponse response =
-          await _client.guilds.listGuildAuditLogs(
-        guildId: guildId,
-        limit: limit,
-        before: before,
-        after: after,
-        userId: userId,
-        actionType: actionType,
-      );
+      final GuildAuditLogListResponse response = await _client.guilds
+          .listGuildAuditLogs(
+            guildId: guildId,
+            limit: limit,
+            before: before,
+            after: after,
+            userId: userId,
+            actionType: actionType,
+          );
       return guildAuditLogPageFromSdk(response);
     } on DioException catch (error) {
       throw Exception(_messageFromDio(error, 'Failed to load audit log'));

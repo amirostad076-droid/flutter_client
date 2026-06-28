@@ -156,8 +156,9 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final GuildSettingsDetails details = widget.details;
     final Guild guild = details.guild;
-    final AsyncValue<List<Channel>> channelsAsync =
-        ref.watch(guildSettingsChannelsProvider(widget.guildId));
+    final AsyncValue<List<Channel>> channelsAsync = ref.watch(
+      guildSettingsChannelsProvider(widget.guildId),
+    );
     return FluxerSettingsSheet(
       hasUnsavedChanges: _isDirty,
       isSaving: _isSaving,
@@ -175,13 +176,7 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            ..._buildSections(
-              context,
-              l10n,
-              details,
-              guild,
-              channelsAsync,
-            ),
+            ..._buildSections(context, l10n, details, guild, channelsAsync),
           ],
         ),
       ),
@@ -380,7 +375,8 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
                   FluxerRadioItem<int>(
                     value: 1,
                     label: l10n.guildSettingsNotificationsMentions,
-                    description: l10n.guildSettingsNotificationsMentionsDescription,
+                    description:
+                        l10n.guildSettingsNotificationsMentionsDescription,
                   ),
                 ],
                 onChanged: (int value) =>
@@ -416,8 +412,7 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
             label: l10n.guildSettingsOverviewFlexibleNames,
             description: l10n.guildSettingsOverviewFlexibleNamesHint,
             value: _flexibleNames,
-            onChanged: (bool value) =>
-                setState(() => _flexibleNames = value),
+            onChanged: (bool value) => setState(() => _flexibleNames = value),
           ),
         ],
       ),
@@ -429,8 +424,7 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
             label: l10n.guildSettingsOverviewHideOwnerCrown,
             description: l10n.guildSettingsOverviewHideOwnerCrownHint,
             value: _hideOwnerCrown,
-            onChanged: (bool value) =>
-                setState(() => _hideOwnerCrown = value),
+            onChanged: (bool value) => setState(() => _hideOwnerCrown = value),
           ),
         ],
       ),
@@ -584,9 +578,7 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
           ),
       ],
     );
-    final Widget? hint = uploadHint == null
-        ? null
-        : FluxerHintText(uploadHint);
+    final Widget? hint = uploadHint == null ? null : FluxerHintText(uploadHint);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -621,9 +613,7 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
   Widget _buildIconPreview(BuildContext context, Guild guild) {
     final String? dataUri = _pendingIconUri;
     if (dataUri != null) {
-      return ClipOval(
-        child: _buildDataUriImage(dataUri, size: 80),
-      );
+      return ClipOval(child: _buildDataUriImage(dataUri, size: 80));
     }
     return FluxerAvatar.guild(
       fallbackText: guild.name,
@@ -663,10 +653,7 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
       networkUrl: _splashCleared
           ? null
           : guild.splashUrl ??
-              FluxerMediaUrl.guildSplash(
-                guildId: widget.guildId,
-                hash: hash,
-              ),
+                FluxerMediaUrl.guildSplash(guildId: widget.guildId, hash: hash),
       emptyPlaceholder: l10n.guildSettingsOverviewNoInviteBackground,
     );
   }
@@ -693,12 +680,12 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
       splashNetworkUrl: _embedSplashCleared
           ? null
           : guild.embedSplashUrl ??
-              (hash == null
-                  ? null
-                  : FluxerMediaUrl.guildEmbedSplash(
-                      guildId: widget.guildId,
-                      hash: hash,
-                    )),
+                (hash == null
+                    ? null
+                    : FluxerMediaUrl.guildEmbedSplash(
+                        guildId: widget.guildId,
+                        hash: hash,
+                      )),
     );
   }
 
@@ -724,7 +711,8 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
           borderRadius: context.layout.radiusLg,
         ),
         clipBehavior: Clip.hardEdge,
-        child: image ??
+        child:
+            image ??
             (emptyPlaceholder == null
                 ? null
                 : Padding(
@@ -769,11 +757,7 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
     return null;
   }
 
-  Widget _buildDataUriImage(
-    String dataUri, {
-    double? height,
-    double? size,
-  }) {
+  Widget _buildDataUriImage(String dataUri, {double? height, double? size}) {
     final Uint8List? bytes = _decodeDataUri(dataUri);
     if (bytes == null) {
       return SizedBox(height: height, width: size);
@@ -803,8 +787,7 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
   }
 
   bool _hasBannerAsset(Guild guild, GuildSettingsDetails details) {
-    final bool hasStored =
-        details.guild.banner != null || guild.banner != null;
+    final bool hasStored = details.guild.banner != null || guild.banner != null;
     return (_pendingBannerUri != null || hasStored) && !_bannerCleared;
   }
 
@@ -823,8 +806,8 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
   List<FluxerSelectItem<int>> _buildAfkTimeoutItems(FluxerLocalizations l10n) {
     final List<MapEntry<int, String Function(FluxerLocalizations)>> options =
         List<MapEntry<int, String Function(FluxerLocalizations)>>.from(
-      _afkTimeoutOptions,
-    );
+          _afkTimeoutOptions,
+        );
     if (!options.any(
       (MapEntry<int, String Function(FluxerLocalizations)> entry) =>
           entry.key == _afkTimeout,
@@ -841,10 +824,7 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
     return options
         .map(
           (MapEntry<int, String Function(FluxerLocalizations)> entry) =>
-              FluxerSelectItem<int>(
-            value: entry.key,
-            label: entry.value(l10n),
-          ),
+              FluxerSelectItem<int>(value: entry.key, label: entry.value(l10n)),
         )
         .toList();
   }
@@ -880,10 +860,7 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
       items: <FluxerSelectItem<String>>[
         FluxerSelectItem<String>(value: noneValue, label: noneLabel),
         for (final Channel channel in channels)
-          FluxerSelectItem<String>(
-            value: channel.id,
-            label: channel.name,
-          ),
+          FluxerSelectItem<String>(value: channel.id, label: channel.name),
       ],
       onChanged: (String selected) =>
           onChanged(selected.isEmpty ? null : selected),
@@ -905,7 +882,9 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
       return;
     }
     if (ImageUtils.isOverSizeLimit(picked.bytes)) {
-      ref.read(toastProvider.notifier).show(
+      ref
+          .read(toastProvider.notifier)
+          .show(
             FluxerToast(
               message: FluxerLocalizations.of(context).imageFileTooLarge,
               variant: FluxerToastVariant.danger,
@@ -918,7 +897,9 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
     );
     if (animCheck.isAnimated) {
       if (!allowAnimated) {
-        ref.read(toastProvider.notifier).show(
+        ref
+            .read(toastProvider.notifier)
+            .show(
               FluxerToast(
                 message: animatedError,
                 variant: FluxerToastVariant.warning,
@@ -990,14 +971,16 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
                 cleared: _embedSplashCleared,
               ),
               splashCardAlignment:
-                  GuildUpdateRequestSplashCardAlignmentSplashCardAlignment
-                      .fromJson(_splashCardAlignment),
+                  GuildUpdateRequestSplashCardAlignmentSplashCardAlignment.fromJson(
+                    _splashCardAlignment,
+                  ),
               afkChannelId: _afkChannelId,
               afkTimeout: _afkTimeout,
               systemChannelId: _systemChannelId,
               systemChannelFlags: systemFlags,
-              defaultMessageNotifications:
-                  DefaultMessageNotifications.fromJson(_defaultNotifications),
+              defaultMessageNotifications: DefaultMessageNotifications.fromJson(
+                _defaultNotifications,
+              ),
               features: featuresUpdate,
             ),
           );
@@ -1033,8 +1016,6 @@ _afkTimeoutOptions = <MapEntry<int, String Function(FluxerLocalizations l10n)>>[
 
 String _afk1Min(FluxerLocalizations l10n) => l10n.guildSettingsAfkTimeout1Min;
 String _afk5Min(FluxerLocalizations l10n) => l10n.guildSettingsAfkTimeout5Min;
-String _afk15Min(FluxerLocalizations l10n) =>
-    l10n.guildSettingsAfkTimeout15Min;
-String _afk30Min(FluxerLocalizations l10n) =>
-    l10n.guildSettingsAfkTimeout30Min;
+String _afk15Min(FluxerLocalizations l10n) => l10n.guildSettingsAfkTimeout15Min;
+String _afk30Min(FluxerLocalizations l10n) => l10n.guildSettingsAfkTimeout30Min;
 String _afk1Hour(FluxerLocalizations l10n) => l10n.guildSettingsAfkTimeout1Hour;

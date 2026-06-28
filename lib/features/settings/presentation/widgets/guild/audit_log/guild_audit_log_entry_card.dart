@@ -87,113 +87,113 @@ class GuildAuditLogEntryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-          FluxerTappable(
-            onTap: isExpandable ? onToggle : null,
-            semanticLabel: summary.text,
-            builder: (BuildContext context, Set<WidgetState> states) {
-              final bool isHovered = states.contains(WidgetState.hovered);
-              final Color headerColor = isExpanded || isHovered
-                  ? context.colors.backgroundModifierHover
-                  : Colors.transparent;
-              return ColoredBox(
-                color: headerColor,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: context.layout.s3,
-                    vertical: context.layout.s2,
-                  ),
-                  child: Row(
-                    children: <Widget>[
-                      _AuditLogActionIcon(
-                        actionType: entry.actionType,
-                        phosphorIcon: actionIcon,
-                        iconStyle: iconStyle,
-                        channel: channelForIcon,
-                      ),
-                      SizedBox(width: context.layout.s2),
-                      FluxerAvatar.user(
-                        imageUrl: actorAvatarUrl,
-                        fallbackText: actorName,
-                        userId: actorUserId,
-                        avatarColor: actorAvatarColor,
-                        size: 32,
-                        showStatus: false,
-                      ),
-                      SizedBox(width: context.layout.s2),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            _SummaryText(
-                              summary: summary,
-                              style: context.textStyles.bodySmall.copyWith(
-                                color: context.colors.textPrimary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            if (timestamp.isNotEmpty)
-                              Text(
-                                timestamp,
-                                style: context.textStyles.timestamp,
-                              ),
-                          ],
+            FluxerTappable(
+              onTap: isExpandable ? onToggle : null,
+              semanticLabel: summary.text,
+              builder: (BuildContext context, Set<WidgetState> states) {
+                final bool isHovered = states.contains(WidgetState.hovered);
+                final Color headerColor = isExpanded || isHovered
+                    ? context.colors.backgroundModifierHover
+                    : Colors.transparent;
+                return ColoredBox(
+                  color: headerColor,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.layout.s3,
+                      vertical: context.layout.s2,
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        _AuditLogActionIcon(
+                          actionType: entry.actionType,
+                          phosphorIcon: actionIcon,
+                          iconStyle: iconStyle,
+                          channel: channelForIcon,
                         ),
-                      ),
-                      if (isExpandable)
-                        AnimatedRotation(
-                          turns: isExpanded ? 0.5 : 0,
-                          duration: const Duration(milliseconds: 150),
-                          child: PhosphorIcon(
-                            PhosphorIconsBold.caretDown,
-                            size: 20,
-                            color: context.colors.textTertiary,
+                        SizedBox(width: context.layout.s2),
+                        FluxerAvatar.user(
+                          imageUrl: actorAvatarUrl,
+                          fallbackText: actorName,
+                          userId: actorUserId,
+                          avatarColor: actorAvatarColor,
+                          size: 32,
+                          showStatus: false,
+                        ),
+                        SizedBox(width: context.layout.s2),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              _SummaryText(
+                                summary: summary,
+                                style: context.textStyles.bodySmall.copyWith(
+                                  color: context.colors.textPrimary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              if (timestamp.isNotEmpty)
+                                Text(
+                                  timestamp,
+                                  style: context.textStyles.timestamp,
+                                ),
+                            ],
                           ),
                         ),
-                    ],
+                        if (isExpandable)
+                          AnimatedRotation(
+                            turns: isExpanded ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 150),
+                            child: PhosphorIcon(
+                              PhosphorIconsBold.caretDown,
+                              size: 20,
+                              color: context.colors.textTertiary,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
-          if (isExpanded && isExpandable)
-            DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: context.colors.backgroundModifierAccent,
-                  ),
-                ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(context.layout.s3),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    if (hasReason) ...<Widget>[
-                      Text(
-                        l10n.guildSettingsAuditLogReason,
-                        style: context.textStyles.bodySmall.copyWith(
-                          color: context.colors.textPrimaryMuted,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: context.layout.s1),
-                      Text(
-                        reasonText,
-                        style: TextStyle(color: context.colors.textSecondary),
-                      ),
-                      if (changeLines.isNotEmpty || optionLines.isNotEmpty)
-                        SizedBox(height: context.layout.s3),
-                    ],
-                    for (final String line in changeLines)
-                      _DetailRow(text: line, tone: _ChangeTone.add),
-                    for (final String line in optionLines)
-                      _DetailRow(text: line, tone: _ChangeTone.add),
-                  ],
-                ),
-              ),
+                );
+              },
             ),
-        ],
+            if (isExpanded && isExpandable)
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: context.colors.backgroundModifierAccent,
+                    ),
+                  ),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(context.layout.s3),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      if (hasReason) ...<Widget>[
+                        Text(
+                          l10n.guildSettingsAuditLogReason,
+                          style: context.textStyles.bodySmall.copyWith(
+                            color: context.colors.textPrimaryMuted,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: context.layout.s1),
+                        Text(
+                          reasonText,
+                          style: TextStyle(color: context.colors.textSecondary),
+                        ),
+                        if (changeLines.isNotEmpty || optionLines.isNotEmpty)
+                          SizedBox(height: context.layout.s3),
+                      ],
+                      for (final String line in changeLines)
+                        _DetailRow(text: line, tone: _ChangeTone.add),
+                      for (final String line in optionLines)
+                        _DetailRow(text: line, tone: _ChangeTone.add),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -286,6 +286,7 @@ class GuildAuditLogEntryCard extends StatelessWidget {
         ),
       );
     }
+
     addOption('channel_id', options.channelId);
     addOption('message_id', options.messageId);
     addOption('inviter_id', options.inviterId);
@@ -378,6 +379,7 @@ class _SummaryText extends StatelessWidget {
       );
       index = start + label.length;
     }
+
     appendBold(actor);
     appendBold(target);
     if (index < text.length) {

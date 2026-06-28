@@ -33,7 +33,8 @@ class GuildAuditLogState {
     for (final Member member in filterMembers) {
       names[member.id] = member.displayName;
     }
-    for (final MapEntry<String, GuildUserDisplay> entry in userDisplays.entries) {
+    for (final MapEntry<String, GuildUserDisplay> entry
+        in userDisplays.entries) {
       names[entry.key] = entry.value.displayName;
     }
     return names;

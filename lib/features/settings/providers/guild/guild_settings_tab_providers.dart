@@ -16,7 +16,9 @@ part 'guild_settings_tab_providers.g.dart';
 @riverpod
 Future<List<Channel>> guildSettingsChannels(Ref ref, String guildId) async {
   final ChannelRepository repository = ref.read(channelRepositoryProvider);
-  final List<ChannelCategory> categories = await repository.getChannels(guildId);
+  final List<ChannelCategory> categories = await repository.getChannels(
+    guildId,
+  );
   return categories
       .expand((ChannelCategory category) => category.channels)
       .toList();
@@ -27,9 +29,12 @@ Future<GuildSettingsDetails> guildSettingsOverview(
   Ref ref,
   String guildId,
 ) async {
-  final GuildSettingsRepository repository =
-      ref.read(guildSettingsRepositoryProvider);
-  final Guild guild = await ref.read(guildRepositoryProvider).getServer(guildId);
+  final GuildSettingsRepository repository = ref.read(
+    guildSettingsRepositoryProvider,
+  );
+  final Guild guild = await ref
+      .read(guildRepositoryProvider)
+      .getServer(guildId);
   final GuildResponse response = await repository.getGuildDetails(guildId);
   return guildSettingsDetailsFromSdk(response, guild);
 }

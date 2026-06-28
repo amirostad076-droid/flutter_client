@@ -273,10 +273,7 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
     return [
       for (final entry in entries)
         if (entry is GuildMenuAction)
-          GuildContextMenuItem(
-            entry: entry,
-            onTap: () => pop(entry.action),
-          ),
+          GuildContextMenuItem(entry: entry, onTap: () => pop(entry.action)),
     ];
   }
 
@@ -298,7 +295,11 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
     ];
   }
 
-  void _navigateToSettingsPage(BuildContext context, GuildAction action, String guildId) {
+  void _navigateToSettingsPage(
+    BuildContext context,
+    GuildAction action,
+    String guildId,
+  ) {
     final String? path = switch (action) {
       GuildAction.settingsOverview => guildSettingsTabPath(
         guildId,

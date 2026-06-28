@@ -80,14 +80,13 @@ String? guildSettingsTabCategoryLabel(
   GuildSettingsTab tab,
 ) {
   return switch (tab) {
-    GuildSettingsTab.emoji || GuildSettingsTab.stickers =>
-      l10n.guildSettingsCategoryExpressions,
+    GuildSettingsTab.emoji ||
+    GuildSettingsTab.stickers => l10n.guildSettingsCategoryExpressions,
     GuildSettingsTab.discovery => l10n.guildSettingsCategoryCommunity,
     GuildSettingsTab.webhooks => l10n.guildSettingsCategoryIntegrations,
     GuildSettingsTab.members ||
     GuildSettingsTab.invites ||
-    GuildSettingsTab.bans =>
-      l10n.guildSettingsCategoryPeople,
+    GuildSettingsTab.bans => l10n.guildSettingsCategoryPeople,
     _ => null,
   };
 }
@@ -106,11 +105,14 @@ String guildSettingsTabPath(String guildId, GuildSettingsTab tab) {
     GuildSettingsTab.roles => RoutePaths.guildSettingsRolesPath(guildId),
     GuildSettingsTab.emoji => RoutePaths.guildSettingsEmojiPath(guildId),
     GuildSettingsTab.stickers => RoutePaths.guildSettingsStickersPath(guildId),
-    GuildSettingsTab.moderation =>
-      RoutePaths.guildSettingsModerationPath(guildId),
+    GuildSettingsTab.moderation => RoutePaths.guildSettingsModerationPath(
+      guildId,
+    ),
     GuildSettingsTab.auditLog => RoutePaths.guildSettingsAuditLogPath(guildId),
     GuildSettingsTab.webhooks => RoutePaths.guildSettingsWebhooksPath(guildId),
-    GuildSettingsTab.discovery => RoutePaths.guildSettingsDiscoveryPath(guildId),
+    GuildSettingsTab.discovery => RoutePaths.guildSettingsDiscoveryPath(
+      guildId,
+    ),
     GuildSettingsTab.members => RoutePaths.guildSettingsMembersPath(guildId),
     GuildSettingsTab.invites => RoutePaths.guildSettingsInvitesPath(guildId),
     GuildSettingsTab.bans => RoutePaths.guildSettingsBansPath(guildId),

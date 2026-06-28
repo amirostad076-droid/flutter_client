@@ -65,10 +65,7 @@ class GuildAuditLog extends _$GuildAuditLog {
           );
     state = AsyncData<GuildAuditLogState>(
       current.copyWith(
-        entries: <GuildAuditLogEntry>[
-          ...current.entries,
-          ...page.entries,
-        ],
+        entries: <GuildAuditLogEntry>[...current.entries, ...page.entries],
         users: <String, GuildAuditLogUser>{...current.users, ...page.users},
         userDisplays: <String, GuildUserDisplay>{
           ...current.userDisplays,
@@ -90,10 +87,11 @@ class GuildAuditLog extends _$GuildAuditLog {
       page: page,
       filterMembers: filterMembers,
     );
-    final Map<String, GuildUserDisplay> userDisplays = await _resolveUserDisplays(
-      userIds: userIds,
-      auditLogUsers: page.users.values,
-    );
+    final Map<String, GuildUserDisplay> userDisplays =
+        await _resolveUserDisplays(
+          userIds: userIds,
+          auditLogUsers: page.users.values,
+        );
     return GuildAuditLogState(
       entries: page.entries,
       users: page.users,
@@ -108,13 +106,15 @@ class GuildAuditLog extends _$GuildAuditLog {
   }
 
   Future<GuildAuditLogPage> _fetchPage({String? before}) async {
-    return ref.read(guildSettingsRepositoryProvider).listAuditLogs(
-      guildId: guildId,
-      limit: _kAuditLogPageSize,
-      before: before,
-      userId: _selectedUserId,
-      actionType: _selectedActionType,
-    );
+    return ref
+        .read(guildSettingsRepositoryProvider)
+        .listAuditLogs(
+          guildId: guildId,
+          limit: _kAuditLogPageSize,
+          before: before,
+          userId: _selectedUserId,
+          actionType: _selectedActionType,
+        );
   }
 
   Set<String> _collectProfileUserIds({
@@ -130,13 +130,15 @@ class GuildAuditLog extends _$GuildAuditLog {
     required Set<String> userIds,
     required Iterable<GuildAuditLogUser> auditLogUsers,
   }) {
-    return ref.read(guildAuditLogMemberRepositoryProvider).resolveUserDisplays(
-      guildId: guildId,
-      userIds: userIds,
-      auditLogUsers: auditLogUsers,
-      onMemberFetched: (String userId) {
-        ref.invalidate(memberRoleColorProvider((userId, guildId)));
-      },
-    );
+    return ref
+        .read(guildAuditLogMemberRepositoryProvider)
+        .resolveUserDisplays(
+          guildId: guildId,
+          userIds: userIds,
+          auditLogUsers: auditLogUsers,
+          onMemberFetched: (String userId) {
+            ref.invalidate(memberRoleColorProvider((userId, guildId)));
+          },
+        );
   }
 }

@@ -55,7 +55,9 @@ class _GuildAuditLogWidgetState extends ConsumerState<GuildAuditLogWidget> {
     const double threshold = 200;
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - threshold) {
-      unawaited(ref.read(guildAuditLogProvider(widget.guildId).notifier).loadMore());
+      unawaited(
+        ref.read(guildAuditLogProvider(widget.guildId).notifier).loadMore(),
+      );
     }
   }
 

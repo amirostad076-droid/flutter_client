@@ -13,8 +13,9 @@ class SettingsModerationPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<GuildSettingsDetails> guildAsync =
-        ref.watch(guildSettingsModerationProvider(guildId));
+    final AsyncValue<GuildSettingsDetails> guildAsync = ref.watch(
+      guildSettingsModerationProvider(guildId),
+    );
     return GuildSettingsPageShell(
       guildId: guildId,
       tab: GuildSettingsTab.moderation,

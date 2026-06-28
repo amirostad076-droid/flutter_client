@@ -92,10 +92,11 @@ class _GuildModerationWidgetState extends ConsumerState<GuildModerationWidget> {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final bool isDiscoverable = widget.details.guild.isDiscoverable;
     final String? currentUserId = ref.watch(currentUserIdProvider);
-    final bool isGuildOwner = currentUserId != null &&
-        currentUserId == widget.details.guild.ownerId;
-    final bool currentUserHas2Fa =
-        ref.watch(userSettingsViewModelProvider).mfaEnabled;
+    final bool isGuildOwner =
+        currentUserId != null && currentUserId == widget.details.guild.ownerId;
+    final bool currentUserHas2Fa = ref
+        .watch(userSettingsViewModelProvider)
+        .mfaEnabled;
     return FluxerSettingsSheet(
       hasUnsavedChanges: _isDirty,
       isSaving: _isSaving,
@@ -187,13 +188,15 @@ class _GuildModerationWidgetState extends ConsumerState<GuildModerationWidget> {
               children: <Widget>[
                 FluxerSettingsSwitchItem(
                   label: l10n.guildSettingsModerationMatureToggle,
-                  description: l10n.guildSettingsModerationMatureToggleDescription,
+                  description:
+                      l10n.guildSettingsModerationMatureToggleDescription,
                   value: _nsfw,
                   onChanged: (bool value) => setState(() => _nsfw = value),
                 ),
                 FluxerSettingsSwitchItem(
                   label: l10n.guildSettingsContentWarningToggle,
-                  description: l10n.guildSettingsContentWarningToggleDescription,
+                  description:
+                      l10n.guildSettingsContentWarningToggleDescription,
                   value: _showContentWarning,
                   onChanged: (bool value) =>
                       setState(() => _showContentWarning = value),
@@ -247,10 +250,7 @@ class _GuildModerationWidgetState extends ConsumerState<GuildModerationWidget> {
     if (tooltipText == null) {
       return switchItem;
     }
-    return FluxerTooltip(
-      message: tooltipText,
-      child: switchItem,
-    );
+    return FluxerTooltip(message: tooltipText, child: switchItem);
   }
 
   void _reset() {
@@ -264,7 +264,8 @@ class _GuildModerationWidgetState extends ConsumerState<GuildModerationWidget> {
     setState(() => _isSaving = true);
     try {
       final String? currentUserId = ref.read(currentUserIdProvider);
-      final bool isGuildOwner = currentUserId != null &&
+      final bool isGuildOwner =
+          currentUserId != null &&
           currentUserId == widget.details.guild.ownerId;
       final GuildUpdateRequest request = GuildUpdateRequest(
         verificationLevel: GuildVerificationLevel.fromJson(_verificationLevel),

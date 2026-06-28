@@ -57,7 +57,10 @@ class GuildInviteEmbedPreview extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: <Widget>[
-                  SizedBox(width: 48, child: Center(child: _buildIcon(context))),
+                  SizedBox(
+                    width: 48,
+                    child: Center(child: _buildIcon(context)),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -97,9 +100,7 @@ class GuildInviteEmbedPreview extends StatelessWidget {
             Divider(height: 1, thickness: 1, color: context.colors.borderColor),
             Padding(
               padding: const EdgeInsets.all(12),
-              child: FluxerButton.primary(
-                label: l10n.embedInviteJoin,
-              ),
+              child: FluxerButton.primary(label: l10n.embedInviteJoin),
             ),
           ],
         ),

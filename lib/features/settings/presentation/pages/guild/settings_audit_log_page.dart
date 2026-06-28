@@ -13,8 +13,9 @@ class SettingsAuditLogPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<GuildAuditLogState> auditLogAsync =
-        ref.watch(guildAuditLogProvider(guildId));
+    final AsyncValue<GuildAuditLogState> auditLogAsync = ref.watch(
+      guildAuditLogProvider(guildId),
+    );
     return GuildSettingsPageShell(
       guildId: guildId,
       tab: GuildSettingsTab.auditLog,

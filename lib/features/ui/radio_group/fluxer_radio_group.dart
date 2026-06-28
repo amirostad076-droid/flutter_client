@@ -113,7 +113,8 @@ class FluxerRadioGroup<T> extends StatelessWidget {
           item.label,
           style: textStyles.bodyMedium.copyWith(
             fontWeight: FontWeight.w500,
-            color: item.labelColor ??
+            color:
+                item.labelColor ??
                 (isSelected ? colors.textPrimary : colors.textSecondary),
           ),
         ),

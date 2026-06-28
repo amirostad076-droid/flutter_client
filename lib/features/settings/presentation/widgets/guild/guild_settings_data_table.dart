@@ -70,10 +70,7 @@ class GuildSettingsDataRow extends StatelessWidget {
           child: Row(
             children: <Widget>[
               for (int i = 0; i < cells.length; i++)
-                Expanded(
-                  flex: i == 0 ? 2 : 1,
-                  child: cells[i],
-                ),
+                Expanded(flex: i == 0 ? 2 : 1, child: cells[i]),
               if (trailing != null) trailing!,
             ],
           ),

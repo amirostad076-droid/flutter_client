@@ -21,7 +21,9 @@ class GuildSettingsAccessGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final int permissions = ref.watch(guildSettingsPermissionsProvider(guildId));
+    final int permissions = ref.watch(
+      guildSettingsPermissionsProvider(guildId),
+    );
     final AsyncValue<Guild?> guildValue = ref.watch(guildByIdProvider(guildId));
     final Guild? guild = guildValue.value;
     final bool isVisible = isGuildSettingsTabVisible(

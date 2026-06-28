@@ -187,7 +187,9 @@ class SettingsSidebar extends StatelessWidget {
                   style: TextStyle(
                     color: color,
                     fontSize: 16,
-                    fontWeight: isSelected && !item.isDisabled ? FontWeight.w500 : FontWeight.w400,
+                    fontWeight: isSelected && !item.isDisabled
+                        ? FontWeight.w500
+                        : FontWeight.w400,
                   ),
                 ),
               ),

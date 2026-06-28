@@ -39,10 +39,12 @@ class GuildContextMenuCheckboxItem extends StatefulWidget {
   });
 
   @override
-  State<GuildContextMenuCheckboxItem> createState() => _GuildContextMenuCheckboxItemState();
+  State<GuildContextMenuCheckboxItem> createState() =>
+      _GuildContextMenuCheckboxItemState();
 }
 
-class _GuildContextMenuCheckboxItemState extends State<GuildContextMenuCheckboxItem> {
+class _GuildContextMenuCheckboxItemState
+    extends State<GuildContextMenuCheckboxItem> {
   var _isHovered = false;
 
   @override
@@ -127,7 +129,8 @@ class GuildContextSubmenuItem extends StatefulWidget {
   });
 
   @override
-  State<GuildContextSubmenuItem> createState() => _GuildContextSubmenuItemState();
+  State<GuildContextSubmenuItem> createState() =>
+      _GuildContextSubmenuItemState();
 }
 
 class _GuildContextSubmenuItemState extends State<GuildContextSubmenuItem> {
@@ -168,11 +171,7 @@ class _GuildContextSubmenuItemState extends State<GuildContextSubmenuItem> {
           child: Row(
             children: [
               if (widget.entry.icon != null) ...[
-                PhosphorIcon(
-                  widget.entry.icon!,
-                  size: 18,
-                  color: textColor,
-                ),
+                PhosphorIcon(widget.entry.icon!, size: 18, color: textColor),
                 SizedBox(width: layout.s3),
               ],
               Expanded(

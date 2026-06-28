@@ -31,9 +31,7 @@ class FluxerCardAlignmentControls extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.backgroundSecondary.withValues(alpha: 0.85),
         borderRadius: layout.radiusLg,
-        border: Border.all(
-          color: colors.borderColor.withValues(alpha: 0.7),
-        ),
+        border: Border.all(color: colors.borderColor.withValues(alpha: 0.7)),
       ),
       child: Padding(
         padding: EdgeInsets.all(layout.s1_5),
@@ -100,8 +98,8 @@ class _AlignmentButton extends StatelessWidget {
         final Color backgroundColor = isSelected
             ? colors.backgroundModifierAccent
             : isHovered
-                ? colors.backgroundModifierHover
-                : Colors.transparent;
+            ? colors.backgroundModifierHover
+            : Colors.transparent;
         final Color iconColor = isSelected
             ? colors.textPrimary
             : colors.textSecondary;
@@ -129,11 +127,7 @@ Widget fluxerCardAlignmentControlsPreview() {
   return FluxerCardAlignmentControls(
     label: 'Card alignment',
     value: 0,
-    semanticLabels: const <int, String>{
-      0: 'Center',
-      1: 'Left',
-      2: 'Right',
-    },
+    semanticLabels: const <int, String>{0: 'Center', 1: 'Left', 2: 'Right'},
     onChanged: (_) {},
   );
 }

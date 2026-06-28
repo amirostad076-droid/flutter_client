@@ -5,11 +5,7 @@ class GuildAuditLogChange {
   final Object? oldValue;
   final Object? newValue;
 
-  const GuildAuditLogChange({
-    required this.key,
-    this.oldValue,
-    this.newValue,
-  });
+  const GuildAuditLogChange({required this.key, this.oldValue, this.newValue});
 }
 
 class GuildAuditLogEntryOptions {

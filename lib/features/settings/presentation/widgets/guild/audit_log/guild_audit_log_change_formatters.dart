@@ -25,7 +25,13 @@ class GuildAuditLogChangeFormatters {
     if (specialized != null) {
       return specialized;
     }
-    return _formatFallbackChange(change, l10n, userNames, channelNames, roleNames);
+    return _formatFallbackChange(
+      change,
+      l10n,
+      userNames,
+      channelNames,
+      roleNames,
+    );
   }
 
   static String formatOption({
@@ -100,16 +106,19 @@ class GuildAuditLogChangeFormatters {
         ),
       'icon_hash' when actionType == AuditLogActionType.guildUpdate =>
         l10n.auditLogChangeUpdatedCommunityIcon,
-      'name' when _isChannelAction(actionType) => l10n.auditLogChangeRenamedChannel(
-        _resolveValue(change.newValue, l10n, userNames, channelNames),
-      ),
+      'name' when _isChannelAction(actionType) =>
+        l10n.auditLogChangeRenamedChannel(
+          _resolveValue(change.newValue, l10n, userNames, channelNames),
+        ),
       'topic' when change.newValue == null || _isEmptyString(change.newValue) =>
         l10n.auditLogChangeClearedTopic,
       'topic' => l10n.auditLogChangeUpdatedTopic(
         _resolveValue(change.newValue, l10n, userNames, channelNames),
       ),
-      'nsfw' when change.newValue == true => l10n.auditLogChangeEnabledMatureContent,
-      'nsfw' when change.newValue == false => l10n.auditLogChangeDisabledMatureContent,
+      'nsfw' when change.newValue == true =>
+        l10n.auditLogChangeEnabledMatureContent,
+      'nsfw' when change.newValue == false =>
+        l10n.auditLogChangeDisabledMatureContent,
       'nick' when change.newValue == null => l10n.auditLogChangeRemovedNickname(
         _resolveValue(change.oldValue, l10n, userNames, channelNames),
       ),
@@ -119,19 +128,11 @@ class GuildAuditLogChangeFormatters {
       'mute' when change.newValue == true => l10n.auditLogChangeMutedMember,
       'mute' when change.newValue == false => l10n.auditLogChangeUnmutedMember,
       'deaf' when change.newValue == true => l10n.auditLogChangeDeafenedMember,
-      'deaf' when change.newValue == false => l10n.auditLogChangeUndeafenedMember,
-      'roles' || r'$add' => _formatRoleDiff(
-        change,
-        l10n,
-        roleNames,
-        isAdd: true,
-      ),
-      r'$remove' => _formatRoleDiff(
-        change,
-        l10n,
-        roleNames,
-        isAdd: false,
-      ),
+      'deaf' when change.newValue == false =>
+        l10n.auditLogChangeUndeafenedMember,
+      'roles' ||
+      r'$add' => _formatRoleDiff(change, l10n, roleNames, isAdd: true),
+      r'$remove' => _formatRoleDiff(change, l10n, roleNames, isAdd: false),
       _ => null,
     };
   }
