@@ -1358,7 +1358,7 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
 
   @override
   String get avatarDescription =>
-      'JPEG, PNG, GIF, WebP. Max 10MB. Recommended: 512×512px';
+      'PNG, JPEG, WebP, GIF. Max 10MB. Recommended: 512×512px';
 
   @override
   String get bannerLabel => 'Banner';
@@ -1371,7 +1371,7 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
 
   @override
   String get bannerDescription =>
-      'JPEG, PNG, GIF, WebP. Max 10MB. Minimum: 680×240px (17:6)';
+      'PNG, JPEG, WebP, GIF. Max 10MB. Minimum: 680×240px (17:6)';
 
   @override
   String get accentColorLabel => 'Accent Color';
