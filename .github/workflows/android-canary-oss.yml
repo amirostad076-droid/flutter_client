@@ -2,6 +2,7 @@ name: Android Canary OSS Build
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   build-canary-oss:
