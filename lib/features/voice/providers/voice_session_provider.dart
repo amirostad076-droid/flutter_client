@@ -1112,8 +1112,7 @@ class VoiceSession extends _$VoiceSession {
         final bool hasBackground = await enableAndroidScreenShareBackground(
           notificationText: screenShareNotificationText,
         );
-        if (!hasBackground ||
-            !await isAndroidScreenShareBackgroundRunning()) {
+        if (!hasBackground || !await isAndroidScreenShareBackgroundRunning()) {
           talker.warning(
             '[Voice] Screen-share background service could not be started '
             'or is not running.',
@@ -1200,7 +1199,8 @@ class VoiceSession extends _$VoiceSession {
     if (!Platform.isAndroid) {
       return true;
     }
-    final bool hasMicrophonePermission = await hasMicrophonePermissionForVoice();
+    final bool hasMicrophonePermission =
+        await hasMicrophonePermissionForVoice();
     if (hasMicrophonePermission) {
       return true;
     }
@@ -1209,9 +1209,7 @@ class VoiceSession extends _$VoiceSession {
     );
     final bool granted = await requestMicrophonePermissionForVoice();
     if (!granted) {
-      talker.warning(
-        '[Voice] Screen-share audio permission denied by user.',
-      );
+      talker.warning('[Voice] Screen-share audio permission denied by user.');
     }
     return granted;
   }

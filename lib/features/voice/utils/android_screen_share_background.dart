@@ -14,7 +14,11 @@ Future<bool> isAndroidScreenShareBackgroundRunning() async {
 }
 
 Future<bool> _verifyAndroidScreenShareBackgroundRunning() async {
-  for (int attempt = 0; attempt < _kForegroundServiceVerifyAttempts; attempt++) {
+  for (
+    int attempt = 0;
+    attempt < _kForegroundServiceVerifyAttempts;
+    attempt++
+  ) {
     if (FlutterBackground.isBackgroundExecutionEnabled) {
       return true;
     }
