@@ -300,10 +300,10 @@ class _GuildOverviewWidgetState extends ConsumerState<GuildOverviewWidget> {
         error: (_, _) => const SizedBox.shrink(),
         data: (List<Channel> channels) {
           final List<Channel> voiceChannels = channels
-              .where((Channel c) => c.type == ChannelType.voice)
+              .where((Channel c) => c.type == ChannelType.guildVoice)
               .toList();
           final List<Channel> textChannels = channels
-              .where((Channel c) => c.type == ChannelType.text)
+              .where((Channel c) => c.type == ChannelType.guildText)
               .toList();
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,

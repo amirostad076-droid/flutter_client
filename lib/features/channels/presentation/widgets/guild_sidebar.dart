@@ -360,7 +360,7 @@ class _ChannelTile extends ConsumerWidget {
         .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
         .value;
 
-    final bool isVoice = channel.type == ChannelType.voice;
+    final bool isVoice = channel.type == ChannelType.guildVoice;
     final String? connectedVoiceGuildId = isVoice
         ? ref.watch(
             voiceSessionProvider.select((VoiceSessionState s) => s.guildId),
@@ -520,7 +520,8 @@ class _ChannelTile extends ConsumerWidget {
         .read(userSettingsViewModelProvider)
         .developerMode;
     final bool canOpenLink =
-        channel.type == ChannelType.link && (channel.url?.isNotEmpty ?? false);
+        channel.type == ChannelType.guildLink &&
+        (channel.url?.isNotEmpty ?? false);
     final int? permissionBits =
         ref
             .read(effectiveGuildChannelPermissionBitsProvider(channel.id))
@@ -982,7 +983,9 @@ Future<ChannelOverridesMuteConfig?> _loadChannelMuteConfig(
 }
 
 bool _canMarkChannelRead(Channel channel) =>
-    channel.type != ChannelType.category && channel.type != ChannelType.link;
+    channel.type != ChannelType.guildCategory &&
+    channel.type != ChannelType.guildLink;
 
 bool _canMuteChannel(Channel channel) =>
-    channel.type == ChannelType.text || channel.type == ChannelType.voice;
+    channel.type == ChannelType.guildText ||
+    channel.type == ChannelType.guildVoice;

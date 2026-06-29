@@ -621,7 +621,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     required bool isCollapsed,
     required bool isAllowlisted,
   }) async {
-    final isGroupDm = dm.type == 3;
+    final isGroupDm = isDmGroupType(dm.type);
     final pinnedIds = ref.read(pinnedDmChannelIdsProvider).value ?? {};
     final mutedIds = ref.read(mutedDmChannelIdsProvider).value ?? {};
     final action = await showDmNavbarContextMenu(
@@ -877,7 +877,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                 final client = ref.read(fluxerClientProvider);
                 final channels = await db.channelDao.getChannels(guild.id);
                 final invitable = channels
-                    .where((c) => c.type == 0 || c.type == 2)
+                    .where((c) => isGuildTextBasedChannel(c.type))
                     .firstOrNull;
                 if (invitable == null) {
                   return null;
@@ -1427,7 +1427,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                   final client = ref.read(fluxerClientProvider);
                   final channels = await db.channelDao.getChannels(guild.id);
                   final invitable = channels
-                      .where((c) => c.type == 0 || c.type == 2)
+                      .where((c) => isGuildTextBasedChannel(c.type))
                       .firstOrNull;
                   if (invitable == null) {
                     return null;
@@ -1873,7 +1873,7 @@ Widget _buildGuildMenuActionItem({
           final client = ref.read(fluxerClientProvider);
           final channels = await db.channelDao.getChannels(guild.id);
           final invitable = channels
-              .where((c) => c.type == 0 || c.type == 2)
+              .where((c) => isGuildTextBasedChannel(c.type))
               .firstOrNull;
           if (invitable == null) {
             return null;
@@ -2893,7 +2893,7 @@ class _GuildListItemState extends State<_GuildListItem>
                     updateValidity();
                   },
                 ),
-                if (selectedType == 998) ...[
+                if (isGuildLinkChannelType(selectedType)) ...[
                   SizedBox(height: layout.s4),
                   FluxerInput(
                     label: l10n.guildNavbarUrlLabel,
@@ -3765,7 +3765,7 @@ class _GuildListItemState extends State<_GuildListItem>
                             value: ch.id,
                             label: ch.name,
                             icon: ChannelIcon.iconDataFor(
-                              channelTypeFromInt(ch.type),
+                              ChannelType.fromWire(ch.type),
                             ),
                           ),
                       ],
@@ -3867,7 +3867,7 @@ class _GuildListItemState extends State<_GuildListItem>
     final textStyles = context.textStyles;
     final layout = context.layout;
 
-    final isCategory = channel.type == 4;
+    final isCategory = isGuildCategoryChannelType(channel.type);
     final category = channel.parentId != null
         ? channelMap[channel.parentId]
         : null;
@@ -3892,7 +3892,7 @@ class _GuildListItemState extends State<_GuildListItem>
                 children: [
                   _GuildNotificationChannelIcon(
                     channelId: channelId,
-                    fallbackType: channelTypeFromInt(channel.type),
+                    fallbackType: ChannelType.fromWire(channel.type),
                     color: colors.textTertiary,
                   ),
                   SizedBox(width: layout.s2),

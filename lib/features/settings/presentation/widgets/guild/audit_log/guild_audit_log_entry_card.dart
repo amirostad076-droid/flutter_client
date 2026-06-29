@@ -337,7 +337,7 @@ class _AuditLogActionIcon extends StatelessWidget {
       alignment: Alignment.center,
       child: useChannelIcon
           ? ChannelIcon(
-              type: channel?.type ?? ChannelType.text,
+              type: channel?.type ?? ChannelType.guildText,
               channel: channel,
               color: iconStyle.foregroundColor,
             )

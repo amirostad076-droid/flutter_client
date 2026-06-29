@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/domain/dm_unread_state.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/group_dm_avatar.dart';
@@ -87,7 +88,7 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
       showFadedUnreadOnMutedChannels: showFadedOnMuted,
     );
 
-    final isGroup = widget.type == 3;
+    final isGroup = isDmGroupType(widget.type);
     final DmConversation? groupDm = isGroup
         ? ref.watch(
             dmViewModelProvider.select(

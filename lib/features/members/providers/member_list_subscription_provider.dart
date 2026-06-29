@@ -92,7 +92,7 @@ void memberListSubscription(Ref ref) {
     final Channel? channel = ref.read(channelByIdProvider(channelId)).value;
     if (channel == null ||
         channel.guildId != guildId ||
-        channel.type == ChannelType.voice) {
+        channel.type == ChannelType.guildVoice) {
       unsubscribe();
       return;
     }

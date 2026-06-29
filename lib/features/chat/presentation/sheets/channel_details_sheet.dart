@@ -3316,10 +3316,13 @@ String? _detailsSubtitle({
   }
   if (channel != null) {
     return switch (channel.type) {
-      ChannelType.text => 'Text channel',
-      ChannelType.voice => 'Voice channel',
-      ChannelType.category => 'Category',
-      ChannelType.link => 'Linked channel',
+      ChannelType.guildText => 'Text channel',
+      ChannelType.guildVoice => 'Voice channel',
+      ChannelType.guildCategory => 'Category',
+      ChannelType.guildLink => 'Link channel',
+      ChannelType.dm ||
+      ChannelType.groupDm ||
+      ChannelType.dmPersonalNotes => 'Channel',
     };
   }
   return null;

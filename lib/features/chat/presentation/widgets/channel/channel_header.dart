@@ -491,7 +491,7 @@ class ChannelHeader extends ConsumerWidget {
       final Map<String, VoiceState> voiceStates = ref.watch(
         voiceStatesMapProvider,
       );
-      final bool isVoiceChannel = channel.type == ChannelType.voice;
+      final bool isVoiceChannel = channel.type == ChannelType.guildVoice;
       final Guild? guild = ref
           .watch(guildListViewModelProvider)
           .guilds
@@ -550,7 +550,7 @@ class ChannelHeader extends ConsumerWidget {
               right: -2,
               top: -2,
               child: ChannelIcon(
-                type: ChannelType.voice,
+                type: ChannelType.guildVoice,
                 size: 14,
                 e2eeEncrypted: true,
                 color: context.colors.statusOnline,
@@ -574,7 +574,7 @@ class ChannelHeader extends ConsumerWidget {
     Channel channel, {
     required bool compact,
   }) {
-    if (channel.type != ChannelType.voice) {
+    if (channel.type != ChannelType.guildVoice) {
       return const SizedBox.shrink();
     }
     final VoiceSessionState voice = ref.watch(voiceSessionProvider);

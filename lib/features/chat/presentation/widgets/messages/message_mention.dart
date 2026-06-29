@@ -41,7 +41,7 @@ class ChannelMention extends ConsumerWidget {
     final channel = async.value;
     final name =
         channel?.name ?? FluxerLocalizations.of(context).mentionUnknownChannel;
-    final type = channel?.type ?? ChannelType.text;
+    final type = channel?.type ?? ChannelType.guildText;
 
     return GestureDetector(
       onTap: channel == null
@@ -357,7 +357,7 @@ class ChannelJumpLinkMention extends ConsumerWidget {
               )
             else ...[
               ChannelIcon(
-                type: channel?.type ?? ChannelType.text,
+                type: channel?.type ?? ChannelType.guildText,
                 size: iconSize,
                 color: colors.markupMentionText,
               ),

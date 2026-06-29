@@ -288,7 +288,7 @@ class _ForwardedSourceButtonState
         messageId: widget.reference.messageId,
         guildId: guildId,
         channelName: guildChannel.name,
-        channelType: channelTypeFromInt(guildChannel.type),
+        channelType: ChannelType.fromWire(guildChannel.type),
         guild: guildRow == null ? null : Guild.fromRow(guildRow),
       );
     }
@@ -460,7 +460,7 @@ class _ForwardedSourceInfo extends StatelessWidget {
           PhosphorIcon(PhosphorIconsBold.caretRight, size: 12, color: muted),
           const SizedBox(width: 4),
           ChannelIcon(
-            type: data.channelType ?? ChannelType.text,
+            type: data.channelType ?? ChannelType.guildText,
             size: 13,
             color: muted,
           ),
@@ -481,7 +481,7 @@ class _ForwardedSourceInfo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         ChannelIcon(
-          type: data.channelType ?? ChannelType.text,
+          type: data.channelType ?? ChannelType.guildText,
           size: 13,
           color: muted,
         ),

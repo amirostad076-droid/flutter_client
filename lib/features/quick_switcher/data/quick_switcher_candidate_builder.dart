@@ -100,7 +100,8 @@ QuickSwitcherCandidateSets buildQuickSwitcherCandidateSets(
     );
   }
   for (final Channel channel in input.guildChannels) {
-    if (channel.type != ChannelType.text && channel.type != ChannelType.voice) {
+    if (channel.type != ChannelType.guildText &&
+        channel.type != ChannelType.guildVoice) {
       continue;
     }
     final Guild? guild = guildsById[channel.guildId];
@@ -115,11 +116,11 @@ QuickSwitcherCandidateSets buildQuickSwitcherCandidateSets(
           guildId: channel.guildId,
           guildName: guildName,
           guildIcon: guild?.icon,
-          isVoice: channel.type == ChannelType.voice,
+          isVoice: channel.type == ChannelType.guildVoice,
           searchValues: <String>[channel.name, guildName, channel.id],
           sortWeight: sortWeight,
         );
-    if (channel.type == ChannelType.voice) {
+    if (channel.type == ChannelType.guildVoice) {
       voiceChannels.add(candidate);
     } else {
       textChannels.add(candidate);
