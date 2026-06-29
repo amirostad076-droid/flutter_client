@@ -58,6 +58,12 @@ class ComposerAutocompleteFieldState
 
   String get _channelId => widget.channelId ?? '';
 
+  bool get _usesInStackPanel =>
+      widget.renderMode == AutocompleteRenderMode.inStack;
+
+  ScrollController get _activeScrollController =>
+      _usesInStackPanel ? widget.panelScrollController! : _scrollController;
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +90,9 @@ class ComposerAutocompleteFieldState
       oldWidget.focusNode.removeListener(_onFocusChanged);
       widget.focusNode.addListener(_onFocusChanged);
     }
+    if (oldWidget.channelId != widget.channelId) {
+      _setRows(const <_ComposerRow>[]);
+    }
   }
 
   @override
@@ -93,6 +102,7 @@ class ComposerAutocompleteFieldState
     widget.focusNode.removeListener(_onFocusChanged);
     _animationController.dispose();
     _scrollController.dispose();
+    widget.panelHost?.value = null;
     super.dispose();
   }
 
@@ -583,12 +593,56 @@ class ComposerAutocompleteFieldState
         ..addAll(next);
       _selectedIndex = 0;
     });
+    if (_usesInStackPanel) {
+      _publishPanel();
+      if (next.isNotEmpty) {
+        _scheduleScrollSelectionIntoView();
+      }
+      return;
+    }
     if (next.isEmpty) {
       _hideOverlay();
     } else {
       _showOverlay();
       _scheduleScrollSelectionIntoView();
     }
+  }
+
+  void _publishPanel() {
+    final ComposerAutocompletePanelHost? host = widget.panelHost;
+    if (host == null) {
+      return;
+    }
+    if (_rows.isEmpty) {
+      host.value = null;
+      return;
+    }
+    final int safeIndex = _selectedIndex.clamp(0, _rows.length - 1);
+    host.value = ComposerAutocompletePanelSnapshot(
+      rows: _rows.map((_ComposerRow r) {
+        final Member? m = r.mentionMember;
+        final String? status = m == null
+            ? null
+            : ref.read(userPresenceProvider(m.id)).value?.status ?? m.status;
+        return ComposerAutocompletePanelRow(
+          title: r.title,
+          subtitle: r.subtitle,
+          titleColor: r.titleColor,
+          onTap: r.onApply,
+          channelRowType: r.channelRowType,
+          userAvatarUserId: m?.id,
+          userAvatarImageUrl: m == null
+              ? null
+              : FluxerMediaUrl.userAvatar(userId: m.id, hash: m.avatar),
+          userAvatarFallbackText: m != null ? r.title : null,
+          userAvatarColor: m?.avatarColor,
+          userAvatarStatus: status,
+          emojiSurrogates: r.emojiSurrogates,
+          emojiImageUrl: r.emojiImageUrl,
+        );
+      }).toList(),
+      selectedIndex: safeIndex,
+    );
   }
 
   void _showOverlay() {
@@ -613,13 +667,14 @@ class ComposerAutocompleteFieldState
 
   void _scheduleScrollSelectionIntoView() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) {
+      final ScrollController controller = _activeScrollController;
+      if (!mounted || !controller.hasClients) {
         return;
       }
       final double offset = (_selectedIndex * _kAutocompleteScrollRowStride)
-          .clamp(0.0, _scrollController.position.maxScrollExtent);
+          .clamp(0.0, controller.position.maxScrollExtent);
       unawaited(
-        _scrollController.animateTo(
+        controller.animateTo(
           offset,
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeOutCubic,
@@ -753,6 +808,9 @@ class ComposerAutocompleteFieldState
     setState(() {
       _selectedIndex = (_selectedIndex + delta + _rows.length) % _rows.length;
     });
+    if (_usesInStackPanel) {
+      _publishPanel();
+    }
     _scheduleScrollSelectionIntoView();
   }
 
@@ -859,6 +917,9 @@ class ComposerAutocompleteFieldState
   @override
   Widget build(BuildContext context) {
     _warmCustomEmoji();
+    if (_usesInStackPanel) {
+      return widget.child;
+    }
     return OverlayPortal(
       controller: _overlayController,
       overlayChildBuilder: _buildOverlay,
