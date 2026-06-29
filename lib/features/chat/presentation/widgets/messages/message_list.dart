@@ -15,6 +15,8 @@ import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/message_list_anchor.dart';
 import 'package:fluxer_app/features/chat/presentation/'
+    'sheets/channel_pins_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/'
     'sheets/delete_message_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/forward_message_sheet.dart';
@@ -22,6 +24,8 @@ import 'package:fluxer_app/features/chat/presentation/'
     'sheets/message_reactions_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/remove_all_reactions_confirm_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/'
+    'sheets/system_message_actions_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/chat_loading_spinner.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/channel_welcome_section.dart';
@@ -40,6 +44,7 @@ import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/messages/spoiler_reveal_provider.dart';
 import 'package:fluxer_app/features/chat/utils/chat_spinner_debug.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
+import 'package:fluxer_app/features/chat/utils/pinned_system_message_navigation.dart';
 import 'package:fluxer_app/features/chat/utils/message_grouping_utils.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
@@ -49,6 +54,7 @@ import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
@@ -472,6 +478,15 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
     return _tileCache.resolve(message.id, signature, () {
       if (message.isSystemMessage) {
+        final bool canDelete = canDeleteMessage(
+          message: message,
+          currentUserId: currentUserId,
+          isDmChannel: isDmChannel,
+          channelPermissionBits: channelPermissionBits,
+        );
+        final bool isMobile = isMobileLayout(context);
+        final bool isPinSystemMessage =
+            message.type == messageTypeChannelPinnedMessage;
         return _withMessageSeparators(
           context,
           message: message,
@@ -481,6 +496,42 @@ class _MessageListState extends ConsumerState<MessageList> {
             key: ValueKey(message.id),
             message: message,
             guildId: guildId,
+            onJumpToPinnedMessage: isPinSystemMessage
+                ? () => unawaited(
+                    jumpToPinnedSystemMessage(ref, message: message),
+                  )
+                : null,
+            onViewAllPins: isPinSystemMessage
+                ? () => unawaited(
+                    showChannelPinsSheet(
+                      context,
+                      ref,
+                      channelId: message.channelId,
+                    ),
+                  )
+                : null,
+            onLongPress: canDelete && isMobile
+                ? () => unawaited(
+                    showSystemMessageActionsSheet(
+                      context,
+                      ref,
+                      message: message,
+                      guildId: guildId,
+                      canDelete: canDelete,
+                    ),
+                  )
+                : null,
+            onSecondaryTapUp: canDelete && !isMobile
+                ? (_) => unawaited(
+                    showSystemMessageActionsSheet(
+                      context,
+                      ref,
+                      message: message,
+                      guildId: guildId,
+                      canDelete: canDelete,
+                    ),
+                  )
+                : null,
           ),
         );
       }

@@ -36,6 +36,7 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/forward_indicator.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/forwarded_message_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_row_layout.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_details_providers.dart';
@@ -78,10 +79,6 @@ const _kJumpHighlightBg = Color.fromRGBO(59, 130, 246, 0.1);
 const _kJumpHighlightBarWidth = 2.0;
 const _kJumpHighlightFadeDuration = Duration(milliseconds: 320);
 const _kJumpHighlightFadeCurve = Cubic(0.32, 0.72, 0, 1);
-
-/// Avatar column width: 40px avatar + 16px gap to the
-/// right.
-const _kAvatarColumnWidth = 56.0;
 
 /// Height of the compact reply-preview row.
 const _kReplyRowHeight = 20.0;
@@ -676,10 +673,10 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                   bottom: isGrouped ? 2 : 8,
                 )
               : EdgeInsets.only(
-                  left: hasLeftAccentBar ? 14 : 16,
-                  right: 16,
-                  top: isGrouped ? 2 : 8,
-                  bottom: isGrouped ? 2 : 8,
+                  left: hasLeftAccentBar ? 14 : kMessageRowPaddingHorizontal,
+                  right: kMessageRowPaddingHorizontal,
+                  top: isGrouped ? 2 : kMessageRowPaddingVertical,
+                  bottom: isGrouped ? 2 : kMessageRowPaddingVertical,
                 ),
           child: Stack(
             children: [
@@ -706,7 +703,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                       dim: dimMessagePartsExceptAttachments,
                       child: Padding(
                         padding: const EdgeInsets.only(
-                          left: _kAvatarColumnWidth,
+                          left: kMessageAvatarColumnWidth,
                         ),
                         child: ForwardIndicator(source: msg.forwardedFrom!),
                       ),
@@ -806,7 +803,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     const avatarCenterX = 20.0;
     const lineTop = _kReplyRowHeight / 2;
     const lineBottom = replyAreaHeight - 5;
-    const horizontalEnd = _kAvatarColumnWidth - 5;
+    const horizontalEnd = kMessageAvatarColumnWidth - 5;
     const replyContentLeft = horizontalEnd + _kReplyLineEndGap;
 
     return SizedBox(
@@ -1078,7 +1075,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               ? () => _openAuthorProfile(context, msg)
               : null,
           child: SizedBox(
-            width: _kAvatarColumnWidth,
+            width: kMessageAvatarColumnWidth,
             child: Align(
               alignment: Alignment.centerLeft,
               child: ValueListenableBuilder<bool>(
@@ -1172,7 +1169,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               ? () => _openAuthorProfile(context, msg)
               : null,
           child: Padding(
-            padding: const EdgeInsets.only(top: 2),
+            padding: const EdgeInsets.only(top: kMessageAvatarTopPadding),
             child: FluxerAvatar.user(
               key: ValueKey<String>(
                 messageAuthorAvatarKey(
@@ -1184,6 +1181,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               userId: msg.authorId,
               imageUrl: authorDisplay.avatarUrl,
               avatarColor: authorDisplay.avatarColor,
+              size: kMessageAvatarSize,
               cacheKey: messageAuthorAvatarKey(
                 authorId: msg.authorId,
                 avatarHash: msg.authorAvatar,
@@ -1192,7 +1190,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           ),
         ),
       ),
-      const SizedBox(width: 16),
+      const SizedBox(width: kMessageAvatarTextGap),
       Expanded(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -5352,13 +5352,17 @@
   "@chatMessageCopyText": {
     "description": "Action label for copying message text."
   },
-  "chatMessagePin": "Pin Message",
+  "chatMessagePin": "Pin message",
   "@chatMessagePin": {
     "description": "Action label for pinning a message."
   },
-  "chatMessageUnpin": "Unpin Message",
+  "chatMessageUnpin": "Unpin message",
   "@chatMessageUnpin": {
     "description": "Action label for unpinning a message."
+  },
+  "chatMessageUnpinIt": "Unpin it",
+  "@chatMessageUnpinIt": {
+    "description": "Primary button label on the unpin confirmation sheet."
   },
   "chatMessageBookmark": "Bookmark Message",
   "@chatMessageBookmark": {
@@ -6088,13 +6092,44 @@
   "@chatMessageRemoveAllReactionsConfirmDescription": {
     "description": "Body text for the remove-all-reactions confirmation sheet."
   },
-  "chatMessageUnpinConfirmTitle": "Unpin Message",
+  "chatMessageUnpinConfirmTitle": "Unpin message",
   "@chatMessageUnpinConfirmTitle": {
     "description": "Title for the unpin message confirmation sheet."
   },
-  "chatMessageUnpinConfirmDescription": "Are you sure you want to unpin this message?",
+  "chatMessageUnpinConfirmDescription": "Send this pin back in time?",
   "@chatMessageUnpinConfirmDescription": {
     "description": "Body text for the unpin message confirmation sheet."
+  },
+  "systemPinMessage": "{username} pinned {messageLink} to this channel. See {allPinsLink}.",
+  "@systemPinMessage": {
+    "description": "System message when a user pins a message. Keep {username}, {messageLink}, and {allPinsLink} in place; translate the surrounding sentence.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      },
+      "messageLink": {
+        "type": "String"
+      },
+      "allPinsLink": {
+        "type": "String"
+      }
+    }
+  },
+  "systemPinMessageMessageLink": "a message",
+  "@systemPinMessageMessageLink": {
+    "description": "Link label in the pin system message for jumping to the pinned message."
+  },
+  "systemPinMessageAllPinsLink": "all pinned messages",
+  "@systemPinMessageAllPinsLink": {
+    "description": "Link label in the pin system message for opening all pinned messages."
+  },
+  "channelPinsEmptyTitle": "No pinned messages",
+  "@channelPinsEmptyTitle": {
+    "description": "Title shown when a channel has no pinned messages."
+  },
+  "channelPinsEmptyDescription": "Pinned messages show up here.",
+  "@channelPinsEmptyDescription": {
+    "description": "Description shown when a channel has no pinned messages."
   },
   "personalNotesTitle": "Personal notes",
   "@personalNotesTitle": {

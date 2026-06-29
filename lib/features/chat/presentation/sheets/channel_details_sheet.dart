@@ -911,6 +911,7 @@ class _PinsEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = FluxerLocalizations.of(context);
     return Center(
       child: Padding(
         padding: EdgeInsets.all(context.layout.s6),
@@ -924,7 +925,7 @@ class _PinsEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'No Pinned Messages',
+              l10n.channelPinsEmptyTitle,
               style: context.textStyles.heading.copyWith(
                 color: context.colors.textPrimary,
               ),
@@ -932,7 +933,7 @@ class _PinsEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              "Whenever someone pins a message, it'll appear here.",
+              l10n.channelPinsEmptyDescription,
               style: context.textStyles.bodySmall.copyWith(
                 color: context.colors.textPrimaryMuted,
               ),

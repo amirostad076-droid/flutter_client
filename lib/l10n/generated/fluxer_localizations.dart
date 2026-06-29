@@ -7280,14 +7280,20 @@ abstract class FluxerLocalizations {
   /// Action label for pinning a message.
   ///
   /// In en, this message translates to:
-  /// **'Pin Message'**
+  /// **'Pin message'**
   String get chatMessagePin;
 
   /// Action label for unpinning a message.
   ///
   /// In en, this message translates to:
-  /// **'Unpin Message'**
+  /// **'Unpin message'**
   String get chatMessageUnpin;
+
+  /// Primary button label on the unpin confirmation sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin it'**
+  String get chatMessageUnpinIt;
 
   /// Action label for bookmarking a message.
   ///
@@ -8312,14 +8318,48 @@ abstract class FluxerLocalizations {
   /// Title for the unpin message confirmation sheet.
   ///
   /// In en, this message translates to:
-  /// **'Unpin Message'**
+  /// **'Unpin message'**
   String get chatMessageUnpinConfirmTitle;
 
   /// Body text for the unpin message confirmation sheet.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to unpin this message?'**
+  /// **'Send this pin back in time?'**
   String get chatMessageUnpinConfirmDescription;
+
+  /// System message when a user pins a message. Keep {username}, {messageLink}, and {allPinsLink} in place; translate the surrounding sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} pinned {messageLink} to this channel. See {allPinsLink}.'**
+  String systemPinMessage(
+    String username,
+    String messageLink,
+    String allPinsLink,
+  );
+
+  /// Link label in the pin system message for jumping to the pinned message.
+  ///
+  /// In en, this message translates to:
+  /// **'a message'**
+  String get systemPinMessageMessageLink;
+
+  /// Link label in the pin system message for opening all pinned messages.
+  ///
+  /// In en, this message translates to:
+  /// **'all pinned messages'**
+  String get systemPinMessageAllPinsLink;
+
+  /// Title shown when a channel has no pinned messages.
+  ///
+  /// In en, this message translates to:
+  /// **'No pinned messages'**
+  String get channelPinsEmptyTitle;
+
+  /// Description shown when a channel has no pinned messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned messages show up here.'**
+  String get channelPinsEmptyDescription;
 
   /// Title for the self-DM personal notes channel in the sidebar and chat header.
   ///

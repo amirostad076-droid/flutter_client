@@ -4998,11 +4998,11 @@
     "@chatMessageCopyText": {
         "description": "Action label for copying message text."
     },
-    "chatMessagePin": "Pin Message",
+    "chatMessagePin": "Pin message",
     "@chatMessagePin": {
         "description": "Action label for pinning a message."
     },
-    "chatMessageUnpin": "Unpin Message",
+    "chatMessageUnpin": "Unpin message",
     "@chatMessageUnpin": {
         "description": "Action label for unpinning a message."
     },
@@ -5704,11 +5704,11 @@
     "@chatMessageRemoveAllReactionsConfirmDescription": {
         "description": "Body text for the remove-all-reactions confirmation sheet."
     },
-    "chatMessageUnpinConfirmTitle": "Unpin Message",
+    "chatMessageUnpinConfirmTitle": "Unpin message",
     "@chatMessageUnpinConfirmTitle": {
         "description": "Title for the unpin message confirmation sheet."
     },
-    "chatMessageUnpinConfirmDescription": "Are you sure you want to unpin this message?",
+    "chatMessageUnpinConfirmDescription": "Send this pin back in time?",
     "@chatMessageUnpinConfirmDescription": {
         "description": "Body text for the unpin message confirmation sheet."
     },

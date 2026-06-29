@@ -4232,10 +4232,13 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get chatMessageCopyText => 'Copy Message';
 
   @override
-  String get chatMessagePin => 'Pin Message';
+  String get chatMessagePin => 'Pin message';
 
   @override
-  String get chatMessageUnpin => 'Unpin Message';
+  String get chatMessageUnpin => 'Unpin message';
+
+  @override
+  String get chatMessageUnpinIt => 'Unpin it';
 
   @override
   String get chatMessageBookmark => 'Bookmark Message';
@@ -4817,11 +4820,32 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
       'Are you sure you want to remove all reactions from this message?';
 
   @override
-  String get chatMessageUnpinConfirmTitle => 'Unpin Message';
+  String get chatMessageUnpinConfirmTitle => 'Unpin message';
 
   @override
   String get chatMessageUnpinConfirmDescription =>
-      'Are you sure you want to unpin this message?';
+      'Send this pin back in time?';
+
+  @override
+  String systemPinMessage(
+    String username,
+    String messageLink,
+    String allPinsLink,
+  ) {
+    return '$username pinned $messageLink to this channel. See $allPinsLink.';
+  }
+
+  @override
+  String get systemPinMessageMessageLink => 'a message';
+
+  @override
+  String get systemPinMessageAllPinsLink => 'all pinned messages';
+
+  @override
+  String get channelPinsEmptyTitle => 'No pinned messages';
+
+  @override
+  String get channelPinsEmptyDescription => 'Pinned messages show up here.';
 
   @override
   String get personalNotesTitle => 'Personal notes';
