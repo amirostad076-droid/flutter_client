@@ -2572,7 +2572,7 @@ abstract class FluxerLocalizations {
   /// Helper text describing avatar image requirements.
   ///
   /// In en, this message translates to:
-  /// **'PNG, JPEG, WebP, GIF. Max 10MB. Recommended: 512×512px'**
+  /// **'JPEG, PNG, GIF, WebP. Max 10MB. Recommended: 512×512px'**
   String get avatarDescription;
 
   /// Label for the banner upload section.
@@ -2596,7 +2596,7 @@ abstract class FluxerLocalizations {
   /// Helper text describing banner image requirements.
   ///
   /// In en, this message translates to:
-  /// **'PNG, JPEG, WebP, GIF. Max 10MB. Minimum: 960×540px (16:9)'**
+  /// **'JPEG, PNG, GIF, WebP. Max 10MB. Minimum: 960×540px (16:9)'**
   String get bannerDescription;
 
   /// Label for the accent color picker.
