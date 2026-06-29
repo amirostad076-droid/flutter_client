@@ -2610,31 +2610,37 @@ class _GuildListItemState extends State<_GuildListItem>
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 2),
-            child: AnimatedContainer(
-              duration: _unreadIndicatorDuration,
-              curve: const Cubic(0.25, 0.1, 0.25, 1),
-              width: 4,
-              height: widget.isSelected
-                  ? 40
-                  : _isHovered
-                  ? 20
-                  : _displayHasUnread
-                  ? 8
-                  : 0,
-              decoration: BoxDecoration(
-                color: context.colors.textPrimary,
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(999),
-                  bottomRight: Radius.circular(999),
+          const SizedBox(width: 72),
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: AnimatedContainer(
+                duration: _unreadIndicatorDuration,
+                curve: const Cubic(0.25, 0.1, 0.25, 1),
+                width: 4,
+                height: widget.isSelected
+                    ? 40
+                    : _isHovered
+                    ? 20
+                    : _displayHasUnread
+                    ? 8
+                    : 0,
+                decoration: BoxDecoration(
+                  color: context.colors.textPrimary,
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(999),
+                    bottomRight: Radius.circular(999),
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 6),
           Stack(
             clipBehavior: Clip.none,
             children: [
