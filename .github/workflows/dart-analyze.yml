@@ -56,6 +56,5 @@ jobs:
       - name: Analyze project source
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
 
-      # Enable once real tests are added
-      # - name: Run tests
-      #   run: flutter test
+      - name: Run tests
+        run: flutter test
