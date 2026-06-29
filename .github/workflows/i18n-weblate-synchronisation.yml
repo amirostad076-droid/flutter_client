@@ -49,6 +49,12 @@ jobs:
           ref: ${{ env.BASE_BRANCH }}
           fetch-depth: 0
 
+      - name: Set up Flutter
+        # Temp use while waiting for a pr: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        uses: axi92/flutter-action@72633a794ba0b23276fa4fc465a6cacb758a90c5
+        with:
+          channel: stable
+
       - name: Open pull request
         env:
           GH_TOKEN: ${{ steps.create-token.outputs.token }}
@@ -74,6 +80,13 @@ jobs:
           if git diff --quiet "origin/$BASE_BRANCH"...HEAD; then
             echo "::notice::$TRANSLATIONS_BRANCH has no changes against $BASE_BRANCH; nothing to do."
             exit 0
+          fi
+
+          flutter gen-l10n
+          if ! git diff --quiet -- lib/l10n/generated; then
+            git add lib/l10n/generated
+            git commit -m "i18n: regenerate localizations"
+            needs_push=true
           fi
 
           if [[ "$needs_push" == "true" ]]; then
