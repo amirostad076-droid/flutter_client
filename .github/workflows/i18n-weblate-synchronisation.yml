@@ -48,6 +48,7 @@ jobs:
           token: ${{ steps.create-token.outputs.token }}
           ref: ${{ env.BASE_BRANCH }}
           fetch-depth: 0
+          submodules: recursive
 
       - name: Set up Flutter
         # Temp use while waiting for a pr: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
