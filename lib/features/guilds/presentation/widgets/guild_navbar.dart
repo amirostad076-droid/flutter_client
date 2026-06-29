@@ -1153,22 +1153,25 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
     return Row(
       children: [
         if (!isExpanded)
-          AnimatedContainer(
-            duration: guildUnreadReady
-                ? const Duration(milliseconds: 200)
-                : Duration.zero,
-            curve: const Cubic(0.25, 0.1, 0.25, 1),
-            width: 6,
-            height: _isHovered
-                ? 20
-                : anyUnread
-                ? 8
-                : 0,
-            decoration: BoxDecoration(
-              color: context.colors.textPrimary,
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(999),
-                bottomRight: Radius.circular(999),
+          Padding(
+            padding: const EdgeInsets.only(right: 2),
+            child: AnimatedContainer(
+              duration: guildUnreadReady
+                  ? const Duration(milliseconds: 200)
+                  : Duration.zero,
+              curve: const Cubic(0.25, 0.1, 0.25, 1),
+              width: 4,
+              height: _isHovered
+                  ? 20
+                  : anyUnread
+                  ? 8
+                  : 0,
+              decoration: BoxDecoration(
+                color: context.colors.textPrimary,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(999),
+                  bottomRight: Radius.circular(999),
+                ),
               ),
             ),
           )
@@ -2609,22 +2612,25 @@ class _GuildListItemState extends State<_GuildListItem>
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
-          AnimatedContainer(
-            duration: _unreadIndicatorDuration,
-            curve: const Cubic(0.25, 0.1, 0.25, 1),
-            width: 6,
-            height: widget.isSelected
-                ? 40
-                : _isHovered
-                ? 20
-                : _displayHasUnread
-                ? 8
-                : 0,
-            decoration: BoxDecoration(
-              color: context.colors.textPrimary,
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(999),
-                bottomRight: Radius.circular(999),
+          Padding(
+            padding: const EdgeInsets.only(right: 2),
+            child: AnimatedContainer(
+              duration: _unreadIndicatorDuration,
+              curve: const Cubic(0.25, 0.1, 0.25, 1),
+              width: 4,
+              height: widget.isSelected
+                  ? 40
+                  : _isHovered
+                  ? 20
+                  : _displayHasUnread
+                  ? 8
+                  : 0,
+              decoration: BoxDecoration(
+                color: context.colors.textPrimary,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(999),
+                  bottomRight: Radius.circular(999),
+                ),
               ),
             ),
           ),
