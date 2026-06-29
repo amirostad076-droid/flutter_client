@@ -2182,7 +2182,7 @@
     "@removeAvatar": {
         "description": "Button to remove the current avatar."
     },
-    "avatarDescription": "JPEG, PNG, GIF, WebP. Max 10MB. Recommended: 512×512px",
+    "avatarDescription": "PNG, JPEG, WebP, GIF. Max 10MB. Recommended: 512×512px",
     "@avatarDescription": {
         "description": "Helper text describing avatar image requirements."
     },
@@ -2198,7 +2198,7 @@
     "@removeBanner": {
         "description": "Button to remove the current banner."
     },
-    "bannerDescription": "JPEG, PNG, GIF, WebP. Max 10MB. Minimum: 680×240px (17:6)",
+    "bannerDescription": "PNG, JPEG, WebP, GIF. Max 10MB. Minimum: 680×240px (17:6)",
     "@bannerDescription": {
         "description": "Helper text describing banner image requirements."
     },
