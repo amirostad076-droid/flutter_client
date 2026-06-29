@@ -22,6 +22,8 @@ class AppearancePreferencesState {
     this.showActiveNow = true,
     this.showFavorites = true,
     this.hideKeyboardHints = false,
+    this.messageGroupSpacing = 16,
+    this.compactMessageGroupSpacing = 0,
   });
 
   final ChannelTypingIndicatorMode channelTypingIndicatorMode;
@@ -32,6 +34,8 @@ class AppearancePreferencesState {
   final bool showActiveNow;
   final bool showFavorites;
   final bool hideKeyboardHints;
+  final double messageGroupSpacing;
+  final double compactMessageGroupSpacing;
 
   AppearancePreferencesState copyWith({
     ChannelTypingIndicatorMode? channelTypingIndicatorMode,
@@ -42,6 +46,8 @@ class AppearancePreferencesState {
     bool? showActiveNow,
     bool? showFavorites,
     bool? hideKeyboardHints,
+    double? messageGroupSpacing,
+    double? compactMessageGroupSpacing,
   }) {
     return AppearancePreferencesState(
       channelTypingIndicatorMode:
@@ -56,6 +62,9 @@ class AppearancePreferencesState {
       showActiveNow: showActiveNow ?? this.showActiveNow,
       showFavorites: showFavorites ?? this.showFavorites,
       hideKeyboardHints: hideKeyboardHints ?? this.hideKeyboardHints,
+      messageGroupSpacing: messageGroupSpacing ?? this.messageGroupSpacing,
+      compactMessageGroupSpacing:
+          compactMessageGroupSpacing ?? this.compactMessageGroupSpacing,
     );
   }
 }
@@ -87,6 +96,8 @@ class AppearancePreferences extends _$AppearancePreferences {
         showActiveNow: prefs.showActiveNow,
         showFavorites: prefs.showFavorites,
         hideKeyboardHints: prefs.hideKeyboardHints,
+        messageGroupSpacing: prefs.messageGroupSpacing,
+        compactMessageGroupSpacing: prefs.compactMessageGroupSpacing,
       );
     }
   }
@@ -101,6 +112,8 @@ class AppearancePreferences extends _$AppearancePreferences {
             value.showSelectedChannelTypingIndicator,
         showFadedUnreadOnMutedChannels: value.showFadedUnreadOnMutedChannels,
         showFavorites: value.showFavorites,
+        messageGroupSpacing: value.messageGroupSpacing,
+        compactMessageGroupSpacing: value.compactMessageGroupSpacing,
       );
       await _persist();
     } finally {
@@ -229,6 +242,8 @@ class AppearancePreferences extends _$AppearancePreferences {
         showActiveNow: Value(state.showActiveNow),
         showFavorites: Value(state.showFavorites),
         hideKeyboardHints: Value(state.hideKeyboardHints),
+        messageGroupSpacing: Value(state.messageGroupSpacing),
+        compactMessageGroupSpacing: Value(state.compactMessageGroupSpacing),
       ),
     );
   }

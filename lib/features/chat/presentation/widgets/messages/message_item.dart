@@ -114,6 +114,7 @@ class MessageRenderSettings {
     required this.renderSpoilers,
     required this.revealSpoilers,
     required this.chatPreferences,
+    required this.messageGroupSpacing,
   });
 
   final String? activeGuildId;
@@ -123,6 +124,7 @@ class MessageRenderSettings {
   final RenderSpoilers renderSpoilers;
   final bool revealSpoilers;
   final ChatPreferencesState chatPreferences;
+  final double messageGroupSpacing;
 
   @override
   bool operator ==(Object other) =>
@@ -135,7 +137,8 @@ class MessageRenderSettings {
           inlineAttachmentMedia == other.inlineAttachmentMedia &&
           renderSpoilers == other.renderSpoilers &&
           revealSpoilers == other.revealSpoilers &&
-          chatPreferences == other.chatPreferences;
+          chatPreferences == other.chatPreferences &&
+          messageGroupSpacing == other.messageGroupSpacing;
 
   @override
   int get hashCode => Object.hash(
@@ -146,6 +149,7 @@ class MessageRenderSettings {
     renderSpoilers,
     revealSpoilers,
     chatPreferences,
+    messageGroupSpacing,
   );
 }
 
@@ -675,8 +679,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               : EdgeInsets.only(
                   left: hasLeftAccentBar ? 14 : kMessageRowPaddingHorizontal,
                   right: kMessageRowPaddingHorizontal,
-                  top: isGrouped ? 2 : kMessageRowPaddingVertical,
-                  bottom: isGrouped ? 2 : kMessageRowPaddingVertical,
+                  top: 2,
+                  bottom: 2,
                 ),
           child: Stack(
             children: [

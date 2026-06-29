@@ -143,7 +143,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 65;
+  int get schemaVersion => 66;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -626,6 +626,16 @@ class FluxerDatabase extends _$FluxerDatabase {
             'CREATE INDEX idx_messages_channel_timestamp '
                 'ON messages (channel_id, timestamp)',
           ),
+        );
+      }
+      if (from < 66) {
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.messageGroupSpacing,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.compactMessageGroupSpacing,
         );
       }
     },

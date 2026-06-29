@@ -15,6 +15,8 @@ class AccessibilityLocalState {
     required this.showSelectedChannelTypingIndicator,
     required this.showFadedUnreadOnMutedChannels,
     required this.showFavorites,
+    required this.messageGroupSpacing,
+    required this.compactMessageGroupSpacing,
   });
 
   final bool hideKeyboardHints;
@@ -22,6 +24,8 @@ class AccessibilityLocalState {
   final bool showSelectedChannelTypingIndicator;
   final bool showFadedUnreadOnMutedChannels;
   final bool showFavorites;
+  final double messageGroupSpacing;
+  final double compactMessageGroupSpacing;
 }
 
 class AccessibilitySyncedField
@@ -43,6 +47,8 @@ class AccessibilitySyncedField
           appearance.showSelectedChannelTypingIndicator,
       showFadedUnreadOnMutedChannels: appearance.showFadedUnreadOnMutedChannels,
       showFavorites: appearance.showFavorites,
+      messageGroupSpacing: appearance.messageGroupSpacing,
+      compactMessageGroupSpacing: appearance.compactMessageGroupSpacing,
     );
   }
 
@@ -72,7 +78,9 @@ class AccessibilitySyncedField
         a.showSelectedChannelTypingIndicator ==
             b.showSelectedChannelTypingIndicator &&
         a.showFadedUnreadOnMutedChannels == b.showFadedUnreadOnMutedChannels &&
-        a.showFavorites == b.showFavorites;
+        a.showFavorites == b.showFavorites &&
+        a.messageGroupSpacing == b.messageGroupSpacing &&
+        a.compactMessageGroupSpacing == b.compactMessageGroupSpacing;
   }
 
   @override
@@ -87,6 +95,8 @@ class AccessibilitySyncedField
           local.showSelectedChannelTypingIndicator,
       showFadedUnreadOnMutedChannels: local.showFadedUnreadOnMutedChannels,
       showFavorites: local.showFavorites,
+      messageGroupSpacing: local.messageGroupSpacing,
+      compactMessageGroupSpacing: local.compactMessageGroupSpacing,
     );
   }
 
@@ -109,6 +119,12 @@ class AccessibilitySyncedField
           proto.hasShowFadedUnreadOnMutedChannels() &&
           proto.showFadedUnreadOnMutedChannels,
       showFavorites: !proto.hasShowFavorites() || proto.showFavorites,
+      messageGroupSpacing: proto.hasMessageGroupSpacing()
+          ? proto.messageGroupSpacing
+          : 16,
+      compactMessageGroupSpacing: proto.hasCompactMessageGroupSpacing()
+          ? proto.compactMessageGroupSpacing
+          : 0,
     );
   }
 
@@ -122,6 +138,8 @@ class AccessibilitySyncedField
           local.showSelectedChannelTypingIndicator,
       showFadedUnreadOnMutedChannels: local.showFadedUnreadOnMutedChannels,
       showFavorites: local.showFavorites,
+      messageGroupSpacing: local.messageGroupSpacing,
+      compactMessageGroupSpacing: local.compactMessageGroupSpacing,
     );
   }
 
