@@ -116,9 +116,12 @@ void main() {
       // At the live tail, memory reclaims to the cap and keeps the newest.
       notifier.trimToNewestWindow();
       final trimmed = container.read(chatViewModelProvider);
-      expect(trimmed.messages.length, kMaxLoadedMessages);
+      expect(trimmed.messages.length, kTrimmedMessageWindowSize);
       expect(trimmed.messages.last.id, newestId);
-      expect(trimmed.messages.first.id, all[250 - kMaxLoadedMessages]['id']);
+      expect(
+        trimmed.messages.first.id,
+        all[250 - kTrimmedMessageWindowSize]['id'],
+      );
       expect(trimmed.hasMoreMessages, isTrue);
     },
   );
