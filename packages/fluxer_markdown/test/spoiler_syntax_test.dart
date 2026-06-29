@@ -175,10 +175,7 @@ void main() {
 
       expect(contentBlocker().ignoring, isTrue);
 
-      await tester.tap(
-        find.byType(FluxerEmojiWidget),
-        warnIfMissed: false,
-      );
+      await tester.tap(find.byType(FluxerEmojiWidget), warnIfMissed: false);
       await tester.pumpAndSettle();
 
       expect(contentBlocker().ignoring, isFalse);
