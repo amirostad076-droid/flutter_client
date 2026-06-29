@@ -2598,8 +2598,12 @@ class _GuildListItemState extends State<_GuildListItem>
   Widget build(BuildContext context) {
     super.build(context);
     final isActive = widget.isSelected || _isHovered;
+    final activeAnimatedIconUrl = isActive
+        ? widget.guild?.animatedIconUrl
+        : null;
+    final iconUrl = activeAnimatedIconUrl ?? widget.iconUrl;
     final borderRadius = isActive ? 13.0 : 22.0;
-    final hasImage = widget.iconUrl != null && !widget.isUnavailable;
+    final hasImage = iconUrl != null && !widget.isUnavailable;
     final bgColor = widget.isUnavailable
         ? context.colors.statusDanger
         : hasImage
@@ -2699,39 +2703,24 @@ class _GuildListItemState extends State<_GuildListItem>
                                       size: 32,
                                     ),
                                   )
-                                : widget.iconUrl != null
-                                ? Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      CachedNetworkImage(
-                                        imageUrl: widget.iconUrl!,
-                                        errorBuilder: (context, url, error) =>
+                                : iconUrl != null
+                                ? CachedNetworkImage(
+                                    imageUrl: iconUrl,
+                                    fadeInDuration:
+                                        activeAnimatedIconUrl != null
+                                        ? const Duration(milliseconds: 200)
+                                        : const Duration(milliseconds: 500),
+                                    errorBuilder: (context, url, error) =>
+                                        _buildBackupIcon(
+                                          context,
+                                          isActive: isActive,
+                                        ),
+                                    progressIndicatorBuilder:
+                                        (context, url, progress) =>
                                             _buildBackupIcon(
                                               context,
                                               isActive: isActive,
                                             ),
-                                        progressIndicatorBuilder:
-                                            (context, url, progress) =>
-                                                _buildBackupIcon(
-                                                  context,
-                                                  isActive: isActive,
-                                                ),
-                                      ),
-                                      if (isActive &&
-                                          widget.guild?.animatedIconUrl != null)
-                                        CachedNetworkImage(
-                                          imageUrl:
-                                              widget.guild!.animatedIconUrl!,
-                                          fadeInDuration: const Duration(
-                                            milliseconds: 200,
-                                          ),
-                                          errorBuilder: (context, url, error) =>
-                                              const SizedBox.shrink(),
-                                          progressIndicatorBuilder:
-                                              (context, url, progress) =>
-                                                  const SizedBox.shrink(),
-                                        ),
-                                    ],
                                   )
                                 : _buildBackupIcon(context, isActive: isActive),
                           ),
