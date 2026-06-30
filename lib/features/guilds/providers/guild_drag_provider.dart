@@ -51,16 +51,24 @@ class GuildDrag extends _$GuildDrag {
     state = DragState(dragItemId: itemId);
   }
 
-  void updateHover({
+  bool updateHover({
     required String targetId,
     required bool isFolder,
     required DropPosition position,
   }) {
+    final bool didChangeTarget = state.hoverTargetId != targetId;
+    final bool didChangePosition = state.dropPosition != position;
+    if (!didChangeTarget &&
+        !didChangePosition &&
+        state.hoverTargetIsFolder == isFolder) {
+      return false;
+    }
     state = state.copyWith(
       hoverTargetId: targetId,
       hoverTargetIsFolder: isFolder,
       dropPosition: position,
     );
+    return didChangeTarget;
   }
 
   void clearHover() {

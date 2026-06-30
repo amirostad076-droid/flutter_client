@@ -568,6 +568,11 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           itemId: guild.id,
           isFolder: false,
           enabled: !guild.isUnavailable,
+          dragFeedback: GuildDragFeedback(
+            label: guild.name,
+            iconUrl: guild.iconUrl,
+            isUnavailable: guild.isUnavailable,
+          ),
           child: _buildGuildItem(
             context,
             guild: guild,
@@ -582,6 +587,11 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           key: ValueKey<String>('folder-${folderItem.id}'),
           itemId: folderItem.id.toString(),
           isFolder: true,
+          dragFeedback: GuildFolderDragFeedback(
+            guilds: folderItem.guilds,
+            folderIcon: folderItem.icon,
+            showIconWhenCollapsed: folderItem.showIconWhenCollapsed,
+          ),
           child: _GuildFolderWidget(
             folder: folderItem,
             activeGuildId: activeGuildId,
@@ -796,6 +806,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           guildUnreadReady: guildUnreadReady,
           invitesPaused: invitesPaused,
           developerMode: developerMode,
+          enableLongPressMenu: !isMobileLayout(context) || guild.isUnavailable,
           onTap: () {
             context.go(RoutePaths.guild(guild.id));
           },
@@ -1327,6 +1338,12 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
         return GuildDragWrapper(
           itemId: guild.id,
           isFolder: false,
+          allowCombine: false,
+          dragFeedback: GuildDragFeedback(
+            label: guild.name,
+            iconUrl: guild.iconUrl,
+            isUnavailable: guild.isUnavailable,
+          ),
           child: _GuildListItem(
             label: guild.name,
             guild: guild,
@@ -1346,6 +1363,8 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             guildUnreadReady: guildUnreadReady,
             invitesPaused: invitesPaused,
             developerMode: developerMode,
+            enableLongPressMenu:
+                !isMobileLayout(context) || guild.isUnavailable,
             onTap: () {
               context.go(RoutePaths.guild(guild.id));
             },
@@ -2473,6 +2492,7 @@ class _GuildListItem extends StatefulWidget {
   onUpdateChannelOverride;
   final void Function(String channelId)? onRemoveChannelOverride;
   final VoidCallback? onMounted;
+  final bool enableLongPressMenu;
 
   const _GuildListItem({
     required this.label,
@@ -2518,6 +2538,7 @@ class _GuildListItem extends StatefulWidget {
     this.onUpdateChannelOverride,
     this.onRemoveChannelOverride,
     this.onMounted,
+    this.enableLongPressMenu = true,
   });
 
   @override
@@ -2675,7 +2696,8 @@ class _GuildListItemState extends State<_GuildListItem>
                             _showContextMenu(context, details.globalPosition),
                           )
                         : null,
-                    onLongPress: widget.guild != null
+                    onLongPress:
+                        widget.guild != null && widget.enableLongPressMenu
                         ? () => unawaited(_showActionSheet(context))
                         : null,
                     child: SizedBox(

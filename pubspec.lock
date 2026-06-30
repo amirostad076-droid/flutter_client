@@ -980,6 +980,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  gaimon:
+    dependency: "direct main"
+    description:
+      name: gaimon
+      sha256: "2024da7b9642dc295ad7bcc69ff0be4ba4b0c9ab4134338ae95c3bd58dd16fb0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.3"
   glob:
     dependency: transitive
     description:
