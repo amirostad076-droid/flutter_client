@@ -2530,6 +2530,32 @@
   "@dangerZoneDeleteCancelSubscription": {
     "description": "Warning about active subscription before deletion."
   },
+  "dangerZoneDeleteCannotDeleteAccount": "Cannot delete account",
+  "@dangerZoneDeleteCannotDeleteAccount": {
+    "description": "Title for the guild ownership warning modal when trying to delete account."
+  },
+  "dangerZoneDeleteOwnsCommunities": "You cannot delete your account while you own communities. Transfer ownership of the following communities first:",
+  "@dangerZoneDeleteOwnsCommunities": {
+    "description": "Warning message shown when user owns communities and tries to delete account."
+  },
+  "dangerZoneDeleteAndXMore": "and {count} more",
+  "@dangerZoneDeleteAndXMore": {
+    "description": "Shown when user owns more than 3 communities.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dangerZoneDeleteTransferInstructions": "To transfer ownership, go to {settingsPath} and use the transfer ownership option.",
+  "@dangerZoneDeleteTransferInstructions": {
+    "description": "Instructions for transferring community ownership.",
+    "placeholders": {
+      "settingsPath": {
+        "type": "String"
+      }
+    }
+  },
   "dangerZoneDeleteConfirmDescription": "Are you sure you want to delete your account? This action will schedule your account for permanent deletion.",
   "@dangerZoneDeleteConfirmDescription": {
     "description": "Confirmation description for account delete."

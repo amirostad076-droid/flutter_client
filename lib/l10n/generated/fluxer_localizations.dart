@@ -3643,6 +3643,30 @@ abstract class FluxerLocalizations {
   /// **'Cancel your active Plutonium subscription in Plutonium settings before deleting your account.'**
   String get dangerZoneDeleteCancelSubscription;
 
+  /// Title for the guild ownership warning modal when trying to delete account.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete account'**
+  String get dangerZoneDeleteCannotDeleteAccount;
+
+  /// Warning message shown when user owns communities and tries to delete account.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot delete your account while you own communities. Transfer ownership of the following communities first:'**
+  String get dangerZoneDeleteOwnsCommunities;
+
+  /// Shown when user owns more than 3 communities.
+  ///
+  /// In en, this message translates to:
+  /// **'and {count} more'**
+  String dangerZoneDeleteAndXMore(int count);
+
+  /// Instructions for transferring community ownership.
+  ///
+  /// In en, this message translates to:
+  /// **'To transfer ownership, go to {settingsPath} and use the transfer ownership option.'**
+  String dangerZoneDeleteTransferInstructions(String settingsPath);
+
   /// Confirmation description for account delete.
   ///
   /// In en, this message translates to:

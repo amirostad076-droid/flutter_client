@@ -1967,6 +1967,23 @@ class FluxerLocalizationsEt extends FluxerLocalizations {
       'Cancel your active Plutonium subscription in Plutonium settings before deleting your account.';
 
   @override
+  String get dangerZoneDeleteCannotDeleteAccount => 'Cannot delete account';
+
+  @override
+  String get dangerZoneDeleteOwnsCommunities =>
+      'You cannot delete your account while you own communities. Transfer ownership of the following communities first:';
+
+  @override
+  String dangerZoneDeleteAndXMore(int count) {
+    return 'and $count more';
+  }
+
+  @override
+  String dangerZoneDeleteTransferInstructions(String settingsPath) {
+    return 'To transfer ownership, go to $settingsPath and use the transfer ownership option.';
+  }
+
+  @override
   String get dangerZoneDeleteConfirmDescription =>
       'Are you sure you want to delete your account? This action will schedule your account for permanent deletion.';
 
