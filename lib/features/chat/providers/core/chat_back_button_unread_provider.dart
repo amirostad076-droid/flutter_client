@@ -12,10 +12,11 @@ part 'chat_back_button_unread_provider.g.dart';
 int chatBackButtonUnreadCount(Ref ref, String currentChannelId) {
   final int totalGuildMentionCount = ref.watch(
     guildReadStateProvider.select(
-      (Map<String, GuildReadStateEntry> states) => sumGuildMentionCounts(
-        {for (final MapEntry<String, GuildReadStateEntry> entry in states.entries)
-          entry.key: entry.value.mentionCount},
-      ),
+      (Map<String, GuildReadStateEntry> states) => sumGuildMentionCounts({
+        for (final MapEntry<String, GuildReadStateEntry> entry
+            in states.entries)
+          entry.key: entry.value.mentionCount,
+      }),
     ),
   );
   final bool isGuildChannel =

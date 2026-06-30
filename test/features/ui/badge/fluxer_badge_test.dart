@@ -34,7 +34,9 @@ void main() {
       expect(find.text('99+'), findsOneWidget);
     });
 
-    testWidgets('compact count variant renders as a small circle', (tester) async {
+    testWidgets('compact count variant renders as a small circle', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         buildTestApp(const FluxerBadge.compactCount(count: 3)),
       );

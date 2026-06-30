@@ -23,19 +23,17 @@ Widget buildTestApp(Widget child) {
 void main() {
   testWidgets('hides unread badge when count is zero', (tester) async {
     await tester.pumpWidget(
-      buildTestApp(
-        ChatBackButton(unreadCount: 0, onPressed: () {}),
-      ),
+      buildTestApp(ChatBackButton(unreadCount: 0, onPressed: () {})),
     );
     expect(find.byType(FluxerBadge), findsNothing);
     expect(find.byIcon(PhosphorIconsBold.arrowLeft), findsOneWidget);
   });
 
-  testWidgets('shows unread count badge when count is positive', (tester) async {
+  testWidgets('shows unread count badge when count is positive', (
+    tester,
+  ) async {
     await tester.pumpWidget(
-      buildTestApp(
-        ChatBackButton(unreadCount: 4, onPressed: () {}),
-      ),
+      buildTestApp(ChatBackButton(unreadCount: 4, onPressed: () {})),
     );
     expect(find.byType(FluxerBadge), findsOneWidget);
     expect(find.text('4'), findsOneWidget);

@@ -35,7 +35,8 @@ int computeChatBackButtonUnreadCount({
   required int currentGuildChannelMentionCount,
   required int otherDmUnreadCount,
 }) {
-  final int guildMentions = totalGuildMentionCount - currentGuildChannelMentionCount;
+  final int guildMentions =
+      totalGuildMentionCount - currentGuildChannelMentionCount;
   final int safeGuildMentions = guildMentions < 0 ? 0 : guildMentions;
   return safeGuildMentions + otherDmUnreadCount;
 }
