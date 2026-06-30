@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_fiel
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
 import 'package:fluxer_app/features/guilds/data/guild_order_repository.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_drag_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_dart/models/user_settings_response_guild_folders.dart';
@@ -274,6 +275,26 @@ class OrganizedGuildList extends _$OrganizedGuildList {
 
     state = items;
     _persist();
+  }
+
+  void applyDragDrop({
+    required String sourceId,
+    required String targetId,
+    required bool targetIsFolder,
+    required DropPosition position,
+  }) {
+    switch (position) {
+      case DropPosition.before:
+        reorder(sourceId: sourceId, targetId: targetId, insertAfter: false);
+      case DropPosition.after:
+        reorder(sourceId: sourceId, targetId: targetId, insertAfter: true);
+      case DropPosition.combine:
+        if (targetIsFolder) {
+          moveIntoFolder(guildId: sourceId, folderId: int.parse(targetId));
+        } else {
+          combineIntoFolder(sourceGuildId: sourceId, targetGuildId: targetId);
+        }
+    }
   }
 
   void _persist() {

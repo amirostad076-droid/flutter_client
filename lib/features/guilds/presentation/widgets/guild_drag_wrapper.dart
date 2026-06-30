@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_drag_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
+import 'package:fluxer_app/features/guilds/utils/guild_folder_icon.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/shared/utils/guild_name_abbreviation.dart';
 import 'package:gaimon/gaimon.dart';
@@ -24,6 +25,7 @@ const Duration _kMobileDropAnimationDuration = Duration(milliseconds: 150);
 const double _kGuildIconSize = 48;
 const double _kGuildIconInnerSize = 44;
 const double _kGuildIconBorderRadius = 15;
+const double _kMobileDragFeedbackScale = 0.92;
 
 class GuildDragFeedback extends StatelessWidget {
   const GuildDragFeedback({
@@ -109,7 +111,7 @@ class GuildFolderDragFeedback extends StatelessWidget {
       child: showIconWhenCollapsed && folderIcon != null
           ? Center(
               child: PhosphorIcon(
-                _folderIcon(folderIcon),
+                guildFolderIconForName(folderIcon),
                 color: context.colors.textPrimary,
                 size: 24,
               ),
@@ -119,7 +121,7 @@ class GuildFolderDragFeedback extends StatelessWidget {
   }
 }
 
-class GuildDragWrapper extends ConsumerWidget {
+class GuildDragWrapper extends ConsumerStatefulWidget {
   const GuildDragWrapper({
     required this.itemId,
     required this.isFolder,
@@ -138,53 +140,108 @@ class GuildDragWrapper extends ConsumerWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GuildDragWrapper> createState() => _GuildDragWrapperState();
+}
+
+class _GuildDragWrapperState extends ConsumerState<GuildDragWrapper> {
+  final GlobalKey _dragTargetKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _registerDragTarget());
+  }
+
+  @override
+  void didUpdateWidget(GuildDragWrapper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.itemId != widget.itemId ||
+        oldWidget.isFolder != widget.isFolder ||
+        oldWidget.allowCombine != widget.allowCombine) {
+      ref
+          .read(guildDragProvider.notifier)
+          .unregisterDragTarget(oldWidget.itemId);
+      _registerDragTarget();
+    }
+  }
+
+  @override
+  void deactivate() {
+    ref.read(guildDragProvider.notifier).unregisterDragTarget(widget.itemId);
+    super.deactivate();
+  }
+
+  void _registerDragTarget() {
+    ref
+        .read(guildDragProvider.notifier)
+        .registerDragTarget(
+          RegisteredGuildDragTarget(
+            itemId: widget.itemId,
+            isFolder: widget.isFolder,
+            allowCombine: widget.allowCombine,
+            boundsKey: _dragTargetKey,
+          ),
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final DragState dragState = ref.watch(guildDragProvider);
     final bool isMobile = isMobileLayout(context);
     final Color brandPrimary = context.colors.brandPrimary;
     final bool showDropIndicators =
         !isMobile || dragState.hasMovedFromHoldPoint;
     final DropPosition? dropPosition =
-        showDropIndicators && dragState.hoverTargetId == itemId
+        showDropIndicators && dragState.hoverTargetId == widget.itemId
         ? dragState.dropPosition
         : null;
 
-    final Widget dragTarget = DragTarget<GuildDragData>(
-      onWillAcceptWithDetails: (details) => details.data.itemId != itemId,
-      onMove: (details) => _handleDragMove(
-        context: context,
-        ref: ref,
-        details: details,
-        isMobile: isMobile,
+    final Widget dragTarget = KeyedSubtree(
+      key: _dragTargetKey,
+      child: DragTarget<GuildDragData>(
+        onWillAcceptWithDetails: (details) =>
+            details.data.itemId != widget.itemId,
+        onMove: (details) => _handleDragMove(
+          context: context,
+          details: details,
+          isMobile: isMobile,
+        ),
+        onLeave: (_) {
+          if (isMobile && ref.read(guildDragProvider).isDragging) {
+            return;
+          }
+          ref.read(guildDragProvider.notifier).clearHover();
+        },
+        onAcceptWithDetails: (details) {
+          if (isMobile) {
+            return;
+          }
+          _handleDrop(sourceId: details.data.itemId);
+        },
+        builder: (context, candidateData, rejectedData) {
+          return _DragTargetContent(
+            dropPosition: dropPosition,
+            color: brandPrimary,
+            useOutlineIndicators: isMobile,
+            child: widget.child,
+          );
+        },
       ),
-      onLeave: (_) => ref.read(guildDragProvider.notifier).clearHover(),
-      onAcceptWithDetails: (details) =>
-          _handleDrop(ref: ref, sourceId: details.data.itemId),
-      builder: (context, candidateData, rejectedData) {
-        return _DragTargetContent(
-          dropPosition: dropPosition,
-          color: brandPrimary,
-          useOutlineIndicators: isMobile,
-          child: child,
-        );
-      },
     );
 
-    if (!enabled) {
+    if (!widget.enabled) {
       return dragTarget;
     }
 
     final bool collapseSource =
         isMobile &&
-        dragState.dragItemId == itemId &&
+        dragState.dragItemId == widget.itemId &&
         dragState.hasMovedFromHoldPoint;
 
     return _GuildDraggable(
       isMobile: isMobile,
-      data: GuildDragData(itemId: itemId, isFolder: isFolder),
-      feedback: isMobile
-          ? _MobileDragFeedback(itemId: itemId, child: dragFeedback)
-          : Transform.scale(scale: 0.9, child: dragFeedback),
+      data: GuildDragData(itemId: widget.itemId, isFolder: widget.isFolder),
+      dragFeedback: widget.dragFeedback,
       childWhenDragging: isMobile
           ? collapseSource
                 ? const SizedBox.shrink()
@@ -195,115 +252,123 @@ class GuildDragWrapper extends ConsumerWidget {
                 maintainSize: true,
                 maintainAnimation: true,
                 maintainState: true,
-                child: child,
+                child: widget.child,
               ),
             ),
-      onDragStarted: () {
+      onDragStarted: (double? anchorGlobalCenterX) {
         if (isMobile) {
           unawaited(HapticFeedback.mediumImpact());
         }
-        ref.read(guildDragProvider.notifier).startDrag(itemId);
+        ref
+            .read(guildDragProvider.notifier)
+            .startDrag(
+              widget.itemId,
+              sourceIsFolder: widget.isFolder,
+              anchorGlobalCenterX: anchorGlobalCenterX,
+            );
       },
       onDragUpdate: isMobile
-          ? (Offset globalPosition) => ref
-                .read(guildDragProvider.notifier)
-                .updateDragMovement(globalPosition)
+          ? (Offset globalPosition) {
+              final bool didChangeTarget = ref
+                  .read(guildDragProvider.notifier)
+                  .updateDragMovement(globalPosition);
+              if (didChangeTarget) {
+                Gaimon.selection();
+              }
+            }
           : null,
-      onDragEnded: () => ref.read(guildDragProvider.notifier).endDrag(),
+      onDragEnded: () {
+        if (isMobile) {
+          _commitPendingDropIfNeeded();
+        }
+        ref.read(guildDragProvider.notifier).endDrag();
+      },
       child: dragTarget,
     );
   }
 
   void _handleDragMove({
     required BuildContext context,
-    required WidgetRef ref,
     required DragTargetDetails<GuildDragData> details,
     required bool isMobile,
   }) {
-    if (isMobile && !ref.read(guildDragProvider).hasMovedFromHoldPoint) {
+    if (isMobile) {
       return;
     }
     final RenderBox renderBox = context.findRenderObject()! as RenderBox;
-    final double ratio =
-        (renderBox.globalToLocal(details.offset).dy / renderBox.size.height)
-            .clamp(0.0, 1.0);
+    final double ratio = globalVerticalDropRatio(renderBox, details.offset);
     final DragState dragState = ref.read(guildDragProvider);
-    final DropPosition? currentPosition = dragState.hoverTargetId == itemId
+    final DropPosition? currentPosition =
+        dragState.hoverTargetId == widget.itemId
         ? dragState.dropPosition
         : null;
-    final DropPosition position = _resolveDropPosition(
+    final DropPosition position = resolveGuildDropPosition(
       ratio: ratio,
       sourceIsFolder: details.data.isFolder,
-      targetIsFolder: isFolder,
-      allowCombine: allowCombine,
+      targetIsFolder: widget.isFolder,
+      allowCombine: widget.allowCombine,
       currentPosition: currentPosition,
     );
-    final bool didChangeTarget = ref
+    ref
         .read(guildDragProvider.notifier)
-        .updateHover(targetId: itemId, isFolder: isFolder, position: position);
-    if (isMobile && didChangeTarget) {
-      Gaimon.selection();
-    }
+        .updateHover(
+          targetId: widget.itemId,
+          isFolder: widget.isFolder,
+          position: position,
+        );
   }
 
-  void _handleDrop({required WidgetRef ref, required String sourceId}) {
+  void _commitPendingDropIfNeeded() {
+    final DragState dragState = ref.read(guildDragProvider);
+    final String? sourceId = dragState.dragItemId;
+    final String? targetId = dragState.hoverTargetId;
+    final DropPosition? position = dragState.dropPosition;
+    if (sourceId == null || targetId == null || position == null) {
+      return;
+    }
+    _applyDragDrop(
+      sourceId: sourceId,
+      targetId: targetId,
+      targetIsFolder: dragState.hoverTargetIsFolder,
+      position: position,
+    );
+  }
+
+  void _handleDrop({required String sourceId}) {
     final DropPosition? position = ref.read(guildDragProvider).dropPosition;
     if (position == null) {
       return;
     }
-    final OrganizedGuildList notifier = ref.read(
-      organizedGuildListProvider.notifier,
+    _applyDragDrop(
+      sourceId: sourceId,
+      targetId: widget.itemId,
+      targetIsFolder: widget.isFolder,
+      position: position,
     );
-    switch (position) {
-      case DropPosition.before:
-        notifier.reorder(
+  }
+
+  void _applyDragDrop({
+    required String sourceId,
+    required String targetId,
+    required bool targetIsFolder,
+    required DropPosition position,
+  }) {
+    ref
+        .read(organizedGuildListProvider.notifier)
+        .applyDragDrop(
           sourceId: sourceId,
-          targetId: itemId,
-          insertAfter: false,
+          targetId: targetId,
+          targetIsFolder: targetIsFolder,
+          position: position,
         );
-      case DropPosition.after:
-        notifier.reorder(
-          sourceId: sourceId,
-          targetId: itemId,
-          insertAfter: true,
-        );
-      case DropPosition.combine:
-        if (isFolder) {
-          notifier.moveIntoFolder(
-            guildId: sourceId,
-            folderId: int.parse(itemId),
-          );
-        } else {
-          notifier.combineIntoFolder(
-            sourceGuildId: sourceId,
-            targetGuildId: itemId,
-          );
-        }
-    }
   }
 }
 
-class _MobileDragFeedback extends ConsumerWidget {
-  const _MobileDragFeedback({required this.itemId, required this.child});
-
-  final String itemId;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final DragState dragState = ref.watch(guildDragProvider);
-    if (dragState.dragItemId != itemId || !dragState.hasMovedFromHoldPoint) {
-      return const SizedBox.shrink();
-    }
-    return Transform.scale(scale: 0.92, child: child);
-  }
-}
-
-class _GuildDraggable extends StatelessWidget {
+class _GuildDraggable extends ConsumerStatefulWidget {
   const _GuildDraggable({
     required this.isMobile,
     required this.data,
-    required this.feedback,
+    required this.dragFeedback,
     required this.childWhenDragging,
     required this.onDragStarted,
     required this.onDragEnded,
@@ -313,39 +378,138 @@ class _GuildDraggable extends StatelessWidget {
 
   final bool isMobile;
   final GuildDragData data;
-  final Widget feedback;
+  final Widget dragFeedback;
   final Widget childWhenDragging;
-  final VoidCallback onDragStarted;
+  final void Function(double? anchorGlobalCenterX) onDragStarted;
   final VoidCallback onDragEnded;
   final void Function(Offset globalPosition)? onDragUpdate;
   final Widget child;
 
   @override
+  ConsumerState<_GuildDraggable> createState() => _GuildDraggableState();
+}
+
+class _GuildDraggableState extends ConsumerState<_GuildDraggable> {
+  OverlayEntry? _feedbackOverlay;
+  bool _isFeedbackOverlayInserted = false;
+
+  @override
+  void dispose() {
+    _removeFeedbackOverlay();
+    super.dispose();
+  }
+
+  void _removeFeedbackOverlay() {
+    _feedbackOverlay?.remove();
+    _feedbackOverlay = null;
+    _isFeedbackOverlayInserted = false;
+  }
+
+  void _syncFeedbackOverlay() {
+    if (!widget.isMobile) {
+      return;
+    }
+    final DragState dragState = ref.read(guildDragProvider);
+    final bool isActiveDrag =
+        dragState.dragItemId == widget.data.itemId &&
+        dragState.showMobileDragFeedback;
+    if (!isActiveDrag) {
+      _removeFeedbackOverlay();
+      return;
+    }
+    final double? centerX = dragState.dragAnchorGlobalCenterX;
+    final double? globalY = dragState.dragFeedbackGlobalY;
+    if (centerX == null || globalY == null) {
+      _removeFeedbackOverlay();
+      return;
+    }
+    _feedbackOverlay ??= OverlayEntry(
+      builder: (context) {
+        final DragState state = ref.watch(guildDragProvider);
+        if (!state.showMobileDragFeedback ||
+            state.dragItemId != widget.data.itemId) {
+          return const SizedBox.shrink();
+        }
+        final double? overlayCenterX = state.dragAnchorGlobalCenterX;
+        final double? overlayGlobalY = state.dragFeedbackGlobalY;
+        if (overlayCenterX == null || overlayGlobalY == null) {
+          return const SizedBox.shrink();
+        }
+        return Positioned(
+          left: overlayCenterX - _kGuildIconSize / 2,
+          top: overlayGlobalY - _kGuildIconSize / 2,
+          child: IgnorePointer(
+            child: Transform.scale(
+              scale: _kMobileDragFeedbackScale,
+              child: widget.dragFeedback,
+            ),
+          ),
+        );
+      },
+    );
+    if (!_isFeedbackOverlayInserted) {
+      Overlay.of(context, rootOverlay: true).insert(_feedbackOverlay!);
+      _isFeedbackOverlayInserted = true;
+    }
+    _feedbackOverlay!.markNeedsBuild();
+  }
+
+  double? _anchorGlobalCenterX(BuildContext context) {
+    RenderObject? renderObject = context.findRenderObject();
+    while (renderObject != null) {
+      if (renderObject is RenderBox) {
+        if ((renderObject.size.width - kGuildNavbarWidth).abs() < 1) {
+          return renderObject
+              .localToGlobal(Offset(renderObject.size.width / 2, 0))
+              .dx;
+        }
+      }
+      final RenderObject? parent = renderObject.parent;
+      renderObject = parent;
+    }
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
+    if (box == null) {
+      return null;
+    }
+    return box.localToGlobal(Offset(box.size.width / 2, 0)).dx;
+  }
+
+  void _handleDragEnded() {
+    _removeFeedbackOverlay();
+    widget.onDragEnded();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (isMobile) {
+    ref.listen<DragState>(guildDragProvider, (_, _) => _syncFeedbackOverlay());
+
+    if (widget.isMobile) {
       return LongPressDraggable<GuildDragData>(
-        data: data,
-        dragAnchorStrategy: pointerDragAnchorStrategy,
-        onDragStarted: onDragStarted,
-        onDragUpdate: onDragUpdate == null
+        data: widget.data,
+        onDragStarted: () =>
+            widget.onDragStarted(_anchorGlobalCenterX(context)),
+        onDragUpdate: widget.onDragUpdate == null
             ? null
-            : (details) => onDragUpdate!(details.globalPosition),
-        onDragEnd: (_) => onDragEnded(),
-        onDraggableCanceled: (_, _) => onDragEnded(),
-        feedback: feedback,
-        childWhenDragging: childWhenDragging,
-        child: child,
+            : (details) {
+                widget.onDragUpdate!(details.globalPosition);
+                _syncFeedbackOverlay();
+              },
+        onDragEnd: (_) => _handleDragEnded(),
+        onDraggableCanceled: (_, _) => _handleDragEnded(),
+        feedback: const SizedBox.shrink(),
+        childWhenDragging: widget.childWhenDragging,
+        child: widget.child,
       );
     }
     return Draggable<GuildDragData>(
-      data: data,
+      data: widget.data,
       dragAnchorStrategy: pointerDragAnchorStrategy,
-      onDragStarted: onDragStarted,
-      onDragEnd: (_) => onDragEnded(),
-      onDraggableCanceled: (_, _) => onDragEnded(),
-      feedback: feedback,
-      childWhenDragging: childWhenDragging,
-      child: child,
+      onDragStarted: () => widget.onDragStarted(_anchorGlobalCenterX(context)),
+      onDragEnd: (_) => widget.onDragEnded(),
+      onDraggableCanceled: (_, _) => widget.onDragEnded(),
+      feedback: Transform.scale(scale: 0.9, child: widget.dragFeedback),
+      childWhenDragging: widget.childWhenDragging,
+      child: widget.child,
     );
   }
 }
@@ -626,69 +790,6 @@ class _DropIndicatorLine extends StatelessWidget {
   }
 }
 
-DropPosition _resolveDropPosition({
-  required double ratio,
-  required bool sourceIsFolder,
-  required bool targetIsFolder,
-  required bool allowCombine,
-  DropPosition? currentPosition,
-}) {
-  const double inset = 0.08;
-
-  if (sourceIsFolder || targetIsFolder || !allowCombine) {
-    return _resolveSplitDropPosition(
-      ratio: ratio,
-      split: 0.5,
-      currentPosition: currentPosition,
-      inset: inset,
-    );
-  }
-  return _resolveSplitDropPosition(
-    ratio: ratio,
-    split: 0.25,
-    upperSplit: 0.75,
-    currentPosition: currentPosition,
-    inset: inset,
-  );
-}
-
-DropPosition _resolveSplitDropPosition({
-  required double ratio,
-  required double split,
-  required DropPosition? currentPosition,
-  required double inset,
-  double? upperSplit,
-}) {
-  if (upperSplit == null) {
-    if (currentPosition == DropPosition.before && ratio < split + inset) {
-      return DropPosition.before;
-    }
-    if (currentPosition == DropPosition.after && ratio > split - inset) {
-      return DropPosition.after;
-    }
-    return ratio < split ? DropPosition.before : DropPosition.after;
-  }
-
-  if (currentPosition == DropPosition.before && ratio < split + inset) {
-    return DropPosition.before;
-  }
-  if (currentPosition == DropPosition.combine &&
-      ratio > split - inset &&
-      ratio < upperSplit + inset) {
-    return DropPosition.combine;
-  }
-  if (currentPosition == DropPosition.after && ratio > upperSplit - inset) {
-    return DropPosition.after;
-  }
-  if (ratio < split) {
-    return DropPosition.before;
-  }
-  if (ratio > upperSplit) {
-    return DropPosition.after;
-  }
-  return DropPosition.combine;
-}
-
 BoxDecoration _combineTargetDecoration(Color color, bool isMobile) {
   return BoxDecoration(
     borderRadius: BorderRadius.circular(16),
@@ -713,16 +814,4 @@ double _dragFeedbackInitialsFontSize(int initialsLength) {
     return 14;
   }
   return 12;
-}
-
-IconData _folderIcon(String? icon) {
-  return switch (icon) {
-    'star' => PhosphorIconsFill.star,
-    'heart' => PhosphorIconsFill.heart,
-    'bookmark' => PhosphorIconsFill.bookmarkSimple,
-    'game_controller' => PhosphorIconsFill.gameController,
-    'shield' => PhosphorIconsFill.shield,
-    'music_note' => PhosphorIconsFill.musicNote,
-    _ => PhosphorIconsFill.folder,
-  };
 }

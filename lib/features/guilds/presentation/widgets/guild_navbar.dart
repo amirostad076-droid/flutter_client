@@ -59,6 +59,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_read_state_provider.d
 import 'package:fluxer_app/features/guilds/providers/guild_read_state_ready_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
+import 'package:fluxer_app/features/guilds/utils/guild_folder_icon.dart';
 import 'package:fluxer_app/features/guilds/utils/leave_guild_action.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -1212,7 +1213,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
                     child: isExpanded
                         ? Center(
                             child: PhosphorIcon(
-                              _folderIcon(folder.icon),
+                              guildFolderIconForName(folder.icon),
                               color: context.colors.textPrimary,
                               size: 24,
                             ),
@@ -1260,7 +1261,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
     if (folder.showIconWhenCollapsed && folder.icon != null) {
       return Center(
         child: PhosphorIcon(
-          _folderIcon(folder.icon),
+          guildFolderIconForName(folder.icon),
           color: context.colors.textPrimary,
           size: 24,
         ),
@@ -1591,18 +1592,6 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
   String get _derivedFolderName {
     final names = widget.folder.guilds.take(3).map((g) => g.name);
     return names.join(', ');
-  }
-
-  static IconData _folderIcon(String? icon) {
-    return switch (icon) {
-      'star' => PhosphorIconsFill.star,
-      'heart' => PhosphorIconsFill.heart,
-      'bookmark' => PhosphorIconsFill.bookmarkSimple,
-      'game_controller' => PhosphorIconsFill.gameController,
-      'shield' => PhosphorIconsFill.shield,
-      'music_note' => PhosphorIconsFill.musicNote,
-      _ => PhosphorIconsFill.folder,
-    };
   }
 }
 
