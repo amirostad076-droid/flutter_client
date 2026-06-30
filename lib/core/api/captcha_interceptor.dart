@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -16,7 +15,7 @@ const _kCaptchaInternalKey = '_captchaInternal';
 
 /// Headless invisible attempt; falls back to the visible dialog when exceeded.
 /// Kept short because users cannot interact with a headless WebView.
-const Duration _kInvisibleSolveTimeout = Duration(seconds: 12);
+const Duration _kInvisibleSolveTimeout = Duration(seconds: 9);
 
 /// Captcha configuration extracted from the `.well-known/fluxer` response.
 class _CaptchaConfig {
@@ -83,6 +82,9 @@ class CaptchaInterceptor extends Interceptor {
   })
   showCaptchaDialog;
 
+  /// Serialises captcha solves so concurrent challenges don't stack.
+  Future<void> _solveQueue = Future<void>.value();
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     // Don't re-enter captcha solving for our own internal requests
@@ -109,12 +111,19 @@ class CaptchaInterceptor extends Interceptor {
       '[CaptchaInterceptor] Challenge received: $code '
       'for ${err.requestOptions.path}',
     );
-    unawaited(
-      _solveCaptchaAndRetry(err, handler).catchError((Object e, StackTrace st) {
+    _enqueueSolve(err, handler);
+  }
+
+  void _enqueueSolve(DioException err, ErrorInterceptorHandler handler) {
+    _solveQueue = _solveQueue.then((_) {
+      return _solveCaptchaAndRetry(err, handler).catchError((
+        Object e,
+        StackTrace st,
+      ) {
         talker.error('[CaptchaInterceptor] Unhandled error: $e\n$st');
         handler.next(err);
-      }),
-    );
+      });
+    });
   }
 
   Future<void> _solveCaptchaAndRetry(
