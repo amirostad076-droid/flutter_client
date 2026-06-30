@@ -611,7 +611,6 @@ class _FluxerCaptchaState extends State<FluxerCaptcha> {
   }
 
   late final _view = InAppWebView(
-    keepAlive: InAppWebViewKeepAlive(),
     key: webViewKey,
     initialData: InAppWebViewInitialData(
       data: data,
