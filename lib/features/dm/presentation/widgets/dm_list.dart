@@ -1609,12 +1609,16 @@ class _DmBottomSheet extends ConsumerWidget {
     groups.add(
       FluxerMenuGroup(
         children: [
-          FluxerBottomSheetSubmenuItem(
-            label: isMuted
-                ? l10n.dmUnmuteConversation
-                : l10n.dmMuteConversation,
-            onTap: () => _openMuteSheet(context),
-          ),
+          if (isMuted)
+            FluxerBottomSheetMenuItem(
+              label: l10n.dmUnmuteConversation,
+              onTap: () => pop(_DmAction.unmute),
+            )
+          else
+            FluxerBottomSheetSubmenuItem(
+              label: l10n.dmMuteConversation,
+              onTap: () => _openMuteSheet(context),
+            ),
         ],
       ),
     );
@@ -1734,7 +1738,7 @@ class _DmBottomSheet extends ConsumerWidget {
     unawaited(
       FluxerBottomSheet.show<MuteSelection>(
         context,
-        builder: (_, _) => _DmMuteSheet(isMuted: isMuted),
+        builder: (_, _) => const _DmMuteSheet(),
       ).then((selection) {
         if (selection == null) {
           return;
@@ -1760,9 +1764,7 @@ class _DmBottomSheet extends ConsumerWidget {
 }
 
 class _DmMuteSheet extends StatelessWidget {
-  final bool isMuted;
-
-  const _DmMuteSheet({required this.isMuted});
+  const _DmMuteSheet();
 
   @override
   Widget build(BuildContext context) {
@@ -1778,9 +1780,7 @@ class _DmMuteSheet extends StatelessWidget {
           child: Column(
             children: [
               FluxerBottomSheetSubmenuHeader(
-                title: isMuted
-                    ? l10n.dmUnmuteConversation
-                    : l10n.dmMuteConversation,
+                title: l10n.dmMuteConversation,
                 onBack: () => Navigator.of(context).pop(),
               ),
               SizedBox(height: layout.s3),
@@ -1794,7 +1794,6 @@ class _DmMuteSheet extends StatelessWidget {
                     layout.s4,
                   ),
                   child: MuteDurationSheetBody(
-                    isMuted: isMuted,
                     onSelected: (selection) =>
                         Navigator.of(context).pop(selection),
                   ),
@@ -1809,9 +1808,6 @@ class _DmMuteSheet extends StatelessWidget {
 }
 
 _DmAction _dmActionForMuteSelection(MuteSelection selection) {
-  if (!selection.muted) {
-    return _DmAction.unmute;
-  }
   return switch (selection.durationSeconds) {
     900 => _DmAction.mute15Min,
     1800 => _DmAction.mute30Min,

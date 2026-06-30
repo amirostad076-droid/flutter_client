@@ -606,7 +606,6 @@ class _ChannelTile extends ConsumerWidget {
                   ref,
                   close: close,
                   isMuted: isMuted,
-                  muteConfig: muteConfig,
                 ),
               );
             },
@@ -750,35 +749,40 @@ class _ChannelTile extends ConsumerWidget {
     WidgetRef ref, {
     required VoidCallback close,
     required bool isMuted,
-    required ChannelOverridesMuteConfig? muteConfig,
   }) async {
+    final String resolvedGuildId = guildId.isNotEmpty
+        ? guildId
+        : channel.guildId;
+    if (resolvedGuildId.isEmpty) {
+      close();
+      return;
+    }
+    final repository = ref.read(guildUserSettingsRepositoryProvider);
+    if (isMuted) {
+      close();
+      await repository.updateChannelOverride(
+        guildId: resolvedGuildId,
+        channelId: channel.id,
+        muted: false,
+      );
+      return;
+    }
     final l10n = FluxerLocalizations.of(context);
     final selection = await showMuteDurationSheet(
       context,
-      isMuted: isMuted,
-      muteConfig: muteConfig,
       muteTitle: l10n.notificationMuteChannel,
-      unmuteTitle: l10n.notificationUnmuteChannel,
       useRootNavigator: isMobileLayout(context),
     );
     if (selection == null) {
       return;
     }
     close();
-    final String resolvedGuildId = guildId.isNotEmpty
-        ? guildId
-        : channel.guildId;
-    if (resolvedGuildId.isEmpty) {
-      return;
-    }
-    await ref
-        .read(guildUserSettingsRepositoryProvider)
-        .updateChannelOverride(
-          guildId: resolvedGuildId,
-          channelId: channel.id,
-          muted: selection.muted,
-          durationSeconds: selection.durationSeconds,
-        );
+    await repository.updateChannelOverride(
+      guildId: resolvedGuildId,
+      channelId: channel.id,
+      muted: true,
+      durationSeconds: selection.durationSeconds,
+    );
   }
 
   Future<void> _toggleFavorite(
@@ -896,7 +900,6 @@ class _CategoryHeader extends ConsumerWidget {
                 ref,
                 close: close,
                 isMuted: isMuted,
-                muteConfig: muteConfig,
               ),
             );
           },
@@ -918,28 +921,32 @@ class _CategoryHeader extends ConsumerWidget {
     WidgetRef ref, {
     required VoidCallback close,
     required bool isMuted,
-    required ChannelOverridesMuteConfig? muteConfig,
   }) async {
+    final repository = ref.read(guildUserSettingsRepositoryProvider);
+    if (isMuted) {
+      close();
+      await repository.updateChannelOverride(
+        guildId: guildId,
+        channelId: category.id,
+        muted: false,
+      );
+      return;
+    }
     final selection = await showMuteDurationSheet(
       context,
-      isMuted: isMuted,
-      muteConfig: muteConfig,
       muteTitle: 'Mute Category',
-      unmuteTitle: 'Unmute Category',
       useRootNavigator: isMobileLayout(context),
     );
     if (selection == null) {
       return;
     }
     close();
-    await ref
-        .read(guildUserSettingsRepositoryProvider)
-        .updateChannelOverride(
-          guildId: guildId,
-          channelId: category.id,
-          muted: selection.muted,
-          durationSeconds: selection.durationSeconds,
-        );
+    await repository.updateChannelOverride(
+      guildId: guildId,
+      channelId: category.id,
+      muted: true,
+      durationSeconds: selection.durationSeconds,
+    );
   }
 }
 
