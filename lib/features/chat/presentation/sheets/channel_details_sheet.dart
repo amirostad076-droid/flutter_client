@@ -322,10 +322,7 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
     if (selection == null || !mounted) {
       return;
     }
-    await _setMute(
-      isMuted: true,
-      durationSeconds: selection.durationSeconds,
-    );
+    await _setMute(isMuted: true, durationSeconds: selection.durationSeconds);
   }
 
   Future<void> _setMute({required bool isMuted, int? durationSeconds}) async {
