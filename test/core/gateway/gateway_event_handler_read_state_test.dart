@@ -767,37 +767,50 @@ void main() {
     );
   });
 
-  test('dm last message clears but unread count persists when only message is '
-      'deleted', () async {
-    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-    addTearDown(db.close);
-    final messageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
-    await db.dmChannelDao.upsertDmChannels([
-      DmChannelsCompanion.insert(
-        id: 'dm-1',
-        recipientId: 'other',
-        recipientIds: const Value('["other"]'),
-      ),
-    ]);
-    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+  test(
+    'dm stays hoisted and unread when its newest message is deleted',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final olderId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+      final newerId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.dmChannelDao.upsertDmChannels([
+        DmChannelsCompanion.insert(
+          id: 'dm-1',
+          recipientId: 'other',
+          recipientIds: const Value('["other"]'),
+          lastMessageId: Value(olderId),
+          lastMessageTime: Value(dateTimeFromUserSnowflakeOrNull(olderId)!),
+        ),
+      ]);
+      await db.messageDao.upsertMessages([
+        _cachedMessage(id: olderId, channelId: 'dm-1', authorId: 'other'),
+      ]);
+      final handler = GatewayEventHandler(database: db, currentUserId: 'me');
 
-    await handler.handle(
-      MessageCreateEvent(
-        message: _message(id: messageId, channelId: 'dm-1', authorId: 'other'),
-      ),
-    );
+      await handler.handle(
+        MessageCreateEvent(
+          message: _message(id: newerId, channelId: 'dm-1', authorId: 'other'),
+        ),
+      );
+      await handler.handle(
+        MessageDeleteEvent(channelId: 'dm-1', messageId: newerId),
+      );
+      await pumpEventQueue();
 
-    await handler.handle(
-      MessageDeleteEvent(channelId: 'dm-1', messageId: messageId),
-    );
-    await pumpEventQueue();
-
-    final dm = await db.dmChannelDao.getDmChannelById('dm-1');
-    final readState = await db.readStateDao.getReadState('dm-1');
-    expect(dm?.lastMessageId, isNull);
-    expect(dm?.unreadCount, 1);
-    expect(readState?.mentionCount, 1);
-  });
+      final dm = await db.dmChannelDao.getDmChannelById('dm-1');
+      final readState = await db.readStateDao.getReadState('dm-1');
+      expect(dm?.lastMessageId, newerId);
+      expect(
+        dm?.lastMessageTime.isAtSameMomentAs(
+          dateTimeFromUserSnowflakeOrNull(newerId)!,
+        ),
+        isTrue,
+      );
+      expect(dm?.unreadCount, 1);
+      expect(readState?.mentionCount, 1);
+    },
+  );
 
   test(
     'muted incoming DM updates unread presence without mention badge',

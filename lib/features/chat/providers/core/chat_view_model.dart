@@ -1057,9 +1057,10 @@ class ChatViewModel extends _$ChatViewModel {
       mentionCount: readState?.mentionCount ?? 0,
       isGuildChannel: channel != null,
     );
-    if (hasChannelLevelUnread) {
+    if (hasChannelLevelUnread && channel != null) {
       return;
     }
+    _readViewportNearBottom = true;
     unawaited(ackCurrentChannel());
   }
 
