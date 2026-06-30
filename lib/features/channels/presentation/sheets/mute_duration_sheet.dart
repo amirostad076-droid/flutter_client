@@ -107,12 +107,12 @@ class MuteDurationSheetBody extends StatelessWidget {
 
 Future<MuteSelection?> showMuteDurationSheet(
   BuildContext context, {
-  String? muteTitle,
+  required String muteTitle,
   bool useRootNavigator = false,
 }) {
   return FluxerBottomSheet.show<MuteSelection>(
     context,
-    title: muteTitle ?? 'Mute',
+    title: muteTitle,
     variant: FluxerBottomSheetVariant.menu,
     useRootNavigator: useRootNavigator,
     builder: (sheetContext, _) => FluxerBottomSheetContent(

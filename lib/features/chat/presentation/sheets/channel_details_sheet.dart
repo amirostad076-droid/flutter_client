@@ -312,7 +312,13 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
       await _setMute(isMuted: false);
       return;
     }
-    final selection = await showMuteDurationSheet(context);
+    final l10n = FluxerLocalizations.of(context);
+    final selection = await showMuteDurationSheet(
+      context,
+      muteTitle: widget.dm != null
+          ? l10n.dmMuteConversation
+          : l10n.notificationMuteChannel,
+    );
     if (selection == null || !mounted) {
       return;
     }
