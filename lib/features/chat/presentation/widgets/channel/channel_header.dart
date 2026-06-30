@@ -14,6 +14,8 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/channel_details_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/channel/chat_back_button.dart';
+import 'package:fluxer_app/features/chat/providers/core/chat_back_button_unread_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
@@ -135,15 +137,17 @@ class ChannelHeader extends ConsumerWidget {
         (ref.watch(favoriteChannelProvider(targetChannelId)).asData?.value !=
             null);
 
+    final int backButtonUnreadCount = ref.watch(
+      chatBackButtonUnreadCountProvider(channelId),
+    );
     return Container(
       height: 64,
       color: context.colors.chatInputBackground,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          IconButton(
-            icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft, size: 24),
-            color: context.colors.textPrimaryMuted,
+          ChatBackButton(
+            unreadCount: backButtonUnreadCount,
             onPressed: () {
               FocusManager.instance.primaryFocus?.unfocus();
               final String location = ref.read(currentLocationProvider);
@@ -154,9 +158,6 @@ class ChannelHeader extends ConsumerWidget {
               ref.read(currentRevealSideProvider.notifier).set(RevealSide.left);
               ref.read(drawerRevealSyncTriggerProvider.notifier).nudge();
             },
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            style: IconButton.styleFrom(shape: const CircleBorder()),
           ),
           Expanded(
             child: Semantics(
