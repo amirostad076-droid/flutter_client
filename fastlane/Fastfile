@@ -1,3 +1,5 @@
+require "yaml"
+
 default_platform(:ios)
 
 def fetchRequiredEnvironmentValue(key)
@@ -10,6 +12,12 @@ end
 
 def project_root_path
   File.expand_path("..", __dir__)
+end
+
+def flutter_marketing_version
+  pubspec_path = File.join(project_root_path, "pubspec.yaml")
+  version = YAML.safe_load_file(pubspec_path).fetch("version")
+  version.to_s.split("+", 2).first
 end
 
 platform :ios do
@@ -32,12 +40,14 @@ platform :ios do
     )
 
     app_identifier = "com.fluxer"
+    flutter_build_name = flutter_marketing_version
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
       app_identifier: app_identifier,
       initial_build_number: 1
     )
     flutter_build_number = latest_build_number + 1
+    UI.message("Building #{app_identifier} #{flutter_build_name} (#{flutter_build_number})")
 
     update_project_provisioning(
       xcodeproj: "ios/Runner.xcodeproj",
@@ -73,6 +83,8 @@ platform :ios do
       "--flavor",
       "beta",
       "--no-codesign",
+      "--build-name",
+      flutter_build_name,
       "--build-number",
       flutter_build_number.to_s,
       "--dart-define-from-file=#{File.join(project_root_path, "tool/dart_defines/beta.json")}",
@@ -100,6 +112,7 @@ platform :ios do
       },
       xcargs: [
         "DEVELOPMENT_TEAM=#{ENV.fetch("APPLE_TEAM_ID")}",
+        "FLUTTER_BUILD_NAME=#{flutter_build_name}",
         "FLUTTER_BUILD_NUMBER=#{flutter_build_number}",
         "CODE_SIGN_STYLE=Manual",
       ].join(" ")
@@ -147,12 +160,14 @@ platform :ios do
     )
 
     app_identifier = "com.fluxer.canary"
+    flutter_build_name = flutter_marketing_version
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
       app_identifier: app_identifier,
       initial_build_number: 1
     )
     flutter_build_number = latest_build_number + 1
+    UI.message("Building #{app_identifier} #{flutter_build_name} (#{flutter_build_number})")
 
     update_project_provisioning(
       xcodeproj: "ios/Runner.xcodeproj",
@@ -188,6 +203,8 @@ platform :ios do
       "--flavor",
       "canary",
       "--no-codesign",
+      "--build-name",
+      flutter_build_name,
       "--build-number",
       flutter_build_number.to_s,
       "--dart-define-from-file=#{File.join(project_root_path, "tool/dart_defines/canary.json")}",
@@ -214,6 +231,7 @@ platform :ios do
       },
       xcargs: [
         "DEVELOPMENT_TEAM=#{ENV.fetch("APPLE_TEAM_ID")}",
+        "FLUTTER_BUILD_NAME=#{flutter_build_name}",
         "FLUTTER_BUILD_NUMBER=#{flutter_build_number}",
         "CODE_SIGN_STYLE=Manual",
       ].join(" ")
@@ -231,24 +249,19 @@ platform :ios do
     wait_for_processed_build(
       api_key: api_key,
       app_identifier: app_identifier,
+      app_version: flutter_build_name,
       build_number: flutter_build_number,
       groups: ["Fluxer Team", "Development collaborations"],
       changelog: changelog
     )
   end
 
-  def wait_for_processed_build(api_key:, app_identifier:, build_number:, groups:, changelog:)
+  def wait_for_processed_build(api_key:, app_identifier:, app_version:, build_number:, groups:, changelog:)
     maximum_wait_attempts = 40
     attempt_index = 0
 
-    # Authenticate Spaceship with the API key
-    # The api_key hash contains :key_id, :issuer_id, :key, and :is_key_content_base64
-    jwt = Spaceship::ConnectAPI::Token.create(
-      key_id: api_key[:key_id],
-      issuer_id: api_key[:issuer_id],
-      key: api_key[:key]
-    )
-    Spaceship::ConnectAPI.instance.token = jwt
+    jwt = Spaceship::ConnectAPI::Token.from(hash: api_key)
+    Spaceship::ConnectAPI.token = jwt
 
     begin
       loop do
@@ -261,25 +274,31 @@ platform :ios do
 
         begin
           app = Spaceship::ConnectAPI::App.find(app_identifier)
-          builds = app.get_builds(filter: { version: build_number.to_s }, limit: 1)
+          builds = Spaceship::ConnectAPI::Build.all(
+            app_id: app.id,
+            version: app_version,
+            build_number: build_number.to_s,
+            platform: Spaceship::ConnectAPI::Platform::IOS,
+            limit: 1
+          )
           build = builds.first
 
           if build.nil?
-            UI.message("Build #{build_number} not found yet, waiting... (attempt #{attempt_index}/#{maximum_wait_attempts})")
+            UI.message("Build #{app_version} (#{build_number}) not found yet, waiting... (attempt #{attempt_index}/#{maximum_wait_attempts})")
             sleep(30)
             next
           end
 
           case build.processing_state
           when "VALID"
-            UI.success("Build #{build_number} is ready for distribution")
+            UI.success("Build #{app_version} (#{build_number}) is ready for distribution")
             distribute_to_groups(build: build, app: app, groups: groups, changelog: changelog)
             return
           when "INVALID"
-            UI.error("Build #{build_number} processing failed (INVALID)")
+            UI.error("Build #{app_version} (#{build_number}) processing failed (INVALID)")
             raise "Build processing failed"
           else
-            UI.message("Build #{build_number} is #{build.processing_state}, waiting... (attempt #{attempt_index}/#{maximum_wait_attempts})")
+            UI.message("Build #{app_version} (#{build_number}) is #{build.processing_state}, waiting... (attempt #{attempt_index}/#{maximum_wait_attempts})")
             sleep(30)
           end
         rescue => poll_err
@@ -306,9 +325,38 @@ platform :ios do
       return
     end
 
-    build.post_beta_app_review_submission(beta_groups: beta_groups)
-    build.update(build_beta_detail: { auto_notify_enabled: true })
+    update_build_changelog(build: build, changelog: changelog)
+
+    if build.ready_for_beta_submission?
+      build.post_beta_app_review_submission
+    else
+      UI.message("Build #{build.app_version} (#{build.version}) does not require beta review submission")
+    end
+
+    build.add_beta_groups(beta_groups: beta_groups)
+    if build.build_beta_detail
+      Spaceship::ConnectAPI.patch_build_beta_details(
+        build_beta_details_id: build.build_beta_detail.id,
+        attributes: { autoNotifyEnabled: true }
+      )
+    else
+      UI.important("Unable to enable tester auto notifications because build beta details were not returned")
+    end
     UI.success("Distributed to groups: #{beta_groups.map(&:name).join(', ')}")
+  end
+
+  def update_build_changelog(build:, changelog:)
+    return if changelog.to_s.empty?
+
+    attributes = { whatsNew: changelog }
+    localization = build.get_beta_build_localizations.find { |item| item.locale == "en-US" }
+
+    if localization
+      Spaceship::ConnectAPI.patch_beta_build_localizations(localization_id: localization.id, attributes: attributes)
+    else
+      attributes[:locale] = "en-US"
+      Spaceship::ConnectAPI.post_beta_build_localizations(build_id: build.id, attributes: attributes)
+    end
   end
 
   desc "Build stable IPA and upload to App Store Connect as a processing build only (no App Review submission, no automatic release)"
@@ -330,12 +378,14 @@ platform :ios do
     )
 
     app_identifier = "com.fluxer"
+    flutter_build_name = flutter_marketing_version
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
       app_identifier: app_identifier,
       initial_build_number: 1
     )
     flutter_build_number = latest_build_number + 1
+    UI.message("Building #{app_identifier} #{flutter_build_name} (#{flutter_build_number})")
 
     update_project_provisioning(
       xcodeproj: "ios/Runner.xcodeproj",
@@ -371,6 +421,8 @@ platform :ios do
       "--flavor",
       "stable",
       "--no-codesign",
+      "--build-name",
+      flutter_build_name,
       "--build-number",
       flutter_build_number.to_s,
       "--dart-define-from-file=#{File.join(project_root_path, "tool/dart_defines/stable.json")}",
@@ -397,6 +449,7 @@ platform :ios do
       },
       xcargs: [
         "DEVELOPMENT_TEAM=#{ENV.fetch("APPLE_TEAM_ID")}",
+        "FLUTTER_BUILD_NAME=#{flutter_build_name}",
         "FLUTTER_BUILD_NUMBER=#{flutter_build_number}",
         "CODE_SIGN_STYLE=Manual",
       ].join(" ")
