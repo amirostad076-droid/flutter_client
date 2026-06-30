@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_background_handler_policy.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_tap_payload_cache.dart';
@@ -9,17 +10,31 @@ Future<void> bootstrapFcmIfNeeded() async {
   if (!PushProviderGuard.isFirebaseMessaging || !Platform.isAndroid) {
     return;
   }
-  FluxerFcmBootstrap.configure(
-    enrichTapPayload: FcmTapPayloadCache.enrich,
-    shouldSaveTapPayloadCache: shouldSaveFcmTapPayloadCache,
-    saveTapPayloadCache: FcmTapPayloadCache.save,
-  );
-  await FluxerFcmBootstrap.bootstrapIfNeeded();
+  try {
+    FluxerFcmBootstrap.configure(
+      enrichTapPayload: FcmTapPayloadCache.enrich,
+      shouldSaveTapPayloadCache: shouldSaveFcmTapPayloadCache,
+      saveTapPayloadCache: FcmTapPayloadCache.save,
+    );
+    await FluxerFcmBootstrap.bootstrapIfNeeded();
+  } on Object catch (error, stackTrace) {
+    if (kDebugMode) {
+      debugPrint('[FCM] bootstrapIfNeeded failed: $error\n$stackTrace');
+    }
+    rethrow;
+  }
 }
 
 Future<void> bootstrapFcmAfterRunApp() async {
   if (!PushProviderGuard.isFirebaseMessaging || !Platform.isAndroid) {
     return;
   }
-  await FluxerFcmBootstrap.bootstrapAfterRunApp();
+  try {
+    await FluxerFcmBootstrap.bootstrapAfterRunApp();
+  } on Object catch (error, stackTrace) {
+    if (kDebugMode) {
+      debugPrint('[FCM] bootstrapAfterRunApp failed: $error\n$stackTrace');
+    }
+    rethrow;
+  }
 }

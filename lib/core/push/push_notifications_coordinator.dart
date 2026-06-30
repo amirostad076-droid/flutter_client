@@ -52,6 +52,7 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
       return;
     }
     try {
+      ref.read(fcmNotificationTapBindingProvider);
       final bool granted = await requestPushNotificationPermission();
       if (kDebugMode) {
         debugPrint(

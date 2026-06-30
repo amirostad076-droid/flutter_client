@@ -38,7 +38,12 @@ Future<void> ensureFcmBackgroundNotificationsReady() async {
   const InitializationSettings settings = InitializationSettings(
     android: androidSettings,
   );
-  final bool? initialized = await plugin.initialize(settings: settings);
+  final bool? initialized = await plugin.initialize(
+    settings: settings,
+    onDidReceiveNotificationResponse: _onBackgroundNotificationResponse,
+    onDidReceiveBackgroundNotificationResponse:
+        _onBackgroundNotificationResponse,
+  );
   if (initialized != true) {
     if (kDebugMode) {
       debugPrint('[FcmBackgroundNotifications] initialize failed');
@@ -52,6 +57,15 @@ Future<void> ensureFcmBackgroundNotificationsReady() async {
   await android?.createNotificationChannel(kFcmBackgroundNotificationChannel);
   _backgroundPlugin = plugin;
   _isBackgroundNotificationsReady = true;
+}
+
+@pragma('vm:entry-point')
+void _onBackgroundNotificationResponse(NotificationResponse response) {
+  if (kDebugMode) {
+    debugPrint(
+      '[FcmBackgroundNotifications] tap payload=${response.payload}',
+    );
+  }
 }
 
 Future<void> showFcmBackgroundNotification(FcmPushMessage message) async {

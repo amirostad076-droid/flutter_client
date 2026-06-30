@@ -122,12 +122,6 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <meta-data
-            android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/fluxer_logo_monochrome" />
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="fluxer_default_push" />
-        <meta-data
             android:name="com.fluxer.BUILD_ENVIRONMENT"
             android:value="${buildEnvironment}" />
         <meta-data

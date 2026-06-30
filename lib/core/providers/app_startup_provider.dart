@@ -47,6 +47,9 @@ part 'app_startup_provider.g.dart';
 class AppStartup extends _$AppStartup {
   @override
   Future<void> build() async {
+    if (PushProviderGuard.isFirebaseMessaging && Platform.isAndroid) {
+      ref.read(fcmNotificationTapBindingProvider);
+    }
     try {
       debugPrint('[AppStartup] Starting…');
       await _validateAndRestore();
@@ -167,9 +170,7 @@ class AppStartup extends _$AppStartup {
     );
 
     if (PushProviderGuard.isFirebaseMessaging && Platform.isAndroid) {
-      ref
-        ..read(pendingPushNotificationPathProvider)
-        ..read(fcmNotificationTapBindingProvider);
+      ref.read(pendingPushNotificationPathProvider);
       await LocalPushNotifications().ensureInitialized(
         onNotificationTap: ref
             .read(pushNotificationTapHandlerProvider.notifier)
