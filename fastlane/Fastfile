@@ -219,31 +219,90 @@ platform :ios do
       ].join(" ")
     )
     changelog = "Build from GitHub Actions run: #{ENV['GITHUB_SERVER_URL']}/#{ENV['GITHUB_REPOSITORY']}/actions/runs/#{ENV['GITHUB_RUN_ID']}"
-    maximum_attempts = 3
-    attempt_index = 1
+
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+      skip_waiting_for_build_processing: true,
+      distribute_external: false
+    )
+    UI.success("Build #{flutter_build_number} uploaded to TestFlight")
+
+    wait_for_processed_build(
+      api_key: api_key,
+      app_identifier: app_identifier,
+      build_number: flutter_build_number,
+      groups: ["Fluxer Team", "Development collaborations"],
+      changelog: changelog
+    )
+  end
+
+  def wait_for_processed_build(api_key:, app_identifier:, build_number:, groups:, changelog:)
+    maximum_wait_attempts = 40
+    attempt_index = 0
+    distributed = false
+
     begin
-      upload_to_testflight(
-        api_key: api_key,
-        ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
-        skip_waiting_for_build_processing: false,
-        wait_processing_timeout_duration: 1200,
-        groups: ["Fluxer Team", "Development collaborations"],
-        changelog: changelog
-      )
+      loop do
+        attempt_index += 1
+
+        if attempt_index > maximum_wait_attempts
+          UI.important("Build #{build_number} processing timeout. Build was uploaded but distribution requires manual action.")
+          return
+        end
+
+        begin
+          Spaceship::ConnectAPI.login(api_key: api_key)
+          app = Spaceship::ConnectAPI::App.find(app_identifier)
+          builds = app.get_builds(filter: { version: build_number.to_s }, limit: 1)
+          build = builds.first
+
+          if build.nil?
+            UI.message("Build #{build_number} not found yet, waiting... (attempt #{attempt_index}/#{maximum_wait_attempts})")
+            sleep(30)
+            next
+          end
+
+          case build.processing_state
+          when "VALID"
+            UI.success("Build #{build_number} is ready for distribution")
+            distribute_to_groups(build: build, app: app, groups: groups, changelog: changelog)
+            distributed = true
+            break
+          when "INVALID"
+            UI.error("Build #{build_number} processing failed (INVALID)")
+            raise "Build processing failed"
+          else
+            UI.message("Build #{build_number} is #{build.processing_state}, waiting... (attempt #{attempt_index}/#{maximum_wait_attempts})")
+            sleep(30)
+          end
+        rescue => poll_err
+          if poll_err.message.include?("timeout") || poll_err.message.include?("connection")
+            UI.important("Polling error: #{poll_err.message}, will retry...")
+            sleep(30)
+          else
+            raise poll_err
+          end
+        end
+      end
     rescue => err
-      if err.message.include?("The bundle version must be higher") || err.message.include?("-19232")
-        raise err
-      end
-      if attempt_index >= maximum_attempts
-        raise err
-      end
-      retry_delay_seconds = attempt_index * 30
-      UI.important("TestFlight upload failed on attempt #{attempt_index}/#{maximum_attempts}: #{err.message}")
-      UI.important("Retrying upload in #{retry_delay_seconds} seconds...")
-      sleep(retry_delay_seconds)
-      attempt_index += 1
-      retry
+      UI.important("Distribution step failed: #{err.message}")
+      UI.important("Build #{build_number} was uploaded successfully to TestFlight")
+      UI.important("Manual distribution to groups may be required: #{groups.join(', ')}")
     end
+  end
+
+  def distribute_to_groups(build:, app:, groups:, changelog:)
+    beta_groups = groups.map { |name| app.get_beta_groups(filter: { name: name }).first }.compact
+
+    if beta_groups.empty?
+      UI.important("No beta groups found for distribution")
+      return
+    end
+
+    build.post_beta_app_review_submission(beta_groups: beta_groups)
+    build.update(build_beta_detail: { auto_notify_enabled: true })
+    UI.success("Distributed to groups: #{beta_groups.map(&:name).join(', ')}")
   end
 
   desc "Build stable IPA and upload to App Store Connect as a processing build only (no App Review submission, no automatic release)"
