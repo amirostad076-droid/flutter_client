@@ -240,7 +240,15 @@ platform :ios do
   def wait_for_processed_build(api_key:, app_identifier:, build_number:, groups:, changelog:)
     maximum_wait_attempts = 40
     attempt_index = 0
-    distributed = false
+
+    # Authenticate Spaceship with the API key
+    # The api_key hash contains :key_id, :issuer_id, :key, and :is_key_content_base64
+    jwt = Spaceship::ConnectAPI::Token.create(
+      key_id: api_key[:key_id],
+      issuer_id: api_key[:issuer_id],
+      key: api_key[:key]
+    )
+    Spaceship::ConnectAPI.instance.token = jwt
 
     begin
       loop do
@@ -252,7 +260,6 @@ platform :ios do
         end
 
         begin
-          Spaceship::ConnectAPI.login(api_key: api_key)
           app = Spaceship::ConnectAPI::App.find(app_identifier)
           builds = app.get_builds(filter: { version: build_number.to_s }, limit: 1)
           build = builds.first
@@ -267,8 +274,7 @@ platform :ios do
           when "VALID"
             UI.success("Build #{build_number} is ready for distribution")
             distribute_to_groups(build: build, app: app, groups: groups, changelog: changelog)
-            distributed = true
-            break
+            return
           when "INVALID"
             UI.error("Build #{build_number} processing failed (INVALID)")
             raise "Build processing failed"
