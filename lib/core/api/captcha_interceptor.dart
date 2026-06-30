@@ -17,6 +17,9 @@ const _kCaptchaInternalKey = '_captchaInternal';
 /// Kept short because users cannot interact with a headless WebView.
 const Duration _kInvisibleSolveTimeout = Duration(seconds: 9);
 
+/// Maximum number re-prompts after the server rejects a token.
+const int _kMaxCaptchaRetries = 2;
+
 /// Captcha configuration extracted from the `.well-known/fluxer` response.
 class _CaptchaConfig {
   const _CaptchaConfig({
@@ -53,8 +56,6 @@ class _CaptchaConfig {
     throw StateError('No captcha provider configured');
   }
 }
-
-enum _CaptchaTokenSource { invisible, dialog }
 
 /// Dio interceptor that handles captcha challenges from the Fluxer API.
 ///
@@ -152,74 +153,66 @@ class CaptchaInterceptor extends Interceptor {
     );
 
     var finalProvider = provider;
-    var tokenSource = _CaptchaTokenSource.invisible;
 
     if (!_hasUsableToken(token)) {
-      tokenSource = _CaptchaTokenSource.dialog;
-      final result = await showCaptchaDialog(
-        preferredProvider: provider,
-        turnstileSiteKey: config.turnstileSiteKey,
-        hcaptchaSiteKey: config.hcaptchaSiteKey,
-        baseUrl: config.baseUrl,
-      );
-
+      final result = await _showCaptchaDialog(config, provider);
       if (result != null) {
         token = result.$1;
         finalProvider = result.$2;
       }
     }
 
-    if (!_hasUsableToken(token)) {
-      talker.warning('[CaptchaInterceptor] No token obtained');
-      handler.next(err);
-      return;
-    }
-
     final opts = err.requestOptions;
-    opts.headers['X-Captcha-Token'] = token!.trim();
-    opts.headers['X-Captcha-Type'] = finalProvider.name;
     opts.extra[_kCaptchaInternalKey] = true;
 
-    try {
-      talker.debug('[CaptchaInterceptor] Retrying with captcha token');
-      final retryResponse = await dio.fetch<dynamic>(opts);
-      handler.resolve(retryResponse);
-    } on DioException catch (retryError) {
-      if (_isCaptchaChallenge(retryError) &&
-          tokenSource == _CaptchaTokenSource.invisible) {
-        talker.debug(
-          '[CaptchaInterceptor] Invisible token rejected, trying dialog',
-        );
-        final dialogResult = await showCaptchaDialog(
-          preferredProvider: provider,
-          turnstileSiteKey: config.turnstileSiteKey,
-          hcaptchaSiteKey: config.hcaptchaSiteKey,
-          baseUrl: config.baseUrl,
-        );
-        if (dialogResult != null && _hasUsableToken(dialogResult.$1)) {
-          opts.headers['X-Captcha-Token'] = dialogResult.$1.trim();
-          opts.headers['X-Captcha-Type'] = dialogResult.$2.name;
-          try {
-            final retryResponse = await dio.fetch<dynamic>(opts);
-            handler.resolve(retryResponse);
-            return;
-          } on DioException catch (dialogRetryError) {
-            talker.warning(
-              '[CaptchaInterceptor] Dialog retry failed: '
-              '${dialogRetryError.response?.statusCode} '
-              '${dialogRetryError.message}',
-            );
-            handler.next(dialogRetryError);
-            return;
-          }
-        }
+    for (var attempt = 0; attempt <= _kMaxCaptchaRetries; attempt++) {
+      if (!_hasUsableToken(token)) {
+        talker.warning('[CaptchaInterceptor] No token obtained.');
+        handler.next(err);
+        return;
       }
-      talker.warning(
-        '[CaptchaInterceptor] Retry failed: '
-        '${retryError.response?.statusCode} ${retryError.message}',
-      );
-      handler.next(retryError);
+
+      opts.headers['X-Captcha-Token'] = token!.trim();
+      opts.headers['X-Captcha-Type'] = finalProvider.name;
+
+      try {
+        talker.debug('[CaptchaInterceptor] Retrying with captcha token.');
+        final retryResponse = await dio.fetch<dynamic>(opts);
+        handler.resolve(retryResponse);
+        return;
+      } on DioException catch (retryError) {
+        if (!_isCaptchaChallenge(retryError) ||
+            attempt == _kMaxCaptchaRetries) {
+          talker.warning(
+            '[CaptchaInterceptor] Retry failed: '
+            '${retryError.response?.statusCode} ${retryError.message}',
+          );
+          handler.next(retryError);
+          return;
+        }
+
+        talker.debug('[CaptchaInterceptor] Token rejected, re-prompting...');
+        final result = await _showCaptchaDialog(config, provider);
+        if (result == null || !_hasUsableToken(result.$1)) {
+          handler.next(retryError);
+          return;
+        }
+        token = result.$1;
+        finalProvider = result.$2;
+      }
     }
+  }
+
+  Future<(String, CaptchaProvider)?> _showCaptchaDialog(
+    _CaptchaConfig config,
+    CaptchaProvider provider,
+  ) {
+    return showCaptchaDialog(
+      preferredProvider: provider,
+      turnstileSiteKey: config.turnstileSiteKey,
+      hcaptchaSiteKey: config.hcaptchaSiteKey,
+      baseUrl: config.baseUrl,
+    );
   }
 
   bool _hasUsableToken(String? token) {
