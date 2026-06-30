@@ -1,6 +1,10 @@
+import 'dart:ui';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'guild_drag_provider.g.dart';
+
+const double kGuildDragCollapseThreshold = 12;
 
 enum DropPosition { before, after, combine }
 
@@ -10,12 +14,14 @@ class DragState {
     this.hoverTargetId,
     this.hoverTargetIsFolder = false,
     this.dropPosition,
+    this.hasMovedFromHoldPoint = false,
   });
 
   final String? dragItemId;
   final String? hoverTargetId;
   final bool hoverTargetIsFolder;
   final DropPosition? dropPosition;
+  final bool hasMovedFromHoldPoint;
 
   bool get isDragging => dragItemId != null;
   bool get hasHoverTarget => hoverTargetId != null;
@@ -25,6 +31,7 @@ class DragState {
     String? hoverTargetId,
     bool? hoverTargetIsFolder,
     DropPosition? dropPosition,
+    bool? hasMovedFromHoldPoint,
     bool clearDragItemId = false,
     bool clearHoverTargetId = false,
     bool clearDropPosition = false,
@@ -38,17 +45,34 @@ class DragState {
       dropPosition: clearDropPosition
           ? null
           : (dropPosition ?? this.dropPosition),
+      hasMovedFromHoldPoint:
+          hasMovedFromHoldPoint ?? this.hasMovedFromHoldPoint,
     );
   }
 }
 
 @Riverpod(keepAlive: true)
 class GuildDrag extends _$GuildDrag {
+  Offset? _dragStartGlobalPosition;
+
   @override
   DragState build() => const DragState();
 
   void startDrag(String itemId) {
+    _dragStartGlobalPosition = null;
     state = DragState(dragItemId: itemId);
+  }
+
+  void updateDragMovement(Offset globalPosition) {
+    _dragStartGlobalPosition ??= globalPosition;
+    if (state.hasMovedFromHoldPoint) {
+      return;
+    }
+    final double verticalDistance =
+        (globalPosition.dy - _dragStartGlobalPosition!.dy).abs();
+    if (verticalDistance >= kGuildDragCollapseThreshold) {
+      state = state.copyWith(hasMovedFromHoldPoint: true);
+    }
   }
 
   bool updateHover({
@@ -80,6 +104,7 @@ class GuildDrag extends _$GuildDrag {
   }
 
   void endDrag() {
+    _dragStartGlobalPosition = null;
     state = const DragState();
   }
 }

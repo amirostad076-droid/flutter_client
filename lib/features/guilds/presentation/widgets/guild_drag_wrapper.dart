@@ -142,7 +142,10 @@ class GuildDragWrapper extends ConsumerWidget {
     final DragState dragState = ref.watch(guildDragProvider);
     final bool isMobile = isMobileLayout(context);
     final Color brandPrimary = context.colors.brandPrimary;
-    final DropPosition? dropPosition = dragState.hoverTargetId == itemId
+    final bool showDropIndicators =
+        !isMobile || dragState.hasMovedFromHoldPoint;
+    final DropPosition? dropPosition =
+        showDropIndicators && dragState.hoverTargetId == itemId
         ? dragState.dropPosition
         : null;
 
@@ -171,15 +174,21 @@ class GuildDragWrapper extends ConsumerWidget {
       return dragTarget;
     }
 
+    final bool collapseSource =
+        isMobile &&
+        dragState.dragItemId == itemId &&
+        dragState.hasMovedFromHoldPoint;
+
     return _GuildDraggable(
       isMobile: isMobile,
       data: GuildDragData(itemId: itemId, isFolder: isFolder),
-      feedback: Transform.scale(
-        scale: isMobile ? 0.92 : 0.9,
-        child: dragFeedback,
-      ),
+      feedback: isMobile
+          ? _MobileDragFeedback(itemId: itemId, child: dragFeedback)
+          : Transform.scale(scale: 0.9, child: dragFeedback),
       childWhenDragging: isMobile
-          ? const SizedBox.shrink()
+          ? collapseSource
+                ? const SizedBox.shrink()
+                : IgnorePointer(child: dragTarget)
           : IgnorePointer(
               child: Visibility(
                 visible: false,
@@ -195,6 +204,11 @@ class GuildDragWrapper extends ConsumerWidget {
         }
         ref.read(guildDragProvider.notifier).startDrag(itemId);
       },
+      onDragUpdate: isMobile
+          ? (Offset globalPosition) => ref
+                .read(guildDragProvider.notifier)
+                .updateDragMovement(globalPosition)
+          : null,
       onDragEnded: () => ref.read(guildDragProvider.notifier).endDrag(),
       child: dragTarget,
     );
@@ -206,6 +220,9 @@ class GuildDragWrapper extends ConsumerWidget {
     required DragTargetDetails<GuildDragData> details,
     required bool isMobile,
   }) {
+    if (isMobile && !ref.read(guildDragProvider).hasMovedFromHoldPoint) {
+      return;
+    }
     final RenderBox renderBox = context.findRenderObject()! as RenderBox;
     final double ratio =
         (renderBox.globalToLocal(details.offset).dy / renderBox.size.height)
@@ -266,6 +283,22 @@ class GuildDragWrapper extends ConsumerWidget {
   }
 }
 
+class _MobileDragFeedback extends ConsumerWidget {
+  const _MobileDragFeedback({required this.itemId, required this.child});
+
+  final String itemId;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final DragState dragState = ref.watch(guildDragProvider);
+    if (dragState.dragItemId != itemId || !dragState.hasMovedFromHoldPoint) {
+      return const SizedBox.shrink();
+    }
+    return Transform.scale(scale: 0.92, child: child);
+  }
+}
+
 class _GuildDraggable extends StatelessWidget {
   const _GuildDraggable({
     required this.isMobile,
@@ -275,6 +308,7 @@ class _GuildDraggable extends StatelessWidget {
     required this.onDragStarted,
     required this.onDragEnded,
     required this.child,
+    this.onDragUpdate,
   });
 
   final bool isMobile;
@@ -283,6 +317,7 @@ class _GuildDraggable extends StatelessWidget {
   final Widget childWhenDragging;
   final VoidCallback onDragStarted;
   final VoidCallback onDragEnded;
+  final void Function(Offset globalPosition)? onDragUpdate;
   final Widget child;
 
   @override
@@ -292,6 +327,9 @@ class _GuildDraggable extends StatelessWidget {
         data: data,
         dragAnchorStrategy: pointerDragAnchorStrategy,
         onDragStarted: onDragStarted,
+        onDragUpdate: onDragUpdate == null
+            ? null
+            : (details) => onDragUpdate!(details.globalPosition),
         onDragEnd: (_) => onDragEnded(),
         onDraggableCanceled: (_, _) => onDragEnded(),
         feedback: feedback,
