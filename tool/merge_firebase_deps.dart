@@ -106,9 +106,7 @@ void _verifyFcmManifest(Directory root) {
   }
   final String content = manifest.readAsStringSync();
   if (!content.contains('FirebaseMessagingService')) {
-    throw StateError(
-      '$_fcmManifestPath must declare FirebaseMessagingService',
-    );
+    throw StateError('$_fcmManifestPath must declare FirebaseMessagingService');
   }
   if (!content.contains('com.google.firebase.MESSAGING_EVENT')) {
     throw StateError(

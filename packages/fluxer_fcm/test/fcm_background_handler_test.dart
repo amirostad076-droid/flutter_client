@@ -23,19 +23,22 @@ void main() {
       expect(mapped.payload['channel_id'], 'dm-1');
     });
 
-    test('skips local display for hybrid messages but keeps navigation payload', () {
-      final RemoteMessage input = RemoteMessage(
-        messageId: 'bg-hybrid',
-        data: <String, String>{
-          'channel_id': 'dm-1',
-          'message_id': 'msg-9',
-          'url': '/channels/@me/dm-1/msg-9',
-        },
-        notification: const RemoteNotification(title: 'alice', body: 'hello'),
-      );
-      final FcmPushMessage mapped = mapRemoteMessage(input);
-      expect(shouldDisplayFcmBackgroundLocalNotification(input), isFalse);
-      expect(mapped.payload['url'], '/channels/@me/dm-1/msg-9');
-    });
+    test(
+      'skips local display for hybrid messages but keeps navigation payload',
+      () {
+        final RemoteMessage input = RemoteMessage(
+          messageId: 'bg-hybrid',
+          data: <String, String>{
+            'channel_id': 'dm-1',
+            'message_id': 'msg-9',
+            'url': '/channels/@me/dm-1/msg-9',
+          },
+          notification: const RemoteNotification(title: 'alice', body: 'hello'),
+        );
+        final FcmPushMessage mapped = mapRemoteMessage(input);
+        expect(shouldDisplayFcmBackgroundLocalNotification(input), isFalse);
+        expect(mapped.payload['url'], '/channels/@me/dm-1/msg-9');
+      },
+    );
   });
 }

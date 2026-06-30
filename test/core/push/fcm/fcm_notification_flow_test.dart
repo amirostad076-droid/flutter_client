@@ -25,13 +25,13 @@ void main() {
     addTearDown(container.dispose);
     container.read(authStateProvider.notifier).setAuthenticated(value: true);
     container.read(gatewayReadyProvider.notifier).reset();
-    container
-        .read(pushNotificationTapHandlerProvider.notifier)
-        .handlePayload(<String, String>{
-          'url': '/channels/@me/dm-1/msg-9',
-          'channel_id': 'dm-1',
-          'message_id': 'msg-9',
-        });
+    container.read(pushNotificationTapHandlerProvider.notifier).handlePayload(
+      <String, String>{
+        'url': '/channels/@me/dm-1/msg-9',
+        'channel_id': 'dm-1',
+        'message_id': 'msg-9',
+      },
+    );
     expect(
       container.read(pendingPushNotificationPathProvider)?.path,
       '/channels/@me/dm-1/msg-9',
@@ -43,13 +43,13 @@ void main() {
     addTearDown(container.dispose);
     container.read(authStateProvider.notifier).setAuthenticated(value: true);
     container.read(gatewayReadyProvider.notifier).reset();
-    container
-        .read(pushNotificationTapHandlerProvider.notifier)
-        .handlePayload(<String, String>{
-          'channel_id': 'dm-2',
-          'message_id': 'msg-3',
-          'guild_id': '@me',
-        });
+    container.read(pushNotificationTapHandlerProvider.notifier).handlePayload(
+      <String, String>{
+        'channel_id': 'dm-2',
+        'message_id': 'msg-3',
+        'guild_id': '@me',
+      },
+    );
     expect(
       container.read(pendingPushNotificationPathProvider)?.path,
       '/channels/@me/dm-2/msg-3',
@@ -57,11 +57,10 @@ void main() {
   });
 
   test('FCM tap payload navigates immediately when shell is ready', () {
-    final _RecordingDeepLinkHandler recordingHandler = _RecordingDeepLinkHandler();
+    final _RecordingDeepLinkHandler recordingHandler =
+        _RecordingDeepLinkHandler();
     final ProviderContainer container = ProviderContainer(
-      overrides: [
-        deepLinkHandlerProvider.overrideWith(() => recordingHandler),
-      ],
+      overrides: [deepLinkHandlerProvider.overrideWith(() => recordingHandler)],
     );
     addTearDown(container.dispose);
     container.read(authStateProvider.notifier).setAuthenticated(value: true);
@@ -69,11 +68,9 @@ void main() {
     container
         .read(gatewayConnectionFailedProvider.notifier)
         .setFailed(value: false);
-    container
-        .read(pushNotificationTapHandlerProvider.notifier)
-        .handlePayload(<String, String>{
-          'url': '/channels/@me/dm-1/msg-9',
-        });
+    container.read(pushNotificationTapHandlerProvider.notifier).handlePayload(
+      <String, String>{'url': '/channels/@me/dm-1/msg-9'},
+    );
     expect(container.read(pendingPushNotificationPathProvider), isNull);
     expect(recordingHandler.handledPaths, <String>['/channels/@me/dm-1/msg-9']);
   });

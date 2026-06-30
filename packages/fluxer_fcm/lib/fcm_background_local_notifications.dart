@@ -62,9 +62,7 @@ Future<void> ensureFcmBackgroundNotificationsReady() async {
 @pragma('vm:entry-point')
 void _onBackgroundNotificationResponse(NotificationResponse response) {
   if (kDebugMode) {
-    debugPrint(
-      '[FcmBackgroundNotifications] tap payload=${response.payload}',
-    );
+    debugPrint('[FcmBackgroundNotifications] tap payload=${response.payload}');
   }
 }
 

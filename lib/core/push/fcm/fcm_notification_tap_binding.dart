@@ -18,6 +18,7 @@ void fcmNotificationTapBinding(Ref ref) {
         .read(pushNotificationTapHandlerProvider.notifier)
         .handlePayload(payload);
   }
+
   FirebaseMessagingPushService.tapHost.setNotificationTapCallback(handleTap);
   ref.onDispose(() {
     FirebaseMessagingPushService.tapHost.setNotificationTapCallback(null);

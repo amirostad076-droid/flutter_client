@@ -4,7 +4,8 @@ typedef FcmTapPayloadCacheSaver =
       String? gcmMessageId,
     });
 
-typedef FcmTapPayloadCachePredicate = bool Function(Map<String, String> payload);
+typedef FcmTapPayloadCachePredicate =
+    bool Function(Map<String, String> payload);
 
 abstract final class FcmTapPayloadCacheHooks {
   static FcmTapPayloadCachePredicate? shouldSave;
