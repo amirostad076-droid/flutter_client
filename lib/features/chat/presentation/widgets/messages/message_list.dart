@@ -623,6 +623,9 @@ class _MessageListState extends ConsumerState<MessageList> {
             onDeleteFailed: () => ref
                 .read(chatViewModelProvider.notifier)
                 .deleteFailedMessage(message.id),
+            onDismissClientSystem: () => ref
+                .read(chatViewModelProvider.notifier)
+                .dismissClientSystemMessage(message.id),
             onMarkAsUnread: () => ref
                 .read(chatViewModelProvider.notifier)
                 .markMessageUnread(message.id),

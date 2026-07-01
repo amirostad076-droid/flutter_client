@@ -4225,6 +4225,36 @@ class FluxerLocalizationsUk extends FluxerLocalizations {
   String get chatMessageFailedToSend => 'Failed to send message';
 
   @override
+  String chatSendFailureDmRestricted(String settingsPath) {
+    return 'Your message could not be delivered. This is usually because you don\'t share a community with the recipient or the recipient is only accepting direct messages from friends. You may also need to adjust your own direct message privacy settings in $settingsPath.';
+  }
+
+  @override
+  String get chatSendFailureUnclaimedDm =>
+      'Your message could not be delivered. You need to claim your account to send direct messages.';
+
+  @override
+  String get chatSendFailureUnclaimedGeneral =>
+      'Your message could not be delivered. You need to claim your account to send messages.';
+
+  @override
+  String get chatSendFailureContentBlocked =>
+      'Your message could not be delivered because it was flagged by our safety systems. If you believe this is a mistake, please contact support.';
+
+  @override
+  String get chatSendFailureNsfwEmojiSticker =>
+      'Your message could not be delivered because it contains mature emoji or stickers that are not allowed in this context.';
+
+  @override
+  String get chatClientSystemOnlyYouCanSee => 'Only you can see this message.';
+
+  @override
+  String get chatClientSystemDismiss => 'Dismiss';
+
+  @override
+  String get privacyDashboardCommunicationSection => 'Communication';
+
+  @override
   String get chatMessageDeleteFailed => 'Delete Failed Message';
 
   @override

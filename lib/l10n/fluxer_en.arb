@@ -5346,6 +5346,43 @@
   "@chatMessageFailedToSend": {
     "description": "Status label shown under a failed outgoing chat message."
   },
+  "chatSendFailureDmRestricted": "Your message could not be delivered. This is usually because you don't share a community with the recipient or the recipient is only accepting direct messages from friends. You may also need to adjust your own direct message privacy settings in {settingsPath}.",
+  "@chatSendFailureDmRestricted": {
+    "description": "Fluxerbot system message when a DM cannot be delivered due to privacy restrictions.",
+    "placeholders": {
+      "settingsPath": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSendFailureUnclaimedDm": "Your message could not be delivered. You need to claim your account to send direct messages.",
+  "@chatSendFailureUnclaimedDm": {
+    "description": "Fluxerbot system message when an unclaimed account tries to send a DM."
+  },
+  "chatSendFailureUnclaimedGeneral": "Your message could not be delivered. You need to claim your account to send messages.",
+  "@chatSendFailureUnclaimedGeneral": {
+    "description": "Fluxerbot system message when an unclaimed account tries to send a message."
+  },
+  "chatSendFailureContentBlocked": "Your message could not be delivered because it was flagged by our safety systems. If you believe this is a mistake, please contact support.",
+  "@chatSendFailureContentBlocked": {
+    "description": "Fluxerbot system message when message content is blocked by safety systems."
+  },
+  "chatSendFailureNsfwEmojiSticker": "Your message could not be delivered because it contains mature emoji or stickers that are not allowed in this context.",
+  "@chatSendFailureNsfwEmojiSticker": {
+    "description": "Fluxerbot system message when mature emoji or stickers are blocked."
+  },
+  "chatClientSystemOnlyYouCanSee": "Only you can see this message.",
+  "@chatClientSystemOnlyYouCanSee": {
+    "description": "Footer on ephemeral Fluxerbot client system messages."
+  },
+  "chatClientSystemDismiss": "Dismiss",
+  "@chatClientSystemDismiss": {
+    "description": "Action to remove an ephemeral Fluxerbot client system message locally."
+  },
+  "privacyDashboardCommunicationSection": "Communication",
+  "@privacyDashboardCommunicationSection": {
+    "description": "Section title for communication privacy settings in the privacy dashboard."
+  },
   "chatMessageDeleteFailed": "Delete Failed Message",
   "@chatMessageDeleteFailed": {
     "description": "Action label for deleting a failed outgoing chat message."

@@ -7265,6 +7265,54 @@ abstract class FluxerLocalizations {
   /// **'Failed to send message'**
   String get chatMessageFailedToSend;
 
+  /// Fluxerbot system message when a DM cannot be delivered due to privacy restrictions.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message could not be delivered. This is usually because you don\'t share a community with the recipient or the recipient is only accepting direct messages from friends. You may also need to adjust your own direct message privacy settings in {settingsPath}.'**
+  String chatSendFailureDmRestricted(String settingsPath);
+
+  /// Fluxerbot system message when an unclaimed account tries to send a DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message could not be delivered. You need to claim your account to send direct messages.'**
+  String get chatSendFailureUnclaimedDm;
+
+  /// Fluxerbot system message when an unclaimed account tries to send a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message could not be delivered. You need to claim your account to send messages.'**
+  String get chatSendFailureUnclaimedGeneral;
+
+  /// Fluxerbot system message when message content is blocked by safety systems.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message could not be delivered because it was flagged by our safety systems. If you believe this is a mistake, please contact support.'**
+  String get chatSendFailureContentBlocked;
+
+  /// Fluxerbot system message when mature emoji or stickers are blocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message could not be delivered because it contains mature emoji or stickers that are not allowed in this context.'**
+  String get chatSendFailureNsfwEmojiSticker;
+
+  /// Footer on ephemeral Fluxerbot client system messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you can see this message.'**
+  String get chatClientSystemOnlyYouCanSee;
+
+  /// Action to remove an ephemeral Fluxerbot client system message locally.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get chatClientSystemDismiss;
+
+  /// Section title for communication privacy settings in the privacy dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Communication'**
+  String get privacyDashboardCommunicationSection;
+
   /// Action label for deleting a failed outgoing chat message.
   ///
   /// In en, this message translates to:

@@ -170,6 +170,7 @@ class MessageItem extends ConsumerStatefulWidget {
   final bool isDmChannel;
   final VoidCallback? onRetry;
   final VoidCallback? onDeleteFailed;
+  final VoidCallback? onDismissClientSystem;
   final VoidCallback? onMarkAsUnread;
   final VoidCallback? onViewReactions;
   final VoidCallback? onReport;
@@ -204,6 +205,7 @@ class MessageItem extends ConsumerStatefulWidget {
     this.isDmChannel = false,
     this.onRetry,
     this.onDeleteFailed,
+    this.onDismissClientSystem,
     this.onMarkAsUnread,
     this.onViewReactions,
     this.onReport,
@@ -478,6 +480,13 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   @override
   Widget build(BuildContext context) {
     final msg = widget.message;
+    if (msg.isClientSystemMessage && msg.authorId == fluxerBotUserId) {
+      return _buildClientSystemMessageRow(
+        context,
+        msg,
+        isGrouped: widget.isGrouped,
+      );
+    }
     final isGrouped = widget.isGrouped;
     final isMobile = isMobileLayout(context);
     final isTouch =
@@ -910,7 +919,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     required bool isMobile,
     required bool revealSpoilers,
   }) {
-    final Widget markdown = MessageMarkdown(
+    Widget markdown = MessageMarkdown(
       data: msg.content,
       messageId: msg.id,
       selectable: !isMobile,
@@ -918,6 +927,12 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       revealSpoilers: revealSpoilers,
       spoilerSyncController: _spoilerSyncController,
     );
+    if (msg.hasFailed && msg.content.trim().isNotEmpty) {
+      markdown = DefaultTextStyle(
+        style: TextStyle(color: context.colors.textDanger),
+        child: markdown,
+      );
+    }
     if (!msg.isEdited) {
       return markdown;
     }
@@ -1098,7 +1113,6 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               userId: msg.authorId,
               imageUrl: authorDisplay.avatarUrl,
               avatarColor: authorDisplay.avatarColor,
-              size: kMessageAvatarSize,
               cacheKey: messageAuthorAvatarKey(
                 authorId: msg.authorId,
                 avatarHash: msg.authorAvatar,
@@ -1179,6 +1193,137 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       ),
     ],
   );
+
+  Widget _buildClientSystemMessageRow(
+    BuildContext context,
+    Message msg, {
+    required bool isGrouped,
+  }) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final TextStyle footerTextStyle = context.textStyles.timestamp.copyWith(
+      color: context.colors.textTertiary,
+    );
+    final TextStyle dismissTextStyle = context.textStyles.timestamp.copyWith(
+      color: context.colors.textLink,
+    );
+    return AnimatedContainer(
+      duration: _kJumpHighlightFadeDuration,
+      curve: _kJumpHighlightFadeCurve,
+      decoration: BoxDecoration(
+        color: _kJumpHighlightBg,
+        border: Border(
+          left: BorderSide(
+            color: context.colors.brandPrimaryLight,
+            width: _kJumpHighlightBarWidth,
+          ),
+        ),
+      ),
+      padding: EdgeInsets.only(
+        left: kMessageRowPaddingHorizontal + _kJumpHighlightBarWidth,
+        right: kMessageRowPaddingHorizontal,
+        top: isGrouped ? 2 : 8,
+        bottom: isGrouped ? 2 : 8,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isGrouped)
+            Padding(
+              padding: const EdgeInsets.only(top: kMessageAvatarTopPadding),
+              child: FluxerAvatar.user(
+                fallbackText: msg.authorName,
+                userId: msg.authorId,
+              ),
+            ),
+          if (!isGrouped) const SizedBox(width: kMessageAvatarTextGap),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!isGrouped)
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          msg.authorName,
+                          style: TextStyle(
+                            color: context.colors.textChat,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                      if (messageAuthorShowsUserTag(
+                        authorIsBot: msg.authorIsBot,
+                        authorIsSystem: msg.authorIsSystem,
+                      )) ...[
+                        const SizedBox(width: 6),
+                        FluxerUserTag(
+                          isSystem: messageAuthorUserTagIsSystem(
+                            authorIsSystem: msg.authorIsSystem,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 8),
+                      Text(
+                        formatMessageTimestamp(
+                          msg.timestamp.toLocal(),
+                          l10n,
+                          Localizations.localeOf(context).toString(),
+                        ),
+                        style: context.textStyles.timestamp,
+                      ),
+                    ],
+                  ),
+                if (!isGrouped) const SizedBox(height: 2),
+                MessageMarkdown(
+                  data: msg.content,
+                  messageId: msg.id,
+                  selectable: !isMobileLayout(context),
+                  channelId: msg.channelId,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text.rich(
+                    TextSpan(
+                      style: footerTextStyle,
+                      children: [
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: PhosphorIcon(
+                              PhosphorIconsRegular.eye,
+                              size: 14,
+                              color: footerTextStyle.color,
+                            ),
+                          ),
+                        ),
+                        TextSpan(text: l10n.chatClientSystemOnlyYouCanSee),
+                        const TextSpan(text: ' '),
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: GestureDetector(
+                            onTap: widget.onDismissClientSystem,
+                            child: Text(
+                              l10n.chatClientSystemDismiss,
+                              style: dismissTextStyle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildEmbed(
     Embed embed, {
