@@ -9,6 +9,7 @@ import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/features/guilds/utils/invite_link_navigator.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/emoji_utils.dart';
@@ -72,6 +73,14 @@ FluxerMarkdownConfig createFluxerMarkdownConfig({
           context: context,
           link: jump,
         );
+        return;
+      }
+
+      if (isInviteLink(href)) {
+        if (!context.mounted) {
+          return;
+        }
+        await handleInviteLinkTap(context, href);
         return;
       }
 

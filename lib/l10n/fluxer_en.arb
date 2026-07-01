@@ -715,6 +715,67 @@
   "@embedInviteUnavailable": {
     "description": "Disabled button label when an invite is unavailable."
   },
+  "inviteAcceptTitle": "You've been invited to join",
+  "@inviteAcceptTitle": {
+    "description": "Title of the invite accept modal."
+  },
+  "inviteAcceptJoinButton": "Join Community",
+  "@inviteAcceptJoinButton": {
+    "description": "Primary action to join a community from the invite modal."
+  },
+  "inviteAcceptGoToButton": "Go to Community",
+  "@inviteAcceptGoToButton": {
+    "description": "Primary action when the user is already a member of the invited community."
+  },
+  "inviteAcceptInvitesPaused": "Invites Paused",
+  "@inviteAcceptInvitesPaused": {
+    "description": "Disabled action label when community invites are paused."
+  },
+  "inviteAcceptNotFoundTitle": "Invite Invalid",
+  "@inviteAcceptNotFoundTitle": {
+    "description": "Title when an invite link is expired or invalid."
+  },
+  "inviteAcceptNotFoundDescription": "This invite may be expired or invalid.",
+  "@inviteAcceptNotFoundDescription": {
+    "description": "Description when an invite link is expired or invalid."
+  },
+  "inviteAcceptJoinGroupButton": "Join group",
+  "@inviteAcceptJoinGroupButton": {
+    "description": "Primary action to join a group DM from the invite modal."
+  },
+  "inviteAcceptGroupDmDescription": "You've been invited to join a group DM by {inviterName}",
+  "@inviteAcceptGroupDmDescription": {
+    "description": "Description for a group DM invite in the accept modal.",
+    "placeholders": {
+      "inviterName": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteAcceptSomeone": "someone",
+  "@inviteAcceptSomeone": {
+    "description": "Fallback inviter name when the inviter is unknown."
+  },
+  "inviteAcceptEmojiPack": "Emoji pack",
+  "@inviteAcceptEmojiPack": {
+    "description": "Label for an emoji pack invite."
+  },
+  "inviteAcceptStickerPack": "Sticker pack",
+  "@inviteAcceptStickerPack": {
+    "description": "Label for a sticker pack invite."
+  },
+  "inviteAcceptInstallEmojiPack": "Install emoji pack",
+  "@inviteAcceptInstallEmojiPack": {
+    "description": "Primary action to install an emoji pack from an invite."
+  },
+  "inviteAcceptInstallStickerPack": "Install sticker pack",
+  "@inviteAcceptInstallStickerPack": {
+    "description": "Primary action to install a sticker pack from an invite."
+  },
+  "inviteAcceptPackInstallNote": "Accepting this invite installs the pack automatically.",
+  "@inviteAcceptPackInstallNote": {
+    "description": "Note shown on expression pack invites before accepting."
+  },
   "mentionUnknownChannel": "unknown-channel",
   "@mentionUnknownChannel": {
     "description": "Fallback name shown in a channel mention pill when the channel is not found."

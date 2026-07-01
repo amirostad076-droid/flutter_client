@@ -18,6 +18,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/chat_loading_spinn
 import 'package:fluxer_app/features/chat/utils/chat_spinner_debug.dart';
 import 'package:fluxer_app/features/dm/presentation/dm_layout.dart';
 import 'package:fluxer_app/features/favorites/presentation/favorites_layout.dart';
+import 'package:fluxer_app/features/guilds/presentation/pages/invite_accept_page.dart';
 import 'package:fluxer_app/features/notifications/presentation/notifications_page.dart';
 import 'package:fluxer_app/features/profile/presentation/profile_page.dart';
 import 'package:fluxer_app/features/settings/domain/guild/guild_settings_tab.dart';
@@ -271,8 +272,13 @@ GoRouter fluxerRouter(Ref ref) {
       GoRoute(
         path: '/invite/:code',
         name: RouteNames.invite,
-        // TODO(M0n7y5): show invite modal.
-        redirect: (context, state) => RoutePaths.me,
+        pageBuilder: (context, state) {
+          final String code = state.pathParameters['code'] ?? '';
+          return _fadeTransitionPage(
+            key: state.pageKey,
+            child: InviteAcceptPage(code: code),
+          );
+        },
       ),
       GoRoute(
         path: '/gift/:code',

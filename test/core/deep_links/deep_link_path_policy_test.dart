@@ -98,6 +98,34 @@ void main() {
     });
   });
 
+  group('normalizeInviteDeepLinkUri', () {
+    test('maps fluxer.gg short links to invite paths', () {
+      expect(
+        normalizeInviteDeepLinkUri(Uri.parse('https://fluxer.gg/abcd')).path,
+        '/invite/abcd',
+      );
+      expect(
+        normalizeInviteDeepLinkUri(
+          Uri.parse('https://fluxer.gg/invite/abcd'),
+        ).path,
+        '/invite/abcd',
+      );
+      expect(
+        normalizeIncomingDeepLinkUri(
+          Uri.parse('https://web.fluxer.app/invite/abcd'),
+        ).path,
+        '/invite/abcd',
+      );
+    });
+
+    test('allows fluxer.gg short links through isAllowedDeepLinkPath', () {
+      expect(
+        isAllowedDeepLinkPath(Uri.parse('https://fluxer.gg/abcd')),
+        isTrue,
+      );
+    });
+  });
+
   group('normalizeDeepLinkPath', () {
     test('trims trailing slashes and preserves root', () {
       expect(normalizeDeepLinkPath('/channels/@me/'), '/channels/@me');

@@ -13,6 +13,7 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
 import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
 import 'package:fluxer_app/features/auth/providers/pending_invite_code_provider.dart';
+import 'package:fluxer_app/features/guilds/utils/invite_link_parser.dart';
 import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:go_router/go_router.dart';
@@ -54,7 +55,7 @@ class DeepLinkHandler extends _$DeepLinkHandler {
   }
 
   void _handleDeepLink(Uri uri) {
-    final Uri normalizedUri = normalizeAppProtocolDeepLinkUri(uri);
+    final Uri normalizedUri = normalizeIncomingDeepLinkUri(uri);
     talker.info('[DeepLink] Received: $uri');
 
     // Password reset links work without authentication.
@@ -81,9 +82,15 @@ class DeepLinkHandler extends _$DeepLinkHandler {
   }
 
   void _extractInviteCode(Uri uri) {
-    if (uri.pathSegments.length >= 2 && uri.pathSegments.first == 'invite') {
-      final code = uri.pathSegments[1];
+    final String? code = parseInviteCode(uri.toString());
+    if (code != null) {
       ref.read(pendingInviteCodeProvider.notifier).store(code);
+      talker.info('[DeepLink] Stored invite code for auth flow');
+      return;
+    }
+    if (uri.pathSegments.length >= 2 && uri.pathSegments.first == 'invite') {
+      final String codeFromPath = uri.pathSegments[1];
+      ref.read(pendingInviteCodeProvider.notifier).store(codeFromPath);
       talker.info('[DeepLink] Stored invite code for auth flow');
     }
   }

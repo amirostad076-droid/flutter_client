@@ -555,6 +555,52 @@ class FluxerLocalizationsLt extends FluxerLocalizations {
   String get embedInviteUnavailable => 'Invite Unavailable';
 
   @override
+  String get inviteAcceptTitle => 'You\'ve been invited to join';
+
+  @override
+  String get inviteAcceptJoinButton => 'Join Community';
+
+  @override
+  String get inviteAcceptGoToButton => 'Go to Community';
+
+  @override
+  String get inviteAcceptInvitesPaused => 'Invites Paused';
+
+  @override
+  String get inviteAcceptNotFoundTitle => 'Invite Invalid';
+
+  @override
+  String get inviteAcceptNotFoundDescription =>
+      'This invite may be expired or invalid.';
+
+  @override
+  String get inviteAcceptJoinGroupButton => 'Join group';
+
+  @override
+  String inviteAcceptGroupDmDescription(String inviterName) {
+    return 'You\'ve been invited to join a group DM by $inviterName';
+  }
+
+  @override
+  String get inviteAcceptSomeone => 'someone';
+
+  @override
+  String get inviteAcceptEmojiPack => 'Emoji pack';
+
+  @override
+  String get inviteAcceptStickerPack => 'Sticker pack';
+
+  @override
+  String get inviteAcceptInstallEmojiPack => 'Install emoji pack';
+
+  @override
+  String get inviteAcceptInstallStickerPack => 'Install sticker pack';
+
+  @override
+  String get inviteAcceptPackInstallNote =>
+      'Accepting this invite installs the pack automatically.';
+
+  @override
   String get mentionUnknownChannel => 'unknown-channel';
 
   @override

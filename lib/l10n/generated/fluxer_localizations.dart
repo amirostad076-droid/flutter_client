@@ -1159,6 +1159,90 @@ abstract class FluxerLocalizations {
   /// **'Invite Unavailable'**
   String get embedInviteUnavailable;
 
+  /// Title of the invite accept modal.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve been invited to join'**
+  String get inviteAcceptTitle;
+
+  /// Primary action to join a community from the invite modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Community'**
+  String get inviteAcceptJoinButton;
+
+  /// Primary action when the user is already a member of the invited community.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Community'**
+  String get inviteAcceptGoToButton;
+
+  /// Disabled action label when community invites are paused.
+  ///
+  /// In en, this message translates to:
+  /// **'Invites Paused'**
+  String get inviteAcceptInvitesPaused;
+
+  /// Title when an invite link is expired or invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite Invalid'**
+  String get inviteAcceptNotFoundTitle;
+
+  /// Description when an invite link is expired or invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This invite may be expired or invalid.'**
+  String get inviteAcceptNotFoundDescription;
+
+  /// Primary action to join a group DM from the invite modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Join group'**
+  String get inviteAcceptJoinGroupButton;
+
+  /// Description for a group DM invite in the accept modal.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve been invited to join a group DM by {inviterName}'**
+  String inviteAcceptGroupDmDescription(String inviterName);
+
+  /// Fallback inviter name when the inviter is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'someone'**
+  String get inviteAcceptSomeone;
+
+  /// Label for an emoji pack invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji pack'**
+  String get inviteAcceptEmojiPack;
+
+  /// Label for a sticker pack invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker pack'**
+  String get inviteAcceptStickerPack;
+
+  /// Primary action to install an emoji pack from an invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Install emoji pack'**
+  String get inviteAcceptInstallEmojiPack;
+
+  /// Primary action to install a sticker pack from an invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Install sticker pack'**
+  String get inviteAcceptInstallStickerPack;
+
+  /// Note shown on expression pack invites before accepting.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepting this invite installs the pack automatically.'**
+  String get inviteAcceptPackInstallNote;
+
   /// Fallback name shown in a channel mention pill when the channel is not found.
   ///
   /// In en, this message translates to:
