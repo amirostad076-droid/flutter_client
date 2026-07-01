@@ -553,6 +553,16 @@ class _MessageListState extends ConsumerState<MessageList> {
                     ),
                   )
                 : null,
+            canAddReactions: channelCanAddReactions,
+            onReaction:
+                (String emoji, {String? emojiId, bool animated = false}) => ref
+                    .read(chatViewModelProvider.notifier)
+                    .toggleReaction(
+                      message.id,
+                      emoji,
+                      emojiId: emojiId,
+                      animated: animated,
+                    ),
           ),
         );
       }

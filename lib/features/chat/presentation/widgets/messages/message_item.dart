@@ -34,6 +34,7 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/forward_indicator.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/forwarded_message_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_reactions_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_row_layout.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
@@ -54,7 +55,6 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
-import 'package:fluxer_app/shared/widgets/unicode_emoji_widget.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -88,8 +88,6 @@ const _kReplyLineEndGap = 6.0;
 
 const _kMessageStickerSize = 160.0;
 const _kMessageStickerRequestSize = 320;
-const _kReactionEmojiSize = 19.0;
-const _kAddReactionIconSize = 19.0;
 const double _kMessageSendingOpacity = 0.5;
 
 /// Immutable bundle of per-list render settings hoisted out of [MessageItem].
@@ -175,8 +173,7 @@ class MessageItem extends ConsumerStatefulWidget {
   final VoidCallback? onMarkAsUnread;
   final VoidCallback? onViewReactions;
   final VoidCallback? onReport;
-  final void Function(String emoji, {String? emojiId, bool animated})?
-  onReaction;
+  final ReactionToggleCallback? onReaction;
   final bool inboxPreviewMode;
   final bool hideMentionHighlight;
   final bool isJumpHighlighted;
@@ -226,11 +223,8 @@ class MessageItem extends ConsumerStatefulWidget {
 class _MessageItemState extends ConsumerState<MessageItem> {
   final _hovered = ValueNotifier<bool>(false);
   final _reactionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
-  final _inlineReactionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _spoilerSyncController = FluxerSpoilerSyncController();
   final _reactionPickerOpen = ValueNotifier<bool>(false);
-  var _isInlineReactionPickerOpen = false;
-  var _isInlineAddReactionHovered = false;
 
   late final Listenable _actionBarVisibility = Listenable.merge([
     _hovered,
@@ -246,26 +240,17 @@ class _MessageItemState extends ConsumerState<MessageItem> {
   }
 
   void _addReactionFromPicker(FluxerSelectedEmoji emoji) {
-    if (emoji.isCustom) {
-      widget.onReaction?.call(
-        emoji.name,
-        emojiId: emoji.emojiId,
-        animated: emoji.animated,
-      );
-      return;
+    final onReaction = widget.onReaction;
+    if (onReaction != null) {
+      dispatchSelectedEmojiReaction(emoji, onReaction);
     }
-
-    widget.onReaction?.call(emoji.surrogates);
   }
 
   void _openReactionPickerSheet(BuildContext context, {String? channelId}) {
     unawaited(
-      FluxerEmojiPickerSheet.show(
+      openReactionPickerSheet(
         context,
-        maxHeight: 0.88,
         channelId: channelId,
-        visibleTabs: const [ExpressionPickerTab.emojis],
-        trackEmojiUsageOnSelect: false,
         onEmojiSelected: _addReactionFromPicker,
       ),
     );
@@ -870,16 +855,17 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         wrapPart(
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: [
-                ...msg.reactions.map((r) => _buildReaction(context, r)),
-                if (widget.canAddReactions &&
-                    msg.supportsInteractiveActions &&
-                    !widget.inboxPreviewMode)
-                  _buildInlineAddReaction(context, msg, isMobile),
-              ],
+            child: MessageReactionsBar(
+              reactions: msg.reactions,
+              channelId: msg.channelId,
+              onReactionTap: (emoji, {emojiId, animated = false}) => widget
+                  .onReaction
+                  ?.call(emoji, emojiId: emojiId, animated: animated),
+              showAddReaction:
+                  widget.canAddReactions &&
+                  msg.supportsInteractiveActions &&
+                  !widget.inboxPreviewMode,
+              isMobile: isMobile,
             ),
           ),
         ),
@@ -1302,175 +1288,6 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       );
     }
     return Semantics(label: sticker.name, image: true, child: stickerImage);
-  }
-
-  Color _reactionChipBackground(
-    BuildContext context, {
-    required bool hasReacted,
-  }) {
-    final colors = context.colors;
-    if (hasReacted) {
-      return Color.lerp(colors.backgroundSecondary, colors.brandPrimary, 0.36)!;
-    }
-    final isLight = Theme.of(context).brightness == Brightness.light;
-    if (isLight) {
-      return Color.lerp(
-        colors.backgroundSecondary,
-        colors.brandPrimaryLight,
-        0.06,
-      )!;
-    }
-    if (colors.backgroundSecondary == colors.backgroundPrimary) {
-      return colors.backgroundSecondaryAlt;
-    }
-    return colors.backgroundPrimary;
-  }
-
-  Color _reactionChipBorderColor(
-    BuildContext context, {
-    required bool hasReacted,
-  }) {
-    final colors = context.colors;
-    if (hasReacted) {
-      return colors.brandPrimary;
-    }
-    if (Theme.of(context).brightness == Brightness.light) {
-      return Color.lerp(
-        colors.backgroundSecondary,
-        colors.brandPrimaryLight,
-        0.10,
-      )!;
-    }
-    return Colors.transparent;
-  }
-
-  Widget _buildReaction(BuildContext context, Reaction reaction) {
-    final colors = context.colors;
-    final hasReacted = reaction.hasReacted;
-    return GestureDetector(
-      onTap: () => widget.onReaction?.call(
-        reaction.emoji,
-        emojiId: reaction.emojiId,
-        animated: reaction.animated,
-      ),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-          decoration: BoxDecoration(
-            color: _reactionChipBackground(context, hasReacted: hasReacted),
-            border: Border.all(
-              color: _reactionChipBorderColor(context, hasReacted: hasReacted),
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (reaction.isCustom)
-                CachedNetworkImage(
-                  imageUrl: FluxerMediaUrl.customEmoji(
-                    id: reaction.emojiId!,
-                    animated: reaction.animated,
-                    size: _kReactionEmojiSize.toInt(),
-                  ),
-                  cacheKey:
-                      'reaction_emoji_'
-                      '${reaction.emojiId}_'
-                      '${reaction.animated ? 'a' : 's'}_'
-                      '${_kReactionEmojiSize.toInt()}',
-                  width: _kReactionEmojiSize,
-                  height: _kReactionEmojiSize,
-                )
-              else
-                UnicodeEmojiWidget(
-                  emoji: reaction.emoji,
-                  size: _kReactionEmojiSize,
-                ),
-              const SizedBox(width: 6),
-              Text(
-                '${reaction.count}',
-                style: TextStyle(
-                  color: hasReacted ? colors.brandPrimary : colors.textTertiary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInlineAddReaction(
-    BuildContext context,
-    Message msg,
-    bool isMobile,
-  ) {
-    if (isMobile) {
-      return _buildInlineAddReactionButton(
-        context,
-        onTap: () =>
-            _openReactionPickerSheet(context, channelId: msg.channelId),
-      );
-    }
-    return FluxerEmojiPickerPopout(
-      key: _inlineReactionPickerKey,
-      closeOnEmojiSelect: true,
-      visibleTabs: const [ExpressionPickerTab.emojis],
-      trackEmojiUsageOnSelect: false,
-      channelId: msg.channelId,
-      onClose: () => setState(() {
-        _isInlineReactionPickerOpen = false;
-      }),
-      onEmojiSelected: _addReactionFromPicker,
-      child: _buildInlineAddReactionButton(
-        context,
-        onTap: () {
-          _inlineReactionPickerKey.currentState?.toggle();
-          setState(() {
-            _isInlineReactionPickerOpen =
-                _inlineReactionPickerKey.currentState?.isOpen ?? false;
-          });
-        },
-      ),
-    );
-  }
-
-  Widget _buildInlineAddReactionButton(
-    BuildContext context, {
-    required VoidCallback? onTap,
-  }) {
-    final colors = context.colors;
-    final isActive = _isInlineReactionPickerOpen || _isInlineAddReactionHovered;
-    return Semantics(
-      label: FluxerLocalizations.of(context).chatMessageAddReaction,
-      button: true,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isInlineAddReactionHovered = true),
-        onExit: (_) => setState(() => _isInlineAddReactionHovered = false),
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: onTap,
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? colors.backgroundModifierHover
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: PhosphorIcon(
-              PhosphorIconsFill.smiley,
-              size: _kAddReactionIconSize,
-              color: isActive ? colors.textPrimary : colors.textTertiary,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildActions(BuildContext context) => Material(
