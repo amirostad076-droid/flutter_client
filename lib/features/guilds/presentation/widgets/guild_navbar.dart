@@ -814,6 +814,8 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           onMenuOpened: () {
             ref.read(guildSyncProvider.notifier).syncIfNeeded(guild.id);
           },
+          resolveMenuPermissions: () =>
+              _resolveGuildMenuPermissions(ref, guild.id),
           onMarkAsRead: () {
             unawaited(
               markGuildAsRead(
@@ -1372,6 +1374,8 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
             onMenuOpened: () {
               ref.read(guildSyncProvider.notifier).syncIfNeeded(guild.id);
             },
+            resolveMenuPermissions: () =>
+                _resolveGuildMenuPermissions(ref, guild.id),
             onMarkAsRead: () {
               unawaited(
                 markGuildAsRead(
@@ -1709,6 +1713,11 @@ Future<void> markGuildAsRead(
   );
 }
 
+Future<int> _resolveGuildMenuPermissions(WidgetRef ref, String guildId) async {
+  await ref.read(guildPermissionsProvider.notifier).refreshPermissions(guildId);
+  return ref.read(guildPermissionsProvider)[guildId] ?? 0;
+}
+
 Future<void> presentGuildMenuSheet(
   BuildContext context,
   WidgetRef ref, {
@@ -1723,7 +1732,7 @@ Future<void> presentGuildMenuSheet(
       guild;
   final unread = ref.read(guildReadStateProvider)[guild.id];
   final muteState = ref.read(guildMuteProvider(guild.id)).value;
-  final permissions = ref.read(guildPermissionsProvider)[guild.id] ?? 0;
+  final int permissions = await _resolveGuildMenuPermissions(ref, guild.id);
   final String? currentUserId = ref.read(currentUserIdProvider);
   final bool developerMode = ref.read(
     userSettingsViewModelProvider.select((s) => s.developerMode),
@@ -2482,6 +2491,7 @@ class _GuildListItem extends StatefulWidget {
   final void Function(String channelId)? onRemoveChannelOverride;
   final VoidCallback? onMounted;
   final bool enableLongPressMenu;
+  final Future<int> Function()? resolveMenuPermissions;
 
   const _GuildListItem({
     required this.label,
@@ -2528,6 +2538,7 @@ class _GuildListItem extends StatefulWidget {
     this.onRemoveChannelOverride,
     this.onMounted,
     this.enableLongPressMenu = true,
+    this.resolveMenuPermissions,
   });
 
   @override
@@ -2777,6 +2788,12 @@ class _GuildListItemState extends State<_GuildListItem>
       return;
     }
     widget.onMenuOpened?.call();
+    final int permissions = widget.resolveMenuPermissions != null
+        ? await widget.resolveMenuPermissions!()
+        : widget.permissions;
+    if (!context.mounted) {
+      return;
+    }
     final action = await showGuildContextMenu(
       context,
       position: position,
@@ -2784,7 +2801,7 @@ class _GuildListItemState extends State<_GuildListItem>
       hasUnread: widget.hasUnread,
       isMuted: widget.isMuted,
       isOwner: widget.isOwner,
-      permissions: widget.permissions,
+      permissions: permissions,
       muteEndTime: widget.muteEndTime,
       hideMutedChannels: widget.hideMutedChannels,
       developerMode: widget.developerMode,
@@ -2803,13 +2820,19 @@ class _GuildListItemState extends State<_GuildListItem>
     if (!isMobile) {
       return;
     }
+    final int permissions = widget.resolveMenuPermissions != null
+        ? await widget.resolveMenuPermissions!()
+        : widget.permissions;
+    if (!context.mounted) {
+      return;
+    }
     final action = await showGuildBottomSheet(
       context,
       guild: widget.guild!,
       hasUnread: widget.hasUnread,
       isMuted: widget.isMuted,
       isOwner: widget.isOwner,
-      permissions: widget.permissions,
+      permissions: permissions,
       muteEndTime: widget.muteEndTime,
       hideMutedChannels: widget.hideMutedChannels,
       developerMode: widget.developerMode,
