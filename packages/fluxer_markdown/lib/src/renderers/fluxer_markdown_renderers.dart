@@ -550,6 +550,18 @@ class _MarkdownInlineRenderer {
           children: build(node.children ?? const [], style: underlineStyle),
         );
       case 'code':
+        if (features.allowPlainInlineCode) {
+          final double fontSize = effectiveStyle.fontSize ?? 16;
+          return TextSpan(
+            text: node.textContent,
+            style: effectiveStyle.copyWith(
+              color: config.inlineCodeTextColor,
+              backgroundColor: config.inlineCodeBackgroundColor,
+              fontFamily: 'monospace',
+              fontSize: fontSize * 0.85,
+            ),
+          );
+        }
         return WidgetSpan(
           alignment: PlaceholderAlignment.middle,
           child: FluxerInlineCodeWidget(

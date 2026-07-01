@@ -3907,6 +3907,91 @@ class FluxerLocalizationsLt extends FluxerLocalizations {
       'Display a dimmed unread indicator next to muted direct messages and channels so you can still see at a glance when there\'s activity.';
 
   @override
+  String get accessibilityDmMessagePreviewGroupTitle => 'DM message previews';
+
+  @override
+  String get accessibilityDmMessagePreviewGroupDescription =>
+      'Control when message previews are shown in the DM list.';
+
+  @override
+  String get accessibilityDmMessagePreviewModeLabel =>
+      'DM message preview mode';
+
+  @override
+  String get accessibilityDmMessagePreviewAllName => 'All messages';
+
+  @override
+  String get accessibilityDmMessagePreviewAllDescription =>
+      'Show message previews for all DM conversations';
+
+  @override
+  String get accessibilityDmMessagePreviewUnreadOnlyName => 'Unread DMs only';
+
+  @override
+  String get accessibilityDmMessagePreviewUnreadOnlyDescription =>
+      'Only show message previews for DMs with unread messages';
+
+  @override
+  String get accessibilityDmMessagePreviewNoneName => 'None';
+
+  @override
+  String get accessibilityDmMessagePreviewNoneDescription =>
+      'Don\'t show message previews in the DM list';
+
+  @override
+  String get dmListSentAnAttachment => 'Sent an attachment';
+
+  @override
+  String systemPreviewPinnedMessage(String username) {
+    return '$username pinned a message to this channel.';
+  }
+
+  @override
+  String systemPreviewAddedToGroup(String username, String userName) {
+    return '$username added $userName to the group.';
+  }
+
+  @override
+  String systemPreviewAddedSomeoneToGroup(String username) {
+    return '$username added someone to the group.';
+  }
+
+  @override
+  String systemPreviewHasLeftGroup(String username) {
+    return '$username has left the group.';
+  }
+
+  @override
+  String systemPreviewRemovedFromGroup(String username, String userName) {
+    return '$username removed $userName from the group.';
+  }
+
+  @override
+  String systemPreviewRemovedSomeoneFromGroup(String username) {
+    return '$username removed someone from the group.';
+  }
+
+  @override
+  String systemPreviewChangedChannelNameTo(String username, String newName) {
+    return '$username changed the channel name to $newName.';
+  }
+
+  @override
+  String systemPreviewChangedChannelName(String username) {
+    return '$username changed the channel name.';
+  }
+
+  @override
+  String systemPreviewChangedChannelIcon(String username) {
+    return '$username changed the channel icon.';
+  }
+
+  @override
+  String systemPreviewStartedCall(String username) {
+    return '$username started a call.';
+  }
+
+  @override
   String get voiceConnectionConfirmTitle => 'Voice Connection Confirmation';
 
   @override

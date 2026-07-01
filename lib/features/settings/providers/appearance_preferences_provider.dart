@@ -1,4 +1,7 @@
+import 'dart:io' show Platform;
+
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
@@ -12,6 +15,21 @@ part 'appearance_preferences_provider.g.dart';
 
 enum ChannelTypingIndicatorMode { avatars, indicatorOnly, hidden }
 
+enum DmMessagePreviewMode { all, unreadOnly, none }
+
+DmMessagePreviewMode defaultDmMessagePreviewMode() {
+  if (kIsWeb) {
+    return DmMessagePreviewMode.none;
+  }
+  switch (Platform.operatingSystem) {
+    case 'android':
+    case 'ios':
+      return DmMessagePreviewMode.all;
+    default:
+      return DmMessagePreviewMode.none;
+  }
+}
+
 class AppearancePreferencesState {
   const AppearancePreferencesState({
     this.channelTypingIndicatorMode = ChannelTypingIndicatorMode.avatars,
@@ -19,6 +37,7 @@ class AppearancePreferencesState {
     this.showNeko = false,
     this.collapseDMs = false,
     this.showFadedUnreadOnMutedChannels = false,
+    this.dmMessagePreviewMode = DmMessagePreviewMode.none,
     this.showActiveNow = true,
     this.showFavorites = true,
     this.hideKeyboardHints = false,
@@ -31,6 +50,7 @@ class AppearancePreferencesState {
   final bool showNeko;
   final bool collapseDMs;
   final bool showFadedUnreadOnMutedChannels;
+  final DmMessagePreviewMode dmMessagePreviewMode;
   final bool showActiveNow;
   final bool showFavorites;
   final bool hideKeyboardHints;
@@ -43,6 +63,7 @@ class AppearancePreferencesState {
     bool? showNeko,
     bool? collapseDMs,
     bool? showFadedUnreadOnMutedChannels,
+    DmMessagePreviewMode? dmMessagePreviewMode,
     bool? showActiveNow,
     bool? showFavorites,
     bool? hideKeyboardHints,
@@ -59,6 +80,7 @@ class AppearancePreferencesState {
       collapseDMs: collapseDMs ?? this.collapseDMs,
       showFadedUnreadOnMutedChannels:
           showFadedUnreadOnMutedChannels ?? this.showFadedUnreadOnMutedChannels,
+      dmMessagePreviewMode: dmMessagePreviewMode ?? this.dmMessagePreviewMode,
       showActiveNow: showActiveNow ?? this.showActiveNow,
       showFavorites: showFavorites ?? this.showFavorites,
       hideKeyboardHints: hideKeyboardHints ?? this.hideKeyboardHints,
@@ -75,7 +97,9 @@ class AppearancePreferences extends _$AppearancePreferences {
   bool _isApplyingRemote = false;
 
   @override
-  AppearancePreferencesState build() => const AppearancePreferencesState();
+  AppearancePreferencesState build() => AppearancePreferencesState(
+    dmMessagePreviewMode: defaultDmMessagePreviewMode(),
+  );
 
   Future<void> load(String userId) async {
     _userId = userId;
@@ -111,6 +135,7 @@ class AppearancePreferences extends _$AppearancePreferences {
         showSelectedChannelTypingIndicator:
             value.showSelectedChannelTypingIndicator,
         showFadedUnreadOnMutedChannels: value.showFadedUnreadOnMutedChannels,
+        dmMessagePreviewMode: value.dmMessagePreviewMode,
         showFavorites: value.showFavorites,
         messageGroupSpacing: value.messageGroupSpacing,
         compactMessageGroupSpacing: value.compactMessageGroupSpacing,
@@ -166,6 +191,12 @@ class AppearancePreferences extends _$AppearancePreferences {
   Future<void> setShowNeko({required bool value}) async {
     state = state.copyWith(showNeko: value);
     await _persist();
+  }
+
+  Future<void> setDmMessagePreviewMode(DmMessagePreviewMode mode) async {
+    state = state.copyWith(dmMessagePreviewMode: mode);
+    await _persist();
+    _markAccessibilityDirty();
   }
 
   Future<void> setShowFadedUnreadOnMutedChannels({required bool value}) async {

@@ -90,6 +90,14 @@ class DmRepository {
       allRecipientIds.addAll(ids);
     }
     allRecipientIds.addAll(lastMessages.values.map((m) => m.authorId));
+    for (final db.Message message in lastMessages.values) {
+      final String? mentionedUserId = DmConversation.mentionedUserIdFromMessage(
+        message,
+      );
+      if (mentionedUserId != null && mentionedUserId.isNotEmpty) {
+        allRecipientIds.add(mentionedUserId);
+      }
+    }
 
     final users = await _db.userDao.getUsersByIds(allRecipientIds.toList());
     final userMap = {for (final u in users) u.id: u};
@@ -114,6 +122,9 @@ class DmRepository {
         userMap[row.recipientId],
         cachedLastMessage: lastMsg,
         lastMessageAuthor: lastMsg != null ? userMap[lastMsg.authorId] : null,
+        lastMessageMentionedUser: lastMsg == null
+            ? null
+            : userMap[DmConversation.mentionedUserIdFromMessage(lastMsg)],
         groupStatus: isGroup
             ? _computeGroupStatus(recipientIds, userMap)
             : null,

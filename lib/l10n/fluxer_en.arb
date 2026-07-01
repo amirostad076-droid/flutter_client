@@ -4962,6 +4962,145 @@
   "@accessibilityShowFadedUnreadOnMutedChannelsDescription": {
     "description": "Toggle description for showing a faded unread indicator on muted channels."
   },
+  "accessibilityDmMessagePreviewGroupTitle": "DM message previews",
+  "@accessibilityDmMessagePreviewGroupTitle": {
+    "description": "Section title for DM message preview accessibility settings."
+  },
+  "accessibilityDmMessagePreviewGroupDescription": "Control when message previews are shown in the DM list.",
+  "@accessibilityDmMessagePreviewGroupDescription": {
+    "description": "Section description for DM message preview accessibility settings."
+  },
+  "accessibilityDmMessagePreviewModeLabel": "DM message preview mode",
+  "@accessibilityDmMessagePreviewModeLabel": {
+    "description": "Accessibility label for the DM message preview mode radio group."
+  },
+  "accessibilityDmMessagePreviewAllName": "All messages",
+  "@accessibilityDmMessagePreviewAllName": {
+    "description": "Radio option name for showing DM previews for all conversations."
+  },
+  "accessibilityDmMessagePreviewAllDescription": "Show message previews for all DM conversations",
+  "@accessibilityDmMessagePreviewAllDescription": {
+    "description": "Radio option description for showing DM previews for all conversations."
+  },
+  "accessibilityDmMessagePreviewUnreadOnlyName": "Unread DMs only",
+  "@accessibilityDmMessagePreviewUnreadOnlyName": {
+    "description": "Radio option name for showing DM previews only when unread."
+  },
+  "accessibilityDmMessagePreviewUnreadOnlyDescription": "Only show message previews for DMs with unread messages",
+  "@accessibilityDmMessagePreviewUnreadOnlyDescription": {
+    "description": "Radio option description for showing DM previews only when unread."
+  },
+  "accessibilityDmMessagePreviewNoneName": "None",
+  "@accessibilityDmMessagePreviewNoneName": {
+    "description": "Radio option name for hiding DM message previews."
+  },
+  "accessibilityDmMessagePreviewNoneDescription": "Don't show message previews in the DM list",
+  "@accessibilityDmMessagePreviewNoneDescription": {
+    "description": "Radio option description for hiding DM message previews."
+  },
+  "dmListSentAnAttachment": "Sent an attachment",
+  "@dmListSentAnAttachment": {
+    "description": "DM list row preview text when the most recent message has only attachments."
+  },
+  "systemPreviewPinnedMessage": "{username} pinned a message to this channel.",
+  "@systemPreviewPinnedMessage": {
+    "description": "Plaintext DM list preview for a pin system message.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "systemPreviewAddedToGroup": "{username} added {userName} to the group.",
+  "@systemPreviewAddedToGroup": {
+    "description": "Plaintext DM list preview when a member adds another user to a group DM.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      },
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "systemPreviewAddedSomeoneToGroup": "{username} added someone to the group.",
+  "@systemPreviewAddedSomeoneToGroup": {
+    "description": "Plaintext DM list preview when a member adds an unresolved user to a group DM.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "systemPreviewHasLeftGroup": "{username} has left the group.",
+  "@systemPreviewHasLeftGroup": {
+    "description": "Plaintext DM list preview when a member leaves a group DM.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "systemPreviewRemovedFromGroup": "{username} removed {userName} from the group.",
+  "@systemPreviewRemovedFromGroup": {
+    "description": "Plaintext DM list preview when a member removes another user from a group DM.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      },
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "systemPreviewRemovedSomeoneFromGroup": "{username} removed someone from the group.",
+  "@systemPreviewRemovedSomeoneFromGroup": {
+    "description": "Plaintext DM list preview when a member removes an unresolved user from a group DM.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "systemPreviewChangedChannelNameTo": "{username} changed the channel name to {newName}.",
+  "@systemPreviewChangedChannelNameTo": {
+    "description": "Plaintext DM list preview when a group DM is renamed.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "systemPreviewChangedChannelName": "{username} changed the channel name.",
+  "@systemPreviewChangedChannelName": {
+    "description": "Plaintext DM list preview when a group DM is renamed without a known new name.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "systemPreviewChangedChannelIcon": "{username} changed the channel icon.",
+  "@systemPreviewChangedChannelIcon": {
+    "description": "Plaintext DM list preview when a group DM icon changes.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "systemPreviewStartedCall": "{username} started a call.",
+  "@systemPreviewStartedCall": {
+    "description": "Plaintext DM list preview when a call starts.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
   "voiceConnectionConfirmTitle": "Voice Connection Confirmation",
   "@voiceConnectionConfirmTitle": {
     "description": "Title of the multi-device voice join confirmation dialog."

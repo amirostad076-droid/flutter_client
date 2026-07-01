@@ -6739,6 +6739,126 @@ abstract class FluxerLocalizations {
   /// **'Display a dimmed unread indicator next to muted direct messages and channels so you can still see at a glance when there\'s activity.'**
   String get accessibilityShowFadedUnreadOnMutedChannelsDescription;
 
+  /// Section title for DM message preview accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'DM message previews'**
+  String get accessibilityDmMessagePreviewGroupTitle;
+
+  /// Section description for DM message preview accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control when message previews are shown in the DM list.'**
+  String get accessibilityDmMessagePreviewGroupDescription;
+
+  /// Accessibility label for the DM message preview mode radio group.
+  ///
+  /// In en, this message translates to:
+  /// **'DM message preview mode'**
+  String get accessibilityDmMessagePreviewModeLabel;
+
+  /// Radio option name for showing DM previews for all conversations.
+  ///
+  /// In en, this message translates to:
+  /// **'All messages'**
+  String get accessibilityDmMessagePreviewAllName;
+
+  /// Radio option description for showing DM previews for all conversations.
+  ///
+  /// In en, this message translates to:
+  /// **'Show message previews for all DM conversations'**
+  String get accessibilityDmMessagePreviewAllDescription;
+
+  /// Radio option name for showing DM previews only when unread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread DMs only'**
+  String get accessibilityDmMessagePreviewUnreadOnlyName;
+
+  /// Radio option description for showing DM previews only when unread.
+  ///
+  /// In en, this message translates to:
+  /// **'Only show message previews for DMs with unread messages'**
+  String get accessibilityDmMessagePreviewUnreadOnlyDescription;
+
+  /// Radio option name for hiding DM message previews.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get accessibilityDmMessagePreviewNoneName;
+
+  /// Radio option description for hiding DM message previews.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show message previews in the DM list'**
+  String get accessibilityDmMessagePreviewNoneDescription;
+
+  /// DM list row preview text when the most recent message has only attachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent an attachment'**
+  String get dmListSentAnAttachment;
+
+  /// Plaintext DM list preview for a pin system message.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} pinned a message to this channel.'**
+  String systemPreviewPinnedMessage(String username);
+
+  /// Plaintext DM list preview when a member adds another user to a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} added {userName} to the group.'**
+  String systemPreviewAddedToGroup(String username, String userName);
+
+  /// Plaintext DM list preview when a member adds an unresolved user to a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} added someone to the group.'**
+  String systemPreviewAddedSomeoneToGroup(String username);
+
+  /// Plaintext DM list preview when a member leaves a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} has left the group.'**
+  String systemPreviewHasLeftGroup(String username);
+
+  /// Plaintext DM list preview when a member removes another user from a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} removed {userName} from the group.'**
+  String systemPreviewRemovedFromGroup(String username, String userName);
+
+  /// Plaintext DM list preview when a member removes an unresolved user from a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} removed someone from the group.'**
+  String systemPreviewRemovedSomeoneFromGroup(String username);
+
+  /// Plaintext DM list preview when a group DM is renamed.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} changed the channel name to {newName}.'**
+  String systemPreviewChangedChannelNameTo(String username, String newName);
+
+  /// Plaintext DM list preview when a group DM is renamed without a known new name.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} changed the channel name.'**
+  String systemPreviewChangedChannelName(String username);
+
+  /// Plaintext DM list preview when a group DM icon changes.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} changed the channel icon.'**
+  String systemPreviewChangedChannelIcon(String username);
+
+  /// Plaintext DM list preview when a call starts.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} started a call.'**
+  String systemPreviewStartedCall(String username);
+
   /// Title of the multi-device voice join confirmation dialog.
   ///
   /// In en, this message translates to:
