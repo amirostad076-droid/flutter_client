@@ -93,7 +93,6 @@ class _ReactionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final hasReacted = reaction.hasReacted;
     return GestureDetector(
       onTap: onTap,
@@ -135,9 +134,9 @@ class _ReactionChip extends StatelessWidget {
               Text(
                 '${reaction.count}',
                 style: TextStyle(
-                  color: hasReacted ? colors.brandPrimary : colors.textTertiary,
+                  color: _chipCountColor(context, hasReacted: hasReacted),
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -179,6 +178,15 @@ class _ReactionChip extends StatelessWidget {
       )!;
     }
     return Colors.transparent;
+  }
+
+  Color _chipCountColor(BuildContext context, {required bool hasReacted}) {
+    final colors = context.colors;
+    if (!hasReacted) {
+      return colors.textTertiary;
+    }
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    return isLight ? colors.brandPrimary : colors.textOnBrandPrimary;
   }
 }
 
