@@ -330,6 +330,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             perms: perms,
             channelId: channelId,
           ),
+          onTap: () {
+            if (ref.read(expressionPanelProvider)) {
+              ref.read(expressionPanelProvider.notifier).close();
+            }
+          },
         ),
         Positioned(
           right: 8,
