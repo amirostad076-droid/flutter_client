@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
+import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
 import 'package:fluxer_app/features/chat/utils/voice_message_constants.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_dart/export.dart';
@@ -1216,6 +1217,9 @@ class Message {
     final seen = <String>{};
     final result = <String>[];
     for (final m in _invitesRegExp.allMatches(content)) {
+      if (matchOverlapsMarkdownCodeSpan(content, m)) {
+        continue;
+      }
       final code = m.group(1) ?? m.group(2);
       if (code != null && seen.add(code)) {
         result.add(code);
@@ -1235,6 +1239,9 @@ class Message {
     final seen = <String>{};
     final result = <String>[];
     for (final m in _themesRegExp.allMatches(content)) {
+      if (matchOverlapsMarkdownCodeSpan(content, m)) {
+        continue;
+      }
       final id = m.group(1);
       if (id != null && seen.add(id)) {
         result.add(id);
