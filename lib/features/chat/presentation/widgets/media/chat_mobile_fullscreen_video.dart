@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/chat/domain/chat_video_source.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/media/chat_video_playback_failure_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/chat/utils/chat_video_playback_utils.dart';
+import 'package:fluxer_app/features/shell/providers/shell_manual_gesture_block_provider.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/media_kit_bootstrap.dart';
@@ -19,13 +21,21 @@ Future<void> showChatMobileFullscreenVideo(
   if (!source.hasPlayableContent) {
     return;
   }
-  await Navigator.of(context).push<void>(
-    MaterialPageRoute<void>(
-      fullscreenDialog: true,
-      builder: (BuildContext context) =>
-          _ChatMobileFullscreenVideoPage(source: source),
-    ),
-  );
+  final ShellManualGestureBlock shellGestureBlock = ProviderScope.containerOf(
+    context,
+  ).read(shellManualGestureBlockProvider.notifier);
+  shellGestureBlock.setBlocked(value: true);
+  try {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (BuildContext context) =>
+            _ChatMobileFullscreenVideoPage(source: source),
+      ),
+    );
+  } finally {
+    shellGestureBlock.setBlocked(value: false);
+  }
 }
 
 class _ChatMobileFullscreenVideoPage extends StatefulWidget {
