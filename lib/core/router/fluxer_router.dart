@@ -25,6 +25,7 @@ import 'package:fluxer_app/features/profile/presentation/profile_page.dart';
 import 'package:fluxer_app/features/settings/domain/guild/guild_settings_tab.dart';
 import 'package:fluxer_app/features/settings/presentation/pages/guild/guild_settings_nav_page.dart';
 import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_audit_log_page.dart';
+import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_bans_page.dart';
 import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_moderation_page.dart';
 import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_overview_page.dart';
 import 'package:fluxer_app/features/shell/presentation/app_layout.dart';
@@ -376,6 +377,17 @@ GoRouter fluxerRouter(Ref ref) {
         pageBuilder: (context, state) => _slideTransitionPage(
           key: state.pageKey,
           child: SettingsAuditLogPage(
+            guildId: state.pathParameters['guildId'] ?? '',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/settings/guild/:guildId/bans',
+        name: RouteNames.guildSettingsBans,
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (context, state) => _slideTransitionPage(
+          key: state.pageKey,
+          child: SettingsBansPage(
             guildId: state.pathParameters['guildId'] ?? '',
           ),
         ),

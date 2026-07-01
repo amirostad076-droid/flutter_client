@@ -8407,9 +8407,63 @@
       "date": {"type": "String"}
     }
   },
+  "guildSettingsBanExpiresLabel": "Expires",
+  "@guildSettingsBanExpiresLabel": {
+    "description": "Label for ban expiration row."
+  },
   "guildSettingsUnban": "Unban",
   "@guildSettingsUnban": {
     "description": "Button to unban a user."
+  },
+  "guildSettingsBansLoading": "Loading banned users",
+  "@guildSettingsBansLoading": {
+    "description": "Loading state for the guild bans list."
+  },
+  "guildSettingsBansNoSearchResults": "No bans found matching your search.",
+  "@guildSettingsBansNoSearchResults": {
+    "description": "Empty state when ban search has no matches."
+  },
+  "guildSettingsBanDetailsTitle": "Ban details",
+  "@guildSettingsBanDetailsTitle": {
+    "description": "Title for the ban details modal."
+  },
+  "guildSettingsBanViewDetails": "View details",
+  "@guildSettingsBanViewDetails": {
+    "description": "Menu action to open ban details."
+  },
+  "guildSettingsBannedOn": "Banned on",
+  "@guildSettingsBannedOn": {
+    "description": "Label for when a user was banned."
+  },
+  "guildSettingsBannedBy": "Banned by",
+  "@guildSettingsBannedBy": {
+    "description": "Label for who issued the ban."
+  },
+  "guildSettingsRevokeBanTitle": "Revoke ban",
+  "@guildSettingsRevokeBanTitle": {
+    "description": "Title for the revoke ban confirmation."
+  },
+  "guildSettingsRevokeBanDescription": "Are you sure you want to revoke the ban for {displayName}? They will be able to rejoin the community.",
+  "@guildSettingsRevokeBanDescription": {
+    "description": "Confirmation message when revoking a ban.",
+    "placeholders": {
+      "displayName": {"type": "String"}
+    }
+  },
+  "guildSettingsRevokeBanSuccess": "Revoked ban for {displayName}",
+  "@guildSettingsRevokeBanSuccess": {
+    "description": "Toast shown after successfully revoking a ban.",
+    "placeholders": {
+      "displayName": {"type": "String"}
+    }
+  },
+  "guildSettingsBansLoadError": "Couldn't load bans. Try again.",
+  "@guildSettingsBansLoadError": {
+    "description": "Error when loading the guild bans list fails."
+  },
+  "guildSettingsRevokeBanError": "Couldn't revoke ban. Try again.",
+  "@guildSettingsRevokeBanError": {
+    "description": "Error when revoking a ban fails."
   },
   "guildSettingsCommunitySettings": "Community Settings",
   "@guildSettingsCommunitySettings": {

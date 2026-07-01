@@ -6411,7 +6411,48 @@ class FluxerLocalizationsSk extends FluxerLocalizations {
   }
 
   @override
+  String get guildSettingsBanExpiresLabel => 'Expires';
+
+  @override
   String get guildSettingsUnban => 'Unban';
+
+  @override
+  String get guildSettingsBansLoading => 'Loading banned users';
+
+  @override
+  String get guildSettingsBansNoSearchResults =>
+      'No bans found matching your search.';
+
+  @override
+  String get guildSettingsBanDetailsTitle => 'Ban details';
+
+  @override
+  String get guildSettingsBanViewDetails => 'View details';
+
+  @override
+  String get guildSettingsBannedOn => 'Banned on';
+
+  @override
+  String get guildSettingsBannedBy => 'Banned by';
+
+  @override
+  String get guildSettingsRevokeBanTitle => 'Revoke ban';
+
+  @override
+  String guildSettingsRevokeBanDescription(String displayName) {
+    return 'Are you sure you want to revoke the ban for $displayName? They will be able to rejoin the community.';
+  }
+
+  @override
+  String guildSettingsRevokeBanSuccess(String displayName) {
+    return 'Revoked ban for $displayName';
+  }
+
+  @override
+  String get guildSettingsBansLoadError => 'Couldn\'t load bans. Try again.';
+
+  @override
+  String get guildSettingsRevokeBanError => 'Couldn\'t revoke ban. Try again.';
 
   @override
   String get guildSettingsCommunitySettings => 'Community Settings';

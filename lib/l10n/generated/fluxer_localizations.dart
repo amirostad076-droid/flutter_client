@@ -10938,11 +10938,83 @@ abstract class FluxerLocalizations {
   /// **'Expires {date}'**
   String guildSettingsBanExpires(String date);
 
+  /// Label for ban expiration row.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires'**
+  String get guildSettingsBanExpiresLabel;
+
   /// Button to unban a user.
   ///
   /// In en, this message translates to:
   /// **'Unban'**
   String get guildSettingsUnban;
+
+  /// Loading state for the guild bans list.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading banned users'**
+  String get guildSettingsBansLoading;
+
+  /// Empty state when ban search has no matches.
+  ///
+  /// In en, this message translates to:
+  /// **'No bans found matching your search.'**
+  String get guildSettingsBansNoSearchResults;
+
+  /// Title for the ban details modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban details'**
+  String get guildSettingsBanDetailsTitle;
+
+  /// Menu action to open ban details.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get guildSettingsBanViewDetails;
+
+  /// Label for when a user was banned.
+  ///
+  /// In en, this message translates to:
+  /// **'Banned on'**
+  String get guildSettingsBannedOn;
+
+  /// Label for who issued the ban.
+  ///
+  /// In en, this message translates to:
+  /// **'Banned by'**
+  String get guildSettingsBannedBy;
+
+  /// Title for the revoke ban confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke ban'**
+  String get guildSettingsRevokeBanTitle;
+
+  /// Confirmation message when revoking a ban.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to revoke the ban for {displayName}? They will be able to rejoin the community.'**
+  String guildSettingsRevokeBanDescription(String displayName);
+
+  /// Toast shown after successfully revoking a ban.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoked ban for {displayName}'**
+  String guildSettingsRevokeBanSuccess(String displayName);
+
+  /// Error when loading the guild bans list fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load bans. Try again.'**
+  String get guildSettingsBansLoadError;
+
+  /// Error when revoking a ban fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t revoke ban. Try again.'**
+  String get guildSettingsRevokeBanError;
 
   /// Title for guild settings modal.
   ///
