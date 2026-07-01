@@ -137,6 +137,8 @@ class GuildDrag extends _$GuildDrag {
 
   bool _updateHoverFromGlobalPosition(Offset globalPosition) {
     RegisteredGuildDragTarget? matchedTarget;
+    RegisteredGuildDragTarget? closestTarget;
+    double smallestMatchingArea = double.infinity;
     double closestDistance = double.infinity;
 
     for (final RegisteredGuildDragTarget target in _dragTargets.values) {
@@ -151,16 +153,22 @@ class GuildDrag extends _$GuildDrag {
       final double centerY = top + renderBox.size.height / 2;
 
       if (globalPosition.dy >= top && globalPosition.dy <= bottom) {
-        matchedTarget = target;
-        break;
+        final double area = renderBox.size.width * renderBox.size.height;
+        if (area < smallestMatchingArea) {
+          smallestMatchingArea = area;
+          matchedTarget = target;
+        }
+        continue;
       }
 
       final double distance = (globalPosition.dy - centerY).abs();
       if (distance < closestDistance) {
         closestDistance = distance;
-        matchedTarget = target;
+        closestTarget = target;
       }
     }
+
+    matchedTarget ??= closestTarget;
 
     if (matchedTarget == null || matchedTarget.itemId == state.dragItemId) {
       clearHover();
@@ -233,7 +241,7 @@ DropPosition resolveGuildDropPosition({
 }) {
   const double inset = 0.08;
 
-  if (sourceIsFolder || targetIsFolder || !allowCombine) {
+  if (sourceIsFolder || !allowCombine) {
     return _resolveSplitDropPosition(
       ratio: ratio,
       split: 0.5,

@@ -306,6 +306,99 @@ class OrganizedGuildList extends _$OrganizedGuildList {
     _persist();
   }
 
+  void moveIntoFolderAtPosition({
+    required String guildId,
+    required int folderId,
+    required String referenceGuildId,
+    required bool insertAfter,
+  }) {
+    if (guildId == referenceGuildId) {
+      return;
+    }
+
+    final items = [...state];
+    final int folderIndexBefore = _findTopLevelIndex(
+      items,
+      folderId.toString(),
+    );
+    if (folderIndexBefore == -1) {
+      return;
+    }
+    final GuildNavbarItem folderItemBefore = items[folderIndexBefore];
+    if (folderItemBefore is! GuildNavbarFolder) {
+      return;
+    }
+    final int referenceIndexBefore = folderItemBefore.guilds.indexWhere(
+      (Guild g) => g.id == referenceGuildId,
+    );
+    if (referenceIndexBefore == -1) {
+      return;
+    }
+
+    Guild? sourceGuild;
+    int? sourceFolderIndex;
+    int? sourceGuildIndex;
+
+    final int sourceTopIndex = _findTopLevelIndex(items, guildId);
+    if (sourceTopIndex != -1) {
+      final GuildNavbarItem sourceItem = items.removeAt(sourceTopIndex);
+      if (sourceItem is! GuildNavbarGuild) {
+        return;
+      }
+      sourceGuild = sourceItem.guild;
+    } else {
+      final _FolderGuildLocation? location = _findGuildInFolders(
+        items,
+        guildId,
+      );
+      if (location == null) {
+        return;
+      }
+      sourceGuild = location.guild;
+      sourceFolderIndex = location.folderIndex;
+      sourceGuildIndex = location.guildIndex;
+      _removeGuildFromFolderAt(
+        items,
+        location.folderIndex,
+        location.guildIndex,
+      );
+    }
+
+    final int folderIndex = _findTopLevelIndex(items, folderId.toString());
+    if (folderIndex == -1) {
+      return;
+    }
+    final GuildNavbarFolder folderItem =
+        items[folderIndex] as GuildNavbarFolder;
+    var referenceIndex = folderItem.guilds.indexWhere(
+      (Guild g) => g.id == referenceGuildId,
+    );
+    if (referenceIndex == -1) {
+      return;
+    }
+    if (sourceFolderIndex == folderIndex &&
+        sourceGuildIndex != null &&
+        sourceGuildIndex < referenceIndex) {
+      referenceIndex -= 1;
+    }
+
+    final int insertIndex = insertAfter ? referenceIndex + 1 : referenceIndex;
+    final List<Guild> guilds = [...folderItem.guilds];
+    guilds.insert(insertIndex.clamp(0, guilds.length), sourceGuild);
+
+    items[folderIndex] = GuildNavbarFolder(
+      id: folderItem.id,
+      name: folderItem.name,
+      color: folderItem.color,
+      flags: folderItem.flags,
+      icon: folderItem.icon,
+      guilds: guilds,
+    );
+
+    state = items;
+    _persist();
+  }
+
   void applyDragDrop({
     required String sourceId,
     required String targetId,
@@ -314,8 +407,38 @@ class OrganizedGuildList extends _$OrganizedGuildList {
   }) {
     switch (position) {
       case DropPosition.before:
+        if (!targetIsFolder && _findGuildInFolders(state, targetId) != null) {
+          final _FolderGuildLocation location = _findGuildInFolders(
+            state,
+            targetId,
+          )!;
+          final int folderId =
+              (state[location.folderIndex] as GuildNavbarFolder).id;
+          moveIntoFolderAtPosition(
+            guildId: sourceId,
+            folderId: folderId,
+            referenceGuildId: targetId,
+            insertAfter: false,
+          );
+          return;
+        }
         reorder(sourceId: sourceId, targetId: targetId, insertAfter: false);
       case DropPosition.after:
+        if (!targetIsFolder && _findGuildInFolders(state, targetId) != null) {
+          final _FolderGuildLocation location = _findGuildInFolders(
+            state,
+            targetId,
+          )!;
+          final int folderId =
+              (state[location.folderIndex] as GuildNavbarFolder).id;
+          moveIntoFolderAtPosition(
+            guildId: sourceId,
+            folderId: folderId,
+            referenceGuildId: targetId,
+            insertAfter: true,
+          );
+          return;
+        }
         reorder(sourceId: sourceId, targetId: targetId, insertAfter: true);
       case DropPosition.combine:
         if (targetIsFolder) {

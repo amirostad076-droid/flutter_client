@@ -584,20 +584,11 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       case _NavbarListEntryKind.organizedFolder:
         final GuildNavbarFolder folderItem =
             entry.organizedItem! as GuildNavbarFolder;
-        return GuildDragWrapper(
+        return _GuildFolderWidget(
           key: ValueKey<String>('folder-${folderItem.id}'),
-          itemId: folderItem.id.toString(),
-          isFolder: true,
-          dragFeedback: GuildFolderDragFeedback(
-            guilds: folderItem.guilds,
-            folderIcon: folderItem.icon,
-            showIconWhenCollapsed: folderItem.showIconWhenCollapsed,
-          ),
-          child: _GuildFolderWidget(
-            folder: folderItem,
-            activeGuildId: activeGuildId,
-            unavailableCount: unavailableCount,
-          ),
+          folder: folderItem,
+          activeGuildId: activeGuildId,
+          unavailableCount: unavailableCount,
         );
       case _NavbarListEntryKind.exploreCommunities:
         return _DashedGuildIcon(
@@ -1035,6 +1026,7 @@ class _GuildFolderWidget extends ConsumerStatefulWidget {
   final int unavailableCount;
 
   const _GuildFolderWidget({
+    super.key,
     required this.folder,
     required this.activeGuildId,
     required this.unavailableCount,
@@ -1116,15 +1108,24 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget>
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildFolderButton(
-                context,
-                folderAccent: folderAccent,
-                folderSurface: folderSurface,
-                anyUnread: anyUnread,
-                totalMentions: totalMentions,
-                folderVoiceActivity: folderVoiceActivity,
-                isExpanded: isExpanded,
-                guildUnreadReady: guildUnreadReady,
+              GuildDragWrapper(
+                itemId: folder.id.toString(),
+                isFolder: true,
+                dragFeedback: GuildFolderDragFeedback(
+                  guilds: folder.guilds,
+                  folderIcon: folder.icon,
+                  showIconWhenCollapsed: folder.showIconWhenCollapsed,
+                ),
+                child: _buildFolderButton(
+                  context,
+                  folderAccent: folderAccent,
+                  folderSurface: folderSurface,
+                  anyUnread: anyUnread,
+                  totalMentions: totalMentions,
+                  folderVoiceActivity: folderVoiceActivity,
+                  isExpanded: isExpanded,
+                  guildUnreadReady: guildUnreadReady,
+                ),
               ),
               // Animated expand/collapse of guild items.
               AnimatedSize(
