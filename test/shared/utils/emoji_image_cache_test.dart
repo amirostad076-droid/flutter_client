@@ -15,21 +15,14 @@ void main() {
     );
   });
 
-  Widget wrapEmoji({
-    required CachedEmojiImage emoji,
-    required bool onScreen,
-  }) {
+  Widget wrapEmoji({required CachedEmojiImage emoji, required bool onScreen}) {
     return MaterialApp(
       home: Scaffold(
         body: ClipRect(
           child: Stack(
             clipBehavior: Clip.none,
             children: <Widget>[
-              Positioned(
-                left: 0,
-                top: onScreen ? 0 : 5000,
-                child: emoji,
-              ),
+              Positioned(left: 0, top: onScreen ? 0 : 5000, child: emoji),
             ],
           ),
         ),
@@ -60,24 +53,26 @@ void main() {
     expect(imageUrl(tester), isNot(contains('animated=true')));
   });
 
-  testWidgets('animated emoji with pauseWhenOffscreen false requests animated URL',
-      (tester) async {
-    await tester.pumpWidget(
-      wrapEmoji(
-        onScreen: true,
-        emoji: const CachedEmojiImage(
-          emojiId: '456',
-          animated: true,
-          pauseWhenOffscreen: false,
-          requestSize: 48,
-          size: 32,
+  testWidgets(
+    'animated emoji with pauseWhenOffscreen false requests animated URL',
+    (tester) async {
+      await tester.pumpWidget(
+        wrapEmoji(
+          onScreen: true,
+          emoji: const CachedEmojiImage(
+            emojiId: '456',
+            animated: true,
+            pauseWhenOffscreen: false,
+            requestSize: 48,
+            size: 32,
+          ),
         ),
-      ),
-    );
-    await tester.pump();
+      );
+      await tester.pump();
 
-    expect(imageUrl(tester), contains('animated=true'));
-  });
+      expect(imageUrl(tester), contains('animated=true'));
+    },
+  );
 
   testWidgets('animated emoji pauses when off-screen', (tester) async {
     await tester.pumpWidget(

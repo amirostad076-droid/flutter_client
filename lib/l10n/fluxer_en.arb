@@ -2984,6 +2984,10 @@
       }
     }
   },
+  "blockedUserComposerBarrierAction": "Unblock",
+  "@blockedUserComposerBarrierAction": {
+    "description": "Button label on the composer barrier shown when messaging a blocked user."
+  },
   "userProfileOpenDm": "Open DM",
   "@userProfileOpenDm": {
     "description": "Primary button label on the open-DM-while-blocked confirmation."

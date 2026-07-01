@@ -4189,6 +4189,12 @@ abstract class FluxerLocalizations {
   /// **'You blocked {username}. You won\'t be able to send messages unless you unblock them.'**
   String userProfileOpenBlockedDmDescription(String username);
 
+  /// Button label on the composer barrier shown when messaging a blocked user.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get blockedUserComposerBarrierAction;
+
   /// Primary button label on the open-DM-while-blocked confirmation.
   ///
   /// In en, this message translates to:

@@ -2324,6 +2324,9 @@ class FluxerLocalizationsTr extends FluxerLocalizations {
   }
 
   @override
+  String get blockedUserComposerBarrierAction => 'Unblock';
+
+  @override
   String get userProfileOpenDm => 'Open DM';
 
   @override
