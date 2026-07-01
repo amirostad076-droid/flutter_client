@@ -13,6 +13,7 @@ import 'package:fluxer_app/core/router/shell_popup_route_observer.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/login_screen.dart';
 import 'package:fluxer_app/features/auth/providers/account_manager_provider.dart';
+import 'package:fluxer_app/features/auth/providers/add_account_instance_guard_provider.dart';
 import 'package:fluxer_app/features/chat/presentation/channel_layout.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/chat_loading_spinner.dart';
 import 'package:fluxer_app/features/chat/utils/chat_spinner_debug.dart';
@@ -163,7 +164,11 @@ GoRouter fluxerRouter(Ref ref) {
     )
     ..listen(gatewayReadyProvider, (_, _) => refreshNotifier.notify())
     ..listen(appStartupProvider, (_, _) => refreshNotifier.notify())
-    ..listen(accountManagerProvider, (_, _) => refreshNotifier.notify());
+    ..listen(accountManagerProvider, (_, _) => refreshNotifier.notify())
+    ..listen(
+      addAccountInstanceGuardProvider,
+      (_, _) => refreshNotifier.notify(),
+    );
 
   void setShellPopupOverlay({required bool hasOverlay}) {
     ref
@@ -199,6 +204,8 @@ GoRouter fluxerRouter(Ref ref) {
       final isGatewayReady = ref.read(gatewayReadyProvider);
       final isStartupComplete = ref.read(appStartupProvider) is AsyncData;
       final isAccountSwitching = ref.read(accountManagerProvider).isSwitching;
+      final bool isAddingAccount =
+          ref.read(addAccountInstanceGuardProvider) != null;
 
       if (isAccountSwitching) {
         return isOnLoading ? null : '/loading';
@@ -220,7 +227,10 @@ GoRouter fluxerRouter(Ref ref) {
       }
 
       // Authenticated but gateway hasn't delivered READY yet — stay on splash.
-      if (isAuthenticated && !isGatewayReady && !isOnReconnecting) {
+      if (isAuthenticated &&
+          !isGatewayReady &&
+          !isOnReconnecting &&
+          !isAddingAccount) {
         return isOnLoading ? null : '/loading';
       }
 
