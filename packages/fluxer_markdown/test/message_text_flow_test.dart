@@ -486,6 +486,57 @@ void main() {
       expect(renderedText, isNot(contains('~')));
       expect(_hasMultiLineStrikethrough(richText.text), isTrue);
     });
+
+    testWidgets(
+      'single line blockquote followed by non-quote lines renders correctly',
+      (tester) async {
+        const String input =
+            '> This is a quoted line.\nThis is not a quoted line.\nThis is also not a quoted line.';
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: FluxerMarkdown(
+                data: input,
+                config: _testMarkdownConfig,
+                baseStyle: baseStyle,
+              ),
+            ),
+          ),
+        );
+
+        expect(
+          find.textContaining('This is a quoted line.', findRichText: true),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('This is not a quoted line.', findRichText: true),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining(
+            'This is also not a quoted line.',
+            findRichText: true,
+          ),
+          findsOneWidget,
+        );
+
+        final List<RichText> richTextWidgets = tester
+            .widgetList<RichText>(find.byType(RichText))
+            .toList();
+
+        expect(richTextWidgets.length, 2);
+
+        final String quoteText = richTextWidgets[0].text.toPlainText();
+        expect(quoteText, 'This is a quoted line.');
+        expect(quoteText, isNot(contains('not a quoted')));
+
+        final String followingText = richTextWidgets[1].text.toPlainText();
+        expect(
+          followingText,
+          'This is not a quoted line.\nThis is also not a quoted line.',
+        );
+      },
+    );
   });
 }
 
