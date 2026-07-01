@@ -218,7 +218,9 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         );
 
     return _MobileChannelScaffold(
-      backgroundColor: context.colors.backgroundPrimary,
+      backgroundColor: isOnChatRoute
+          ? context.colors.chatInputBackground
+          : context.colors.backgroundPrimary,
       resizeToAvoidBottomInset: shouldResizeForKeyboard,
       sidebar: _buildMobileSidebar(location),
       bottomNav: _buildBottomNav(context),
