@@ -5644,6 +5644,10 @@
     "@chatAttachmentVideoProgress": {
         "description": "Accessibility label for the seek bar in mobile attachment fullscreen video."
     },
+    "chatVideoPlaybackFailed": "Could not play this video.",
+    "@chatVideoPlaybackFailed": {
+        "description": "Shown when embedded or attachment video playback fails in the chat player."
+    },
     "composerAutocompleteRoleMentionDescription": "Notify users with this role who have permission to view this channel.",
     "@composerAutocompleteRoleMentionDescription": {
         "description": "Secondary line in the @ mention autocomplete when the row is a mentionable guild role."

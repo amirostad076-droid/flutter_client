@@ -8387,6 +8387,12 @@ abstract class FluxerLocalizations {
   /// **'Video progress'**
   String get chatAttachmentVideoProgress;
 
+  /// Shown when embedded or attachment video playback fails in the chat player.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not play this video.'**
+  String get chatVideoPlaybackFailed;
+
   /// Secondary line in the @ mention autocomplete when the row is a mentionable guild role.
   ///
   /// In en, this message translates to:

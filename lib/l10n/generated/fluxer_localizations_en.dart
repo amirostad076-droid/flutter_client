@@ -4865,6 +4865,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatAttachmentVideoProgress => 'Video progress';
 
   @override
+  String get chatVideoPlaybackFailed => 'Could not play this video.';
+
+  @override
   String get composerAutocompleteRoleMentionDescription =>
       'Notify users with this role who have permission to view this channel.';
 
@@ -18238,6 +18241,9 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
 
   @override
   String get chatAttachmentVideoProgress => 'Video progress';
+
+  @override
+  String get chatVideoPlaybackFailed => 'Could not play this video.';
 
   @override
   String get composerAutocompleteRoleMentionDescription =>
