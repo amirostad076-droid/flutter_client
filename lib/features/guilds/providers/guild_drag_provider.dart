@@ -204,7 +204,7 @@ class GuildDrag extends _$GuildDrag {
       hoverTargetIsFolder: isFolder,
       dropPosition: position,
     );
-    return didChangeTarget;
+    return didChangeTarget || didChangePosition;
   }
 
   void clearHover() {

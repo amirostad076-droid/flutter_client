@@ -269,10 +269,10 @@ class _GuildDragWrapperState extends ConsumerState<GuildDragWrapper> {
       },
       onDragUpdate: isMobile
           ? (Offset globalPosition) {
-              final bool didChangeTarget = ref
+              final bool didChangeDropPreview = ref
                   .read(guildDragProvider.notifier)
                   .updateDragMovement(globalPosition);
-              if (didChangeTarget) {
+              if (didChangeDropPreview) {
                 Gaimon.selection();
               }
             }
