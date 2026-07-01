@@ -1088,6 +1088,9 @@ class GatewayEventHandler {
     Object? updatesRaw,
   ) {
     if (updatesRaw == null) {
+      if (existingRaw is Map) {
+        return existingRaw.cast<String, dynamic>();
+      }
       return null;
     }
     final existing = existingRaw is Map

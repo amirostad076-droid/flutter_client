@@ -240,6 +240,62 @@ void main() {
     expect(decoded.version, 2);
   });
 
+  test(
+    'user guild settings update preserves overrides when channel_overrides is null',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      await db.userGuildSettingsDao.upsert(
+        UserGuildSettingsTableCompanion.insert(
+          guildId: 'guild-1',
+          data: jsonEncode(
+            const UserGuildSettingsResponse(
+              guildId: 'guild-1',
+              messageNotifications: UserNotificationSettings.onlyMentions,
+              muted: false,
+              muteConfig: null,
+              mobilePush: true,
+              suppressEveryone: true,
+              suppressRoles: false,
+              hideMutedChannels: false,
+              channelOverrides: {
+                'channel-1': ChannelOverrides(
+                  collapsed: false,
+                  messageNotifications: UserNotificationSettings.inherit,
+                  muted: true,
+                  muteConfig: null,
+                ),
+              },
+              version: 1,
+            ).toJson(),
+          ),
+        ),
+      );
+      final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+      await handler.handle(
+        const UserGuildSettingsUpdateEvent(
+          guildId: 'guild-1',
+          data: <String, dynamic>{
+            'guild_id': 'guild-1',
+            'muted': true,
+            'channel_overrides': null,
+            'version': 2,
+          },
+        ),
+      );
+      await pumpEventQueue();
+
+      final row = await db.userGuildSettingsDao.getByGuildId('guild-1');
+      final decoded = UserGuildSettingsResponse.fromJson(
+        jsonDecode(row!.data) as Map<String, dynamic>,
+      );
+      expect(decoded.muted, isTrue);
+      expect(decoded.channelOverrides?['channel-1']?.muted, isTrue);
+      expect(decoded.version, 2);
+    },
+  );
+
   test('own created messages locally ack the channel', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
