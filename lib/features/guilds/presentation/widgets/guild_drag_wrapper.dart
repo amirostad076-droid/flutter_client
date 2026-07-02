@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/presentation/widgets/guild_icon_peek_gesture_host.dart';
+import 'package:fluxer_app/features/guilds/presentation/widgets/guild_icon_peek_menu.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_drag_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxer_app/features/guilds/utils/guild_folder_icon.dart';
@@ -129,6 +131,7 @@ class GuildDragWrapper extends ConsumerStatefulWidget {
     required this.child,
     this.enabled = true,
     this.allowCombine = true,
+    this.peekMenu,
     super.key,
   });
 
@@ -138,6 +141,7 @@ class GuildDragWrapper extends ConsumerStatefulWidget {
   final bool allowCombine;
   final Widget dragFeedback;
   final Widget child;
+  final GuildIconPeekMenuConfig? peekMenu;
 
   @override
   ConsumerState<GuildDragWrapper> createState() => _GuildDragWrapperState();
@@ -229,62 +233,72 @@ class _GuildDragWrapperState extends ConsumerState<GuildDragWrapper> {
       ),
     );
 
-    if (!widget.enabled) {
-      return dragTarget;
-    }
-
     final bool collapseSource =
         isMobile &&
         dragState.dragItemId == widget.itemId &&
         dragState.hasMovedFromHoldPoint;
 
-    return _GuildDraggable(
-      isMobile: isMobile,
-      data: GuildDragData(itemId: widget.itemId, isFolder: widget.isFolder),
-      dragFeedback: widget.dragFeedback,
-      childWhenDragging: isMobile
-          ? collapseSource
-                ? const SizedBox.shrink()
-                : IgnorePointer(child: dragTarget)
-          : IgnorePointer(
-              child: Visibility(
-                visible: false,
-                maintainSize: true,
-                maintainAnimation: true,
-                maintainState: true,
-                child: widget.child,
-              ),
+    final Widget peekHostChild = !widget.enabled
+        ? dragTarget
+        : _GuildDraggable(
+            isMobile: isMobile,
+            data: GuildDragData(
+              itemId: widget.itemId,
+              isFolder: widget.isFolder,
             ),
-      onDragStarted: (double? anchorGlobalCenterX) {
-        if (isMobile) {
-          unawaited(HapticFeedback.mediumImpact());
-        }
-        ref
-            .read(guildDragProvider.notifier)
-            .startDrag(
-              widget.itemId,
-              sourceIsFolder: widget.isFolder,
-              anchorGlobalCenterX: anchorGlobalCenterX,
-            );
-      },
-      onDragUpdate: isMobile
-          ? (Offset globalPosition) {
-              final bool didChangeDropPreview = ref
-                  .read(guildDragProvider.notifier)
-                  .updateDragMovement(globalPosition);
-              if (didChangeDropPreview) {
-                Gaimon.selection();
+            dragFeedback: widget.dragFeedback,
+            childWhenDragging: isMobile
+                ? collapseSource
+                      ? const SizedBox.shrink()
+                      : IgnorePointer(child: dragTarget)
+                : IgnorePointer(
+                    child: Visibility(
+                      visible: false,
+                      maintainSize: true,
+                      maintainAnimation: true,
+                      maintainState: true,
+                      child: widget.child,
+                    ),
+                  ),
+            onDragStarted: (double? anchorGlobalCenterX) {
+              if (isMobile) {
+                unawaited(HapticFeedback.mediumImpact());
               }
-            }
-          : null,
-      onDragEnded: () {
-        if (isMobile) {
-          _commitPendingDropIfNeeded();
-        }
-        ref.read(guildDragProvider.notifier).endDrag();
-      },
-      child: dragTarget,
-    );
+              ref
+                  .read(guildDragProvider.notifier)
+                  .startDrag(
+                    widget.itemId,
+                    sourceIsFolder: widget.isFolder,
+                    anchorGlobalCenterX: anchorGlobalCenterX,
+                  );
+            },
+            onDragUpdate: isMobile
+                ? (Offset globalPosition) {
+                    final bool didChangeDropPreview = ref
+                        .read(guildDragProvider.notifier)
+                        .updateDragMovement(globalPosition);
+                    if (didChangeDropPreview) {
+                      Gaimon.selection();
+                    }
+                  }
+                : null,
+            onDragEnded: () {
+              if (isMobile) {
+                _commitPendingDropIfNeeded();
+              }
+              ref.read(guildDragProvider.notifier).endDrag();
+            },
+            child: dragTarget,
+          );
+
+    if (widget.peekMenu != null && isMobile) {
+      return GuildIconPeekGestureHost(
+        itemId: widget.itemId,
+        peekMenu: widget.peekMenu!,
+        child: peekHostChild,
+      );
+    }
+    return peekHostChild;
   }
 
   void _handleDragMove({
