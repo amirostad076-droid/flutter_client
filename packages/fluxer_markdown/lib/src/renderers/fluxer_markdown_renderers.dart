@@ -366,12 +366,22 @@ class _MarkdownBlockRenderer {
     final children = item.children ?? const <md.Node>[];
     final content = <Widget>[];
     final nestedBlocks = <Widget>[];
+    final inlineBuffer = <md.Node>[];
+
+    void flushInlineBuffer() {
+      if (inlineBuffer.isEmpty) {
+        return;
+      }
+      content.add(_buildParagraph(List<md.Node>.from(inlineBuffer)));
+      inlineBuffer.clear();
+    }
 
     for (final child in children) {
       if (child is md.Element &&
           (child.tag == 'ul' ||
               child.tag == 'ol' ||
               child.tag == 'blockquote')) {
+        flushInlineBuffer();
         final nested = buildBlock(child);
         if (nested != null) {
           nestedBlocks.add(nested);
@@ -380,15 +390,24 @@ class _MarkdownBlockRenderer {
       }
 
       if (child is md.Element && child.tag == 'p') {
+        flushInlineBuffer();
         content.add(_buildParagraph(child.children ?? const []));
         continue;
       }
 
+      if (_isInlineListNode(child)) {
+        inlineBuffer.add(child);
+        continue;
+      }
+
+      flushInlineBuffer();
       final block = buildBlock(child);
       if (block != null) {
         content.add(block);
       }
     }
+
+    flushInlineBuffer();
 
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -787,6 +806,16 @@ bool _allNodesAreEmoji(List<md.Node> nodes) {
   }
 
   return hasEmoji && emojiCount <= kFluxerMarkdownJumboMaxCount;
+}
+
+bool _isInlineListNode(md.Node node) {
+  if (node is md.Text) {
+    return true;
+  }
+  if (node is md.Element) {
+    return _isInlineOnlyTag(node.tag);
+  }
+  return false;
 }
 
 bool _isInlineOnlyTag(String tag) {
