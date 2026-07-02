@@ -12,7 +12,6 @@ import 'package:fluxer_app/features/chat/presentation/widgets/pickers/picker_sea
 import 'package:fluxer_app/features/chat/providers/pickers/favorite_media_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/gif_provider.dart';
 import 'package:fluxer_app/features/chat/utils/gif_category_grid_layout.dart';
-import 'package:fluxer_app/features/chat/utils/gif_preview_media_policy.dart';
 import 'package:fluxer_app/features/chat/utils/gif_preview_playback_policy.dart';
 import 'package:fluxer_app/features/chat/utils/klipy_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_proxy_url.dart';
@@ -793,8 +792,7 @@ class _CategoryGridState extends State<_CategoryGrid> {
   }) sync* {
     for (var index = 0; index < widget.categories.length; index++) {
       final category = widget.categories[index];
-      if (!isAnimatedImagePreviewUrl(category.previewUrl) &&
-          !isAnimatedImagePreviewUrl(category.sourceUrl)) {
+      if (category.previewUrl.isEmpty && category.sourceUrl.isEmpty) {
         continue;
       }
       final row = index ~/ columnCount;
