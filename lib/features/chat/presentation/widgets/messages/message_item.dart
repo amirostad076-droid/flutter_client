@@ -937,6 +937,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       mentionChannels: msg.mentionChannels,
       revealSpoilers: revealSpoilers,
       spoilerSyncController: _spoilerSyncController,
+      trailingInlineWidget: msg.isEdited
+          ? _buildEditedLabel(context, msg)
+          : null,
     );
     if (msg.hasFailed && msg.content.trim().isNotEmpty) {
       markdown = DefaultTextStyle(
@@ -944,13 +947,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         child: markdown,
       );
     }
-    if (!msg.isEdited) {
-      return markdown;
-    }
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.end,
-      children: [markdown, _buildEditedLabel(context, msg)],
-    );
+    return markdown;
   }
 
   Widget _buildEditedLabel(BuildContext context, Message msg) {

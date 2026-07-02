@@ -96,6 +96,22 @@ final MarkdownParseCache<(String, FluxerMarkdownFeatures), List<md.Node>>
 _inlineNodeCache =
     MarkdownParseCache<(String, FluxerMarkdownFeatures), List<md.Node>>();
 
+void appendTrailingInlineWidget(
+  List<InlineSpan> spans,
+  TextStyle baseStyle,
+  Widget trailingInlineWidget,
+) {
+  spans
+    ..add(TextSpan(text: ' ', style: baseStyle))
+    ..add(
+      WidgetSpan(
+        alignment: PlaceholderAlignment.baseline,
+        baseline: TextBaseline.alphabetic,
+        child: trailingInlineWidget,
+      ),
+    );
+}
+
 Widget buildFluxerMarkdownTextFlow({
   required BuildContext context,
   required String text,
@@ -108,6 +124,7 @@ Widget buildFluxerMarkdownTextFlow({
   String? parseCacheKey,
   int? maxLines,
   TextOverflow? overflow,
+  Widget? trailingInlineWidget,
 }) {
   if (text.isEmpty) {
     return const SizedBox.shrink();
@@ -138,15 +155,21 @@ Widget buildFluxerMarkdownTextFlow({
   if (spans.isEmpty) {
     return const SizedBox.shrink();
   }
-  final body = RichText(
+  if (trailingInlineWidget != null) {
+    appendTrailingInlineWidget(spans, baseStyle, trailingInlineWidget);
+  }
+  final RichText richText = RichText(
     text: TextSpan(style: baseStyle, children: spans),
     textScaler: MediaQuery.textScalerOf(context),
     maxLines: maxLines,
     overflow: overflow ?? TextOverflow.clip,
-    textWidthBasis: maxLines != null
+    textWidthBasis: trailingInlineWidget != null || maxLines != null
         ? TextWidthBasis.parent
         : TextWidthBasis.longestLine,
   );
+  final Widget body = trailingInlineWidget != null
+      ? SizedBox(width: double.infinity, child: richText)
+      : richText;
   if (!selectable) {
     return body;
   }

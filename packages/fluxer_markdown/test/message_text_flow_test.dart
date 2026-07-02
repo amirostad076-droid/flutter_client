@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_markdown/src/config/fluxer_markdown_config.dart';
 import 'package:fluxer_markdown/src/contexts/fluxer_markdown_context.dart';
@@ -679,6 +680,94 @@ void main() {
           followingText,
           'This is not a quoted line.\nThis is also not a quoted line.',
         );
+      },
+    );
+
+    testWidgets(
+      'trailing inline widget appears after last line not longest line',
+      (tester) async {
+        const String input =
+            'This is a very long first line that exceeds phone width\nshort';
+        const double maxWidth = 200;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.noScaling),
+              child: Scaffold(
+                body: Center(
+                  child: SizedBox(
+                    width: maxWidth,
+                    child: FluxerMarkdown(
+                      data: input,
+                      config: _testMarkdownConfig,
+                      baseStyle: baseStyle,
+                      trailingInlineWidget: const Text(
+                        '(edited)',
+                        style: TextStyle(fontSize: 10, height: 1.2),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        final Finder messageRichTextFinder = find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is RichText && widget.text.toPlainText().contains('short'),
+        );
+        final RenderParagraph paragraph = tester.renderObject<RenderParagraph>(
+          messageRichTextFinder,
+        );
+        final String plainText = paragraph.text.toPlainText();
+        final int shortOffset = plainText.indexOf('short');
+        final List<TextBox> shortBoxes = paragraph.getBoxesForSelection(
+          TextSelection(
+            baseOffset: shortOffset,
+            extentOffset: shortOffset + 'short'.length,
+          ),
+        );
+        final Rect shortRect = shortBoxes.last.toRect();
+        final Offset editedGlobal = tester.getTopLeft(find.text('(edited)'));
+        final Offset editedLocal = paragraph.globalToLocal(editedGlobal);
+        final List<TextBox> longLineBoxes = paragraph.getBoxesForSelection(
+          const TextSelection(baseOffset: 0, extentOffset: 4),
+        );
+        final Rect longLineRect = longLineBoxes.first.toRect();
+        final double lineHeight =
+            (baseStyle.fontSize ?? 16) * (baseStyle.height ?? 1);
+        expect(editedLocal.dy, greaterThan(longLineRect.top + 8));
+        expect(
+          (editedLocal.dy - shortRect.top).abs(),
+          lessThan(lineHeight + 4),
+        );
+        expect(editedLocal.dx, closeTo(shortRect.right + 4, 40));
+        expect(editedLocal.dx, lessThan(maxWidth - 8));
+      },
+    );
+
+    testWidgets(
+      'trailing inline widget appears below code block when code is last',
+      (tester) async {
+        const String input = 'before\n```\ncode\n```';
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: FluxerMarkdown(
+                data: input,
+                config: _testMarkdownConfig,
+                baseStyle: baseStyle,
+                trailingInlineWidget: Text('(edited)'),
+              ),
+            ),
+          ),
+        );
+        expect(find.text('(edited)'), findsOneWidget);
+        final Offset editedOffset = tester.getTopLeft(find.text('(edited)'));
+        final Offset beforeOffset = tester.getTopLeft(
+          find.textContaining('before', findRichText: true),
+        );
+        expect(editedOffset.dy, greaterThan(beforeOffset.dy + 8));
       },
     );
   });

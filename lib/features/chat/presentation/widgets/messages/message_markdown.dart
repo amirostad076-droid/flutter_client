@@ -17,6 +17,7 @@ class MessageMarkdown extends StatelessWidget {
     this.spoilerSyncController,
     this.maxLines,
     this.overflow,
+    this.trailingInlineWidget,
     super.key,
   });
 
@@ -31,6 +32,7 @@ class MessageMarkdown extends StatelessWidget {
   final FluxerSpoilerSyncController? spoilerSyncController;
   final int? maxLines;
   final TextOverflow? overflow;
+  final Widget? trailingInlineWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,7 @@ class MessageMarkdown extends StatelessWidget {
       context: markdownContext,
       maxLines: maxLines,
       overflow: overflow,
+      trailingInlineWidget: trailingInlineWidget,
     );
   }
 }
