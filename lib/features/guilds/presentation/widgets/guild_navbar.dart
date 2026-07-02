@@ -79,18 +79,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-typedef _ScrollIndicatorView = ({
-  bool show,
-  ScrollIndicatorSeverity severity,
-  String? targetId,
-});
-
-const _ScrollIndicatorView _hiddenIndicator = (
-  show: false,
-  severity: ScrollIndicatorSeverity.unread,
-  targetId: null,
-);
-
 enum _NavbarListEntryKind {
   directMessages,
   favorites,
@@ -128,24 +116,25 @@ class GuildNavbar extends ConsumerStatefulWidget {
 
 class _GuildNavbarState extends ConsumerState<GuildNavbar> {
   final _scrollController = ScrollController();
-  final _itemKeys = <String, GlobalKey<_GuildListItemState>>{};
-  final ValueNotifier<_ScrollIndicatorView> _topIndicator = ValueNotifier(
-    _hiddenIndicator,
-  );
-  final ValueNotifier<_ScrollIndicatorView> _bottomIndicator = ValueNotifier(
-    _hiddenIndicator,
-  );
-  bool _scrollIndicatorUpdateScheduled = false;
+  final Map<String, GlobalKey> _itemKeys = <String, GlobalKey>{};
+  late final UnreadScrollIndicatorController _scrollIndicator;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_scheduleScrollIndicatorUpdate);
+    _scrollIndicator = UnreadScrollIndicatorController(
+      scrollController: _scrollController,
+      itemKeys: _itemKeys,
+      resolveSeverity: _resolveGuildScrollSeverity,
+      isMounted: () => mounted,
+      hideTopWhen: (double scrollOffset) => scrollOffset < 80,
+    )..attach();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
       _prefetchGuildPermissions(ref.read(organizedGuildListProvider));
+      _scrollIndicator.scheduleUpdate();
     });
   }
 
@@ -230,118 +219,15 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
 
   @override
   void dispose() {
-    _scrollController
-      ..removeListener(_scheduleScrollIndicatorUpdate)
-      ..dispose();
-    _topIndicator.dispose();
-    _bottomIndicator.dispose();
+    _scrollController.dispose();
+    _scrollIndicator.detach();
     super.dispose();
   }
 
-  void _scheduleScrollIndicatorUpdate() {
-    if (_scrollIndicatorUpdateScheduled) {
-      return;
-    }
-    _scrollIndicatorUpdateScheduled = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollIndicatorUpdateScheduled = false;
-      _updateScrollIndicators();
-    });
-  }
-
-  void _updateScrollIndicators() {
-    if (!_scrollController.hasClients || !mounted) {
-      return;
-    }
-
-    final scrollPosition = _scrollController.position;
-
-    var showTop = false;
-    var showBottom = false;
-    var topSeverity = ScrollIndicatorSeverity.unread;
-    var bottomSeverity = ScrollIndicatorSeverity.unread;
-    String? topTarget;
-    String? bottomTarget;
-    var topDistance = double.infinity;
-    var bottomDistance = double.infinity;
-
-    for (final entry in _itemKeys.entries) {
-      final severity = _getItemSeverity(entry.key);
-      if (severity == null) {
-        continue;
-      }
-
-      final key = entry.value;
-      final renderObject = key.currentContext?.findRenderObject();
-      if (renderObject is! RenderBox || !renderObject.attached) {
-        continue;
-      }
-
-      final scrollableContext = scrollPosition.context.storageContext;
-      final scrollableRenderObject =
-          scrollableContext.findRenderObject()! as RenderBox;
-      final scrollableTop = scrollableRenderObject
-          .localToGlobal(Offset.zero)
-          .dy;
-      final scrollableBottom = scrollableTop + scrollPosition.viewportDimension;
-
-      final itemTop = renderObject.localToGlobal(Offset.zero).dy;
-      final itemBottom = itemTop + renderObject.size.height;
-
-      if (itemBottom < scrollableTop) {
-        final distance = scrollableTop - itemBottom;
-        final severityPriority = severity == ScrollIndicatorSeverity.mention
-            ? 2
-            : 1;
-        final currentTopPriority =
-            topSeverity == ScrollIndicatorSeverity.mention ? 2 : 1;
-
-        if (!showTop ||
-            severityPriority > currentTopPriority ||
-            (severityPriority == currentTopPriority &&
-                distance < topDistance)) {
-          showTop = true;
-          topSeverity = severity;
-          topTarget = entry.key;
-          topDistance = distance;
-        }
-      } else if (itemTop > scrollableBottom) {
-        final distance = itemTop - scrollableBottom;
-        final severityPriority = severity == ScrollIndicatorSeverity.mention
-            ? 2
-            : 1;
-        final currentBottomPriority =
-            bottomSeverity == ScrollIndicatorSeverity.mention ? 2 : 1;
-
-        if (!showBottom ||
-            severityPriority > currentBottomPriority ||
-            (severityPriority == currentBottomPriority &&
-                distance < bottomDistance)) {
-          showBottom = true;
-          bottomSeverity = severity;
-          bottomTarget = entry.key;
-          bottomDistance = distance;
-        }
-      }
-    }
-
-    final scrollOffset = scrollPosition.pixels;
-    final hideTopIndicatorOverDms = scrollOffset < 80;
-
-    _topIndicator.value = (
-      show: showTop && !hideTopIndicatorOverDms,
-      severity: topSeverity,
-      targetId: topTarget,
-    );
-    _bottomIndicator.value = (
-      show: showBottom,
-      severity: bottomSeverity,
-      targetId: bottomTarget,
-    );
-  }
-
-  ScrollIndicatorSeverity? _getItemSeverity(String guildId) {
-    final unread = ref.read(guildReadStateProvider)[guildId];
+  ScrollIndicatorSeverity? _resolveGuildScrollSeverity(String guildId) {
+    final GuildReadStateEntry? unread = ref.read(
+      guildReadStateProvider,
+    )[guildId];
     if (unread == null) {
       return null;
     }
@@ -352,23 +238,6 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       return ScrollIndicatorSeverity.unread;
     }
     return null;
-  }
-
-  void _scrollToItem(String? itemId) {
-    if (itemId == null) {
-      return;
-    }
-    final key = _itemKeys[itemId];
-    if (key?.currentContext == null) {
-      return;
-    }
-    unawaited(
-      Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-      ),
-    );
   }
 
   @override
@@ -415,7 +284,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         }
       })
       ..listen(guildReadStateProvider, (_, _) {
-        _scheduleScrollIndicatorUpdate();
+        _scrollIndicator.scheduleUpdate();
       });
 
     final double topPadding = max<double>(MediaQuery.paddingOf(context).top, 4);
@@ -444,6 +313,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       },
     );
 
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     return Container(
       width: 72,
       decoration: BoxDecoration(
@@ -452,62 +322,11 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       ),
       child: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-        child: Stack(
-          children: [
-            guildListView,
-            Positioned(
-              top: 8 + topPadding,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: ValueListenableBuilder<_ScrollIndicatorView>(
-                  valueListenable: _topIndicator,
-                  builder: (context, view, _) => IgnorePointer(
-                    ignoring: !view.show,
-                    child: AnimatedSlide(
-                      offset: Offset(0, view.show ? 0 : -1),
-                      duration: const Duration(milliseconds: 150),
-                      curve: Curves.easeOut,
-                      child: AnimatedOpacity(
-                        opacity: view.show ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 150),
-                        child: GuildScrollIndicator(
-                          severity: view.severity,
-                          onTap: () => _scrollToItem(view.targetId),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 8,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: ValueListenableBuilder<_ScrollIndicatorView>(
-                  valueListenable: _bottomIndicator,
-                  builder: (context, view, _) => IgnorePointer(
-                    ignoring: !view.show,
-                    child: AnimatedSlide(
-                      offset: Offset(0, view.show ? 0 : 1),
-                      duration: const Duration(milliseconds: 150),
-                      curve: Curves.easeOut,
-                      child: AnimatedOpacity(
-                        opacity: view.show ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 150),
-                        child: GuildScrollIndicator(
-                          severity: view.severity,
-                          onTap: () => _scrollToItem(view.targetId),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+        child: UnreadScrollIndicatorLayer(
+          controller: _scrollIndicator,
+          label: l10n.scrollIndicatorNew,
+          topInset: 8 + topPadding,
+          child: guildListView,
         ),
       ),
     );
@@ -571,8 +390,12 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
             final unread = ref.watch(
               guildReadStateProvider.select((s) => s[guild.id]),
             );
-            final GlobalKey<_GuildListItemState> itemKey = _itemKeys
-                .putIfAbsent(guild.id, GlobalKey<_GuildListItemState>.new);
+            final GlobalKey<_GuildListItemState> itemKey =
+                _itemKeys.putIfAbsent(
+                      guild.id,
+                      GlobalKey<_GuildListItemState>.new,
+                    )
+                    as GlobalKey<_GuildListItemState>;
             final bool hasUnread =
                 !guild.isUnavailable && (unread?.hasUnread ?? false);
             return GuildDragWrapper(
@@ -618,10 +441,9 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           folder: folderItem,
           activeGuildId: activeGuildId,
           unavailableCount: unavailableCount,
-          resolveGuildItemKey: (String guildId) => _itemKeys.putIfAbsent(
-            guildId,
-            GlobalKey<_GuildListItemState>.new,
-          ),
+          resolveGuildItemKey: (String guildId) =>
+              _itemKeys.putIfAbsent(guildId, GlobalKey<_GuildListItemState>.new)
+                  as GlobalKey<_GuildListItemState>,
         );
       case _NavbarListEntryKind.exploreCommunities:
         return _DashedGuildIcon(

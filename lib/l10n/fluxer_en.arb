@@ -6892,6 +6892,14 @@
   "@guildNavbarHelp": {
     "description": "Label for the help button in the guild navbar."
   },
+  "scrollIndicatorNew": "NEW",
+  "@scrollIndicatorNew": {
+    "description": "Scroll pill shown when unread guilds are off-screen in the guild navbar."
+  },
+  "scrollIndicatorNewMessage": "NEW MESSAGE",
+  "@scrollIndicatorNewMessage": {
+    "description": "Scroll pill shown when unread channels are off-screen in the channel sidebar."
+  },
   "guildNavbarCollapseFolder": "Collapse {folderName}",
   "@guildNavbarCollapseFolder": {
     "description": "Tooltip when collapsing a guild folder in the navbar.",

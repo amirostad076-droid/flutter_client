@@ -5400,6 +5400,12 @@ class FluxerLocalizationsSk extends FluxerLocalizations {
   String get guildNavbarHelp => 'Help';
 
   @override
+  String get scrollIndicatorNew => 'NEW';
+
+  @override
+  String get scrollIndicatorNewMessage => 'NEW MESSAGE';
+
+  @override
   String guildNavbarCollapseFolder(String folderName) {
     return 'Collapse $folderName';
   }

@@ -9339,6 +9339,18 @@ abstract class FluxerLocalizations {
   /// **'Help'**
   String get guildNavbarHelp;
 
+  /// Scroll pill shown when unread guilds are off-screen in the guild navbar.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get scrollIndicatorNew;
+
+  /// Scroll pill shown when unread channels are off-screen in the channel sidebar.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW MESSAGE'**
+  String get scrollIndicatorNewMessage;
+
   /// Tooltip when collapsing a guild folder in the navbar.
   ///
   /// In en, this message translates to:
