@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/auth/presentation/login_screen.dart';
 import 'package:fluxer_app/features/auth/providers/account_manager_provider.dart';
 import 'package:fluxer_app/features/auth/providers/add_account_instance_guard_provider.dart';
 import 'package:fluxer_app/features/chat/presentation/channel_layout.dart';
+import 'package:fluxer_app/features/discovery/presentation/discovery_desktop_shell.dart';
 import 'package:fluxer_app/features/discovery/presentation/discovery_layout.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/chat_loading_spinner.dart';
 import 'package:fluxer_app/features/chat/utils/chat_spinner_debug.dart';
@@ -394,6 +395,25 @@ GoRouter fluxerRouter(Ref ref) {
         ),
       ),
 
+      // Discover (root navigator — slide on mobile, inline shell on desktop)
+      GoRoute(
+        path: '/channels/@discover',
+        name: RouteNames.discover,
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          if (isMobileLayout(context)) {
+            return _slideTransitionPage(
+              key: state.pageKey,
+              child: const DiscoveryLayout(),
+            );
+          }
+          return _fadeTransitionPage(
+            key: state.pageKey,
+            child: const DiscoveryDesktopShell(),
+          );
+        },
+      ),
+
       // Main app shell
       StatefulShellRoute.indexedStack(
         pageBuilder: (context, state, navigationShell) => _fadeTransitionPage(
@@ -526,15 +546,6 @@ GoRouter fluxerRouter(Ref ref) {
                     ],
                   ),
                 ],
-              ),
-              // /channels/@discover
-              GoRoute(
-                path: '/channels/@discover',
-                name: RouteNames.discover,
-                pageBuilder: (context, state) => _fadeTransitionPage(
-                  key: state.pageKey,
-                  child: const DiscoveryLayout(),
-                ),
               ),
               // /channels/:guildId
               GoRoute(

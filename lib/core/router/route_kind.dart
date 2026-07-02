@@ -83,6 +83,9 @@ final _guildChannelIdPattern = RegExp('^/channels/[^@/][^/]*/([^/]+)');
 /// DM/favorites match their channel segment; guild channels match anywhere a
 /// `/channels/:guildId/:channelId(/...)` shape exists (message-jump included).
 String? extractChannelId(String location) {
+  if (isDiscoverRoute(location)) {
+    return null;
+  }
   final dmMatch = _dmChannelIdPattern.firstMatch(location);
   if (dmMatch != null) {
     return dmMatch.group(1);

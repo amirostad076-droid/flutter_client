@@ -94,7 +94,7 @@ class FluxerApp extends ConsumerWidget {
             ),
           );
         }
-        
+
         return content;
       },
     );

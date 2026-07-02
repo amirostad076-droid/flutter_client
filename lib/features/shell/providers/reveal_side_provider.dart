@@ -103,7 +103,10 @@ class CurrentRevealSide extends _$CurrentRevealSide {
 /// guild redirect) would otherwise open the drawer for a frame before the
 /// redirect lands and closes it again.
 RevealSide? eagerRevealSideFor(String location) {
-  return classifyRoute(location) == RouteKind.chat ? RevealSide.main : null;
+  return switch (classifyRoute(location)) {
+    RouteKind.chat || RouteKind.discover => RevealSide.main,
+    _ => null,
+  };
 }
 
 /// Post-nav target side for [location], or null when the route should
@@ -114,7 +117,7 @@ RevealSide? syncedRevealSideFor(String location) {
     RouteKind.chat => RevealSide.main,
     RouteKind.guildMembers => null,
     RouteKind.dmCall => null,
-    RouteKind.discover => null,
+    RouteKind.discover => RevealSide.main,
     RouteKind.nonChannel => null,
   };
 }

@@ -89,6 +89,14 @@ class _DiscoveryPageState extends ConsumerState<DiscoveryPage> {
     });
   }
 
+  void _popDiscovery(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(RoutePaths.me);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isMobile = isMobileLayout(context);
@@ -116,7 +124,7 @@ class _DiscoveryPageState extends ConsumerState<DiscoveryPage> {
       state: state,
       isMobile: isMobile,
     );
-    return ColoredBox(
+    final Widget content = ColoredBox(
       color: colors.backgroundPrimary,
       child: CustomScrollView(
         controller: _scrollController,
@@ -156,6 +164,19 @@ class _DiscoveryPageState extends ConsumerState<DiscoveryPage> {
                 ...gridSlivers,
               ],
       ),
+    );
+    if (!isMobile) {
+      return content;
+    }
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, _) {
+        if (didPop) {
+          return;
+        }
+        _popDiscovery(context);
+      },
+      child: content,
     );
   }
 
@@ -214,13 +235,7 @@ class _DiscoveryPageState extends ConsumerState<DiscoveryPage> {
                 PhosphorIconsBold.caretLeft,
                 color: Colors.white,
               ),
-              onPressed: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go(RoutePaths.me);
-                }
-              },
+              onPressed: () => _popDiscovery(context),
             )
           : null,
       title: AnimatedOpacity(
