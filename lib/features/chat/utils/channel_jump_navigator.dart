@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/navigate_to_content.dart';
@@ -98,12 +99,16 @@ Future<ChannelJumpResolution> resolveChannelJumpLink({
       link.channelId,
     );
     if (channel == null) {
-      final String path = buildChannelJumpRoutePath(
-        channelId: link.channelId,
-        guildId: link.isDm ? null : link.scope,
-        messageId: messageId,
-      );
-      return ChannelJumpPending(path: path);
+      final bool isGatewayReady = container.read(gatewayReadyProvider);
+      if (!isGatewayReady) {
+        final String path = buildChannelJumpRoutePath(
+          channelId: link.channelId,
+          guildId: link.scope,
+          messageId: messageId,
+        );
+        return ChannelJumpPending(path: path);
+      }
+      return const ChannelJumpAccessDenied();
     }
     final String path = buildChannelJumpRoutePath(
       channelId: link.channelId,

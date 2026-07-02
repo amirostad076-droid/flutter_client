@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/utils/channel_jump_link.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
+import 'package:fluxer_app/features/chat/presentation/sheets/channel_access_denied_sheet.dart';
 import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
@@ -291,9 +292,13 @@ class ChannelJumpLinkMention extends ConsumerWidget {
 
     if (!link.isDm && channel == null && channelAsync?.isLoading == false) {
       final l10n = FluxerLocalizations.of(context);
+      void onInaccessibleTap() {
+        unawaited(showChannelAccessDeniedSheet(context));
+      }
+
       return _JumpLinkPill(
         baseStyle: style,
-        onTap: onTap,
+        onTap: onInaccessibleTap,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
