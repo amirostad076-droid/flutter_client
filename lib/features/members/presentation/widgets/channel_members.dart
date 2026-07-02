@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
-import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
 import 'package:fluxer_app/features/members/domain/member_list_group_names.dart';
 import 'package:fluxer_app/features/members/domain/member_list_layout.dart';
 import 'package:fluxer_app/features/members/domain/member_list_range_utils.dart';
@@ -20,7 +22,14 @@ import 'package:fluxer_dart/gateway.dart';
 const double _kPanelWidth = 264;
 
 class ChannelMembers extends ConsumerStatefulWidget {
-  const ChannelMembers({super.key});
+  const ChannelMembers({
+    required this.guildId,
+    required this.channelId,
+    super.key,
+  });
+
+  final String guildId;
+  final String channelId;
 
   @override
   ConsumerState<ChannelMembers> createState() => _ChannelMembersState();
@@ -28,37 +37,28 @@ class ChannelMembers extends ConsumerStatefulWidget {
 
 class _ChannelMembersState extends ConsumerState<ChannelMembers> {
   final ScrollController _scrollController = ScrollController();
+  MemberListViewport? _memberListViewport;
+  MemberListDesiredRanges? _memberListDesiredRanges;
 
   @override
   void initState() {
     super.initState();
+    _memberListViewport = ref.read(memberListViewportProvider.notifier);
+    _memberListDesiredRanges = ref.read(
+      memberListDesiredRangesProvider.notifier,
+    );
     _scrollController.addListener(_handleScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
-      ref.read(memberListPanelActiveProvider.notifier).active = true;
-      final String? guildId = ref.read(activeGuildIdProvider);
-      if (guildId != null) {
-        prefetchGuildRolesIfMissing(
-          database: ref.read(fluxerDatabaseProvider),
-          repository: ref.read(memberRepositoryProvider),
-          guildId: guildId,
-        );
-      }
+      prefetchGuildRolesIfMissing(
+        database: ref.read(fluxerDatabaseProvider),
+        repository: ref.read(memberRepositoryProvider),
+        guildId: widget.guildId,
+      );
       _updateDesiredRanges();
     });
-  }
-
-  @override
-  void deactivate() {
-    final MemberListPanelActive notifier = ref.read(
-      memberListPanelActiveProvider.notifier,
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifier.active = false;
-    });
-    super.deactivate();
   }
 
   @override
@@ -66,6 +66,16 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
     _scrollController
       ..removeListener(_handleScroll)
       ..dispose();
+    final MemberListViewport? viewport = _memberListViewport;
+    final MemberListDesiredRanges? desiredRanges = _memberListDesiredRanges;
+    final String guildId = widget.guildId;
+    final String channelId = widget.channelId;
+    if (viewport != null && desiredRanges != null) {
+      scheduleMicrotask(() {
+        viewport.clearChannel(guildId: guildId, channelId: channelId);
+        desiredRanges.clearChannel(guildId: guildId, channelId: channelId);
+      });
+    }
     super.dispose();
   }
 
@@ -74,11 +84,8 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
   }
 
   void _updateDesiredRanges() {
-    final String? guildId = ref.read(activeGuildIdProvider);
-    final String? channelId = ref.read(activeChannelIdProvider);
-    if (guildId == null || channelId == null) {
-      return;
-    }
+    final String guildId = widget.guildId;
+    final String channelId = widget.channelId;
     final MemberListViewportListState? listState = ref
         .read(memberListViewportProvider.notifier)
         .getList(guildId: guildId, channelId: channelId);
@@ -116,17 +123,24 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
 
   @override
   Widget build(BuildContext context) {
-    final String? guildId = ref.watch(activeGuildIdProvider);
-    final String? channelId = ref.watch(activeChannelIdProvider);
-    if (guildId == null || channelId == null) {
-      return const _ChannelMembersPanel(child: SizedBox.shrink());
-    }
-    ref.watch(memberListViewportProvider);
+    final String guildId = widget.guildId;
+    final String channelId = widget.channelId;
+    ref
+      ..listen(
+        memberListDetailsSubscriptionProvider(guildId, channelId, true),
+        (_, _) {},
+      )
+      ..watch(memberListViewportProvider);
     final MemberListViewportListState? listState = ref
         .read(memberListViewportProvider.notifier)
         .getList(guildId: guildId, channelId: channelId);
     final Map<String, db.Role> rolesById =
         ref.watch(guildRolesByIdProvider(guildId)).value ?? <String, db.Role>{};
+    final String? guildOwnerId = ref
+        .watch(guildByIdProvider(guildId))
+        .asData
+        ?.value
+        ?.ownerId;
     if (listState == null || !listState.hasReceivedInitialPayload) {
       return _ChannelMembersPanel(
         child: ListView.builder(
@@ -180,14 +194,22 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
             return const MemberListSkeletonRow();
           }
           final MemberListMember? listMember = row.listMember;
-          if (listMember == null || row.userId == null) {
+          final String? userId = row.userId;
+          if (listMember == null || userId == null) {
             return const MemberListSkeletonRow();
           }
+          final MemberListGroupLayout? layout = getGroupLayoutForRow(
+            layouts,
+            rowIndex,
+          );
+          final bool dimmed = layout?.id == 'offline';
           return MemberListSidebarMemberRow(
             guildId: guildId,
             listMember: listMember,
-            userId: row.userId!,
+            userId: userId,
             rolesById: rolesById,
+            dimmed: dimmed,
+            isOwner: guildOwnerId != null && userId == guildOwnerId,
           );
         },
       ),
