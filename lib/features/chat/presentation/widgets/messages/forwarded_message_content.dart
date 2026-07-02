@@ -87,6 +87,7 @@ class ForwardedMessageContent extends ConsumerWidget {
                     child: MessageMarkdown(
                       data: snapshot.content,
                       channelId: message.channelId,
+                      mentionChannels: snapshot.mentionChannels,
                       baseStyle: TextStyle(
                         fontSize: 13,
                         color: context.colors.textChat,

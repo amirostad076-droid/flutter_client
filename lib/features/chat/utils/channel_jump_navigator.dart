@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/utils/link_channel_navigator.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/channel_access_denied_sheet.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/mature_content/utils/channel_gate_navigator.dart';
@@ -76,6 +77,19 @@ final class ChannelJumpInPlace extends ChannelJumpResolution {
   final String messageId;
 }
 
+final class ChannelJumpOpenLink extends ChannelJumpResolution {
+  const ChannelJumpOpenLink({required this.channelId, required this.guildId});
+
+  final String channelId;
+  final String guildId;
+}
+
+final class ChannelJumpRedirectGuild extends ChannelJumpResolution {
+  const ChannelJumpRedirectGuild({required this.guildId});
+
+  final String guildId;
+}
+
 final class ChannelJumpNavigate extends ChannelJumpResolution {
   const ChannelJumpNavigate({
     required this.path,
@@ -109,6 +123,15 @@ Future<ChannelJumpResolution> resolveChannelJumpLink({
         return ChannelJumpPending(path: path);
       }
       return const ChannelJumpAccessDenied();
+    }
+    if (ChannelType.fromWire(channel.type) == ChannelType.guildLink) {
+      return ChannelJumpOpenLink(
+        channelId: link.channelId,
+        guildId: channel.guildId,
+      );
+    }
+    if (ChannelType.fromWire(channel.type) == ChannelType.guildCategory) {
+      return ChannelJumpRedirectGuild(guildId: channel.guildId);
     }
     final String path = buildChannelJumpRoutePath(
       channelId: link.channelId,
@@ -172,6 +195,32 @@ Future<void> _applyChannelJumpResolution({
       await container
           .read(chatViewModelProvider.notifier)
           .goToRepliedMessage(channelId: channelId, messageId: messageId);
+    case ChannelJumpOpenLink(:final channelId):
+      final BuildContext? linkContext =
+          context ?? rootNavigatorKey.currentContext;
+      if (linkContext == null || !linkContext.mounted) {
+        return;
+      }
+      final db.Channel? channel = await container
+          .read(fluxerDatabaseProvider)
+          .channelDao
+          .getChannelById(channelId);
+      if (channel == null || !linkContext.mounted) {
+        return;
+      }
+      await tryOpenLinkChannel(
+        context: linkContext,
+        container: container,
+        channel: Channel.fromRow(channel),
+      );
+    case ChannelJumpRedirectGuild(:final guildId):
+      final BuildContext? redirectContext =
+          context ?? rootNavigatorKey.currentContext;
+      if (redirectContext == null || !redirectContext.mounted) {
+        _navigateToPathViaContainer(container, RoutePaths.guild(guildId));
+        return;
+      }
+      navigateToContent(redirectContext, RoutePaths.guild(guildId));
     case ChannelJumpNavigate(:final path, :final channelId):
       final BuildContext? gateContext =
           context ?? rootNavigatorKey.currentContext;

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/category_channel_route_handler.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/link_channel_route_handler.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_content.dart';
@@ -37,6 +39,8 @@ class ChannelLayout extends ConsumerWidget {
       channelListViewModelProvider.select((s) => s.isMemberListVisible),
     );
     final Channel? channel = ref.watch(channelByIdProvider(channelId)).value;
+    final bool isLinkChannel = channel?.type == ChannelType.guildLink;
+    final bool isCategoryChannel = channel?.type == ChannelType.guildCategory;
     final bool isVoiceChannel = channel?.type == ChannelType.guildVoice;
     final isMobile = isMobileLayout(context);
     final AsyncValue<bool> showGateAsync = ref.watch(
@@ -50,6 +54,18 @@ class ChannelLayout extends ConsumerWidget {
             channelId: channelId,
             guildId: guildId,
             channelType: channel?.type,
+          )
+        : isLinkChannel && channel != null
+        ? LinkChannelRouteHandler(
+            guildId: guildId,
+            channel: channel,
+            child: const SizedBox.shrink(),
+          )
+        : isCategoryChannel && channel != null
+        ? CategoryChannelRouteHandler(
+            guildId: guildId,
+            channel: channel,
+            child: const SizedBox.shrink(),
           )
         : isVoiceChannel
         ? VoiceChannelPageView(guildId: guildId, channelId: channelId)

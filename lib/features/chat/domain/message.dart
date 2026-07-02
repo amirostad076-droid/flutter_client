@@ -572,12 +572,52 @@ class MessageReference {
   bool get isForward => type == MessageReferenceType.forward;
 }
 
+class MessageChannelMention {
+  const MessageChannelMention({
+    required this.id,
+    required this.name,
+    required this.type,
+  });
+
+  final String id;
+  final String name;
+  final int type;
+
+  factory MessageChannelMention.fromSdk(MessageChannelMentionResponse sdk) {
+    return MessageChannelMention(id: sdk.id, name: sdk.name, type: sdk.type);
+  }
+
+  factory MessageChannelMention.fromJson(Map<String, dynamic> json) {
+    return MessageChannelMention(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      type: json['type'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'id': id,
+    'name': name,
+    'type': type,
+  };
+}
+
+List<MessageChannelMention> parseMessageChannelMentions(
+  List<MessageChannelMentionResponse>? mentions,
+) {
+  if (mentions == null || mentions.isEmpty) {
+    return const <MessageChannelMention>[];
+  }
+  return mentions.map(MessageChannelMention.fromSdk).toList(growable: false);
+}
+
 class MessageSnapshot {
   final String content;
   final DateTime timestamp;
   final DateTime? editedTimestamp;
   final List<String> mentions;
   final List<String> mentionRoles;
+  final List<MessageChannelMention> mentionChannels;
   final List<Embed> embeds;
   final List<Attachment> attachments;
   final List<MessageSticker> stickers;
@@ -589,6 +629,7 @@ class MessageSnapshot {
     this.editedTimestamp,
     this.mentions = const [],
     this.mentionRoles = const [],
+    this.mentionChannels = const [],
     this.embeds = const [],
     this.attachments = const [],
     this.stickers = const [],
@@ -602,6 +643,7 @@ class MessageSnapshot {
       editedTimestamp: sdk.editedTimestamp,
       mentions: sdk.mentions ?? const [],
       mentionRoles: sdk.mentionRoles ?? const [],
+      mentionChannels: parseMessageChannelMentions(sdk.mentionChannels),
       embeds: sdk.embeds?.map(Embed.fromSdk).toList() ?? const [],
       attachments:
           sdk.attachments?.map(Attachment.fromSdk).toList() ?? const [],
@@ -629,6 +671,14 @@ class MessageSnapshot {
               ?.map((e) => e.toString())
               .toList() ??
           const [],
+      mentionChannels:
+          (json['mention_channels'] as List<dynamic>?)
+              ?.map(
+                (dynamic e) =>
+                    MessageChannelMention.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
       embeds:
           (json['embeds'] as List<dynamic>?)
               ?.map((e) => Embed.fromJson(e as Map<String, dynamic>))
@@ -654,6 +704,7 @@ class MessageSnapshot {
     'edited_timestamp': editedTimestamp?.toIso8601String(),
     'mentions': mentions,
     'mention_roles': mentionRoles,
+    'mention_channels': mentionChannels.map((e) => e.toJson()).toList(),
     'embeds': embeds.map((e) => e.toJson()).toList(),
     'attachments': attachments.map((a) => a.toJson()).toList(),
     'stickers': stickers.map((s) => s.toJson()).toList(),
@@ -688,6 +739,7 @@ class Message {
   final bool isPinned;
   final bool isMentioned;
   final List<String> mentionedUserIds;
+  final List<MessageChannelMention> mentionChannels;
   final int type;
   final int flags;
   final MessageDeliveryState deliveryState;
@@ -718,6 +770,7 @@ class Message {
     this.isPinned = false,
     this.isMentioned = false,
     this.mentionedUserIds = const [],
+    this.mentionChannels = const [],
     this.type = 0,
     this.flags = 0,
     this.deliveryState = MessageDeliveryState.sent,
@@ -761,6 +814,7 @@ class Message {
       mentionedUserIds: sdk.mentions
           .map((user) => user.id)
           .toList(growable: false),
+      mentionChannels: parseMessageChannelMentions(sdk.mentionChannels),
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
       clientNonce: sdk.nonce,
@@ -799,6 +853,7 @@ class Message {
       mentionedUserIds: sdk.mentions
           .map((user) => user.id)
           .toList(growable: false),
+      mentionChannels: parseMessageChannelMentions(sdk.mentionChannels),
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
     );
@@ -842,6 +897,7 @@ class Message {
       mentionedUserIds: sdk.mentions
           .map((user) => user.id)
           .toList(growable: false),
+      mentionChannels: parseMessageChannelMentions(sdk.mentionChannels),
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
       clientNonce: sdk.nonce,
@@ -887,6 +943,7 @@ class Message {
       mentionedUserIds: sdk.mentions
           .map((user) => user.id)
           .toList(growable: false),
+      mentionChannels: parseMessageChannelMentions(sdk.mentionChannels),
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
       clientNonce: sdk.nonce,
@@ -925,6 +982,10 @@ class Message {
       isPinned: row.pinned,
       isMentioned: row.isMentioned,
       mentionedUserIds: _decodeStringList(row.mentionedUserIdsJson),
+      mentionChannels: _decodeList(
+        row.mentionChannelsJson,
+        MessageChannelMention.fromJson,
+      ),
       type: row.type,
       flags: row.flags,
       deliveryState: MessageDeliveryState.values[row.deliveryState],
@@ -982,7 +1043,12 @@ class Message {
           (s) => s.toJson(),
         ) &&
         _referenceEquals(messageReference, other.messageReference) &&
-        _stringListEquals(mentionedUserIds, other.mentionedUserIds);
+        _stringListEquals(mentionedUserIds, other.mentionedUserIds) &&
+        _encodedListEquals<MessageChannelMention>(
+          mentionChannels,
+          other.mentionChannels,
+          (mention) => mention.toJson(),
+        );
   }
 
   static bool _encodedListEquals<T>(
@@ -1063,6 +1129,9 @@ class Message {
       pinned: Value(isPinned),
       isMentioned: Value(isMentioned),
       mentionedUserIdsJson: Value(jsonEncode(mentionedUserIds)),
+      mentionChannelsJson: Value(
+        jsonEncode(mentionChannels.map((mention) => mention.toJson()).toList()),
+      ),
       type: Value(type),
       flags: Value(flags),
       deliveryState: Value(deliveryState.index),
@@ -1095,6 +1164,7 @@ class Message {
     bool? isPinned,
     bool? isMentioned,
     List<String>? mentionedUserIds,
+    List<MessageChannelMention>? mentionChannels,
     int? type,
     int? flags,
     MessageDeliveryState? deliveryState,
@@ -1125,6 +1195,7 @@ class Message {
       isPinned: isPinned ?? this.isPinned,
       isMentioned: isMentioned ?? this.isMentioned,
       mentionedUserIds: mentionedUserIds ?? this.mentionedUserIds,
+      mentionChannels: mentionChannels ?? this.mentionChannels,
       type: type ?? this.type,
       flags: flags ?? this.flags,
       deliveryState: deliveryState ?? this.deliveryState,
@@ -1165,6 +1236,9 @@ class Message {
       isPinned: incoming.isPinned,
       isMentioned: incoming.isMentioned,
       mentionedUserIds: incoming.mentionedUserIds,
+      mentionChannels: incoming.mentionChannels.isNotEmpty
+          ? incoming.mentionChannels
+          : mentionChannels,
       type: incoming.type,
       flags: incoming.flags,
     );

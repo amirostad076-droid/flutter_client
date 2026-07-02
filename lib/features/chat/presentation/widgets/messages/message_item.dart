@@ -934,6 +934,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       messageId: msg.id,
       selectable: !isMobile,
       channelId: msg.channelId,
+      mentionChannels: msg.mentionChannels,
       revealSpoilers: revealSpoilers,
       spoilerSyncController: _spoilerSyncController,
     );
@@ -1293,6 +1294,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                   messageId: msg.id,
                   selectable: !isMobileLayout(context),
                   channelId: msg.channelId,
+                  mentionChannels: msg.mentionChannels,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
